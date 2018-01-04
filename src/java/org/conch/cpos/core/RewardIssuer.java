@@ -1,10 +1,10 @@
-package org.conch.core;
+package org.conch.cpos.core;
 
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.NxtException;
-import nxt.TransactionImpl;
-import nxt.util.Logger;
+import org.conch.Attachment;
+import org.conch.Constants;
+import org.conch.ConchException;
+import org.conch.TransactionImpl;
+import org.conch.util.Logger;
 
 import java.util.Calendar;
 import java.util.List;
@@ -31,7 +31,7 @@ public class RewardIssuer {
                     .recipientId(rewardUserId)
                     .height(height)
                     .build(FORGE_FUND_SP);
-        } catch (NxtException.NotValidException e) {
+        } catch (ConchException.NotValidException e) {
             Logger.logErrorMessage("Can't generate reward transcation[rewardUserId=" + rewardUserId + "]",e);
         }
         return null;

@@ -2,6 +2,7 @@
 .DS_Store
 .svn
 .idea*
+*.iml
 classes
 out
 contrib
