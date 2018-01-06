@@ -25,7 +25,7 @@ public class RewardIssuer {
         try {
             //transcation version=1, deadline=10,timestamp=currentTime-timeDiff
             return new TransactionImpl.BuilderImpl((byte) 1, FORGE_FUND_PK,
-                    REWARD_COUNT * Constants.ONE_NXT, 0, (short) 10,
+                    REWARD_COUNT * Constants.ONE_SS, 0, (short) 10,
                     Attachment.ORDINARY_PAYMENT)
                     .timestamp(timestamp)
                     .recipientId(rewardUserId)
