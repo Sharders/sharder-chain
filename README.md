@@ -1,5 +1,5 @@
 -----
-#欢迎使用 Sharder（Sharder chain）! `中文版` #
+#欢迎使用豆匣链（Sharder chain）! `中文版` #
 ----
 ## 豆匣链是什么? ##
 - 豆匣链是第一个部署了豆匣存储协议的商用区块链网络即0号豆匣池。
@@ -56,7 +56,7 @@
 <br/>
 
 ----
-# Welcome to Sharder（Sharder chain）! `English version`#
+# Welcome to Sharder（Sharder chain）! `English version` #
 
 ----
 ## What is Sharder? ##
