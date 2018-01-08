@@ -476,7 +476,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
     public void init(Connection conn, String schema, String trigger, String table, boolean before, int type)
                                     throws SQLException {
         //
-        // Ignore the trigger if NRS is not active or this is a temporary table copy
+        // Ignore the trigger if Conch is not active or this is a temporary table copy
         //
         if (!isActive || table.contains("_COPY_")) {
             return;
@@ -495,7 +495,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
             //
             // Get the table column information
             //
-            // NRS tables use DB_ID as the primary index
+            // Conch tables use DB_ID as the primary index
             //
             try (ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM " + table + " FROM " + schema)) {
                 int index = 0;
@@ -839,7 +839,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
      */
     private static void getIndexAccess(Connection conn) throws SQLException {
         if (!isActive) {
-            throw new SQLException("NRS is no longer active");
+            throw new SQLException("DB is no longer active");
         }
         boolean obtainedUpdateLock = false;
         if (!indexLock.writeLock().hasLock()) {
