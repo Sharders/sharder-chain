@@ -47,9 +47,9 @@
 
   - 官方网站: http://www.sharder.org
   - 邮件: hi@sharder.org
-  - Twitter: 稍后公开
-  - QQ: 稍后公开
-  - 微信: 稍后公开
+  - Twitter: @SharderChain
+  - QQ群: 578367251
+  - 微信: 豆匣协议
     
 <br/>
 <br/>
@@ -103,11 +103,11 @@ Mine and storage provide coming soon!
 ----
 ## Follow us ##
 
-  - website: http://sharder.org
-  - email: hi@sharder.org
-  - twitter: we'll public it later
-  - qq: we'll public it later
-  - wechat: we'll public it later
+  - Website: http://sharder.org
+  - Email: hi@sharder.org
+  - Twitter: @SharderChain
+  - QQ group: 578367251
+  - Wechat: sharder-protocol
     
 ----
 

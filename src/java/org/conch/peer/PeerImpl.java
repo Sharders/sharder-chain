@@ -469,7 +469,7 @@ final class PeerImpl implements Peer {
             // Create a new WebSocket session if we don't have one
             //
             if (useWebSocket && !webSocket.isOpen())
-                useWebSocket = webSocket.startClient(URI.create("ws://" + host + ":" + getPort() + "/nxt"));
+                useWebSocket = webSocket.startClient(URI.create("ws://" + host + ":" + getPort() + "/sharder"));
             //
             // Send the request and process the response
             //
@@ -498,7 +498,7 @@ final class PeerImpl implements Peer {
                 //
                 // Send the request using HTTP
                 //
-                URL url = new URL("http://" + host + ":" + getPort() + "/nxt");
+                URL url = new URL("http://" + host + ":" + getPort() + "/sharder");
                 if (communicationLoggingMask != 0)
                     log = "\"" + url.toString() + "\": " + JSON.toString(request);
                 connection = (HttpURLConnection) url.openConnection();
