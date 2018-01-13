@@ -9,7 +9,7 @@
 ----
 ##安装豆匣客户端! ##
 
-  - *cos-client* - `http://www.sharder.org/cos/client/downloads`
+  - *cos-client* - `http://sharder.org/cos/client/downloads`
 
   - *dependencies*:
     - *general* - `http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html`
@@ -37,15 +37,15 @@
 ----
 ## 改进豆匣链! ##
 
-  - 十分欢迎提出建议。
-  - 欢迎提交代码。
-  - 审查并改善代码。
+  - 十分欢迎提出建议，即将在豆匣社区开放奖金任务。
+  - 欢迎提交、审查并改善代码。
   - 有能力的开发者可以阅读 `DEVELOPERS-GUIDE.md` 为豆匣链开发。
   - 基于豆匣链构建你自己的商业应用，对我们提出改进需求。
 ----
 ## 最新信息 ##
 
-  - 官方网站: http://www.sharder.org
+  - 官方网站: http://sharder.org
+  - 官方社区: http://community.sharder.org
   - 邮件: hi@sharder.org
   - Twitter: @SharderChain
   - QQ群: 578367251
@@ -95,8 +95,7 @@ Mine and storage provide coming soon!
 ## Improve Sharder! ##
 
   - we love **pull requests**
-  - we love issues
-  - assist others on the issue tracker
+  - we love issues, assist others on the issue tracker
   - **review** existing code and pull requests
   - read `DEVELOPERS-GUIDE.md` and coding for Sharder
 
@@ -104,6 +103,7 @@ Mine and storage provide coming soon!
 ## Follow us ##
 
   - Website: http://sharder.org
+  - Community: http://community.sharder.org
   - Email: hi@sharder.org
   - Twitter: @SharderChain
   - QQ group: 578367251
