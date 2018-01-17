@@ -94,8 +94,7 @@ Mine and storage will coming soon!
 ----
 ## Improve Sharder! ##
 
-  - we love **pull requests**
-  - we love issues, assist others on the issue tracker
+  - we love **pull requests** , issues, issue tracker
   - **review** existing code and pull requests
   - read `DEVELOPERS-GUIDE.md` and coding for Sharder
 
