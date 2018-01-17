@@ -9,9 +9,9 @@
 ----
 ##安装豆匣客户端! ##
 
-  - *cos-client* - `http://sharder.org/cos/client/downloads`
+  - *客户端-待开放* - `http://sharder.org/cos/client/downloads`
 
-  - *dependencies*:
+  - *安装JDK1.8+*:
     - *general* - `http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html`
     - *Ubuntu* - `http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html`
     - *Debian* - `http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html`
@@ -68,7 +68,7 @@
 
   - *cos-client* - `http://www.sharder.org/cos/client/downloads`
 
-  - *dependencies*:
+  - *Install JDK1.8+*:
     - *general* - `http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html`
     - *Ubuntu* - `http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html`
     - *Debian* - `http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html`
@@ -89,7 +89,7 @@
 ----
 ## Start mine! ##
 
-Mine and storage provide coming soon!
+Mine and storage will coming soon!
 
 ----
 ## Improve Sharder! ##
