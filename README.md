@@ -56,7 +56,7 @@
 <br/>
 
 ----
-# Welcome to Sharder（Sharder chain）! `English version` #
+# Welcome to Sharder（Sharder chain）! #
 
 ----
 ## What is Sharder? ##
