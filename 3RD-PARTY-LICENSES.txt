@@ -1,5 +1,4 @@
-This is a list of the third party components used by the server-side code,
-and distributed with this software inside the lib directory.
+This is a list of the third party components and its license.
 
 H2:
 This software contains unmodified binary redistributions for
@@ -53,5 +52,5 @@ is licensed under the MIT license:
 https://github.com/mohamnag/javafx_webview_debugger/blob/master/LICENCE
 
 Nxt:
-Nxt is under the license:
-https://www.jelurida.com/jelurida-public-license
+Forked Nxt from https://bitbucket.org/JeanLucPicard and it is under the GPL 2.0 license:
+https://bitbucket.org/JeanLucPicard/nxt/src/a5374fa2700bdd87cb4a2c0e0dce09a0ab87e13d/LICENSE.txt
