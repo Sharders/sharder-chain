@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,12 +14,12 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.peer.Peer;
-import org.conch.util.Convert;
-import org.conch.util.JSON;
-import org.conch.util.Logger;
+import nxt.peer.Peer;
+import nxt.util.Convert;
+import nxt.util.JSON;
+import nxt.util.Logger;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
@@ -40,7 +40,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import static org.conch.http.JSONResponses.ERROR_NOT_ALLOWED;
+import static nxt.http.JSONResponses.ERROR_NOT_ALLOWED;
 
 public final class APIProxyServlet extends AsyncMiddleManServlet {
 

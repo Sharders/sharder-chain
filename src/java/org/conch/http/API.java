@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.peer.Peers;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-import org.conch.util.ThreadPool;
-import org.conch.util.UPnP;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.peer.Peers;
+import nxt.util.Convert;
+import nxt.util.Logger;
+import nxt.util.ThreadPool;
+import nxt.util.UPnP;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.SecurityHandler;
@@ -49,7 +49,7 @@ import java.net.*;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.conch.http.JSONResponses.*;
+import static nxt.http.JSONResponses.*;
 
 public final class API {
 
@@ -66,27 +66,27 @@ public final class API {
     private static final Set<String> allowedBotHosts;
     private static final List<NetworkAddress> allowedBotNets;
     private static final Map<String, PasswordCount> incorrectPasswords = new HashMap<>();
-    public static final String adminPassword = Conch.getStringProperty("sharder.adminPassword", "", true);
+    public static final String adminPassword = Nxt.getStringProperty("sharder.adminPassword", "", true);
     static final boolean disableAdminPassword;
-    static final int maxRecords = Conch.getIntProperty("sharder.maxAPIRecords");
-    static final boolean enableAPIUPnP = Conch.getBooleanProperty("sharder.enableAPIUPnP");
-    public static final int apiServerIdleTimeout = Conch.getIntProperty("sharder.apiServerIdleTimeout");
-    public static final boolean apiServerCORS = Conch.getBooleanProperty("sharder.apiServerCORS");
+    static final int maxRecords = Nxt.getIntProperty("sharder.maxAPIRecords");
+    static final boolean enableAPIUPnP = Nxt.getBooleanProperty("sharder.enableAPIUPnP");
+    public static final int apiServerIdleTimeout = Nxt.getIntProperty("sharder.apiServerIdleTimeout");
+    public static final boolean apiServerCORS = Nxt.getBooleanProperty("sharder.apiServerCORS");
 
     private static final Server apiServer;
     private static URI welcomePageUri;
     private static URI serverRootUri;
 
     static {
-        List<String> disabled = new ArrayList<>(Conch.getStringListProperty("sharder.disabledAPIs"));
+        List<String> disabled = new ArrayList<>(Nxt.getStringListProperty("sharder.disabledAPIs"));
         Collections.sort(disabled);
         disabledAPIs = Collections.unmodifiableList(disabled);
-        disabled = Conch.getStringListProperty("sharder.disabledAPITags");
+        disabled = Nxt.getStringListProperty("sharder.disabledAPITags");
         Collections.sort(disabled);
         List<APITag> apiTags = new ArrayList<>(disabled.size());
         disabled.forEach(tagName -> apiTags.add(APITag.fromDisplayName(tagName)));
         disabledAPITags = Collections.unmodifiableList(apiTags);
-        List<String> allowedBotHostsList = Conch.getStringListProperty("sharder.allowedBotHosts");
+        List<String> allowedBotHostsList = Nxt.getStringListProperty("sharder.allowedBotHosts");
         if (! allowedBotHostsList.contains("*")) {
             Set<String> hosts = new HashSet<>();
             List<NetworkAddress> nets = new ArrayList<>();
@@ -109,16 +109,16 @@ public final class API {
             allowedBotNets = null;
         }
 
-        boolean enableAPIServer = Conch.getBooleanProperty("sharder.enableAPIServer");
+        boolean enableAPIServer = Nxt.getBooleanProperty("sharder.enableAPIServer");
         if (enableAPIServer) {
-            final int port = Constants.isTestnet ? TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
-            final int sslPort = Constants.isTestnet ? TESTNET_API_SSLPORT : Conch.getIntProperty("sharder.apiServerSSLPort");
-            final String host = Conch.getStringProperty("sharder.apiServerHost");
-            disableAdminPassword = Conch.getBooleanProperty("sharder.disableAdminPassword") || ("127.0.0.1".equals(host) && adminPassword.isEmpty());
+            final int port = Constants.isTestnet ? TESTNET_API_PORT : Nxt.getIntProperty("sharder.apiServerPort");
+            final int sslPort = Constants.isTestnet ? TESTNET_API_SSLPORT : Nxt.getIntProperty("sharder.apiServerSSLPort");
+            final String host = Nxt.getStringProperty("sharder.apiServerHost");
+            disableAdminPassword = Nxt.getBooleanProperty("sharder.disableAdminPassword") || ("127.0.0.1".equals(host) && adminPassword.isEmpty());
 
             apiServer = new Server();
             ServerConnector connector;
-            boolean enableSSL = Conch.getBooleanProperty("sharder.apiSSL");
+            boolean enableSSL = Nxt.getBooleanProperty("sharder.apiSSL");
             //
             // Create the HTTP connector
             //
@@ -147,16 +147,16 @@ public final class API {
                 https_config.setSecurePort(sslPort);
                 https_config.addCustomizer(new SecureRequestCustomizer());
                 sslContextFactory = new SslContextFactory();
-                String keyStorePath = Paths.get(Conch.getUserHomeDir()).resolve(Paths.get(Conch.getStringProperty("sharder.keyStorePath"))).toString();
+                String keyStorePath = Paths.get(Nxt.getUserHomeDir()).resolve(Paths.get(Nxt.getStringProperty("sharder.keyStorePath"))).toString();
                 Logger.logInfoMessage("Using keystore: " + keyStorePath);
                 sslContextFactory.setKeyStorePath(keyStorePath);
-                sslContextFactory.setKeyStorePassword(Conch.getStringProperty("sharder.keyStorePassword", null, true));
+                sslContextFactory.setKeyStorePassword(Nxt.getStringProperty("sharder.keyStorePassword", null, true));
                 sslContextFactory.addExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA", "SSL_DHE_RSA_WITH_DES_CBC_SHA",
                         "SSL_DHE_DSS_WITH_DES_CBC_SHA", "SSL_RSA_EXPORT_WITH_RC4_40_MD5", "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
                         "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA", "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
                 sslContextFactory.addExcludeProtocols("SSLv3");
-                sslContextFactory.setKeyStoreType(Conch.getStringProperty("sharder.keyStoreType"));
-                List<String> ciphers = Conch.getStringListProperty("sharder.apiSSLCiphers");
+                sslContextFactory.setKeyStoreType(Nxt.getStringProperty("sharder.keyStoreType"));
+                List<String> ciphers = Nxt.getStringListProperty("sharder.apiSSLCiphers");
                 if (!ciphers.isEmpty()) {
                     sslContextFactory.setIncludeCipherSuites(ciphers.toArray(new String[ciphers.size()]));
                 }
@@ -184,7 +184,7 @@ public final class API {
             HandlerList apiHandlers = new HandlerList();
 
             ServletContextHandler apiHandler = new ServletContextHandler();
-            String apiResourceBase = Conch.getStringProperty("sharder.apiResourceBase");
+            String apiResourceBase = Nxt.getStringProperty("sharder.apiResourceBase");
             if (apiResourceBase != null) {
                 ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
                 defaultServletHolder.setInitParameter("dirAllowed", "false");
@@ -194,10 +194,10 @@ public final class API {
                 defaultServletHolder.setInitParameter("gzip", "true");
                 defaultServletHolder.setInitParameter("etags", "true");
                 apiHandler.addServlet(defaultServletHolder, "/*");
-                apiHandler.setWelcomeFiles(new String[]{Conch.getStringProperty("sharder.apiWelcomeFile")});
+                apiHandler.setWelcomeFiles(new String[]{Nxt.getStringProperty("sharder.apiWelcomeFile")});
             }
 
-            String javadocResourceBase = Conch.getStringProperty("sharder.javadocResourceBase");
+            String javadocResourceBase = Nxt.getStringProperty("sharder.javadocResourceBase");
             if (javadocResourceBase != null) {
                 ContextHandler contextHandler = new ContextHandler("/doc");
                 ResourceHandler docFileHandler = new ResourceHandler();
@@ -210,17 +210,17 @@ public final class API {
 
             ServletHolder servletHolder = apiHandler.addServlet(APIServlet.class, "/sharder");
             servletHolder.getRegistration().setMultipartConfig(new MultipartConfigElement(
-                    null, Math.max(Conch.getIntProperty("sharder.maxUploadFileSize"), Constants.MAX_TAGGED_DATA_DATA_LENGTH), -1L, 0));
+                    null, Math.max(Nxt.getIntProperty("sharder.maxUploadFileSize"), Constants.MAX_TAGGED_DATA_DATA_LENGTH), -1L, 0));
 
             servletHolder = apiHandler.addServlet(APIProxyServlet.class, "/sharder-proxy");
             servletHolder.setInitParameters(Collections.singletonMap("idleTimeout",
                     "" + Math.max(apiServerIdleTimeout - APIProxyServlet.PROXY_IDLE_TIMEOUT_DELTA, 0)));
             servletHolder.getRegistration().setMultipartConfig(new MultipartConfigElement(
-                    null, Math.max(Conch.getIntProperty("sharder.maxUploadFileSize"), Constants.MAX_TAGGED_DATA_DATA_LENGTH), -1L, 0));
+                    null, Math.max(Nxt.getIntProperty("sharder.maxUploadFileSize"), Constants.MAX_TAGGED_DATA_DATA_LENGTH), -1L, 0));
             apiHandler.addServlet(ShapeShiftProxyServlet.class, ShapeShiftProxyServlet.SHAPESHIFT_TARGET + "/*");
 
             GzipHandler gzipHandler = new GzipHandler();
-            if (!Conch.getBooleanProperty("sharder.enableAPIServerGZIPFilter")) {
+            if (!Nxt.getBooleanProperty("sharder.enableAPIServerGZIPFilter")) {
                 gzipHandler.setExcludedPaths("/sharder", "/sharder-proxy");
             }
             gzipHandler.setIncludedMethods("GET", "POST");
@@ -238,7 +238,7 @@ public final class API {
                 filterHolder.setAsyncSupported(true);
             }
 
-            if (Conch.getBooleanProperty("sharder.apiFrameOptionsSameOrigin")) {
+            if (Nxt.getBooleanProperty("sharder.apiFrameOptionsSameOrigin")) {
                 FilterHolder filterHolder = apiHandler.addFilter(XFrameOptionsFilter.class, "/*", null);
                 filterHolder.setAsyncSupported(true);
             }
@@ -339,7 +339,7 @@ public final class API {
     }
 
     private static void checkOrLockPassword(HttpServletRequest req) throws ParameterException {
-        int now = Conch.getEpochTime();
+        int now = Nxt.getEpochTime();
         String remoteHost = req.getRemoteHost();
         synchronized(incorrectPasswords) {
             PasswordCount passwordCount = incorrectPasswords.get(remoteHost);

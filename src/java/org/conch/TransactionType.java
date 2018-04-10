@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,13 +14,13 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.cpos.core.ConchGenesis;
-import org.conch.Account.ControlType;
-import org.conch.Attachment.AbstractAttachment;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
+import nxt.cpos.core.NxtGenesis;
+import nxt.Account.ControlType;
+import nxt.Attachment.AbstractAttachment;
+import nxt.util.Convert;
+import nxt.util.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.json.simple.JSONObject;
@@ -468,7 +468,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID && Conch.getBlockchain().getHeight() > Constants.MONETARY_SYSTEM_BLOCK) {
+                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID && Nxt.getBlockchain().getHeight() > Constants.MONETARY_SYSTEM_BLOCK) {
                     throw new ConchException.NotValidException("Sending messages to Genesis not allowed.");
                 }
             }
@@ -544,7 +544,7 @@ public abstract class TransactionType {
 
             @Override
             boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
                         && Alias.getAlias(((Attachment.MessagingAliasAssignment) transaction.getAttachment()).getAliasName()) == null
                         && isDuplicate(Messaging.ALIAS_ASSIGNMENT, "", duplicates, true);
             }
@@ -936,7 +936,7 @@ public abstract class TransactionType {
 
             @Override
             boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
                         && isDuplicate(Messaging.POLL_CREATION, getName(), duplicates, true);
             }
 
@@ -1202,8 +1202,8 @@ public abstract class TransactionType {
 
             @Override
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                if (Conch.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
-                    throw new ConchException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Conch.getBlockchain().getHeight());
+                if (Nxt.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
+                    throw new ConchException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Nxt.getBlockchain().getHeight());
                 }
                 Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
                 if (attachment.getMinFeePerByteNQT() < 0 || attachment.getMinFeePerByteNQT() > Constants.MAX_BALANCE_NQT
@@ -1288,7 +1288,7 @@ public abstract class TransactionType {
 
             @Override
             boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
                         && isDuplicate(Messaging.ACCOUNT_INFO, getName(), duplicates, true);
             }
 
@@ -1547,7 +1547,7 @@ public abstract class TransactionType {
 
             @Override
             boolean isBlockDuplicate(final Transaction transaction, final Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
                         && !isSingletonIssuance(transaction)
                         && isDuplicate(ColoredCoins.ASSET_ISSUANCE, getName(), duplicates, true);
             }
@@ -2089,9 +2089,9 @@ public abstract class TransactionType {
             @Override
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
-                if (attachment.getHeight() > Conch.getBlockchain().getHeight()) {
+                if (attachment.getHeight() > Nxt.getBlockchain().getHeight()) {
                     throw new ConchException.NotCurrentlyValidException("Invalid dividend payment height: " + attachment.getHeight()
-                            + ", must not exceed current blockchain height " + Conch.getBlockchain().getHeight());
+                            + ", must not exceed current blockchain height " + Nxt.getBlockchain().getHeight());
                 }
                 if (attachment.getHeight() <= attachment.getFinishValidationHeight(transaction) - Constants.MAX_DIVIDEND_PAYMENT_ROLLBACK) {
                     throw new ConchException.NotCurrentlyValidException("Invalid dividend payment height: " + attachment.getHeight()
@@ -2099,7 +2099,7 @@ public abstract class TransactionType {
                             + " blocks before " + attachment.getFinishValidationHeight(transaction));
                 }
                 Asset asset;
-                if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+                if (Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
                     asset = Asset.getAsset(attachment.getAssetId(), attachment.getHeight());
                 } else {
                     asset = Asset.getAsset(attachment.getAssetId());
@@ -2111,11 +2111,11 @@ public abstract class TransactionType {
                 if (asset.getAccountId() != transaction.getSenderId() || attachment.getAmountNQTPerQNT() <= 0) {
                     throw new ConchException.NotValidException("Invalid dividend payment sender or amount " + attachment.getJSONObject());
                 }
-                if (Conch.getBlockchain().getHeight() > Constants.FXT_BLOCK) {
+                if (Nxt.getBlockchain().getHeight() > Constants.FXT_BLOCK) {
                     AssetDividend lastDividend = AssetDividend.getLastDividend(attachment.getAssetId());
-                    if (lastDividend != null && lastDividend.getHeight() > Conch.getBlockchain().getHeight() - 60) {
+                    if (lastDividend != null && lastDividend.getHeight() > Nxt.getBlockchain().getHeight() - 60) {
                         throw new ConchException.NotCurrentlyValidException("Last dividend payment for asset " + Long.toUnsignedString(attachment.getAssetId())
-                                + " was less than 60 blocks ago at " + lastDividend.getHeight() + ", current height is " + Conch.getBlockchain().getHeight()
+                                + " was less than 60 blocks ago at " + lastDividend.getHeight() + ", current height is " + Nxt.getBlockchain().getHeight()
                                 + ", limit is one dividend per 60 blocks");
                     }
                 }
@@ -2124,7 +2124,7 @@ public abstract class TransactionType {
             @Override
             boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
                 Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment) transaction.getAttachment();
-                return Conch.getBlockchain().getHeight() > Constants.FXT_BLOCK &&
+                return Nxt.getBlockchain().getHeight() > Constants.FXT_BLOCK &&
                         isDuplicate(ColoredCoins.DIVIDEND_PAYMENT, Long.toUnsignedString(attachment.getAssetId()), duplicates, true);
             }
 
@@ -2250,7 +2250,7 @@ public abstract class TransactionType {
 
             @Override
             boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
                         && isDuplicate(DigitalGoods.LISTING, getName(), duplicates, true);
             }
 
@@ -2533,14 +2533,14 @@ public abstract class TransactionType {
                 if (attachment.getQuantity() > goods.getQuantity() || attachment.getPriceNQT() != goods.getPriceNQT()) {
                     throw new ConchException.NotCurrentlyValidException("Goods price or quantity changed: " + attachment.getJSONObject());
                 }
-                if (attachment.getDeliveryDeadlineTimestamp() <= Conch.getBlockchain().getLastBlockTimestamp()) {
+                if (attachment.getDeliveryDeadlineTimestamp() <= Nxt.getBlockchain().getLastBlockTimestamp()) {
                     throw new ConchException.NotCurrentlyValidException("Delivery deadline has already expired: " + attachment.getDeliveryDeadlineTimestamp());
                 }
             }
 
             @Override
             boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                if (Conch.getBlockchain().getHeight() < Constants.MONETARY_SYSTEM_BLOCK) {
+                if (Nxt.getBlockchain().getHeight() < Constants.MONETARY_SYSTEM_BLOCK) {
                     return false;
                 }
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
@@ -2873,7 +2873,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid effective balance leasing period: " + attachment.getPeriod());
                 }
                 byte[] recipientPublicKey = Account.getPublicKey(transaction.getRecipientId());
-                if (recipientPublicKey == null && Conch.getBlockchain().getHeight() > Constants.PHASING_BLOCK) {
+                if (recipientPublicKey == null && Nxt.getBlockchain().getHeight() > Constants.PHASING_BLOCK) {
                     throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "
                             + " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
                 }
@@ -3049,7 +3049,7 @@ public abstract class TransactionType {
             @Override
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.TaggedDataUpload attachment = (Attachment.TaggedDataUpload) transaction.getAttachment();
-                if (attachment.getData() == null && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
+                if (attachment.getData() == null && Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                     throw new ConchException.NotCurrentlyValidException("Data has been pruned prematurely");
                 }
                 if (attachment.getData() != null) {
@@ -3120,10 +3120,10 @@ public abstract class TransactionType {
             @Override
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.TaggedDataExtend attachment = (Attachment.TaggedDataExtend) transaction.getAttachment();
-                if ((attachment.jsonIsPruned() || attachment.getData() == null) && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
+                if ((attachment.jsonIsPruned() || attachment.getData() == null) && Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                     throw new ConchException.NotCurrentlyValidException("Data has been pruned prematurely");
                 }
-                TransactionImpl uploadTransaction = TransactionDb.findTransaction(attachment.getTaggedDataId(), Conch.getBlockchain().getHeight());
+                TransactionImpl uploadTransaction = TransactionDb.findTransaction(attachment.getTaggedDataId(), Nxt.getBlockchain().getHeight());
                 if (uploadTransaction == null) {
                     throw new ConchException.NotCurrentlyValidException("No such tagged data upload " + Long.toUnsignedString(attachment.getTaggedDataId()));
                 }
@@ -3139,7 +3139,7 @@ public abstract class TransactionType {
                     }
                 }
                 TaggedData taggedData = TaggedData.getData(attachment.getTaggedDataId());
-                if (taggedData != null && taggedData.getTransactionTimestamp() > Conch.getEpochTime() + 6 * Constants.MIN_PRUNABLE_LIFETIME) {
+                if (taggedData != null && taggedData.getTransactionTimestamp() > Nxt.getEpochTime() + 6 * Constants.MIN_PRUNABLE_LIFETIME) {
                     throw new ConchException.NotCurrentlyValidException("Data already extended, timestamp is " + taggedData.getTransactionTimestamp());
                 }
             }

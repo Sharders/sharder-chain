@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,55 +14,55 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Account;
-import org.conch.AccountLedger;
-import org.conch.AccountLedger.LedgerEntry;
-import org.conch.AccountRestrictions;
-import org.conch.Alias;
-import org.conch.Appendix;
-import org.conch.Asset;
-import org.conch.AssetDelete;
-import org.conch.AssetDividend;
-import org.conch.AssetTransfer;
-import org.conch.Attachment;
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Currency;
-import org.conch.CurrencyExchangeOffer;
-import org.conch.CurrencyFounder;
-import org.conch.CurrencyTransfer;
-import org.conch.CurrencyType;
-import org.conch.DigitalGoodsStore;
-import org.conch.Exchange;
-import org.conch.ExchangeRequest;
-import org.conch.FundingMonitor;
-import org.conch.Generator;
-import org.conch.HoldingType;
-import org.conch.MonetarySystem;
-import org.conch.Conch;
-import org.conch.Order;
-import org.conch.PhasingPoll;
-import org.conch.PhasingVote;
-import org.conch.Poll;
-import org.conch.PrunableMessage;
-import org.conch.Shuffler;
-import org.conch.Shuffling;
-import org.conch.ShufflingParticipant;
-import org.conch.TaggedData;
-import org.conch.Token;
-import org.conch.Trade;
-import org.conch.Transaction;
-import org.conch.Vote;
-import org.conch.VoteWeighting;
-import org.conch.crypto.Crypto;
-import org.conch.crypto.EncryptedData;
-import org.conch.db.DbIterator;
-import org.conch.peer.Hallmark;
-import org.conch.peer.Peer;
-import org.conch.util.Convert;
-import org.conch.util.Filter;
+import nxt.Account;
+import nxt.AccountLedger;
+import nxt.AccountLedger.LedgerEntry;
+import nxt.AccountRestrictions;
+import nxt.Alias;
+import nxt.Appendix;
+import nxt.Asset;
+import nxt.AssetDelete;
+import nxt.AssetDividend;
+import nxt.AssetTransfer;
+import nxt.Attachment;
+import nxt.Block;
+import nxt.Constants;
+import nxt.Currency;
+import nxt.CurrencyExchangeOffer;
+import nxt.CurrencyFounder;
+import nxt.CurrencyTransfer;
+import nxt.CurrencyType;
+import nxt.DigitalGoodsStore;
+import nxt.Exchange;
+import nxt.ExchangeRequest;
+import nxt.FundingMonitor;
+import nxt.Generator;
+import nxt.HoldingType;
+import nxt.MonetarySystem;
+import nxt.Nxt;
+import nxt.Order;
+import nxt.PhasingPoll;
+import nxt.PhasingVote;
+import nxt.Poll;
+import nxt.PrunableMessage;
+import nxt.Shuffler;
+import nxt.Shuffling;
+import nxt.ShufflingParticipant;
+import nxt.TaggedData;
+import nxt.Token;
+import nxt.Trade;
+import nxt.Transaction;
+import nxt.Vote;
+import nxt.VoteWeighting;
+import nxt.crypto.Crypto;
+import nxt.crypto.EncryptedData;
+import nxt.db.DbIterator;
+import nxt.peer.Hallmark;
+import nxt.peer.Peer;
+import nxt.util.Convert;
+import nxt.util.Filter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -90,7 +90,7 @@ public final class JSONData {
     }
 
     static JSONObject accountBalance(Account account, boolean includeEffectiveBalance) {
-        return accountBalance(account, includeEffectiveBalance, Conch.getBlockchain().getHeight());
+        return accountBalance(account, includeEffectiveBalance, Nxt.getBlockchain().getHeight());
     }
 
     static JSONObject accountBalance(Account account, boolean includeEffectiveBalance, int height) {
@@ -444,7 +444,7 @@ public final class JSONData {
                 for (PhasingPoll.PhasingPollResult phasingPollResult : phasingPollResults) {
                     long phasedTransactionId = phasingPollResult.getId();
                     if (includeTransactions) {
-                        phasedTransactions.add(transaction(Conch.getBlockchain().getTransaction(phasedTransactionId)));
+                        phasedTransactions.add(transaction(Nxt.getBlockchain().getTransaction(phasedTransactionId)));
                     } else {
                         phasedTransactions.add(Long.toUnsignedString(phasedTransactionId));
                     }
@@ -584,7 +584,7 @@ public final class JSONData {
             if (currency != null) {
                 json.put("decimals", currency.getDecimals());
             } else {
-                Transaction currencyIssuance = Conch.getBlockchain().getTransaction(voteWeighting.getHoldingId());
+                Transaction currencyIssuance = Nxt.getBlockchain().getTransaction(voteWeighting.getHoldingId());
                 Attachment.MonetarySystemCurrencyIssuance currencyIssuanceAttachment = (Attachment.MonetarySystemCurrencyIssuance) currencyIssuance.getAttachment();
                 json.put("decimals", currencyIssuanceAttachment.getDecimals());
             }
@@ -1006,7 +1006,7 @@ public final class JSONData {
     static JSONObject transaction(Transaction transaction, Filter<Appendix> filter) {
         JSONObject json = unconfirmedTransaction(transaction, filter);
         json.put("block", Long.toUnsignedString(transaction.getBlockId()));
-        json.put("confirmations", Conch.getBlockchain().getHeight() - transaction.getHeight());
+        json.put("confirmations", Nxt.getBlockchain().getHeight() - transaction.getHeight());
         json.put("blockTimestamp", transaction.getBlockTimestamp());
         json.put("transactionIndex", transaction.getIndex());
         return json;
@@ -1176,11 +1176,11 @@ public final class JSONData {
     }
 
     private static void putExpectedTransaction(JSONObject json, Transaction transaction) {
-        json.put("height", Conch.getBlockchain().getHeight() + 1);
+        json.put("height", Nxt.getBlockchain().getHeight() + 1);
         json.put("phased", transaction.getPhasing() != null);
         if (transaction.getBlockId() != 0) { // those values may be wrong for unconfirmed transactions
             json.put("transactionHeight", transaction.getHeight());
-            json.put("confirmations", Conch.getBlockchain().getHeight() - transaction.getHeight());
+            json.put("confirmations", Nxt.getBlockchain().getHeight() - transaction.getHeight());
         }
     }
 
@@ -1218,7 +1218,7 @@ public final class JSONData {
             }
         }
         if (includeTransactions && entry.getEvent().isTransaction()) {
-            Transaction transaction = Conch.getBlockchain().getTransaction(entry.getEventId());
+            Transaction transaction = Nxt.getBlockchain().getTransaction(entry.getEventId());
             json.put("transaction", JSONData.transaction(transaction));
         }
     }

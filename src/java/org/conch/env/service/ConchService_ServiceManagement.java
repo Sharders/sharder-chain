@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,9 +14,9 @@
  *
  */
 
-package org.conch.env.service;
+package nxt.env.service;
 
-import org.conch.Conch;
+import nxt.Nxt;
 
 import javax.swing.*;
 
@@ -24,10 +24,10 @@ import javax.swing.*;
 public class ConchService_ServiceManagement {
 
     public static boolean serviceInit() {
-        org.conch.env.LookAndFeel.init();
+        nxt.env.LookAndFeel.init();
         new Thread(() -> {
             String[] args = {};
-            Conch.main(args);
+            Nxt.main(args);
         }).start();
         return true;
     }
@@ -36,7 +36,7 @@ public class ConchService_ServiceManagement {
     public static String[] serviceGetInfo() {
         return new String[]{
                 "Conch Server", // Long name
-                "Manages the Conch cryptographic currency protocol", // Description
+                "Manages the Nxt cryptographic currency protocol", // Description
                 "true", // IsAutomatic
                 "true", // IsAcceptStop
                 "", // failure exe
@@ -51,7 +51,7 @@ public class ConchService_ServiceManagement {
     }
 
     public static boolean serviceIsCreate() {
-        return JOptionPane.showConfirmDialog(null, "Do you want to install the Conch service ?", "Create Service", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+        return JOptionPane.showConfirmDialog(null, "Do you want to install the Nxt service ?", "Create Service", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
     }
 
     public static boolean serviceIsLaunch() {
@@ -59,7 +59,7 @@ public class ConchService_ServiceManagement {
     }
 
     public static boolean serviceIsDelete() {
-        return JOptionPane.showConfirmDialog(null, "This Conch service is already installed. Do you want to delete it ?", "Delete Service", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+        return JOptionPane.showConfirmDialog(null, "This Nxt service is already installed. Do you want to delete it ?", "Delete Service", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
     }
 
     public static boolean serviceControl_Pause() {

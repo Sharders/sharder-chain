@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,9 +14,9 @@
  *
  */
 
-package org.conch.util;
+package nxt.util;
 
-import org.conch.Conch;
+import nxt.Nxt;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,7 +25,7 @@ import java.util.Properties;
 import java.util.logging.LogManager;
 
 /**
- * Handle logging for the Conch node server
+ * Handle logging for the Nxt node server
  */
 public final class Logger {
 
@@ -70,7 +70,7 @@ public final class Logger {
      */
     static {
         String oldManager = System.getProperty("java.util.logging.manager");
-        System.setProperty("java.util.logging.manager", "org.conch.util.ConchLogManager");
+        System.setProperty("java.util.logging.manager", "nxt.util.NxtLogManager");
         if (!(LogManager.getLogManager() instanceof ConchLogManager)) {
             System.setProperty("java.util.logging.manager",
                     (oldManager != null ? oldManager : "java.util.logging.LogManager"));
@@ -78,9 +78,9 @@ public final class Logger {
         if (! Boolean.getBoolean("sharder.doNotConfigureLogging")) {
             try {
                 Properties loggingProperties = new Properties();
-                Conch.loadProperties(loggingProperties, "logging-default.properties", true);
-                Conch.loadProperties(loggingProperties, "logging.properties", false);
-                Conch.updateLogFileHandler(loggingProperties);
+                Nxt.loadProperties(loggingProperties, "logging-default.properties", true);
+                Nxt.loadProperties(loggingProperties, "logging.properties", false);
+                Nxt.updateLogFileHandler(loggingProperties);
                 if (loggingProperties.size() > 0) {
                     ByteArrayOutputStream outStream = new ByteArrayOutputStream();
                     loggingProperties.store(outStream, "logging properties");
@@ -94,9 +94,9 @@ public final class Logger {
                 throw new RuntimeException("Error loading logging properties", e);
             }
         }
-        log = org.slf4j.LoggerFactory.getLogger(Conch.class);
-        enableStackTraces = Conch.getBooleanProperty("sharder.enableStackTraces");
-        enableLogTraceback = Conch.getBooleanProperty("sharder.enableLogTraceback");
+        log = org.slf4j.LoggerFactory.getLogger(Nxt.class);
+        enableStackTraces = Nxt.getBooleanProperty("sharder.enableStackTraces");
+        enableLogTraceback = Nxt.getBooleanProperty("sharder.enableLogTraceback");
         logInfoMessage("logging enabled");
     }
 
@@ -110,7 +110,7 @@ public final class Logger {
      */
     public static void shutdown() {
         if (LogManager.getLogManager() instanceof ConchLogManager) {
-            ((ConchLogManager) LogManager.getLogManager()).conchShutdown();
+            ((ConchLogManager) LogManager.getLogManager()).NxtShutdown();
         }
     }
 

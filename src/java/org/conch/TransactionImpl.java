@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,14 +14,14 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.cpos.core.ConchGenesis;
-import org.conch.crypto.Crypto;
-import org.conch.db.DbKey;
-import org.conch.util.Convert;
-import org.conch.util.Filter;
-import org.conch.util.Logger;
+import nxt.cpos.core.NxtGenesis;
+import nxt.crypto.Crypto;
+import nxt.db.DbKey;
+import nxt.util.Convert;
+import nxt.util.Filter;
+import nxt.util.Logger;
 import org.json.simple.JSONObject;
 
 import java.math.BigInteger;
@@ -78,7 +78,7 @@ final public class TransactionImpl implements Transaction {
         @Override
         public TransactionImpl build(String secretPhrase) throws ConchException.NotValidException {
             if (timestamp == Integer.MAX_VALUE) {
-                timestamp = Conch.getEpochTime();
+                timestamp = Nxt.getEpochTime();
             }
             if (!ecBlockSet) {
                 Block ecBlock = BlockchainImpl.getInstance().getECBlock(timestamp);
@@ -310,7 +310,7 @@ final public class TransactionImpl implements Transaction {
         }
         this.appendagesSize = appendagesSize;
         if (builder.feeNQT <= 0 || (Constants.correctInvalidFees && builder.signature == null)) {
-            int effectiveHeight = (height < Integer.MAX_VALUE ? height : Conch.getBlockchain().getHeight());
+            int effectiveHeight = (height < Integer.MAX_VALUE ? height : Nxt.getBlockchain().getHeight());
             long minFee = getMinimumFeeNQT(effectiveHeight);
             feeNQT = Math.max(minFee, builder.feeNQT);
         } else {
@@ -920,7 +920,7 @@ final public class TransactionImpl implements Transaction {
     private boolean useNQT() {
         return this.height > Constants.NQT_BLOCK
                 && (this.timestamp > (Constants.isTestnet ? 12908200 : 14271000)
-                || Conch.getBlockchain().getHeight() >= Constants.NQT_BLOCK);
+                || Nxt.getBlockchain().getHeight() >= Constants.NQT_BLOCK);
     }
 
     private byte[] zeroSignature(byte[] data) {
@@ -1014,7 +1014,7 @@ final public class TransactionImpl implements Transaction {
         }
 
         if (!validatingAtFinish) {
-            int blockchainHeight = Conch.getBlockchain().getHeight();
+            int blockchainHeight = Nxt.getBlockchain().getHeight();
             long minimumFeeNQT = getMinimumFeeNQT(blockchainHeight);
             if (feeNQT < minimumFeeNQT) {
                 throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f SS less than minimum fee %f SS at height %d",

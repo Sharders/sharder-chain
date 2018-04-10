@@ -1,4 +1,4 @@
-package org.conch.cpos.account;
+package nxt.cpos.account;
 
 /**
  * @author xy@ichaoj.com

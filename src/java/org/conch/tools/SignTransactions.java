@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,11 +14,11 @@
  *
  */
 
-package org.conch.tools;
+package nxt.tools;
 
-import org.conch.Conch;
-import org.conch.Transaction;
-import org.conch.util.Convert;
+import nxt.Nxt;
+import nxt.Transaction;
+import nxt.util.Convert;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -61,7 +61,7 @@ public final class SignTransactions {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     byte[] transactionBytes = Convert.parseHexString(line);
-                    Transaction.Builder builder = Conch.newTransactionBuilder(transactionBytes);
+                    Transaction.Builder builder = Nxt.newTransactionBuilder(transactionBytes);
                     Transaction transaction = builder.build(secretPhrase);
                     writer.write(Convert.toHexString(transaction.getBytes()));
                     writer.newLine();

@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,14 +14,14 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.peer.Peer;
-import org.conch.peer.Peers;
-import org.conch.util.Logger;
-import org.conch.util.ThreadPool;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.peer.Peer;
+import nxt.peer.Peers;
+import nxt.util.Logger;
+import nxt.util.ThreadPool;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,9 +33,9 @@ public class APIProxy {
     private static final APIProxy instance = new APIProxy();
 
     static final boolean enableAPIProxy = Constants.isLightClient ||
-            (Conch.getBooleanProperty("sharder.enableAPIProxy") && API.openAPIPort == 0 && API.openAPISSLPort == 0);
-    private static final int blacklistingPeriod = Conch.getIntProperty("sharder.apiProxyBlacklistingPeriod") / 1000;
-    static final String forcedServerURL = Conch.getStringProperty("sharder.forceAPIProxyServerURL", "");
+            (Nxt.getBooleanProperty("sharder.enableAPIProxy") && API.openAPIPort == 0 && API.openAPISSLPort == 0);
+    private static final int blacklistingPeriod = Nxt.getIntProperty("sharder.apiProxyBlacklistingPeriod") / 1000;
+    static final String forcedServerURL = Nxt.getStringProperty("sharder.forceAPIProxyServerURL", "");
 
     private volatile String forcedPeerHost;
     private volatile List<String> peersHosts = Collections.emptyList();
@@ -61,7 +61,7 @@ public class APIProxy {
     }
 
     private static final Runnable peersUpdateThread = () -> {
-        int curTime = Conch.getEpochTime();
+        int curTime = Nxt.getEpochTime();
         instance.blacklistedPeers.entrySet().removeIf((entry) -> {
             if (entry.getValue() < curTime) {
                 Logger.logDebugMessage("Unblacklisting API peer " + entry.getKey());
@@ -174,11 +174,11 @@ public class APIProxy {
     }
 
     static boolean isActivated() {
-        return Constants.isLightClient || (enableAPIProxy && Conch.getBlockchainProcessor().isDownloading());
+        return Constants.isLightClient || (enableAPIProxy && Nxt.getBlockchainProcessor().isDownloading());
     }
 
     void blacklistHost(String host) {
-        blacklistedPeers.put(host, Conch.getEpochTime() + blacklistingPeriod);
+        blacklistedPeers.put(host, Nxt.getEpochTime() + blacklistingPeriod);
         if (peersHosts.contains(host)) {
             peersHosts = Collections.emptyList();
             getServingPeer(null);

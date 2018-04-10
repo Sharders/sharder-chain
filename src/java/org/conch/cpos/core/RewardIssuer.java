@@ -1,10 +1,10 @@
-package org.conch.cpos.core;
+package nxt.cpos.core;
 
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.ConchException;
-import org.conch.TransactionImpl;
-import org.conch.util.Logger;
+import nxt.Attachment;
+import nxt.Constants;
+import nxt.NxtException;
+import nxt.TransactionImpl;
+import nxt.util.Logger;
 
 import java.util.Calendar;
 import java.util.List;

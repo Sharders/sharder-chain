@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,19 +14,19 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Account;
-import org.conch.ConchException;
-import org.conch.crypto.EncryptedData;
-import org.conch.util.Convert;
+import nxt.Account;
+import nxt.NxtException;
+import nxt.crypto.EncryptedData;
+import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_MESSAGE_TO_ENCRYPT;
-import static org.conch.http.JSONResponses.INCORRECT_RECIPIENT;
-import static org.conch.http.JSONResponses.MISSING_MESSAGE_TO_ENCRYPT;
+import static nxt.http.JSONResponses.INCORRECT_MESSAGE_TO_ENCRYPT;
+import static nxt.http.JSONResponses.INCORRECT_RECIPIENT;
+import static nxt.http.JSONResponses.MISSING_MESSAGE_TO_ENCRYPT;
 
 public final class EncryptTo extends APIServlet.APIRequestHandler {
 

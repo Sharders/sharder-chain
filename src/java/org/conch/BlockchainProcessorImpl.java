@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,18 +14,18 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.cpos.core.ConchGenesis;
-import org.conch.cpos.core.RewardIssuer;
-import org.conch.crypto.Crypto;
-import org.conch.db.DbIterator;
-import org.conch.db.DerivedDbTable;
-import org.conch.db.FilteringIterator;
-import org.conch.db.FullTextTrigger;
-import org.conch.peer.Peer;
-import org.conch.peer.Peers;
-import org.conch.util.*;
+import nxt.cpos.core.NxtGenesis;
+import nxt.cpos.core.RewardIssuer;
+import nxt.crypto.Crypto;
+import nxt.db.DbIterator;
+import nxt.db.DerivedDbTable;
+import nxt.db.FilteringIterator;
+import nxt.db.FullTextTrigger;
+import nxt.peer.Peer;
+import nxt.peer.Peers;
+import nxt.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -156,10 +156,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final ExecutorService networkService = Executors.newCachedThreadPool();
     private final List<DerivedDbTable> derivedTables = new CopyOnWriteArrayList<>();
-    private final boolean trimDerivedTables = Conch.getBooleanProperty("sharder.trimDerivedTables");
-    private final int defaultNumberOfForkConfirmations = Conch.getIntProperty(Constants.isTestnet
+    private final boolean trimDerivedTables = Nxt.getBooleanProperty("sharder.trimDerivedTables");
+    private final int defaultNumberOfForkConfirmations = Nxt.getIntProperty(Constants.isTestnet
             ? "sharder.testnetNumberOfForkConfirmations" : "sharder.numberOfForkConfirmations");
-    private final boolean simulateEndlessDownload = Conch.getBooleanProperty("sharder.simulateEndlessDownload");
+    private final boolean simulateEndlessDownload = Nxt.getBooleanProperty("sharder.simulateEndlessDownload");
 
     private int initialScanHeight;
     private volatile int lastTrimHeight;
@@ -217,7 +217,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 //
                 // Restore prunable data
                 //
-                int now = Conch.getEpochTime();
+                int now = Nxt.getEpochTime();
                 if (!isRestoring && !prunableTransactions.isEmpty() && now - lastRestoreTime > 60 * 60) {
                     isRestoring = true;
                     lastRestoreTime = now;
@@ -946,7 +946,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     if (transactions == null || transactions.isEmpty()) {
                         return;
                     }
-                    List<Transaction> processed = Conch.getTransactionProcessor().restorePrunableData(transactions);
+                    List<Transaction> processed = Nxt.getTransactionProcessor().restorePrunableData(transactions);
                     //
                     // Remove transactions that have been successfully processed
                     //
@@ -1017,7 +1017,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     };
 
     private BlockchainProcessorImpl() {
-        final int trimFrequency = Conch.getIntProperty("sharder.trimFrequency");
+        final int trimFrequency = Nxt.getIntProperty("sharder.trimFrequency");
         blockListeners.addListener(block -> {
             if (block.getHeight() % 5000 == 0) {
                 Logger.logMessage("processed block " + block.getHeight());
@@ -1051,8 +1051,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             alreadyInitialized = true;
             if (addConchGenesisBlock()) {
                 scan(0, false);
-            } else if (Conch.getBooleanProperty("sharder.forceScan")) {
-                scan(0, Conch.getBooleanProperty("sharder.forceValidate"));
+            } else if (Nxt.getBooleanProperty("sharder.forceScan")) {
+                scan(0, Nxt.getBooleanProperty("sharder.forceValidate"));
             } else {
                 boolean rescan;
                 boolean validate;
@@ -1092,7 +1092,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     @Override
     public void registerDerivedTable(DerivedDbTable table) {
         if (alreadyInitialized) {
-            throw new IllegalStateException("Too late to register table " + table + ", must have done it in Conch.Init");
+            throw new IllegalStateException("Too late to register table " + table + ", must have done it in Nxt.Init");
         }
         derivedTables.add(table);
     }
@@ -1234,7 +1234,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     public int restorePrunedData() {
         Db.db.beginTransaction();
         try (Connection con = Db.db.getConnection()) {
-            int now = Conch.getEpochTime();
+            int now = Nxt.getEpochTime();
             int minTimestamp = Math.max(1, now - Constants.MAX_PRUNABLE_LIFETIME);
             int maxTimestamp = Math.max(minTimestamp, now - Constants.MIN_PRUNABLE_LIFETIME) - 1;
             List<TransactionDb.PrunableTransaction> transactionList =
@@ -1307,7 +1307,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 continue;
             }
             try {
-                List<Transaction> processed = Conch.getTransactionProcessor().restorePrunableData(transactions);
+                List<Transaction> processed = Nxt.getTransactionProcessor().restorePrunableData(transactions);
                 if (processed.isEmpty()) {
                     continue;
                 }
@@ -1426,7 +1426,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException {
 
-        int curTime = Conch.getEpochTime();
+        int curTime = Nxt.getEpochTime();
 
         blockchain.writeLock();
         try {
@@ -1648,7 +1648,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             block.apply();
             validPhasedTransactions.forEach(transaction -> transaction.getPhasing().countVotes(transaction));
             invalidPhasedTransactions.forEach(transaction -> transaction.getPhasing().reject(transaction));
-            int fromTimestamp = Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
+            int fromTimestamp = Nxt.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
             for (TransactionImpl transaction : block.getTransactions()) {
                 try {
                     transaction.apply();
@@ -1809,7 +1809,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     private int getBlockVersion(int previousBlockHeight) {
         return previousBlockHeight < Constants.TRANSPARENT_FORGING_BLOCK ? 1
                 : previousBlockHeight < Constants.NQT_BLOCK ? 2
-                : previousBlockHeight < Constants.CONCH_BV_BLOCK ? 3
+                : previousBlockHeight < Constants.Nxt_BV_BLOCK ? 3
                 : 7;
     }
 
@@ -2094,7 +2094,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 List<TransactionImpl> invalidPhasedTransactions = new ArrayList<>();
                                 validatePhasedTransactions(blockchain.getHeight(), validPhasedTransactions, invalidPhasedTransactions, duplicates);
                                 if (validate && currentBlockId != ConchGenesis.GENESIS_BLOCK_ID) {
-                                    int curTime = Conch.getEpochTime();
+                                    int curTime = Nxt.getEpochTime();
                                     validate(currentBlock, blockchain.getLastBlock(), curTime);
                                     byte[] blockBytes = currentBlock.bytes();
                                     JSONObject blockJSON = (JSONObject) JSONValue.parse(currentBlock.getJSONObject().toJSONString());

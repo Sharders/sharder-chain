@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,32 +14,32 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Account;
-import org.conch.Appendix;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.PhasingParams;
-import org.conch.Transaction;
-import org.conch.crypto.Crypto;
-import org.conch.util.Convert;
+import nxt.Account;
+import nxt.Appendix;
+import nxt.Attachment;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.NxtException;
+import nxt.PhasingParams;
+import nxt.Transaction;
+import nxt.crypto.Crypto;
+import nxt.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
-import static org.conch.http.JSONResponses.FEATURE_NOT_AVAILABLE;
-import static org.conch.http.JSONResponses.INCORRECT_DEADLINE;
-import static org.conch.http.JSONResponses.INCORRECT_EC_BLOCK;
-import static org.conch.http.JSONResponses.INCORRECT_LINKED_FULL_HASH;
-import static org.conch.http.JSONResponses.INCORRECT_WHITELIST;
-import static org.conch.http.JSONResponses.MISSING_DEADLINE;
-import static org.conch.http.JSONResponses.MISSING_SECRET_PHRASE;
-import static org.conch.http.JSONResponses.NOT_ENOUGH_FUNDS;
+import static nxt.http.JSONResponses.FEATURE_NOT_AVAILABLE;
+import static nxt.http.JSONResponses.INCORRECT_DEADLINE;
+import static nxt.http.JSONResponses.INCORRECT_EC_BLOCK;
+import static nxt.http.JSONResponses.INCORRECT_LINKED_FULL_HASH;
+import static nxt.http.JSONResponses.INCORRECT_WHITELIST;
+import static nxt.http.JSONResponses.MISSING_DEADLINE;
+import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE;
+import static nxt.http.JSONResponses.NOT_ENOUGH_FUNDS;
 
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
@@ -87,8 +87,8 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     private Appendix.Phasing parsePhasing(HttpServletRequest req) throws ParameterException {
         int finishHeight = ParameterParser.getInt(req, "phasingFinishHeight",
-                Conch.getBlockchain().getHeight() + 1,
-                Conch.getBlockchain().getHeight() + Constants.MAX_PHASING_DURATION + 1,
+                Nxt.getBlockchain().getHeight() + 1,
+                Nxt.getBlockchain().getHeight() + Constants.MAX_PHASING_DURATION + 1,
                 true);
         
         PhasingParams phasingParams = parsePhasingParams(req, "phasing");
@@ -187,11 +187,11 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         long feeNQT = ParameterParser.getFeeNQT(req);
         int ecBlockHeight = ParameterParser.getInt(req, "ecBlockHeight", 0, Integer.MAX_VALUE, false);
         long ecBlockId = ParameterParser.getUnsignedLong(req, "ecBlockId", false);
-        if (ecBlockId != 0 && ecBlockId != Conch.getBlockchain().getBlockIdAtHeight(ecBlockHeight)) {
+        if (ecBlockId != 0 && ecBlockId != Nxt.getBlockchain().getBlockIdAtHeight(ecBlockHeight)) {
             return INCORRECT_EC_BLOCK;
         }
         if (ecBlockId == 0 && ecBlockHeight > 0) {
-            ecBlockId = Conch.getBlockchain().getBlockIdAtHeight(ecBlockHeight);
+            ecBlockId = Nxt.getBlockchain().getBlockIdAtHeight(ecBlockHeight);
         }
 
         JSONObject response = new JSONObject();
@@ -200,7 +200,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
 
         try {
-            Transaction.Builder builder = Conch.newTransactionBuilder(publicKey, amountNQT, feeNQT,
+            Transaction.Builder builder = Nxt.newTransactionBuilder(publicKey, amountNQT, feeNQT,
                     deadline, attachment).referencedTransactionFullHash(referencedTransactionFullHash);
             if (attachment.getTransactionType().canHaveRecipient()) {
                 builder.recipientId(recipientId);
@@ -236,7 +236,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 response.put("signatureHash", transactionJSON.get("signatureHash"));
             }
             if (broadcast) {
-                Conch.getTransactionProcessor().broadcast(transaction);
+                Nxt.getTransactionProcessor().broadcast(transaction);
                 response.put("broadcasted", true);
             } else {
                 transaction.validate();

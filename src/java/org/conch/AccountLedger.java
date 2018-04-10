@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,14 +14,14 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.db.DbUtils;
-import org.conch.db.DerivedDbTable;
-import org.conch.util.Convert;
-import org.conch.util.Listener;
-import org.conch.util.Listeners;
-import org.conch.util.Logger;
+import nxt.db.DbUtils;
+import nxt.db.DerivedDbTable;
+import nxt.util.Convert;
+import nxt.util.Listener;
+import nxt.util.Listeners;
+import nxt.util.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -54,22 +54,22 @@ public class AccountLedger {
     private static final int logUnconfirmed;
 
     /** Number of blocks to keep when trimming */
-    public static final int trimKeep = Conch.getIntProperty("sharder.ledgerTrimKeep", 30000);
+    public static final int trimKeep = Nxt.getIntProperty("sharder.ledgerTrimKeep", 30000);
 
     /** Blockchain */
-    private static final Blockchain blockchain = Conch.getBlockchain();
+    private static final Blockchain blockchain = Nxt.getBlockchain();
 
     /** Blockchain processor */
-    private static final BlockchainProcessor blockchainProcessor = Conch.getBlockchainProcessor();
+    private static final BlockchainProcessor blockchainProcessor = Nxt.getBlockchainProcessor();
 
     /** Pending ledger entries */
     private static final List<LedgerEntry> pendingEntries = new ArrayList<>();
 
     /**
-     * Process org.conch.ledgerAccounts
+     * Process nxt.ledgerAccounts
      */
     static {
-        List<String> ledgerAccounts = Conch.getStringListProperty("sharder.ledgerAccounts");
+        List<String> ledgerAccounts = Nxt.getStringListProperty("sharder.ledgerAccounts");
         ledgerEnabled = !ledgerAccounts.isEmpty();
         trackAllAccounts = ledgerAccounts.contains("*");
         if (ledgerEnabled) {
@@ -88,7 +88,7 @@ public class AccountLedger {
         } else {
             Logger.logInfoMessage("Account ledger is not enabled");
         }
-        int temp = Conch.getIntProperty("sharder.ledgerLogUnconfirmed", 1);
+        int temp = Nxt.getIntProperty("sharder.ledgerLogUnconfirmed", 1);
         logUnconfirmed = (temp >= 0 && temp <= 2 ? temp : 1);
     }
 
@@ -141,7 +141,7 @@ public class AccountLedger {
     /**
      * Initialization
      *
-     * We don't do anything but we need to be called from Conch.init() in order to
+     * We don't do anything but we need to be called from Nxt.init() in order to
      * register our table
      */
     static void init() {

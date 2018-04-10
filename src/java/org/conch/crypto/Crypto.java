@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,7 +14,7 @@
  *
  */
 
-package org.conch.crypto;
+package nxt.crypto;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -26,9 +26,9 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.bouncycastle.jcajce.provider.digest.RIPEMD160;
-import org.conch.Conch;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
+import nxt.Nxt;
+import nxt.util.Convert;
+import nxt.util.Logger;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -37,7 +37,7 @@ import java.util.Arrays;
 
 public final class Crypto {
 
-    private static final boolean useStrongSecureRandom = Conch.getBooleanProperty("sharder.useStrongSecureRandom");
+    private static final boolean useStrongSecureRandom = Nxt.getBooleanProperty("sharder.useStrongSecureRandom");
 
     private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<SecureRandom>() {
         @Override

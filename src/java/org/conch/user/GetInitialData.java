@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,16 +14,16 @@
  *
  */
 
-package org.conch.user;
+package nxt.user;
 
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.Transaction;
-import org.conch.db.DbIterator;
-import org.conch.peer.Peer;
-import org.conch.peer.Peers;
-import org.conch.util.Convert;
+import nxt.Block;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.Transaction;
+import nxt.db.DbIterator;
+import nxt.peer.Peer;
+import nxt.peer.Peers;
+import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -45,7 +45,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
 
-        try (DbIterator<? extends Transaction> transactions = Conch.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transactions.hasNext()) {
                 Transaction transaction = transactions.next();
 
@@ -100,7 +100,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        try (DbIterator<? extends Block> lastBlocks = Conch.getBlockchain().getBlocks(0, 59)) {
+        try (DbIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
             for (Block block : lastBlocks) {
                 JSONObject recentBlock = new JSONObject();
                 recentBlock.put("index", Users.getIndex(block));
@@ -122,7 +122,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
 
         JSONObject response = new JSONObject();
         response.put("response", "processInitialData");
-        response.put("version", Conch.VERSION);
+        response.put("version", Nxt.VERSION);
         if (unconfirmedTransactions.size() > 0) {
             response.put("unconfirmedTransactions", unconfirmedTransactions);
         }

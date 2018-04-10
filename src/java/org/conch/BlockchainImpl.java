@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,13 +14,13 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.db.DbIterator;
-import org.conch.db.DbUtils;
-import org.conch.util.Convert;
-import org.conch.util.Filter;
-import org.conch.util.ReadWriteUpdateLock;
+import nxt.db.DbIterator;
+import nxt.db.DbUtils;
+import nxt.util.Convert;
+import nxt.util.Filter;
+import nxt.util.ReadWriteUpdateLock;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -483,8 +483,8 @@ final class BlockchainImpl implements Blockchain {
                 pstmt.setInt(++i, height);
             }
             int prunableExpiration = Math.max(0, Constants.INCLUDE_EXPIRED_PRUNABLE && includeExpiredPrunable ?
-                                        Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME :
-                                        Conch.getEpochTime() - Constants.MIN_PRUNABLE_LIFETIME);
+                                        Nxt.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME :
+                                        Nxt.getEpochTime() - Constants.MIN_PRUNABLE_LIFETIME);
             if (withMessage) {
                 pstmt.setInt(++i, prunableExpiration);
             }

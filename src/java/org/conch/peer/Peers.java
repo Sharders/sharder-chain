@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,25 +14,25 @@
  *
  */
 
-package org.conch.peer;
+package nxt.peer;
 
-import org.conch.Account;
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Db;
-import org.conch.Conch;
-import org.conch.Transaction;
-import org.conch.http.API;
-import org.conch.http.APIEnum;
-import org.conch.util.Convert;
-import org.conch.util.Filter;
-import org.conch.util.JSON;
-import org.conch.util.Listener;
-import org.conch.util.Listeners;
-import org.conch.util.Logger;
-import org.conch.util.QueuedThreadPool;
-import org.conch.util.ThreadPool;
-import org.conch.util.UPnP;
+import nxt.Account;
+import nxt.Block;
+import nxt.Constants;
+import nxt.Db;
+import nxt.Nxt;
+import nxt.Transaction;
+import nxt.http.API;
+import nxt.http.APIEnum;
+import nxt.util.Convert;
+import nxt.util.Filter;
+import nxt.util.JSON;
+import nxt.util.Listener;
+import nxt.util.Listeners;
+import nxt.util.Logger;
+import nxt.util.QueuedThreadPool;
+import nxt.util.ThreadPool;
+import nxt.util.UPnP;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -129,7 +129,7 @@ public final class Peers {
     static final int MAX_APPLICATION_LENGTH = 20;
     static final int MAX_PLATFORM_LENGTH = 30;
     static final int MAX_ANNOUNCED_ADDRESS_LENGTH = 100;
-    static final boolean hideErrorDetails = Conch.getBooleanProperty("sharder.hideErrorDetails");
+    static final boolean hideErrorDetails = Nxt.getBooleanProperty("sharder.hideErrorDetails");
 
     private static final JSONObject myPeerInfo;
     private static final List<Peer.Service> myServices;
@@ -149,12 +149,12 @@ public final class Peers {
 
     static {
 
-        String platform = Conch.getStringProperty("sharder.myPlatform", System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+        String platform = Nxt.getStringProperty("sharder.myPlatform", System.getProperty("os.name") + " " + System.getProperty("os.arch"));
         if (platform.length() > MAX_PLATFORM_LENGTH) {
             platform = platform.substring(0, MAX_PLATFORM_LENGTH);
         }
         myPlatform = platform;
-        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
+        myAddress = Convert.emptyToNull(Nxt.getStringProperty("sharder.myAddress", "").trim());
         if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
@@ -201,13 +201,13 @@ public final class Peers {
                 Logger.logWarningMessage("Your announced address is not valid: " + e.toString());
             }
         }
-        myPeerServerPort = Conch.getIntProperty("sharder.peerServerPort");
+        myPeerServerPort = Nxt.getIntProperty("sharder.peerServerPort");
         if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
-        shareMyAddress = Conch.getBooleanProperty("sharder.shareMyAddress") && ! Constants.isOffline;
-        enablePeerUPnP = Conch.getBooleanProperty("sharder.enablePeerUPnP");
-        myHallmark = Convert.emptyToNull(Conch.getStringProperty("sharder.myHallmark", "").trim());
+        shareMyAddress = Nxt.getBooleanProperty("sharder.shareMyAddress") && ! Constants.isOffline;
+        enablePeerUPnP = Nxt.getBooleanProperty("sharder.enablePeerUPnP");
+        myHallmark = Convert.emptyToNull(Nxt.getStringProperty("sharder.myHallmark", "").trim());
         if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
             try {
                 Hallmark hallmark = Hallmark.parseHallmark(Peers.myHallmark);
@@ -256,8 +256,8 @@ public final class Peers {
             json.put("hallmark", Peers.myHallmark);
             servicesList.add(Peer.Service.HALLMARK);
         }
-        json.put("application", Conch.APPLICATION);
-        json.put("version", Conch.VERSION);
+        json.put("application", Nxt.APPLICATION);
+        json.put("version", Nxt.VERSION);
         json.put("platform", Peers.myPlatform);
         json.put("shareAddress", Peers.shareMyAddress);
         if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
@@ -306,40 +306,40 @@ public final class Peers {
         Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
         myPeerInfo = json;
 
-        final List<String> defaultPeers = Constants.isTestnet ? Conch.getStringListProperty("sharder.defaultTestnetPeers")
-                : Conch.getStringListProperty("sharder.defaultPeers");
-        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnet ? Conch.getStringListProperty("sharder.testnetPeers")
-                : Conch.getStringListProperty("sharder.wellKnownPeers"));
+        final List<String> defaultPeers = Constants.isTestnet ? Nxt.getStringListProperty("sharder.defaultTestnetPeers")
+                : Nxt.getStringListProperty("sharder.defaultPeers");
+        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnet ? Nxt.getStringListProperty("sharder.testnetPeers")
+                : Nxt.getStringListProperty("sharder.wellKnownPeers"));
 
-        List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
+        List<String> knownBlacklistedPeersList = Nxt.getStringListProperty("sharder.knownBlacklistedPeers");
         if (knownBlacklistedPeersList.isEmpty()) {
             knownBlacklistedPeers = Collections.emptySet();
         } else {
             knownBlacklistedPeers = Collections.unmodifiableSet(new HashSet<>(knownBlacklistedPeersList));
         }
 
-        maxNumberOfInboundConnections = Conch.getIntProperty("sharder.maxNumberOfInboundConnections");
-        maxNumberOfOutboundConnections = Conch.getIntProperty("sharder.maxNumberOfOutboundConnections");
-        maxNumberOfConnectedPublicPeers = Math.min(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"),
+        maxNumberOfInboundConnections = Nxt.getIntProperty("sharder.maxNumberOfInboundConnections");
+        maxNumberOfOutboundConnections = Nxt.getIntProperty("sharder.maxNumberOfOutboundConnections");
+        maxNumberOfConnectedPublicPeers = Math.min(Nxt.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"),
                 maxNumberOfOutboundConnections);
-        maxNumberOfKnownPeers = Conch.getIntProperty("sharder.maxNumberOfKnownPeers");
-        minNumberOfKnownPeers = Conch.getIntProperty("sharder.minNumberOfKnownPeers");
-        connectTimeout = Conch.getIntProperty("sharder.connectTimeout");
-        readTimeout = Conch.getIntProperty("sharder.readTimeout");
-        enableHallmarkProtection = Conch.getBooleanProperty("sharder.enableHallmarkProtection") && !Constants.isLightClient;
-        pushThreshold = Conch.getIntProperty("sharder.pushThreshold");
-        pullThreshold = Conch.getIntProperty("sharder.pullThreshold");
-        useWebSockets = Conch.getBooleanProperty("sharder.useWebSockets");
-        webSocketIdleTimeout = Conch.getIntProperty("sharder.webSocketIdleTimeout");
-        isGzipEnabled = Conch.getBooleanProperty("sharder.enablePeerServerGZIPFilter");
-        blacklistingPeriod = Conch.getIntProperty("sharder.blacklistingPeriod") / 1000;
-        communicationLoggingMask = Conch.getIntProperty("sharder.communicationLoggingMask");
-        sendToPeersLimit = Conch.getIntProperty("sharder.sendToPeersLimit");
-        usePeersDb = Conch.getBooleanProperty("sharder.usePeersDb") && ! Constants.isOffline;
-        savePeers = usePeersDb && Conch.getBooleanProperty("sharder.savePeers");
-        getMorePeers = Conch.getBooleanProperty("sharder.getMorePeers");
-        cjdnsOnly = Conch.getBooleanProperty("sharder.cjdnsOnly");
-        ignorePeerAnnouncedAddress = Conch.getBooleanProperty("sharder.ignorePeerAnnouncedAddress");
+        maxNumberOfKnownPeers = Nxt.getIntProperty("sharder.maxNumberOfKnownPeers");
+        minNumberOfKnownPeers = Nxt.getIntProperty("sharder.minNumberOfKnownPeers");
+        connectTimeout = Nxt.getIntProperty("sharder.connectTimeout");
+        readTimeout = Nxt.getIntProperty("sharder.readTimeout");
+        enableHallmarkProtection = Nxt.getBooleanProperty("sharder.enableHallmarkProtection") && !Constants.isLightClient;
+        pushThreshold = Nxt.getIntProperty("sharder.pushThreshold");
+        pullThreshold = Nxt.getIntProperty("sharder.pullThreshold");
+        useWebSockets = Nxt.getBooleanProperty("sharder.useWebSockets");
+        webSocketIdleTimeout = Nxt.getIntProperty("sharder.webSocketIdleTimeout");
+        isGzipEnabled = Nxt.getBooleanProperty("sharder.enablePeerServerGZIPFilter");
+        blacklistingPeriod = Nxt.getIntProperty("sharder.blacklistingPeriod") / 1000;
+        communicationLoggingMask = Nxt.getIntProperty("sharder.communicationLoggingMask");
+        sendToPeersLimit = Nxt.getIntProperty("sharder.sendToPeersLimit");
+        usePeersDb = Nxt.getBooleanProperty("sharder.usePeersDb") && ! Constants.isOffline;
+        savePeers = usePeersDb && Nxt.getBooleanProperty("sharder.savePeers");
+        getMorePeers = Nxt.getBooleanProperty("sharder.getMorePeers");
+        cjdnsOnly = Nxt.getBooleanProperty("sharder.cjdnsOnly");
+        ignorePeerAnnouncedAddress = Nxt.getBooleanProperty("sharder.ignorePeerAnnouncedAddress");
         if (useWebSockets && useProxy) {
             Logger.logMessage("Using a proxy, will not create outbound websockets.");
         }
@@ -353,7 +353,7 @@ public final class Peers {
 
                 @Override
                 public void run() {
-                    final int now = Conch.getEpochTime();
+                    final int now = Nxt.getEpochTime();
                     wellKnownPeers.forEach(address -> entries.add(new PeerDb.Entry(address, 0, now)));
                     if (usePeersDb) {
                         Logger.logDebugMessage("Loading known peers from the database...");
@@ -415,9 +415,9 @@ public final class Peers {
                 ServerConnector connector = new ServerConnector(peerServer);
                 final int port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
                 connector.setPort(port);
-                final String host = Conch.getStringProperty("sharder.peerServerHost");
+                final String host = Nxt.getStringProperty("sharder.peerServerHost");
                 connector.setHost(host);
-                connector.setIdleTimeout(Conch.getIntProperty("sharder.peerServerIdleTimeout"));
+                connector.setIdleTimeout(Nxt.getIntProperty("sharder.peerServerIdleTimeout"));
                 connector.setReuseAddress(true);
                 peerServer.addConnector(connector);
 
@@ -427,12 +427,12 @@ public final class Peers {
                 ServletHolder peerServletHolder = new ServletHolder(new PeerServlet());
                 ctxHandler.addServlet(peerServletHolder, "/*");
 
-                if (Conch.getBooleanProperty("sharder.enablePeerServerDoSFilter")) {
+                if (Nxt.getBooleanProperty("sharder.enablePeerServerDoSFilter")) {
                     FilterHolder dosFilterHolder = ctxHandler.addFilter(DoSFilter.class, "/*",
                             EnumSet.of(DispatcherType.REQUEST));
-                    dosFilterHolder.setInitParameter("maxRequestsPerSec", Conch.getStringProperty("sharder.peerServerDoSFilter.maxRequestsPerSec"));
-                    dosFilterHolder.setInitParameter("delayMs", Conch.getStringProperty("sharder.peerServerDoSFilter.delayMs"));
-                    dosFilterHolder.setInitParameter("maxRequestMs", Conch.getStringProperty("sharder.peerServerDoSFilter.maxRequestMs"));
+                    dosFilterHolder.setInitParameter("maxRequestsPerSec", Nxt.getStringProperty("sharder.peerServerDoSFilter.maxRequestsPerSec"));
+                    dosFilterHolder.setInitParameter("delayMs", Nxt.getStringProperty("sharder.peerServerDoSFilter.delayMs"));
+                    dosFilterHolder.setInitParameter("maxRequestMs", Nxt.getStringProperty("sharder.peerServerDoSFilter.maxRequestMs"));
                     dosFilterHolder.setInitParameter("trackSessions", "false");
                     dosFilterHolder.setAsyncSupported(true);
                 }
@@ -480,7 +480,7 @@ public final class Peers {
         try {
             try {
 
-                int curTime = Conch.getEpochTime();
+                int curTime = Nxt.getEpochTime();
                 for (PeerImpl peer : peers.values()) {
                     peer.updateBlacklistedStatus(curTime);
                 }
@@ -503,7 +503,7 @@ public final class Peers {
             try {
                 try {
 
-                    final int now = Conch.getEpochTime();
+                    final int now = Nxt.getEpochTime();
                     if (!hasEnoughConnectedPublicPeers(Peers.maxNumberOfConnectedPublicPeers)) {
                         List<Future<?>> futures = new ArrayList<>();
                         List<Peer> hallmarkedPeers = getPeers(peer -> !peer.isBlacklisted()
@@ -638,7 +638,7 @@ public final class Peers {
                     if (peers != null) {
                         JSONArray services = (JSONArray)response.get("services");
                         boolean setServices = (services != null && services.size() == peers.size());
-                        int now = Conch.getEpochTime();
+                        int now = Nxt.getEpochTime();
                         for (int i=0; i<peers.size(); i++) {
                             String announcedAddress = (String)peers.get(i);
                             PeerImpl newPeer = findOrCreatePeer(announcedAddress, true);
@@ -692,7 +692,7 @@ public final class Peers {
         }
 
         private void updateSavedPeers() {
-            int now = Conch.getEpochTime();
+            int now = Nxt.getEpochTime();
             //
             // Load the current database entries and map announced address to database entry
             //
@@ -1138,7 +1138,7 @@ public final class Peers {
 
     private static final int[] MAX_VERSION;
     static {
-        String version = Conch.VERSION;
+        String version = Nxt.VERSION;
         if (version.endsWith("e")) {
             version = version.substring(0, version.length() - 1);
         }
@@ -1230,9 +1230,9 @@ public final class Peers {
     private static void checkBlockchainState() {
         Peer.BlockchainState state = Constants.isLightClient ? Peer.BlockchainState.LIGHT_CLIENT :
                 //区块链处于下载中 or 区块链中最后一个块的创建时间小于创世块(2013-10-24 12:00:00)的时间 -> 下载中
-                (Conch.getBlockchainProcessor().isDownloading() || Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
+                (Nxt.getBlockchainProcessor().isDownloading() || Nxt.getBlockchain().getLastBlockTimestamp() < Nxt.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
                         //区块链中最后一个块的基础难度除以基础难度大于10并且不是测试网络 -> 分叉 : 最新的
-                        (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet) ? Peer.BlockchainState.FORK :
+                        (Nxt.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet) ? Peer.BlockchainState.FORK :
                         Peer.BlockchainState.UP_TO_DATE;
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);

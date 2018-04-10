@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,11 +14,11 @@
  *
  */
 
-package org.conch.tools;
+package nxt.tools;
 
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.util.Logger;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.util.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,11 +32,11 @@ import java.sql.Statement;
  *
  * To run the database compact tool on Linux or Mac:
  *
- *   java -cp "classes:lib/*:conf" org.conch.tools.CompactDatabase
+ *   java -cp "classes:lib/*:conf" nxt.tools.CompactDatabase
  *
  * To run the database compact tool on Windows:
  *
- *   java -cp "classes;lib/*;conf" -Dsharder.runtime.mode=desktop org.conch.tools.CompactDatabase
+ *   java -cp "classes;lib/*;conf" -Dsharder.runtime.mode=desktop nxt.tools.CompactDatabase
  */
 public class CompactDatabase {
 
@@ -47,7 +47,7 @@ public class CompactDatabase {
      */
     public static void main(String[] args) {
         //
-        // Initialize Conch properties and logging
+        // Initialize Nxt properties and logging
         //
         Logger.init();
         //
@@ -70,23 +70,23 @@ public class CompactDatabase {
         // Get the database URL
         //
         String dbPrefix = Constants.isTestnet ? "sharder.testDb" : "sharder.db";
-        String dbType = Conch.getStringProperty(dbPrefix + "Type");
+        String dbType = Nxt.getStringProperty(dbPrefix + "Type");
         if (!"h2".equals(dbType)) {
             Logger.logErrorMessage("Database type must be 'h2'");
             return 1;
         }
-        String dbUrl = Conch.getStringProperty(dbPrefix + "Url");
+        String dbUrl = Nxt.getStringProperty(dbPrefix + "Url");
         if (dbUrl == null) {
-            String dbPath = Conch.getDbDir(Conch.getStringProperty(dbPrefix + "Dir"));
+            String dbPath = Nxt.getDbDir(Nxt.getStringProperty(dbPrefix + "Dir"));
             dbUrl = String.format("jdbc:%s:%s", dbType, dbPath);
         }
-        String dbParams = Conch.getStringProperty(dbPrefix + "Params");
+        String dbParams = Nxt.getStringProperty(dbPrefix + "Params");
         dbUrl += ";" + dbParams;
         if (!dbUrl.contains("MV_STORE=")) {
             dbUrl += ";MV_STORE=FALSE";
         }
-        String dbUsername = Conch.getStringProperty(dbPrefix + "Username", "sa");
-        String dbPassword = Conch.getStringProperty(dbPrefix + "Password", "sa", true);
+        String dbUsername = Nxt.getStringProperty(dbPrefix + "Username", "sa");
+        String dbPassword = Nxt.getStringProperty(dbPrefix + "Password", "sa", true);
         //
         // Get the database path.  This is the third colon-separated operand and is
         // terminated by a semi-colon or by the end of the string.

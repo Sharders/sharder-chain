@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,13 +14,13 @@
  *
  */
 
-package org.conch.user;
+package nxt.user;
 
-import org.conch.Account;
-import org.conch.Block;
-import org.conch.Conch;
-import org.conch.Transaction;
-import org.conch.db.DbIterator;
+import nxt.Account;
+import nxt.Block;
+import nxt.Nxt;
+import nxt.Transaction;
+import nxt.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -93,7 +93,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
             JSONArray myTransactions = new JSONArray();
             byte[] accountPublicKey = Account.getPublicKey(accountId);
-            try (DbIterator<? extends Transaction> transactions = Conch.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
                 while (transactions.hasNext()) {
                     Transaction transaction = transactions.next();
                     if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
@@ -133,8 +133,8 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
             SortedSet<JSONObject> myTransactionsSet = new TreeSet<>(myTransactionsComparator);
 
-            int blockchainHeight = Conch.getBlockchain().getLastBlock().getHeight();
-            try (DbIterator<? extends Block> blockIterator = Conch.getBlockchain().getBlocks(accountId, 0)) {
+            int blockchainHeight = Nxt.getBlockchain().getLastBlock().getHeight();
+            try (DbIterator<? extends Block> blockIterator = Nxt.getBlockchain().getBlocks(accountId, 0)) {
                 while (blockIterator.hasNext()) {
                     Block block = blockIterator.next();
                     if (block.getTotalFeeNQT() > 0) {
@@ -151,7 +151,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
                 }
             }
 
-            try (DbIterator<? extends Transaction> transactionIterator = Conch.getBlockchain().getTransactions(accountId, (byte) -1, (byte) -1, 0, false)) {
+            try (DbIterator<? extends Transaction> transactionIterator = Nxt.getBlockchain().getTransactions(accountId, (byte) -1, (byte) -1, 0, false)) {
                 while (transactionIterator.hasNext()) {
                     Transaction transaction = transactionIterator.next();
                     if (transaction.getSenderId() == accountId) {

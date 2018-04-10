@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.db.DbClause;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
-import org.conch.db.EntityDbTable;
-import org.conch.peer.Peer;
-import org.conch.peer.Peers;
-import org.conch.util.*;
+import nxt.db.DbClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.EntityDbTable;
+import nxt.peer.Peer;
+import nxt.peer.Peers;
+import nxt.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -35,11 +35,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 final class TransactionProcessorImpl implements TransactionProcessor {
 
-    private static final boolean enableTransactionRebroadcasting = Conch.getBooleanProperty("sharder.enableTransactionRebroadcasting");
-    private static final boolean testUnconfirmedTransactions = Conch.getBooleanProperty("sharder.testUnconfirmedTransactions");
+    private static final boolean enableTransactionRebroadcasting = Nxt.getBooleanProperty("sharder.enableTransactionRebroadcasting");
+    private static final boolean testUnconfirmedTransactions = Nxt.getBooleanProperty("sharder.testUnconfirmedTransactions");
     private static final int maxUnconfirmedTransactions;
     static {
-        int n = Conch.getIntProperty("sharder.maxUnconfirmedTransactions");
+        int n = Nxt.getIntProperty("sharder.maxUnconfirmedTransactions");
         maxUnconfirmedTransactions = n <= 0 ? Integer.MAX_VALUE : n;
     }
 
@@ -152,12 +152,12 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
         try {
             try {
-                if (Conch.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
+                if (Nxt.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
                     return;
                 }
                 List<UnconfirmedTransaction> expiredTransactions = new ArrayList<>();
                 try (DbIterator<UnconfirmedTransaction> iterator = unconfirmedTransactionTable.getManyBy(
-                        new DbClause.IntClause("expiration", DbClause.Op.LT, Conch.getEpochTime()), 0, -1, "")) {
+                        new DbClause.IntClause("expiration", DbClause.Op.LT, Nxt.getEpochTime()), 0, -1, "")) {
                     while (iterator.hasNext()) {
                         expiredTransactions.add(iterator.next());
                     }
@@ -197,11 +197,11 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
         try {
             try {
-                if (Conch.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
+                if (Nxt.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
                     return;
                 }
                 List<Transaction> transactionList = new ArrayList<>();
-                int curTime = Conch.getEpochTime();
+                int curTime = Nxt.getEpochTime();
                 for (TransactionImpl transaction : broadcastedTransactions) {
                     if (transaction.getExpiration() < curTime || TransactionDb.hasTransaction(transaction.getId())) {
                         broadcastedTransactions.remove(transaction);
@@ -229,7 +229,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
         try {
             try {
-                if (Conch.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
+                if (Nxt.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
                     return;
                 }
                 Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
@@ -270,7 +270,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
         try {
             try {
-                if (Conch.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
+                if (Nxt.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
                     return;
                 }
                 processWaitingTransactions();
@@ -339,14 +339,14 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     Transaction getUnconfirmedTransaction(DbKey dbKey) {
-        Conch.getBlockchain().readLock();
+        Nxt.getBlockchain().readLock();
         try {
             Transaction transaction = transactionCache.get(dbKey);
             if (transaction != null) {
                 return transaction;
             }
         } finally {
-            Conch.getBlockchain().readUnlock();
+            Nxt.getBlockchain().readUnlock();
         }
         return unconfirmedTransactionTable.get(dbKey);
     }
@@ -576,7 +576,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         BlockchainImpl.getInstance().writeLock();
         try {
             if (waitingTransactions.size() > 0) {
-                int currentTime = Conch.getEpochTime();
+                int currentTime = Nxt.getEpochTime();
                 List<Transaction> addedUnconfirmedTransactions = new ArrayList<>();
                 Iterator<UnconfirmedTransaction> iterator = waitingTransactions.iterator();
                 while (iterator.hasNext()) {
@@ -607,7 +607,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     private void processPeerTransactions(JSONArray transactionsData) throws ConchException.NotValidException {
-        if (Conch.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
+        if (Nxt.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
             return;
         }
         if (transactionsData == null || transactionsData.isEmpty()) {
@@ -656,7 +656,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
     private void processTransaction(UnconfirmedTransaction unconfirmedTransaction) throws ConchException.ValidationException {
         TransactionImpl transaction = unconfirmedTransaction.getTransaction();
-        int curTime = Conch.getEpochTime();
+        int curTime = Nxt.getEpochTime();
         if (transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT || transaction.getExpiration() < curTime) {
             throw new ConchException.NotCurrentlyValidException("Invalid transaction timestamp");
         }
@@ -671,7 +671,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         try {
             try {
                 Db.db.beginTransaction();
-                if (Conch.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
+                if (Nxt.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
                     throw new ConchException.NotCurrentlyValidException("Blockchain not ready to accept transactions");
                 }
 
@@ -735,7 +735,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public SortedSet<? extends Transaction> getCachedUnconfirmedTransactions(List<String> exclude) {
         SortedSet<UnconfirmedTransaction> transactionSet = new TreeSet<>(cachedUnconfirmedTransactionComparator);
-        Conch.getBlockchain().readLock();
+        Nxt.getBlockchain().readLock();
         try {
             //
             // Initialize the unconfirmed transaction cache if it hasn't been done yet
@@ -759,7 +759,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 }
             });
         } finally {
-            Conch.getBlockchain().readUnlock();
+            Nxt.getBlockchain().readUnlock();
         }
         return transactionSet;
     }
@@ -774,7 +774,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public List<Transaction> restorePrunableData(JSONArray transactions) throws ConchException.NotValidException {
         List<Transaction> processed = new ArrayList<>();
-        Conch.getBlockchain().readLock();
+        Nxt.getBlockchain().readLock();
         try {
             Db.db.beginTransaction();
             try {
@@ -833,7 +833,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 Db.db.endTransaction();
             }
         } finally {
-            Conch.getBlockchain().readUnlock();
+            Nxt.getBlockchain().readUnlock();
         }
         return processed;
     }

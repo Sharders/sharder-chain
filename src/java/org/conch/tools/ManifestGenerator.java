@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,10 +14,10 @@
  *
  */
 
-package org.conch.tools;
+package nxt.tools;
 
-import org.conch.Conch;
-import org.conch.env.service.ConchService_ServiceManagement;
+import nxt.Nxt;
+import nxt.env.service.NxtService_ServiceManagement;
 
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -36,7 +36,7 @@ public class ManifestGenerator {
 
     public static void main(String[] args) {
         ManifestGenerator manifestGenerator = new ManifestGenerator();
-        manifestGenerator.generate("./resource/sharder.manifest.mf", Conch.class.getCanonicalName(), "./lib");
+        manifestGenerator.generate("./resource/sharder.manifest.mf", Nxt.class.getCanonicalName(), "./lib");
         String serviceClassName = ConchService_ServiceManagement.class.getCanonicalName();
         serviceClassName = serviceClassName.substring(0, serviceClassName.length() - "_ServiceManagement".length());
         manifestGenerator.generate("./resource/sharderservice.manifest.mf", serviceClassName, "./lib");

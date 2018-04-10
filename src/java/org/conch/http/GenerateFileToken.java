@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,9 +14,9 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Token;
+import nxt.Token;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -25,8 +25,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 import java.io.IOException;
 
-import static org.conch.http.JSONResponses.INCORRECT_FILE;
-import static org.conch.http.JSONResponses.INCORRECT_TOKEN;
+import static nxt.http.JSONResponses.INCORRECT_FILE;
+import static nxt.http.JSONResponses.INCORRECT_TOKEN;
 
 
 public final class GenerateFileToken extends APIServlet.APIRequestHandler {
