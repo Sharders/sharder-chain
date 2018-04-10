@@ -1,4 +1,4 @@
-This is a list of the third party components and its license.
+This is a list of the third party components and open-source program and its license.
 
 H2:
 This software contains unmodified binary redistributions for
