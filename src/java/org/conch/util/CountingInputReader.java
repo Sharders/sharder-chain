@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,9 +14,9 @@
  *
  */
 
-package org.conch.util;
+package nxt.util;
 
-import org.conch.ConchException;
+import nxt.NxtException;
 
 import java.io.FilterReader;
 import java.io.IOException;
@@ -118,11 +118,11 @@ public class CountingInputReader extends FilterReader {
      * Increment the character count and check if the maximum count has been exceeded
      *
      * @param   c                   Number of characters read
-     * @throws ConchException.ConchIOException      Maximum count exceeded
+     * @throws ConchException.NxtIOException      Maximum count exceeded
      */
-    private void incCount(long c) throws ConchException.ConchIOException {
+    private void incCount(long c) throws ConchException.NxtIOException {
         count += c;
         if (count > limit)
-            throw new ConchException.ConchIOException("Maximum size exceeded: " + count);
+            throw new ConchException.NxtIOException("Maximum size exceeded: " + count);
     }
 }

@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,11 +14,11 @@
  *
  */
 
-package org.conch.util;
+package nxt.util;
 
 import org.bitlet.weupnp.GatewayDevice;
 import org.bitlet.weupnp.GatewayDiscover;
-import org.conch.Conch;
+import nxt.Nxt;
 
 import java.net.InetAddress;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class UPnP {
         //
         try {
             if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP",
-                                       Conch.APPLICATION + " " + Conch.VERSION)) {
+                                       Nxt.APPLICATION + " " + Nxt.VERSION)) {
                 Logger.logDebugMessage("Mapped port [" + externalAddress.getHostAddress() + "]:" + port);
             } else {
                 Logger.logDebugMessage("Unable to map port " + port);
@@ -122,9 +122,9 @@ public class UPnP {
         //
         try {
             Logger.logInfoMessage("Looking for UPnP gateway device...");
-            GatewayDevice.setHttpReadTimeout(Conch.getIntProperty("sharder.upnpGatewayTimeout", GatewayDevice.getHttpReadTimeout()));
+            GatewayDevice.setHttpReadTimeout(Nxt.getIntProperty("sharder.upnpGatewayTimeout", GatewayDevice.getHttpReadTimeout()));
             GatewayDiscover discover = new GatewayDiscover();
-            discover.setTimeout(Conch.getIntProperty("sharder.upnpDiscoverTimeout", discover.getTimeout()));
+            discover.setTimeout(Nxt.getIntProperty("sharder.upnpDiscoverTimeout", discover.getTimeout()));
             Map<InetAddress, GatewayDevice> gatewayMap = discover.discover();
             if (gatewayMap == null || gatewayMap.isEmpty()) {
                 Logger.logDebugMessage("There are no UPnP gateway devices");

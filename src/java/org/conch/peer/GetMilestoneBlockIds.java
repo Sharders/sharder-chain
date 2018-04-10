@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,13 +14,13 @@
  *
  */
 
-package org.conch.peer;
+package nxt.peer;
 
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
+import nxt.Block;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.util.Convert;
+import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -43,8 +43,8 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
             String lastBlockIdString = (String) request.get("lastBlockId");
             if (lastBlockIdString != null) {
                 long lastBlockId = Convert.parseUnsignedLong(lastBlockIdString);
-                long myLastBlockId = Conch.getBlockchain().getLastBlock().getId();
-                if (myLastBlockId == lastBlockId || Conch.getBlockchain().hasBlock(lastBlockId)) {
+                long myLastBlockId = Nxt.getBlockchain().getLastBlock().getId();
+                if (myLastBlockId == lastBlockId || Nxt.getBlockchain().hasBlock(lastBlockId)) {
                     milestoneBlockIds.add(lastBlockIdString);
                     response.put("milestoneBlockIds", milestoneBlockIds);
                     if (myLastBlockId == lastBlockId) {
@@ -58,10 +58,10 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
             int height;
             int jump;
             int limit = 10;
-            int blockchainHeight = Conch.getBlockchain().getHeight();
+            int blockchainHeight = Nxt.getBlockchain().getHeight();
             String lastMilestoneBlockIdString = (String) request.get("lastMilestoneBlockId");
             if (lastMilestoneBlockIdString != null) {
-                Block lastMilestoneBlock = Conch.getBlockchain().getBlock(Convert.parseUnsignedLong(lastMilestoneBlockIdString));
+                Block lastMilestoneBlock = Nxt.getBlockchain().getBlock(Convert.parseUnsignedLong(lastMilestoneBlockIdString));
                 if (lastMilestoneBlock == null) {
                     throw new IllegalStateException("Don't have block " + lastMilestoneBlockIdString);
                 }
@@ -76,11 +76,11 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
                 response.put("error", "Old getMilestoneBlockIds protocol not supported, please upgrade");
                 return response;
             }
-            blockId = Conch.getBlockchain().getBlockIdAtHeight(height);
+            blockId = Nxt.getBlockchain().getBlockIdAtHeight(height);
 
             while (height > 0 && limit-- > 0) {
                 milestoneBlockIds.add(Long.toUnsignedString(blockId));
-                blockId = Conch.getBlockchain().getBlockIdAtHeight(height);
+                blockId = Nxt.getBlockchain().getBlockIdAtHeight(height);
                 height = height - jump;
             }
             response.put("milestoneBlockIds", milestoneBlockIds);

@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Constants;
-import org.conch.Db;
-import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.addons.AddOns;
-import org.conch.util.JSON;
-import org.conch.util.Logger;
+import nxt.Constants;
+import nxt.Db;
+import nxt.Nxt;
+import nxt.NxtException;
+import nxt.addons.AddOns;
+import nxt.util.JSON;
+import nxt.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 
-import static org.conch.http.JSONResponses.*;
+import static nxt.http.JSONResponses.*;
 
 public final class APIServlet extends HttpServlet {
 
@@ -107,7 +107,7 @@ public final class APIServlet extends HttpServlet {
 
     }
 
-    private static final boolean enforcePost = Conch.getBooleanProperty("sharder.apiServerEnforcePOST");
+    private static final boolean enforcePost = Nxt.getBooleanProperty("sharder.apiServerEnforcePOST");
     static final Map<String,APIRequestHandler> apiRequestHandlers;
     static final Map<String,APIRequestHandler> disabledRequestHandlers;
 
@@ -219,24 +219,24 @@ public final class APIServlet extends HttpServlet {
             final long requireLastBlockId = apiRequestHandler.allowRequiredBlockParameters() ?
                     ParameterParser.getUnsignedLong(req, "requireLastBlock", false) : 0;
             if (requireBlockId != 0 || requireLastBlockId != 0) {
-                Conch.getBlockchain().readLock();
+                Nxt.getBlockchain().readLock();
             }
             try {
                 try {
                     if (apiRequestHandler.startDbTransaction()) {
                         Db.db.beginTransaction();
                     }
-                    if (requireBlockId != 0 && !Conch.getBlockchain().hasBlock(requireBlockId)) {
+                    if (requireBlockId != 0 && !Nxt.getBlockchain().hasBlock(requireBlockId)) {
                         response = REQUIRED_BLOCK_NOT_FOUND;
                         return;
                     }
-                    if (requireLastBlockId != 0 && requireLastBlockId != Conch.getBlockchain().getLastBlock().getId()) {
+                    if (requireLastBlockId != 0 && requireLastBlockId != Nxt.getBlockchain().getLastBlock().getId()) {
                         response = REQUIRED_LAST_BLOCK_NOT_FOUND;
                         return;
                     }
                     response = apiRequestHandler.processRequest(req, resp);
                     if (requireLastBlockId == 0 && requireBlockId != 0 && response instanceof JSONObject) {
-                        ((JSONObject) response).put("lastBlock", Conch.getBlockchain().getLastBlock().getStringId());
+                        ((JSONObject) response).put("lastBlock", Nxt.getBlockchain().getLastBlock().getStringId());
                     }
                 } finally {
                     if (apiRequestHandler.startDbTransaction()) {
@@ -245,7 +245,7 @@ public final class APIServlet extends HttpServlet {
                 }
             } finally {
                 if (requireBlockId != 0 || requireLastBlockId != 0) {
-                    Conch.getBlockchain().readUnlock();
+                    Nxt.getBlockchain().readUnlock();
                 }
             }
         } catch (ParameterException e) {

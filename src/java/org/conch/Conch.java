@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,22 +14,22 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.addons.AddOns;
-import org.conch.crypto.Crypto;
-import org.conch.env.DirProvider;
-import org.conch.env.RuntimeEnvironment;
-import org.conch.env.RuntimeMode;
-import org.conch.env.ServerStatus;
-import org.conch.http.API;
-import org.conch.http.APIProxy;
-import org.conch.peer.Peers;
-import org.conch.user.Users;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-import org.conch.util.ThreadPool;
-import org.conch.util.Time;
+import nxt.addons.AddOns;
+import nxt.crypto.Crypto;
+import nxt.env.DirProvider;
+import nxt.env.RuntimeEnvironment;
+import nxt.env.RuntimeMode;
+import nxt.env.ServerStatus;
+import nxt.http.API;
+import nxt.http.APIProxy;
+import nxt.peer.Peers;
+import nxt.user.Users;
+import nxt.util.Convert;
+import nxt.util.Logger;
+import nxt.util.ThreadPool;
+import nxt.util.Time;
 import org.json.simple.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-public final class Conch {
+public final class Nxt {
 
     public static final String VERSION = "0.0.8";
     public static final String APPLICATION = "COS";
@@ -66,14 +66,14 @@ public final class Conch {
     static {
         redirectSystemStreams("out");
         redirectSystemStreams("err");
-        System.out.println("Initializing COS server version " + Conch.VERSION);
+        System.out.println("Initializing COS server version " + Nxt.VERSION);
         printCommandLineArguments();
         runtimeMode = RuntimeEnvironment.getRuntimeMode();
         System.out.printf("Runtime mode %s\n", runtimeMode.getClass().getName());
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(defaultProperties, CONCH_DEFAULT_PROPERTIES, true);
-        if (!VERSION.equals(Conch.defaultProperties.getProperty("sharder.version"))) {
+        if (!VERSION.equals(Nxt.defaultProperties.getProperty("sharder.version"))) {
             throw new RuntimeException("Using an sharder-default.properties file from a version other than " + VERSION + " is not supported!!!");
         }
     }
@@ -292,7 +292,7 @@ public final class Conch {
     }
 
     static void setTime(Time time) {
-        Conch.time = time;
+        Nxt.time = time;
     }
 
     public static void main(String[] args) {
@@ -382,10 +382,10 @@ public final class Conch {
                 API.init();
                 Users.init();
                 DebugTrace.init();
-                int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
+                int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Nxt.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
-                    setTime(new Time.FasterTime(Math.max(getEpochTime(), Conch.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
+                    setTime(new Time.FasterTime(Math.max(getEpochTime(), Nxt.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
                     Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
                 }
                 try {
@@ -395,8 +395,8 @@ public final class Conch {
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + VERSION + " started successfully.");
-                Logger.logMessage("Copyright © 2017 sharder.org.");
-                Logger.logMessage("Copyright © 2014-2017 ichaoj.com.");
+                Logger.logMessage("Copyright © 2013-2016 The Nxt Core Developers.");
+                Logger.logMessage("Copyright © 2016-2017 Jelurida IP B.V.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) {
                     Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
@@ -418,7 +418,7 @@ public final class Conch {
 
         private static void init() {
             if (initialized) {
-                throw new RuntimeException("Conch.init has already been called");
+                throw new RuntimeException("Nxt.init has already been called");
             }
             initialized = true;
         }
@@ -522,7 +522,7 @@ public final class Conch {
     }
 
     public static boolean isDesktopApplicationEnabled() {
-        return RuntimeEnvironment.isDesktopApplicationEnabled() && Conch.getBooleanProperty("sharder.launchDesktopApplication");
+        return RuntimeEnvironment.isDesktopApplicationEnabled() && Nxt.getBooleanProperty("sharder.launchDesktopApplication");
     }
 
     private static void launchDesktopApplication() {

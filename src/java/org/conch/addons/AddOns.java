@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,12 +14,12 @@
  *
  */
 
-package org.conch.addons;
+package nxt.addons;
 
-import org.conch.Conch;
-import org.conch.http.APIServlet;
-import org.conch.http.APITag;
-import org.conch.util.Logger;
+import nxt.Nxt;
+import nxt.http.APIServlet;
+import nxt.http.APITag;
+import nxt.util.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +31,7 @@ public final class AddOns {
     private static final List<AddOn> addOns;
     static {
         List<AddOn> addOnsList = new ArrayList<>();
-        Conch.getStringListProperty("sharder.addOns").forEach(addOn -> {
+        Nxt.getStringListProperty("sharder.addOns").forEach(addOn -> {
             try {
                 addOnsList.add((AddOn)Class.forName(addOn).newInstance());
             } catch (ReflectiveOperationException e) {
@@ -39,8 +39,8 @@ public final class AddOns {
             }
         });
         addOns = Collections.unmodifiableList(addOnsList);
-        if (!addOns.isEmpty() && !Conch.getBooleanProperty("sharder.disableSecurityPolicy")) {
-            System.setProperty("java.security.policy", Conch.isDesktopApplicationEnabled() ? "desktop.policy" : "sharder.policy");
+        if (!addOns.isEmpty() && !Nxt.getBooleanProperty("sharder.disableSecurityPolicy")) {
+            System.setProperty("java.security.policy", Nxt.isDesktopApplicationEnabled() ? "desktop.policy" : "sharder.policy");
             Logger.logMessage("Setting security manager with policy " + System.getProperty("java.security.policy"));
             System.setSecurityManager(new SecurityManager() {
                 @Override

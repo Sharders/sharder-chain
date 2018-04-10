@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,7 +14,7 @@
  *
  */
 
-package org.conch.util;
+package nxt.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +34,7 @@ public class ConchLogManager extends LogManager {
      * We will let the Java LogManager create its shutdown hook so that the
      * shutdown context will be set up properly.  However, we will intercept
      * the reset() method so we can delay the actual shutdown until we are
-     * done terminating the Conch processes.
+     * done terminating the Nxt processes.
      */
     public ConchLogManager() {
         super();
@@ -59,7 +59,7 @@ public class ConchLogManager extends LogManager {
      *
      * This method is called to reset the log handlers.  We will forward the
      * call during logging reconfiguration but will ignore it otherwise.
-     * This allows us to continue to use logging facilities during Conch shutdown.
+     * This allows us to continue to use logging facilities during Nxt shutdown.
      */
     @Override
     public void reset() {
@@ -68,7 +68,7 @@ public class ConchLogManager extends LogManager {
     }
 
     /**
-     * Conch shutdown is now complete, so call LogManager.reset() to terminate
+     * Nxt shutdown is now complete, so call LogManager.reset() to terminate
      * the log handlers.
      */
     void conchShutdown() {

@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,21 +14,21 @@
  *
  */
 
-package org.conch.peer;
+package nxt.peer;
 
-import org.conch.Account;
-import org.conch.BlockchainProcessor;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.http.API;
-import org.conch.http.APIEnum;
-import org.conch.util.Convert;
-import org.conch.util.CountingInputReader;
-import org.conch.util.CountingInputStream;
-import org.conch.util.CountingOutputWriter;
-import org.conch.util.JSON;
-import org.conch.util.Logger;
+import nxt.Account;
+import nxt.BlockchainProcessor;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.NxtException;
+import nxt.http.API;
+import nxt.http.APIEnum;
+import nxt.util.Convert;
+import nxt.util.CountingInputReader;
+import nxt.util.CountingInputStream;
+import nxt.util.CountingOutputWriter;
+import nxt.util.JSON;
+import nxt.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
@@ -166,7 +166,7 @@ final class PeerImpl implements Peer {
         boolean versionChanged = version == null || !version.equals(this.version);
         this.version = version;
         isOldVersion = false;
-        if (Conch.APPLICATION.equals(application)) {
+        if (Nxt.APPLICATION.equals(application)) {
             isOldVersion = Peers.isOldVersion(version, Constants.MIN_VERSION);
             if (isOldVersion) {
                 if (versionChanged) {
@@ -321,11 +321,11 @@ final class PeerImpl implements Peer {
         if (hallmark == null) {
             return 0;
         }
-        if (hallmarkBalance == -1 || hallmarkBalanceHeight < Conch.getBlockchain().getHeight() - 60) {
+        if (hallmarkBalance == -1 || hallmarkBalanceHeight < Nxt.getBlockchain().getHeight() - 60) {
             long accountId = hallmark.getAccountId();
             Account account = Account.getAccount(accountId);
             hallmarkBalance = account == null ? 0 : account.getBalanceNQT();
-            hallmarkBalanceHeight = Conch.getBlockchain().getHeight();
+            hallmarkBalanceHeight = Nxt.getBlockchain().getHeight();
         }
         return (int)(adjustedWeight * (hallmarkBalance / Constants.ONE_SS) / Constants.MAX_BALANCE_SS);
     }
@@ -359,7 +359,7 @@ final class PeerImpl implements Peer {
 
     @Override
     public void blacklist(String cause) {
-        blacklistingTime = Conch.getEpochTime();
+        blacklistingTime = Nxt.getEpochTime();
         blacklistingCause = cause;
         setState(State.NON_CONNECTED);
         lastInboundRequest = 0;
@@ -490,7 +490,7 @@ final class PeerImpl implements Peer {
                         showLog = true;
                     }
                     if (wsResponse.length() > maxResponseSize)
-                        throw new ConchException.ConchIOException("Maximum size exceeded: " + wsResponse.length());
+                        throw new ConchException.NxtIOException("Maximum size exceeded: " + wsResponse.length());
                     response = (JSONObject)JSONValue.parseWithException(wsResponse);
                     updateDownloadedVolume(wsResponse.length());
                 }
@@ -573,7 +573,7 @@ final class PeerImpl implements Peer {
                     }
                 }
             }
-        } catch (ConchException.ConchIOException e) {
+        } catch (ConchException.NxtIOException e) {
             blacklist(e);
             if (connection != null) {
                 connection.disconnect();
@@ -611,7 +611,7 @@ final class PeerImpl implements Peer {
     }
 
     void connect() {
-        lastConnectAttempt = Conch.getEpochTime();
+        lastConnectAttempt = Nxt.getEpochTime();
         try {
             if (!Peers.ignorePeerAnnouncedAddress && announcedAddress != null) {
                 try {

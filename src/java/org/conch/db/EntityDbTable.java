@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,11 +14,11 @@
  *
  */
 
-package org.conch.db;
+package nxt.db;
 
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.util.Logger;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.util.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -62,15 +62,15 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
 
     public void checkAvailable(int height) {
         if (multiversion) {
-            int minRollBackHeight = isPersistent() && Conch.getBlockchainProcessor().isScanning() ?
-                    Math.max(Conch.getBlockchainProcessor().getInitialScanHeight() - Constants.MAX_ROLLBACK, 0)
-                    : Conch.getBlockchainProcessor().getMinRollbackHeight();
+            int minRollBackHeight = isPersistent() && Nxt.getBlockchainProcessor().isScanning() ?
+                    Math.max(Nxt.getBlockchainProcessor().getInitialScanHeight() - Constants.MAX_ROLLBACK, 0)
+                    : Nxt.getBlockchainProcessor().getMinRollbackHeight();
             if (height < minRollBackHeight) {
                 throw new IllegalArgumentException("Historical data as of height " + height + " not available.");
             }
         }
-        if (height > Conch.getBlockchain().getHeight()) {
-            throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Conch.getBlockchain().getHeight());
+        if (height > Nxt.getBlockchain().getHeight()) {
+            throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Nxt.getBlockchain().getHeight());
         }
     }
 
@@ -461,7 +461,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
     }
 
     private boolean doesNotExceed(int height) {
-        return Conch.getBlockchain().getHeight() <= height && ! (isPersistent() && Conch.getBlockchainProcessor().isScanning());
+        return Nxt.getBlockchain().getHeight() <= height && ! (isPersistent() && Nxt.getBlockchainProcessor().isScanning());
     }
 
 }

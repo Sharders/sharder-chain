@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.db.DbClause;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
-import org.conch.db.DbUtils;
-import org.conch.db.EntityDbTable;
-import org.conch.db.ValuesDbTable;
-import org.conch.util.Logger;
+import nxt.db.DbClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.DbUtils;
+import nxt.db.EntityDbTable;
+import nxt.db.ValuesDbTable;
+import nxt.util.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,7 +34,7 @@ import java.util.List;
 
 public final class Poll extends AbstractPoll {
 
-    private static final boolean isPollsProcessing = Conch.getBooleanProperty("sharder.processPolls");
+    private static final boolean isPollsProcessing = Nxt.getBooleanProperty("sharder.processPolls");
 
     public static final class OptionResult {
 
@@ -109,7 +109,7 @@ public final class Poll extends AbstractPoll {
                     pstmt.setNull(++i, Types.BIGINT);
                     pstmt.setLong(++i, 0);
                 }
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -128,15 +128,15 @@ public final class Poll extends AbstractPoll {
     }
 
     public static DbIterator<Poll> getActivePolls(int from, int to) {
-        return pollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.GT, Conch.getBlockchain().getHeight()), from, to);
+        return pollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.GT, Nxt.getBlockchain().getHeight()), from, to);
     }
 
     public static DbIterator<Poll> getPollsByAccount(long accountId, boolean includeFinished, boolean finishedOnly, int from, int to) {
         DbClause dbClause = new DbClause.LongClause("account_id", accountId);
         if (finishedOnly) {
-            dbClause = dbClause.and(new DbClause.IntClause("finish_height", DbClause.Op.LTE, Conch.getBlockchain().getHeight()));
+            dbClause = dbClause.and(new DbClause.IntClause("finish_height", DbClause.Op.LTE, Nxt.getBlockchain().getHeight()));
         } else if (!includeFinished) {
-            dbClause = dbClause.and(new DbClause.IntClause("finish_height", DbClause.Op.GT, Conch.getBlockchain().getHeight()));
+            dbClause = dbClause.and(new DbClause.IntClause("finish_height", DbClause.Op.GT, Nxt.getBlockchain().getHeight()));
         }
         return pollTable.getManyBy(dbClause, from, to);
     }
@@ -146,7 +146,7 @@ public final class Poll extends AbstractPoll {
     }
 
     public static DbIterator<Poll> searchPolls(String query, boolean includeFinished, int from, int to) {
-        DbClause dbClause = includeFinished ? DbClause.EMPTY_CLAUSE : new DbClause.IntClause("finish_height", DbClause.Op.GT, Conch.getBlockchain().getHeight());
+        DbClause dbClause = includeFinished ? DbClause.EMPTY_CLAUSE : new DbClause.IntClause("finish_height", DbClause.Op.GT, Nxt.getBlockchain().getHeight());
         return pollTable.search(query, dbClause, from, to, " ORDER BY ft.score DESC, poll.height DESC, poll.db_id DESC ");
     }
 
@@ -163,7 +163,7 @@ public final class Poll extends AbstractPoll {
 
     static {
         if (Poll.isPollsProcessing) {
-            Conch.getBlockchainProcessor().addListener(block -> {
+            Nxt.getBlockchainProcessor().addListener(block -> {
                 int height = block.getHeight();
                 if (height >= Constants.PHASING_BLOCK) {
                     Poll.checkPolls(height);
@@ -206,7 +206,7 @@ public final class Poll extends AbstractPoll {
         this.maxNumberOfOptions = attachment.getMaxNumberOfOptions();
         this.minRangeValue = attachment.getMinRangeValue();
         this.maxRangeValue = attachment.getMaxRangeValue();
-        this.timestamp = Conch.getBlockchain().getLastBlockTimestamp();
+        this.timestamp = Nxt.getBlockchain().getLastBlockTimestamp();
     }
 
     private Poll(ResultSet rs, DbKey dbKey) throws SQLException {
@@ -243,7 +243,7 @@ public final class Poll extends AbstractPoll {
             pstmt.setByte(++i, minRangeValue);
             pstmt.setByte(++i, maxRangeValue);
             pstmt.setInt(++i, timestamp);
-            pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -303,12 +303,12 @@ public final class Poll extends AbstractPoll {
     }
 
     public boolean isFinished() {
-        return finishHeight <= Conch.getBlockchain().getHeight();
+        return finishHeight <= Nxt.getBlockchain().getHeight();
     }
 
     private List<OptionResult> countResults(VoteWeighting voteWeighting) {
-        int countHeight = Math.min(finishHeight, Conch.getBlockchain().getHeight());
-        if (countHeight < Conch.getBlockchainProcessor().getMinRollbackHeight()) {
+        int countHeight = Math.min(finishHeight, Nxt.getBlockchain().getHeight());
+        if (countHeight < Nxt.getBlockchainProcessor().getMinRollbackHeight()) {
             return null;
         }
         return countResults(voteWeighting, countHeight);

@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch.peer;
+package nxt.peer;
 
-import org.conch.BlockchainProcessor;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.util.CountingInputReader;
-import org.conch.util.CountingOutputWriter;
-import org.conch.util.JSON;
-import org.conch.util.Logger;
+import nxt.BlockchainProcessor;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.util.CountingInputReader;
+import nxt.util.CountingOutputWriter;
+import nxt.util.JSON;
+import nxt.util.Logger;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
@@ -119,7 +119,7 @@ public final class PeerServlet extends WebSocketServlet {
         LIGHT_CLIENT = JSON.prepare(response);
     }
 
-    private static final BlockchainProcessor blockchainProcessor = Conch.getBlockchainProcessor();
+    private static final BlockchainProcessor blockchainProcessor = Nxt.getBlockchainProcessor();
 
     static JSONStreamAware error(Exception e) {
         JSONObject response = new JSONObject();
@@ -278,7 +278,7 @@ public final class PeerServlet extends WebSocketServlet {
                 }
                 Peers.notifyListeners(peer, Peers.Event.ADD_INBOUND);
             }
-            peer.setLastInboundRequest(Conch.getEpochTime());
+            peer.setLastInboundRequest(Nxt.getEpochTime());
             if (peerRequestHandler.rejectWhileDownloading()) {
                 if (blockchainProcessor.isDownloading()) {
                     return DOWNLOADING;

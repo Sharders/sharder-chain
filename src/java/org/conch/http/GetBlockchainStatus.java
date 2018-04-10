@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.AccountLedger;
-import org.conch.Block;
-import org.conch.BlockchainProcessor;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.peer.Peer;
-import org.conch.peer.Peers;
+import nxt.AccountLedger;
+import nxt.Block;
+import nxt.BlockchainProcessor;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.peer.Peer;
+import nxt.peer.Peers;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -39,21 +39,21 @@ public final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
     @Override
     protected JSONObject processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
-        response.put("application", Conch.APPLICATION);
-        response.put("version", Conch.VERSION);
-        response.put("time", Conch.getEpochTime());
-        Block lastBlock = Conch.getBlockchain().getLastBlock();
+        response.put("application", Nxt.APPLICATION);
+        response.put("version", Nxt.VERSION);
+        response.put("time", Nxt.getEpochTime());
+        Block lastBlock = Nxt.getBlockchain().getLastBlock();
         response.put("lastBlock", lastBlock.getStringId());
         response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
         response.put("numberOfBlocks", lastBlock.getHeight() + 1);
-        BlockchainProcessor blockchainProcessor = Conch.getBlockchainProcessor();
+        BlockchainProcessor blockchainProcessor = Nxt.getBlockchainProcessor();
         Peer lastBlockchainFeeder = blockchainProcessor.getLastBlockchainFeeder();
         response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
         response.put("lastBlockchainFeederHeight", blockchainProcessor.getLastBlockchainFeederHeight());
         response.put("isScanning", blockchainProcessor.isScanning());
         response.put("isDownloading", blockchainProcessor.isDownloading());
         response.put("maxRollback", Constants.MAX_ROLLBACK);
-        response.put("currentMinRollbackHeight", Conch.getBlockchainProcessor().getMinRollbackHeight());
+        response.put("currentMinRollbackHeight", Nxt.getBlockchainProcessor().getMinRollbackHeight());
         response.put("isTestnet", Constants.isTestnet);
         response.put("maxPrunableLifetime", Constants.MAX_PRUNABLE_LIFETIME);
         response.put("includeExpiredPrunable", Constants.INCLUDE_EXPIRED_PRUNABLE);

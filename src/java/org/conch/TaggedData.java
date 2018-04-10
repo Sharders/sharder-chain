@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,18 +14,18 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.db.DbClause;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
-import org.conch.db.DbUtils;
-import org.conch.db.VersionedEntityDbTable;
-import org.conch.db.VersionedPersistentDbTable;
-import org.conch.db.VersionedPrunableDbTable;
-import org.conch.db.VersionedValuesDbTable;
-import org.conch.util.Logger;
-import org.conch.util.Search;
+import nxt.db.DbClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.DbUtils;
+import nxt.db.VersionedEntityDbTable;
+import nxt.db.VersionedPersistentDbTable;
+import nxt.db.VersionedPrunableDbTable;
+import nxt.db.VersionedValuesDbTable;
+import nxt.util.Logger;
+import nxt.util.Search;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -70,7 +70,7 @@ public class TaggedData {
                 try (Connection con = db.getConnection();
                      PreparedStatement pstmtSelect = con.prepareStatement("SELECT parsed_tags "
                              + "FROM tagged_data WHERE transaction_timestamp < ? AND latest = TRUE ")) {
-                    int expiration = Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
+                    int expiration = Nxt.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
                     pstmtSelect.setInt(1, expiration);
                     Map<String,Integer> expiredTags = new HashMap<>();
                     try (ResultSet rs = pstmtSelect.executeQuery()) {
@@ -116,7 +116,7 @@ public class TaggedData {
                 int i = 0;
                 pstmt.setLong(++i, this.id);
                 pstmt.setInt(++i, this.timestamp);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -195,7 +195,7 @@ public class TaggedData {
             for (String tagValue : taggedData.getParsedTags()) {
                 Tag tag = tagTable.get(tagDbKeyFactory.newKey(tagValue));
                 if (tag == null) {
-                    tag = new Tag(tagValue, Conch.getBlockchain().getHeight());
+                    tag = new Tag(tagValue, Nxt.getBlockchain().getHeight());
                 }
                 tag.count += 1;
                 tagTable.insert(tag);
@@ -301,7 +301,7 @@ public class TaggedData {
                 int i = 0;
                 pstmt.setLong(++i, taggedDataId);
                 pstmt.setLong(++i, extendId);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -369,7 +369,7 @@ public class TaggedData {
     private int height;
 
     public TaggedData(Transaction transaction, Attachment.TaggedDataAttachment attachment) {
-        this(transaction, attachment, Conch.getBlockchain().getLastBlockTimestamp(), Conch.getBlockchain().getHeight());
+        this(transaction, attachment, Nxt.getBlockchain().getLastBlockTimestamp(), Nxt.getBlockchain().getHeight());
     }
 
     private TaggedData(Transaction transaction, Attachment.TaggedDataAttachment attachment, int blockTimestamp, int height) {
@@ -484,7 +484,7 @@ public class TaggedData {
     }
 
     static void add(TransactionImpl transaction, Attachment.TaggedDataUpload attachment) {
-        if (Conch.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME && attachment.getData() != null) {
+        if (Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME && attachment.getData() != null) {
             TaggedData taggedData = taggedDataTable.get(transaction.getDbKey());
             if (taggedData == null) {
                 taggedData = new TaggedData(transaction, attachment);
@@ -509,7 +509,7 @@ public class TaggedData {
         List<Long> extendTransactionIds = extendTable.get(dbKey);
         extendTransactionIds.add(transaction.getId());
         extendTable.insert(taggedDataId, extendTransactionIds);
-        if (Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME < timestamp.timestamp) {
+        if (Nxt.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME < timestamp.timestamp) {
             TaggedData taggedData = taggedDataTable.get(dbKey);
             if (taggedData == null && attachment.getData() != null) {
                 TransactionImpl uploadTransaction = TransactionDb.findTransaction(taggedDataId);
@@ -518,8 +518,8 @@ public class TaggedData {
             }
             if (taggedData != null) {
                 taggedData.transactionTimestamp = timestamp.timestamp;
-                taggedData.blockTimestamp = Conch.getBlockchain().getLastBlockTimestamp();
-                taggedData.height = Conch.getBlockchain().getHeight();
+                taggedData.blockTimestamp = Nxt.getBlockchain().getLastBlockTimestamp();
+                taggedData.height = Nxt.getBlockchain().getHeight();
                 taggedDataTable.insert(taggedData);
             }
         }

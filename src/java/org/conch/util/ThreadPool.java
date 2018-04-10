@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,9 +14,9 @@
  *
  */
 
-package org.conch.util;
+package nxt.util;
 
-import org.conch.Conch;
+import nxt.Nxt;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +58,7 @@ public final class ThreadPool {
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started, no new jobs accepted");
         }
-        if (! Conch.getBooleanProperty("sharder.disable" + name + "Thread")) {
+        if (! Nxt.getBooleanProperty("sharder.disable" + name + "Thread")) {
             backgroundJobs.put(runnable, timeUnit.toMillis(delay));
         } else {
             Logger.logMessage("Will not run " + name + " thread");

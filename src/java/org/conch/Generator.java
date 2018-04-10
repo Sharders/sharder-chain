@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,10 +14,10 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.crypto.Crypto;
-import org.conch.util.*;
+import nxt.crypto.Crypto;
+import nxt.util.*;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -32,9 +32,9 @@ public final class Generator implements Comparable<Generator> {
         GENERATION_DEADLINE, START_FORGING, STOP_FORGING
     }
 
-    private static final int MAX_FORGERS = Conch.getIntProperty("sharder.maxNumberOfForgers");
-    private static final byte[] fakeForgingPublicKey = Conch.getBooleanProperty("sharder.enableFakeForging") ?
-            Account.getPublicKey(Convert.parseAccountId(Conch.getStringProperty("sharder.fakeForgingAccount"))) : null;
+    private static final int MAX_FORGERS = Nxt.getIntProperty("sharder.maxNumberOfForgers");
+    private static final byte[] fakeForgingPublicKey = Nxt.getBooleanProperty("sharder.enableFakeForging") ?
+            Account.getPublicKey(Convert.parseAccountId(Nxt.getStringProperty("sharder.fakeForgingAccount"))) : null;
 
     private static final Listeners<Generator,Event> listeners = new Listeners<>();
 
@@ -58,15 +58,15 @@ public final class Generator implements Comparable<Generator> {
 //                    ConchGenesis.enableOfficalNode();//add offical node
 
                     try {
-                        Block lastBlock = Conch.getBlockchain().getLastBlock();
+                        Block lastBlock = Nxt.getBlockchain().getLastBlock();
                         //等待更新了最新的区块信息才开始锻造
                         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) return;
 
-                        final int generationLimit = Conch.getEpochTime() - delayTime;
+                        final int generationLimit = Nxt.getEpochTime() - delayTime;
                         if (lastBlock.getId() != lastBlockId || sortedForgers == null || sortedForgers.size() == 0) {
                             lastBlockId = lastBlock.getId();
-                            if (lastBlock.getTimestamp() > Conch.getEpochTime() - 600) {
-                                Block previousBlock = Conch.getBlockchain().getBlock(lastBlock.getPreviousBlockId());
+                            if (lastBlock.getTimestamp() > Nxt.getEpochTime() - 600) {
+                                Block previousBlock = Nxt.getBlockchain().getBlock(lastBlock.getPreviousBlockId());
                                 for (Generator generator : generators.values()) {
                                     generator.setLastBlock(previousBlock);
                                     int timestamp = generator.getTimestamp(generationLimit);
@@ -160,11 +160,11 @@ public final class Generator implements Comparable<Generator> {
     public static Generator stopForging(String secretPhrase) {
         Generator generator = generators.remove(secretPhrase);
         if (generator != null) {
-            Conch.getBlockchain().updateLock();
+            Nxt.getBlockchain().updateLock();
             try {
                 sortedForgers = null;
             } finally {
-                Conch.getBlockchain().updateUnlock();
+                Nxt.getBlockchain().updateUnlock();
             }
             Logger.logDebugMessage(generator + " stopped");
             listeners.notify(generator, Event.STOP_FORGING);
@@ -181,11 +181,11 @@ public final class Generator implements Comparable<Generator> {
             Logger.logDebugMessage(generator + " stopped");
             listeners.notify(generator, Event.STOP_FORGING);
         }
-        Conch.getBlockchain().updateLock();
+        Nxt.getBlockchain().updateLock();
         try {
             sortedForgers = null;
         } finally {
-            Conch.getBlockchain().updateUnlock();
+            Nxt.getBlockchain().updateUnlock();
         }
         return count;
     }
@@ -283,14 +283,14 @@ public final class Generator implements Comparable<Generator> {
         this.secretPhrase = secretPhrase;
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.accountId = Account.getId(publicKey);
-        Conch.getBlockchain().updateLock();
+        Nxt.getBlockchain().updateLock();
         try {
-            if (Conch.getBlockchain().getHeight() >= Constants.LAST_KNOWN_BLOCK) {
-                setLastBlock(Conch.getBlockchain().getLastBlock());
+            if (Nxt.getBlockchain().getHeight() >= Constants.LAST_KNOWN_BLOCK) {
+                setLastBlock(Nxt.getBlockchain().getLastBlock());
             }
             sortedForgers = null;
         } finally {
-            Conch.getBlockchain().updateUnlock();
+            Nxt.getBlockchain().updateUnlock();
         }
     }
 
@@ -354,7 +354,7 @@ public final class Generator implements Comparable<Generator> {
             Logger.logDebugMessage(this.toString() + " failed to forge at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
             return false;
         }
-        int start = Conch.getEpochTime();
+        int start = Nxt.getEpochTime();
         while (true) {
             try {
                 BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, timestamp);
@@ -362,7 +362,7 @@ public final class Generator implements Comparable<Generator> {
                 return true;
             } catch (BlockchainProcessor.TransactionNotAcceptedException e) {
                 // the bad transaction has been expunged, try again
-                if (Conch.getEpochTime() - start > 10) { // give up after trying for 10 s
+                if (Nxt.getEpochTime() - start > 10) { // give up after trying for 10 s
                     throw e;
                 }
             }
@@ -394,13 +394,13 @@ public final class Generator implements Comparable<Generator> {
      */
     public static List<ActiveGenerator> getNextGenerators() {
         List<ActiveGenerator> generatorList;
-        Blockchain blockchain = Conch.getBlockchain();
+        Blockchain blockchain = Nxt.getBlockchain();
         synchronized(activeGenerators) {
             if (!generatorsInitialized) {
                 activeGeneratorIds.addAll(BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - 10000)));
                 activeGeneratorIds.forEach(activeGeneratorId -> activeGenerators.add(new ActiveGenerator(activeGeneratorId)));
                 Logger.logDebugMessage(activeGeneratorIds.size() + " block generators found");
-                Conch.getBlockchainProcessor().addListener(block -> {
+                Nxt.getBlockchainProcessor().addListener(block -> {
                     long generatorId = block.getGeneratorId();
                     synchronized(activeGenerators) {
                         if (!activeGeneratorIds.contains(generatorId)) {
@@ -488,7 +488,7 @@ public final class Generator implements Comparable<Generator> {
                 return;
             }
             effectiveBalanceSS = Math.max(account.getEffectiveBalanceSS(height), 0);
-            conchScore = effectiveBalanceSS; // FIXME[xy] use the new logic to cal conch score
+            conchScore = effectiveBalanceSS; // FIXME[xy] use the new logic to cal Nxt score
             if (effectiveBalanceSS == 0) {
                 hitTime = Long.MAX_VALUE;
                 return;

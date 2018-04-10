@@ -1,7 +1,7 @@
-package org.conch.cpos.core;
+package nxt.cpos.core;
 
-import org.conch.Account;
-import org.conch.util.Logger;
+import nxt.Account;
+import nxt.util.Logger;
 
 /**
  * 海螺链的创世节点,按照如下方式分配初始资金=> 以下为测试数据.

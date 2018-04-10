@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,12 +14,12 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.crypto.Crypto;
-import org.conch.crypto.EncryptedData;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
+import nxt.crypto.Crypto;
+import nxt.crypto.EncryptedData;
+import nxt.util.Convert;
+import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -49,7 +49,7 @@ public interface Appendix {
         boolean hasPrunableData();
         void restorePrunableData(Transaction transaction, int blockTimestamp, int height);
         default boolean shouldLoadPrunable(Transaction transaction, boolean includeExpiredPrunable) {
-            return Conch.getEpochTime() - transaction.getTimestamp() <
+            return Nxt.getEpochTime() - transaction.getTimestamp() <
                     (includeExpiredPrunable && Constants.INCLUDE_EXPIRED_PRUNABLE ?
                             Constants.MAX_PRUNABLE_LIFETIME : Constants.MIN_PRUNABLE_LIFETIME);
         }
@@ -273,7 +273,7 @@ public interface Appendix {
 
         @Override
         void validate(Transaction transaction) throws ConchException.ValidationException {
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && message.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
+            if (Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && message.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Invalid arbitrary message length: " + message.length);
             }
         }
@@ -406,14 +406,14 @@ public interface Appendix {
             if (msg != null && msg.length > Constants.MAX_PRUNABLE_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Invalid prunable message length: " + msg.length);
             }
-            if (msg == null && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
+            if (msg == null && Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                 throw new ConchException.NotCurrentlyValidException("Message has been pruned prematurely");
             }
         }
 
         @Override
         void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            if (Conch.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME) {
+            if (Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME) {
                 PrunableMessage.add((TransactionImpl)transaction, this);
             }
         }
@@ -537,7 +537,7 @@ public interface Appendix {
 
         @Override
         void validate(Transaction transaction) throws ConchException.ValidationException {
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && getEncryptedDataLength() > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
+            if (Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && getEncryptedDataLength() > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Max encrypted message length exceeded");
             }
             if (encryptedData != null) {
@@ -700,7 +700,7 @@ public interface Appendix {
                 throw new ConchException.NotValidException("Cannot have both encrypted and prunable encrypted message attachments");
             }
             EncryptedData ed = getEncryptedData();
-            if (ed == null && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
+            if (ed == null && Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                 throw new ConchException.NotCurrentlyValidException("Encrypted message has been pruned prematurely");
             }
             if (ed != null) {
@@ -720,7 +720,7 @@ public interface Appendix {
 
         @Override
         void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            if (Conch.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME) {
+            if (Nxt.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME) {
                 PrunableMessage.add((TransactionImpl)transaction, this);
             }
         }
@@ -1322,7 +1322,7 @@ public interface Appendix {
         @Override
         void validate(Transaction transaction) throws ConchException.ValidationException {
             params.validate();
-            int currentHeight = Conch.getBlockchain().getHeight();
+            int currentHeight = Nxt.getBlockchain().getHeight();
             if (params.getVoteWeighting().getVotingModel() == VoteWeighting.VotingModel.TRANSACTION) {
                 if (linkedFullHashes.length == 0 || linkedFullHashes.length > Constants.MAX_PHASING_LINKED_TRANSACTIONS) {
                     throw new ConchException.NotValidException("Invalid number of linkedFullHashes " + linkedFullHashes.length);
@@ -1332,7 +1332,7 @@ public interface Appendix {
                     if (Convert.emptyToNull(hash) == null || hash.length != 32) {
                         throw new ConchException.NotValidException("Invalid linkedFullHash " + Convert.toHexString(hash));
                     }
-                    if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+                    if (Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
                         if (!linkedTransactionIds.add(Convert.fullHashToId(hash))) {
                             throw new ConchException.NotValidException("Duplicate linked transaction ids");
                         }
@@ -1425,7 +1425,7 @@ public interface Appendix {
         }
 
         void countVotes(TransactionImpl transaction) {
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && PhasingPoll.getResult(transaction.getId()) != null) {
+            if (Nxt.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && PhasingPoll.getResult(transaction.getId()) != null) {
                 return;
             }
             PhasingPoll poll = PhasingPoll.getPoll(transaction.getId());
@@ -1451,16 +1451,16 @@ public interface Appendix {
                     try {
                         release(transaction);
                         poll.finish(result);
-                        Logger.logDebugMessage("Early finish of transaction " + transaction.getStringId() + " at height " + Conch.getBlockchain().getHeight());
+                        Logger.logDebugMessage("Early finish of transaction " + transaction.getStringId() + " at height " + Nxt.getBlockchain().getHeight());
                     } catch (RuntimeException e) {
                         Logger.logErrorMessage("Failed to release phased transaction " + transaction.getJSONObject().toJSONString(), e);
                     }
                 } else {
-                    Logger.logDebugMessage("At height " + Conch.getBlockchain().getHeight() + " phased transaction " + transaction.getStringId()
+                    Logger.logDebugMessage("At height " + Nxt.getBlockchain().getHeight() + " phased transaction " + transaction.getStringId()
                             + " is duplicate, cannot finish early");
                 }
             } else {
-                Logger.logDebugMessage("At height " + Conch.getBlockchain().getHeight() + " phased transaction " + transaction.getStringId()
+                Logger.logDebugMessage("At height " + Nxt.getBlockchain().getHeight() + " phased transaction " + transaction.getStringId()
                         + " does not yet meet quorum, cannot finish early");
             }
         }

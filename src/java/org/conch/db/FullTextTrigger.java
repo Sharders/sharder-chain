@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,11 +14,11 @@
  *
  */
 
-package org.conch.db;
+package nxt.db;
 
-import org.conch.Db;
-import org.conch.util.Logger;
-import org.conch.util.ReadWriteUpdateLock;
+import nxt.Db;
+import nxt.util.Logger;
+import nxt.util.ReadWriteUpdateLock;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.DateTools;
@@ -476,7 +476,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
     public void init(Connection conn, String schema, String trigger, String table, boolean before, int type)
                                     throws SQLException {
         //
-        // Ignore the trigger if Conch is not active or this is a temporary table copy
+        // Ignore the trigger if Nxt is not active or this is a temporary table copy
         //
         if (!isActive || table.contains("_COPY_")) {
             return;
@@ -495,7 +495,7 @@ public class FullTextTrigger implements Trigger, TransactionalDb.TransactionCall
             //
             // Get the table column information
             //
-            // Conch tables use DB_ID as the primary index
+            // Nxt tables use DB_ID as the primary index
             //
             try (ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM " + table + " FROM " + schema)) {
                 int index = 0;

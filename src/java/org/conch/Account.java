@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,16 +14,16 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.cpos.core.ConchGenesis;
-import org.conch.crypto.Crypto;
-import org.conch.crypto.EncryptedData;
-import org.conch.db.*;
-import org.conch.util.Convert;
-import org.conch.util.Listener;
-import org.conch.util.Listeners;
-import org.conch.util.Logger;
+import nxt.cpos.core.NxtGenesis;
+import nxt.crypto.Crypto;
+import nxt.crypto.EncryptedData;
+import nxt.db.*;
+import nxt.util.Convert;
+import nxt.util.Listener;
+import nxt.util.Listeners;
+import nxt.util.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -78,7 +78,7 @@ public final class Account {
                 pstmt.setLong(++i, this.assetId);
                 pstmt.setLong(++i, this.quantityQNT);
                 pstmt.setLong(++i, this.unconfirmedQuantityQNT);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -150,7 +150,7 @@ public final class Account {
                 pstmt.setLong(++i, this.currencyId);
                 pstmt.setLong(++i, this.units);
                 pstmt.setLong(++i, this.unconfirmedUnits);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -232,7 +232,7 @@ public final class Account {
                 DbUtils.setIntZeroToNull(pstmt, ++i, this.nextLeasingHeightFrom);
                 DbUtils.setIntZeroToNull(pstmt, ++i, this.nextLeasingHeightTo);
                 DbUtils.setLongZeroToNull(pstmt, ++i, this.nextLesseeId);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -296,7 +296,7 @@ public final class Account {
                 pstmt.setLong(++i, this.accountId);
                 DbUtils.setString(pstmt, ++i, this.name);
                 DbUtils.setString(pstmt, ++i, this.description);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -361,7 +361,7 @@ public final class Account {
                 DbUtils.setLongZeroToNull(pstmt, ++i, this.setterId != this.recipientId ? this.setterId : 0);
                 DbUtils.setString(pstmt, ++i, this.property);
                 DbUtils.setString(pstmt, ++i, this.value);
-                pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -399,7 +399,7 @@ public final class Account {
             this.accountId = accountId;
             this.dbKey = publicKeyDbKeyFactory.newKey(accountId);
             this.publicKey = publicKey;
-            this.height = Conch.getBlockchain().getHeight();
+            this.height = Nxt.getBlockchain().getHeight();
         }
 
         private PublicKey(ResultSet rs, DbKey dbKey) throws SQLException {
@@ -410,7 +410,7 @@ public final class Account {
         }
 
         private void save(Connection con) throws SQLException {
-            height = Conch.getBlockchain().getHeight();
+            height = Nxt.getBlockchain().getHeight();
             try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO public_key (account_id, public_key, height, latest) "
                     + "KEY (account_id, height) VALUES (?, ?, ?, TRUE)")) {
                 int i = 0;
@@ -575,11 +575,11 @@ public final class Account {
 
         @Override
         public void checkAvailable(int height) {
-            if (height + Constants.MAX_DIVIDEND_PAYMENT_ROLLBACK < Conch.getBlockchainProcessor().getMinRollbackHeight()) {
+            if (height + Constants.MAX_DIVIDEND_PAYMENT_ROLLBACK < Nxt.getBlockchainProcessor().getMinRollbackHeight()) {
                 throw new IllegalArgumentException("Historical data as of height " + height +" not available.");
             }
-            if (height > Conch.getBlockchain().getHeight()) {
-                throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Conch.getBlockchain().getHeight());
+            if (height > Nxt.getBlockchain().getHeight()) {
+                throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Nxt.getBlockchain().getHeight());
             }
         }
 
@@ -657,7 +657,7 @@ public final class Account {
 
     };
 
-    private static final ConcurrentMap<DbKey, byte[]> publicKeyCache = Conch.getBooleanProperty("sharder.enablePublicKeyCache") ?
+    private static final ConcurrentMap<DbKey, byte[]> publicKeyCache = Nxt.getBooleanProperty("sharder.enablePublicKeyCache") ?
             new ConcurrentHashMap<>() : null;
 
     private static final Listeners<Account,Event> listeners = new Listeners<>();
@@ -984,7 +984,7 @@ public final class Account {
 
     static {
 
-        Conch.getBlockchainProcessor().addListener(block -> {
+        Nxt.getBlockchainProcessor().addListener(block -> {
             int height = block.getHeight();
             if (height < Constants.TRANSPARENT_FORGING_BLOCK_6) {
                 return;
@@ -1028,7 +1028,7 @@ public final class Account {
 
         if (publicKeyCache != null) {
 
-            Conch.getBlockchainProcessor().addListener(block -> {
+            Nxt.getBlockchainProcessor().addListener(block -> {
                 publicKeyCache.remove(accountDbKeyFactory.newKey(block.getGeneratorId()));
                 block.getTransactions().forEach(transaction -> {
                     publicKeyCache.remove(accountDbKeyFactory.newKey(transaction.getSenderId()));
@@ -1044,7 +1044,7 @@ public final class Account {
                 });
             }, BlockchainProcessor.Event.BLOCK_POPPED);
 
-            Conch.getBlockchainProcessor().addListener(block -> publicKeyCache.clear(), BlockchainProcessor.Event.RESCAN_BEGIN);
+            Nxt.getBlockchainProcessor().addListener(block -> publicKeyCache.clear(), BlockchainProcessor.Event.RESCAN_BEGIN);
 
         }
 
@@ -1097,7 +1097,7 @@ public final class Account {
             pstmt.setLong(++i, this.forgedBalanceNQT);
             DbUtils.setLongZeroToNull(pstmt, ++i, this.activeLesseeId);
             pstmt.setBoolean(++i, controls.contains(ControlType.PHASING_ONLY));
-            pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -1179,7 +1179,7 @@ public final class Account {
     }
 
     public long getEffectiveBalanceSS() {
-        return getEffectiveBalanceSS(Conch.getBlockchain().getHeight());
+        return getEffectiveBalanceSS(Nxt.getBlockchain().getHeight());
     }
 
     public long getEffectiveBalanceSS(int height) {
@@ -1204,14 +1204,14 @@ public final class Account {
                 return balanceNQT / Constants.ONE_SS;
             }
             long receivedInLastBlock = 0;
-            for (Transaction transaction : Conch.getBlockchain().getBlockAtHeight(height).getTransactions()) {
+            for (Transaction transaction : Nxt.getBlockchain().getBlockAtHeight(height).getTransactions()) {
                 if (id == transaction.getRecipientId()) {
                     receivedInLastBlock += transaction.getAmountNQT();
                 }
             }
             return (balanceNQT - receivedInLastBlock) / Constants.ONE_SS;
         }
-        Conch.getBlockchain().readLock();
+        Nxt.getBlockchain().readLock();
         try {
             long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
             if (activeLesseeId == 0) {
@@ -1219,7 +1219,7 @@ public final class Account {
             }
             return (height > Constants.SHUFFLING_BLOCK && effectiveBalanceNQT < Constants.MIN_FORGING_BALANCE_NQT) ? 0 : effectiveBalanceNQT / Constants.ONE_SS;
         } finally {
-            Conch.getBlockchain().readUnlock();
+            Nxt.getBlockchain().readUnlock();
         }
     }
 
@@ -1236,7 +1236,7 @@ public final class Account {
             lessorIds[i] = lessors.get(i).getId();
             balances[i] = lessors.get(i).getBalanceNQT();
         }
-        int blockchainHeight = Conch.getBlockchain().getHeight();
+        int blockchainHeight = Nxt.getBlockchain().getHeight();
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT account_id, SUM (additions) AS additions "
                      + "FROM account_guaranteed_balance, TABLE (id BIGINT=?) T WHERE account_id = T.id AND height > ? "
@@ -1278,15 +1278,15 @@ public final class Account {
     }
 
     public long getGuaranteedBalanceNQT() {
-        return getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, Conch.getBlockchain().getHeight());
+        return getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, Nxt.getBlockchain().getHeight());
     }
 
     public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
-        Conch.getBlockchain().readLock();
+        Nxt.getBlockchain().readLock();
         try {
             int height = currentHeight - numberOfConfirmations;
-            if (height + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
-                    || height > Conch.getBlockchain().getHeight()) {
+            if (height + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Nxt.getBlockchainProcessor().getMinRollbackHeight()
+                    || height > Nxt.getBlockchain().getHeight()) {
                 throw new IllegalArgumentException("Height " + height + " not available for guaranteed balance calculation");
             }
             try (Connection con = Db.db.getConnection();
@@ -1305,7 +1305,7 @@ public final class Account {
                 throw new RuntimeException(e.toString(), e);
             }
         } finally {
-            Conch.getBlockchain().readUnlock();
+            Nxt.getBlockchain().readUnlock();
         }
     }
 
@@ -1386,7 +1386,7 @@ public final class Account {
     }
 
     void leaseEffectiveBalance(long lesseeId, int period) {
-        int height = Conch.getBlockchain().getHeight();
+        int height = Nxt.getBlockchain().getHeight();
         AccountLease accountLease = accountLeaseTable.get(accountDbKeyFactory.newKey(this));
         if (accountLease == null) {
             accountLease = new AccountLease(id,
@@ -1463,7 +1463,7 @@ public final class Account {
         }
         if (publicKey.publicKey == null) {
             publicKey.publicKey = key;
-            publicKey.height = Conch.getBlockchain().getHeight();
+            publicKey.height = Nxt.getBlockchain().getHeight();
             return true;
         }
         return Arrays.equals(publicKey.publicKey, key);
@@ -1479,7 +1479,7 @@ public final class Account {
             publicKeyTable.insert(publicKey);
         } else if (! Arrays.equals(publicKey.publicKey, key)) {
             throw new IllegalStateException("Public key mismatch");
-        } else if (publicKey.height >= Conch.getBlockchain().getHeight() - 1) {
+        } else if (publicKey.height >= Nxt.getBlockchain().getHeight() - 1) {
             PublicKey dbPublicKey = publicKeyTable.get(dbKey, false);
             if (dbPublicKey == null || dbPublicKey.publicKey == null) {
                 publicKeyTable.insert(publicKey);
@@ -1666,11 +1666,11 @@ public final class Account {
         if (AccountLedger.mustLogEntry(this.id, false)) {
             if (feeNQT != 0) {
                 AccountLedger.logEntry(new AccountLedger.LedgerEntry(AccountLedger.LedgerEvent.TRANSACTION_FEE, eventId, this.id,
-                        AccountLedger.LedgerHolding.CONCH_BALANCE, null, feeNQT, this.balanceNQT - amountNQT));
+                        AccountLedger.LedgerHolding.Nxt_BALANCE, null, feeNQT, this.balanceNQT - amountNQT));
             }
             if (amountNQT != 0) {
                 AccountLedger.logEntry(new AccountLedger.LedgerEntry(event, eventId, this.id,
-                        AccountLedger.LedgerHolding.CONCH_BALANCE, null, amountNQT, this.balanceNQT));
+                        AccountLedger.LedgerHolding.Nxt_BALANCE, null, amountNQT, this.balanceNQT));
             }
         }
     }
@@ -1729,11 +1729,11 @@ public final class Account {
         if (AccountLedger.mustLogEntry(this.id, false)) {
             if (feeNQT != 0) {
                 AccountLedger.logEntry(new AccountLedger.LedgerEntry(AccountLedger.LedgerEvent.TRANSACTION_FEE, eventId, this.id,
-                        AccountLedger.LedgerHolding.CONCH_BALANCE, null, feeNQT, this.balanceNQT - amountNQT));
+                        AccountLedger.LedgerHolding.Nxt_BALANCE, null, feeNQT, this.balanceNQT - amountNQT));
             }
             if (amountNQT != 0) {
                 AccountLedger.logEntry(new AccountLedger.LedgerEntry(event, eventId, this.id,
-                        AccountLedger.LedgerHolding.CONCH_BALANCE, null, amountNQT, this.balanceNQT));
+                        AccountLedger.LedgerHolding.Nxt_BALANCE, null, amountNQT, this.balanceNQT));
             }
         }
     }
@@ -1765,7 +1765,7 @@ public final class Account {
         if (amountNQT <= 0) {
             return;
         }
-        int blockchainHeight = Conch.getBlockchain().getHeight();
+        int blockchainHeight = Nxt.getBlockchain().getHeight();
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmtSelect = con.prepareStatement("SELECT additions FROM account_guaranteed_balance "
                      + "WHERE account_id = ? and height = ?");

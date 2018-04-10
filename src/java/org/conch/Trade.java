@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,15 +14,15 @@
  *
  */
 
-package org.conch;
+package nxt;
 
-import org.conch.db.DbClause;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
-import org.conch.db.DbUtils;
-import org.conch.db.EntityDbTable;
-import org.conch.util.Listener;
-import org.conch.util.Listeners;
+import nxt.db.DbClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.DbUtils;
+import nxt.db.EntityDbTable;
+import nxt.util.Listener;
+import nxt.util.Listeners;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -182,7 +182,7 @@ public final class Trade {
     private final boolean isBuy;
 
     private Trade(long assetId, Order.Ask askOrder, Order.Bid bidOrder) {
-        Block block = Conch.getBlockchain().getLastBlock();
+        Block block = Nxt.getBlockchain().getLastBlock();
         this.blockId = block.getId();
         this.height = block.getHeight();
         this.assetId = assetId;

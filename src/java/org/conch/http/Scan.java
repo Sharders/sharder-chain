@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,9 +14,9 @@
  *
  */
 
-package org.conch.http;
+package nxt.http;
 
-import org.conch.Conch;
+import nxt.Nxt;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -45,16 +45,16 @@ public final class Scan extends APIServlet.APIRequestHandler {
             } catch (NumberFormatException ignore) {}
             long start = System.currentTimeMillis();
             try {
-                Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+                Nxt.getBlockchainProcessor().setGetMoreBlocks(false);
                 if (numBlocks > 0) {
-                    Conch.getBlockchainProcessor().scan(Conch.getBlockchain().getHeight() - numBlocks + 1, validate);
+                    Nxt.getBlockchainProcessor().scan(Nxt.getBlockchain().getHeight() - numBlocks + 1, validate);
                 } else if (height >= 0) {
-                    Conch.getBlockchainProcessor().scan(height, validate);
+                    Nxt.getBlockchainProcessor().scan(height, validate);
                 } else {
                     return JSONResponses.missing("numBlocks", "height");
                 }
             } finally {
-                Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+                Nxt.getBlockchainProcessor().setGetMoreBlocks(true);
             }
             long end = System.currentTimeMillis();
             response.put("done", true);

@@ -1,12 +1,12 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ * Copyright © 2013-2016 The Nxt Core Developers.
+ * Copyright © 2016-2017 Jelurida IP B.V.
  *
  * See the LICENSE.txt file at the top-level directory of this distribution
  * for licensing information.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
+ * Unless otherwise agreed in a custom licensing agreement with Jelurida B.V.,
+ * no part of the Nxt software, including this file, may be copied, modified,
  * propagated, or distributed except according to the terms contained in the
  * LICENSE.txt file.
  *
@@ -14,14 +14,14 @@
  *
  */
 
-package org.conch.user;
+package nxt.user;
 
-import org.conch.*;
-import org.conch.peer.Peer;
-import org.conch.peer.Peers;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-import org.conch.util.ThreadPool;
+import nxt.*;
+import nxt.peer.Peer;
+import nxt.peer.Peers;
+import nxt.util.Convert;
+import nxt.util.Logger;
+import nxt.util.ThreadPool;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -66,21 +66,21 @@ public final class Users {
 
     static {
 
-        List<String> allowedUserHostsList = Conch.getStringListProperty("sharder.allowedUserHosts");
+        List<String> allowedUserHostsList = Nxt.getStringListProperty("sharder.allowedUserHosts");
         if (! allowedUserHostsList.contains("*")) {
             allowedUserHosts = Collections.unmodifiableSet(new HashSet<>(allowedUserHostsList));
         } else {
             allowedUserHosts = null;
         }
 
-        boolean enableUIServer = Conch.getBooleanProperty("sharder.enableUIServer");
+        boolean enableUIServer = Nxt.getBooleanProperty("sharder.enableUIServer");
         if (enableUIServer) {
-            final int port = Constants.isTestnet ? TESTNET_UI_PORT : Conch.getIntProperty("sharder.uiServerPort");
-            final String host = Conch.getStringProperty("sharder.uiServerHost");
+            final int port = Constants.isTestnet ? TESTNET_UI_PORT : Nxt.getIntProperty("sharder.uiServerPort");
+            final String host = Nxt.getStringProperty("sharder.uiServerHost");
             userServer = new Server();
             ServerConnector connector;
 
-            boolean enableSSL = Conch.getBooleanProperty("sharder.uiSSL");
+            boolean enableSSL = Nxt.getBooleanProperty("sharder.uiSSL");
             if (enableSSL) {
                 Logger.logMessage("Using SSL (https) for the user interface server");
                 HttpConfiguration https_config = new HttpConfiguration();
@@ -88,8 +88,8 @@ public final class Users {
                 https_config.setSecurePort(port);
                 https_config.addCustomizer(new SecureRequestCustomizer());
                 SslContextFactory sslContextFactory = new SslContextFactory();
-                sslContextFactory.setKeyStorePath(Conch.getStringProperty("sharder.keyStorePath"));
-                sslContextFactory.setKeyStorePassword(Conch.getStringProperty("sharder.keyStorePassword", null, true));
+                sslContextFactory.setKeyStorePath(Nxt.getStringProperty("sharder.keyStorePath"));
+                sslContextFactory.setKeyStorePassword(Nxt.getStringProperty("sharder.keyStorePassword", null, true));
                 sslContextFactory.addExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA", "SSL_DHE_RSA_WITH_DES_CBC_SHA",
                         "SSL_DHE_DSS_WITH_DES_CBC_SHA", "SSL_RSA_EXPORT_WITH_RC4_40_MD5", "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
                         "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA", "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
@@ -102,7 +102,7 @@ public final class Users {
 
             connector.setPort(port);
             connector.setHost(host);
-            connector.setIdleTimeout(Conch.getIntProperty("sharder.uiServerIdleTimeout"));
+            connector.setIdleTimeout(Nxt.getIntProperty("sharder.uiServerIdleTimeout"));
             connector.setReuseAddress(true);
             userServer.addConnector(connector);
 
@@ -112,11 +112,11 @@ public final class Users {
             ResourceHandler userFileHandler = new ResourceHandler();
             userFileHandler.setDirectoriesListed(false);
             userFileHandler.setWelcomeFiles(new String[]{"index.html"});
-            userFileHandler.setResourceBase(Conch.getStringProperty("sharder.uiResourceBase"));
+            userFileHandler.setResourceBase(Nxt.getStringProperty("sharder.uiResourceBase"));
 
             userHandlers.addHandler(userFileHandler);
 
-            String javadocResourceBase = Conch.getStringProperty("sharder.javadocResourceBase");
+            String javadocResourceBase = Nxt.getStringProperty("sharder.javadocResourceBase");
             if (javadocResourceBase != null) {
                 ContextHandler contextHandler = new ContextHandler("/doc");
                 ResourceHandler docFileHandler = new ResourceHandler();
@@ -131,7 +131,7 @@ public final class Users {
             ServletHolder userHolder = userHandler.addServletWithMapping(UserServlet.class, "/sharder");
             userHolder.setAsyncSupported(true);
 
-            if (Conch.getBooleanProperty("sharder.uiServerCORS")) {
+            if (Nxt.getBooleanProperty("sharder.uiServerCORS")) {
                 FilterHolder filterHolder = userHandler.addFilterWithMapping(CrossOriginFilter.class, "/*", FilterMapping.DEFAULT);
                 filterHolder.setInitParameter("allowedHeaders", "*");
                 filterHolder.setAsyncSupported(true);
@@ -326,7 +326,7 @@ public final class Users {
                 Users.sendNewDataToAll(response);
             }, Peers.Event.NEW_PEER);
 
-            Conch.getTransactionProcessor().addListener(transactions -> {
+            Nxt.getTransactionProcessor().addListener(transactions -> {
                 JSONObject response = new JSONObject();
                 JSONArray removedUnconfirmedTransactions = new JSONArray();
                 for (Transaction transaction : transactions) {
@@ -338,7 +338,7 @@ public final class Users {
                 Users.sendNewDataToAll(response);
             }, TransactionProcessor.Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
 
-            Conch.getTransactionProcessor().addListener(transactions -> {
+            Nxt.getTransactionProcessor().addListener(transactions -> {
                 JSONObject response = new JSONObject();
                 JSONArray addedUnconfirmedTransactions = new JSONArray();
                 for (Transaction transaction : transactions) {
@@ -357,7 +357,7 @@ public final class Users {
                 Users.sendNewDataToAll(response);
             }, TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS);
 
-            Conch.getTransactionProcessor().addListener(transactions -> {
+            Nxt.getTransactionProcessor().addListener(transactions -> {
                 JSONObject response = new JSONObject();
                 JSONArray addedConfirmedTransactions = new JSONArray();
                 for (Transaction transaction : transactions) {
@@ -376,7 +376,7 @@ public final class Users {
                 Users.sendNewDataToAll(response);
             }, TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
 
-            Conch.getBlockchainProcessor().addListener(block -> {
+            Nxt.getBlockchainProcessor().addListener(block -> {
                 JSONObject response = new JSONObject();
                 JSONArray addedOrphanedBlocks = new JSONArray();
                 JSONObject addedOrphanedBlock = new JSONObject();
@@ -396,7 +396,7 @@ public final class Users {
                 Users.sendNewDataToAll(response);
             }, BlockchainProcessor.Event.BLOCK_POPPED);
 
-            Conch.getBlockchainProcessor().addListener(block -> {
+            Nxt.getBlockchainProcessor().addListener(block -> {
                 JSONObject response = new JSONObject();
                 JSONArray addedRecentBlocks = new JSONArray();
                 JSONObject addedRecentBlock = new JSONObject();
