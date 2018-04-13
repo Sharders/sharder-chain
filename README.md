@@ -32,6 +32,7 @@ Mine will open soon!
   - Wechat: supersharder
 <br/>
 ----
+
 # 豆匣链(Sharder Chain) #
 
 ## 豆匣链是什么? ##
