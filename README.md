@@ -30,7 +30,7 @@ Mine will open soon!
   - Github: https://github.com/Sharders/sharder-chain
   - QQ group: 578367251
   - Wechat: supersharder
-<br/>
+
 ----
 
 # 豆匣链(Sharder Chain) #
