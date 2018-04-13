@@ -1,16 +1,21 @@
 /*
- * Copyright © 2017 sharder.org.
- * Copyright © 2014-2017 ichaoj.com.
+ *  Copyright © 2017-2018 Sharder Foundation.
  *
- * See the LICENSE.txt file at the top-level directory of this distribution
- * for licensing information.
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  version 2 as published by the Free Software Foundation.
  *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,
- * no part of the COS software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE.txt file.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Removal or modification of this copyright notice is prohibited.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, you can visit it at:
+ *  https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+ *
+ *  This software uses third party libraries and open-source programs,
+ *  distributed under licenses described in 3RD-PARTY-LICENSES.
  *
  */
 
@@ -104,8 +109,8 @@ public final class Peers {
     static final boolean useProxy = System.getProperty("socksProxyHost") != null || System.getProperty("http.proxyHost") != null;
     static final boolean isGzipEnabled;
 
-    private static final int DEFAULT_PEER_PORT = 7874;
-    private static final int TESTNET_PEER_PORT = 6874;
+    private static final int DEFAULT_PEER_PORT = 3218;
+    private static final int TESTNET_PEER_PORT = 4218;
     private static final String myPlatform;
     private static final String myAddress;
     private static final int myPeerServerPort;
