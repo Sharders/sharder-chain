@@ -92,6 +92,7 @@ final class PeerImpl implements Peer {
     private volatile int hallmarkBalanceHeight;
     private volatile long services;
     private volatile BlockchainState blockchainState;
+    private volatile Type type;
 
     PeerImpl(String host, String announcedAddress) {
         this.host = host;
@@ -132,6 +133,25 @@ final class PeerImpl implements Peer {
             Peers.notifyListeners(this, Peers.Event.CHANGED_ACTIVE_PEER);
         } else {
             this.state = state;
+        }
+    }
+
+    public Type getType(){
+        return this.type == null ? Type.NORMAL : this.type;
+    }
+
+    public void setType(int type){
+        switch (type){
+            case 1:
+                this.type = Type.OFFICIAL;
+                break;
+            case 2:
+                this.type = Type.CERTIFIED;
+                break;
+            case 3:
+                this.type = Type.NORMAL;
+            default:
+                Logger.logErrorMessage("error with setting peer type:" + type);
         }
     }
 

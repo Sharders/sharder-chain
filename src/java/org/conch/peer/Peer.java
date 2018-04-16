@@ -29,6 +29,22 @@ import java.util.Set;
 
 public interface Peer extends Comparable<Peer> {
 
+    //peer type
+    enum Type {
+        NORMAL(3),
+        CERTIFIED(2),
+        OFFICIAL(1);
+        private final int code;
+
+        Type(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+    }
+
     enum State {
         NON_CONNECTED, CONNECTED, DISCONNECTED
     }
