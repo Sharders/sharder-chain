@@ -31,6 +31,7 @@ import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -247,7 +248,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 getAllUnconfirmedTransactionIds().forEach(transactionId -> exclude.add(Long.toUnsignedString(transactionId)));
                 Collections.sort(exclude);
                 request.put("exclude", exclude);
-                JSONObject response = peer.send(JSON.prepareRequest(request), 10 * 1024 * 1024);
+                JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                 if (response == null) {
                     return;
                 }

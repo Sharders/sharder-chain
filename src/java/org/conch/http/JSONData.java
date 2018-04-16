@@ -70,7 +70,7 @@ import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
+import org.conch.TransactionType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -977,6 +977,10 @@ public final class JSONData {
                 if (entry.getValue() instanceof Long) {
                     entry.setValue(String.valueOf(entry.getValue()));
                 }
+            }
+            if(TransactionType.Data.TAGGED_DATA_UPLOAD.equals(transaction.getType())){
+
+                attachmentJSON.replace("data","");
             }
             json.put("attachment", attachmentJSON);
         }

@@ -32,7 +32,7 @@ public final class Constants {
 
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MIN_TRANSACTION_SIZE = 176;
-    public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * MIN_TRANSACTION_SIZE;
+    public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * MIN_TRANSACTION_SIZE * 244;
     public static final long MAX_BALANCE_SS = 1000000000;
     public static final long ONE_SS = 100000000;
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
@@ -142,7 +142,8 @@ public final class Constants {
     public static final int MAX_TAGGED_DATA_TYPE_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_CHANNEL_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_FILENAME_LENGTH = 100;
-    public static final int MAX_TAGGED_DATA_DATA_LENGTH = 42 * 1024;
+    public static final int MAX_TAGGED_DATA_DATA_LENGTH = 10 * 1024 * 1024;
+    public static final int MAX_RESPONSE_SIZE = 20 * 1024 * 1024;
 
     /**conch**/
     public static final int ALIAS_SYSTEM_BLOCK = 0;
