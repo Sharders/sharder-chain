@@ -7,16 +7,8 @@
 
 ## Install & Run client ##
    - Download source code from [Github](https://github.com/Sharders/sharder-chain) or download [Clients-Coming soon](http://sharder.org/cos/client/downloads) directlly.
-   - *Install JDK1.8*:
-      - [General](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-      - [Ubuntu](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html)
-      - [Debian](http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html)
-      - [FreeBSD](pkg install openjdk8)
-   - Run client:
-      - Unix: `./start.sh`
-      - Mac: `./start.sh`
-      - Window: `run.bat`
-   - Visit in destktop app or broswer: http://localhost:3215/
+   - *Install JDK1.8*: [General](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), [Ubuntu](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html), [Debian](http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html), [FreeBSD](pkg install openjdk8)
+   - Run client: Unix: `./start.sh`, Mac: `./start.sh`, Window: `run.bat`
 
 ## Start mine ##
 Mine will open soon!
@@ -41,18 +33,9 @@ Mine will open soon!
 - 会持续增加新特性:豆匣账户，交易模型，智能合约等。
 
 ## 安装和运行豆匣客户端 ##
- - 从[Github](https://github.com/Sharders/sharder-chain)上获取源代码或则下载[客户端-待开放](http://sharder.org/cos/client/downloads)
-  
- - *安装JDK1.8*:
-    - [General](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-    - [Ubuntu](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html)
-    - [Debian](http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html)
-    - [FreeBSD](pkg install openjdk8)
- - 运行客户端:
-    - Unix: `./start.sh`
-    - Mac: `./start.sh`
-    - Window: `run.bat`
- - 访问桌面端或浏览器端: http://localhost:3215/
+ - 从[Github](https://github.com/Sharders/sharder-chain)上获取源代码或则下载[客户端-待开放](http://sharder.org/cos/client/downloads) 
+ - *安装JDK1.8*: [General](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), [Ubuntu](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html), [Debian](http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html), [FreeBSD](pkg install openjdk8)
+ - 运行客户端: Unix: `./start.sh`, Mac: `./start.sh`, Window: `run.bat`
 
 ## 开始挖矿 ##
   暂未开放
