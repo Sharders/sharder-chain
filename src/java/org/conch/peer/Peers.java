@@ -1264,6 +1264,10 @@ public final class Peers {
         return currentBlockchainState;
     }
 
+    public static PeerLoad getLoad() {
+        return null;
+    }
+
     private Peers() {} // never
 
 }
