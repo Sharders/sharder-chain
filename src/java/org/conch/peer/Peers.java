@@ -425,7 +425,6 @@ public final class Peers {
                 connector.setIdleTimeout(Conch.getIntProperty("sharder.peerServerIdleTimeout"));
                 connector.setReuseAddress(true);
                 peerServer.addConnector(connector);
-
                 ServletContextHandler ctxHandler = new ServletContextHandler();
                 ctxHandler.setContextPath("/");
 
@@ -452,6 +451,8 @@ public final class Peers {
 
                 peerServer.setHandler(ctxHandler);
                 peerServer.setStopAtShutdown(true);
+                // Set maxFormContentSize to -1 to unlimited Form size to support large data upload from http
+                peerServer.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
                 ThreadPool.runBeforeStart(() -> {
                     try {
                         if (enablePeerUPnP) {

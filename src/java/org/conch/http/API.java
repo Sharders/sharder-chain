@@ -254,7 +254,8 @@ public final class API {
 
             apiServer.setHandler(apiHandlers);
             apiServer.setStopAtShutdown(true);
-
+            // Set maxFormContentSize to -1 to unlimited Form size to support large data upload from http
+            apiServer.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
             ThreadPool.runBeforeStart(() -> {
                 try {
                     if (enableAPIUPnP) {
