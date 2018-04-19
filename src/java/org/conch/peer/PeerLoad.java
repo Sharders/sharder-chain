@@ -33,14 +33,33 @@ public final class PeerLoad {
     private int port = Peers.getDefaultPeerPort();
     private String uri;
     private int load = -1;
+    private long lastUpdate = -1;
+
+    public PeerLoad(String host, int port, int load) {
+        this.state = Peer.State.CONNECTED;
+        this.host = host;
+        this.port = port;
+        this.load = load;
+        this.lastUpdate = System.currentTimeMillis();
+    }
+
+    public long getLastUpdateMin() {
+        return lastUpdate == -1 ? -1 : lastUpdate / 1000 / 60;
+    }
+
+    public long getLastUpdate() {
+        return lastUpdate;
+    }
 
     public int loadUp(int load){
         this.load = this.load == -1 ? load : this.load + load;
+        lastUpdate = System.currentTimeMillis();
         return this.load;
     }
 
     public int loadDown(int load){
         this.load = this.load == -1 ? 0 : this.load - load;
+        lastUpdate = System.currentTimeMillis();
         return this.load;
     }
 

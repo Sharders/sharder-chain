@@ -92,6 +92,7 @@ final class PeerImpl implements Peer {
     private volatile int hallmarkBalanceHeight;
     private volatile long services;
     private volatile BlockchainState blockchainState;
+    private volatile PeerLoad peerLoad;
 
     PeerImpl(String host, String announcedAddress) {
         this.host = host;
@@ -106,6 +107,7 @@ final class PeerImpl implements Peer {
         this.disabledAPIs = EnumSet.noneOf(APIEnum.class);
         this.apiServerIdleTimeout = API.apiServerIdleTimeout;
         this.blockchainState = BlockchainState.UP_TO_DATE;
+        this.peerLoad = new PeerLoad(this.host, this.port, 0);
     }
 
     @Override
@@ -449,6 +451,11 @@ final class PeerImpl implements Peer {
     @Override
     public String getBlacklistingCause() {
         return blacklistingCause == null ? "unknown" : blacklistingCause;
+    }
+
+    @Override
+    public PeerLoad getPayload() {
+        return this.peerLoad;
     }
 
     @Override
@@ -913,6 +920,14 @@ final class PeerImpl implements Peer {
             uri.append(apiPort);
         }
         return uri;
+    }
+
+    public PeerLoad getPeerLoad() {
+        return peerLoad;
+    }
+
+    public void setPeerLoad(PeerLoad peerLoad) {
+        this.peerLoad = peerLoad;
     }
 
     @Override

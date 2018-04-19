@@ -128,6 +128,8 @@ public interface Peer extends Comparable<Peer> {
 
     String getBlacklistingCause();
 
+    PeerLoad getPayload();
+
     JSONObject send(JSONStreamAware request);
 
     JSONObject send(JSONStreamAware request, int maxResponseSize);
