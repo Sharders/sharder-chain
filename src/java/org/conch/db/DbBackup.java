@@ -26,10 +26,10 @@ import org.conch.Conch;
 
 public class DbBackup {
 
-    static void init() {
+    public static void init() {
         Boolean enable = Conch.getBooleanProperty("sharder.db.enableBackup");
         if (enable) {
-            String cron = Conch.getStringProperty("sharder.db.backup.cron");
+            String cron = Conch.getStringProperty("sharder.db.backup.cron").trim();
             if (cron.isEmpty() || cron == null) {
                 return;
             }
@@ -41,7 +41,7 @@ public class DbBackup {
             Scheduler scheduler = new Scheduler();
             // Registers the listener.
             scheduler.addSchedulerListener(listener);
-            // Schedules the task, once every minute.
+            // Schedules the task.
             scheduler.schedule(cron, task);
             // Starts the scheduler.
             scheduler.start();

@@ -16,7 +16,6 @@ public class DbBackupSchedulerListener implements SchedulerListener {
 
     public void taskFailed(TaskExecutor executor, Throwable exception) {
         Logger.logErrorMessage("Db backup task " + executor.getGuid() + " failed due to an exception["+exception.getMessage()+"]");
-        //TODO  notify or other things to do
         exception.printStackTrace();
     }
 }
