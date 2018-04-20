@@ -37,6 +37,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
+import org.sharder.util.Https;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -256,12 +257,44 @@ public final class PeerServlet extends WebSocketServlet {
             jsonObject.put("cause", peer.getBlacklistingCause());
             return jsonObject;
         }
-        Peers.addPeer(peer);
+
         //
         // Process the request
         //
         try (CountingInputReader cr = new CountingInputReader(inputReader, Peers.MAX_REQUEST_SIZE)) {
             JSONObject request = (JSONObject)JSONValue.parseWithException(cr);
+            //
+            //network isolation
+            //
+            String requestType = (String)request.get("requestType");
+            if("getInfo".equals(requestType) || "addPeers".equals(requestType)){
+                if(Peers.getPeer(peer.getHost()) == null){
+                    String url = Conch.getStringProperty("sharder.authenticationServer");
+                    url = url + peer.getHost();
+                    String responseValue = Https.httpRequest(url,"GET",null);
+                    Logger.logInfoMessage(peer.getHost() + " try to join in the network ,the serve response " + responseValue);
+                    if(responseValue == null){
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("error", Errors.CONNECTERROR);
+                        jsonObject.put("cause", "error with connecting to the serve,please try it later");
+                        return jsonObject;
+                    }
+                    if("".equals(responseValue)){
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("error", Errors.UNAUTHORIZED);
+                        jsonObject.put("cause", peer.getType());
+                        return jsonObject;
+                    }
+                    JSONObject response = (JSONObject) JSONValue.parseWithException(responseValue);
+                    String host = (String)response.get("address");
+                    Long type = (Long) response.get("type");
+                    if(peer.getHost().equals(host)){
+                        peer.setType(new Long(type).intValue());
+                    }
+                }
+            }
+            Peers.addPeer(peer);
+
             peer.updateDownloadedVolume(cr.getCount());
             if (request.get("protocol") == null || ((Number)request.get("protocol")).intValue() != 1) {
                 Logger.logDebugMessage("Unsupported protocol " + request.get("protocol"));

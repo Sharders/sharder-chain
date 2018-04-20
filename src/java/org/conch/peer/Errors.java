@@ -34,6 +34,8 @@ final class Errors {
     final static String TOO_MANY_BLOCKS_REQUESTED = "Too many blocks requested";
     final static String DOWNLOADING = "Blockchain download in progress";
     final static String LIGHT_CLIENT = "Peer is in light mode";
+    final static String UNAUTHORIZED = "Your peer is unauthorized";
+    final static String CONNECTERROR = "Error with connection";
 
     private Errors() {} // never
 }
