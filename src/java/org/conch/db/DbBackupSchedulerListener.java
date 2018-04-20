@@ -11,7 +11,7 @@ public class DbBackupSchedulerListener implements SchedulerListener {
     }
 
     public void taskSucceeded(TaskExecutor executor) {
-        Logger.logInfoMessage("Db backup task " + executor.getGuid() + " Succeeded...");
+        Logger.logInfoMessage("Db backup task " + executor.getGuid() + " Succeeded in " + (System.currentTimeMillis()-executor.getStartTime()));
     }
 
     public void taskFailed(TaskExecutor executor, Throwable exception) {

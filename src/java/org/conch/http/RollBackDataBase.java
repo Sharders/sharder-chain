@@ -21,29 +21,37 @@
 
 package org.conch.http;
 
-import org.conch.db.DbBackupTask;
+import org.conch.db.DbRollback;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.sql.SQLException;
 
-public final class BackupDataBase extends APIServlet.APIRequestHandler {
+public final class RollBackDataBase extends APIServlet.APIRequestHandler {
 
-    static final BackupDataBase instance = new BackupDataBase();
+    static final RollBackDataBase instance = new RollBackDataBase();
 
-    private BackupDataBase() {
-        super(new APITag[] {APITag.DEBUG}, "path","fileName");
+    private RollBackDataBase() {
+        super(new APITag[] {APITag.DEBUG}, "scriptFile");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         long timestamp = System.currentTimeMillis();
         JSONObject response = new JSONObject();
-        String path = req.getParameter("path");
-        String fileName = req.getParameter("fileName");
-        String backupFile = DbBackupTask.execute(path, fileName);
+        String scriptFile = req.getParameter("scriptFile");
+        File file = new File(scriptFile);
+        if (!file.exists()) return JSONResponses.fileNotFound(scriptFile);
+        try {
+            DbRollback.rollback(scriptFile);
+        }  catch (SQLException e) {
+            e.printStackTrace();
+            return JSONResponses.error(e.getMessage());
+        }
         response.put("requestProcessingTime", System.currentTimeMillis()-timestamp);
-        response.put("backupFile", backupFile);
+        response.put("rollbacked", true);
         return response;
     }
 
