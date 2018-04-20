@@ -23,6 +23,7 @@ package org.conch;
 
 import org.conch.addons.AddOns;
 import org.conch.crypto.Crypto;
+import org.conch.db.DbBackup;
 import org.conch.env.DirProvider;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.env.RuntimeMode;
@@ -389,6 +390,8 @@ public final class Conch {
                 API.init();
                 Users.init();
                 DebugTrace.init();
+                // DbBackup Init
+                DbBackup.init();
                 int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {

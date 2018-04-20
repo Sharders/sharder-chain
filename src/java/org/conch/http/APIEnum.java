@@ -287,7 +287,9 @@ public enum APIEnum {
     GET_ASSET_DIVIDENDS("getAssetDividends", GetAssetDividends.instance),
     BLACKLIST_API_PROXY_PEER("blacklistAPIProxyPeer", BlacklistAPIProxyPeer.instance),
     GET_NEXT_BLOCK_GENERATORS("getNextBlockGenerators", GetNextBlockGeneratorsTemp.instance),
-    GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance);
+    GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
+    BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
+    ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 
