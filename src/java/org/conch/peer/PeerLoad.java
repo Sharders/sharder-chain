@@ -21,6 +21,11 @@
 
 package org.conch.peer;
 
+import org.conch.Conch;
+import org.conch.Constants;
+import org.conch.http.API;
+import org.json.simple.JSONObject;
+
 /**
  * PeerLoad
  *
@@ -30,7 +35,7 @@ package org.conch.peer;
 public final class PeerLoad {
     private Peer.State state = Peer.State.DISCONNECTED;
     private String host;
-    private int port = Peers.getDefaultPeerPort();
+    private int port;
     private String uri;
     private int load = -1;
     private long lastUpdate = -1;
@@ -38,7 +43,8 @@ public final class PeerLoad {
     public PeerLoad(String host, int port, int load) {
         this.state = Peer.State.CONNECTED;
         this.host = host;
-        this.port = port;
+        this.port = Constants.isTestnet ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
+        this.uri = host == null ? null : "http://" + host + ":" + this.port;
         this.load = load;
         this.lastUpdate = System.currentTimeMillis();
     }
@@ -101,5 +107,15 @@ public final class PeerLoad {
 
     public void setLoad(int load) {
         this.load = load;
+    }
+
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("host",host);
+        json.put("port",port);
+        json.put("uri",uri);
+        json.put("load",load);
+        json.put("lastUpdate",lastUpdate);
+        return json;
     }
 }

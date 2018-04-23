@@ -137,7 +137,7 @@ public final class Peers {
     static final boolean hideErrorDetails = Conch.getBooleanProperty("sharder.hideErrorDetails");
 
     private static final JSONObject myPeerInfo;
-    private static PeerLoad myPeerLoad;
+    private static final PeerLoad myPeerLoad;
     private static final List<Peer.Service> myServices;
     private static volatile Peer.BlockchainState currentBlockchainState;
     private static volatile JSONStreamAware myPeerInfoRequest;
@@ -310,9 +310,10 @@ public final class Peers {
         json.put("services", Long.toUnsignedString(services));
         myServices = Collections.unmodifiableList(servicesList);
         Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
-        myPeerInfo = json;
 
-        myPeerLoad = new PeerLoad();
+        myPeerLoad = new PeerLoad(myAddress == null ? null : myAddress ,myPeerServerPort,0);
+        json.put("peerLoad",myPeerLoad.toJson());
+        myPeerInfo = json;
 
         final List<String> defaultPeers = Constants.isTestnet ? Conch.getStringListProperty("sharder.defaultTestnetPeers")
                 : Conch.getStringListProperty("sharder.defaultPeers");
@@ -1268,7 +1269,7 @@ public final class Peers {
     }
 
     public static PeerLoad getLoad() {
-        return null;
+        return myPeerLoad;
     }
 
     private Peers() {} // never
