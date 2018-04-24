@@ -87,6 +87,11 @@ public final class API {
         Collections.sort(disabled);
         disabledAPIs = Collections.unmodifiableList(disabled);
         disabled = Conch.getStringListProperty("sharder.disabledAPITags");
+
+        if (disabled.isEmpty() && !Conch.getBooleanProperty("sharder.enableBizAPIs")){
+            disabled = new ArrayList<String>();
+            disabled.add(APITag.BIZ.getDisplayName());
+        }
         Collections.sort(disabled);
         List<APITag> apiTags = new ArrayList<>(disabled.size());
         disabled.forEach(tagName -> apiTags.add(APITag.fromDisplayName(tagName)));

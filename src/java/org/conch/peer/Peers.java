@@ -153,6 +153,8 @@ public final class Peers {
     static final ExecutorService peersService = new QueuedThreadPool(2, 15);
     private static final ExecutorService sendingService = Executors.newFixedThreadPool(10);
 
+    private static final boolean enableBizAPIs = Conch.getBooleanProperty("sharder.enableBizAPIs");
+
     static {
 
         String platform = Conch.getStringProperty("sharder.myPlatform", System.getProperty("os.name") + " " + System.getProperty("os.arch"));
@@ -301,6 +303,12 @@ public final class Peers {
             if (API.apiServerCORS) {
                 servicesList.add(Peer.Service.CORS);
             }
+        }
+
+        // Add Business API service
+        if (enableBizAPIs) {
+            json.put("enableBizAPIs", true);
+            servicesList.add(Peer.Service.BAPI);
         }
 
         long services = 0;

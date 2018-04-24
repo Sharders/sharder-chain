@@ -46,7 +46,7 @@ import static org.conch.http.JSONResponses.MISSING_DEADLINE;
 import static org.conch.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static org.conch.http.JSONResponses.NOT_ENOUGH_FUNDS;
 
-abstract class CreateTransaction extends APIServlet.APIRequestHandler {
+public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     private static final String[] commonParameters = new String[]{"secretPhrase", "publicKey", "feeNQT",
             "deadline", "referencedTransactionFullHash", "broadcast",
@@ -66,21 +66,21 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         return result;
     }
 
-    CreateTransaction(APITag[] apiTags, String... parameters) {
+    protected CreateTransaction(APITag[] apiTags, String... parameters) {
         super(apiTags, addCommonParameters(parameters));
         if (!getAPITags().contains(APITag.CREATE_TRANSACTION)) {
             throw new RuntimeException("CreateTransaction API " + getClass().getName() + " is missing APITag.CREATE_TRANSACTION tag");
         }
     }
 
-    CreateTransaction(String fileParameter, APITag[] apiTags, String... parameters) {
+    protected CreateTransaction(String fileParameter, APITag[] apiTags, String... parameters) {
         super(fileParameter, apiTags, addCommonParameters(parameters));
         if (!getAPITags().contains(APITag.CREATE_TRANSACTION)) {
             throw new RuntimeException("CreateTransaction API " + getClass().getName() + " is missing APITag.CREATE_TRANSACTION tag");
         }
     }
 
-    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
+    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
             throws ConchException {
         return createTransaction(req, senderAccount, 0, 0, attachment);
     }
