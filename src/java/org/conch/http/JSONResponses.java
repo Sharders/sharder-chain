@@ -159,6 +159,10 @@ public final class JSONResponses {
     public static final JSONStreamAware INCORRECT_EC_BLOCK = incorrect("ecBlockId", "ecBlockId does not match the block id at ecBlockHeight");
 
     public static final JSONStreamAware NOT_ENOUGH_FUNDS;
+    // for Biz APIs only
+    public static final JSONStreamAware BIZ_MISSING_DATA = missing("data");
+    public static final JSONStreamAware BIZ_MISSING_CLIENT = missing("clientAccount");
+
     static {
         JSONObject response = new JSONObject();
         response.put("errorCode", 6);

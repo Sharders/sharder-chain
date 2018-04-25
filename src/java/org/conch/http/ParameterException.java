@@ -24,11 +24,11 @@ package org.conch.http;
 import org.conch.ConchException;
 import org.json.simple.JSONStreamAware;
 
-public final class ParameterException extends ConchException {
+public class ParameterException extends ConchException {
 
     private final JSONStreamAware errorResponse;
 
-    ParameterException(JSONStreamAware errorResponse) {
+    public ParameterException(JSONStreamAware errorResponse) {
         this.errorResponse = errorResponse;
     }
 

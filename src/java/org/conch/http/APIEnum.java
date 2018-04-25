@@ -21,8 +21,6 @@
 
 package org.conch.http;
 
-import org.conch.http.biz.UploadTextData;
-
 import java.util.Base64;
 import java.util.BitSet;
 import java.util.Collections;
@@ -292,10 +290,8 @@ public enum APIEnum {
     GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
     PING_PEER("pingPeer",PingPeer.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
-    ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
+    ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance);
 
-    // Biz APIs
-    UPLOAD_TEXTDATA("uploadTextData",UploadTextData.instance);
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 
     static {

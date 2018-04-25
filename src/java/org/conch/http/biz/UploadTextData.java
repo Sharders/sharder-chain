@@ -30,7 +30,7 @@ import org.conch.http.ParameterParser;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-
+import static org.conch.http.JSONResponses.BIZ_MISSING_CLIENT;
 public final class UploadTextData extends CreateTransaction {
 
     public static final UploadTextData instance = new UploadTextData();
@@ -44,9 +44,17 @@ public final class UploadTextData extends CreateTransaction {
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
 
         Account account = ParameterParser.getSenderAccount(req);
-        Attachment.TaggedDataUpload taggedDataUpload = ParameterParser.getTaggedData(req);
+        Attachment.TaggedDataUpload taggedDataUpload = BizParameterParser.getTextData(req);
+
+        // fill up params transaction must have
+        req.setAttribute("deadline", 60);
+        req.setAttribute("feeNQT", 0);
+        if(req.getAttribute("clientAccount") == null) {
+            throw new BizParameterException(BIZ_MISSING_CLIENT);
+        } else {
+            req.setAttribute("channel", req.getAttribute("clientAccount"));
+        }
         return createTransaction(req, account, taggedDataUpload);
 
     }
-
 }
