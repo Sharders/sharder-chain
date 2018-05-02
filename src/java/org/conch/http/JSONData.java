@@ -556,7 +556,7 @@ public final class JSONData {
         }
         json.put("services", servicesArray);
         json.put("blockchainState", peer.getBlockchainState());
-        json.put("peerLoad", peer.getPayload().toJson());
+        json.put("peerLoad", peer.getPeerLoad().toJson());
         return json;
     }
 

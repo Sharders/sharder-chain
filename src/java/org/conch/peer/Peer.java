@@ -38,7 +38,8 @@ public interface Peer extends Comparable<Peer> {
         PRUNABLE(2),                    // Stores expired prunable messages
         API(4),                         // Provides open API access over http
         API_SSL(8),                     // Provides open API access over https
-        CORS(16);                       // API CORS enabled
+        CORS(16),                       // API CORS enabled
+        BAPI(32);
 
         private final long code;        // Service code - must be a power of 2
 
@@ -128,7 +129,7 @@ public interface Peer extends Comparable<Peer> {
 
     String getBlacklistingCause();
 
-    PeerLoad getPayload();
+    PeerLoad getPeerLoad();
 
     JSONObject send(JSONStreamAware request);
 
