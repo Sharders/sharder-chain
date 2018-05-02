@@ -1264,9 +1264,9 @@ public final class Peers {
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);
             json.put("blockchainState", state.ordinal());
+            json.put("peerLoad",myPeer.getPeerLoad().toJson());
             myPeerInfoResponse = JSON.prepare(json);
             json.put("requestType", "getInfo");
-            json.put("peerLoad",myPeer.getPeerLoad().toJson());
             String addr = bestPeer.getHost() != null ? bestPeer.getHost() : bestPeer.getAnnouncedAddress();
             addr = addr + ":" + bestPeer.getApiPort();
             json.put("bestPeer",bestPeer == null ? null : addr);

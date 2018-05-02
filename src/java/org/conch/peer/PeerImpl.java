@@ -740,7 +740,7 @@ final class PeerImpl implements Peer {
         this.peerLoad.setState(State.CONNECTED);
         this.peerLoad.setHost(host);
         this.peerLoad.setPort(apiPort);
-        this.peerLoad.setLoad((int)peerLoad.get("load"));
+        this.peerLoad.setLoad(Integer.parseInt(String.valueOf(peerLoad.get("load"))));
         this.peerLoad.setUri("http://" + host + ":" + apiPort);
     }
 
@@ -960,7 +960,7 @@ final class PeerImpl implements Peer {
         String servicesString = (String)json.get("services");
         services = (servicesString != null ? Long.parseUnsignedLong(servicesString) : 0);
         setApplication((String)json.get("application"));
-        apiPort = (int)json.get("apiPort");
+        apiPort = Integer.parseInt(String.valueOf(json.get("apiPort")));
         setApiSSLPort(json.get("apiSSLPort"));
         setDisabledAPIs(json.get("disabledAPIs"));
         setApiServerIdleTimeout(json.get("apiServerIdleTimeout"));
