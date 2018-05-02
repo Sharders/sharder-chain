@@ -291,6 +291,7 @@ public enum APIEnum {
     PING_PEER("pingPeer",PingPeer.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance);
+    Get_INFO("getInfo",GetInfo.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

@@ -1,8 +1,6 @@
 package org.conch.http;
 
 import org.conch.ConchException;
-import org.conch.http.APIServlet;
-import org.conch.http.APITag;
 import org.conch.peer.Peers;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
@@ -16,10 +14,10 @@ import javax.servlet.http.HttpServletRequest;
  * @author wj
  * @date 2018/4/21
  */
-public class PingPeer extends APIServlet.APIRequestHandler{
-    static final PingPeer instance = new PingPeer();
+public class GetInfo extends APIServlet.APIRequestHandler{
+    static final GetInfo instance = new GetInfo();
 
-    private PingPeer() {
+    private GetInfo() {
         super(new APITag[] {APITag.INFO});
     }
 
@@ -28,8 +26,10 @@ public class PingPeer extends APIServlet.APIRequestHandler{
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         //TODO only sharder agent can request ,add peer type
         JSONObject json = new JSONObject();
-        json.put("address",Peers.getLoad().getHost());
-        json.put("peerLoad",Peers.getLoad().toJson());
+        json.put("address","127.0.0.1");
+        json.put("peerLoad",Peers.getMyPeerLoad().toJson());
+        json.put("bestPeer",Peers.getBestPeerUri());
+        json.put("uri",API.openAPIPort);
         JSONStreamAware response = JSON.prepare(json);
         return response;
     }

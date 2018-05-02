@@ -135,9 +135,10 @@ public final class Peers {
     static final int MAX_PLATFORM_LENGTH = 30;
     static final int MAX_ANNOUNCED_ADDRESS_LENGTH = 100;
     static final boolean hideErrorDetails = Conch.getBooleanProperty("sharder.hideErrorDetails");
+    private static PeerImpl bestPeer;
+    private static PeerImpl myPeer;
 
     private static final JSONObject myPeerInfo;
-    private static final PeerLoad myPeerLoad;
     private static final List<Peer.Service> myServices;
     private static volatile Peer.BlockchainState currentBlockchainState;
     private static volatile JSONStreamAware myPeerInfoRequest;
@@ -311,9 +312,14 @@ public final class Peers {
         myServices = Collections.unmodifiableList(servicesList);
         Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
 
-        myPeerLoad = new PeerLoad(myAddress == null ? null : myAddress ,myPeerServerPort,0);
-        json.put("peerLoad",myPeerLoad.toJson());
         myPeerInfo = json;
+
+        myPeer = new PeerImpl("127.0.0.1","127.0.0.1");
+        JSONObject peerJson = new JSONObject(myPeerInfo);
+        PeerLoad myLoad = new PeerLoad("127.0.0.1",API.openAPIPort,-1);
+        peerJson.put("peerLoad",myLoad.toJson());
+        myPeer.parseJSONObject(peerJson);
+        bestPeer = myPeer;
 
         final List<String> defaultPeers = Constants.isTestnet ? Conch.getStringListProperty("sharder.defaultTestnetPeers")
                 : Conch.getStringListProperty("sharder.defaultPeers");
@@ -606,6 +612,18 @@ public final class Peers {
 
                 } catch (Exception e) {
                     Logger.logDebugMessage("Error connecting to peer", e);
+                }
+                //current peer is best peer
+                if(myServices.contains(Peer.Service.BAPI) && getMyPeerLoad().getLoad() < bestPeer.getPeerLoad().getLoad()){
+                    if(getmyPeer() == null){
+                        PeerImpl myPeer = new PeerImpl("127.0.0.1","127.0.0.1");
+                        JSONObject json = new JSONObject(getmyPeerInfo());
+                        json.put("peerLoad",getMyPeerLoad().toJson());
+                        myPeer.parseJSONObject(json);
+                        bestPeer = myPeer;
+                    }else{
+                        bestPeer = myPeer;
+                    }
                 }
             } catch (Throwable t) {
                 Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS", t);
@@ -1247,8 +1265,12 @@ public final class Peers {
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);
             json.put("blockchainState", state.ordinal());
+            json.put("peerLoad",myPeer.getPeerLoad().toJson());
             myPeerInfoResponse = JSON.prepare(json);
             json.put("requestType", "getInfo");
+            String addr = bestPeer.getHost() != null ? bestPeer.getHost() : bestPeer.getAnnouncedAddress();
+            addr = addr + ":" + bestPeer.getApiPort();
+            json.put("bestPeer",bestPeer == null ? null : addr);
             myPeerInfoRequest = JSON.prepareRequest(json);
             currentBlockchainState = state;
         }
@@ -1269,10 +1291,29 @@ public final class Peers {
         return currentBlockchainState;
     }
 
-    public static PeerLoad getLoad() {
-        return myPeerLoad;
+    public static PeerLoad getMyPeerLoad() {
+        return myPeer.getPeerLoad();
     }
 
+    public static PeerImpl getBestPeer() {
+        return bestPeer;
+    }
+
+    public static StringBuilder getBestPeerUri(){
+        return bestPeer.getPeerApiUri();
+    }
+
+    public static PeerImpl getmyPeer() {
+        return myPeer;
+    }
+
+    public static JSONObject getmyPeerInfo() {
+        return myPeerInfo;
+    }
+
+    public static void setBestPeer(PeerImpl peer) {
+        bestPeer = peer;
+    }
     private Peers() {} // never
 
 }
