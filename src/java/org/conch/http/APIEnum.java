@@ -288,9 +288,8 @@ public enum APIEnum {
     BLACKLIST_API_PROXY_PEER("blacklistAPIProxyPeer", BlacklistAPIProxyPeer.instance),
     GET_NEXT_BLOCK_GENERATORS("getNextBlockGenerators", GetNextBlockGeneratorsTemp.instance),
     GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
-    PING_PEER("pingPeer",PingPeer.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
-    ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance);
+    ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
     Get_INFO("getInfo",GetInfo.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
