@@ -521,6 +521,14 @@ public final class JSONResponses {
         MONITOR_NOT_STARTED = JSON.prepare(response);
     }
 
+    public static final JSONStreamAware BIZ_JSON_IO_ERROR;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 6);
+        response.put("errorDescription", "bizAPIs IO Exception");
+        BIZ_JSON_IO_ERROR = JSON.prepare(response);
+    }
+
     private JSONResponses() {} // never
 
 }

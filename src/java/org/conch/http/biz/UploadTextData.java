@@ -21,15 +21,29 @@
 
 package org.conch.http.biz;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.googlecode.jsonrpc4j.JsonUtil;
 import org.conch.Account;
 import org.conch.Attachment;
+import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.http.APITag;
-import org.conch.http.CreateTransaction;
-import org.conch.http.ParameterParser;
+import org.conch.http.*;
+import org.conch.http.biz.domain.DataTransactionResponse;
+import org.conch.http.biz.domain.ErrorDescription;
+import org.conch.http.biz.domain.Transaction;
+import org.conch.util.JSON;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.conch.http.JSONResponses.BIZ_MISSING_CLIENT;
 public final class UploadTextData extends CreateTransaction {
 
@@ -43,18 +57,25 @@ public final class UploadTextData extends CreateTransaction {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
 
+        if (req.getParameter("clientAccount") == null) {
+            throw new ParameterException(BIZ_MISSING_CLIENT);
+        }
+
         Account account = ParameterParser.getSenderAccount(req);
         Attachment.TaggedDataUpload taggedDataUpload = BizParameterParser.getTextData(req);
 
-        // fill up params transaction must have
-        req.setAttribute("deadline", 60);
-        req.setAttribute("feeNQT", 0);
-        if(req.getAttribute("clientAccount") == null) {
-            throw new BizParameterException(BIZ_MISSING_CLIENT);
-        } else {
-            req.setAttribute("channel", req.getAttribute("clientAccount"));
+        String createTransactionResponse = JSON.toString(createTransaction(req, account, taggedDataUpload));
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JSONObject jsonObject = new JSONObject();
+            String dtrJson = mapper.writeValueAsString(mapper.readValue(createTransactionResponse, DataTransactionResponse.class));
+            Map<String, Object> map = mapper.readValue(dtrJson, new TypeReference<Map<String, Object>>(){});
+            jsonObject.putAll(map);
+            return jsonObject;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return JSONResponses.BIZ_JSON_IO_ERROR;
         }
-        return createTransaction(req, account, taggedDataUpload);
 
     }
 }

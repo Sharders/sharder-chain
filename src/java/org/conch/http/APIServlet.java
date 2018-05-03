@@ -127,11 +127,13 @@ public final class APIServlet extends HttpServlet {
                 map.put(api.getName(), api.getHandler());
             }
         }
+
         for (BizAPIEnum api : BizAPIEnum.values()) {
             if (!api.getName().isEmpty() && api.getHandler() != null) {
                 map.put(api.getName(), api.getHandler());
             }
         }
+
         AddOns.registerAPIRequestHandlers(map);
 
         API.disabledAPIs.forEach(api -> {
