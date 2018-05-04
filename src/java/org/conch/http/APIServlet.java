@@ -26,6 +26,7 @@ import org.conch.Db;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.addons.AddOns;
+import org.conch.http.biz.BizAPIEnum;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -122,6 +123,12 @@ public final class APIServlet extends HttpServlet {
         Map<String,APIRequestHandler> disabledMap = new HashMap<>();
 
         for (APIEnum api : APIEnum.values()) {
+            if (!api.getName().isEmpty() && api.getHandler() != null) {
+                map.put(api.getName(), api.getHandler());
+            }
+        }
+
+        for (BizAPIEnum api : BizAPIEnum.values()) {
             if (!api.getName().isEmpty() && api.getHandler() != null) {
                 map.put(api.getName(), api.getHandler());
             }

@@ -19,21 +19,29 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.domain;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ParameterException extends ConchException {
+/**
+ * <DESC HERE>
+ *
+ * @author bubai
+ * @date 2018/4/8
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class BlockHeight {
 
-    private final JSONStreamAware errorResponse;
+    private int height;
 
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+    @JsonProperty(value = "height")
+    public int getHeight() {
+        return height;
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    @JsonProperty(value = "numberOfBlocks")
+    public void setHeight(int height) {
+        this.height = height - 1;
     }
-
 }

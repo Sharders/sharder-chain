@@ -159,6 +159,13 @@ public final class JSONResponses {
     public static final JSONStreamAware INCORRECT_EC_BLOCK = incorrect("ecBlockId", "ecBlockId does not match the block id at ecBlockHeight");
 
     public static final JSONStreamAware NOT_ENOUGH_FUNDS;
+    // for Biz APIs only
+    public static final JSONStreamAware BIZ_MISSING_DATA = missing("data");
+    public static final JSONStreamAware BIZ_MISSING_CLIENT = missing("clientAccount");
+    public static final JSONStreamAware BIZ_MISSING_HEIGHT = missing("height");
+    public static final JSONStreamAware BIZ_MISSING_CREATOR_PASSPHRSE = missing("client account creator's passPhrase");
+    public static final JSONStreamAware BIZ_INCORRECT_INDEX = incorrect("firstIndex or lastIndex", "index must be positive and lastIndex-firstIndex must <500");
+
     static {
         JSONObject response = new JSONObject();
         response.put("errorCode", 6);
@@ -426,7 +433,7 @@ public final class JSONResponses {
         JSONObject response = new JSONObject();
         response.put("errorCode", 3);
         if (paramNames.length == 1) {
-            response.put("errorDescription", "\"" + paramNames[0] + "\"" + " not specified");
+            response.put("errorDescription", "'" + paramNames[0] + "'" + " not specified");
         } else {
             response.put("errorDescription", "At least one of " + Arrays.toString(paramNames) + " must be specified");
         }
@@ -515,6 +522,14 @@ public final class JSONResponses {
         response.put("errorCode", 5);
         response.put("errorDescription", "Account monitor not started");
         MONITOR_NOT_STARTED = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware BIZ_JSON_IO_ERROR;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 6);
+        response.put("errorDescription", "bizAPIs IO Exception");
+        BIZ_JSON_IO_ERROR = JSON.prepare(response);
     }
 
     private JSONResponses() {} // never
