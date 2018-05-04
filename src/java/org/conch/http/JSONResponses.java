@@ -162,6 +162,9 @@ public final class JSONResponses {
     // for Biz APIs only
     public static final JSONStreamAware BIZ_MISSING_DATA = missing("data");
     public static final JSONStreamAware BIZ_MISSING_CLIENT = missing("clientAccount");
+    public static final JSONStreamAware BIZ_MISSING_HEIGHT = missing("height");
+    public static final JSONStreamAware BIZ_MISSING_CREATOR_PASSPHRSE = missing("client account creator's passPhrase");
+    public static final JSONStreamAware BIZ_INCORRECT_INDEX = incorrect("firstIndex or lastIndex", "index must be positive and lastIndex-firstIndex must <500");
 
     static {
         JSONObject response = new JSONObject();
@@ -430,7 +433,7 @@ public final class JSONResponses {
         JSONObject response = new JSONObject();
         response.put("errorCode", 3);
         if (paramNames.length == 1) {
-            response.put("errorDescription", "\"" + paramNames[0] + "\"" + " not specified");
+            response.put("errorDescription", "'" + paramNames[0] + "'" + " not specified");
         } else {
             response.put("errorDescription", "At least one of " + Arrays.toString(paramNames) + " must be specified");
         }

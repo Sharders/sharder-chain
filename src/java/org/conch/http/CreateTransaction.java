@@ -136,8 +136,8 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         return new PhasingParams(votingModel, holdingId, quorum, minBalance, minBalanceModel, whitelist);
     }
 
-    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
-                                            long amountNQT, Attachment attachment) throws ConchException {
+    protected final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, long recipientId,
+                                                      long amountNQT, Attachment attachment) throws ConchException {
         String deadlineValue = req.getParameter("deadline");
         String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);

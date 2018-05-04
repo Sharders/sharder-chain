@@ -21,6 +21,7 @@
 
 package org.conch.http.biz.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -37,6 +38,7 @@ public class Data {
     private String channel;
     private String data;
     private String type;
+    @JsonIgnore
     private String hash;
 
     @JsonProperty(value = "fileName")

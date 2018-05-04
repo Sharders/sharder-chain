@@ -145,7 +145,7 @@ public interface Peer extends Comparable<Peer> {
 
     String getBlacklistingCause();
 
-    PeerLoad getPayload();
+    PeerLoad getPeerLoad();
 
     JSONObject send(JSONStreamAware request);
 

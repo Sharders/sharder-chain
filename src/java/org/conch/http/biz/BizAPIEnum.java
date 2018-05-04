@@ -22,15 +22,23 @@
 package org.conch.http.biz;
 
 import org.conch.http.*;
-import org.conch.http.Shutdown;
+import org.conch.http.biz.handler.*;
+import org.conch.http.biz.handler.GetBizConstants;
 
 import java.util.*;
 
 public enum BizAPIEnum {
     //To preserve compatibility, please add new APIs to the end of the enum.
     //When an API is deleted, set its name to empty string and handler to null.
-    UPLOAD_TEXTDATA("uploadTextData",UploadTextData.instance);
-
+    UPLOAD_TEXTDATA("uploadTextData",UploadTextData.instance),
+    RETRIEVE_DATA("retrieveTextData",RetrieveTextData.instance),
+    CREATE_CLIENT_ACCOUNT("createClientAccount",CreateClientAccount.instance),
+    GET_LAST_BLOCK_HEIGHT("getLastBlockHeight",GetLastBlockHeight.instance),
+    GET_BLOCK_INFO("getBlockInfo",GetBlockInfo.instance),
+    GET_ACCOUNT_INFO("getAccountInfo",GetAccountInfo.instance),
+    GET_CONSTANTS("getBizConstants",GetBizConstants.instance),
+    GET_BIZ_BLOCKS("getBizBlocks",GetBizBlocks.instance),
+    GET_ACCOUNT_TXS("getAccountTxs",GetAccountTxs.instance);
 
 
     private static final Map<String, BizAPIEnum> apiByName = new HashMap<>();

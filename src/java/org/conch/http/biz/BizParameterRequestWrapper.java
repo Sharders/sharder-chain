@@ -1,6 +1,25 @@
-package org.conch.http.biz;
+/*
+ *  Copyright © 2017-2018 Sharder Foundation.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  version 2 as published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, you can visit it at:
+ *  https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+ *
+ *  This software uses third party libraries and open-source programs,
+ *  distributed under licenses described in 3RD-PARTY-LICENSES.
+ *
+ */
 
-import org.conch.http.ParameterException;
+package org.conch.http.biz;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -8,12 +27,11 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Vector;
 
-import static org.conch.http.JSONResponses.BIZ_MISSING_CLIENT;
-
 public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
     private Map<String, String[]> params;
 
     private static final String UPLOAD_TEXTDATA = "uploadTextData";
+    private static final String CREATE_CLIENT_ACCOUNT = "createClientAccount";
     public BizParameterRequestWrapper(HttpServletRequest request,
                                    Map<String, String[]> newParams) {
         super(request);
@@ -75,7 +93,6 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
 
     private void renewParameterMap(HttpServletRequest req) {
 
-        String queryString = req.getQueryString();
         String requestType = req.getParameter("requestType");
         switch (requestType){
             case UPLOAD_TEXTDATA :
@@ -87,6 +104,12 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
                 this.params.put("secretPhrase", new String[]{req.getParameter("passPhrase")});
                 this.params.put("name", new String[]{req.getParameter("fileName")});
                 this.params.put("type", new String[]{req.getParameter("fileType")});
+                break;
+            case CREATE_CLIENT_ACCOUNT :
+                this.params.put("secretPhrase", new String[]{req.getParameter("passPhrase")});
+                this.params.put("deadline", new String[]{"60"});
+                this.params.put("message", new String[]{"account created and broadcast to the network"});
+                this.params.put("feeNQT",new String[]{"0"});
                 break;
         }
     }

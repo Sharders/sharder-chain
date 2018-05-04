@@ -22,6 +22,7 @@
 package org.conch.http.biz.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.json.simple.JSONObject;
 
 /**
  * ErrorDescription
@@ -30,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @date 2018/3/30
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ErrorDescription {
+public class ErrorDescription extends JSONObject {
 
     private String errorDescription;
     private int errorCode;
@@ -57,5 +58,10 @@ public class ErrorDescription {
 
     public void setErrorCode(int errorCode) {
         this.errorCode = errorCode;
+    }
+
+    @Override
+    public String toJSONString() {
+        return "{\"errorCode\":"+errorCode+", \"errorDescription\":\""+errorDescription+"\"}";
     }
 }

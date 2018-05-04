@@ -19,56 +19,49 @@
  *
  */
 
-package org.conch.http.biz;
+package org.conch.http.biz.handler;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.googlecode.jsonrpc4j.JsonUtil;
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.*;
 import org.conch.http.*;
-import org.conch.http.biz.domain.DataTransactionResponse;
-import org.conch.http.biz.domain.ErrorDescription;
-import org.conch.http.biz.domain.Transaction;
+import org.conch.http.biz.domain.Data;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
-import static org.conch.http.JSONResponses.BIZ_MISSING_CLIENT;
-public final class UploadTextData extends CreateTransaction {
+import static org.conch.http.JSONResponses.PRUNED_TRANSACTION;
 
-    public static final UploadTextData instance = new UploadTextData();
+public final class RetrieveTextData extends APIServlet.APIRequestHandler {
 
-    UploadTextData() {
-        super(new APITag[] {APITag.BIZ, APITag.CREATE_TRANSACTION},
-                "name", "description", "tags", "type", "channel", "isText", "filename", "data");
+    public static final RetrieveTextData instance = new RetrieveTextData();
+
+    RetrieveTextData() {
+        super(new APITag[] {APITag.BIZ},"txID");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
-
-        if (req.getParameter("clientAccount") == null) {
-            throw new ParameterException(BIZ_MISSING_CLIENT);
+        long transactionId = ParameterParser.getUnsignedLong(req, "txID", true);
+        String taggedDataJsonStr = "";
+        TaggedData taggedData = TaggedData.getData(transactionId);
+        if (taggedData == null) {
+            if (Conch.getBlockchainProcessor().restorePrunedTransaction(transactionId) == null) {
+                return PRUNED_TRANSACTION;
+            }
+            taggedData = TaggedData.getData(transactionId);
         }
-
-        Account account = ParameterParser.getSenderAccount(req);
-        Attachment.TaggedDataUpload taggedDataUpload = BizParameterParser.getTextData(req);
-
-        String createTransactionResponse = JSON.toString(createTransaction(req, account, taggedDataUpload));
+        if (taggedData != null) {
+            taggedDataJsonStr = JSON.toString(JSONData.taggedData(taggedData, true));
+        }
         ObjectMapper mapper = new ObjectMapper();
         try {
             JSONObject jsonObject = new JSONObject();
-            String dtrJson = mapper.writeValueAsString(mapper.readValue(createTransactionResponse, DataTransactionResponse.class));
+            String dtrJson = mapper.writeValueAsString(mapper.readValue(taggedDataJsonStr, Data.class));
             Map<String, Object> map = mapper.readValue(dtrJson, new TypeReference<Map<String, Object>>(){});
             jsonObject.putAll(map);
             return jsonObject;
@@ -76,6 +69,5 @@ public final class UploadTextData extends CreateTransaction {
             e.printStackTrace();
             return JSONResponses.BIZ_JSON_IO_ERROR;
         }
-
     }
 }
