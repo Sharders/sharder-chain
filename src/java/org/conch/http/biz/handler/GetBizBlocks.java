@@ -80,4 +80,8 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
         return response;
     }
 
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }

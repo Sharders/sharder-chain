@@ -79,4 +79,9 @@ public final class GetAccountTxs extends APIServlet.APIRequestHandler {
         }
         return response;
     }
+
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }

@@ -64,7 +64,10 @@ public final class GetAccountInfo extends APIServlet.APIRequestHandler {
         response.remove("forgedBalanceNQT");
         response.remove("balanceNQT");
         return response;
-
     }
 
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }

@@ -935,7 +935,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject unconfirmedTransaction(Transaction transaction) {
+    public static JSONObject unconfirmedTransaction(Transaction transaction) {
         return unconfirmedTransaction(transaction, null);
     }
 

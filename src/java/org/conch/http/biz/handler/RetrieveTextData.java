@@ -70,4 +70,9 @@ public final class RetrieveTextData extends APIServlet.APIRequestHandler {
             return JSONResponses.BIZ_JSON_IO_ERROR;
         }
     }
+
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }

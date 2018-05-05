@@ -23,10 +23,13 @@ package org.conch.http.biz.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.conch.Block;
 import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.http.*;
+import org.conch.Transaction;
+import org.conch.http.APIServlet;
+import org.conch.http.APITag;
+import org.conch.http.JSONData;
+import org.conch.http.JSONResponses;
+import org.conch.http.biz.domain.Data;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
@@ -39,35 +42,53 @@ import java.util.Map;
 
 import static org.conch.http.JSONResponses.*;
 
-public final class GetBlockInfo extends APIServlet.APIRequestHandler {
+public final class GetTx extends APIServlet.APIRequestHandler {
 
-    public static final GetBlockInfo instance = new GetBlockInfo();
+    public static final GetTx instance = new GetTx();
 
-    GetBlockInfo() {
-        super(new APITag[] {APITag.BIZ}, "height");
+    private GetTx() {
+        super(new APITag[] {APITag.BIZ}, "txID", "hash");
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
-        Block blockData = null;
-        String heightValue = Convert.emptyToNull(req.getParameter("height"));
-        if (heightValue == null) {
-            throw new ParameterException(BIZ_MISSING_HEIGHT);
+    protected JSONStreamAware processRequest(HttpServletRequest req) {
+
+        String transactionIdString = Convert.emptyToNull(req.getParameter("txID"));
+        String transactionFullHash = Convert.emptyToNull(req.getParameter("hash"));
+        if (transactionIdString == null && transactionFullHash == null) {
+            return MISSING_TRANSACTION;
         }
+
+        long transactionId = 0;
+        Transaction transaction;
         try {
-            int height = Integer.parseInt(heightValue);
-            if (height < 0 || height > Conch.getBlockchain().getHeight()) {
-                return INCORRECT_HEIGHT;
+            if (transactionIdString != null) {
+                transactionId = Convert.parseUnsignedLong(transactionIdString);
+                transaction = Conch.getBlockchain().getTransaction(transactionId);
+            } else {
+                transaction = Conch.getBlockchain().getTransactionByFullHash(transactionFullHash);
+                if (transaction == null) {
+                    return UNKNOWN_TRANSACTION;
+                }
             }
-            blockData = Conch.getBlockchain().getBlockAtHeight(height);
         } catch (RuntimeException e) {
-            return INCORRECT_HEIGHT;
+            return INCORRECT_TRANSACTION;
         }
-        String responseStr = JSON.toString(JSONData.block(blockData, true, true));
+
+        JSONObject txJson;
+        if (transaction == null) {
+            transaction = Conch.getTransactionProcessor().getUnconfirmedTransaction(transactionId);
+            if (transaction == null) {
+                return UNKNOWN_TRANSACTION;
+            }
+            txJson = JSONData.unconfirmedTransaction(transaction);
+        } else {
+            txJson = JSONData.transaction(transaction, false);
+        }
         ObjectMapper mapper = new ObjectMapper();
         try {
             JSONObject jsonObject = new JSONObject();
-            String dtrJson = mapper.writeValueAsString(mapper.readValue(responseStr, org.conch.http.biz.domain.Block.class));
+            String dtrJson = mapper.writeValueAsString(mapper.readValue(JSON.toJSONString(txJson), org.conch.http.biz.domain.Transaction.class));
             Map<String, Object> map = mapper.readValue(dtrJson, new TypeReference<Map<String, Object>>(){});
             jsonObject.putAll(map);
             return jsonObject;

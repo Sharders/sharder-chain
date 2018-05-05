@@ -45,4 +45,9 @@ public final class GetLastBlockHeight extends APIServlet.APIRequestHandler {
         response.put("height", lastBlock.getHeight());
         return response;
     }
+
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }
