@@ -192,7 +192,7 @@ public final class API {
 
             HandlerList apiHandlers = new HandlerList();
 
-            ServletContextHandler apiHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+            ServletContextHandler apiHandler = new ServletContextHandler();
             String apiResourceBase = Conch.getStringProperty("sharder.apiResourceBase");
             if (apiResourceBase != null) {
                 ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
