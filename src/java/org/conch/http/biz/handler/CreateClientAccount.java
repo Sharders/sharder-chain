@@ -74,7 +74,7 @@ public final class CreateClientAccount extends CreateTransaction {
             return ed;
         }
         JSONObject response = new JSONObject();
-        JSONData.putAccount(response, "account", accountId);
+        JSONData.putAccount(response, "accountID", accountId);
         response.put("publicKey", Convert.toHexString(publicKey));
         response.put("passPhrase", newAccountPassPhrase);
         return response;
