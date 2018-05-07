@@ -23,6 +23,8 @@ package org.conch.http;
 
 import org.conch.Constants;
 import org.conch.Conch;
+import org.conch.http.biz.BizParameterRequestWrapper;
+import org.conch.http.biz.BizServlet;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -32,10 +34,7 @@ import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -58,8 +57,8 @@ import static org.conch.http.JSONResponses.*;
 
 public final class API {
 
-    public static final int TESTNET_API_PORT = 6876;
-    public static final int TESTNET_API_SSLPORT = 6877;
+    public static final int TESTNET_API_PORT = 8215;
+    public static final int TESTNET_API_SSLPORT = 8218;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "OPTIONS", "HEAD"};
 
     public static final int openAPIPort;
@@ -87,6 +86,11 @@ public final class API {
         Collections.sort(disabled);
         disabledAPIs = Collections.unmodifiableList(disabled);
         disabled = Conch.getStringListProperty("sharder.disabledAPITags");
+
+        if (disabled.isEmpty() && !Conch.getBooleanProperty("sharder.enableBizAPIs")){
+            disabled = new ArrayList<String>();
+            disabled.add(APITag.BIZ.getDisplayName());
+        }
         Collections.sort(disabled);
         List<APITag> apiTags = new ArrayList<>(disabled.size());
         disabled.forEach(tagName -> apiTags.add(APITag.fromDisplayName(tagName)));
@@ -249,6 +253,10 @@ public final class API {
             }
             disableHttpMethods(apiHandler);
 
+            // Added request params filter for BizAPIs
+            apiHandler.addFilter(BizRequestParamFilter.class, "/sharder", null);
+            // Defined business APIs Servlet
+            apiHandler.addServlet(BizServlet.class, "/rpc");
             apiHandlers.addHandler(apiHandler);
             apiHandlers.addHandler(new DefaultHandler());
 
@@ -256,6 +264,7 @@ public final class API {
             apiServer.setStopAtShutdown(true);
             // Set maxFormContentSize to -1 to unlimited Form size to support large data upload from http
             apiServer.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", -1);
+
             ThreadPool.runBeforeStart(() -> {
                 try {
                     if (enableAPIUPnP) {
@@ -461,6 +470,25 @@ public final class API {
         @Override
         public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
             ((HttpServletResponse) response).setHeader("X-FRAME-OPTIONS", "SAMEORIGIN");
+            chain.doFilter(request, response);
+        }
+
+        @Override
+        public void destroy() {
+        }
+
+    }
+
+    public static final class BizRequestParamFilter implements Filter {
+
+        @Override
+        public void init(FilterConfig filterConfig) throws ServletException {
+        }
+
+        @Override
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            Map<String,String[]> m = new HashMap<String,String[]>(request.getParameterMap());
+            request = new BizParameterRequestWrapper((HttpServletRequest)request, m);
             chain.doFilter(request, response);
         }
 

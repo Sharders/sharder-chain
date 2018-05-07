@@ -19,21 +19,25 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.exception;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.googlecode.jsonrpc4j.ErrorResolver;
 import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
 
-public class ParameterException extends ConchException {
+import java.lang.reflect.Method;
+import java.util.List;
 
-    private final JSONStreamAware errorResponse;
+public class BizErrorResolver implements ErrorResolver {
+    @Override
+    public JsonError resolveError(Throwable throwable, Method method, List<JsonNode> list) {
+        JsonError jsonError = null;
+        if (throwable instanceof BizParameterException) {
+            jsonError = new JsonError(-32000, throwable.getMessage(), list.get(0));
+        }else if (throwable instanceof ConchException.InsufficientBalanceException) {
+            jsonError = new JsonError(-32001, throwable.getMessage(), list.get(0));
+        }
 
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+        return jsonError;
     }
-
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
-    }
-
 }

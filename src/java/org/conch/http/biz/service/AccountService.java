@@ -19,21 +19,15 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.service;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
+import com.googlecode.jsonrpc4j.JsonRpcMethod;
+import com.googlecode.jsonrpc4j.JsonRpcParam;
+import org.conch.http.biz.domain.Account;
 
-public class ParameterException extends ConchException {
+public interface AccountService extends Service{
 
-    private final JSONStreamAware errorResponse;
-
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
-    }
-
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
-    }
+    @JsonRpcMethod("account_new")
+    Account create(@JsonRpcParam("passPhrase") String passPhrase) throws Exception;
 
 }

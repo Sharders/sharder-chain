@@ -19,21 +19,14 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.exception;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
+public class BizParameterException extends RuntimeException{
 
-public class ParameterException extends ConchException {
-
-    private final JSONStreamAware errorResponse;
-
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+    public BizParameterException() {
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    public BizParameterException(String message) {
+        super(message);
     }
-
 }

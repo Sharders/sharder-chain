@@ -19,21 +19,35 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.handler;
 
+import org.conch.Block;
+import org.conch.Conch;
 import org.conch.ConchException;
+import org.conch.http.*;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-public class ParameterException extends ConchException {
+import javax.servlet.http.HttpServletRequest;
 
-    private final JSONStreamAware errorResponse;
+public final class GetLastBlockHeight extends APIServlet.APIRequestHandler {
 
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+    public static final GetLastBlockHeight instance = new GetLastBlockHeight();
+
+    GetLastBlockHeight() {
+        super(new APITag[] {APITag.BIZ});
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    @Override
+    protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
+        JSONObject response = new JSONObject();
+        Block lastBlock = Conch.getBlockchain().getLastBlock();
+        response.put("height", lastBlock.getHeight());
+        return response;
     }
 
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }

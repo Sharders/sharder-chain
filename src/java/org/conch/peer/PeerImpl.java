@@ -92,6 +92,8 @@ final class PeerImpl implements Peer {
     private volatile int hallmarkBalanceHeight;
     private volatile long services;
     private volatile BlockchainState blockchainState;
+    private volatile Type type;
+    private volatile PeerLoad peerLoad;
 
     PeerImpl(String host, String announcedAddress) {
         this.host = host;
@@ -106,6 +108,7 @@ final class PeerImpl implements Peer {
         this.disabledAPIs = EnumSet.noneOf(APIEnum.class);
         this.apiServerIdleTimeout = API.apiServerIdleTimeout;
         this.blockchainState = BlockchainState.UP_TO_DATE;
+        this.peerLoad = new PeerLoad(this.host, this.port, 0);
     }
 
     @Override
@@ -132,6 +135,25 @@ final class PeerImpl implements Peer {
             Peers.notifyListeners(this, Peers.Event.CHANGED_ACTIVE_PEER);
         } else {
             this.state = state;
+        }
+    }
+
+    public Type getType(){
+        return this.type == null ? Type.NORMAL : this.type;
+    }
+
+    public void setType(int type){
+        switch (type){
+            case 1:
+                this.type = Type.OFFICIAL;
+                break;
+            case 2:
+                this.type = Type.CERTIFIED;
+                break;
+            case 3:
+                this.type = Type.NORMAL;
+            default:
+                Logger.logErrorMessage("error with setting peer type:" + type);
         }
     }
 
@@ -643,20 +665,8 @@ final class PeerImpl implements Peer {
                     setState(State.NON_CONNECTED);
                     return;
                 }
-                String servicesString = (String)response.get("services");
                 long origServices = services;
-                services = (servicesString != null ? Long.parseUnsignedLong(servicesString) : 0);
-                setApplication((String)response.get("application"));
-                setApiPort(response.get("apiPort"));
-                setApiSSLPort(response.get("apiSSLPort"));
-                setDisabledAPIs(response.get("disabledAPIs"));
-                setApiServerIdleTimeout(response.get("apiServerIdleTimeout"));
-                setBlockchainState(response.get("blockchainState"));
-                lastUpdated = lastConnectAttempt;
-                setVersion((String) response.get("version"));
-                setPlatform((String) response.get("platform"));
-                shareAddress = Boolean.TRUE.equals(response.get("shareAddress"));
-                analyzeHallmark((String) response.get("hallmark"));
+                parseJSONObject(response);
 
                 if (!Peers.ignorePeerAnnouncedAddress) {
                     String newAnnouncedAddress = Convert.emptyToNull((String) response.get("announcedAddress"));
@@ -712,6 +722,12 @@ final class PeerImpl implements Peer {
             }
         } catch (RuntimeException e) {
             blacklist(e);
+        }finally {
+            if(this.state == State.CONNECTED && ((services & 32) == 32)){
+                if(peerLoad.getLoad() < Peers.getBestPeer().getPeerLoad().getLoad()){
+                    Peers.setBestPeer(this);
+                }
+            }
         }
     }
 
@@ -738,6 +754,14 @@ final class PeerImpl implements Peer {
             blacklist(e);
         }
         return false;
+    }
+
+    void parsePeerLoad(JSONObject peerLoad){
+        this.peerLoad.setState(State.CONNECTED);
+        this.peerLoad.setHost(host);
+        this.peerLoad.setPort(apiPort);
+        this.peerLoad.setLoad(Integer.parseInt(String.valueOf(peerLoad.get("load"))));
+        this.peerLoad.setUri("http://" + host + ":" + apiPort);
     }
 
     boolean analyzeHallmark(final String hallmarkString) {
@@ -915,6 +939,14 @@ final class PeerImpl implements Peer {
         return uri;
     }
 
+    public PeerLoad getPeerLoad() {
+        return peerLoad;
+    }
+
+    public void setPeerLoad(PeerLoad peerLoad) {
+        this.peerLoad = peerLoad;
+    }
+
     @Override
     public String toString() {
         return "Peer{" +
@@ -924,5 +956,41 @@ final class PeerImpl implements Peer {
                 ", host='" + host + '\'' +
                 ", version='" + version + '\'' +
                 '}';
+    }
+
+    public JSONObject getJSONObject() {
+        JSONObject json = new JSONObject();
+        json.put("announcedAddress", announcedAddress);
+        json.put("hallmark", hallmark);
+        json.put("application", application);
+        json.put("version", version);
+        json.put("platform", platform);
+        json.put("shareAddress", shareAddress);
+        json.put("apiPort", apiPort);
+        json.put("apiSSLPort", apiSSLPort);
+        json.put("disabledAPIs", disabledAPIs);
+        json.put("apiServerIdleTimeout", apiServerIdleTimeout);
+        json.put("services", Long.toUnsignedString(services));
+        json.put("blockchainState", state.ordinal());
+        json.put("peerLoad",peerLoad.toJson());
+        return json;
+    }
+
+    public PeerImpl parseJSONObject(JSONObject json){
+        String servicesString = (String)json.get("services");
+        services = (servicesString != null ? Long.parseUnsignedLong(servicesString) : 0);
+        setApplication((String)json.get("application"));
+        apiPort = Integer.parseInt(String.valueOf(json.get("apiPort")));
+        setApiSSLPort(json.get("apiSSLPort"));
+        setDisabledAPIs(json.get("disabledAPIs"));
+        setApiServerIdleTimeout(json.get("apiServerIdleTimeout"));
+        setBlockchainState(json.get("blockchainState"));
+        lastUpdated = lastConnectAttempt;
+        setVersion((String) json.get("version"));
+        setPlatform((String) json.get("platform"));
+        shareAddress = Boolean.TRUE.equals(json.get("shareAddress"));
+        analyzeHallmark((String) json.get("hallmark"));
+        parsePeerLoad((JSONObject)json.get("peerLoad"));
+        return this;
     }
 }

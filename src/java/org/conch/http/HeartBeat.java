@@ -21,19 +21,32 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
+import org.conch.peer.Peer;
+import org.conch.peer.Peers;
 import org.json.simple.JSONStreamAware;
 
-public class ParameterException extends ConchException {
+import javax.servlet.http.HttpServletRequest;
 
-    private final JSONStreamAware errorResponse;
+import static org.conch.http.JSONResponses.MISSING_PEER;
+import static org.conch.http.JSONResponses.UNKNOWN_PEER;
 
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+public final class HeartBeat extends APIServlet.APIRequestHandler {
+
+    static final HeartBeat instance = new HeartBeat();
+
+    private HeartBeat() {
+        super(new APITag[] {APITag.NETWORK}, "heartbeat");
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    @Override
+    protected JSONStreamAware processRequest(HttpServletRequest req) {
+
+        return null;
+    }
+
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
     }
 
 }

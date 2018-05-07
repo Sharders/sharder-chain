@@ -1105,18 +1105,32 @@ final public class TransactionImpl implements Transaction {
 
     private long getMinimumFeeNQT(int blockchainHeight) {
         long totalFee = 0;
-        for (Appendix.AbstractAppendix appendage : appendages) {
-            appendage.loadPrunable(this);
-            if (blockchainHeight < appendage.getBaselineFeeHeight()) {
-                return 0; // No need to validate fees before baseline block
+        byte transactionType = this.getType().getType();
+        if(transactionType != TransactionType.TYPE_DATA && Constants.configFee.get(transactionType) == 0){
+            for (Appendix.AbstractAppendix appendage : appendages) {
+                appendage.loadPrunable(this);
+                if (blockchainHeight < appendage.getBaselineFeeHeight()) {
+                    return 0; // No need to validate fees before baseline block
+                }
+                Fee fee = blockchainHeight >= appendage.getNextFeeHeight() ? appendage.getNextFee(this) : appendage.getBaselineFee(this);
+                totalFee = Math.addExact(totalFee, fee.getFee(this, appendage));
             }
-            Fee fee = blockchainHeight >= appendage.getNextFeeHeight() ? appendage.getNextFee(this) : appendage.getBaselineFee(this);
-            totalFee = Math.addExact(totalFee, fee.getFee(this, appendage));
+            if (referencedTransactionFullHash != null) {
+                totalFee = Math.addExact(totalFee, Constants.ONE_SS);
+            }
+            return totalFee;
         }
-        if (referencedTransactionFullHash != null) {
-            totalFee = Math.addExact(totalFee, Constants.ONE_SS);
+
+        if(transactionType != TransactionType.TYPE_DATA && Constants.configFee.get(transactionType) != 0){
+            return Constants.configFee.get(transactionType);
         }
-        return totalFee;
+
+        int size = this.getAttachment().getMyFullSize() / 1024 / 1024 + 8;
+        if(size > Constants.configFee.size()){
+            Logger.logErrorMessage("calculate the fee error, size:" + size + " configFee size:" + Constants.configFee.size());
+            return Constants.ONE_SS;
+        }
+        return Constants.configFee.get(size);
     }
 
 }

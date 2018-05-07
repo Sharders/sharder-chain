@@ -94,7 +94,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject accountBalance(Account account, boolean includeEffectiveBalance) {
+    public static JSONObject accountBalance(Account account, boolean includeEffectiveBalance) {
         return accountBalance(account, includeEffectiveBalance, Conch.getBlockchain().getHeight());
     }
 
@@ -410,7 +410,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject block(Block block, boolean includeTransactions, boolean includeExecutedPhased) {
+    public static JSONObject block(Block block, boolean includeTransactions, boolean includeExecutedPhased) {
         JSONObject json = new JSONObject();
         json.put("block", block.getStringId());
         json.put("height", block.getHeight());
@@ -556,6 +556,7 @@ public final class JSONData {
         }
         json.put("services", servicesArray);
         json.put("blockchainState", peer.getBlockchainState());
+        json.put("peerLoad", peer.getPeerLoad().toJson());
         return json;
     }
 
@@ -934,7 +935,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject unconfirmedTransaction(Transaction transaction) {
+    public static JSONObject unconfirmedTransaction(Transaction transaction) {
         return unconfirmedTransaction(transaction, null);
     }
 
@@ -999,7 +1000,7 @@ public final class JSONData {
         return transaction(transaction, false);
     }
 
-    static JSONObject transaction(Transaction transaction, boolean includePhasingResult) {
+    public static JSONObject transaction(Transaction transaction, boolean includePhasingResult) {
         JSONObject json = transaction(transaction, null);
         if (includePhasingResult && transaction.getPhasing() != null) {
             PhasingPoll.PhasingPollResult phasingPollResult = PhasingPoll.getResult(transaction.getId());
@@ -1098,7 +1099,7 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject taggedData(TaggedData taggedData, boolean includeData) {
+    public static JSONObject taggedData(TaggedData taggedData, boolean includeData) {
         JSONObject json = new JSONObject();
         json.put("transaction", Long.toUnsignedString(taggedData.getId()));
         putAccount(json, "account", taggedData.getAccountId());
@@ -1160,7 +1161,7 @@ public final class JSONData {
         json.put("errorDescription", error + e.getMessage());
     }
 
-    static void putAccount(JSONObject json, String name, long accountId) {
+    public static void putAccount(JSONObject json, String name, long accountId) {
         json.put(name, Long.toUnsignedString(accountId));
         json.put(name + "RS", Convert.rsAccount(accountId));
     }

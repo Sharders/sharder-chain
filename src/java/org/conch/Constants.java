@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -210,4 +211,38 @@ public final class Constants {
 
     private Constants() {} // never
 
+    static final ArrayList<Long> configFee = new ArrayList<>();
+
+    static {
+        configFee.add((long)Conch.getIntProperty("sharder.fee.payment"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.message"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.coloredCions"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.digitalGoods"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.accountControl"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.monetarySystem"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.dataFee"));
+        configFee.add((long)Conch.getIntProperty("sharder.fee.shuffling"));
+        long fee = (long)Conch.getIntProperty("sharder.fee.data0M");
+        configFee.add(fee == 0 ? Constants.ONE_SS : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data1M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data2M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data3M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data4M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data5M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data6M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data7M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data8M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data9M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        fee = (long)Conch.getIntProperty("sharder.fee.data10M");
+        configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+    }
 }

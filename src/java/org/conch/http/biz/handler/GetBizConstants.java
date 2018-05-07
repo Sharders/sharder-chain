@@ -19,21 +19,37 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.handler;
 
-import org.conch.ConchException;
+import org.conch.*;
+import org.conch.http.*;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-public class ParameterException extends ConchException {
+import javax.servlet.http.HttpServletRequest;
 
-    private final JSONStreamAware errorResponse;
+public final class GetBizConstants extends APIServlet.APIRequestHandler {
 
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+    public static final GetBizConstants instance = new GetBizConstants();
+
+    private GetBizConstants() {
+        super(new APITag[] {APITag.BIZ});
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    @Override
+    protected JSONStreamAware processRequest(HttpServletRequest req) {
+        JSONObject response = new JSONObject();
+        response.put("epochBeginning", Constants.EPOCH_BEGINNING);
+        return response;
     }
 
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
+
+    @Override
+    protected boolean requireBlockchain() {
+        return false;
+    }
 }

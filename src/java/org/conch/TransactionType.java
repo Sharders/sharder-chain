@@ -45,7 +45,7 @@ public abstract class TransactionType {
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
     static final byte TYPE_MONETARY_SYSTEM = 5;
-    private static final byte TYPE_DATA = 6;
+    static final byte TYPE_DATA = 6;
     static final byte TYPE_SHUFFLING = 7;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;

@@ -19,21 +19,46 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.domain;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
+/**
+ * Peer
+ *
+ * @author bubai
+ * @date 2018/4/13
+ */
+public class Peer {
+    private String address;
+    private int type;
 
-public class ParameterException extends ConchException {
-
-    private final JSONStreamAware errorResponse;
-
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+    public String getAddress() {
+        return address;
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Peer peer = (Peer) o;
+
+        return address.equals(peer.address);
+    }
+
+    @Override
+    public int hashCode() {
+        return address.hashCode();
+    }
 }

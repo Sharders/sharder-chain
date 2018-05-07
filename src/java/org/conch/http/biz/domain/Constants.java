@@ -19,21 +19,25 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.domain;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public class ParameterException extends ConchException {
+/**
+ * Block
+ *
+ * @author bubai
+ * @date 2018/4/16
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Constants {
+    private long epochBeginning;
 
-    private final JSONStreamAware errorResponse;
-
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
+    public long getEpochBeginning() {
+        return epochBeginning;
     }
 
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
+    public void setEpochBeginning(long epochBeginning) {
+        this.epochBeginning = epochBeginning;
     }
-
 }

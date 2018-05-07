@@ -19,21 +19,12 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.service;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
+import com.googlecode.jsonrpc4j.JsonRpcMethod;
+import com.googlecode.jsonrpc4j.JsonRpcParam;
 
-public class ParameterException extends ConchException {
-
-    private final JSONStreamAware errorResponse;
-
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
-    }
-
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
-    }
-
+public interface TestService extends Service{
+    @JsonRpcMethod("test.echo")
+    String sayHi(@JsonRpcParam("msg") String msg);
 }

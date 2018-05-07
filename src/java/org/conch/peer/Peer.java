@@ -29,6 +29,22 @@ import java.util.Set;
 
 public interface Peer extends Comparable<Peer> {
 
+    //peer type
+    enum Type {
+        NORMAL(3),
+        CERTIFIED(2),
+        OFFICIAL(1);
+        private final int code;
+
+        Type(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+    }
+
     enum State {
         NON_CONNECTED, CONNECTED, DISCONNECTED
     }
@@ -38,7 +54,8 @@ public interface Peer extends Comparable<Peer> {
         PRUNABLE(2),                    // Stores expired prunable messages
         API(4),                         // Provides open API access over http
         API_SSL(8),                     // Provides open API access over https
-        CORS(16);                       // API CORS enabled
+        CORS(16),                       // API CORS enabled
+        BAPI(32);                       // Provides business API access over http
 
         private final long code;        // Service code - must be a power of 2
 
@@ -127,6 +144,8 @@ public interface Peer extends Comparable<Peer> {
     StringBuilder getPeerApiUri();
 
     String getBlacklistingCause();
+
+    PeerLoad getPeerLoad();
 
     JSONObject send(JSONStreamAware request);
 

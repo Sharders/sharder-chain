@@ -19,21 +19,7 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.service;
 
-import org.conch.ConchException;
-import org.json.simple.JSONStreamAware;
-
-public class ParameterException extends ConchException {
-
-    private final JSONStreamAware errorResponse;
-
-    public ParameterException(JSONStreamAware errorResponse) {
-        this.errorResponse = errorResponse;
-    }
-
-    JSONStreamAware getErrorResponse() {
-        return errorResponse;
-    }
-
+public interface Service {
 }
