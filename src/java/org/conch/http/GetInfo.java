@@ -18,7 +18,7 @@ public class GetInfo extends APIServlet.APIRequestHandler{
     static final GetInfo instance = new GetInfo();
 
     private GetInfo() {
-        super(new APITag[] {APITag.INFO});
+        super(new APITag[] {APITag.DEBUG});
     }
 
 
@@ -32,5 +32,10 @@ public class GetInfo extends APIServlet.APIRequestHandler{
         json.put("uri",API.openAPIPort);
         JSONStreamAware response = JSON.prepare(json);
         return response;
+    }
+
+    @Override
+    protected boolean requirePassword() {
+        return true;
     }
 }
