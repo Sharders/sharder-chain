@@ -29,7 +29,7 @@ public class GetInfo extends APIServlet.APIRequestHandler{
         json.put("address","127.0.0.1");
         json.put("peerLoad",Peers.getMyPeerLoad().toJson());
         json.put("bestPeer",Peers.getBestPeerUri());
-        json.put("uri",API.openAPIPort);
+        json.put("uri","127.0.0.1:" + API.openAPIPort);
         JSONStreamAware response = JSON.prepare(json);
         return response;
     }
