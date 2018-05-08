@@ -1303,6 +1303,6 @@ public final class Peers {
     }
 
     public static String getBestPeerUri(){
-        return "127.0.0.1".equals(bestPeer) ? "127.0.0.1:" + API.openAPIPort : peers.get(bestPeer).getPeerApiUri().toString();
+        return "127.0.0.1".equals(bestPeer) ? "http://127.0.0.1:" + API.openAPIPort : peers.get(bestPeer).getPeerApiUri().toString();
     }
 }
