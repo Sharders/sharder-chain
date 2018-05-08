@@ -704,8 +704,8 @@ final class PeerImpl implements Peer {
             blacklist(e);
         }finally {
             if(this.state == State.CONNECTED && ((services & 32) == 32)){
-                if(peerLoad.getLoad() < Peers.getBestPeer().getPeerLoad().getLoad()){
-                    Peers.setBestPeer(this);
+                if(peerLoad.getLoad() < Peers.getBestPeerLoad().getLoad()){
+                    Peers.setBestPeer(host);
                 }
             }
         }
