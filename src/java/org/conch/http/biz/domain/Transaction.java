@@ -34,7 +34,7 @@ import java.math.BigDecimal;
  * @date 2018/4/2
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Transaction {
     private String transactionId;
     private String hash;
