@@ -22,6 +22,7 @@
 package org.conch.http.biz.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
@@ -33,6 +34,7 @@ import java.math.BigDecimal;
  * @date 2018/4/2
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Transaction {
     private String transactionId;
     private String hash;
@@ -45,6 +47,7 @@ public class Transaction {
     private int height;
     private long timestamp;
     private int confirmations;
+    private Data attachment;
 
     @JsonProperty(value = "transactionId")
     public String getTransactionId() {
@@ -146,5 +149,16 @@ public class Transaction {
 
     public void setConfirmations(int confirmations) {
         this.confirmations = confirmations;
+    }
+
+    @JsonProperty(value = "data")
+    public Data getAttachment() {
+        return attachment;
+    }
+    @JsonProperty(value = "attachment")
+    public void setAttachment(Data attachment) {
+        if (type == 6) {
+            this.attachment = attachment;
+        }
     }
 }

@@ -44,7 +44,7 @@ public final class UploadTextData extends CreateTransaction {
 
     UploadTextData() {
         super(new APITag[] {APITag.BIZ, APITag.CREATE_TRANSACTION},
-                "name", "description", "tags", "type", "channel", "isText", "filename", "data");
+                "passPhrase", "fileType", "clientAccount", "fileName", "data");
     }
 
     @Override
