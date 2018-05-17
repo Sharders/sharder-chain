@@ -21,6 +21,7 @@
 
 package org.conch.util;
 
+import org.apache.log4j.PropertyConfigurator;
 import org.conch.Conch;
 
 import java.io.ByteArrayInputStream;
@@ -80,6 +81,7 @@ public final class Logger {
             System.setProperty("java.util.logging.manager",
                     (oldManager != null ? oldManager : "java.util.logging.LogManager"));
         }
+        PropertyConfigurator.configure("conf/logging-default.properties");
         if (! Boolean.getBoolean("sharder.doNotConfigureLogging")) {
             try {
                 Properties loggingProperties = new Properties();
