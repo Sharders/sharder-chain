@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.conch.Account;
+import org.conch.util.Convert;
 
 /**
  * Data
@@ -39,6 +41,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Data {
     private String name;
     private String channel;
+    private String channelName;
+    private String channelDesc;
     private String data;
     private String type;
     @JsonIgnore
@@ -62,6 +66,17 @@ public class Data {
     @JsonProperty(value = "channel")
     public void setChannel(String channel) {
         this.channel = channel;
+        setAccountInfo();
+    }
+
+    @JsonProperty(value = "clientAccountName")
+    public String getChannelName() {
+        return channelName;
+    }
+
+    @JsonProperty(value = "clientAccountDesc")
+    public String getChannelDesc() {
+        return channelDesc;
     }
 
     public String getHash() {
@@ -88,5 +103,16 @@ public class Data {
     @JsonProperty(value = "type")
     public void setType(String type) {
         this.type = type;
+    }
+
+    private void setAccountInfo() {
+        Account account = Account.getAccount(Convert.parseAccountId(this.channel));
+        if(account != null) {
+            Account.AccountInfo info = account.getAccountInfo();
+            if (info != null) {
+                this.channelName = info.getName();
+                this.channelDesc = info.getDescription();
+            }
+        }
     }
 }
