@@ -97,7 +97,7 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
         switch (requestType){
             case UPLOAD_TEXTDATA :
                 if (req.getParameter("deadline") == null)
-                    this.params.put("deadline", new String[]{"60"});
+                    this.params.put("deadline", new String[]{"3600"});
                 if (req.getParameter("feeNQT") == null)
                     this.params.put("feeNQT", new String[]{"0"});
                 this.params.put("channel", new String[]{req.getParameter("clientAccount")});
@@ -107,7 +107,7 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
                 break;
             case CREATE_CLIENT_ACCOUNT :
                 this.params.put("secretPhrase", new String[]{req.getParameter("passPhrase")});
-                this.params.put("deadline", new String[]{"60"});
+                this.params.put("deadline", new String[]{"3600"});
                 this.params.put("message", new String[]{"account created and broadcast to the network"});
                 this.params.put("feeNQT",new String[]{"0"});
                 break;
