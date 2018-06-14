@@ -3644,4 +3644,206 @@ public interface Attachment extends Appendix {
         }
 
     }
+
+    final class ForgePoolCreate extends AbstractAttachment {
+
+        private final int period;
+
+        //TODO rule
+
+        ForgePoolCreate(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.period = Short.toUnsignedInt(buffer.getShort());
+        }
+
+        ForgePoolCreate(JSONObject attachmentData) {
+            super(attachmentData);
+            this.period = ((Long) attachmentData.get("period")).intValue();
+        }
+
+        public ForgePoolCreate(int period) {
+            this.period = period;
+        }
+
+        @Override
+        int getMySize() {
+            return 2;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putShort((short)period);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("period", period);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_CREATE;
+        }
+
+        public int getPeriod() {
+            return period;
+        }
+    }
+
+    final class ForgePoolDestroy extends AbstractAttachment {
+        private final long poolId;
+
+        ForgePoolDestroy(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.poolId = buffer.getLong();
+        }
+
+        ForgePoolDestroy(JSONObject attachmentData) {
+            super(attachmentData);
+            this.poolId = (Long) attachmentData.get("poolId");
+        }
+
+        public ForgePoolDestroy(long poolId) {
+            this.poolId = poolId;
+        }
+
+        @Override
+        int getMySize() {
+            return 8;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(poolId);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("poolId", poolId);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_DESTROY;
+        }
+
+        public long getPoolId() {
+            return poolId;
+        }
+    }
+
+    final class ForgePoolJoin extends AbstractAttachment {
+
+        private final long forgePoolId;
+        private final long amount;
+        private final int period;
+
+        ForgePoolJoin(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.forgePoolId = buffer.getLong();
+            this.amount = buffer.getLong();
+            this.period = Short.toUnsignedInt(buffer.getShort());
+        }
+
+        ForgePoolJoin(JSONObject attachmentData) {
+            super(attachmentData);
+            this.forgePoolId = (Long) attachmentData.get("forgePoolId");
+            this.amount = (Long) attachmentData.get("amount");
+            this.period = ((Long) attachmentData.get("period")).intValue();
+        }
+
+        public ForgePoolJoin(long forgePoolId , long amount ,int period) {
+            this.forgePoolId = forgePoolId;
+            this.amount = amount;
+            this.period = period;
+        }
+
+        @Override
+        int getMySize() {
+            return 18;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(forgePoolId);
+            buffer.putLong(amount);
+            buffer.putShort((short)period);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("forgePoolId", forgePoolId);
+            attachment.put("amount", amount);
+            attachment.put("period", period);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_JOIN;
+        }
+
+        public int getPeriod() {
+            return period;
+        }
+
+        public long getForgePoolId() {
+            return forgePoolId;
+        }
+
+        public long getAmount() {
+            return amount;
+        }
+    }
+
+    final class ForgePoolQuit extends AbstractAttachment {
+        private final long txId;
+        private final long poolId;
+
+        ForgePoolQuit(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.txId = buffer.getLong();
+            this.poolId = buffer.getLong();
+        }
+
+        ForgePoolQuit(JSONObject attachmentData) {
+            super(attachmentData);
+            this.txId = ((Long) attachmentData.get("txId")).intValue();
+            this.poolId = ((Long) attachmentData.get("poolId")).intValue();
+        }
+
+        public ForgePoolQuit(long txId, long poolId) {
+            this.txId = txId;
+            this.poolId = poolId;
+        }
+
+        @Override
+        int getMySize() {
+            return 16;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(txId);
+            buffer.putLong(poolId);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("txId", txId);
+            attachment.put("poolId", poolId);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_QUIT;
+        }
+
+        public long getTxId() {
+            return txId;
+        }
+
+        public long getPoolId() {
+            return poolId;
+        }
+    }
 }

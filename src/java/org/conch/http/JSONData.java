@@ -112,6 +112,7 @@ public final class JSONData {
             json.put("balanceNQT", String.valueOf(account.getBalanceNQT()));
             json.put("unconfirmedBalanceNQT", String.valueOf(account.getUnconfirmedBalanceNQT()));
             json.put("forgedBalanceNQT", String.valueOf(account.getForgedBalanceNQT()));
+            json.put("frozenBalanceNQT", String.valueOf(account.getFrozenBalanceNQT()));
             if (includeEffectiveBalance) {
                 json.put("effectiveBalanceSS", account.getEffectiveBalanceSS(height));
                 json.put("guaranteedBalanceNQT", String.valueOf(account.getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height)));

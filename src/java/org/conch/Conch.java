@@ -389,6 +389,7 @@ public final class Conch {
                 AddOns.init();
                 API.init();
                 Users.init();
+                ForgePool.init();
                 DebugTrace.init();
                 // DbBackup Init
                 DbBackup.init();

@@ -193,6 +193,11 @@ public final class Constants {
 
     public static final long EPOCH_BEGINNING;
 
+    //forge pool
+    public static final int FORGE_POOL_DELAY = 10; //transaction become effective
+    public static final int FORGE_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
+    public static final int FORGE_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
+
     //Conch chain begin time
     static {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

@@ -290,7 +290,11 @@ public enum APIEnum {
     GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
-    Get_INFO("getInfo",GetInfo.instance);
+    GET_INFO("getInfo",GetInfo.instance),
+    CREATE_FORGE_POOL("createForgePool",CreateForgePool.instance),
+    DESTROY_FORGE_POOL("destroyForgePool",DestroyForgePool.instance),
+    JOIN_FORGE_POOL("joinForgePool",JoinForgePool.instance),
+    QUIT_FORGE_POOL("quitForgePool",QuitForgePool.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

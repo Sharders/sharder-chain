@@ -60,6 +60,7 @@ public final class GetAccountInfo extends APIServlet.APIRequestHandler {
         }
         response.put("balance", BigDecimal.valueOf(account.getBalanceNQT()).divide(BigDecimal.valueOf(100000000L)));
         response.put("forgedBalance", BigDecimal.valueOf(account.getForgedBalanceNQT()).divide(BigDecimal.valueOf(100000000L)));
+        response.put("frozenBalance", BigDecimal.valueOf(account.getFrozenBalanceNQT()).divide(BigDecimal.valueOf(100000000L)));
         response.remove("unconfirmedBalanceNQT");
         response.remove("forgedBalanceNQT");
         response.remove("balanceNQT");

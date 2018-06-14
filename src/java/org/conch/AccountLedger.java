@@ -456,7 +456,12 @@ public class AccountLedger {
             SHUFFLING_REGISTRATION(51, true),
             SHUFFLING_PROCESSING(52, true),
             SHUFFLING_CANCELLATION(53, true),
-            SHUFFLING_DISTRIBUTION(54, true);
+            SHUFFLING_DISTRIBUTION(54, true),
+        // TYPE_FORGE_POOL
+            FORGE_POOL_CREATE(61, true),
+            FORGE_POOL_DESTROY(62, true),
+            FORGE_POOL_JOIN(63, true),
+            FORGE_POOL_QUIT(64, true);
 
 
         /** Event code mapping */
