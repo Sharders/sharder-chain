@@ -39,6 +39,7 @@ public enum BizAPIEnum {
     GET_CONSTANTS("getBizConstants",GetBizConstants.instance),
     GET_BIZ_BLOCKS("getBizBlocks",GetBizBlocks.instance),
     GET_ACCOUNT_TXS("getAccountTxs",GetAccountTxs.instance),
+    GET_TX_STATISTIC("getTxStatistics",GetTxStatistics.instance),
     GET_TX("getTx",GetTx.instance);
 
 
