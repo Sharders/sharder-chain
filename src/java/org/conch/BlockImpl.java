@@ -482,7 +482,7 @@ final class BlockImpl implements Block {
             }
         } else if (previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - 420;
+            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - (Constants.BLOCK_GAP - 1) * 60;
             if (blocktimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
