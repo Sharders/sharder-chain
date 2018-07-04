@@ -152,7 +152,7 @@ public interface Attachment extends Appendix {
             this.generatorId = buffer.getLong();
             Map<Long,Long> temp = new HashMap<>();
             if(buffer.hasRemaining()){
-                int size = buffer.getShort();
+                int size = buffer.remaining() / 32;
                 for(int i = 0;i < size; i++){
                     long id = buffer.getLong();
                     long amount = buffer.getLong();
@@ -177,16 +177,13 @@ public interface Attachment extends Appendix {
 
         @Override
         int getMySize() {
-            return 16 + 2 + consignors.size() * 16;
+            return 16 + consignors.size() * 16;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(creator);
             buffer.putLong(generatorId);
-            if(consignors.size() != 0){
-                buffer.putShort((short) consignors.size());
-            }
             for (Map.Entry<Long, Long> entry : consignors.entrySet()) {
                 buffer.putLong(entry.getKey());
                 buffer.putLong(entry.getValue());
