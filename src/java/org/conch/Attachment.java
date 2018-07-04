@@ -166,8 +166,7 @@ public interface Attachment extends Appendix {
             super(attachmentData);
             this.creator = (Long) attachmentData.get("creator");
             this.generatorId = (Long) attachmentData.get("generatorId");
-            this.consignors = (Map<Long,Long>) attachmentData.get("consignors");
-
+            this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
         }
 
         public CoinBase(long creator, long generatorId ,Map<Long,Long> consignors) {
@@ -198,7 +197,7 @@ public interface Attachment extends Appendix {
         void putMyJSON(JSONObject attachment) {
             attachment.put("creator", creator);
             attachment.put("generatorId", generatorId);
-            attachment.put("consignors",consignors);
+            attachment.put("consignors",mapToJson(consignors));
         }
 
         @Override
@@ -212,6 +211,30 @@ public interface Attachment extends Appendix {
 
         public long getGeneratorId() {
             return generatorId;
+        }
+
+        private JSONObject mapToJson(Map<Long,Long> map){
+            if(map.isEmpty()){
+                return null;
+            }else{
+                JSONObject jsonObject = new JSONObject();
+                for(Long key : map.keySet()){
+                    jsonObject.put(key,map.get(key));
+                }
+                return jsonObject;
+            }
+        }
+
+        private Map<Long,Long> jsonToMap(JSONObject jsonObject){
+            if(jsonObject.isEmpty()){
+                return new HashMap<>();
+            }else {
+                Map<Long,Long> map = new HashMap<>();
+                for(Object key : jsonObject.keySet()){
+                    map.put((Long)key,(Long)jsonObject.get(key));
+                }
+                return map;
+            }
         }
     }
 
