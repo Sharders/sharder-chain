@@ -196,8 +196,8 @@ public interface Attachment extends Appendix {
 
         @Override
         void putMyJSON(JSONObject attachment) {
-            attachment.put("txId", creator);
-            attachment.put("poolId", generatorId);
+            attachment.put("creator", creator);
+            attachment.put("generatorId", generatorId);
             attachment.put("consignors",consignors);
         }
 
