@@ -215,7 +215,7 @@ public interface Attachment extends Appendix {
 
         private JSONObject mapToJson(Map<Long,Long> map){
             if(map.isEmpty()){
-                return null;
+                return new JSONObject();
             }else{
                 JSONObject jsonObject = new JSONObject();
                 for(Long key : map.keySet()){
