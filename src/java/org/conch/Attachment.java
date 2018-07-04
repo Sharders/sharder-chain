@@ -21,18 +21,21 @@
 
 package org.conch;
 
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public interface Attachment extends Appendix {
 
@@ -135,9 +138,85 @@ public interface Attachment extends Appendix {
 
     };
 
+    final class CoinBase extends AbstractAttachment {
+        enum Type{
+            POOL,SINGLE
+        }
+        private final long creator; //transaction creator
+        private final long generatorId; //by pool or account
+        private final Map<Long,Long> consignors;
+
+        CoinBase(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.creator = buffer.getLong();
+            this.generatorId = buffer.getLong();
+            Map<Long,Long> temp = new HashMap<>();
+            if(buffer.hasRemaining()){
+                int size = buffer.getShort();
+                for(int i = 0;i < size; i++){
+                    long id = buffer.getLong();
+                    long amount = buffer.getLong();
+                    temp.put(id,amount);
+                }
+            }
+            consignors = temp;
+        }
+
+        CoinBase(JSONObject attachmentData) {
+            super(attachmentData);
+            this.creator = (Long) attachmentData.get("creator");
+            this.generatorId = (Long) attachmentData.get("generatorId");
+            this.consignors = (Map<Long,Long>) attachmentData.get("consignors");
+
+        }
+
+        public CoinBase(long creator, long generatorId ,Map<Long,Long> consignors) {
+            this.creator = creator;
+            this.generatorId = generatorId;
+            this.consignors = consignors;
+        }
+
+        @Override
+        int getMySize() {
+            return 16 + 2 + consignors.size() * 16;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(creator);
+            buffer.putLong(generatorId);
+            if(consignors.size() != 0){
+                buffer.putShort((short) consignors.size());
+            }
+            for (Map.Entry<Long, Long> entry : consignors.entrySet()) {
+                buffer.putLong(entry.getKey());
+                buffer.putLong(entry.getValue());
+            }
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("txId", creator);
+            attachment.put("poolId", generatorId);
+            attachment.put("consignors",consignors);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.CoinBase.ORDINARY;
+        }
+
+        public Map<Long, Long> getConsignors() {
+            return consignors;
+        }
+
+        public long getGeneratorId() {
+            return generatorId;
+        }
+    }
+
     // the message payload is in the Appendix
     EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
-
         @Override
         public TransactionType getTransactionType() {
             return TransactionType.Messaging.ARBITRARY_MESSAGE;
@@ -3648,36 +3727,58 @@ public interface Attachment extends Appendix {
     final class ForgePoolCreate extends AbstractAttachment {
 
         private final int period;
-
-        //TODO rule
+        private final Map<String,Object> rule;
 
         ForgePoolCreate(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.period = Short.toUnsignedInt(buffer.getShort());
+            Map<String,Object> map = null;
+            try{
+                ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.remaining());
+                byteBuffer.put(buffer);
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
+                map = (Map<String,Object>)ois.readObject();
+                ois.close();
+            }catch (Exception e){
+                Logger.logErrorMessage("forge pool create transaction can't load rule from byte", e);
+            }
+            this.rule = map;
         }
 
         ForgePoolCreate(JSONObject attachmentData) {
             super(attachmentData);
             this.period = ((Long) attachmentData.get("period")).intValue();
+            this.rule = Rule.jsonObjectToMap((JSONObject)attachmentData.get("rule"));
         }
 
-        public ForgePoolCreate(int period) {
+        public ForgePoolCreate(int period,Map<String,Object> rule) {
             this.period = period;
+            this.rule = rule;
         }
 
         @Override
         int getMySize() {
-            return 2;
+            return 2 + (int)ObjectSizeCalculator.getObjectSize(rule);
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
             buffer.putShort((short)period);
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(rule);
+                os.close();
+                buffer.put(ByteBuffer.wrap(bo.toByteArray()));
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+            }
         }
 
         @Override
         void putMyJSON(JSONObject attachment) {
             attachment.put("period", period);
+            attachment.put("rule", rule);
         }
 
         @Override
@@ -3687,6 +3788,10 @@ public interface Attachment extends Appendix {
 
         public int getPeriod() {
             return period;
+        }
+
+        public Map<String, Object> getRule() {
+            return rule;
         }
     }
 
@@ -3807,8 +3912,8 @@ public interface Attachment extends Appendix {
 
         ForgePoolQuit(JSONObject attachmentData) {
             super(attachmentData);
-            this.txId = ((Long) attachmentData.get("txId")).intValue();
-            this.poolId = ((Long) attachmentData.get("poolId")).intValue();
+            this.txId = (Long) attachmentData.get("txId");
+            this.poolId = (Long) attachmentData.get("poolId");
         }
 
         public ForgePoolQuit(long txId, long poolId) {

@@ -294,7 +294,10 @@ public enum APIEnum {
     CREATE_FORGE_POOL("createForgePool",CreateForgePool.instance),
     DESTROY_FORGE_POOL("destroyForgePool",DestroyForgePool.instance),
     JOIN_FORGE_POOL("joinForgePool",JoinForgePool.instance),
-    QUIT_FORGE_POOL("quitForgePool",QuitForgePool.instance);
+    QUIT_FORGE_POOL("quitForgePool",QuitForgePool.instance),
+    GET_FORGE_POOL_INFO("getForgePoolInfo",GetForgePoolInfo.instance),
+    GET_FORGE_POOLS("getForgePools",GetForgePools.instance),
+    GET_FORGE_POOL_RULE("getForgePoolRule",GetForgePoolRule.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

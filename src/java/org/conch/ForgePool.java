@@ -1,10 +1,12 @@
 package org.conch;
-
 import org.conch.util.Logger;
+import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -17,37 +19,38 @@ public class ForgePool implements Serializable {
     }
     private final long creatorId;
     private final long poolId;
+    private final int level;
     private float chance;
     private State state;
     private final int startBlockNo;
     private int endBlockNo;
     private int historicalBlocks;
+    private int totalBlocks; //the sum of all destroyed forge pool's life time
     private long historicalIncome;
     private long power;
     private final ConcurrentMap<Long,Consignor> consignors = new ConcurrentHashMap<>();
-    private int consignorNum = 0;
+    private int number = 0;
     private int updateHeight;
+    private Map<String,Object> rule;
 
     public ForgePool(long creatorId, long id, int startBlockNo,int endBlockNo){
         this.creatorId = creatorId;
         this.poolId = id;
         this.startBlockNo = startBlockNo;
         this.endBlockNo = endBlockNo;
+        this.level = Rule.getLevel(creatorId);
     }
 
-    public static void createForgePool(long creatorId ,long id, int startBlockNo, int endBlockNo) {
+    public static void createForgePool(long creatorId ,long id, int startBlockNo, int endBlockNo,Map<String,Object> rule) {
         if (destroyForgePool.containsKey(creatorId)) {
             ForgePool forgePool = new ForgePool(creatorId,id,startBlockNo,endBlockNo);
-            ForgePool past = destroyForgePool.get(creatorId).get(0);
-            for(ForgePool destroy : destroyForgePool.get(creatorId)){
-                if(destroy.getEndBlockNo() > past.getEndBlockNo()){
-                    past = destroy;
-                }
-            }
+            ForgePool past = getNewForgePoolFromDestroy(creatorId);
             forgePool.chance = past.chance;
             forgePool.state = State.INIT;
             forgePool.historicalBlocks = past.historicalBlocks;
             forgePool.historicalIncome = past.historicalIncome;
+            forgePool.totalBlocks = past.totalBlocks;
+            forgePool.rule = rule;
             forgePools.put(forgePool.poolId,forgePool);
             Logger.logDebugMessage("create forge pool from old pool, chance " + past);
         } else {
@@ -56,6 +59,8 @@ public class ForgePool implements Serializable {
             forgePool.state = State.INIT;
             forgePool.historicalBlocks = 0;
             forgePool.historicalIncome = 0;
+            forgePool.totalBlocks = 0;
+            forgePool.rule = rule;
             forgePools.put(forgePool.poolId,forgePool);
             Logger.logDebugMessage(creatorId + " create new forge pool");
         }
@@ -64,6 +69,19 @@ public class ForgePool implements Serializable {
     public void destroyForgePool(int height){
         state = State.DESTROYED;
         endBlockNo = height;
+
+        for(Consignor consignor : consignors.values()){
+            long amount = consignor.getAmount();
+            if(amount != 0){
+                power -= amount;
+                Account.getAccount(consignor.getId()).frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT,-1,-amount);
+            }
+        }
+        if(startBlockNo > endBlockNo){
+            forgePools.remove(poolId);
+            Logger.logDebugMessage("destroy forge pool " + poolId + " before start ");
+            return;
+        }
         if (destroyForgePool.containsKey(creatorId)) {
             destroyForgePool.get(creatorId).add(this);
             forgePools.remove(poolId);
@@ -85,9 +103,9 @@ public class ForgePool implements Serializable {
             Consignor consignor = new Consignor(id,txId,startBlockNo,endBlockNo,amount);
             consignors.put(id,consignor);
             power += amount;
-            consignorNum++;
+            number++;
         }
-        Logger.logDebugMessage(id + " join in forge pool ,pool id is" + poolId);
+        Logger.logDebugMessage(id + " join in forge pool " + poolId);
     }
 
     public long quitConsignor(long id,long txId){
@@ -104,7 +122,7 @@ public class ForgePool implements Serializable {
         power -= amount;
         if(consignor.removeTransaction(txId)){
             consignors.remove(id);
-            consignorNum--;
+            number--;
             Logger.logDebugMessage(id + "quit forge pool " + poolId + ",tx id is " + txId);
         }
         return amount;
@@ -119,7 +137,7 @@ public class ForgePool implements Serializable {
     }
 
     public static long ownOnePool(long creator){
-        for (ForgePool forgePool : forgePools.values()) {
+            for (ForgePool forgePool : forgePools.values()) {
             if(forgePool.creatorId == creator){
                 return forgePool.poolId;
             }
@@ -152,6 +170,7 @@ public class ForgePool implements Serializable {
         Conch.getBlockchainProcessor().addListener(block -> {
             int height = block.getHeight();
             for(ForgePool forgePool : forgePools.values()){
+                forgePool.updateHeight = height;
                 if(forgePool.consignors.size() ==0 && height - forgePool.startBlockNo > Constants.FORGE_POOL_DEADLINE){
                     forgePool.destroyForgePool(height);
                     continue;
@@ -165,11 +184,12 @@ public class ForgePool implements Serializable {
                     //TODO add to generator list
                     continue;
                 }
-                //TODO number or amount
+                //TODO auto destroy pool because the number or amount of pool is too small
                 if(forgePool.startBlockNo + Constants.FORGE_POOL_DEADLINE == height && forgePool.consignors.size() == 0){
                     forgePool.destroyForgePool(height);
                     continue;
                 }
+                //transaction is time out
                 for(Consignor consignor : forgePool.consignors.values()){
                     long amount = consignor.validateHeight(height);
                     if(amount != 0){
@@ -177,12 +197,29 @@ public class ForgePool implements Serializable {
                         Account.getAccount(consignor.getId()).frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT,0,-amount);
                     }
                 }
-                forgePool.updateHeight = height;
+
+                if(forgePool.startBlockNo < height){
+                    forgePool.totalBlocks++;
+                }
+                if(forgePool.totalBlocks == 0){
+                    forgePool.chance = 0;
+                }else {
+                    forgePool.chance = forgePool.historicalBlocks / forgePool.totalBlocks;
+                }
             }
 
-            if(forgePools.containsKey(block.getGeneratorId())){
-                // TODO CoinBase
-                updateForePool(block.getGeneratorId(),block.getTotalFeeNQT());
+            long id = ownOnePool(block.getGeneratorId());
+            if(id != -1 && ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING)){
+                updateForePool(id,block.getTotalFeeNQT());
+            }
+
+            if(height > Constants.FORGE_REWARD_DELAY){
+                Block past = Conch.getBlockchain().getBlockAtHeight(height - Constants.FORGE_REWARD_DELAY);
+                for(Transaction transaction : past.getTransactions()){
+                    if(transaction.getType() == TransactionType.CoinBase.ORDINARY){
+                        TransactionType.CoinBase.unFreezeForgeBalance(transaction);
+                    }
+                }
             }
 
             saveObjToFile(forgePools,"ForgePools");
@@ -191,7 +228,7 @@ public class ForgePool implements Serializable {
     }
 
     public static void init(){
-
+        Rule.init();
     }
 
     private static void saveObjToFile(Object o,String file){
@@ -215,8 +252,86 @@ public class ForgePool implements Serializable {
         }
     }
 
+    public static ForgePool getNewForgePoolFromDestroy(long creator){
+        if(!destroyForgePool.containsKey(creator)){
+            return null;
+        }
+        ForgePool past = destroyForgePool.get(creator).get(0);
+        for(ForgePool destroy : destroyForgePool.get(creator)){
+            if(destroy.getEndBlockNo() > past.getEndBlockNo()){
+                past = destroy;
+            }
+        }
+        return past;
+    }
+
     public static ForgePool getForgePool(long poolId) {
         return forgePools.containsKey(poolId) ? forgePools.get(poolId) : null;
+    }
+
+    public static ForgePool getForgePoolFromAll(long creatorId,long poolId) {
+        ForgePool forgePool = getForgePool(poolId);
+        if(forgePool != null){
+            return forgePool;
+        }
+        for(ForgePool destroy : destroyForgePool.get(creatorId)){
+            if(destroy.poolId == poolId){
+                return destroy;
+            }
+        }
+        return null;
+    }
+
+    public static JSONObject getForgePoolsFromNowAndDestroy(long creatorId) {
+        ForgePool now = null;
+        for(ForgePool forgePool : forgePools.values()){
+            if(forgePool.creatorId == creatorId){
+                now = forgePool;
+                break;
+            }
+        }
+        List<ForgePool> pasts = new ArrayList<>();
+        if(destroyForgePool.containsKey(creatorId)){
+            pasts = destroyForgePool.get(creatorId);
+        }
+
+        if(now != null){
+            pasts.add(now);
+        }
+        JSONObject jsonObject = new JSONObject();
+        if(pasts.size() == 0){
+            jsonObject.put("errorCode", 1);
+            jsonObject.put("errorDescription", "current id doesn't create any forge pool");
+            return jsonObject;
+        }
+        for(ForgePool forgePool : pasts){
+            jsonObject.put(forgePool.poolId,forgePool.toJSonObject());
+        }
+        return jsonObject;
+    }
+
+    public Map<Long,Long>  getConsignorsAmountMap(){
+        Map<Long,Long> map = new HashMap<>();
+        for(Consignor consignor : consignors.values()){
+            map.put(consignor.getId(),consignor.getAmount());
+        }
+        return map;
+    }
+
+    public boolean validateConsignorsAmountMap(Map<Long,Long> map){
+        Map<Long,Long> myMap = getConsignorsAmountMap();
+        if(myMap.size() != map.size()){
+            return false;
+        }
+        for(Long id: myMap.keySet()){
+            if(!map.containsKey(id)){
+                return false;
+            }
+            if(!map.get(id).equals(myMap.get(id))){
+                return false;
+            }
+        }
+        return true;
     }
 
     public int getStartBlockNo() {
@@ -227,6 +342,14 @@ public class ForgePool implements Serializable {
         return endBlockNo;
     }
 
+    public Map<String, Object> getRule() {
+        return rule;
+    }
+
+    public long getPower() {
+        return power;
+    }
+
     public State getState() {
         return state;
     }
@@ -235,10 +358,29 @@ public class ForgePool implements Serializable {
         return consignors;
     }
 
+    public int getLevel() {
+        return level;
+    }
+
     public long getCreatorId() {
         return creatorId;
     }
 
+    public JSONObject toJSonObject(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("poolId",poolId);
+        jsonObject.put("creatorID",creatorId);
+        jsonObject.put("level",level);
+        jsonObject.put("number",number);
+        jsonObject.put("power",power);
+        jsonObject.put("chance",chance);
+        jsonObject.put("historicalBlocks",historicalBlocks);
+        jsonObject.put("historicalIncome",historicalIncome);
+        jsonObject.put("startBlockNo",startBlockNo);
+        jsonObject.put("endBlockNo",endBlockNo);
+        jsonObject.put("state",state);
+        return jsonObject;
+    }
 
     @Override
     public boolean equals(Object o) {

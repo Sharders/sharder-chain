@@ -1568,7 +1568,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         long calculatedTotalFee = 0;
         MessageDigest digest = Crypto.sha256();
         boolean hasPrunedTransactions = false;
+        int coinBaseNum = 0;
         for (TransactionImpl transaction : block.getTransactions()) {
+            if(transaction.getAttachment() instanceof Attachment.CoinBase){
+                coinBaseNum++;
+            }
             if (transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) {
                 throw new BlockOutOfOrderException("Invalid transaction timestamp: " + transaction.getTimestamp()
                         + ", current time is " + curTime, block);
@@ -1637,6 +1641,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (hasPrunedTransactions ? payloadLength > block.getPayloadLength() : payloadLength != block.getPayloadLength()) {
             throw new BlockNotAcceptedException("Transaction payload length " + payloadLength + " does not match block payload length "
                     + block.getPayloadLength(), block);
+        }
+        if(coinBaseNum != 1){
+            throw new BlockNotAcceptedException("The number of CoinBase transaction doesn't match", block);
         }
     }
 
@@ -1926,8 +1933,26 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         int payloadLength = 0;
 
         //Forge reward
-        if(blockchain.getHeight() > 10){
-            sortedTransactions.add(new UnconfirmedTransaction(RewardIssuer.forgeReward(blockchain.getHeight() + 1,Account.getId(publicKey),blockTimestamp), System.currentTimeMillis()));
+        try {
+            Map<Long,Long> map;
+            long id = ForgePool.ownOnePool(Account.getId(publicKey));
+            if(id == -1 || !ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING) ){
+                id = Account.getId(publicKey);
+                map = new HashMap<>();
+            }else {
+                map = ForgePool.getForgePool(id).getConsignorsAmountMap();
+            }
+            //transaction version=1, deadline=10,timestamp=blockTimestamp
+            TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 1, publicKey,
+                    0, 0, (short) 10,
+                    new Attachment.CoinBase(Account.getId(publicKey),id,map))
+                    .timestamp(blockTimestamp)
+                    .recipientId(0)
+                    .height(blockchain.getHeight())
+                    .build(secretPhrase);
+            sortedTransactions.add(new UnconfirmedTransaction(transaction,System.currentTimeMillis()));
+        } catch (ConchException.NotValidException e) {
+            Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]",e);
         }
 
         for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {

@@ -238,7 +238,7 @@ public final class Generator implements Comparable<Generator> {
             return false;
         }
         BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
-        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 421));
+        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
         return hit.compareTo(target) < 0
                 && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
@@ -272,7 +272,7 @@ public final class Generator implements Comparable<Generator> {
 //            return block.getTimestamp()
 //                    + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).multiply(BigInteger.valueOf(3L)).longValue();
         return block.getTimestamp()
-                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue() + 420;
+                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue();
     }
 
 
@@ -340,7 +340,13 @@ public final class Generator implements Comparable<Generator> {
         if (account == null) {
             effectiveBalance = BigInteger.ZERO;
         } else {
-            effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
+            long id = ForgePool.ownOnePool(account.getId());
+            if(id != -1 && ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING)){
+                effectiveBalance = BigInteger.valueOf(Math.max(ForgePool.getForgePool(id).getPower() / Constants.ONE_SS, 0))
+                        .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
+            }else {
+                effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
+            }
         }
         if (effectiveBalance.signum() == 0) {
             hitTime = 0;
