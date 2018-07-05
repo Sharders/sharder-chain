@@ -3778,6 +3778,15 @@ public interface Attachment extends Appendix {
 
         @Override
         int getMySize() {
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(rule);
+                os.close();
+                return 2 + bo.toByteArray().length;
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+            }
             return 2 + (int)ObjectSizeCalculator.getObjectSize(rule);
         }
 
