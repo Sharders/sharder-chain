@@ -7,10 +7,10 @@ out
 contrib
 logs
 sharder_db
+sharder_test_db
 *.bat
 lib
 html
 jre
 conf
-DestroyForgePool
-ForgePools
+.ipfs
