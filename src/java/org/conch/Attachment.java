@@ -152,7 +152,7 @@ public interface Attachment extends Appendix {
             this.generatorId = buffer.getLong();
             Map<Long,Long> temp = new HashMap<>();
             if(buffer.hasRemaining()){
-                int size = buffer.remaining() / 32;
+                int size = buffer.remaining() / 16;
                 for(int i = 0;i < size; i++){
                     long id = buffer.getLong();
                     long amount = buffer.getLong();
