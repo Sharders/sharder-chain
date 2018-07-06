@@ -220,6 +220,11 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 if (Math.addExact(amountNQT, transaction.getFeeNQT()) > senderAccount.getUnconfirmedBalanceNQT()) {
                     return NOT_ENOUGH_FUNDS;
                 }
+                if(transaction.getType() == TransactionType.ForgePool.FORGE_POOL_JOIN){
+                    if(Math.addExact(((Attachment.ForgePoolJoin)attachment).getAmount(), transaction.getFeeNQT()) > senderAccount.getUnconfirmedBalanceNQT()){
+                        return NOT_ENOUGH_FUNDS;
+                    }
+                }
             } catch (ArithmeticException e) {
                 return NOT_ENOUGH_FUNDS;
             }
