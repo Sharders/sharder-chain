@@ -228,7 +228,11 @@ public interface Attachment extends Appendix {
             }else {
                 Map<Long,Long> map = new HashMap<>();
                 for(Object key : jsonObject.keySet()){
-                    map.put((Long)key,(Long)jsonObject.get(key));
+                    if(key instanceof String){
+                        map.put(Long.parseLong((String)key),(Long)jsonObject.get(key));
+                    }else {
+                        map.put((Long)key,(Long)jsonObject.get(key));
+                    }
                 }
                 return map;
             }
