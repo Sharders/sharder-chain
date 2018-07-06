@@ -290,7 +290,12 @@ public enum APIEnum {
     GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
-    Get_INFO("getInfo",GetInfo.instance);
+    Get_INFO("getInfo", GetInfo.instance),
+    START_STORING("startStoring", StartStoring.instance),
+    STOP_STORING("stopStoring", StopStoring.instance),
+    STORE_DATA("storeData", StoreData.instance),
+    GET_STORED_DATA("getStoredData", GetStoredData.instance),
+    DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

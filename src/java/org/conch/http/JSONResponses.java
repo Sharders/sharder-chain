@@ -166,6 +166,10 @@ public final class JSONResponses {
     public static final JSONStreamAware BIZ_MISSING_CREATOR_PASSPHRSE = missing("client account creator's passPhrase");
     public static final JSONStreamAware BIZ_INCORRECT_INDEX = incorrect("firstIndex or lastIndex", "index must be positive and lastIndex-firstIndex must <500");
 
+    // for Storage
+    public static final JSONStreamAware INCORRECT_REPLICATED_NUMBER = incorrect("replicated_number");
+    public static final JSONStreamAware INCORRECT_EXISTENCE_HEIGHT = incorrect("existence_height", "existence_height must be positive number and bigger than the block hight");
+
     static {
         JSONObject response = new JSONObject();
         response.put("errorCode", 6);

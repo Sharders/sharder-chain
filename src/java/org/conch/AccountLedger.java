@@ -456,8 +456,11 @@ public class AccountLedger {
             SHUFFLING_REGISTRATION(51, true),
             SHUFFLING_PROCESSING(52, true),
             SHUFFLING_CANCELLATION(53, true),
-            SHUFFLING_DISTRIBUTION(54, true);
-
+            SHUFFLING_DISTRIBUTION(54, true),
+        // TYPE_STORAGE
+            STORAGE_UPLOAD(61, true),
+            STORAGE_BACKUP(62, true),
+            STORAGE_EXTEND(63, true);
 
         /** Event code mapping */
         private static final Map<Integer, LedgerEvent> eventMap = new HashMap<>();

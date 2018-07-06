@@ -30,6 +30,7 @@ public final class Constants {
     public static final boolean isTestnet = Conch.getBooleanProperty("sharder.isTestnet");
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
+    public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
 
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MIN_TRANSACTION_SIZE = 176;
@@ -38,7 +39,7 @@ public final class Constants {
     public static final long ONE_SS = 100000000;
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
 
-    public static final long INITIAL_BASE_TARGET = 153722867 * 8;
+    public static final long INITIAL_BASE_TARGET = 153722867;
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
@@ -146,6 +147,15 @@ public final class Constants {
     public static final int MAX_TAGGED_DATA_DATA_LENGTH = 10 * 1024 * 1024;
     public static final int MAX_RESPONSE_SIZE = 20 * 1024 * 1024;
 
+
+    public static final int MAX_STORED_DATA_NAME_LENGTH = 200;
+    public static final int MAX_STORED_DATA_DESCRIPTION_LENGTH = 1000;
+    public static final int MAX_STORED_DATA_TYPE_LENGTH = 100;
+    public static final int MAX_STORED_DATA_CHANNEL_LENGTH = 100;
+    public static final int MIN_EXISTENCE_HEIGHT = 100;
+
+
+
     /**conch**/
     public static final int ALIAS_SYSTEM_BLOCK = 0;
     public static final int TRANSPARENT_FORGING_BLOCK = 0;
@@ -222,6 +232,7 @@ public final class Constants {
         configFee.add((long)Conch.getIntProperty("sharder.fee.monetarySystem"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.dataFee"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.shuffling"));
+        //TODO modify storage fee config
         long fee = (long)Conch.getIntProperty("sharder.fee.data0M");
         configFee.add(fee == 0 ? Constants.ONE_SS : fee);
         fee = (long)Conch.getIntProperty("sharder.fee.data1M");

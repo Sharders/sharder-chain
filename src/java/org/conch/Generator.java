@@ -153,6 +153,7 @@ public final class Generator implements Comparable<Generator> {
         }
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
+
         if (old != null) {
             Logger.logDebugMessage(old + " is already forging");
             return old;
@@ -238,7 +239,7 @@ public final class Generator implements Comparable<Generator> {
             return false;
         }
         BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
-        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 421));
+        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
         return hit.compareTo(target) < 0
                 && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
@@ -272,7 +273,7 @@ public final class Generator implements Comparable<Generator> {
 //            return block.getTimestamp()
 //                    + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).multiply(BigInteger.valueOf(3L)).longValue();
         return block.getTimestamp()
-                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue() + 420;
+                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue();
     }
 
 

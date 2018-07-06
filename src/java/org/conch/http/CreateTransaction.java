@@ -21,15 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Appendix;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.PhasingParams;
-import org.conch.Transaction;
+import org.conch.*;
 import org.conch.crypto.Crypto;
+import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -242,6 +236,14 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             }
             if (broadcast) {
                 Conch.getTransactionProcessor().broadcast(transaction);
+                //TODO storage :check this node whether has the storage role to get a replication of data
+                if (StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+                    if (Constants.isStorageClient) {
+                        Transaction backupTransaction = StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
+                        if (backupTransaction != null)
+                            Conch.getTransactionProcessor().broadcast(backupTransaction);
+                    }
+                }
                 response.put("broadcasted", true);
             } else {
                 transaction.validate();

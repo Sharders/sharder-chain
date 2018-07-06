@@ -1190,7 +1190,23 @@ class ConchDbVersion extends DbVersion {
             case 489:
                 apply("CREATE INDEX IF NOT EXISTS asset_dividend_height_idx ON asset_dividend (height)");
             case 490:
-                return;
+                apply("CREATE TABLE IF NOT EXISTS storage (db_id IDENTITY, id BIGINT NOT NULL, account_id BIGINT NOT NULL, "
+                        + "name VARCHAR NOT NULL, description VARCHAR,type VARCHAR, ssid VARCHAR NOT NULL, "
+                        + "channel VARCHAR, existence_height INT, replicated_number INT NOT NULL DEFAULT 1, block_timestamp INT NOT NULL, transaction_timestamp INT NOT NULL, "
+                        + "height INT NOT NULL, FOREIGN KEY (height) REFERENCES block (height) ON DELETE CASCADE, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 491:
+                apply("CREATE UNIQUE INDEX IF NOT EXISTS storage_id_height_idx ON storage (id, height DESC)");
+            case 492:
+                apply("CREATE INDEX IF NOT EXISTS storage_expiration_idx ON storage (transaction_timestamp DESC)");
+            case 493:
+                apply("CREATE INDEX IF NOT EXISTS storage_account_id_height_idx ON storage (account_id, height DESC)");
+            case 494:
+                apply("CREATE INDEX IF NOT EXISTS storage_block_timestamp_height_db_id_idx ON storage (block_timestamp DESC, height DESC, db_id DESC)");
+            case 495:
+                apply(null);
+                break;
+            case 496:
+                break;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate
                         + ", probably trying to run older code on newer database");

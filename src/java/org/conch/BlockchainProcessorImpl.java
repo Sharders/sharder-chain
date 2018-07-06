@@ -896,10 +896,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 while (!peers.isEmpty()) {
                     Peer chkPeer = peers.get(ThreadLocalRandom.current().nextInt(peers.size()));
                     if (chkPeer.getState() != Peer.State.CONNECTED) {
-                        Peers.connectPeer(chkPeer);
-                    }
-                    if (chkPeer.getState() == Peer.State.CONNECTED) {
-                        peer = chkPeer;
+                            Peers.connectPeer(chkPeer);
+                        }
+                        if (chkPeer.getState() == Peer.State.CONNECTED) {
+                            peer = chkPeer;
                         break;
                     }
                 }
@@ -1928,6 +1928,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         //Forge reward
         if(blockchain.getHeight() > 10){
             sortedTransactions.add(new UnconfirmedTransaction(RewardIssuer.forgeReward(blockchain.getHeight() + 1,Account.getId(publicKey),blockTimestamp), System.currentTimeMillis()));
+
+            //TODO use coinbase tx to reward storage according to the storage prover num to divided into
         }
 
         for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {

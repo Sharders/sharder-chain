@@ -31,7 +31,6 @@ import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -432,6 +431,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     broadcastedTransactions.add((TransactionImpl) transaction);
                 }
             }
+            //
         } finally {
             BlockchainImpl.getInstance().writeUnlock();
         }
@@ -642,6 +642,15 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 }
                 addedUnconfirmedTransactions.add(transaction);
 
+                // TODO storage add storage tx handle and send a new backup tx
+                if (Constants.isStorageClient) {
+                    if(StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+                        Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
+                        if(backupTransaction.getSenderId() == Storer.getStorer().getAccountId()) {
+                            //
+                        }
+                    }
+                }
             } catch (ConchException.NotCurrentlyValidException ignore) {
             } catch (ConchException.ValidationException|RuntimeException e) {
                 Logger.logDebugMessage(String.format("Invalid transaction from peer: %s", ((JSONObject) transactionData).toJSONString()), e);

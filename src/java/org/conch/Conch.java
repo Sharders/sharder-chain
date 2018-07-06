@@ -31,6 +31,7 @@ import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
 import org.conch.peer.Peers;
+import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -352,6 +353,7 @@ public final class Conch {
                 setServerStatus(ServerStatus.BEFORE_DATABASE, null);
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
+                StorageManager.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
                 Account.init();
@@ -382,6 +384,7 @@ public final class Conch {
                 ShufflingParticipant.init();
                 PrunableMessage.init();
                 TaggedData.init();
+                Storage.init();
                 FxtDistribution.init();
                 Peers.init();
                 APIProxy.init();

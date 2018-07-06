@@ -3644,4 +3644,181 @@ public interface Attachment extends Appendix {
         }
 
     }
+
+    final class DataStorageUpload extends AbstractAttachment {
+
+        private final String name;
+        private final String description;
+        private final String type;
+        private final String ssid;
+        private final String channel;
+        private final int existence_height;
+        private final int replicated_number;
+//        private final String filename;
+
+        DataStorageUpload(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            super(buffer, transactionVersion);
+            this.name = Convert.readString(buffer, buffer.get(), Constants.MAX_TAGGED_DATA_NAME_LENGTH);
+            this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_TAGGED_DATA_DESCRIPTION_LENGTH);
+            this.type = Convert.readString(buffer, buffer.get(), Constants.MAX_TAGGED_DATA_TYPE_LENGTH);
+            this.ssid = Convert.readString(buffer, buffer.get(), 200);
+            this.channel = Convert.readString(buffer, buffer.get(), Constants.MAX_TAGGED_DATA_CHANNEL_LENGTH);
+            this.existence_height = buffer.getInt();
+            this.replicated_number = buffer.getInt();
+        }
+
+        DataStorageUpload(JSONObject attachmentData) {
+            super(attachmentData);
+            this.name = (String) attachmentData.get("name");
+            this.description = (String) attachmentData.get("description");
+            this.type = (String) attachmentData.get("type");
+            this.ssid = (String) attachmentData.get("ssid");
+            this.channel = (String) attachmentData.get("channel");
+            this.existence_height = ((Long) attachmentData.get("existence_height")).intValue();
+            this.replicated_number = ((Long) attachmentData.get("replicated_number")).intValue();
+        }
+
+        public DataStorageUpload(String name, String description, String type, String ssid, String channel, int existence_height, int replicated_number) {
+            this.name = name;
+            this.description = description;
+            this.type = type;
+            this.ssid = ssid;
+            this.channel = channel;
+            this.existence_height = existence_height;
+            this.replicated_number = replicated_number;
+        }
+
+        @Override
+        int getMySize() {
+            return 1 + Convert.toBytes(name).length +
+                    2 + Convert.toBytes(description).length +
+                    1 + Convert.toBytes(type).length +
+                    1 + Convert.toBytes(ssid).length +
+                    1 + Convert.toBytes(channel).length +
+                    4 +
+                    4 ;
+//                    4 + Convert.toBytes(channel).length +
+//                    5 + Convert.toBytes(filename).length;
+
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            byte[] name = Convert.toBytes(this.name);
+            byte[] description = Convert.toBytes(this.description);
+            byte[] type = Convert.toBytes(this.type);
+            byte[] ssid = Convert.toBytes(this.ssid);
+            byte[] channel = Convert.toBytes(this.channel);
+            buffer.put((byte)name.length);
+            buffer.put(name);
+            buffer.putShort((short) description.length);
+            buffer.put(description);
+            buffer.put((byte) type.length);
+            buffer.put(type);
+            buffer.put((byte) ssid.length);
+            buffer.put(ssid);
+            buffer.put((byte) channel.length);
+            buffer.put(channel);
+            buffer.putInt(existence_height);
+            buffer.putInt(replicated_number);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("name", name);
+            attachment.put("description", description);
+            attachment.put("type", type);
+            attachment.put("ssid", ssid);
+            attachment.put("channel", channel);
+            attachment.put("existence_height", existence_height);
+            attachment.put("replicated_number", replicated_number);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return StorageTransaction.STORAGE_UPLOAD;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getSsid() {
+            return ssid;
+        }
+
+        public String getChannel() {
+            return channel;
+        }
+
+        public int getExistence_height() {
+            return existence_height;
+        }
+
+        public int getReplicated_number() {
+            return replicated_number;
+        }
+    }
+
+    final class DataStorageBackup extends AbstractAttachment {
+
+        private final long uploadTransaction;
+        private final long storerId;
+
+        DataStorageBackup(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            super(buffer, transactionVersion);
+            this.uploadTransaction = buffer.getLong();
+            this.storerId = buffer.getLong();
+        }
+
+        DataStorageBackup(JSONObject attachmentData) {
+            super(attachmentData);
+            this.uploadTransaction = (Long) attachmentData.get("uploadTransaction");
+            this.storerId = (Long) attachmentData.get("storerId");
+
+        }
+
+        public DataStorageBackup(Long uploadTransaction, Long storerId) {
+            this.uploadTransaction = uploadTransaction;
+            this.storerId = storerId;
+        }
+
+        @Override
+        int getMySize() {
+            return 8 + 8;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(this.uploadTransaction);
+            buffer.putLong(this.storerId);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("uploadTransaction", uploadTransaction);
+            attachment.put("storerId", storerId);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return StorageTransaction.STORAGE_BACKUP;
+        }
+
+        public long getUploadTransaction() {
+            return uploadTransaction;
+        }
+
+        public long getStorerId() {
+            return storerId;
+        }
+    }
 }

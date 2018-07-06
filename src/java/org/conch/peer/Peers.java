@@ -155,6 +155,7 @@ public final class Peers {
     private static final ExecutorService sendingService = Executors.newFixedThreadPool(10);
 
     private static final boolean enableBizAPIs = Conch.getBooleanProperty("sharder.enableBizAPIs");
+    private static final boolean enableStorage = Conch.getBooleanProperty("sharder.enableStorage");
 
     static {
 
@@ -310,6 +311,12 @@ public final class Peers {
         if (enableBizAPIs) {
             json.put("enableBizAPIs", true);
             servicesList.add(Peer.Service.BAPI);
+        }
+
+        // Add Storage service
+        if (enableStorage) {
+            json.put("enableStorage", true);
+            servicesList.add(Peer.Service.STORAGE);
         }
 
         long services = 0;
@@ -1057,6 +1064,8 @@ public final class Peers {
                 if (Peers.enableHallmarkProtection && peer.getWeight() < Peers.pushThreshold) {
                     continue;
                 }
+
+                //TODO storage if non storage client send to
 
                 if (!peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null
                         && peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT) {
