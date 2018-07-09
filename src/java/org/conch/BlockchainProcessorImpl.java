@@ -1944,7 +1944,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             //transaction version=1, deadline=10,timestamp=blockTimestamp
             TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 1, publicKey,
-                    0, 0, (short) 10,
+                    10 * Constants.ONE_SS, 0, (short) 10,
                     new Attachment.CoinBase(Account.getId(publicKey),id,map))
                     .timestamp(blockTimestamp)
                     .recipientId(0)

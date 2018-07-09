@@ -253,6 +253,9 @@ public abstract class TransactionType {
 
     // return false if double spending
     final boolean applyUnconfirmed(TransactionImpl transaction, Account senderAccount) {
+        if(transaction.getType().getType() == TYPE_COIN_BASE){
+            return true;
+        }
         long amountNQT = transaction.getAmountNQT();
         long feeNQT = transaction.getFeeNQT();
         if (transaction.referencedTransactionFullHash() != null
@@ -275,6 +278,9 @@ public abstract class TransactionType {
     abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
     final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
+        if(transaction.getType().getType() == TYPE_COIN_BASE){
+            return;
+        }
         long amount = transaction.getAmountNQT();
         long transactionId = transaction.getId();
         if (!transaction.attachmentIsPhased()) {
@@ -291,6 +297,9 @@ public abstract class TransactionType {
     abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
 
     final void undoUnconfirmed(TransactionImpl transaction, Account senderAccount) {
+        if(transaction.getType().getType() == TYPE_COIN_BASE){
+            return;
+        }
         undoAttachmentUnconfirmed(transaction, senderAccount);
         senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
                 transaction.getAmountNQT(), transaction.getFeeNQT());
@@ -493,10 +502,10 @@ public abstract class TransactionType {
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             Map<Long,Long> consignors = coinBase.getConsignors();
             if(consignors.size() == 0){
-                senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -10 * Constants.ONE_SS);
-                senderAccount.addToForgedBalanceNQT(10 * Constants.ONE_SS);
+                senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
+                senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
             }else {
-                Map<Long,Long> rewardList = Rule.getRewardMap(senderAccount.getId(),coinBase.getGeneratorId(),10 * Constants.ONE_SS,consignors);
+                Map<Long,Long> rewardList = Rule.getRewardMap(senderAccount.getId(),coinBase.getGeneratorId(),transaction.getAmountNQT(),consignors);
                 for(long id : rewardList.keySet()){
                     Account account = Account.getAccount(id);
                     account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
@@ -542,9 +551,6 @@ public abstract class TransactionType {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
                 Map<Long,Long> consignors = coinBase.getConsignors();
                 long id = org.conch.ForgePool.ownOnePool(transaction.getSenderId());
-                if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Invalid ordinary coin base");
-                }
                 if(id != -1 && org.conch.ForgePool.getForgePool(id).getState().equals(org.conch.ForgePool.State.WORKING)
                         && !org.conch.ForgePool.getForgePool(id).validateConsignorsAmountMap(consignors)){
                     throw new ConchException.NotValidException("Allocation rule is wrong");
@@ -556,10 +562,10 @@ public abstract class TransactionType {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
                 Map<Long,Long> consignors = coinBase.getConsignors();
                 if(consignors.size() == 0){
-                    senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), 10 * Constants.ONE_SS);
-                    senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), 10 * Constants.ONE_SS);
+                    senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                    senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
                 }else {
-                    Map<Long,Long> rewardList = Rule.getRewardMap(senderAccount.getId(),coinBase.getGeneratorId(),10 * Constants.ONE_SS,consignors);
+                    Map<Long,Long> rewardList = Rule.getRewardMap(senderAccount.getId(),coinBase.getGeneratorId(),transaction.getAmountNQT(),consignors);
                     for(long id : rewardList.keySet()){
                         Account account = Account.getAccount(id);
                         account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));

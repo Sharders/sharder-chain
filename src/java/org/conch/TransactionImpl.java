@@ -991,7 +991,10 @@ final public class TransactionImpl implements Transaction {
 
         if (! type.canHaveRecipient()) {
             if (recipientId != 0 || getAmountNQT() != 0) {
-                throw new ConchException.NotValidException("Transactions of this type must have recipient == 0, amount == 0");
+                boolean isCoinBase = getAmountNQT() != 0 && type.getType() == TransactionType.TYPE_COIN_BASE;
+                if(!isCoinBase){
+                    throw new ConchException.NotValidException("Transactions of this type must have recipient == 0, amount == 0");
+                }
             }
         }
 
