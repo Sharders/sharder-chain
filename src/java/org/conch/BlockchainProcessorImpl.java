@@ -1948,7 +1948,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     new Attachment.CoinBase(Account.getId(publicKey),id,map))
                     .timestamp(blockTimestamp)
                     .recipientId(0)
-                    .height(blockchain.getHeight())
                     .build(secretPhrase);
             sortedTransactions.add(new UnconfirmedTransaction(transaction,System.currentTimeMillis()));
         } catch (ConchException.NotValidException e) {

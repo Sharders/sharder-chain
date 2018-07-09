@@ -152,7 +152,7 @@ public interface Attachment extends Appendix {
             this.generatorId = buffer.getLong();
             Map<Long,Long> temp = new HashMap<>();
             if(buffer.hasRemaining()){
-                int size = buffer.remaining() / 32;
+                int size = buffer.remaining() / 16;
                 for(int i = 0;i < size; i++){
                     long id = buffer.getLong();
                     long amount = buffer.getLong();
@@ -228,7 +228,11 @@ public interface Attachment extends Appendix {
             }else {
                 Map<Long,Long> map = new HashMap<>();
                 for(Object key : jsonObject.keySet()){
-                    map.put((Long)key,(Long)jsonObject.get(key));
+                    if(key instanceof String){
+                        map.put(Long.parseLong((String)key),(Long)jsonObject.get(key));
+                    }else {
+                        map.put((Long)key,(Long)jsonObject.get(key));
+                    }
                 }
                 return map;
             }
@@ -3778,6 +3782,15 @@ public interface Attachment extends Appendix {
 
         @Override
         int getMySize() {
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(rule);
+                os.close();
+                return 2 + bo.toByteArray().length;
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+            }
             return 2 + (int)ObjectSizeCalculator.getObjectSize(rule);
         }
 
