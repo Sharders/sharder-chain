@@ -167,7 +167,7 @@ public class Daemon{
 
                     new File(getStorePath(), "repo.lock").delete();
 
-                    init = process("init");
+                    init = process("init", "-e");
                     gobble(init);
                     eventman.call(new DaemonEvent(DaemonEventType.INIT_STARTED));
                     init.waitFor();
@@ -181,7 +181,7 @@ public class Daemon{
                 if (!swarmKey.exists()) {
                     print("move swarm key file from " + getStorePath() + " to " + getIpfsStorePath() + " ...");
                     try {
-                        FileUtils.moveFileToDirectory(new File(getStorePath(), "swarm.key"), swarmKey.getParentFile() , false);
+                        FileUtils.copyFileToDirectory(new File(getStorePath(), "swarm.key"), swarmKey.getParentFile() , false);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -332,8 +332,11 @@ public class Daemon{
 
         print("Copying bin from " + fileName + " ...");
         FileUtils.copyFile(new File(binspath, fileName), archive);
-        print("Bin successfully downloaded");
-        getFileFromZip(path, archive, bin);
+        if (fileName.contains("tar.gz")) {
+            getFileFromTarGz(path, archive, bin);
+        } else {
+            getFileFromZip(path, archive, bin);
+        }
         print("Bin successfully extracted");
         archive.delete();
     }
