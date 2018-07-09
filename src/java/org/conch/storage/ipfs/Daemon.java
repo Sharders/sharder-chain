@@ -62,6 +62,7 @@ public class Daemon{
     private String ipfsStorePathStr = Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs");
     private File ipfsStorePath = new File(ipfsStorePathStr);
     private File storepath = new File("storage/ipfs");
+    private File binspath = new File("storage/ipfs/bins");
 
     private Boolean enableGc = Conch.getBooleanProperty("sharder.storage.ipfs.deamon.enable-gc");
     private EventManager eventman;
@@ -252,7 +253,11 @@ public class Daemon{
         return System.getProperty("os.arch").contains("64");
     }
 
-    public void binaries() throws MalformedURLException, IOException  {
+    public boolean isArm() {
+        return System.getProperty("os.arch").contains("arm");
+    }
+
+    public void binaries() throws IOException  {
         switch(os) {
             case WINDOWS:{
                 bin = new File(binpath, "bin.exe");
@@ -263,6 +268,7 @@ public class Daemon{
                 break;
             }
         }
+        if(!bin.exists()) getClient();
     }
 
     public void getFileFromTarGz(String path, File arch, File destination) throws IOException{
@@ -284,6 +290,52 @@ public class Daemon{
                 FileUtils.copyInputStreamToFile(zis, destination); break;
             }
         }
+    }
+
+    public void getClient() throws IOException{
+        File archive;
+        String path;
+        String fileName;
+        switch(os) {
+            case WINDOWS:{
+                fileName = "windows" + "-" + "amd64" + ".zip";
+                break;
+            }
+            case MAC:{
+                fileName = "darwin" + "-" + (is64bits()?"amd64":"386") + ".tar.gz";
+                break;
+            }
+            case LINUX:{
+                fileName = "linux" + "-" + (isArm()?"arm":(is64bits()?"amd64":"386")) + ".tar.gz";
+                break;
+            }
+            case FREEBSD:{
+                fileName = "freebsd" + "-" + "amd64" + ".tar.gz";
+                break;
+            }
+            default: return;
+        }
+
+        switch(os) {
+            case WINDOWS:{
+                archive = new File(binpath, "bin.zip");
+                path = "go-ipfs/ipfs.exe";
+                break;
+            }
+            case MAC: case LINUX: case FREEBSD:{
+                archive = new File(binpath, "bin.zip");
+                path = "go-ipfs/ipfs";
+                break;
+            }
+            default: return;
+        }
+
+        print("Copying bin from " + fileName + " ...");
+        FileUtils.copyFile(new File(binspath, fileName), archive);
+        print("Bin successfully downloaded");
+        getFileFromZip(path, archive, bin);
+        print("Bin successfully extracted");
+        archive.delete();
     }
 
     public Thread run(Runnable r) {
