@@ -269,6 +269,9 @@ public class Daemon{
             }
         }
         if(!bin.exists()) getClient();
+        if(!bin.canExecute()) {
+            bin.setExecutable(true);
+        }
     }
 
     public void getFileFromTarGz(String path, File arch, File destination) throws IOException{
