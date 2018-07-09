@@ -422,10 +422,10 @@ final class BlockImpl implements Block {
                 totalBackFees += backFees[i];
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
                 Logger.logDebugMessage("Back fees %f SS to forger at height %d", ((double)backFees[i])/Constants.ONE_SS, this.height - i - 1);
-                previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
-                previousGeneratorAccount.addToForgedBalanceNQT(backFees[i]);
-            }
-        }
+        previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
+        previousGeneratorAccount.addToForgedBalanceNQT(backFees[i]);
+    }
+}
         if (totalBackFees != 0) {
             Logger.logDebugMessage("Fee reduced by %f SS at height %d", ((double)totalBackFees)/Constants.ONE_SS, this.height);
         }
@@ -482,7 +482,7 @@ final class BlockImpl implements Block {
             }
         } else if (previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-            int blocktimeAverage = (this.timestamp - block.timestamp) / 3;
+            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - (Constants.BLOCK_GAP - 1) * 60;
             if (blocktimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
