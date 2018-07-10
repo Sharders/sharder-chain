@@ -253,21 +253,21 @@ public abstract class TransactionType {
 
     // return false if double spending
     final boolean applyUnconfirmed(TransactionImpl transaction, Account senderAccount) {
-        if(transaction.getType().getType() == TYPE_COIN_BASE){
-            return true;
-        }
         long amountNQT = transaction.getAmountNQT();
         long feeNQT = transaction.getFeeNQT();
-        if (transaction.referencedTransactionFullHash() != null
-                && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
-            feeNQT = Math.addExact(feeNQT, Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
+        if(transaction.getType().getType() != TYPE_COIN_BASE){
+            if (transaction.referencedTransactionFullHash() != null
+                    && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
+                feeNQT = Math.addExact(feeNQT, Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
+            }
+            long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
+            if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT
+                    && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
+                return false;
+            }
+            senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, -feeNQT);
         }
-        long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
-        if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT
-                && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
-            return false;
-        }
-        senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, -feeNQT);
+
         if (!applyAttachmentUnconfirmed(transaction, senderAccount)) {
             senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), amountNQT, feeNQT);
             return false;
@@ -278,18 +278,17 @@ public abstract class TransactionType {
     abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
     final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
-        if(transaction.getType().getType() == TYPE_COIN_BASE){
-            return;
-        }
-        long amount = transaction.getAmountNQT();
-        long transactionId = transaction.getId();
-        if (!transaction.attachmentIsPhased()) {
-            senderAccount.addToBalanceNQT(getLedgerEvent(), transactionId, -amount, -transaction.getFeeNQT());
-        } else {
-            senderAccount.addToBalanceNQT(getLedgerEvent(), transactionId, -amount);
-        }
-        if (recipientAccount != null) {
-            recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transactionId, amount);
+        if(transaction.getType().getType() != TYPE_COIN_BASE){
+            long amount = transaction.getAmountNQT();
+            long transactionId = transaction.getId();
+            if (!transaction.attachmentIsPhased()) {
+                senderAccount.addToBalanceNQT(getLedgerEvent(), transactionId, -amount, -transaction.getFeeNQT());
+            } else {
+                senderAccount.addToBalanceNQT(getLedgerEvent(), transactionId, -amount);
+            }
+            if (recipientAccount != null) {
+                recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transactionId, amount);
+            }
         }
         applyAttachment(transaction, senderAccount, recipientAccount);
     }
@@ -297,10 +296,10 @@ public abstract class TransactionType {
     abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
 
     final void undoUnconfirmed(TransactionImpl transaction, Account senderAccount) {
+        undoAttachmentUnconfirmed(transaction, senderAccount);
         if(transaction.getType().getType() == TYPE_COIN_BASE){
             return;
         }
-        undoAttachmentUnconfirmed(transaction, senderAccount);
         senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
                 transaction.getAmountNQT(), transaction.getFeeNQT());
         if (transaction.referencedTransactionFullHash() != null

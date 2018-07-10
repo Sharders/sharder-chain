@@ -1203,7 +1203,7 @@ class ConchDbVersion extends DbVersion {
             case 494:
                 apply("CREATE INDEX IF NOT EXISTS storage_block_timestamp_height_db_id_idx ON storage (block_timestamp DESC, height DESC, db_id DESC)");
             case 495:
-                apply("ALTER TABLE ACCOUNT ADD FROZEN_BALANCE BIGINT NULL");
+                apply("ALTER TABLE account ADD COLUMN IF NOT EXISTS frozen_balance BIGINT NOT NULL DEFAULT 0");
             case 496:
                 break;
             default:
