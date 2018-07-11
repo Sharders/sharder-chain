@@ -21,11 +21,15 @@
 
 package org.conch;
 
+import java.io.IOException;
+
 public interface StorageProcessor {
 
     Transaction createBackupTransaction(Transaction transaction);
 
     boolean isStorageUploadTransaction(Transaction transaction);
 
+    byte[] getData(long transactionId) throws IOException;
 
+    String backup(Transaction transaction);
 }

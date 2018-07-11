@@ -21,10 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.Storage;
-import org.conch.TaggedData;
+import org.conch.*;
+import org.conch.db.TransactionalDb;
+import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +33,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static org.conch.http.JSONResponses.PRUNED_TRANSACTION;
+import static org.conch.http.JSONResponses.*;
 
 public final class DownloadStoredData extends APIServlet.APIRequestHandler {
 
@@ -46,24 +45,40 @@ public final class DownloadStoredData extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request, HttpServletResponse response) throws ConchException {
-        long transactionId = ParameterParser.getUnsignedLong(request, "transaction", true);
-        Storage storage = Storage.getDataStorage(transactionId);
+        String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
+        if (transactionIdString == null) {
+            return MISSING_TRANSACTION;
+        }
+        long transactionId = 0;
+        Transaction transaction;
+        try {
+            if (transactionIdString != null) {
+                transactionId = Convert.parseUnsignedLong(transactionIdString);
+                transaction = Conch.getBlockchain().getTransaction(transactionId);
+            } else {
+                return UNKNOWN_TRANSACTION;
+            }
+        } catch (RuntimeException e) {
+            return INCORRECT_TRANSACTION;
+        }
+        Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
 
-        if (storage == null) {
+        if (attachment == null) {
             return JSONResponses.incorrect("transaction", "stored data not found");
         }
         byte[] data;
         try {
-            data = Storage.getData(transactionId);
+            data = StorageProcessorImpl.getInstance().getData(transactionId);
         } catch (IOException e) {
             return JSONResponses.error("stored data not found");
         }
-        if (!storage.getType().equals("")) {
-            response.setContentType(storage.getType());
+        if (!attachment.getType().equals("")) {
+            response.setContentType(attachment.getType());
         } else {
             response.setContentType("application/octet-stream");
         }
-        String filename = storage.getName().trim();
+
+        String filename = attachment.getName().trim();
         String contentDisposition = "attachment";
         try {
             URI uri = new URI(null, null, filename, null);

@@ -233,15 +233,5 @@ public class Storage {
 //        timestampTable.insert(timestamp);
     }
 
-    public static byte[] getData(long transactionId) throws IOException {
-         String ssid = Storage.getDataStorage(transactionId).getSsid();
-         return IpfsService.retrieve(Ssid.decode(ssid));
-    }
-
-    public static byte[] backup(long transactionId) throws IOException {
-        String ssid = Storage.getDataStorage(transactionId).getSsid();
-        return IpfsService.retrieve(Ssid.decode(ssid));
-    }
-
 
 }

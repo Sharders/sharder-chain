@@ -81,6 +81,17 @@ public class IpfsService {
         }
     }
 
+    public static String unpin(String cid) throws IOException {
+        List<Multihash> list = ipfs.pin.rm(Multihash.fromBase58(cid));
+        Multihash multihash;
+        if (list != null && list.size()>0) {
+            multihash = list.get(0);
+            return Ssid.encode(Ssid.Type.IPFS, multihash.toBase58());
+        } else {
+            return null;
+        }
+    }
+
     public static class MyEvent extends EventRunnable<DaemonEvent> {
 
         @Override

@@ -21,8 +21,12 @@
 
 package org.conch;
 
+import org.conch.peer.Peer;
+import org.conch.storage.Ssid;
+import org.conch.storage.ipfs.IpfsService;
 import org.conch.util.*;
 
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,7 +45,7 @@ public class StorageProcessorImpl implements StorageProcessor {
         //TODO
         if (Storer.getStorer() != null) {
             Storer storer = Storer.getStorer();
-            Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId());
+            Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId(), "");
             TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(
                     (byte) 1, storer.getPublicKey(), 0, 0, transaction.getDeadline(),
                     attachment
@@ -95,4 +99,16 @@ public class StorageProcessorImpl implements StorageProcessor {
             }
         }
     }
+
+    public byte[] getData(long transactionId) throws IOException {
+        String ssid = Storage.getDataStorage(transactionId).getSsid();
+        return IpfsService.retrieve(Ssid.decode(ssid));
+    }
+
+    @Override
+    public String backup(Transaction transaction) {
+        return null;
+    }
+
+
 }

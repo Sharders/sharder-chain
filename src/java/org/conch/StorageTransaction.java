@@ -177,11 +177,7 @@ public abstract class StorageTransaction extends TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
-            try {
-                Storage.backup(attachment.getUploadTransaction());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            StorageProcessorImpl.getInstance().backup(transaction);
         }
 
         @Override
