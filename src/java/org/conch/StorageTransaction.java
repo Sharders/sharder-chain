@@ -185,6 +185,8 @@ public abstract class StorageTransaction extends TransactionType {
             boolean hasStoreTransaction = false;
             if(storeTransaction != null){
                 hasStoreTransaction = true;
+            } else {
+                storeTransaction = Conch.getTransactionProcessor().getUnconfirmedTransaction(attachment.getUploadTransaction());
             }
             if(duplicates.containsKey(STORAGE_UPLOAD)&&
                     duplicates.get(STORAGE_UPLOAD).containsKey(Long.toString(attachment.getUploadTransaction()))){
