@@ -21,8 +21,9 @@
 
 package org.conch.http;
 
+import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Storage;
+import org.conch.Transaction;
 import org.conch.util.JSON;
 import org.json.simple.JSONStreamAware;
 
@@ -43,14 +44,11 @@ public final class GetStoredData extends APIServlet.APIRequestHandler {
         long transactionId = ParameterParser.getUnsignedLong(req, "transaction", true);
         boolean includeData = !"false".equalsIgnoreCase(req.getParameter("includeData"));
 
-        Storage storageData = Storage.getDataStorage(transactionId);
-
-        if (storageData != null) {
-            try {
-                return JSONData.storedData(storageData, includeData);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(transactionId);
+        try {
+            return JSONData.storedData(storeTransaction, includeData);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return JSON.emptyJSON;
     }

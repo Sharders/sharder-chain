@@ -1190,10 +1190,11 @@ class ConchDbVersion extends DbVersion {
             case 489:
                 apply("CREATE INDEX IF NOT EXISTS asset_dividend_height_idx ON asset_dividend (height)");
             case 490:
-                apply("CREATE TABLE IF NOT EXISTS storage_backup (db_id IDENTITY, id BIGINT NOT NULL, storer BIGINT NOT NULL, transaction BIGINT NOT NULL, "
+                apply("CREATE TABLE IF NOT EXISTS storage_backup (db_id IDENTITY, storer_id BIGINT NOT NULL," +
+                        " store_transaction BIGINT NOT NULL, backup_transaction BIGINT NOT NULL, "
                         + "height INT NOT NULL, FOREIGN KEY (height) REFERENCES block (height) ON DELETE CASCADE)");
             case 491:
-                apply("CREATE UNIQUE INDEX IF NOT EXISTS storage_backup_id_height_idx ON storage (id, height DESC)");
+                apply("CREATE UNIQUE INDEX IF NOT EXISTS storage_backup_height_idx ON storage_backup (height DESC)");
             case 492:
                 apply("ALTER TABLE account ADD COLUMN IF NOT EXISTS frozen_balance BIGINT NOT NULL DEFAULT 0");
             case 493:

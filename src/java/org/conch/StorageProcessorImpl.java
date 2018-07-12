@@ -21,13 +21,16 @@
 
 package org.conch;
 
-import org.conch.peer.Peer;
+import org.conch.peer.Peers;
 import org.conch.storage.Ssid;
 import org.conch.storage.ipfs.IpfsService;
 import org.conch.util.*;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,13 +42,18 @@ public class StorageProcessorImpl implements StorageProcessor {
         return instance;
     }
     private final ExecutorService storageService = Executors.newCachedThreadPool();
+    private static final Map<Long,Map<String,Integer>> backupTask = new HashMap<>();
+
+    public static void init(){
+
+    }
 
     @Override
     public Transaction createBackupTransaction(Transaction transaction) {
         //TODO
         if (Storer.getStorer() != null) {
             Storer storer = Storer.getStorer();
-            Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId(), "");
+            Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId());
             TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(
                     (byte) 1, storer.getPublicKey(), 0, 0, transaction.getDeadline(),
                     attachment
@@ -101,14 +109,62 @@ public class StorageProcessorImpl implements StorageProcessor {
     }
 
     public byte[] getData(long transactionId) throws IOException {
-        String ssid = Storage.getDataStorage(transactionId).getSsid();
-        return IpfsService.retrieve(Ssid.decode(ssid));
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(transactionId);
+        Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
+        return IpfsService.retrieve(Ssid.decode(storeAttachment.getSsid()));
     }
 
     @Override
-    public String backup(Transaction transaction) {
-        return null;
+    public boolean backup(Transaction transaction) {
+        Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+        Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) transaction.getAttachment();
+        try{
+            IpfsService.pin(Ssid.decode(storeAttachment.getSsid()));
+        }catch (IOException e){
+            Logger.logErrorMessage(transaction.getId() + " backup failed " ,e);
+            return false;
+        }
+        StorageBackup.add(storeTransaction,transaction);
+        return true;
     }
 
+    public static void addTask(long id,int num){
+        if(backupTask.containsKey(id)){
+            Logger.logDebugMessage("backup task list already contains " + id);
+            return;
+        }
+        Map<String,Integer> map = new HashMap<>();
+        map.put("need",num);
+        map.put("current",0);
+        backupTask.put(id,map);
+    }
 
+    public static void updateTaskList(long storeId){
+        if(backupTask.containsKey(storeId)){
+            int num = backupTask.get(storeId).get("current") +1;
+            backupTask.get(storeId).put("current",num);
+            if(backupTask.get(storeId).get("current") == backupTask.get(storeId).get("need")){
+                backupTask.remove(storeId);
+            }
+        }
+    }
+
+    static {
+        if (Constants.isStorageClient) {
+            Conch.getBlockchainProcessor().addListener(block -> {
+                if(!Conch.getBlockchainProcessor().isDownloading() && !backupTask.isEmpty()){
+                    for(long id : backupTask.keySet()){
+                        Transaction storeTransaction = Conch.getBlockchain().getTransaction(id);
+                        Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(storeTransaction);
+                        try{
+                            Conch.getTransactionProcessor().broadcast(backupTransaction);
+                        }catch (ConchException.ValidationException e){
+                            Logger.logErrorMessage("backup transaction validate failed ",e);
+                        }
+                    }
+                }
+            }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+        }
+    }
 }

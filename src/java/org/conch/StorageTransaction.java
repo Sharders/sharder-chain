@@ -25,6 +25,8 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class StorageTransaction extends TransactionType {
 
@@ -111,6 +113,14 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
+        boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+            Map<String,Integer> map = new HashMap<>();
+            map.put(transaction.getStringId(),0);
+            duplicates.put(STORAGE_UPLOAD,map);
+            return false;
+        }
+
+        @Override
         void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             // TODO storage add full validate conditions
             Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
@@ -125,7 +135,12 @@ public abstract class StorageTransaction extends TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
-            Storage.add((TransactionImpl)transaction, attachment);
+            if(Storer.getStorer() != null){
+                StorageProcessorImpl.addTask(transaction.getId(),attachment.getReplicated_number());
+            }
+            long storeFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
+            Account account = Account.getAccount(transaction.getSenderId());
+            account.frozenBalanceNQT(AccountLedger.LedgerEvent.STORAGE_UPLOAD,transaction.getId(),storeFee);
         }
 
         @Override
@@ -163,6 +178,25 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
+        boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+            Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
+
+            Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+            boolean hasStoreTransaction = false;
+            if(storeTransaction != null){
+                hasStoreTransaction = true;
+            }
+            if(duplicates.containsKey(STORAGE_UPLOAD)&&
+                    duplicates.get(STORAGE_UPLOAD).containsKey(Long.toString(attachment.getUploadTransaction()))){
+                hasStoreTransaction = true;
+            }
+            Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload)storeTransaction.getAttachment();
+            int num = dataStorageUpload.getReplicated_number() - StorageBackup.getCurrentBackupNum(storeTransaction.getId());
+            boolean duplicate = isDuplicate(STORAGE_BACKUP, Long.toString(attachment.getUploadTransaction()), duplicates, num);
+            return !hasStoreTransaction || duplicate;
+        }
+
+        @Override
         void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             // TODO storage add full validate conditions
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
@@ -177,7 +211,23 @@ public abstract class StorageTransaction extends TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
-            StorageProcessorImpl.getInstance().backup(transaction);
+            Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+            if(Storer.getStorer().getAccountId() == transaction.getSenderId()){
+                StorageProcessorImpl.getInstance().backup(transaction);
+            }
+            if(Storer.getStorer() != null){
+                StorageProcessorImpl.updateTaskList(storeTransaction.getId());
+            }
+
+            long storeFee = storeTransaction.getFeeNQT() - ((TransactionImpl) storeTransaction).getMinimumFeeNQT(storeTransaction.getHeight());
+            storeFee /= ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
+            storeFee *= 0.1;
+            Account account = Account.getAccount(storeTransaction.getSenderId());
+            account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),storeFee);
+
+            Account backupAccount = Account.getAccount(transaction.getSenderId());
+            backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),storeFee);
+            backupAccount.addToForgedBalanceNQT(storeFee);
         }
 
         @Override

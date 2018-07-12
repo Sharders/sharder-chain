@@ -1199,22 +1199,23 @@ public final class JSONData {
         }
     }
 
-    public static JSONObject storedData(Storage storage, boolean includeData) throws IOException {
+    public static JSONObject storedData(Transaction storage, boolean includeData) throws IOException {
         JSONObject json = new JSONObject();
+        Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) storage.getAttachment();
         json.put("transaction", Long.toUnsignedString(storage.getId()));
-        putAccount(json, "account", storage.getAccountId());
-        json.put("name", storage.getName());
-        json.put("description", storage.getDescription());
-        json.put("type", storage.getType());
-        json.put("channel", storage.getChannel());
-        json.put("ssid", storage.getSsid());
-        json.put("existence_height", storage.getExistence_height());
-        json.put("replicated_number", storage.getReplicated_number());
+        putAccount(json, "account", storage.getSenderId());
+        json.put("name", attachment.getName());
+        json.put("description", attachment.getDescription());
+        json.put("type", attachment.getType());
+        json.put("channel", attachment.getChannel());
+        json.put("ssid", attachment.getSsid());
+        json.put("existence_height", attachment.getExistence_height());
+        json.put("replicated_number", attachment.getReplicated_number());
         if (includeData) {
-            byte[] data = IpfsService.retrieve(Ssid.decode(storage.getSsid()));
+            byte[] data = IpfsService.retrieve(Ssid.decode(attachment.getSsid()));
             json.put("data", Convert.toHexString(data));
         }
-        json.put("transactionTimestamp", storage.getTransactionTimestamp());
+        json.put("transactionTimestamp", storage.getTimestamp());
         json.put("blockTimestamp", storage.getBlockTimestamp());
         return json;
     }

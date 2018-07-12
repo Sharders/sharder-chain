@@ -1959,7 +1959,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             blockTransactions.add(transaction);
             digest.update(transaction.bytes());
             totalAmountNQT += transaction.getAmountNQT();
-            totalFeeNQT += transaction.getFeeNQT();
+            if(!StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)){
+                totalFeeNQT += transaction.getFeeNQT();
+            } else{
+                totalFeeNQT += transaction.getMinimumFeeNQT(blockchain.getHeight());
+            }
             payloadLength += transaction.getFullSize();
         }
 

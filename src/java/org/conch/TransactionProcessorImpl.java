@@ -646,9 +646,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 if (Constants.isStorageClient) {
                     if(StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                         Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
-                        if(backupTransaction.getSenderId() == Storer.getStorer().getAccountId()) {
-                            //
-                        }
+                        broadcast(backupTransaction);
                     }
                 }
             } catch (ConchException.NotCurrentlyValidException ignore) {

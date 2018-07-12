@@ -31,5 +31,5 @@ public interface StorageProcessor {
 
     byte[] getData(long transactionId) throws IOException;
 
-    String backup(Transaction transaction);
+    boolean backup(Transaction transaction);
 }

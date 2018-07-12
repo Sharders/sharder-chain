@@ -1107,7 +1107,7 @@ final public class TransactionImpl implements Transaction {
         return type.isUnconfirmedDuplicate(this, duplicates);
     }
 
-    private long getMinimumFeeNQT(int blockchainHeight) {
+    public long getMinimumFeeNQT(int blockchainHeight) {
         long totalFee = 0;
         byte transactionType = this.getType().getType();
         if(transactionType == TransactionType.TYPE_COIN_BASE){

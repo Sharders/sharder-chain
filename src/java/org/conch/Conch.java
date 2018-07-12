@@ -384,7 +384,7 @@ public final class Conch {
                 ShufflingParticipant.init();
                 PrunableMessage.init();
                 TaggedData.init();
-                Storage.init();
+                StorageProcessorImpl.init();
                 FxtDistribution.init();
                 Peers.init();
                 APIProxy.init();
