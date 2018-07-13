@@ -643,7 +643,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 addedUnconfirmedTransactions.add(transaction);
 
                 // TODO storage add storage tx handle and send a new backup tx
-                if (Constants.isStorageClient) {
+                if (Constants.isStorageClient && Storer.getStorer() != null) {
                     if(StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                         Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
                         broadcast(backupTransaction);
