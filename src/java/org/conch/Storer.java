@@ -54,6 +54,7 @@ public final class Storer {
             Conch.getBlockchain().updateLock();
             try {
                 storer = null;
+                StorageProcessorImpl.clearBackupTask();
             } finally {
                 Conch.getBlockchain().updateUnlock();
             }

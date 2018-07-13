@@ -22,6 +22,8 @@
 package org.conch;
 
 import org.conch.db.*;
+import org.conch.util.Logger;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,7 +31,7 @@ import java.sql.SQLException;
 
 public class StorageBackup {
 
-    private static final DbKey.LongKeyFactory<StorageBackup> storageKeyFactory = new DbKey.LongKeyFactory<StorageBackup>("id") {
+    private static final DbKey.LongKeyFactory<StorageBackup> storageKeyFactory = new DbKey.LongKeyFactory<StorageBackup>("storer_id") {
 
         @Override
         public DbKey newKey(StorageBackup storage) {
@@ -101,7 +103,7 @@ public class StorageBackup {
     private int height;
 
     public StorageBackup(Transaction upload,Transaction backup) {
-        this.dbKey = storageKeyFactory.newKey(backup.getId());
+        this.dbKey = storageKeyFactory.newKey(backup.getSenderId());
         this.storerId = upload.getSenderId();
         this.storeTransaction = upload.getId();
         this.backupTransaction = backup.getId();
@@ -131,7 +133,7 @@ public class StorageBackup {
     }
 
     static void add(Transaction upload,Transaction backup) {
-        StorageBackup storage = storageTable.get(storageKeyFactory.newKey(backup.getId()));
+        StorageBackup storage = storageTable.get(storageKeyFactory.newKey(backup.getSenderId()));
         if (storage == null) {
             storage = new StorageBackup(upload, backup);
             storageTable.insert(storage);
@@ -144,12 +146,15 @@ public class StorageBackup {
 
     static int getCurrentBackupNum(long id){
         try{
-           Connection connection =  Db.db.getConnection();
+            Connection connection =  Db.db.getConnection();
             PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ?");
             st.setLong(1,id);
             ResultSet resultSet = st.executeQuery();
+            if (resultSet.next()){
+                return resultSet.getInt(1);
+            }
         }catch (SQLException e){
-
+            Logger.logErrorMessage("failed to query backup number",e);
         }
         return 0;
     }

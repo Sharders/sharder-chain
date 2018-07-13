@@ -39,7 +39,7 @@ public final class Constants {
     public static final long ONE_SS = 100000000;
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
 
-    public static final long INITIAL_BASE_TARGET = 153722867;
+    public static final long INITIAL_BASE_TARGET = 153722867 * 8;
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;

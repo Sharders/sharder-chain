@@ -1690,6 +1690,20 @@ public final class Account {
         save();
     }
 
+    //add frozen balance
+    void frozenNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        if (amountNQT == 0) {
+            return;
+        }
+        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
+        //addToGuaranteedBalanceNQT(amountNQT);
+        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
+        if (this.frozenBalanceNQT < 0) {
+            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
+        }
+        save();
+    }
+
     void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceNQT(event, eventId, amountNQT, 0);
     }

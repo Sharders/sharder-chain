@@ -140,7 +140,7 @@ public abstract class StorageTransaction extends TransactionType {
             }
             long storeFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenBalanceNQT(AccountLedger.LedgerEvent.STORAGE_UPLOAD,transaction.getId(),storeFee);
+            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_UPLOAD,transaction.getId(),storeFee);
         }
 
         @Override
@@ -225,7 +225,7 @@ public abstract class StorageTransaction extends TransactionType {
             storeFee /= ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
             storeFee *= 0.1;
             Account account = Account.getAccount(storeTransaction.getSenderId());
-            account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),storeFee);
+            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),-storeFee);
 
             Account backupAccount = Account.getAccount(transaction.getSenderId());
             backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),storeFee);
