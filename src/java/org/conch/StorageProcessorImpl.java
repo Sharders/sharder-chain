@@ -53,7 +53,7 @@ public class StorageProcessorImpl implements StorageProcessor {
         //TODO
         if (Storer.getStorer() != null) {
             Storer storer = Storer.getStorer();
-            Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId());
+                Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId());
             TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(
                     (byte) 1, storer.getPublicKey(), 0, 0, transaction.getDeadline(),
                     attachment
@@ -156,6 +156,18 @@ public class StorageProcessorImpl implements StorageProcessor {
                 if(!Conch.getBlockchainProcessor().isDownloading() && !backupTask.isEmpty()){
                     for(long id : backupTask.keySet()){
                         Transaction storeTransaction = Conch.getBlockchain().getTransaction(id);
+                        if(storeTransaction == null){
+                            storeTransaction = Conch.getTransactionProcessor().getUnconfirmedTransaction(id);
+                        }
+                        if(storeTransaction == null){
+                            for(Transaction transaction : block.getTransactions()){
+                                if(transaction.getId() == id){
+                                    storeTransaction = transaction;
+                                    break;
+                                }
+                            }
+                        }
+
                         Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(storeTransaction);
                         try{
                             Conch.getTransactionProcessor().broadcast(backupTransaction);

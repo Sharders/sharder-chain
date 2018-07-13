@@ -385,6 +385,7 @@ public final class Conch {
                 PrunableMessage.init();
                 TaggedData.init();
                 StorageProcessorImpl.init();
+                StorageBackup.init();
                 FxtDistribution.init();
                 Peers.init();
                 APIProxy.init();

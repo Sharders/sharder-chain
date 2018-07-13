@@ -38,8 +38,8 @@ public class StorageBackup {
 
     };
 
-    private static final VersionedPersistentDbTable<StorageBackup> storageTable = new VersionedPersistentDbTable<StorageBackup>(
-            "storage", storageKeyFactory, "name,description,tags") {
+    private static final PersistentDbTable<StorageBackup> storageTable = new PersistentDbTable<StorageBackup>(
+            "storage_backup", storageKeyFactory, "name,description,tags") {
 
         @Override
         protected StorageBackup load(Connection con, ResultSet rs, DbKey dbKey) throws SQLException {

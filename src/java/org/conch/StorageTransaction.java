@@ -214,7 +214,7 @@ public abstract class StorageTransaction extends TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
             Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
-            if(Storer.getStorer().getAccountId() == transaction.getSenderId()){
+            if(Storer.getStorer() != null && Storer.getStorer().getAccountId() == transaction.getSenderId()){
                 StorageProcessorImpl.getInstance().backup(transaction);
             }
             if(Storer.getStorer() != null){
