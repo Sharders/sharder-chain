@@ -254,7 +254,8 @@ public class Daemon{
     }
 
     public boolean isArm() {
-        return System.getProperty("os.arch").contains("arm");
+        String arch = SystemUtils.OS_ARCH;
+        return arch.contains("arm") || arch.contains("aarch");
     }
 
     public void binaries() throws IOException  {
