@@ -1194,10 +1194,8 @@ class ConchDbVersion extends DbVersion {
                         " store_transaction BIGINT NOT NULL, backup_transaction BIGINT NOT NULL, "
                         + "height INT NOT NULL, FOREIGN KEY (height) REFERENCES block (height) ON DELETE CASCADE)");
             case 491:
-                apply("CREATE UNIQUE INDEX IF NOT EXISTS storage_backup_height_idx ON storage_backup (height DESC)");
-            case 492:
                 apply("ALTER TABLE account ADD COLUMN IF NOT EXISTS frozen_balance BIGINT NOT NULL DEFAULT 0");
-            case 493:
+            case 492:
                 break;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate
