@@ -126,6 +126,12 @@ public class StorageProcessorImpl implements StorageProcessor {
         return true;
     }
 
+    public void synsBackTable(Transaction transaction) {
+        Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+        StorageBackup.add(storeTransaction,transaction);
+    }
+
     public static void addTask(long id,int num){
         if(backupTask.containsKey(id)){
             backupTask.remove(id);
@@ -149,6 +155,19 @@ public class StorageProcessorImpl implements StorageProcessor {
 
     public static void clearBackupTask(){
         backupTask.clear();
+    }
+
+    public static void clearUploadTempFile(Transaction transaction){
+        Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+        Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
+        if(StorageBackup.ownBackupInfo(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
+            try{
+                IpfsService.unpin(Ssid.decode(storeAttachment.getSsid()));
+            }catch (IOException e){
+                Logger.logDebugMessage("delete temp file failed " ,e);
+            }
+        }
     }
 
     static {

@@ -104,10 +104,10 @@ public class StorageBackup {
 
     public StorageBackup(Transaction upload,Transaction backup) {
         this.dbKey = storageKeyFactory.newKey(backup.getSenderId());
-        this.storerId = upload.getSenderId();
+        this.storerId = backup.getSenderId();
         this.storeTransaction = upload.getId();
         this.backupTransaction = backup.getId();
-        this.height = height;
+        this.height = backup.getHeight();
     }
 
     private StorageBackup(ResultSet rs, DbKey dbKey) throws SQLException {
@@ -157,5 +157,25 @@ public class StorageBackup {
             Logger.logErrorMessage("failed to query backup number",e);
         }
         return 0;
+    }
+
+    public static boolean ownBackupInfo(Long storerId,Long uploadId){
+        try{
+            Connection connection =  Db.db.getConnection();
+            PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ? AND STORER_ID = ?");
+            st.setLong(1,uploadId);
+            st.setLong(2,storerId);
+            ResultSet resultSet = st.executeQuery();
+            if (resultSet.next()){
+                if(resultSet.getInt(1) == 0){
+                    return false;
+                }else {
+                    return true;
+                }
+            }
+        }catch (SQLException e){
+            Logger.logErrorMessage("failed to query backup number",e);
+        }
+        return false;
     }
 }

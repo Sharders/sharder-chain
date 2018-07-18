@@ -46,7 +46,7 @@ public abstract class StorageTransaction extends TransactionType {
     }
 
     //TODO storage fee adjust
-    private static final Fee STORAGE_FEE = new Fee.SizeBasedFee(Constants.ONE_SS, Constants.ONE_SS/10) {
+    private static final Fee STORAGE_FEE = new Fee.SizeBasedFee(Constants.ONE_SS, Constants.ONE_SS / 10) {
         @Override
         public int getSize(TransactionImpl transaction, Appendix appendix) {
             return appendix.getFullSize();
@@ -114,9 +114,9 @@ public abstract class StorageTransaction extends TransactionType {
 
         @Override
         boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-            Map<String,Integer> map = new HashMap<>();
-            map.put(transaction.getStringId(),0);
-            duplicates.put(STORAGE_UPLOAD,map);
+            Map<String, Integer> map = new HashMap<>();
+            map.put(transaction.getStringId(), 0);
+            duplicates.put(STORAGE_UPLOAD, map);
             return false;
         }
 
@@ -135,12 +135,12 @@ public abstract class StorageTransaction extends TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
-            if(Storer.getStorer() != null){
-                StorageProcessorImpl.addTask(transaction.getId(),attachment.getReplicated_number());
+            if (Storer.getStorer() != null) {
+                StorageProcessorImpl.addTask(transaction.getId(), attachment.getReplicated_number());
             }
             long storeFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_UPLOAD,transaction.getId(),storeFee);
+            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_UPLOAD, transaction.getId(), storeFee);
         }
 
         @Override
@@ -183,16 +183,16 @@ public abstract class StorageTransaction extends TransactionType {
 
             Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
             boolean hasStoreTransaction = false;
-            if(storeTransaction != null){
+            if (storeTransaction != null) {
                 hasStoreTransaction = true;
             } else {
                 storeTransaction = Conch.getTransactionProcessor().getUnconfirmedTransaction(attachment.getUploadTransaction());
             }
-            if(duplicates.containsKey(STORAGE_UPLOAD)&&
-                    duplicates.get(STORAGE_UPLOAD).containsKey(Long.toString(attachment.getUploadTransaction()))){
+            if (duplicates.containsKey(STORAGE_UPLOAD) &&
+                    duplicates.get(STORAGE_UPLOAD).containsKey(Long.toString(attachment.getUploadTransaction()))) {
                 hasStoreTransaction = true;
             }
-            Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload)storeTransaction.getAttachment();
+            Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
             int num = dataStorageUpload.getReplicated_number() - StorageBackup.getCurrentBackupNum(storeTransaction.getId());
             boolean duplicate = isDuplicate(STORAGE_BACKUP, Long.toString(attachment.getUploadTransaction()), duplicates, num);
             return !hasStoreTransaction || duplicate;
@@ -214,21 +214,28 @@ public abstract class StorageTransaction extends TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
             Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
-            if(Storer.getStorer() != null && Storer.getStorer().getAccountId() == transaction.getSenderId()){
+            if (Storer.getStorer() != null && Storer.getStorer().getAccountId() == transaction.getSenderId()) {
                 StorageProcessorImpl.getInstance().backup(transaction);
+            } else {
+                StorageProcessorImpl.getInstance().synsBackTable(transaction);
             }
-            if(Storer.getStorer() != null){
+
+            if (Storer.getStorer() != null) {
                 StorageProcessorImpl.updateTaskList(storeTransaction.getId());
             }
 
+            if (Constants.isStorageClient) {
+                StorageProcessorImpl.clearUploadTempFile(transaction);
+            }
+
             long storeFee = storeTransaction.getFeeNQT() - ((TransactionImpl) storeTransaction).getMinimumFeeNQT(storeTransaction.getHeight());
-            storeFee /= ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
+            storeFee /= ((Attachment.DataStorageUpload) storeTransaction.getAttachment()).getReplicated_number();
             storeFee *= 0.1;
             Account account = Account.getAccount(storeTransaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),-storeFee);
+            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), -storeFee);
 
             Account backupAccount = Account.getAccount(transaction.getSenderId());
-            backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP,transaction.getId(),storeFee);
+            backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), storeFee);
             backupAccount.addToForgedBalanceNQT(storeFee);
         }
 
