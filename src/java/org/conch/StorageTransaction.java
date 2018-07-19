@@ -114,8 +114,9 @@ public abstract class StorageTransaction extends TransactionType {
 
         @Override
         boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+            Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
             Map<String, Integer> map = new HashMap<>();
-            map.put(transaction.getStringId(), 0);
+            map.put(transaction.getStringId(), attachment.getReplicated_number());
             duplicates.put(STORAGE_UPLOAD, map);
             return false;
         }
@@ -188,13 +189,18 @@ public abstract class StorageTransaction extends TransactionType {
             } else {
                 storeTransaction = Conch.getTransactionProcessor().getUnconfirmedTransaction(attachment.getUploadTransaction());
             }
+            int  replicated_number = 0;
             if (duplicates.containsKey(STORAGE_UPLOAD) &&
                     duplicates.get(STORAGE_UPLOAD).containsKey(Long.toString(attachment.getUploadTransaction()))) {
                 hasStoreTransaction = true;
+                replicated_number = duplicates.get(STORAGE_UPLOAD).get(Long.toString(attachment.getUploadTransaction()));
+            }else {
+                Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
+                replicated_number = dataStorageUpload.getReplicated_number();
             }
-            Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
-            int num = dataStorageUpload.getReplicated_number() - StorageBackup.getCurrentBackupNum(storeTransaction.getId());
+            int num = replicated_number - StorageBackup.getCurrentBackupNum(attachment.getUploadTransaction());
             boolean duplicate = isDuplicate(STORAGE_BACKUP, Long.toString(attachment.getUploadTransaction()), duplicates, num);
+
             return !hasStoreTransaction || duplicate;
         }
 

@@ -161,12 +161,8 @@ public class StorageProcessorImpl implements StorageProcessor {
         Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
         Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
-        if(StorageBackup.ownBackupInfo(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
-            try{
-                IpfsService.unpin(Ssid.decode(storeAttachment.getSsid()));
-            }catch (IOException e){
-                Logger.logDebugMessage("delete temp file failed " ,e);
-            }
+        if(Storer.getStorer() == null || StorageBackup.ownBackupInfo(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
+            IpfsService.unpin(Ssid.decode(storeAttachment.getSsid()));
         }
     }
 
