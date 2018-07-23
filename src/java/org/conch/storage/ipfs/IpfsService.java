@@ -85,7 +85,8 @@ public class IpfsService {
         try {
             ipfs.pin.rm(Multihash.fromBase58(cid));
             return true;
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
+            Logger.logWarningMessage(e.getMessage());
             return false;
         }
     }
@@ -96,5 +97,10 @@ public class IpfsService {
         public void execute(DaemonEvent daemonEvent) {
             Logger.logInfoMessage("IPFS Event -> " + daemonEvent.getType().name());
         }
+    }
+
+    public static void main(String[] args) {
+        init();
+        unpin("QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn");
     }
 }
