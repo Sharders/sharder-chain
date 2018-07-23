@@ -266,38 +266,40 @@ public final class PeerServlet extends WebSocketServlet {
             //
             //network isolation
             //
-            String requestType = (String)request.get("requestType");
-            if("getInfo".equals(requestType) || "addPeers".equals(requestType)){
-                if(Peers.getPeer(peer.getHost()) == null){
-                    String url = Conch.getStringProperty("sharder.authenticationServer");
-                    url = url + peer.getHost();
-                    String responseValue = Https.httpRequest(url,"GET",null);
-                    Logger.logInfoMessage(peer.getHost() + " try to join in the network ,the serve response " + responseValue);
-                    if(responseValue == null){
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("error", Errors.CONNECTERROR);
-                        jsonObject.put("cause", "error with connecting to the serve,please try it later");
-                        return jsonObject;
-                    }
-                    if("".equals(responseValue)){
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("error", Errors.UNAUTHORIZED);
-                        jsonObject.put("cause", peer.getType());
-                        return jsonObject;
-                    }
-                    JSONObject response = (JSONObject) JSONValue.parseWithException(responseValue);
-                    String host = (String)response.get("address");
-                    Long type = (Long) response.get("type");
-                    if(peer.getHost().equals(host)){
-                        peer.setType(new Long(type).intValue());
-                    }
-                }
-            }
+//            String requestType = (String)request.get("requestType");
+//            if("getInfo".equals(requestType) || "addPeers".equals(requestType)){
+//                if(Peers.getPeer(peer.getHost()) == null){
+//                    String url = Conch.getStringProperty("sharder.authenticationServer");
+//                    url = url + peer.getHost();
+//                    String responseValue = Https.httpRequest(url,"GET",null);
+//                    Logger.logInfoMessage(peer.getHost() + " try to join in the network ,the serve response " + responseValue);
+//                    if(responseValue == null){
+//                        JSONObject jsonObject = new JSONObject();
+//                        jsonObject.put("error", Errors.CONNECTERROR);
+//                        jsonObject.put("cause", "error with connecting to the serve,please try it later");
+//                        return jsonObject;
+//                    }
+//                    if("".equals(responseValue)){
+//                        JSONObject jsonObject = new JSONObject();
+//                        jsonObject.put("error", Errors.UNAUTHORIZED);
+//                        jsonObject.put("cause", peer.getType());
+//                        return jsonObject;
+//                    }
+//                    JSONObject response = (JSONObject) JSONValue.parseWithException(responseValue);
+//                    String host = (String)response.get("address");
+//                    Long type = (Long) response.get("type");
+//                    if(peer.getHost().equals(host)){
+//                        peer.setType(new Long(type).intValue());
+//                    }
+//                }
+//            }
             Peers.addPeer(peer);
 
             peer.updateDownloadedVolume(cr.getCount());
             if (request.get("protocol") == null || ((Number)request.get("protocol")).intValue() != 1) {
-                Logger.logDebugMessage("Unsupported protocol " + request.get("protocol"));
+                Logger.logDebugMessage("Unsupported protocol "
+
+                        + request.get("protocol"));
                 return UNSUPPORTED_PROTOCOL;
             }
             PeerRequestHandler peerRequestHandler = peerRequestHandlers.get((String)request.get("requestType"));

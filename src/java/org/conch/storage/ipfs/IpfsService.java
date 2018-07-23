@@ -99,8 +99,4 @@ public class IpfsService {
         }
     }
 
-    public static void main(String[] args) {
-        init();
-        unpin("QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn");
-    }
 }
