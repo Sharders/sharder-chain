@@ -21,12 +21,16 @@
 
 package org.conch.http;
 
-import org.conch.Generator;
+import org.conch.Account;
 import org.conch.Storer;
+import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+
+import static org.conch.http.JSONResponses.NOT_FORGING;
+import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 
 public final class StartStoring extends APIServlet.APIRequestHandler {
@@ -39,15 +43,19 @@ public final class StartStoring extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
-
         String secretPhrase = ParameterParser.getSecretPhrase(req, true);
+        Account account = Account.getAccount(Crypto.getPublicKey(secretPhrase));
+        if (account == null) {
+            return UNKNOWN_ACCOUNT;
+        }
         Storer storer = Storer.startStoring(secretPhrase);
-
+        if (storer == null) {
+            return NOT_FORGING;
+        }
         JSONObject response = new JSONObject();
         response.put("storerId", Long.toUnsignedString(storer.getAccountId()));
         response.put("status", storer.toString());
         return response;
-
     }
 
     @Override

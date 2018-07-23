@@ -233,6 +233,14 @@ public final class JSONResponses {
         NOT_FORGING = JSON.prepare(response);
     }
 
+    public static final JSONStreamAware NOT_STORING;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 5);
+        response.put("errorDescription", "Account is not storing");
+        NOT_STORING = JSON.prepare(response);
+    }
+
     public static final JSONStreamAware POST_REQUIRED;
     static {
         JSONObject response = new JSONObject();
