@@ -30,6 +30,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.conch.http.JSONResponses.NOT_FORGING;
+import static org.conch.http.JSONResponses.NOT_STORING;
 import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 
@@ -50,7 +51,7 @@ public final class StartStoring extends APIServlet.APIRequestHandler {
         }
         Storer storer = Storer.startStoring(secretPhrase);
         if (storer == null) {
-            return NOT_FORGING;
+            return NOT_STORING;
         }
         JSONObject response = new JSONObject();
         response.put("storerId", Long.toUnsignedString(storer.getAccountId()));
