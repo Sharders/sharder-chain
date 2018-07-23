@@ -723,7 +723,8 @@ final class PeerImpl implements Peer {
         } catch (RuntimeException e) {
             blacklist(e);
         }finally {
-            if(this.state == State.CONNECTED && ((services & 32) == 32)){
+            // services & [num] should be synchronized to the new Service code(max one)
+            if(this.state == State.CONNECTED && ((services & 64) == 64)){
                 if(peerLoad.getLoad() < Peers.getBestPeerLoad().getLoad()){
                     Peers.setBestPeer(host);
                 }
