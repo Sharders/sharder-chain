@@ -65,4 +65,8 @@ public final class StartStoring extends APIServlet.APIRequestHandler {
         return false;
     }
 
+    @Override
+    protected boolean requirePassword() {
+        return true;
+    }
 }
