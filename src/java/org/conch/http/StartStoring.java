@@ -22,6 +22,8 @@
 package org.conch.http;
 
 import org.conch.Account;
+import org.conch.Conch;
+import org.conch.Constants;
 import org.conch.Storer;
 import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
@@ -29,9 +31,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.NOT_FORGING;
-import static org.conch.http.JSONResponses.NOT_STORING;
-import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
+import static org.conch.http.JSONResponses.*;
 
 
 public final class StartStoring extends APIServlet.APIRequestHandler {
@@ -44,6 +44,9 @@ public final class StartStoring extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
+        if (!Constants.isStorageClient) {
+            return NOT_ENABLE_STORAGE;
+        }
         String secretPhrase = ParameterParser.getSecretPhrase(req, true);
         Account account = Account.getAccount(Crypto.getPublicKey(secretPhrase));
         if (account == null) {
