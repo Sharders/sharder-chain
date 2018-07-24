@@ -247,7 +247,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                         Transaction backupTransaction = StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
                         if (backupTransaction != null){
                             Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) transaction.getAttachment();
-                            StorageProcessorImpl.addTask(transaction.getId(),dataStorageUpload.getReplicated_number());
+                            StorageProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
                             Conch.getTransactionProcessor().broadcast(backupTransaction);
                         }
                     }

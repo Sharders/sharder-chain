@@ -199,7 +199,7 @@ public abstract class StorageTransaction extends TransactionType {
                 replicated_number = dataStorageUpload.getReplicated_number();
             }
             int num = replicated_number - StorageBackup.getCurrentBackupNum(attachment.getUploadTransaction());
-            boolean duplicate = isDuplicate(STORAGE_BACKUP, Long.toString(attachment.getUploadTransaction()), duplicates, num);
+            boolean duplicate = num == 0 || isDuplicate(STORAGE_BACKUP, Long.toString(attachment.getUploadTransaction()), duplicates, num);
 
             return !hasStoreTransaction || duplicate;
         }

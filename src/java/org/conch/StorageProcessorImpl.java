@@ -143,6 +143,19 @@ public class StorageProcessorImpl implements StorageProcessor {
         backupTask.put(id,map);
     }
 
+    public static void recordTask(long id,int num){
+        if(backupTask.containsKey(id)){
+            Map<String,Integer> map = backupTask.get(id);
+            map.put("backup",1);
+            return;
+        }
+        Map<String,Integer> map = new HashMap<>();
+        map.put("need",num);
+        map.put("current",0);
+        map.put("backup",1);
+        backupTask.put(id,map);
+    }
+
     public static void updateTaskList(long storeId){
         if(backupTask.containsKey(storeId)){
             int num = backupTask.get(storeId).get("current") +1;
@@ -161,7 +174,7 @@ public class StorageProcessorImpl implements StorageProcessor {
         Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
         Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
-        if(Storer.getStorer() == null || StorageBackup.ownBackupInfo(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
+        if(Storer.getStorer() == null || !StorageBackup.ownBackupInfo(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
             IpfsService.unpin(Ssid.decode(storeAttachment.getSsid()));
         }
     }
@@ -186,7 +199,7 @@ public class StorageProcessorImpl implements StorageProcessor {
                             }
                         }
 
-                        if(storeTransaction == null){
+                        if(storeTransaction == null || backupTask.get(id).containsKey("backup")){
                             return;
                         }
 
