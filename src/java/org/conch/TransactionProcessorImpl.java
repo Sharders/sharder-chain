@@ -646,6 +646,8 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 if (Constants.isStorageClient && Storer.getStorer() != null) {
                     if(StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                         Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
+                        Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) transaction.getAttachment();
+                        StorageProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
                         broadcast(backupTransaction);
                     }
                 }
