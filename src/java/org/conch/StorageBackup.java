@@ -136,9 +136,9 @@ public class StorageBackup {
         StorageBackup storage = storageTable.get(storageKeyFactory.newKey(backup.getSenderId()));
         if (storage == null) {
             storage = new StorageBackup(upload, backup);
-            storageTable.insert(storage);
             //TODO off-chain storage
         }
+        storageTable.insert(storage);
         // why need save the timestamp
 //        Timestamp timestamp = new Timestamp(transaction.getId(), transaction.getTimestamp());
 //        timestampTable.insert(timestamp);
