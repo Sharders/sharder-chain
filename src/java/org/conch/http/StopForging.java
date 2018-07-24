@@ -68,8 +68,4 @@ public final class StopForging extends APIServlet.APIRequestHandler {
         return true;
     }
 
-    @Override
-    protected boolean requirePassword() {
-        return true;
-    }
 }

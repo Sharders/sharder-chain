@@ -63,4 +63,8 @@ public final class StopStoring extends APIServlet.APIRequestHandler {
         return false;
     }
 
+    @Override
+    protected boolean requirePassword() {
+        return true;
+    }
 }
