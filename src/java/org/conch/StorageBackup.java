@@ -103,7 +103,7 @@ public class StorageBackup {
     private int height;
 
     public StorageBackup(Transaction upload,Transaction backup) {
-        this.dbKey = storageKeyFactory.newKey(backup.getSenderId());
+        this.dbKey = storageKeyFactory.newKey(backup.getId());
         this.storerId = backup.getSenderId();
         this.storeTransaction = upload.getId();
         this.backupTransaction = backup.getId();
@@ -133,11 +133,7 @@ public class StorageBackup {
     }
 
     static void add(Transaction upload,Transaction backup) {
-        StorageBackup storage = storageTable.get(storageKeyFactory.newKey(backup.getSenderId()));
-        if (storage == null) {
-            storage = new StorageBackup(upload, backup);
-            //TODO off-chain storage
-        }
+        StorageBackup storage = new StorageBackup(upload, backup);
         storageTable.insert(storage);
         // why need save the timestamp
 //        Timestamp timestamp = new Timestamp(transaction.getId(), transaction.getTimestamp());
