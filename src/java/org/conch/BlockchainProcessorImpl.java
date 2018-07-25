@@ -1911,6 +1911,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                         if(storeTransaction != null){
                             replicated_number = ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
                         }else {
+                            storeTransaction = uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getTransaction();
                             replicated_number = ((Attachment.DataStorageUpload)uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getAttachment()).getReplicated_number();
                         }
                         int num = replicated_number - StorageBackup.getCurrentBackupNum(dataStorageBackup.getUploadTransaction());
