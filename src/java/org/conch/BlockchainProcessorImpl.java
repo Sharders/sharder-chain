@@ -1872,6 +1872,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         SortedSet<UnconfirmedTransaction> sortedTransactions = new TreeSet<>(transactionArrivalComparator);
         int payloadLength = 0;
+        Map<Long,UnconfirmedTransaction> uploadTransactions = new HashMap<>();
+        Map<Long,Integer> backupNum = new HashMap<>();
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && sortedTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
             int prevNumberOfNewTransactions = sortedTransactions.size();
             for (UnconfirmedTransaction unconfirmedTransaction : orderedUnconfirmedTransactions) {
@@ -1893,6 +1895,36 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
                 if (unconfirmedTransaction.getTransaction().attachmentIsDuplicate(duplicates, true)) {
                     continue;
+                }
+
+                //storage confirm transaction order and backup transaction number
+                if(unconfirmedTransaction.getTransaction().getType() == StorageTransaction.STORAGE_UPLOAD){
+                    uploadTransactions.put(unconfirmedTransaction.getId(),unconfirmedTransaction);
+                }
+                if(unconfirmedTransaction.getTransaction().getType() == StorageTransaction.STORAGE_BACKUP){
+                    Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) unconfirmedTransaction.getAttachment();
+                    Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
+                    if(!uploadTransactions.containsKey(dataStorageBackup.getUploadTransaction()) && storeTransaction == null){
+                        continue;
+                    }else {
+                        int replicated_number;
+                        if(storeTransaction != null){
+                            replicated_number = ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
+                        }else {
+                            replicated_number = ((Attachment.DataStorageUpload)uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getAttachment()).getReplicated_number();
+                        }
+                        int num = replicated_number - StorageBackup.getCurrentBackupNum(dataStorageBackup.getUploadTransaction());
+                        int backNum = backupNum.containsKey(storeTransaction.getId()) ? backupNum.get(storeTransaction.getId()) : 0;
+                        if(num - backNum < 1){
+                            continue;
+                        }else {
+                            if(backupNum.containsKey(storeTransaction.getId())){
+                                backupNum.put(storeTransaction.getId(),backupNum.get(storeTransaction.getId())+1);
+                            }else {
+                                backupNum.put(storeTransaction.getId(),1);
+                            }
+                        }
+                    }
                 }
                 sortedTransactions.add(unconfirmedTransaction);
                 payloadLength += transactionLength;
