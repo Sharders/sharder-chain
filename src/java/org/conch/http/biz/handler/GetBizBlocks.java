@@ -59,7 +59,7 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
         String includeType  = Convert.emptyToNull(req.getParameter("includeTypes"));
-        if (lastIndex-firstIndex > 500) {
+        if (includeType == null && lastIndex-firstIndex > 500) {
             throw new ParameterException(BIZ_INCORRECT_INDEX);
         }
         final int timestamp = ParameterParser.getTimestamp(req);
