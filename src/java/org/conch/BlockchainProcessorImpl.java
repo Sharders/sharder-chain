@@ -1569,6 +1569,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         MessageDigest digest = Crypto.sha256();
         boolean hasPrunedTransactions = false;
         int coinBaseNum = 0;
+        Map<Long,Transaction> uploadTransactions = new HashMap<>();
+        Map<Long,Integer> backupNum = new HashMap<>();
         for (TransactionImpl transaction : block.getTransactions()) {
             if(transaction.getAttachment() instanceof Attachment.CoinBase){
                 coinBaseNum++;
@@ -1619,6 +1621,18 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (transaction.attachmentIsDuplicate(duplicates, true)) {
                 throw new TransactionNotAcceptedException("Transaction is a duplicate", transaction);
             }
+
+            //backup number validate
+            if(transaction.getType() == StorageTransaction.STORAGE_UPLOAD){
+                uploadTransactions.put(transaction.getId(),transaction);
+            }
+            if(transaction.getType() == StorageTransaction.STORAGE_BACKUP){
+                if(!isBackupNumberExceed(uploadTransactions,backupNum,transaction)
+                        || hasBackuped(backupNum,transaction.getSenderId())){
+                    continue;
+                }
+            }
+
             if (!hasPrunedTransactions) {
                 for (Appendix.AbstractAppendix appendage : transaction.getAppendages()) {
                     if ((appendage instanceof Appendix.Prunable) && !((Appendix.Prunable)appendage).hasPrunableData()) {
@@ -1872,7 +1886,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         SortedSet<UnconfirmedTransaction> sortedTransactions = new TreeSet<>(transactionArrivalComparator);
         int payloadLength = 0;
-        Map<Long,UnconfirmedTransaction> uploadTransactions = new HashMap<>();
+        Map<Long,Transaction> uploadTransactions = new HashMap<>();
         Map<Long,Integer> backupNum = new HashMap<>();
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && sortedTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
             int prevNumberOfNewTransactions = sortedTransactions.size();
@@ -1902,31 +1916,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     uploadTransactions.put(unconfirmedTransaction.getId(),unconfirmedTransaction);
                 }
                 if(unconfirmedTransaction.getTransaction().getType() == StorageTransaction.STORAGE_BACKUP){
-                    Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) unconfirmedTransaction.getAttachment();
-                    Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
-                    if(!uploadTransactions.containsKey(dataStorageBackup.getUploadTransaction()) && storeTransaction == null){
+                    if(!hasUploadTransaction(uploadTransactions,unconfirmedTransaction)
+                            || !isBackupNumberExceed(uploadTransactions,backupNum,unconfirmedTransaction)
+                            || hasBackuped(backupNum,unconfirmedTransaction.getSenderId())){
                         continue;
-                    }else {
-                        int replicated_number;
-                        if(storeTransaction != null){
-                            replicated_number = ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
-                        }else {
-                            storeTransaction = uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getTransaction();
-                            replicated_number = ((Attachment.DataStorageUpload)uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getAttachment()).getReplicated_number();
-                        }
-                        int num = replicated_number - StorageBackup.getCurrentBackupNum(dataStorageBackup.getUploadTransaction());
-                        int backNum = backupNum.containsKey(storeTransaction.getId()) ? backupNum.get(storeTransaction.getId()) : 0;
-                        if(num - backNum < 1){
-                            continue;
-                        }else {
-                            if(backupNum.containsKey(storeTransaction.getId())){
-                                backupNum.put(storeTransaction.getId(),backupNum.get(storeTransaction.getId())+1);
-                            }else {
-                                backupNum.put(storeTransaction.getId(),1);
-                            }
-                        }
                     }
                 }
+
                 sortedTransactions.add(unconfirmedTransaction);
                 payloadLength += transactionLength;
             }
@@ -1935,6 +1931,47 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
         }
         return sortedTransactions;
+    }
+
+    private boolean hasUploadTransaction(Map<Long,Transaction> uploadTransactions,Transaction transaction){
+        Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
+        if(!uploadTransactions.containsKey(dataStorageBackup.getUploadTransaction()) && storeTransaction == null)
+            return false;
+        return true;
+    }
+
+    private boolean isBackupNumberExceed(Map<Long,Transaction> uploadTransactions,Map<Long,Integer> backupNum,
+                                         Transaction transaction){
+        Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
+
+        int replicated_number;
+        if(storeTransaction != null){
+            replicated_number = ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
+        }else {
+            storeTransaction = uploadTransactions.get(dataStorageBackup.getUploadTransaction());
+            replicated_number = ((Attachment.DataStorageUpload)uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getAttachment()).getReplicated_number();
+        }
+        int num = replicated_number - StorageBackup.getCurrentBackupNum(dataStorageBackup.getUploadTransaction());
+        int backNum = backupNum.containsKey(storeTransaction.getId()) ? backupNum.get(storeTransaction.getId()) : 0;
+        if(num - backNum > 0){
+            if(backupNum.containsKey(storeTransaction.getId())){
+                backupNum.put(storeTransaction.getId(),backupNum.get(storeTransaction.getId())+1);
+            }else {
+                backupNum.put(storeTransaction.getId(),1);
+            }
+            //record backup info
+            backupNum.put(transaction.getSenderId(),-1);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasBackuped(Map<Long,Integer> backupNum,Long backupID){
+        if(backupNum.containsKey(backupID) && backupNum.get(backupID) == -1)
+            return true;
+        return false;
     }
 
 

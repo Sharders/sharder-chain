@@ -179,6 +179,10 @@ public abstract class StorageTransaction extends TransactionType {
             if (Account.getAccount(attachment.getStorerId()) == null) {
                 throw new ConchException.NotValidException("Invalid storer account: " + attachment.getStorerId());
             }
+
+            if(StorageBackup.ownBackupInfo(transaction.getSenderId(),attachment.getUploadTransaction())){
+                throw new ConchException.NotValidException(transaction.getSenderId() + " has backup " + attachment.getUploadTransaction());
+            }
         }
 
         @Override
