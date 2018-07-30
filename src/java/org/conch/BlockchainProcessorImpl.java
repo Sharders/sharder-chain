@@ -1570,7 +1570,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         boolean hasPrunedTransactions = false;
         int coinBaseNum = 0;
         Map<Long,Transaction> uploadTransactions = new HashMap<>();
-        Map<Long,Integer> backupNum = new HashMap<>();
+        Map<Long, Map<String, Long>> backupNum = new HashMap<>();
         for (TransactionImpl transaction : block.getTransactions()) {
             if(transaction.getAttachment() instanceof Attachment.CoinBase){
                 coinBaseNum++;
@@ -1627,7 +1627,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 uploadTransactions.put(transaction.getId(),transaction);
             }
             if(transaction.getType() == StorageTransaction.STORAGE_BACKUP){
-                if (hasBackuped(backupNum, transaction.getSenderId())) {
+                if (!hasUploadTransaction(uploadTransactions, transaction)) {
+                    throw new TransactionNotAcceptedException("Current backup transaction is in the front of upload transaction ", transaction);
+                }
+                if (hasBackuped(backupNum, transaction)) {
                     throw new TransactionNotAcceptedException(transaction.getSenderId() + " has already backup the upload transaction ", transaction);
                 }
                 if (isBackupNumberExceed(uploadTransactions, backupNum, transaction)) {
@@ -1889,7 +1892,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         SortedSet<UnconfirmedTransaction> sortedTransactions = new TreeSet<>(transactionArrivalComparator);
         int payloadLength = 0;
         Map<Long,Transaction> uploadTransactions = new HashMap<>();
-        Map<Long,Integer> backupNum = new HashMap<>();
+        Map<Long, Map<String, Long>> backupNum = new HashMap<>();
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && sortedTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
             int prevNumberOfNewTransactions = sortedTransactions.size();
             for (UnconfirmedTransaction unconfirmedTransaction : orderedUnconfirmedTransactions) {
@@ -1919,8 +1922,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
                 if(unconfirmedTransaction.getTransaction().getType() == StorageTransaction.STORAGE_BACKUP){
                     if(!hasUploadTransaction(uploadTransactions,unconfirmedTransaction)
-                            || !isBackupNumberExceed(uploadTransactions,backupNum,unconfirmedTransaction)
-                            || hasBackuped(backupNum,unconfirmedTransaction.getSenderId())){
+                            || hasBackuped(backupNum, unconfirmedTransaction.getTransaction())
+                            || isBackupNumberExceed(uploadTransactions, backupNum, unconfirmedTransaction)) {
                         continue;
                     }
                 }
@@ -1943,7 +1946,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         return true;
     }
 
-    private boolean isBackupNumberExceed(Map<Long,Transaction> uploadTransactions,Map<Long,Integer> backupNum,
+    private boolean isBackupNumberExceed(Map<Long, Transaction> uploadTransactions, Map<Long, Map<String, Long>> backupNum,
                                          Transaction transaction){
         Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
@@ -1956,22 +1959,27 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             replicated_number = ((Attachment.DataStorageUpload)uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getAttachment()).getReplicated_number();
         }
         int num = replicated_number - StorageBackup.getCurrentBackupNum(dataStorageBackup.getUploadTransaction());
-        int backNum = backupNum.containsKey(storeTransaction.getId()) ? backupNum.get(storeTransaction.getId()) : 0;
+        int backNum = backupNum.containsKey(storeTransaction.getId()) ? backupNum.get(storeTransaction.getId()).get("num").intValue() : 0;
         if(num - backNum > 0){
             if(backupNum.containsKey(storeTransaction.getId())){
-                backupNum.put(storeTransaction.getId(),backupNum.get(storeTransaction.getId())+1);
+                Map<String, Long> info = backupNum.get(storeTransaction.getId());
+                info.put("mum", info.get("num") + 1);
+                backupNum.put(storeTransaction.getId(), info);
             }else {
-                backupNum.put(storeTransaction.getId(),1);
+                Map<String, Long> info = new HashMap<>();
+                info.put("num", new Long(1));
+                info.put("backuper", transaction.getSenderId());
+                backupNum.put(storeTransaction.getId(), info);
             }
-            //record backup info
-            backupNum.put(transaction.getSenderId(),-1);
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
-    private boolean hasBackuped(Map<Long,Integer> backupNum,Long backupID){
-        if(backupNum.containsKey(backupID) && backupNum.get(backupID) == -1)
+    private boolean hasBackuped(Map<Long, Map<String, Long>> backupNum, Transaction backup) {
+        Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) backup.getAttachment();
+        if (backupNum.containsKey(dataStorageBackup.getUploadTransaction()) &&
+                backupNum.get(dataStorageBackup.getUploadTransaction()).get("backuper") == backup.getSenderId())
             return true;
         return false;
     }

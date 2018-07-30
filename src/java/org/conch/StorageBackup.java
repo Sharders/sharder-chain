@@ -21,7 +21,10 @@
 
 package org.conch;
 
-import org.conch.db.*;
+import org.conch.db.DbClause;
+import org.conch.db.DbIterator;
+import org.conch.db.DbKey;
+import org.conch.db.PersistentDbTable;
 import org.conch.util.Logger;
 
 import java.sql.Connection;
@@ -141,9 +144,8 @@ public class StorageBackup {
     }
 
     static int getCurrentBackupNum(long id){
-        try{
-            Connection connection =  Db.db.getConnection();
-            PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ?");
+        try (Connection connection = Db.db.getConnection();
+             PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ?")) {
             st.setLong(1,id);
             ResultSet resultSet = st.executeQuery();
             if (resultSet.next()){
@@ -156,9 +158,8 @@ public class StorageBackup {
     }
 
     public static boolean ownBackupInfo(Long storerId,Long uploadId){
-        try{
-            Connection connection =  Db.db.getConnection();
-            PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ? AND STORER_ID = ?");
+        try (Connection connection = Db.db.getConnection();
+             PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ? AND STORER_ID = ?")) {
             st.setLong(1,uploadId);
             st.setLong(2,storerId);
             ResultSet resultSet = st.executeQuery();
