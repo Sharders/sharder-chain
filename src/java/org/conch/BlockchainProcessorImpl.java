@@ -1627,9 +1627,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 uploadTransactions.put(transaction.getId(),transaction);
             }
             if(transaction.getType() == StorageTransaction.STORAGE_BACKUP){
-                if(!isBackupNumberExceed(uploadTransactions,backupNum,transaction)
-                        || hasBackuped(backupNum,transaction.getSenderId())){
-                    continue;
+                if (hasBackuped(backupNum, transaction.getSenderId())) {
+                    throw new TransactionNotAcceptedException(transaction.getSenderId() + " has already backup the upload transaction ", transaction);
+                }
+                if (isBackupNumberExceed(uploadTransactions, backupNum, transaction)) {
+                    throw new TransactionNotAcceptedException("Backup transaction is exceed ", transaction);
                 }
             }
 
