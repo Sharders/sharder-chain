@@ -41,10 +41,10 @@ public class ManifestGenerator {
 
     public static void main(String[] args) {
         ManifestGenerator manifestGenerator = new ManifestGenerator();
-        manifestGenerator.generate("./resource/sharder.manifest.mf", Conch.class.getCanonicalName(), "./lib");
+        manifestGenerator.generate("./resource/cos.manifest.mf", Conch.class.getCanonicalName(), "./lib");
         String serviceClassName = ConchService_ServiceManagement.class.getCanonicalName();
         serviceClassName = serviceClassName.substring(0, serviceClassName.length() - "_ServiceManagement".length());
-        manifestGenerator.generate("./resource/sharderservice.manifest.mf", serviceClassName, "./lib");
+        manifestGenerator.generate("./resource/cosservice.manifest.mf", serviceClassName, "./lib");
     }
 
     private void generate(String fileName, String className, String ... directories) {
