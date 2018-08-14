@@ -133,7 +133,7 @@ public class DesktopApplication extends Application {
                     window.setMember("javaFxLanguage", language);
                     webEngine.executeScript("console.log = function(msg) { java.log(msg); };");
 //                    stage.setTitle("Conch Desktop - " + webEngine.getLocation());
-                    stage.setTitle("海螺钱包-桌面客户端");
+                    stage.setTitle("豆匣钱包-桌面客户端");
                     nrs = (JSObject) webEngine.executeScript("NRS");
                     updateClientState("Desktop Wallet started");
                     BlockchainProcessor blockchainProcessor = Conch.getBlockchainProcessor();

@@ -46,7 +46,7 @@ public final class Logger {
     }
 
     /** Message listeners */
-    private static final Listeners<String, Event> messageListeners = new Listeners<>();
+    private static final Listeners<String, Event> messageListeners = new org.conch.util.Listeners<>();
 
     /** Exception listeners */
     private static final Listeners<Throwable, Event> exceptionListeners = new Listeners<>();
