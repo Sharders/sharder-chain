@@ -18,7 +18,8 @@ Mine will open soon!
   - Telegram: https://t.me/sharder_talk
   - Twitter: @SharderChain
   - Medium: https://medium.com/@SharderChain
-  - Community: https://community.sharder.org
+  - Facebook: https://www.facebook.com/SharderFoundation
+  - Reddit: https://www.reddit.com/r/Sharder_Official
   - Github: https://github.com/Sharders/sharder-chain
   - QQ group: 578367251
   - Wechat: supersharder
@@ -45,7 +46,8 @@ Mine will open soon!
   - Telegram: https://t.me/sharder_talk
   - Twitter: @SharderChain
   - Medium: https://medium.com/@SharderChain
-  - 官方社区: http://community.sharder.org
+  - Facebook: https://www.facebook.com/SharderFoundation
+  - Reddit: https://www.reddit.com/r/Sharder_Official
   - Github: https://github.com/Sharders/sharder-chain
   - QQ群: 578367251
   - 微信: 豆匣咨讯

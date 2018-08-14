@@ -26,16 +26,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.conch.Block;
 import org.conch.Conch;
 import org.conch.ConchException;
+import org.conch.Transaction;
 import org.conch.db.DbIterator;
 import org.conch.http.*;
+import org.conch.util.Convert;
+import org.h2.util.StringUtils;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.conch.http.JSONResponses.BIZ_INCORRECT_INDEX;
 
@@ -44,7 +50,7 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
     public static final GetBizBlocks instance = new GetBizBlocks();
 
     private GetBizBlocks() {
-        super(new APITag[] {APITag.BIZ}, "firstIndex", "lastIndex");
+        super(new APITag[] {APITag.BIZ}, "firstIndex", "lastIndex", "includeTypes");
     }
 
     @Override
@@ -52,7 +58,8 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
 
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
-        if (lastIndex-firstIndex > 500) {
+        String includeType  = Convert.emptyToNull(req.getParameter("includeTypes"));
+        if (includeType == null && lastIndex-firstIndex > 500) {
             throw new ParameterException(BIZ_INCORRECT_INDEX);
         }
         final int timestamp = ParameterParser.getTimestamp(req);
@@ -63,7 +70,17 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
                 if (block.getTimestamp() < timestamp) {
                     break;
                 }
-                blocks.add(JSONData.block(block, true, false));
+                if (!StringUtils.isNullOrEmpty(includeType)) {
+                    List<String> typeList = Arrays.asList(StringUtils.arraySplit(includeType, ',', true));
+                    List<Transaction> transactionList = block.getTransactions().stream().filter(
+                            transaction -> typeList.contains(String.valueOf(transaction.getType().getType()))
+                    ).collect(Collectors.toList());
+                    if (transactionList.size() <= 0) {
+                        continue;
+                    }
+                }
+                JSONObject blockJson = JSONData.block(block, true, false);
+                blocks.add(blockJson);
             }
         }
         JSONArray response = new JSONArray();

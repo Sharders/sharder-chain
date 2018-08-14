@@ -23,13 +23,13 @@ package org.conch.http.biz.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.conch.Account;
 import org.conch.Conch;
 import org.conch.Transaction;
 import org.conch.http.APIServlet;
 import org.conch.http.APITag;
 import org.conch.http.JSONData;
 import org.conch.http.JSONResponses;
-import org.conch.http.biz.domain.Data;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
@@ -91,10 +91,23 @@ public final class GetTx extends APIServlet.APIRequestHandler {
             String dtrJson = mapper.writeValueAsString(mapper.readValue(JSON.toJSONString(txJson), org.conch.http.biz.domain.Transaction.class));
             Map<String, Object> map = mapper.readValue(dtrJson, new TypeReference<Map<String, Object>>(){});
             jsonObject.putAll(map);
+            getAccountInfo(Account.getAccount(transaction.getSenderId()), jsonObject, "sender");
+            getAccountInfo(Account.getAccount(transaction.getRecipientId()), jsonObject, "recipient");
+
             return jsonObject;
         } catch (IOException e) {
             e.printStackTrace();
             return JSONResponses.BIZ_JSON_IO_ERROR;
+        }
+    }
+
+    private void getAccountInfo(Account account, JSONObject jsonObject, String role) {
+        if(account != null) {
+            Account.AccountInfo info = account.getAccountInfo();
+            if (info != null) {
+                if (info.getName() != null) jsonObject.put(role + "Name", info.getName());
+                if (info.getDescription() != null) jsonObject.put(role + "Desc", info.getDescription());
+            }
         }
     }
 
