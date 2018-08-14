@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: conf/
-Main-Class: org.conch.Conch
-
