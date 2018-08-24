@@ -3644,4 +3644,68 @@ public interface Attachment extends Appendix {
         }
 
     }
+
+    final class Contract extends AbstractAttachment {
+        private final boolean isContractCreation;
+        private final long gasPrice;
+        private final long gasLimit;
+        private final byte[] data;
+
+        Contract(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.isContractCreation = buffer.getLong() == 1;
+            this.gasPrice = buffer.getLong();
+            this.gasLimit = buffer.getLong();
+            this.data = buffer.compact().array();
+        }
+
+        Contract(JSONObject attachmentData) {
+            super(attachmentData);
+            this.isContractCreation = "true".equals(attachmentData.get("isContractCreation"));
+            this.gasPrice = (long) attachmentData.get("gasPrice");
+            this.gasLimit = (long) attachmentData.get("gasLimit");
+            this.data = (byte[]) attachmentData.get("data");
+        }
+
+        public Contract(boolean isContractCreation, long gasPrice, long gasLimit, byte[] data) {
+            this.isContractCreation = isContractCreation;
+            this.gasPrice = gasPrice;
+            this.gasLimit = gasLimit;
+            this.data = data;
+        }
+
+        @Override
+        int getMySize() {
+            return 24 + data.length;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(isContractCreation ? 1 : 0);
+            buffer.putLong(gasPrice);
+            buffer.putLong(gasLimit);
+            buffer.put(data);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("isContractCreation", isContractCreation);
+            attachment.put("gasPrice", gasPrice);
+            attachment.put("gasLimit", gasLimit);
+            attachment.put("data", data);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.Contract.CONTRACT_ORDINARY;
+        }
+
+        public boolean isContractCreation() {
+            return isContractCreation;
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+    }
 }

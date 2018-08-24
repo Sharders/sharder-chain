@@ -35,7 +35,7 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.*;
 
-final public class TransactionImpl implements Transaction {
+public class TransactionImpl implements Transaction {
 
     static final public class BuilderImpl implements Builder {
 
@@ -260,7 +260,7 @@ final public class TransactionImpl implements Transaction {
     private volatile byte[] bytes = null;
 
 
-    private TransactionImpl(BuilderImpl builder, String secretPhrase) throws ConchException.NotValidException {
+    protected TransactionImpl(BuilderImpl builder, String secretPhrase) throws ConchException.NotValidException {
 
         this.timestamp = builder.timestamp;
         this.deadline = builder.deadline;

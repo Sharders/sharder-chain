@@ -28,18 +28,8 @@ import org.conch.util.Listener;
 import org.conch.util.Listeners;
 import org.conch.util.Logger;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.sql.*;
+import java.util.*;
 
 /**
  * Maintain a ledger of changes to selected accounts
@@ -456,8 +446,9 @@ public class AccountLedger {
             SHUFFLING_REGISTRATION(51, true),
             SHUFFLING_PROCESSING(52, true),
             SHUFFLING_CANCELLATION(53, true),
-            SHUFFLING_DISTRIBUTION(54, true);
-
+        SHUFFLING_DISTRIBUTION(54, true),
+        //CONTRACT
+        CONTRACT(58, true);
 
         /** Event code mapping */
         private static final Map<Integer, LedgerEvent> eventMap = new HashMap<>();

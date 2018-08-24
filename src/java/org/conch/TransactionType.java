@@ -21,13 +21,13 @@
 
 package org.conch;
 
-import org.conch.cpos.core.ConchGenesis;
-import org.conch.Account.ControlType;
-import org.conch.Attachment.AbstractAttachment;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
+import org.conch.Account.ControlType;
+import org.conch.Attachment.AbstractAttachment;
+import org.conch.cpos.core.ConchGenesis;
+import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -47,6 +47,7 @@ public abstract class TransactionType {
     static final byte TYPE_MONETARY_SYSTEM = 5;
     static final byte TYPE_DATA = 6;
     static final byte TYPE_SHUFFLING = 7;
+    static final byte TYPE_CONTRACT = 8;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -86,6 +87,8 @@ public abstract class TransactionType {
 
     private static final byte SUBTYPE_DATA_TAGGED_DATA_UPLOAD = 0;
     private static final byte SUBTYPE_DATA_TAGGED_DATA_EXTEND = 1;
+
+    private static final byte SUBTYPE_CONTRACT = 0;
 
     public static TransactionType findTransactionType(byte type, byte subtype) {
         switch (type) {
@@ -189,6 +192,13 @@ public abstract class TransactionType {
                 }
             case TYPE_SHUFFLING:
                 return ShufflingTransaction.findTransactionType(subtype);
+            case TYPE_CONTRACT:
+                switch (subtype) {
+                    case SUBTYPE_CONTRACT:
+                        return Contract.CONTRACT_ORDINARY;
+                    default:
+                        return null;
+                }
             default:
                 return null;
         }
@@ -3167,6 +3177,92 @@ public abstract class TransactionType {
 
         };
 
+    }
+
+    public static abstract class Contract extends TransactionType {
+
+        // TODO wj modify the fee with gas
+        private static final Fee TAGGED_CONTRACT_FEE = new Fee.SizeBasedFee(Constants.ONE_SS, Constants.ONE_SS / 10) {
+            @Override
+            public int getSize(TransactionImpl transaction, Appendix appendix) {
+                return appendix.getFullSize();
+            }
+        };
+
+        private Contract() {
+        }
+
+        @Override
+        public final byte getType() {
+            return TransactionType.TYPE_CONTRACT;
+        }
+
+        @Override
+        final Fee getBaselineFee(Transaction transaction) {
+            return TAGGED_CONTRACT_FEE;
+        }
+
+        @Override
+        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        }
+
+        @Override
+        public final boolean canHaveRecipient() {
+            return true;
+        }
+
+        @Override
+        public final boolean isPhasingSafe() {
+            return false;
+        }
+
+        @Override
+        public final boolean isPhasable() {
+            return false;
+        }
+
+        public static final TransactionType CONTRACT_ORDINARY = new Contract() {
+
+            @Override
+            public byte getSubtype() {
+                return 0;
+            }
+
+            @Override
+            public AccountLedger.LedgerEvent getLedgerEvent() {
+                return AccountLedger.LedgerEvent.CONTRACT;
+            }
+
+            @Override
+            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+                return new Attachment.Contract(buffer, transactionVersion);
+            }
+
+            @Override
+            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+                return new Attachment.Contract(attachmentData);
+            }
+
+            @Override
+            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+
+            }
+
+            @Override
+            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+
+            }
+
+            @Override
+            public String getName() {
+                return "ContractCreate";
+            }
+        };
     }
 
 }
