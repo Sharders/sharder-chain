@@ -21,12 +21,7 @@
 
 package org.conch.http;
 
-import java.util.Base64;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public enum APIEnum {
     //To preserve compatibility, please add new APIs to the end of the enum.
@@ -290,7 +285,8 @@ public enum APIEnum {
     GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
-    Get_INFO("getInfo",GetInfo.instance);
+    Get_INFO("getInfo", GetInfo.instance),
+    CONTRACT("contract", Contract.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

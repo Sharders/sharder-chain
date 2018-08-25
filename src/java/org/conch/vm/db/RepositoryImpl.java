@@ -152,6 +152,10 @@ public class RepositoryImpl implements Repository {
     public synchronized void addStorageRow(byte[] addr, DataWord key, DataWord value) {
         getOrCreateAccountState(addr);
 
+        if (!storageCache.containsKey(ByteUtil.toHexString(addr))) {
+            storageCache.put(ByteUtil.toHexString(addr), new HashMap<>());
+        }
+
         HashMap<DataWord, DataWord> contractStorage = storageCache.get(ByteUtil.toHexString(addr));
         contractStorage.put(key, value.isZero() ? null : value);
     }
@@ -159,7 +163,9 @@ public class RepositoryImpl implements Repository {
     @Override
     public synchronized DataWord getStorageValue(byte[] addr, DataWord key) {
         AccountState accountState = getAccountState(addr);
-        return accountState == null ? null : storageCache.get(ByteUtil.toHexString(addr)).get(key);
+        return accountState == null ? null :
+                storageCache.containsKey(ByteUtil.toHexString(addr)) && storageCache.get(ByteUtil.toHexString(addr)).containsKey(key) ?
+                        storageCache.get(ByteUtil.toHexString(addr)).get(key) : null;
     }
 
     @Override

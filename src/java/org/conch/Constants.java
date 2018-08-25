@@ -196,6 +196,8 @@ public final class Constants {
     public static final long EPOCH_BEGINNING;
 
     public static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
+    public static int MAX_CONTRACT_SZIE = Integer.MAX_VALUE;
+
 
     //Conch chain begin time
     static {

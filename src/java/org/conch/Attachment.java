@@ -24,6 +24,7 @@ package org.conch;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;
+import org.conch.vm.util.ByteUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -3656,7 +3657,9 @@ public interface Attachment extends Appendix {
             this.isContractCreation = buffer.getLong() == 1;
             this.gasPrice = buffer.getLong();
             this.gasLimit = buffer.getLong();
-            this.data = buffer.compact().array();
+            long length = buffer.getLong();
+            this.data = ByteUtil.parseBytes(buffer.array(), buffer.position(), (int) length);
+            buffer.position(buffer.position() + (int) length);
         }
 
         Contract(JSONObject attachmentData) {
@@ -3676,7 +3679,7 @@ public interface Attachment extends Appendix {
 
         @Override
         int getMySize() {
-            return 24 + data.length;
+            return 32 + data.length;
         }
 
         @Override
@@ -3684,6 +3687,7 @@ public interface Attachment extends Appendix {
             buffer.putLong(isContractCreation ? 1 : 0);
             buffer.putLong(gasPrice);
             buffer.putLong(gasLimit);
+            buffer.putLong(data.length);
             buffer.put(data);
         }
 
@@ -3706,6 +3710,14 @@ public interface Attachment extends Appendix {
 
         public byte[] getData() {
             return data;
+        }
+
+        public long getGasPrice() {
+            return gasPrice;
+        }
+
+        public long getGasLimit() {
+            return gasLimit;
         }
     }
 }

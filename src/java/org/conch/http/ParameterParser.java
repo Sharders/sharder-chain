@@ -21,22 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Alias;
-import org.conch.Appendix;
-import org.conch.Asset;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.Currency;
-import org.conch.CurrencyBuyOffer;
-import org.conch.CurrencySellOffer;
-import org.conch.DigitalGoodsStore;
-import org.conch.HoldingType;
-import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.Poll;
-import org.conch.Shuffling;
-import org.conch.Transaction;
+import org.conch.*;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;
@@ -45,6 +30,7 @@ import org.conch.util.Search;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
@@ -786,6 +772,14 @@ public final class ParameterParser {
             throw new ParameterException(INCORRECT_TAGGED_DATA_FILENAME);
         }
         return new Attachment.TaggedDataUpload(name, description, tags, type, channel, isText, filename, data);
+    }
+
+    public static Attachment.Contract getContract(HttpServletRequest req) throws ParameterException {
+        String isContractCreation = Convert.emptyToNull(req.getParameter("isContractCreation"));
+        long gasPrice = getLong(req, "gasPrice", 1L, Constants.MAX_BALANCE_NQT, true);
+        long gasLimit = getLong(req, "gasLimit", 1L, Constants.MAX_BALANCE_NQT, true);
+        byte[] data = Convert.parseHexString(Convert.emptyToNull(req.getParameter("data")));
+        return new Attachment.Contract(Boolean.parseBoolean(isContractCreation), gasPrice, gasLimit, data);
     }
 
     private ParameterParser() {} // never

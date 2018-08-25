@@ -17,10 +17,8 @@
  */
 package org.conch.vm;
 
-import org.conch.vm.util.RLP;
-import org.conch.vm.util.RLPElement;
-import org.conch.vm.util.RLPItem;
-import org.conch.vm.util.RLPList;
+import org.conch.vm.crypto.HashUtil;
+import org.conch.vm.util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +89,15 @@ public class LogInfo {
 
         byte[] dataEncoded = RLP.encodeElement(data);
         return RLP.encodeList(addressEncoded, RLP.encodeList(topicsEncoded), dataEncoded);
+    }
+
+    public Bloom getBloom() {
+        Bloom ret = Bloom.create(HashUtil.sha3(address));
+        for (DataWord topic : topics) {
+            byte[] topicData = topic.getData();
+            ret.or(Bloom.create(HashUtil.sha3(topicData)));
+        }
+        return ret;
     }
 
     @Override
