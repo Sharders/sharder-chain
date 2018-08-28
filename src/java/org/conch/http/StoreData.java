@@ -24,9 +24,12 @@ package org.conch.http;
 import org.conch.Account;
 import org.conch.Attachment;
 import org.conch.ConchException;
+import org.conch.Constants;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+
+import static org.conch.http.JSONResponses.NOT_ENABLE_ON_LIGHTCLIENT;
 
 public final class StoreData extends CreateTransaction {
 
@@ -39,7 +42,9 @@ public final class StoreData extends CreateTransaction {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
-
+        if (Constants.isLightClient) {
+            throw new ParameterException(NOT_ENABLE_ON_LIGHTCLIENT);
+        }
         Account account = ParameterParser.getSenderAccount(req);
         Attachment.DataStorageUpload dataStorage = ParameterParser.getDataStorage(req);
         return createTransaction(req, account, dataStorage);

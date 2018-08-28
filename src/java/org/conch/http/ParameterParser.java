@@ -825,12 +825,6 @@ public final class ParameterParser {
             data = Convert.toBytes(dataValue);
         }
 
-        // TODO storeRole node to store
-        if (Constants.isLightClient) {
-            // check if can gc repo
-        } else {
-
-        }
         ssid = Ssid.encode(Ssid.Type.IPFS, IpfsService.store(data));
 
         String detectedMimeType = Search.detectMimeType(data, filename);
@@ -863,25 +857,32 @@ public final class ParameterParser {
         }
 
         int existence_height;
-        try {
-            existence_height = Integer.parseInt(existence_heightStr);
-            if (existence_height < Constants.MIN_EXISTENCE_HEIGHT) {
+        if (existence_heightStr == null) {
+            existence_height = 0;
+        } else {
+            try {
+                existence_height = Integer.parseInt(existence_heightStr);
+                if (existence_height != 0 && existence_height < Constants.MIN_EXISTENCE_HEIGHT) {
+                    throw new ParameterException(INCORRECT_EXISTENCE_HEIGHT);
+                }
+            } catch (NumberFormatException e) {
                 throw new ParameterException(INCORRECT_EXISTENCE_HEIGHT);
             }
-        } catch (NumberFormatException e) {
-            throw new ParameterException(INCORRECT_EXISTENCE_HEIGHT);
         }
 
         int replicated_number;
-        try {
-            replicated_number = Integer.parseInt(replicated_numberStr);
-            if (replicated_number < 1) {
+        if (replicated_numberStr == null) {
+            replicated_number = 3;
+        } else {
+            try {
+                replicated_number = Integer.parseInt(replicated_numberStr);
+                if (replicated_number < 3) {
+                    throw new ParameterException(INCORRECT_REPLICATED_NUMBER);
+                }
+            } catch (NumberFormatException e) {
                 throw new ParameterException(INCORRECT_REPLICATED_NUMBER);
             }
-        } catch (NumberFormatException e) {
-            throw new ParameterException(INCORRECT_REPLICATED_NUMBER);
         }
-
         return new Attachment.DataStorageUpload(name, description, type, ssid, channel, existence_height, replicated_number);
     }
 

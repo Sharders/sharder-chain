@@ -167,8 +167,9 @@ public final class JSONResponses {
     public static final JSONStreamAware BIZ_INCORRECT_INDEX = incorrect("firstIndex or lastIndex", "index must be positive and lastIndex-firstIndex must <500");
 
     // for Storage
+    public static final JSONStreamAware NOT_ENABLE_ON_LIGHTCLIENT = error("Light Client not support");
     public static final JSONStreamAware NOT_ENABLE_STORAGE = error("Client must be enable storage to start storing");
-    public static final JSONStreamAware INCORRECT_REPLICATED_NUMBER = incorrect("replicated_number");
+    public static final JSONStreamAware INCORRECT_REPLICATED_NUMBER = incorrect("replicated_number must be greater than 3");
     public static final JSONStreamAware INCORRECT_EXISTENCE_HEIGHT = incorrect("existence_height", "existence_height must be positive number and at least 100");
 
 
