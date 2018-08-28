@@ -317,7 +317,7 @@ public class Daemon{
                 break;
             }
             case FREEBSD:{
-                fileName = "freebsd" + "-" + "amd64" + ".tar.gz";
+                fileName = "freebsd" + "-"  + (isArm()?"arm":(is64bits()?"amd64":"386")) + ".tar.gz";
                 break;
             }
             default: return;
