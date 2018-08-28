@@ -26,15 +26,19 @@ import fr.rhaz.events.EventRunnable;
 import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable;
+import io.ipfs.multiaddr.MultiAddress;
 import io.ipfs.multihash.Multihash;
 import org.conch.storage.Ssid;
 import org.conch.util.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class IpfsService {
     static IPFS ipfs;
+    static Map configs = null;
     public static void init() {
         Daemon daemon = new Daemon();
         EventManager eventman =  daemon.getEventManager();
@@ -49,7 +53,7 @@ public class IpfsService {
         daemon.attach(); // Attach the API
         ipfs = daemon.getIPFS(); // Get the API object
         try {
-            ipfs.config.show();
+            configs = ipfs.config.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,6 +93,19 @@ public class IpfsService {
             Logger.logWarningMessage(e.getMessage());
             return false;
         }
+    }
+
+    public static String myAddress() {
+        try {
+            ArrayList addresses = (ArrayList)ipfs.id().get("Addresses");
+            if (null != addresses) {
+                MultiAddress address = new MultiAddress(addresses.get(addresses.size() -1).toString());
+                return address.getHost();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static class MyEvent extends EventRunnable<DaemonEvent> {

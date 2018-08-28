@@ -101,13 +101,15 @@ public class StorageBackup {
 
     private final DbKey dbKey;
     private final long storerId;
+    private final String storeTarget;
     private final long storeTransaction;
     private final long backupTransaction;
     private int height;
 
-    public StorageBackup(Transaction upload,Transaction backup) {
+    public StorageBackup(Transaction upload,Transaction backup, String target) {
         this.dbKey = storageKeyFactory.newKey(backup.getId());
         this.storerId = backup.getSenderId();
+        this.storeTarget = target;
         this.storeTransaction = upload.getId();
         this.backupTransaction = backup.getId();
         this.height = backup.getHeight();
@@ -116,6 +118,7 @@ public class StorageBackup {
     private StorageBackup(ResultSet rs, DbKey dbKey) throws SQLException {
         this.dbKey = dbKey;
         this.storerId = rs.getLong("storer_id");
+        this.storeTarget = rs.getString("backup_target");
         this.storeTransaction = rs.getLong("store_transaction");
         this.backupTransaction = rs.getLong("backup_transaction");
         this.height = rs.getInt("height");
@@ -124,10 +127,11 @@ public class StorageBackup {
     public static void init(){}
 
     private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO storage_backup (storer_id, store_transaction, backup_transaction,height) "
-                + "VALUES ( ?, ?, ?, ?)")) {
+        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO storage_backup (storer_id, backup_target, store_transaction, backup_transaction,height) "
+                + "VALUES ( ?, ?, ?, ?, ?)")) {
             int i = 0;
             pstmt.setLong(++i, this.storerId);
+            pstmt.setString(++i, this.storeTarget);
             pstmt.setLong(++i, this.storeTransaction);
             pstmt.setLong(++i, this.backupTransaction);
             pstmt.setInt(++i, height);
@@ -135,8 +139,8 @@ public class StorageBackup {
         }
     }
 
-    static void add(Transaction upload,Transaction backup) {
-        StorageBackup storage = new StorageBackup(upload, backup);
+    static void add(Transaction upload,Transaction backup, String target) {
+        StorageBackup storage = new StorageBackup(upload, backup, target);
         storageTable.insert(storage);
         // why need save the timestamp
 //        Timestamp timestamp = new Timestamp(transaction.getId(), transaction.getTimestamp());
@@ -157,7 +161,7 @@ public class StorageBackup {
         return 0;
     }
 
-    public static boolean ownBackupInfo(Long storerId,Long uploadId){
+    public static boolean isOwnerOfStorage(Long storerId, Long uploadId){
         try (Connection connection = Db.db.getConnection();
              PreparedStatement st = connection.prepareStatement("SELECT COUNT(*) FROM STORAGE_BACKUP WHERE store_transaction = ? AND STORER_ID = ?")) {
             st.setLong(1,uploadId);
