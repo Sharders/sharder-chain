@@ -55,6 +55,7 @@ public class Daemon{
     private Thread thread = null;
     private File bin;
     private File swarmKey;
+    private boolean useServerProfile = Conch.getStringProperty("sharder.myAddress").trim().length()>0;
     private String swarmPort = Conch.getStringProperty("sharder.storage.ipfs.swarm.port");
     private String apiPort = Conch.getStringProperty("sharder.storage.ipfs.api.port");
     private String gatewayPort = Conch.getStringProperty("sharder.storage.ipfs.gateway.port");
@@ -167,7 +168,9 @@ public class Daemon{
 
                     new File(getStorePath(), "repo.lock").delete();
 
-                    init = process("init", "-e");
+                    // if nodes with public IPv4 address (servers, VPSes, etc.), disables host and content discovery in local networks.
+                    String profileParam = useServerProfile?"--profile=server":"";
+                    init = process("init", "-e", profileParam);
                     gobble(init);
                     eventman.call(new DaemonEvent(DaemonEventType.INIT_STARTED));
                     init.waitFor();
