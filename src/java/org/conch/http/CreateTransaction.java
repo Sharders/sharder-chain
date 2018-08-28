@@ -241,7 +241,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             }
             if (broadcast) {
                 Conch.getTransactionProcessor().broadcast(transaction);
-                //TODO storage :check this node whether has the storage role to get a replication of data
+                // storage :check this node whether has the storage role to get a replication of data
                 if (StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                     if (Constants.isStorageClient && Storer.getStorer() != null) {
                         Transaction backupTransaction = StorageProcessorImpl.getInstance().createBackupTransaction(transaction);

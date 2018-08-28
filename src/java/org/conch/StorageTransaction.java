@@ -23,10 +23,7 @@ package org.conch;
 
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class StorageTransaction extends TransactionType {
 
@@ -165,7 +162,7 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
-        Attachment.DataStorageBackup parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+        Attachment.DataStorageBackup parseAttachment(JSONObject attachmentData) {
             return new Attachment.DataStorageBackup(attachmentData);
         }
 
@@ -180,7 +177,7 @@ public abstract class StorageTransaction extends TransactionType {
                 throw new ConchException.NotValidException("Invalid storer account: " + attachment.getStorerId());
             }
 
-            if(StorageBackup.ownBackupInfo(transaction.getSenderId(),attachment.getUploadTransaction())){
+            if(StorageBackup.isOwnerOfStorage(transaction.getSenderId(),attachment.getUploadTransaction())){
                 throw new ConchException.NotValidException(transaction.getSenderId() + " has backup " + attachment.getUploadTransaction());
             }
         }
@@ -192,7 +189,7 @@ public abstract class StorageTransaction extends TransactionType {
             if (Storer.getStorer() != null && Storer.getStorer().getAccountId() == transaction.getSenderId()) {
                 StorageProcessorImpl.getInstance().backup(transaction);
             } else {
-                StorageProcessorImpl.getInstance().synsBackTable(transaction);
+                StorageProcessorImpl.getInstance().syncBackTable(transaction);
             }
 
             if (Storer.getStorer() != null) {

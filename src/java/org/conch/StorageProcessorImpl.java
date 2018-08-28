@@ -29,7 +29,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import static java.util.concurrent.Executors.*;
 
 public class StorageProcessorImpl implements StorageProcessor {
 
@@ -38,7 +39,7 @@ public class StorageProcessorImpl implements StorageProcessor {
     public static StorageProcessorImpl getInstance() {
         return instance;
     }
-    private final ExecutorService storageService = Executors.newCachedThreadPool();
+    private final ExecutorService storageService = newCachedThreadPool();
     private static final Map<Long,Map<String,Integer>> backupTask = new HashMap<>();
 
     public static void init(){
@@ -47,7 +48,6 @@ public class StorageProcessorImpl implements StorageProcessor {
 
     @Override
     public Transaction createBackupTransaction(Transaction transaction) {
-        //TODO
         if (Storer.getStorer() != null) {
             Storer storer = Storer.getStorer();
                 Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId());
@@ -72,8 +72,9 @@ public class StorageProcessorImpl implements StorageProcessor {
         if (transaction.getType().getType() == StorageTransaction.TYPE_STORAGE
                 && transaction.getType().getSubtype() == StorageTransaction.STORAGE_UPLOAD.getSubtype()){
             return true;
-        } else
+        } else {
             return false;
+        }
     }
 
     public void setBackupStatus(Transaction transaction) {
@@ -105,6 +106,7 @@ public class StorageProcessorImpl implements StorageProcessor {
         }
     }
 
+    @Override
     public byte[] getData(long transactionId) throws IOException {
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(transactionId);
         Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
@@ -122,14 +124,14 @@ public class StorageProcessorImpl implements StorageProcessor {
             Logger.logErrorMessage(transaction.getId() + " backup failed " ,e);
             return false;
         }
-        StorageBackup.add(storeTransaction,transaction);
+        StorageBackup.add(storeTransaction,transaction, IpfsService.myAddress());
         return true;
     }
 
-    public void synsBackTable(Transaction transaction) {
+    public void syncBackTable(Transaction transaction) {
         Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
-        StorageBackup.add(storeTransaction,transaction);
+        StorageBackup.add(storeTransaction,transaction, IpfsService.myAddress());
     }
 
     public static void addTask(long id,int num){
@@ -160,7 +162,7 @@ public class StorageProcessorImpl implements StorageProcessor {
         if(backupTask.containsKey(storeId)){
             int num = backupTask.get(storeId).get("current") +1;
             backupTask.get(storeId).put("current",num);
-            if(backupTask.get(storeId).get("current") == backupTask.get(storeId).get("need")){
+            if(backupTask.get(storeId).get("current").equals(backupTask.get(storeId).get("need"))){
                 backupTask.remove(storeId);
             }
         }
@@ -174,7 +176,7 @@ public class StorageProcessorImpl implements StorageProcessor {
         Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
         Attachment.DataStorageUpload storeAttachment = (Attachment.DataStorageUpload) storeTransaction.getAttachment();
-        if(Storer.getStorer() == null || !StorageBackup.ownBackupInfo(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
+        if(Storer.getStorer() == null || !StorageBackup.isOwnerOfStorage(Storer.getStorer().getAccountId(),attachment.getUploadTransaction())){
             IpfsService.unpin(Ssid.decode(storeAttachment.getSsid()));
         }
     }
@@ -183,8 +185,9 @@ public class StorageProcessorImpl implements StorageProcessor {
         if (Constants.isStorageClient) {
             Conch.getBlockchainProcessor().addListener(block -> {
                 if(!Conch.getBlockchainProcessor().isDownloading() && !backupTask.isEmpty()){
-                    if(Storer.getStorer() == null)
+                    if(Storer.getStorer() == null){
                         return;
+                    }
                     for(long id : backupTask.keySet()){
                         Transaction storeTransaction = Conch.getBlockchain().getTransaction(id);
                         if(storeTransaction == null){
