@@ -118,7 +118,7 @@ public class StorageBackup {
     private StorageBackup(ResultSet rs, DbKey dbKey) throws SQLException {
         this.dbKey = dbKey;
         this.storerId = rs.getLong("storer_id");
-        this.storeTarget = rs.getString("backup_target");
+        this.storeTarget = rs.getString("store_target");
         this.storeTransaction = rs.getLong("store_transaction");
         this.backupTransaction = rs.getLong("backup_transaction");
         this.height = rs.getInt("height");
@@ -127,7 +127,7 @@ public class StorageBackup {
     public static void init(){}
 
     private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO storage_backup (storer_id, backup_target, store_transaction, backup_transaction,height) "
+        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO storage_backup (storer_id, store_target, store_transaction, backup_transaction,height) "
                 + "VALUES ( ?, ?, ?, ?, ?)")) {
             int i = 0;
             pstmt.setLong(++i, this.storerId);
