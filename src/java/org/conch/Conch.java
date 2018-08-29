@@ -57,7 +57,7 @@ import java.util.Properties;
 
 public final class Conch {
 
-    public static final String VERSION = "0.0.8";
+    public static final String VERSION = "0.0.9";
     public static final String APPLICATION = "COS";
 
     private static volatile Time time = new Time.EpochTime();
