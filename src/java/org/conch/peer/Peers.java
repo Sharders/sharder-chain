@@ -106,6 +106,15 @@ public final class Peers {
     public static final int MIN_COMPRESS_SIZE = 256;
     static final boolean useWebSockets;
     static final int webSocketIdleTimeout;
+
+    public static String getMyAddress() {
+        return myAddress;
+    }
+
+    public static boolean isMyAddressAnnounced() {
+        return myAddress != null;
+    }
+
     static final boolean useProxy = System.getProperty("socksProxyHost") != null || System.getProperty("http.proxyHost") != null;
     static final boolean isGzipEnabled;
 
