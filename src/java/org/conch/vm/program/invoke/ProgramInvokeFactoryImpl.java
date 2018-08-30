@@ -49,7 +49,7 @@ public class ProgramInvokeFactoryImpl implements ProgramInvokeFactory {
         /***         ADDRESS op       ***/
         // YP: Get address of currently executing account.
         // TODO wj Should create one new account
-        byte[] address = contract.isContractCreation() ? ByteUtil.longToBytes(tx.getId()) : ByteUtil.longToBytes(tx.getRecipientId());
+        byte[] address = contract.getReceiveAddress();
 
         /***         ORIGIN op       ***/
         // YP: This is the sender of original transaction; it is never a contract.
@@ -64,10 +64,10 @@ public class ProgramInvokeFactoryImpl implements ProgramInvokeFactory {
 
         /***         GASPRICE op       ***/
         // TODO wj gas set
-        byte[] gasPrice = ByteUtil.longToBytes(1);
+        byte[] gasPrice = ByteUtil.longToBytes(contract.getGasPrice());
 
         /*** GAS op ***/
-        byte[] gas = ByteUtil.longToBytes(100000);
+        byte[] gas = ByteUtil.longToBytes(contract.getGasLimit());
 
         /***        CALLVALUE op      ***/
         byte[] callValue = nullToEmpty(ByteUtil.longToBytes(tx.getAmountNQT()));

@@ -989,7 +989,8 @@ public class TransactionImpl implements Transaction {
         }
 
         if (! type.canHaveRecipient()) {
-            if (recipientId != 0 || getAmountNQT() != 0) {
+            if (recipientId != 0 ||
+                    (getAmountNQT() != 0 && type.getType() != TransactionType.TYPE_CONTRACT)) {
                 throw new ConchException.NotValidException("Transactions of this type must have recipient == 0, amount == 0");
             }
         }

@@ -20,6 +20,8 @@ package org.conch.vm.db;
 
 import com.sun.istack.internal.Nullable;
 import org.conch.Block;
+import org.conch.Db;
+import org.conch.util.Logger;
 import org.conch.vm.DataWord;
 import org.conch.vm.crypto.HashUtil;
 import org.conch.vm.util.ByteArrayWrapper;
@@ -27,6 +29,9 @@ import org.conch.vm.util.ByteUtil;
 import org.conch.vm.util.FastByteComparisons;
 
 import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.*;
 
 /**
@@ -74,11 +79,15 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public synchronized AccountState getAccountState(byte[] addr) {
-        return accountStateCache.get(ByteUtil.toHexString(addr));
+        if (accountStateCache.containsKey(ByteUtil.toHexString(addr)))
+            return accountStateCache.get(ByteUtil.toHexString(addr));
+        else {
+            return Source.getAccountState(ByteUtil.toHexString(addr));
+        }
     }
 
     synchronized AccountState getOrCreateAccountState(byte[] addr) {
-        AccountState ret = accountStateCache.get(ByteUtil.toHexString(addr));
+        AccountState ret = getAccountState(addr);
         if (ret == null) {
             ret = createAccount(addr);
         }
@@ -133,8 +142,15 @@ public class RepositoryImpl implements Repository {
     @Override
     public synchronized byte[] getCode(byte[] addr) {
         byte[] codeHash = getCodeHash(addr);
-        return FastByteComparisons.equal(codeHash, HashUtil.EMPTY_DATA_HASH) ?
-                ByteUtil.EMPTY_BYTE_ARRAY : codeCache.get(ByteUtil.toHexString(codeKey(codeHash, addr)));
+        if (FastByteComparisons.equal(codeHash, HashUtil.EMPTY_DATA_HASH))
+            return ByteUtil.EMPTY_BYTE_ARRAY;
+        else {
+            String codeAddr = ByteUtil.toHexString(codeKey(codeHash, addr));
+            if (codeCache.containsKey(codeAddr))
+                return codeCache.get(codeAddr);
+            else
+                return Source.getBytesValue(codeAddr);
+        }
     }
 
     // composing a key as there can be several contracts with the same code
@@ -152,6 +168,7 @@ public class RepositoryImpl implements Repository {
     public synchronized void addStorageRow(byte[] addr, DataWord key, DataWord value) {
         getOrCreateAccountState(addr);
 
+        getStorageValue(addr, key);
         if (!storageCache.containsKey(ByteUtil.toHexString(addr))) {
             storageCache.put(ByteUtil.toHexString(addr), new HashMap<>());
         }
@@ -163,9 +180,22 @@ public class RepositoryImpl implements Repository {
     @Override
     public synchronized DataWord getStorageValue(byte[] addr, DataWord key) {
         AccountState accountState = getAccountState(addr);
-        return accountState == null ? null :
-                storageCache.containsKey(ByteUtil.toHexString(addr)) && storageCache.get(ByteUtil.toHexString(addr)).containsKey(key) ?
-                        storageCache.get(ByteUtil.toHexString(addr)).get(key) : null;
+        if (accountState == null)
+            return null;
+        if (!storageCache.containsKey(ByteUtil.toHexString(addr)) ||
+                storageCache.get(ByteUtil.toHexString(addr)).containsKey(ByteUtil.toHexString(addr) + key.toString())) {
+            DataWord storage = Source.getStorage(addr, key);
+            if (storage == null)
+                return null;
+            else if (storageCache.containsKey(ByteUtil.toHexString(addr)))
+                storageCache.get(ByteUtil.toHexString(addr)).put(key, storage);
+            else {
+                HashMap<DataWord, DataWord> map = new HashMap<>();
+                map.put(key, storage);
+                storageCache.put(ByteUtil.toHexString(addr), map);
+            }
+        }
+        return storageCache.get(ByteUtil.toHexString(addr)).get(key);
     }
 
     @Override
@@ -207,24 +237,30 @@ public class RepositoryImpl implements Repository {
         // the parent repo would not be in consistent state
         // when no parent just take this instance as a mock
         synchronized (parentSync) {
-            flushStorage();
-            flushCodeCache();
-            flushAccountState();
+            Connection connection = null;
+            Savepoint savepoint = null;
+            try {
+                // TODO wj should be delete ,because the block already has transaction
+                connection = Db.db.getConnection();
+                savepoint = connection.setSavepoint();
+                Source source = new Source();
+                source.flushStorage(storageCache);
+                source.flushCodeCache(codeCache);
+                source.flushAccountState(accountStateCache);
+                connection.commit();
+            } catch (SQLException e) {
+                try {
+                    if (connection == null || savepoint == null) {
+                        Logger.logErrorMessage("save contract data to database error : ", e);
+                        return;
+                    }
+                    connection.rollback(savepoint);
+                } catch (SQLException e1) {
+                    Logger.logErrorMessage("Contract roll back error ", e1);
+                }
+            }
         }
     }
-
-    private void flushStorage() {
-        //storageCache.flush();
-    }
-
-    private void flushCodeCache() {
-        //codeCache.flush();
-    }
-
-    private void flushAccountState() {
-        //accountStateCache.flush();
-    }
-
 
     @Override
     public synchronized void rollback() {

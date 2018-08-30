@@ -19,15 +19,10 @@ package org.conch.vm.execute;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.conch.Attachment;
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Transaction;
+import org.conch.*;
 import org.conch.vm.*;
-import org.conch.vm.crypto.HashUtil;
 import org.conch.vm.db.AccountState;
 import org.conch.vm.db.BlockStore;
-import org.conch.vm.db.ContractDetails;
 import org.conch.vm.db.Repository;
 import org.conch.vm.program.Program;
 import org.conch.vm.program.ProgramResult;
@@ -162,6 +157,8 @@ public class TransactionExecutor {
 
         BigInteger txGasCost = toBI(contract.getGasPrice()).multiply(txGasLimit);
         BigInteger totalCost = toBI(tx.getAmountNQT()).add(txGasCost);
+        // TODO wj balance caculate the sum of AccountState and Account
+        track.addBalance(tx.getSenderPublicKey(), new BigInteger(String.valueOf(Account.getAccount(tx.getSenderId()).getBalanceNQT())));
         BigInteger senderBalance = track.getBalance(tx.getSenderPublicKey());
 
         if (!isCovers(senderBalance, totalCost)) {
@@ -199,7 +196,7 @@ public class TransactionExecutor {
     private void call() {
         if (!readyToExecute) return;
 
-        byte[] targetAddress = ByteUtil.longToBytes(tx.getRecipientId());
+        byte[] targetAddress = contract.getReceiveAddress();
         precompiledContract = PrecompiledContracts.getContractForAddress(new DataWord(targetAddress));
 
         if (precompiledContract != null) {
@@ -250,11 +247,7 @@ public class TransactionExecutor {
     }
 
     private void create() {
-        byte[] newContractAddress = null;
-        if (contract.isContractCreation()) {
-            // TODO wj address create by nonce or new Sharder account
-            newContractAddress = HashUtil.calcNewAddr(tx.getSenderPublicKey(), ByteUtil.longToBytes(1));
-        }
+        byte[] newContractAddress = contract.getReceiveAddress();
 
         AccountState existingAddr = cacheTrack.getAccountState(newContractAddress);
         if (existingAddr != null && existingAddr.isContractExist()) {
@@ -267,6 +260,7 @@ public class TransactionExecutor {
         BigInteger oldBalance = track.getBalance(newContractAddress);
         cacheTrack.createAccount(newContractAddress);
         cacheTrack.addBalance(newContractAddress, oldBalance);
+        // TODO wj eip16?
         cacheTrack.increaseNonce(newContractAddress);
 
         if (isEmpty(contract.getData())) {
@@ -321,11 +315,7 @@ public class TransactionExecutor {
                     } else {
                         // Contract successfully created
                         m_endGas = m_endGas.subtract(BigInteger.valueOf(returnDataGasValue));
-                        byte[] newContractAddress = null;
-                        if (contract.isContractCreation()) {
-                            // TODO wj address create by nonce or new Sharder account
-                            newContractAddress = HashUtil.calcNewAddr(tx.getSenderPublicKey(), ByteUtil.longToBytes(1));
-                        }
+                        byte[] newContractAddress = contract.getReceiveAddress();
                         cacheTrack.saveCode(newContractAddress, result.getHReturn());
                     }
                 }
@@ -364,14 +354,8 @@ public class TransactionExecutor {
 
         cacheTrack.rollback();
 
-        byte[] newContractAddress = null;
-        if (contract.isContractCreation()) {
-            // TODO wj address create by nonce or new Sharder account
-            newContractAddress = HashUtil.calcNewAddr(tx.getSenderPublicKey(), ByteUtil.longToBytes(1));
-        }
         // remove touched account
-        touchedAccounts.remove(
-                contract.isContractCreation() ? newContractAddress : ByteUtil.longToBytes(tx.getRecipientId()));
+        touchedAccounts.remove(contract.getReceiveAddress());
     }
 
     public TransactionExecutionSummary finalization() {
@@ -386,12 +370,7 @@ public class TransactionExecutor {
             // Accumulate refunds for suicides
             result.addFutureRefund(result.getDeleteAccounts().size() * gasCost.getSUICIDE_REFUND());
             long gasRefund = Math.min(result.getFutureRefund(), getGasUsed() / 2);
-            byte[] newContractAddress = null;
-            if (contract.isContractCreation()) {
-                // TODO wj address create by nonce or new Sharder account
-                newContractAddress = HashUtil.calcNewAddr(tx.getSenderPublicKey(), ByteUtil.longToBytes(1));
-            }
-            byte[] addr = contract.isContractCreation() ? newContractAddress : ByteUtil.longToBytes(tx.getRecipientId());
+            byte[] addr = contract.getReceiveAddress();
             m_endGas = m_endGas.add(BigInteger.valueOf(gasRefund));
 
             summaryBuilder
@@ -399,16 +378,6 @@ public class TransactionExecutor {
                     .gasRefund(toBI(gasRefund))
                     .deletedAccounts(result.getDeleteAccounts())
                     .internalTransactions(result.getInternalTransactions());
-
-            ContractDetails contractDetails = track.getContractDetails(addr);
-            if (contractDetails != null) {
-                // TODO
-//                summaryBuilder.storageDiff(track.getContractDetails(addr).getStorage());
-//
-//                if (program != null) {
-//                    summaryBuilder.touchedStorage(contractDetails.getStorage(), program.getStorageDiff());
-//                }
-            }
 
             if (result.getException() != null) {
                 summaryBuilder.markAsFailed();

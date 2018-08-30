@@ -27,6 +27,9 @@ import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.Search;
+import org.conch.vm.crypto.HashUtil;
+import org.conch.vm.db.RepositoryImpl;
+import org.conch.vm.util.ByteUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
@@ -37,6 +40,7 @@ import javax.servlet.http.Part;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -776,10 +780,23 @@ public final class ParameterParser {
 
     public static Attachment.Contract getContract(HttpServletRequest req) throws ParameterException {
         String isContractCreation = Convert.emptyToNull(req.getParameter("isContractCreation"));
+        BigInteger nonce = new RepositoryImpl().getNonce(getPublicKey(req));
+        byte[] receiveAddress;
+        if (!Boolean.parseBoolean(isContractCreation)) {
+            String paramValue = Convert.emptyToNull(req.getParameter("address"));
+            receiveAddress = ByteUtil.hexStringToBytes(paramValue);
+        } else {
+            receiveAddress = HashUtil.calcNewAddr(getPublicKey(req), ByteUtil.bigIntegerToBytes(nonce));
+        }
         long gasPrice = getLong(req, "gasPrice", 1L, Constants.MAX_BALANCE_NQT, true);
         long gasLimit = getLong(req, "gasLimit", 1L, Constants.MAX_BALANCE_NQT, true);
         byte[] data = Convert.parseHexString(Convert.emptyToNull(req.getParameter("data")));
-        return new Attachment.Contract(Boolean.parseBoolean(isContractCreation), gasPrice, gasLimit, data);
+
+        return new Attachment.Contract(Boolean.parseBoolean(isContractCreation), nonce.longValue(), receiveAddress, gasPrice, gasLimit, data);
+    }
+
+    public static long getContractAmountNQT(HttpServletRequest req) throws ParameterException {
+        return getLong(req, "amountNQT", 0L, Constants.MAX_BALANCE_NQT, true);
     }
 
     private ParameterParser() {} // never

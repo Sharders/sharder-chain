@@ -18,6 +18,7 @@
 package org.conch.vm.program;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.conch.Attachment;
 import org.conch.Transaction;
 import org.conch.vm.*;
 import org.conch.vm.crypto.HashUtil;
@@ -407,6 +408,8 @@ public class Program {
         byte[] nonce = getStorage().getNonce(senderAddress).toByteArray();
         byte[] newAddress = HashUtil.calcNewAddr(getOwnerAddress().getLast20Bytes(), nonce);
 
+        logger.info("+++++++++New contract address ia " + ByteUtil.toHexString(newAddress));
+
         AccountState existingAddr = getStorage().getAccountState(newAddress);
         boolean contractAlreadyExists = existingAddr != null && existingAddr.isContractExist();
 
@@ -603,10 +606,11 @@ public class Program {
                 stackPushOne();
             }
 
+            Attachment.Contract contract = (Attachment.Contract) transaction.getAttachment();
+            Attachment.Contract internalContract = (Attachment.Contract) internalTx.getAttachment();
             if (byTestingSuite()) {
                 logger.info("Testing run, skipping storage diff listener");
-                // TODO wj modified from address byte[] to long value
-            } else if (transaction.getRecipientId() == internalTx.getRecipientId()) {
+            } else if (Arrays.equals(contract.getReceiveAddress(), internalContract.getReceiveAddress())) {
                 storageDiffListener.merge(program.getStorageDiff());
             }
         } else {

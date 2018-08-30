@@ -3648,6 +3648,8 @@ public interface Attachment extends Appendix {
 
     final class Contract extends AbstractAttachment {
         private final boolean isContractCreation;
+        private final long nonce;
+        private final byte[] receiveAddress;
         private final long gasPrice;
         private final long gasLimit;
         private final byte[] data;
@@ -3655,9 +3657,13 @@ public interface Attachment extends Appendix {
         Contract(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.isContractCreation = buffer.getLong() == 1;
+            this.nonce = buffer.getLong();
+            long length = buffer.getLong();
+            this.receiveAddress = ByteUtil.parseBytes(buffer.array(), buffer.position(), (int) length);
+            buffer.position(buffer.position() + (int) length);
             this.gasPrice = buffer.getLong();
             this.gasLimit = buffer.getLong();
-            long length = buffer.getLong();
+            length = buffer.getLong();
             this.data = ByteUtil.parseBytes(buffer.array(), buffer.position(), (int) length);
             buffer.position(buffer.position() + (int) length);
         }
@@ -3665,13 +3671,17 @@ public interface Attachment extends Appendix {
         Contract(JSONObject attachmentData) {
             super(attachmentData);
             this.isContractCreation = "true".equals(attachmentData.get("isContractCreation"));
+            this.nonce = (long) attachmentData.get("nonce");
+            this.receiveAddress = ByteUtil.hexStringToBytes((String) attachmentData.get("receiveAddress"));
             this.gasPrice = (long) attachmentData.get("gasPrice");
             this.gasLimit = (long) attachmentData.get("gasLimit");
-            this.data = (byte[]) attachmentData.get("data");
+            this.data = ByteUtil.hexStringToBytes((String) attachmentData.get("data"));
         }
 
-        public Contract(boolean isContractCreation, long gasPrice, long gasLimit, byte[] data) {
+        public Contract(boolean isContractCreation, long nonce, byte[] receiveAddress, long gasPrice, long gasLimit, byte[] data) {
             this.isContractCreation = isContractCreation;
+            this.nonce = nonce;
+            this.receiveAddress = receiveAddress;
             this.gasPrice = gasPrice;
             this.gasLimit = gasLimit;
             this.data = data;
@@ -3679,12 +3689,15 @@ public interface Attachment extends Appendix {
 
         @Override
         int getMySize() {
-            return 32 + data.length;
+            return 48 + receiveAddress.length + data.length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(isContractCreation ? 1 : 0);
+            buffer.putLong(nonce);
+            buffer.putLong(receiveAddress.length);
+            buffer.put(receiveAddress);
             buffer.putLong(gasPrice);
             buffer.putLong(gasLimit);
             buffer.putLong(data.length);
@@ -3694,9 +3707,11 @@ public interface Attachment extends Appendix {
         @Override
         void putMyJSON(JSONObject attachment) {
             attachment.put("isContractCreation", isContractCreation);
+            attachment.put("nonce", nonce);
+            attachment.put("receiveAddress", ByteUtil.toHexString(receiveAddress));
             attachment.put("gasPrice", gasPrice);
             attachment.put("gasLimit", gasLimit);
-            attachment.put("data", data);
+            attachment.put("data", ByteUtil.toHexString(data));
         }
 
         @Override
@@ -3718,6 +3733,14 @@ public interface Attachment extends Appendix {
 
         public long getGasLimit() {
             return gasLimit;
+        }
+
+        public long getNonce() {
+            return nonce;
+        }
+
+        public byte[] getReceiveAddress() {
+            return receiveAddress;
         }
     }
 }

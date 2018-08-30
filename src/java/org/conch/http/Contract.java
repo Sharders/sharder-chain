@@ -13,15 +13,14 @@ public final class Contract extends CreateTransaction {
 
     private Contract() {
         super(new APITag[]{APITag.CONTRACT, APITag.CREATE_TRANSACTION},
-                "isContractCreation", "recipient", "amountNQT", "gasPrice", "gasLimit", "data");
+                "isContractCreation", "address", "amountNQT", "gasPrice", "gasLimit", "data");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
         Account account = ParameterParser.getSenderAccount(req);
-        long recipient = ParameterParser.getAccountId(req, "recipient", true);
-        long amountNQT = ParameterParser.getAmountNQT(req);
+        long amountNQT = ParameterParser.getContractAmountNQT(req);
         Attachment.Contract contract = ParameterParser.getContract(req);
-        return createTransaction(req, account, recipient, amountNQT, contract);
+        return createTransaction(req, account, 0, amountNQT, contract);
     }
 }

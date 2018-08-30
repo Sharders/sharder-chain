@@ -1190,6 +1190,8 @@ class ConchDbVersion extends DbVersion {
             case 489:
                 apply("CREATE INDEX IF NOT EXISTS asset_dividend_height_idx ON asset_dividend (height)");
             case 490:
+                apply("CREATE TABLE IF NOT EXISTS CONTRACT(KEY varchar PRIMARY KEY NOT NULL,VALUE varchar);");
+            case 491:
                 return;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate

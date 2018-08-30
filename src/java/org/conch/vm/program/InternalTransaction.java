@@ -48,14 +48,13 @@ public class InternalTransaction extends TransactionImpl {
         super(builder, null);
     }
 
-    public static BuilderImpl getBuilder(DataWord gasPrice, DataWord gasLimit, byte[] sendAddress,
+    public static BuilderImpl getBuilder(byte[] nonce, DataWord gasPrice, DataWord gasLimit, byte[] sendAddress,
                                          byte[] receiveAddress, byte[] value, byte[] data) {
-        Attachment.Contract attachment = new Attachment.Contract(false, gasPrice.longValue(), gasLimit.longValue(), data);
+        Attachment.Contract attachment = new Attachment.Contract(false, ByteUtil.byteArrayToLong(nonce), receiveAddress, gasPrice.longValue(), gasLimit.longValue(), data);
         BuilderImpl builder = new BuilderImpl((byte) 1, sendAddress,
                 ByteUtil.byteArrayToLong(value) * Constants.ONE_SS, 0, (short) 60,
                 attachment)
-                .timestamp(Conch.getEpochTime())
-                .recipientId(ByteUtil.byteArrayToLong(receiveAddress));
+                .timestamp(Conch.getEpochTime());
         return builder;
     }
 
@@ -113,12 +112,12 @@ public class InternalTransaction extends TransactionImpl {
             byte[] nonce = getNonce();
             boolean isEmptyNonce = isEmpty(nonce) || (getLength(nonce) == 1 && nonce[0] == 0);
 
+            Attachment.Contract contract = (Attachment.Contract) getAttachment();
             this.rlpEncoded = RLP.encodeList(
                     RLP.encodeElement(isEmptyNonce ? null : nonce),
                     RLP.encodeElement(this.parentHash),
                     RLP.encodeElement(getSender()),
-                    // TODO wj !!!!!!!!!!!!!!!address?
-                    RLP.encodeElement(ByteUtil.longToBytes(getRecipientId())),
+                    RLP.encodeElement(contract.getReceiveAddress()),
                     RLP.encodeString(this.note),
                     encodeInt(this.deep),
                     encodeInt(this.index),

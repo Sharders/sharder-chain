@@ -163,7 +163,7 @@ public class ProgramResult {
     public InternalTransaction addInternalTransaction(byte[] parentHash, int deep, byte[] nonce, DataWord gasPrice, DataWord gasLimit,
                                                       byte[] senderAddress, byte[] receiveAddress, byte[] value, byte[] data, String note) {
         // TODO wj modified
-        TransactionImpl.BuilderImpl builder = InternalTransaction.getBuilder(gasPrice, gasLimit, senderAddress, receiveAddress, value, data);
+        TransactionImpl.BuilderImpl builder = InternalTransaction.getBuilder(nonce, gasPrice, gasLimit, senderAddress, receiveAddress, value, data);
         InternalTransaction transaction = null;
         try {
             transaction = new InternalTransaction(builder);

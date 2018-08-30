@@ -30,8 +30,10 @@ import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.vm.db.BlockStoreDummy;
 import org.conch.vm.db.RepositoryImpl;
+import org.conch.vm.execute.TransactionExecutionSummary;
 import org.conch.vm.execute.TransactionExecutor;
 import org.conch.vm.program.invoke.ProgramInvokeFactoryImpl;
+import org.conch.vm.util.ByteUtil;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -3217,7 +3219,7 @@ public abstract class TransactionType {
 
         @Override
         public final boolean canHaveRecipient() {
-            return true;
+            return false;
         }
 
         @Override
@@ -3261,16 +3263,17 @@ public abstract class TransactionType {
             void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 // TODO wj need to modify,just for test
                 byte[] publicKey = Conch.getBlockchain().getLastBlock().getGeneratorPublicKey();
-
+                RepositoryImpl repository = new RepositoryImpl();
                 TransactionExecutor executor = new TransactionExecutor
-                        (transaction, publicKey, new RepositoryImpl(), new BlockStoreDummy(),
-                                new ProgramInvokeFactoryImpl(), Conch.getBlockchain().getLastBlock())
-                        .setLocalCall(true);
+                        (transaction, publicKey, repository, new BlockStoreDummy(),
+                                new ProgramInvokeFactoryImpl(), Conch.getBlockchain().getLastBlock());
 
                 executor.init();
                 executor.execute();
                 executor.go();
-                executor.finalization();
+                TransactionExecutionSummary summary = executor.finalization();
+                repository.commit();
+                Logger.logDebugMessage("Contract result is " + ByteUtil.toHexString(summary.getResult()));
             }
 
             @Override
