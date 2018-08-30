@@ -44,7 +44,7 @@ public class StorageBackup {
     };
 
     private static final PersistentDbTable<StorageBackup> storageTable = new PersistentDbTable<StorageBackup>(
-            "storage_backup", storageKeyFactory, "name,description,tags") {
+            "storage_backup", storageKeyFactory, "storer_id,store_transaction") {
 
         @Override
         protected StorageBackup load(Connection con, ResultSet rs, DbKey dbKey) throws SQLException {
@@ -58,7 +58,7 @@ public class StorageBackup {
 
         @Override
         protected String defaultSort() {
-            return " ORDER BY block_timestamp DESC, height DESC, db_id DESC ";
+            return " ORDER BY height DESC, db_id DESC ";
         }
 
     };
@@ -83,8 +83,7 @@ public class StorageBackup {
     }
 
     public static DbIterator<StorageBackup> searchData(String query, String channel, long accountId, int from, int to) {
-        return storageTable.search(query, getDbClause(channel, accountId), from, to,
-                " ORDER BY ft.score DESC, storage.db_id DESC ");
+        return storageTable.search(query, getDbClause(channel, accountId), from, to);
     }
 
     private static DbClause getDbClause(String channel, long accountId) {
