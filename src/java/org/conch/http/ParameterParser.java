@@ -780,7 +780,8 @@ public final class ParameterParser {
 
     public static Attachment.Contract getContract(HttpServletRequest req) throws ParameterException {
         String isContractCreation = Convert.emptyToNull(req.getParameter("isContractCreation"));
-        BigInteger nonce = new RepositoryImpl().getNonce(getPublicKey(req));
+        byte[] state = Conch.getBlockchain().getLastBlock().getStateRoot();
+        BigInteger nonce = new RepositoryImpl(state).getNonce(getPublicKey(req));
         byte[] receiveAddress;
         if (!Boolean.parseBoolean(isContractCreation)) {
             String paramValue = Convert.emptyToNull(req.getParameter("address"));

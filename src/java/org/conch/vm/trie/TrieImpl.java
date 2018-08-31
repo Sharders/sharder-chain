@@ -20,6 +20,8 @@ package org.conch.vm.trie;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.text.StrBuilder;
 import org.conch.vm.crypto.HashUtil;
+import org.conch.vm.db.SourceI;
+import org.conch.vm.db.SourceImpl;
 import org.conch.vm.util.FastByteComparisons;
 import org.conch.vm.util.RLP;
 import org.slf4j.Logger;
@@ -27,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -118,7 +119,6 @@ public class TrieImpl implements Trie<byte[]> {
         public byte[] encode() {
             return encode(1, true);
         }
-
         private byte[] encode(final int depth, boolean forceHash) {
             if (!dirty) {
                 return hash != null ? encodeElement(hash) : rlp;
@@ -290,7 +290,6 @@ public class TrieImpl implements Trie<byte[]> {
             }
             return cnt > 0 ? idx : (branchNodeGetValue() == null ? -1 : 16);
         }
-
         public boolean branchNodeCanCompact() {
             parse();
             assert getType() == NodeType.BranchNode;
@@ -319,7 +318,6 @@ public class TrieImpl implements Trie<byte[]> {
             assert getType() == NodeType.KVNodeValue;
             return (byte[]) children[1];
         }
-
         public Node kvNodeSetValue(byte[] value) {
             parse();
             assert getType() == NodeType.KVNodeValue;
@@ -435,7 +433,7 @@ public class TrieImpl implements Trie<byte[]> {
         void doOnValue(byte[] nodeHash, Node node, byte[] key, byte[] value);
     }
 
-    private HashMap<byte[], byte[]> cache;
+    private SourceI<byte[], byte[]> cache;
     private Node root;
     private boolean async = true;
 
@@ -444,14 +442,14 @@ public class TrieImpl implements Trie<byte[]> {
     }
 
     public TrieImpl(byte[] root) {
-        this(new HashMap<byte[], byte[]>(), root);
+        this(new SourceImpl(), root);
     }
 
-    public TrieImpl(HashMap<byte[], byte[]> cache) {
+    public TrieImpl(SourceI<byte[], byte[]> cache) {
         this(cache, null);
     }
 
-    public TrieImpl(HashMap<byte[], byte[]> cache, byte[] root) {
+    public TrieImpl(SourceI<byte[], byte[]> cache, byte[] root) {
         this.cache = cache;
         setRoot(root);
     }
@@ -479,20 +477,18 @@ public class TrieImpl implements Trie<byte[]> {
         return root != null && root.resolveCheck();
     }
 
-    public HashMap<byte[], byte[]> getCache() {
+    public SourceI<byte[], byte[]> getCache() {
         return cache;
     }
 
     private byte[] getHash(byte[] hash) {
         return cache.get(hash);
     }
-
     private void addHash(byte[] hash, byte[] ret) {
         cache.put(hash, ret);
     }
-
     private void deleteHash(byte[] hash) {
-        cache.remove(hash);
+        cache.delete(hash);
     }
 
 
@@ -580,6 +576,7 @@ public class TrieImpl implements Trie<byte[]> {
         }
     }
 
+    @Override
     public void delete(byte[] key) {
         TrieKey k = TrieKey.fromNormal(key);
         if (root != null) {
@@ -662,9 +659,10 @@ public class TrieImpl implements Trie<byte[]> {
         throw new RuntimeException("Not implemented yet");
     }
 
+    @Override
     public boolean flush() {
         if (root != null && root.dirty) {
-            // persist all dirty nodes to underlying Source
+            // persist all dirty nodes to underlying SourceAdapter
             encode();
             // release all Trie Node instances for GC
             root = new Node(root.hash);
@@ -688,11 +686,9 @@ public class TrieImpl implements Trie<byte[]> {
     public String dumpStructure() {
         return root == null ? "<empty>" : root.dumpStruct("", "");
     }
-
     public String dumpTrie() {
         return dumpTrie(true);
     }
-
     public String dumpTrie(boolean compact) {
         if (root == null) return "<empty>";
         encode();

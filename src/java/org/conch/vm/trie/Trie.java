@@ -18,10 +18,12 @@
 package org.conch.vm.trie;
 
 
+import org.conch.vm.db.SourceI;
+
 /**
  * Created by Anton Nashatyrev on 05.10.2016.
  */
-public interface Trie<V> {
+public interface Trie<V> extends SourceI<byte[], V> {
 
     byte[] getRootHash();
 
@@ -31,33 +33,4 @@ public interface Trie<V> {
      * Recursively delete all nodes from root
      */
     void clear();
-
-    /**
-     * Puts key-value pair into source
-     */
-    void put(byte[] key, V val);
-
-    /**
-     * Gets a value by its key
-     *
-     * @return value or <null/> if no such key in the source
-     */
-    V get(byte[] key);
-
-    /**
-     * Deletes the key-value pair from the source
-     */
-    void delete(byte[] key);
-
-    /**
-     * If this source has underlying level source then all
-     * changes collected in this source are flushed into the
-     * underlying source.
-     * The implementation may do 'cascading' flush, i.e. call
-     * flush() on the underlying Source
-     *
-     * @return true if any changes we flushed, false if the underlying
-     * Source didn't change
-     */
-    boolean flush();
 }

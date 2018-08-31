@@ -70,4 +70,5 @@ public interface Block {
 
     JSONObject getJSONObject();
 
+    byte[] getStateRoot();
 }

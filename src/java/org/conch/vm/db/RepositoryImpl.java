@@ -24,6 +24,9 @@ import org.conch.Db;
 import org.conch.util.Logger;
 import org.conch.vm.DataWord;
 import org.conch.vm.crypto.HashUtil;
+import org.conch.vm.trie.SecureTrie;
+import org.conch.vm.trie.Trie;
+import org.conch.vm.trie.TrieImpl;
 import org.conch.vm.util.ByteArrayWrapper;
 import org.conch.vm.util.ByteUtil;
 import org.conch.vm.util.FastByteComparisons;
@@ -45,23 +48,31 @@ public class RepositoryImpl implements Repository {
     protected HashMap<String, byte[]> codeCache;
     protected HashMap<String, HashMap<DataWord, DataWord>> storageCache;
 
+    protected Trie<byte[]> stateTrie;
+
 
     public RepositoryImpl() {
+        this(null);
+    }
+
+    public RepositoryImpl(byte[] root) {
+        stateTrie = new SecureTrie(root);
         this.accountStateCache = new HashMap<>();
         this.codeCache = new HashMap<>();
         this.storageCache = new HashMap<>();
     }
 
     public RepositoryImpl(HashMap<String, AccountState> accountStateCache, HashMap<String, byte[]> codeCache,
-                          HashMap<String, HashMap<DataWord, DataWord>> storageCache) {
-        init(accountStateCache, codeCache, storageCache);
+                          HashMap<String, HashMap<DataWord, DataWord>> storageCache, byte[] root) {
+        init(accountStateCache, codeCache, storageCache, root);
     }
 
     protected void init(HashMap<String, AccountState> accountStateCache, HashMap<String, byte[]> codeCache,
-                        HashMap<String, HashMap<DataWord, DataWord>> storageCache) {
+                        HashMap<String, HashMap<DataWord, DataWord>> storageCache, byte[] root) {
         this.accountStateCache = accountStateCache;
         this.codeCache = codeCache;
         this.storageCache = storageCache;
+        this.stateTrie = new SecureTrie(root);
     }
 
     @Override
@@ -82,7 +93,10 @@ public class RepositoryImpl implements Repository {
         if (accountStateCache.containsKey(ByteUtil.toHexString(addr)))
             return accountStateCache.get(ByteUtil.toHexString(addr));
         else {
-            return Source.getAccountState(ByteUtil.toHexString(addr));
+            AccountState accountState = SourceAdapter.getAccountState(stateTrie, addr);
+            if (accountState != null)
+                accountStateCache.put(ByteUtil.toHexString(addr), accountState);
+            return accountState;
         }
     }
 
@@ -149,7 +163,7 @@ public class RepositoryImpl implements Repository {
             if (codeCache.containsKey(codeAddr))
                 return codeCache.get(codeAddr);
             else
-                return Source.getBytesValue(codeAddr);
+                return SourceAdapter.getBytesValue(codeAddr);
         }
     }
 
@@ -183,8 +197,8 @@ public class RepositoryImpl implements Repository {
         if (accountState == null)
             return null;
         if (!storageCache.containsKey(ByteUtil.toHexString(addr)) ||
-                storageCache.get(ByteUtil.toHexString(addr)).containsKey(ByteUtil.toHexString(addr) + key.toString())) {
-            DataWord storage = Source.getStorage(addr, key);
+                storageCache.get(ByteUtil.toHexString(addr)).containsKey(key)) {
+            DataWord storage = SourceAdapter.getStorage(this, addr, key);
             if (storage == null)
                 return null;
             else if (storageCache.containsKey(ByteUtil.toHexString(addr)))
@@ -220,14 +234,9 @@ public class RepositoryImpl implements Repository {
         HashMap<String, HashMap<DataWord, DataWord>> trackStorageCache = new HashMap<>();
         trackStorageCache.putAll(storageCache);
 
-        RepositoryImpl ret = new RepositoryImpl(trackAccountStateCache, trackCodeCache, trackStorageCache);
+        RepositoryImpl ret = new RepositoryImpl(trackAccountStateCache, trackCodeCache, trackStorageCache, stateTrie.getRootHash());
         ret.parent = this;
         return ret;
-    }
-
-    @Override
-    public synchronized Repository getSnapshotTo(byte[] root) {
-        return parent.getSnapshotTo(root);
     }
 
     @Override
@@ -243,11 +252,16 @@ public class RepositoryImpl implements Repository {
                 // TODO wj should be delete ,because the block already has transaction
                 connection = Db.db.getConnection();
                 savepoint = connection.setSavepoint();
-                Source source = new Source();
-                source.flushStorage(storageCache);
-                source.flushCodeCache(codeCache);
-                source.flushAccountState(accountStateCache);
+                SourceAdapter sourceAdapter = new SourceAdapter();
+                sourceAdapter.flushStorage(this, storageCache);
+                sourceAdapter.flushCodeCache(codeCache);
+
+                sourceAdapter.flushAccountState(stateTrie, accountStateCache);
                 connection.commit();
+
+                codeCache.clear();
+                storageCache.clear();
+                accountStateCache.clear();
             } catch (SQLException e) {
                 try {
                     if (connection == null || savepoint == null) {
@@ -260,6 +274,9 @@ public class RepositoryImpl implements Repository {
                 }
             }
         }
+
+        stateTrie.flush();
+        // TODO wj delete trie cache flush? because SourceImpl has no cache
     }
 
     @Override
@@ -267,17 +284,8 @@ public class RepositoryImpl implements Repository {
         // nothing to do, will be GCed
     }
 
-    @Override
-    public byte[] getRoot() {
-        throw new RuntimeException("Not supported");
-    }
-
     public synchronized String getTrieDump() {
         return dumpStateTrie();
-    }
-
-    public String dumpStateTrie() {
-        throw new RuntimeException("Not supported");
     }
 
     class ContractDetailsImpl implements ContractDetails {
@@ -415,18 +423,7 @@ public class RepositoryImpl implements Repository {
     }
 
     @Override
-    public void flush() {
-        throw new RuntimeException("Not supported");
-    }
-
-
-    @Override
     public void flushNoReconnect() {
-        throw new RuntimeException("Not supported");
-    }
-
-    @Override
-    public void syncToRoot(byte[] root) {
         throw new RuntimeException("Not supported");
     }
 
@@ -464,6 +461,36 @@ public class RepositoryImpl implements Repository {
     @Override
     public void loadAccount(byte[] addr, HashMap<ByteArrayWrapper, AccountState> cacheAccounts, HashMap<ByteArrayWrapper, ContractDetails> cacheDetails) {
         throw new RuntimeException("Not supported");
+    }
+
+    @Override
+    public synchronized byte[] getRoot() {
+        this.commit();
+
+        return stateTrie.getRootHash();
+    }
+
+    @Override
+    public synchronized void flush() {
+        commit();
+    }
+
+    @Override
+    public Repository getSnapshotTo(byte[] root) {
+        return new RepositoryImpl(root);
+    }
+
+    public synchronized String dumpStateTrie() {
+        return ((TrieImpl) stateTrie).dumpTrie();
+    }
+
+    @Override
+    public synchronized void syncToRoot(byte[] root) {
+        stateTrie.setRoot(root);
+    }
+
+    protected TrieImpl createTrie(SourceI<byte[], byte[]> trieCache, byte[] root) {
+        return new SecureTrie(trieCache, root);
     }
 
 }

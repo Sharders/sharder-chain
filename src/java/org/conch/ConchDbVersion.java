@@ -1192,6 +1192,8 @@ class ConchDbVersion extends DbVersion {
             case 490:
                 apply("CREATE TABLE IF NOT EXISTS CONTRACT(KEY varchar PRIMARY KEY NOT NULL,VALUE varchar);");
             case 491:
+                apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS state_root varchar NOT NULL");
+            case 492:
                 return;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate

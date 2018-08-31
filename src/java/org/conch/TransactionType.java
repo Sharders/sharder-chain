@@ -28,12 +28,6 @@ import org.conch.Attachment.AbstractAttachment;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
-import org.conch.vm.db.BlockStoreDummy;
-import org.conch.vm.db.RepositoryImpl;
-import org.conch.vm.execute.TransactionExecutionSummary;
-import org.conch.vm.execute.TransactionExecutor;
-import org.conch.vm.program.invoke.ProgramInvokeFactoryImpl;
-import org.conch.vm.util.ByteUtil;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -3262,7 +3256,7 @@ public abstract class TransactionType {
             @Override
             void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 // TODO wj need to modify,just for test
-                byte[] publicKey = Conch.getBlockchain().getLastBlock().getGeneratorPublicKey();
+                /*byte[] publicKey = Conch.getBlockchain().getLastBlock().getGeneratorPublicKey();
                 RepositoryImpl repository = new RepositoryImpl();
                 TransactionExecutor executor = new TransactionExecutor
                         (transaction, publicKey, repository, new BlockStoreDummy(),
@@ -3273,7 +3267,7 @@ public abstract class TransactionType {
                 executor.go();
                 TransactionExecutionSummary summary = executor.finalization();
                 repository.commit();
-                Logger.logDebugMessage("Contract result is " + ByteUtil.toHexString(summary.getResult()));
+                Logger.logDebugMessage("Contract result is " + ByteUtil.toHexString(summary.getResult()));*/
             }
 
             @Override

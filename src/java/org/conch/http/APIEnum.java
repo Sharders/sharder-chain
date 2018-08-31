@@ -286,7 +286,8 @@ public enum APIEnum {
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
     Get_INFO("getInfo", GetInfo.instance),
-    CONTRACT("contract", Contract.instance);
+    CONTRACT("contract", Contract.instance),
+    CONTRACT_INFO("contractInfo", ContractInfo.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

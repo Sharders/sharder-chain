@@ -23,20 +23,11 @@ package org.conch;
 
 import org.conch.db.DbUtils;
 import org.conch.util.Logger;
+import org.conch.vm.util.ByteUtil;
 
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.sql.*;
+import java.util.*;
 
 final class BlockDb {
 
@@ -244,7 +235,8 @@ final class BlockDb {
             byte[] blockSignature = rs.getBytes("block_signature");
             byte[] payloadHash = rs.getBytes("payload_hash");
             long id = rs.getLong("id");
-            return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+            byte[] state = ByteUtil.hexStringToBytes(rs.getString("state_root"));
+            return new BlockImpl(state, version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                     generatorId, generationSignature, blockSignature, previousBlockHash,
                     cumulativeDifficulty, baseTarget, nextBlockId, height, id, loadTransactions ? TransactionDb.findBlockTransactions(con, id) : null);
         } catch (SQLException e) {
@@ -256,8 +248,8 @@ final class BlockDb {
         try {
             try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
                     + "total_amount, total_fee, payload_length, previous_block_hash, cumulative_difficulty, "
-                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id) "
-                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id,state_root) "
+                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                 int i = 0;
                 pstmt.setLong(++i, block.getId());
                 pstmt.setInt(++i, block.getVersion());
@@ -274,6 +266,7 @@ final class BlockDb {
                 pstmt.setBytes(++i, block.getBlockSignature());
                 pstmt.setBytes(++i, block.getPayloadHash());
                 pstmt.setLong(++i, block.getGeneratorId());
+                pstmt.setString(++i, ByteUtil.toHexString(block.getStateRoot()));
                 pstmt.executeUpdate();
                 TransactionDb.saveTransactions(con, block.getTransactions());
             }

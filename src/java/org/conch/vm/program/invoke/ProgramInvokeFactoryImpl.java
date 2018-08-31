@@ -19,6 +19,7 @@ package org.conch.vm.program.invoke;
 
 import org.conch.Attachment;
 import org.conch.Block;
+import org.conch.Conch;
 import org.conch.Transaction;
 import org.conch.vm.DataWord;
 import org.conch.vm.db.BlockStore;
@@ -88,7 +89,12 @@ public class ProgramInvokeFactoryImpl implements ProgramInvokeFactory {
         long timestamp = block.getTimestamp();
 
         /*** NUMBER  op  ***/
-        long number = block.getHeight();
+        long number = 0;
+        try {
+            number = block.getHeight();
+        } catch (IllegalStateException e) {
+            number = Conch.getBlockchain().getBlock(block.getPreviousBlockId()).getHeight();
+        }
 
         /*** DIFFICULTY  op  ***/
         byte[] difficulty = block.getCumulativeDifficulty().toByteArray();

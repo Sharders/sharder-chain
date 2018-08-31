@@ -17,8 +17,7 @@
  */
 package org.conch.vm.trie;
 
-
-import java.util.HashMap;
+import org.conch.vm.db.SourceI;
 
 import static org.conch.vm.crypto.HashUtil.sha3;
 import static org.conch.vm.util.ByteUtil.EMPTY_BYTE_ARRAY;
@@ -29,11 +28,11 @@ public class SecureTrie extends TrieImpl {
         super(root);
     }
 
-    public SecureTrie(HashMap<byte[], byte[]> cache) {
+    public SecureTrie(SourceI<byte[], byte[]> cache) {
         super(cache, null);
     }
 
-    public SecureTrie(HashMap<byte[], byte[]> cache, byte[] root) {
+    public SecureTrie(SourceI<byte[], byte[]> cache, byte[] root) {
         super(cache, root);
     }
 

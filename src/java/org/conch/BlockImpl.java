@@ -59,12 +59,14 @@ final class BlockImpl implements Block {
     private volatile String stringId = null;
     private volatile long generatorId;
     private volatile byte[] bytes = null;
+    private byte[] stateRoot;
 
 
-    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+    BlockImpl(byte[] stateRoot, int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, String secretPhrase) {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 generatorPublicKey, generationSignature, null, previousBlockHash, transactions);
+        this.stateRoot = stateRoot;
         blockSignature = Crypto.sign(bytes(), secretPhrase);
         bytes = null;
     }
@@ -88,15 +90,16 @@ final class BlockImpl implements Block {
     }
 
     //just for genesis block
-    BlockImpl(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+    BlockImpl(byte[] state, long blockId, int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
         this(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
        generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
         this.id= blockId;
+        this.stateRoot = state;
     }
 
 
-    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
+    BlockImpl(byte[] stateRoot, int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
               byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id,
               List<TransactionImpl> blockTransactions) {
@@ -109,6 +112,7 @@ final class BlockImpl implements Block {
         this.id = id;
         this.generatorId = generatorId;
         this.blockTransactions = blockTransactions;
+        this.stateRoot = stateRoot;
     }
 
     @Override
@@ -273,6 +277,11 @@ final class BlockImpl implements Block {
         return json;
     }
 
+    @Override
+    public byte[] getStateRoot() {
+        return stateRoot;
+    }
+
     static BlockImpl parseBlock(JSONObject blockData) throws ConchException.NotValidException {
         try {
             int version = ((Long) blockData.get("version")).intValue();
@@ -309,7 +318,7 @@ final class BlockImpl implements Block {
 
     byte[] bytes() {
         if (bytes == null) {
-            ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + (blockSignature != null ? 64 : 0));
+            ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + stateRoot.length + (blockSignature != null ? 64 : 0));
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             buffer.putInt(version);
             buffer.putInt(timestamp);
@@ -329,6 +338,7 @@ final class BlockImpl implements Block {
             if (version > 1) {
                 buffer.put(previousBlockHash);
             }
+            buffer.put(stateRoot);
             if (blockSignature != null) {
                 buffer.put(blockSignature);
             }
