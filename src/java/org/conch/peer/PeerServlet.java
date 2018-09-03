@@ -159,7 +159,21 @@ public final class PeerServlet extends WebSocketServlet {
         //
         // Process the peer request
         //
-        PeerImpl peer = Peers.findOrCreatePeer(req.getRemoteAddr());
+        PeerImpl peer = null;
+        // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
+        JSONObject request = null;
+        try (CountingInputReader cr = new CountingInputReader(req.getReader(), Peers.MAX_REQUEST_SIZE)) {
+            request = (JSONObject) JSONValue.parseWithException(cr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return;
+        }
+        boolean requestFromNATServer = (boolean)request.get("useNATService");
+        if (requestFromNATServer) {
+            peer = Peers.findOrCreatePeer((String)request.get("announcedAddress"), true);
+        } else {
+            peer = Peers.findOrCreatePeer(req.getRemoteAddr(), false);
+        }
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
         } else {
@@ -199,20 +213,40 @@ public final class PeerServlet extends WebSocketServlet {
      */
     void doPost(PeerWebSocket webSocket, long requestId, String request) {
         JSONStreamAware jsonResponse;
+        StringReader stringReader = new StringReader(request);
+        PeerImpl peer = null;
         //
         // Process the peer request
         //
-        InetSocketAddress socketAddress = webSocket.getRemoteAddress();
-        if (socketAddress == null) {
+
+        // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
+        JSONObject requestJson = null;
+        try (CountingInputReader cr = new CountingInputReader(stringReader , Peers.MAX_REQUEST_SIZE)) {
+            requestJson = (JSONObject) JSONValue.parseWithException(cr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
             return;
         }
-        String remoteAddress = socketAddress.getHostString();
-        PeerImpl peer = Peers.findOrCreatePeer(remoteAddress);
+        boolean requestFromNATServer = (boolean)requestJson.get("useNATService");
+        if (requestFromNATServer) {
+            peer = Peers.findOrCreatePeer((String)requestJson.get("announcedAddress"), requestFromNATServer);
+        } else {
+            InetSocketAddress socketAddress = webSocket.getRemoteAddress();
+            if (socketAddress == null) {
+                return;
+            }
+            String remoteAddress = socketAddress.getHostString();
+            Peers.findOrCreatePeer(remoteAddress, false);
+        }
+
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
         } else {
             peer.setInboundWebSocket(webSocket);
-            jsonResponse = process(peer, new StringReader(request));
+            jsonResponse = process(peer, stringReader);
         }
         //
         // Return the response

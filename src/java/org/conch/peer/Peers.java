@@ -29,15 +29,7 @@ import org.conch.Conch;
 import org.conch.Transaction;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
-import org.conch.util.Convert;
-import org.conch.util.Filter;
-import org.conch.util.JSON;
-import org.conch.util.Listener;
-import org.conch.util.Listeners;
-import org.conch.util.Logger;
-import org.conch.util.QueuedThreadPool;
-import org.conch.util.ThreadPool;
-import org.conch.util.UPnP;
+import org.conch.util.*;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -115,6 +107,8 @@ public final class Peers {
         return myAddress != null;
     }
 
+    // [NAT] useNATService configuration
+    static final boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
     static final boolean useProxy = System.getProperty("socksProxyHost") != null || System.getProperty("http.proxyHost") != null;
     static final boolean isGzipEnabled;
 
@@ -184,8 +178,19 @@ public final class Peers {
                 URI uri = new URI("http://" + myAddress);
                 myHost = uri.getHost();
                 myPort = (uri.getPort() == -1 ? Peers.getDefaultPeerPort() : uri.getPort());
-                InetAddress[] myAddrs = InetAddress.getAllByName(myHost);
                 boolean addrValid = false;
+                // [NAT]
+                if (useNATService) {
+                    Logger.logInfoMessage("Node joins the network via official or 3rd part NAT|DDNS service");
+                    if (NetStateUtil.isReachable(myHost)) {
+                        Logger.logInfoMessage("NAT service [" + myHost +"] can be connected");
+                        addrValid = true;
+                    } else {
+                        Logger.logErrorMessage("Node now trying to join the network via NAT service, but NAT service [" + myHost +"] can not be reached now, please try it again later");
+                        System.exit(1);
+                    }
+                }
+                InetAddress[] myAddrs = InetAddress.getAllByName(myHost);
                 Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
                 chkAddr: while (intfs.hasMoreElements()) {
                     NetworkInterface intf = intfs.nextElement();
@@ -260,7 +265,8 @@ public final class Peers {
                     else
                         announcedAddress = host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : "");
                 } else {
-                    announcedAddress = host;
+                    //[lanproxy] lanproxy use serverIP+port(for client),so use host+port = myAddress
+                    announcedAddress = myAddress;
                 }
                 if (announcedAddress == null || announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
                     throw new RuntimeException("Invalid announced address length: " + announcedAddress);
@@ -275,6 +281,7 @@ public final class Peers {
             json.put("hallmark", Peers.myHallmark);
             servicesList.add(Peer.Service.HALLMARK);
         }
+        json.put("useNATService", useNATService);
         json.put("application", Conch.APPLICATION);
         json.put("version", Conch.VERSION);
         json.put("platform", Peers.myPlatform);
@@ -907,7 +914,7 @@ public final class Peers {
                 maxNumberOfOutboundConnections).size() >= maxNumberOfOutboundConnections;
     }
 
-    public static PeerImpl findOrCreatePeer(String announcedAddress, boolean create) {
+    public static PeerImpl findOrCreatePeer(String announcedAddress, boolean useNATService, boolean create) {
         if (announcedAddress == null) {
             return null;
         }
@@ -926,6 +933,11 @@ public final class Peers {
             if (host == null) {
                 return null;
             }
+            // [NAT] if announcedAddress contains port then use ip+port as host
+            int port = uri.getPort();
+            if (port != -1) {
+                host = host + ":" + port;
+            }
             if ((peer = peers.get(host)) != null) {
                 return peer;
             }
@@ -934,49 +946,50 @@ public final class Peers {
                 return peer;
             }
             InetAddress inetAddress = InetAddress.getByName(host);
-            return findOrCreatePeer(inetAddress, addressWithPort(announcedAddress), create);
+            return findOrCreatePeer(inetAddress, addressWithPort(announcedAddress), useNATService, create);
         } catch (URISyntaxException | UnknownHostException e) {
-            //Logger.logDebugMessage("Invalid peer address: " + announcedAddress + ", " + e.toString());
+            Logger.logDebugMessage("Invalid peer address: " + announcedAddress + ", " + e.toString());
             return null;
         }
     }
 
-    static PeerImpl findOrCreatePeer(String host) {
+    static PeerImpl findOrCreatePeer(String host, boolean useNATService) {
         try {
             InetAddress inetAddress = InetAddress.getByName(host);
-            return findOrCreatePeer(inetAddress, null, true);
+            return findOrCreatePeer(inetAddress, host, useNATService, true);
         } catch (UnknownHostException e) {
             return null;
         }
     }
 
-    static PeerImpl findOrCreatePeer(final InetAddress inetAddress, final String announcedAddress, final boolean create) {
-
+    static PeerImpl findOrCreatePeer(final InetAddress inetAddress, final String announcedAddress, final boolean useNATService, final boolean create) {
+        PeerImpl peer;
         if (inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
             return null;
         }
-
-        String host = inetAddress.getHostAddress();
-        if (Peers.cjdnsOnly && !host.substring(0,2).equals("fc")) {
-            return null;
-        }
-        //re-add the [] to ipv6 addresses lost in getHostAddress() above
-        if (host.split(":").length > 2) {
-            host = "[" + host + "]";
-        }
-
-        PeerImpl peer;
-        if ((peer = peers.get(host)) != null) {
-            return peer;
-        }
-        if (!create) {
-            return null;
-        }
-
         if (Peers.myAddress != null && Peers.myAddress.equalsIgnoreCase(announcedAddress)) {
             return null;
         }
         if (announcedAddress != null && announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
+            return null;
+        }
+        String host = null;
+        if (useNATService) {
+            host = announcedAddress;
+        } else {
+            inetAddress.getHostAddress();
+            if (Peers.cjdnsOnly && !host.substring(0, 2).equals("fc")) {
+                return null;
+            }
+            //re-add the [] to ipv6 addresses lost in getHostAddress() above
+            if (host.split(":").length > 2) {
+                host = "[" + host + "]";
+            }
+        }
+        if ((peer = peers.get(host)) != null) {
+            return peer;
+        }
+        if (!create) {
             return null;
         }
         peer = new PeerImpl(host, announcedAddress);
@@ -1141,18 +1154,47 @@ public final class Peers {
         return null;
     }
 
+    static URI addressURI(String address) {
+        try {
+            URI uri = new URI("http://" + address);
+            return uri;
+        } catch (URISyntaxException e) {
+            return null;
+        }
+    }
+
     static String addressWithPort(String address) {
         if (address == null) {
             return null;
         }
-        try {
-            URI uri = new URI("http://" + address);
-            String host = uri.getHost();
-            int port = uri.getPort();
-            return port > 0 && port != Peers.getDefaultPeerPort() ? host + ":" + port : host;
-        } catch (URISyntaxException e) {
+        URI uri = addressURI(address);
+        String host = uri.getHost();
+        int port = uri.getPort();
+        return port > 0 && port != Peers.getDefaultPeerPort() ? host + ":" + port : host;
+    }
+
+    static String addressHost(String address) {
+        if (address == null) {
             return null;
         }
+        URI uri = addressURI(address);
+        return uri.getHost();
+    }
+
+    static int addressPort(String address) {
+        if (address == null) {
+            return -1;
+        }
+        URI uri = addressURI(address);
+        return uri.getPort()>0?uri.getPort():Peers.getDefaultPeerPort();
+    }
+
+    public static boolean isUseNATService(String address) {
+        if (address == null) {
+            return false;
+        }
+        URI uri = addressURI(address);
+        return uri.getPort()>0?(uri.getPort() != Peers.getDefaultPeerPort()?true:false):false;
     }
 
     public static boolean isOldVersion(String version, int[] minVersion) {

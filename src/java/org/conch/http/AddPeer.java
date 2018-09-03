@@ -49,7 +49,7 @@ public class AddPeer extends APIRequestHandler {
             return MISSING_PEER;
         }
         JSONObject response = new JSONObject();
-        Peer peer = Peers.findOrCreatePeer(peerAddress, true);
+        Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
         if (peer != null) {
             boolean isNewlyAdded = Peers.addPeer(peer, peerAddress);
             Peers.connectPeer(peer);

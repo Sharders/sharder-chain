@@ -67,6 +67,7 @@ final class PeerImpl implements Peer {
     private final PeerWebSocket webSocket;
     private volatile PeerWebSocket inboundSocket;
     private volatile boolean useWebSocket;
+    private volatile boolean useNATService;
     private volatile String announcedAddress;
     private volatile int port;
     private volatile boolean shareAddress;
@@ -97,6 +98,7 @@ final class PeerImpl implements Peer {
 
     PeerImpl(String host, String announcedAddress) {
         this.host = host;
+        this.useNATService = false;
         this.announcedAddress = announcedAddress;
         try {
             this.port = new URI("http://" + announcedAddress).getPort();
@@ -375,6 +377,7 @@ final class PeerImpl implements Peer {
             return;
         }
         if (! isBlacklisted()) {
+            cause.printStackTrace();
             if (cause instanceof IOException || cause instanceof ParseException || cause instanceof IllegalArgumentException) {
                 Logger.logDebugMessage("Blacklisting " + host + " because of: " + cause.toString());
             } else {
@@ -495,8 +498,9 @@ final class PeerImpl implements Peer {
             //
             // Create a new WebSocket session if we don't have one
             //
+            // [NAT] If the node use NAT, seperate the host(host like 116.89.251.206:10415) to combine the websocket url
             if (useWebSocket && !webSocket.isOpen())
-                useWebSocket = webSocket.startClient(URI.create("ws://" + host + ":" + getPort() + "/sharder"));
+                useWebSocket = webSocket.startClient(URI.create("ws://" + Peers.addressHost(host) + ":" +Peers.addressPort(host) + "/sharder"));
             //
             // Send the request and process the response
             //
@@ -644,10 +648,12 @@ final class PeerImpl implements Peer {
                 try {
                     URI uri = new URI("http://" + announcedAddress);
                     InetAddress inetAddress = InetAddress.getByName(uri.getHost());
+                    // [?NAT] inetAddress contains port info, so make sure
+//                    if (!inetAddress.equals(InetAddress.getByName(new URI("http://" + host).getHost()))) {
                     if (!inetAddress.equals(InetAddress.getByName(host))) {
                         Logger.logDebugMessage("Connect: announced address " + announcedAddress + " now points to " + inetAddress.getHostAddress() + ", replacing peer " + host);
                         Peers.removePeer(this);
-                        PeerImpl newPeer = Peers.findOrCreatePeer(inetAddress, announcedAddress, true);
+                        PeerImpl newPeer = Peers.findOrCreatePeer(inetAddress, announcedAddress, useNATService, true);
                         if (newPeer != null) {
                             Peers.addPeer(newPeer);
                             newPeer.connect();
@@ -734,6 +740,10 @@ final class PeerImpl implements Peer {
 
     boolean verifyAnnouncedAddress(String newAnnouncedAddress) {
         if (newAnnouncedAddress == null) {
+            return true;
+        }
+        // [NAT] adapt for NAT announcedAddress
+        if (useNATService) {
             return true;
         }
         try {
@@ -952,6 +962,7 @@ final class PeerImpl implements Peer {
     public String toString() {
         return "Peer{" +
                 "state=" + state +
+                ", useNATService='" + useNATService + '\'' +
                 ", announcedAddress='" + announcedAddress + '\'' +
                 ", services=" + services +
                 ", host='" + host + '\'' +
@@ -961,6 +972,7 @@ final class PeerImpl implements Peer {
 
     public JSONObject getJSONObject() {
         JSONObject json = new JSONObject();
+        json.put("useNATService", useNATService);
         json.put("announcedAddress", announcedAddress);
         json.put("hallmark", hallmark);
         json.put("application", application);
