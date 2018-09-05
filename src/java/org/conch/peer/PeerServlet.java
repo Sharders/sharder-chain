@@ -221,8 +221,10 @@ public final class PeerServlet extends WebSocketServlet {
 
         // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
         JSONObject requestJson = null;
+        boolean requestFromNATServer = false;
         try (CountingInputReader cr = new CountingInputReader(stringReader , Peers.MAX_REQUEST_SIZE)) {
             requestJson = (JSONObject) JSONValue.parseWithException(cr);
+            requestFromNATServer = (boolean)requestJson.get("useNATService");
         } catch (ParseException e) {
             e.printStackTrace();
             return;
@@ -230,7 +232,7 @@ public final class PeerServlet extends WebSocketServlet {
             e.printStackTrace();
             return;
         }
-        boolean requestFromNATServer = (boolean)requestJson.get("useNATService");
+
         if (requestFromNATServer) {
             peer = Peers.findOrCreatePeer((String)requestJson.get("announcedAddress"), requestFromNATServer);
         } else {
