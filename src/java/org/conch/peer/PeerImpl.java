@@ -113,6 +113,14 @@ final class PeerImpl implements Peer {
         this.peerLoad = new PeerLoad(this.host, this.port, 0);
     }
 
+    public boolean isUseNATService() {
+        return useNATService;
+    }
+
+    public void setUseNATService(boolean useNATService) {
+        this.useNATService = useNATService;
+    }
+
     @Override
     public String getHost() {
         return host;

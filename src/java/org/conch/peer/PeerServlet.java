@@ -248,7 +248,7 @@ public final class PeerServlet extends WebSocketServlet {
             jsonResponse = UNKNOWN_PEER;
         } else {
             peer.setInboundWebSocket(webSocket);
-            jsonResponse = process(peer, stringReader);
+            jsonResponse = process(peer, new StringReader(request));
         }
         //
         // Return the response

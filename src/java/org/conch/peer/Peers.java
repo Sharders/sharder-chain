@@ -993,6 +993,7 @@ public final class Peers {
             return null;
         }
         peer = new PeerImpl(host, announcedAddress);
+        peer.setUseNATService(useNATService);
         if (!useNATService) {
             if (Constants.isTestnet && peer.getPort() != TESTNET_PEER_PORT) {
                 Logger.logDebugMessage("Peer " + host + " on testnet is not using port " + TESTNET_PEER_PORT + ", ignoring");
