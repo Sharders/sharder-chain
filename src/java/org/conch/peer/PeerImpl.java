@@ -761,7 +761,7 @@ final class PeerImpl implements Peer {
                 Logger.logDebugMessage("Announced port " + announcedPort + " does not match hallmark " + hallmark.getPort() + ", ignoring hallmark for " + host);
                 unsetHallmark();
             }
-            InetAddress address = InetAddress.getByName(host);
+            InetAddress address = InetAddress.getByName(Peers.addressHost(host));
             for (InetAddress inetAddress : InetAddress.getAllByName(uri.getHost())) {
                 if (inetAddress.equals(address)) {
                     return true;
