@@ -945,7 +945,7 @@ public final class Peers {
             if (host2 != null && (peer = peers.get(host2)) != null) {
                 return peer;
             }
-            InetAddress inetAddress = InetAddress.getByName(host);
+            InetAddress inetAddress = InetAddress.getByName(uri.getHost());
             return findOrCreatePeer(inetAddress, addressWithPort(announcedAddress), useNATService, create);
         } catch (URISyntaxException | UnknownHostException e) {
             Logger.logDebugMessage("Invalid peer address: " + announcedAddress + ", " + e.toString());
@@ -993,13 +993,15 @@ public final class Peers {
             return null;
         }
         peer = new PeerImpl(host, announcedAddress);
-        if (Constants.isTestnet && peer.getPort() != TESTNET_PEER_PORT) {
-            Logger.logDebugMessage("Peer " + host + " on testnet is not using port " + TESTNET_PEER_PORT + ", ignoring");
-            return null;
-        }
-        if (!Constants.isTestnet && peer.getPort() == TESTNET_PEER_PORT) {
-            Logger.logDebugMessage("Peer " + host + " is using testnet port " + peer.getPort() + ", ignoring");
-            return null;
+        if (!useNATService) {
+            if (Constants.isTestnet && peer.getPort() != TESTNET_PEER_PORT) {
+                Logger.logDebugMessage("Peer " + host + " on testnet is not using port " + TESTNET_PEER_PORT + ", ignoring");
+                return null;
+            }
+            if (!Constants.isTestnet && peer.getPort() == TESTNET_PEER_PORT) {
+                Logger.logDebugMessage("Peer " + host + " is using testnet port " + peer.getPort() + ", ignoring");
+                return null;
+            }
         }
         return peer;
     }

@@ -650,7 +650,7 @@ final class PeerImpl implements Peer {
                     InetAddress inetAddress = InetAddress.getByName(uri.getHost());
                     // [?NAT] inetAddress contains port info, so make sure
 //                    if (!inetAddress.equals(InetAddress.getByName(new URI("http://" + host).getHost()))) {
-                    if (!inetAddress.equals(InetAddress.getByName(host))) {
+                    if (!inetAddress.equals(InetAddress.getByName(Peers.addressHost(host)))) {
                         Logger.logDebugMessage("Connect: announced address " + announcedAddress + " now points to " + inetAddress.getHostAddress() + ", replacing peer " + host);
                         Peers.removePeer(this);
                         PeerImpl newPeer = Peers.findOrCreatePeer(inetAddress, announcedAddress, useNATService, true);
