@@ -955,7 +955,7 @@ public final class Peers {
 
     static PeerImpl findOrCreatePeer(String host, boolean useNATService) {
         try {
-            InetAddress inetAddress = InetAddress.getByName(host);
+            InetAddress inetAddress = InetAddress.getByName(useNATService?Peers.addressHost(host):host);
             return findOrCreatePeer(inetAddress, host, useNATService, true);
         } catch (UnknownHostException e) {
             return null;
