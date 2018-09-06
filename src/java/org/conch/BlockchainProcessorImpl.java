@@ -252,7 +252,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (peer == null) {
                     return;
                 }
-                JSONObject response = peer.send(getCumulativeDifficultyRequest);
+                //[NAT] inject useNATService property to the request params
+                JSONObject request = new JSONObject();
+                request.put("requestType", "getCumulativeDifficulty");
+                request.put("useNATService", peer.isUseNATService());
+                JSONObject response = peer.send(JSON.prepareRequest(request));
                 if (response == null) {
                     return;
                 }
@@ -338,7 +342,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                             continue;
                         }
                         String otherPeerCumulativeDifficulty;
-                        JSONObject otherPeerResponse = peer.send(getCumulativeDifficultyRequest);
+                        //[NAT] inject useNATService property to the request params
+                        request.clear();
+                        request.put("requestType", "getCumulativeDifficulty");
+                        request.put("useNATService", peer.isUseNATService());
+                        JSONObject otherPeerResponse = peer.send(JSON.prepareRequest(request));
                         if (otherPeerResponse == null || (otherPeerCumulativeDifficulty = (String) response.get("cumulativeDifficulty")) == null) {
                             continue;
                         }
@@ -380,6 +388,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             while (true) {
                 JSONObject milestoneBlockIdsRequest = new JSONObject();
                 milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
+                //[NAT] inject useNATService property to the request params
+                milestoneBlockIdsRequest.put("useNATService", peer.isUseNATService());
                 if (lastMilestoneBlockId == null) {
                     milestoneBlockIdsRequest.put("lastBlockId", blockchain.getLastBlock().getStringId());
                 } else {
@@ -423,7 +433,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             int limit = countFromStart ? 720 : 1440;
             while (true) {
                 JSONObject request = new JSONObject();
+                //[NAT] inject useNATService property to the request params
                 request.put("requestType", "getNextBlockIds");
+                request.put("useNATService", peer.isUseNATService());
                 request.put("blockId", Long.toUnsignedString(matchId));
                 request.put("limit", limit);
                 JSONObject response = peer.send(JSON.prepareRequest(request));
@@ -717,8 +729,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             for (int i = start + 1; i <= stop; i++) {
                 idList.add(Long.toUnsignedString(blockIds.get(i)));
             }
+            //[NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getNextBlocks");
+            request.put("useNATService", peer.isUseNATService());
             request.put("blockIds", idList);
             request.put("blockId", Long.toUnsignedString(blockIds.get(start)));
             long startTime = System.currentTimeMillis();
@@ -938,7 +952,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 break;
                         }
                     }
+                    //[NAT] inject useNATService property to the request params
                     request.put("requestType", "getTransactions");
+                    request.put("useNATService", peer.isUseNATService());
                     request.put("transactionIds", requestList);
                     JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {

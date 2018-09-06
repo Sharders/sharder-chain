@@ -79,6 +79,8 @@ public interface Peer extends Comparable<Peer> {
 
     boolean providesServices(long services);
 
+    boolean isUseNATService();
+
     String getHost();
 
     int getPort();

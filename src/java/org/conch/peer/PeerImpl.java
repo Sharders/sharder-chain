@@ -113,6 +113,7 @@ final class PeerImpl implements Peer {
         this.peerLoad = new PeerLoad(this.host, this.port, 0);
     }
 
+    @Override
     public boolean isUseNATService() {
         return useNATService;
     }
@@ -490,12 +491,12 @@ final class PeerImpl implements Peer {
     }
 
     @Override
-    public JSONObject send(final JSONStreamAware request) {
+    public JSONObject send(JSONStreamAware request) {
         return send(request, Peers.MAX_RESPONSE_SIZE);
     }
 
     @Override
-    public JSONObject send(final JSONStreamAware request, int maxResponseSize) {
+    public JSONObject send(JSONStreamAware request, int maxResponseSize) {
         JSONObject response = null;
         String log = null;
         boolean showLog = false;
@@ -537,7 +538,7 @@ final class PeerImpl implements Peer {
                 //
                 // Send the request using HTTP
                 //
-                URL url = new URL("http://" + host + ":" + getPort() + "/sharder");
+                URL url = new URL("http://" + Peers.addressHost(host) + ":" + getPort() + "/sharder");
                 if (communicationLoggingMask != 0)
                     log = "\"" + url.toString() + "\": " + JSON.toString(request);
                 connection = (HttpURLConnection) url.openConnection();

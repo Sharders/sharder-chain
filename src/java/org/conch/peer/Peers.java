@@ -676,7 +676,11 @@ public final class Peers {
                     if (peer == null) {
                         return;
                     }
-                    JSONObject response = peer.send(getPeersRequest, Constants.MAX_RESPONSE_SIZE);
+                    //[NAT] inject useNATService property to the request params
+                    JSONObject request = new JSONObject();
+                    request.put("requestType", "getPeers");
+                    request.put("useNATService", peer.isUseNATService());
+                    JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {
                         return;
                     }
@@ -721,8 +725,10 @@ public final class Peers {
                         }
                     });
                     if (myPeers.size() > 0) {
-                        JSONObject request = new JSONObject();
+                        //[NAT] inject useNATService property to the request params
+                        request.clear();
                         request.put("requestType", "addPeers");
+                        request.put("useNATService", peer.isUseNATService());
                         request.put("peers", myPeers);
                         request.put("services", myServices);            // Separate array for backwards compatibility
                         peer.send(JSON.prepareRequest(request), 0);
@@ -1080,7 +1086,6 @@ public final class Peers {
 
     private static void sendToSomePeers(final JSONObject request) {
         sendingService.submit(() -> {
-            final JSONStreamAware jsonRequest = JSON.prepareRequest(request);
 
             int successful = 0;
             List<Future<JSONObject>> expectedResponses = new ArrayList<>();
@@ -1094,7 +1099,9 @@ public final class Peers {
 
                 if (!peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null
                         && peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT) {
-                    Future<JSONObject> futureResponse = peersService.submit(() -> peer.send(jsonRequest));
+                    //[NAT] inject useNATService property to the request params
+                    request.put("useNATService", peer.isUseNATService());
+                    Future<JSONObject> futureResponse = peersService.submit(() -> peer.send(JSON.prepareRequest(request)));
                     expectedResponses.add(futureResponse);
                 }
                 if (expectedResponses.size() >= Peers.sendToPeersLimit - successful) {
