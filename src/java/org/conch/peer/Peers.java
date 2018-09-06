@@ -680,6 +680,7 @@ public final class Peers {
                     JSONObject request = new JSONObject();
                     request.put("requestType", "getPeers");
                     request.put("useNATService", peer.isUseNATService());
+                    request.put("announcedAddress", peer.getAnnouncedAddress());
                     JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {
                         return;
@@ -729,6 +730,7 @@ public final class Peers {
                         request.clear();
                         request.put("requestType", "addPeers");
                         request.put("useNATService", peer.isUseNATService());
+                        request.put("announcedAddress", peer.getAnnouncedAddress());
                         request.put("peers", myPeers);
                         request.put("services", myServices);            // Separate array for backwards compatibility
                         peer.send(JSON.prepareRequest(request), 0);
@@ -1101,6 +1103,7 @@ public final class Peers {
                         && peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT) {
                     //[NAT] inject useNATService property to the request params
                     request.put("useNATService", peer.isUseNATService());
+                    request.put("announcedAddress", peer.getAnnouncedAddress());
                     Future<JSONObject> futureResponse = peersService.submit(() -> peer.send(JSON.prepareRequest(request)));
                     expectedResponses.add(futureResponse);
                 }
