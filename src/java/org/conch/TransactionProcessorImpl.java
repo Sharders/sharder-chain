@@ -244,8 +244,8 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 JSONObject request = new JSONObject();
                 //[NAT] inject useNATService property to the request params
                 request.put("requestType", "getUnconfirmedTransactions");
-                request.put("useNATService", peer.isUseNATService());
-                request.put("announcedAddress", peer.getAnnouncedAddress());
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Peers.getMyAddress());
                 JSONArray exclude = new JSONArray();
                 getAllUnconfirmedTransactionIds().forEach(transactionId -> exclude.add(Long.toUnsignedString(transactionId)));
                 Collections.sort(exclude);

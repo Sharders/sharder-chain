@@ -103,6 +103,10 @@ public final class Peers {
         return myAddress;
     }
 
+    public static boolean isUseNATService() {
+        return useNATService;
+    }
+
     public static boolean isMyAddressAnnounced() {
         return myAddress != null;
     }
@@ -679,8 +683,8 @@ public final class Peers {
                     //[NAT] inject useNATService property to the request params
                     JSONObject request = new JSONObject();
                     request.put("requestType", "getPeers");
-                    request.put("useNATService", peer.isUseNATService());
-                    request.put("announcedAddress", peer.getAnnouncedAddress());
+                    request.put("useNATService", Peers.isUseNATService());
+                    request.put("announcedAddress", Peers.getMyAddress());
                     JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {
                         return;
@@ -729,8 +733,8 @@ public final class Peers {
                         //[NAT] inject useNATService property to the request params
                         request.clear();
                         request.put("requestType", "addPeers");
-                        request.put("useNATService", peer.isUseNATService());
-                        request.put("announcedAddress", peer.getAnnouncedAddress());
+                        request.put("useNATService", Peers.isUseNATService());
+                        request.put("announcedAddress", Peers.getMyAddress());
                         request.put("peers", myPeers);
                         request.put("services", myServices);            // Separate array for backwards compatibility
                         peer.send(JSON.prepareRequest(request), 0);
@@ -1102,8 +1106,8 @@ public final class Peers {
                 if (!peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null
                         && peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT) {
                     //[NAT] inject useNATService property to the request params
-                    request.put("useNATService", peer.isUseNATService());
-                    request.put("announcedAddress", peer.getAnnouncedAddress());
+                    request.put("useNATService", Peers.isUseNATService());
+                    request.put("announcedAddress", Peers.getMyAddress());
                     Future<JSONObject> futureResponse = peersService.submit(() -> peer.send(JSON.prepareRequest(request)));
                     expectedResponses.add(futureResponse);
                 }

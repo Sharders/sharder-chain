@@ -255,8 +255,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 //[NAT] inject useNATService property to the request params
                 JSONObject request = new JSONObject();
                 request.put("requestType", "getCumulativeDifficulty");
-                request.put("useNATService", peer.isUseNATService());
-                request.put("announcedAddress", peer.getAnnouncedAddress());
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Peers.getMyAddress());
                 JSONObject response = peer.send(JSON.prepareRequest(request));
                 if (response == null) {
                     return;
@@ -346,8 +346,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                         //[NAT] inject useNATService property to the request params
                         request.clear();
                         request.put("requestType", "getCumulativeDifficulty");
-                        request.put("useNATService", peer.isUseNATService());
-                        request.put("announcedAddress", peer.getAnnouncedAddress());
+                        request.put("useNATService", Peers.isUseNATService());
+                        request.put("announcedAddress", Peers.getMyAddress());
                         JSONObject otherPeerResponse = peer.send(JSON.prepareRequest(request));
                         if (otherPeerResponse == null || (otherPeerCumulativeDifficulty = (String) response.get("cumulativeDifficulty")) == null) {
                             continue;
@@ -391,8 +391,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 JSONObject milestoneBlockIdsRequest = new JSONObject();
                 milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
                 //[NAT] inject useNATService property to the request params
-                milestoneBlockIdsRequest.put("useNATService", peer.isUseNATService());
-                milestoneBlockIdsRequest.put("announcedAddress", peer.getAnnouncedAddress());
+                milestoneBlockIdsRequest.put("useNATService", Peers.isUseNATService());
+                milestoneBlockIdsRequest.put("announcedAddress", Peers.getMyAddress());
                 if (lastMilestoneBlockId == null) {
                     milestoneBlockIdsRequest.put("lastBlockId", blockchain.getLastBlock().getStringId());
                 } else {
@@ -438,8 +438,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 JSONObject request = new JSONObject();
                 //[NAT] inject useNATService property to the request params
                 request.put("requestType", "getNextBlockIds");
-                request.put("useNATService", peer.isUseNATService());
-                request.put("announcedAddress", peer.getAnnouncedAddress());
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Peers.getMyAddress());
                 request.put("blockId", Long.toUnsignedString(matchId));
                 request.put("limit", limit);
                 JSONObject response = peer.send(JSON.prepareRequest(request));
@@ -736,8 +736,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             //[NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getNextBlocks");
-            request.put("useNATService", peer.isUseNATService());
-            request.put("announcedAddress", peer.getAnnouncedAddress());
+            request.put("useNATService", Peers.isUseNATService());
+            request.put("announcedAddress", Peers.getMyAddress());
             request.put("blockIds", idList);
             request.put("blockId", Long.toUnsignedString(blockIds.get(start)));
             long startTime = System.currentTimeMillis();
@@ -959,8 +959,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     }
                     //[NAT] inject useNATService property to the request params
                     request.put("requestType", "getTransactions");
-                    request.put("useNATService", peer.isUseNATService());
-                    request.put("announcedAddress", peer.getAnnouncedAddress());
+                    request.put("useNATService", Peers.isUseNATService());
+                    request.put("announcedAddress", Peers.getMyAddress());
                     request.put("transactionIds", requestList);
                     JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {
