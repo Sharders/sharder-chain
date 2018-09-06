@@ -241,7 +241,7 @@ public final class PeerServlet extends WebSocketServlet {
                 return;
             }
             String remoteAddress = socketAddress.getHostString();
-            Peers.findOrCreatePeer(remoteAddress, false);
+            peer = Peers.findOrCreatePeer(remoteAddress, false);
         }
 
         if (peer == null) {
