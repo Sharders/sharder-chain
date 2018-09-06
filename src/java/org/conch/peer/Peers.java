@@ -989,7 +989,7 @@ public final class Peers {
         if (useNATService) {
             host = announcedAddress;
         } else {
-            inetAddress.getHostAddress();
+            host = inetAddress.getHostAddress();
             if (Peers.cjdnsOnly && !host.substring(0, 2).equals("fc")) {
                 return null;
             }
