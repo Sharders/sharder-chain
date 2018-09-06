@@ -42,10 +42,7 @@ import org.sharder.util.Https;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
@@ -161,8 +158,9 @@ public final class PeerServlet extends WebSocketServlet {
         //
         PeerImpl peer = null;
         // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
+        Reader bufferedReader = req.getReader(); //avoid repeatedly parsing the same Reader.
         JSONObject request = null;
-        try (CountingInputReader cr = new CountingInputReader(req.getReader(), Peers.MAX_REQUEST_SIZE)) {
+        try (CountingInputReader cr = new CountingInputReader(bufferedReader, Peers.MAX_REQUEST_SIZE)) {
             request = (JSONObject) JSONValue.parseWithException(cr);
         } catch (ParseException e) {
             e.printStackTrace();
@@ -177,7 +175,7 @@ public final class PeerServlet extends WebSocketServlet {
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
         } else {
-            jsonResponse = process(peer, req.getReader());
+            jsonResponse = process(peer, bufferedReader);
         }
         //
         // Return the response
@@ -224,6 +222,9 @@ public final class PeerServlet extends WebSocketServlet {
         boolean requestFromNATServer = false;
         try (CountingInputReader cr = new CountingInputReader(stringReader , Peers.MAX_REQUEST_SIZE)) {
             requestJson = (JSONObject) JSONValue.parseWithException(cr);
+            if (requestJson.get("useNATService") ==null) {
+
+            }
             requestFromNATServer = (boolean)requestJson.get("useNATService");
         } catch (ParseException e) {
             e.printStackTrace();
