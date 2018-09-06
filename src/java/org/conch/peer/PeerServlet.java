@@ -223,9 +223,11 @@ public final class PeerServlet extends WebSocketServlet {
         try (CountingInputReader cr = new CountingInputReader(stringReader , Peers.MAX_REQUEST_SIZE)) {
             requestJson = (JSONObject) JSONValue.parseWithException(cr);
             if (requestJson.get("useNATService") ==null) {
-
+                Logger.logDebugMessage("useNATService == null");
+                Logger.logDebugMessage(requestJson.toJSONString());
+            } else {
+                requestFromNATServer = (boolean) requestJson.get("useNATService");
             }
-            requestFromNATServer = (boolean)requestJson.get("useNATService");
         } catch (ParseException e) {
             e.printStackTrace();
             return;
@@ -238,11 +240,12 @@ public final class PeerServlet extends WebSocketServlet {
             peer = Peers.findOrCreatePeer((String)requestJson.get("announcedAddress"), requestFromNATServer);
         } else {
             InetSocketAddress socketAddress = webSocket.getRemoteAddress();
-            if (socketAddress == null) {
+            if (!Peers.isUseNATService() && socketAddress == null) {
                 return;
+            } else {
+                String remoteAddress = Peers.isUseNATService()?(String)requestJson.get("announcedAddress"):socketAddress.getHostString();
+                peer = Peers.findOrCreatePeer(remoteAddress, false);
             }
-            String remoteAddress = socketAddress.getHostString();
-            peer = Peers.findOrCreatePeer(remoteAddress, false);
         }
 
         if (peer == null) {
