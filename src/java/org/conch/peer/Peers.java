@@ -416,7 +416,7 @@ public final class Peers {
                     }
                     entries.forEach(entry -> {
                         Future<String> unresolvedAddress = peersService.submit(() -> {
-                            PeerImpl peer = Peers.findOrCreatePeer(entry.getAddress(), true);
+                            PeerImpl peer = Peers.findOrCreatePeer(entry.getAddress(), Peers.isUseNATService(entry.getAddress()));
                             if (peer != null) {
                                 peer.setLastUpdated(entry.getLastUpdated());
                                 peer.setServices(entry.getServices());
@@ -631,7 +631,7 @@ public final class Peers {
                     }
 
                     for (String wellKnownPeer : wellKnownPeers) {
-                        PeerImpl peer = findOrCreatePeer(wellKnownPeer, true);
+                        PeerImpl peer = findOrCreatePeer(wellKnownPeer, Peers.isUseNATService(wellKnownPeer));
                         if (peer != null && now - peer.getLastUpdated() > 3600 && now - peer.getLastConnectAttempt() > 600) {
                             peersService.submit(() -> {
                                 addPeer(peer);
@@ -697,7 +697,7 @@ public final class Peers {
                         int now = Conch.getEpochTime();
                         for (int i=0; i<peers.size(); i++) {
                             String announcedAddress = (String)peers.get(i);
-                            PeerImpl newPeer = findOrCreatePeer(announcedAddress, true);
+                            PeerImpl newPeer = findOrCreatePeer(announcedAddress, Peers.isUseNATService(announcedAddress));
                             if (newPeer != null) {
                                 if (now - newPeer.getLastUpdated() > 24 * 3600) {
                                     newPeer.setLastUpdated(now);

@@ -509,7 +509,7 @@ final class PeerImpl implements Peer {
             //
             // [NAT] If the node use NAT, seperate the host(host like 116.89.251.206:10415) to combine the websocket url
             if (useWebSocket && !webSocket.isOpen())
-                useWebSocket = webSocket.startClient(URI.create("ws://" + Peers.addressHost(host) + ":" +Peers.addressPort(host) + "/sharder"));
+                useWebSocket = webSocket.startClient(URI.create("ws://" + Peers.addressHost(host) + ":" + Peers.addressPort(host) + "/sharder"));
             //
             // Send the request and process the response
             //
@@ -538,7 +538,7 @@ final class PeerImpl implements Peer {
                 //
                 // Send the request using HTTP
                 //
-                URL url = new URL("http://" + Peers.addressHost(host) + ":" + getPort() + "/sharder");
+                URL url = new URL("http://" + Peers.addressHost(host) + ":" + Peers.addressPort(host) + "/sharder");
                 if (communicationLoggingMask != 0)
                     log = "\"" + url.toString() + "\": " + JSON.toString(request);
                 connection = (HttpURLConnection) url.openConnection();
