@@ -40,7 +40,9 @@ import org.json.simple.parser.ParseException;
 import org.sharder.util.Https;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequestWrapper;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -158,9 +160,11 @@ public final class PeerServlet extends WebSocketServlet {
         //
         PeerImpl peer = null;
         // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
-        Reader bufferedReader = req.getReader(); //avoid repeatedly parsing the same Reader.
+        //avoid repeatedly parsing the same Reader. use ServletRequestWrapper
+        PeerRequestWrapper wrappedRequest = new PeerRequestWrapper(req);
+        req = wrappedRequest;
         JSONObject request = null;
-        try (CountingInputReader cr = new CountingInputReader(bufferedReader, Peers.MAX_REQUEST_SIZE)) {
+        try (CountingInputReader cr = new CountingInputReader(req.getReader(), Peers.MAX_REQUEST_SIZE)) {
             request = (JSONObject) JSONValue.parseWithException(cr);
         } catch (ParseException e) {
             e.printStackTrace();
@@ -179,7 +183,7 @@ public final class PeerServlet extends WebSocketServlet {
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
         } else {
-            jsonResponse = process(peer, bufferedReader);
+            jsonResponse = process(peer, req.getReader());
         }
         //
         // Return the response
