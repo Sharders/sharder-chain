@@ -170,7 +170,11 @@ public final class PeerServlet extends WebSocketServlet {
         if (requestFromNATServer) {
             peer = Peers.findOrCreatePeer((String)request.get("announcedAddress"), true);
         } else {
-            peer = Peers.findOrCreatePeer(req.getRemoteAddr(), false);
+            if (Peers.isUseNATService()) {
+                peer = Peers.findOrCreatePeer((String)request.get("announcedAddress"), false);
+            } else {
+                peer = Peers.findOrCreatePeer(req.getRemoteAddr(), false);
+            }
         }
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
