@@ -32,7 +32,7 @@ import java.util.*;
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
     static final ReConfig instance = new ReConfig();
-    static final List<String> excludeParams = Arrays.asList("restart", "adminPassword");
+    static final List<String> excludeParams = Arrays.asList("restart", "adminPassword", "requestType");
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
