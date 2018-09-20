@@ -31,12 +31,12 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
-import org.conch.http.HubConfig;
 import org.conch.peer.Peers;
 import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
 import org.json.simple.JSONObject;
+import sun.rmi.runtime.Log;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -439,6 +439,19 @@ public final class Conch {
                 if (Constants.isTestnet) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
+                // [Hub] if owner binded then start forge automatic
+                String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
+                String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase"));
+                if (hubBindPassPhrase != null) {
+                    Generator hubGenerator = Generator.startForging(hubBindPassPhrase.trim());
+                    if(hubGenerator != null && !Account.getAccount(hubGenerator.getAccountId()).equals(hubBindAddress)) {
+                        Generator.stopForging(hubBindPassPhrase.trim());
+                        Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
+                    } else {
+                        Logger.logInfoMessage("Account " + hubBindAddress + "started forging automatically");
+                    }
+                }
+
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
                 runtimeMode.alert(e.getMessage() + "\n" +
