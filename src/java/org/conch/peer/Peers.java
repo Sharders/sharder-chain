@@ -21,6 +21,7 @@
 
 package org.conch.peer;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.conch.Account;
 import org.conch.Block;
 import org.conch.Constants;
@@ -43,6 +44,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.DispatcherType;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
@@ -111,8 +113,12 @@ public final class Peers {
         return myAddress != null;
     }
 
-    // [NAT] useNATService configuration
-    static final boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
+    // [NAT] useNATService and client configuration
+    static boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
+    static final String NATServiceAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.NATServiceAddress"));
+    static final int NATServicePort = Conch.getIntProperty("sharder.NATServicePort");
+    static final String NATClientKey = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
+
     static final boolean useProxy = System.getProperty("socksProxyHost") != null || System.getProperty("http.proxyHost") != null;
     static final boolean isGzipEnabled;
 
@@ -190,8 +196,7 @@ public final class Peers {
                         Logger.logInfoMessage("NAT service [" + myHost +"] can be connected");
                         addrValid = true;
                     } else {
-                        Logger.logErrorMessage("Node now trying to join the network via NAT service, but NAT service [" + myHost +"] can not be reached now, please try it again later");
-                        System.exit(1);
+                        Logger.logErrorMessage("Node now trying to join the network via NAT service, but NAT service [" + myHost +"] can not be reached now");
                     }
                 }
                 InetAddress[] myAddrs = InetAddress.getAllByName(myHost);
@@ -512,6 +517,22 @@ public final class Peers {
             } else {
                 peerServer = null;
                 Logger.logMessage("shareMyAddress is disabled, will not start peer networking server");
+            }
+
+            //[NAT] run NAT client
+            if (useNATService) {
+                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS?"nat_client.exe":"./nat_client");
+                cmd.append(" -s ").append(NATServiceAddress == null?Peers.addressHost(myAddress):NATServiceAddress)
+                        .append(" -p ").append(NATServicePort)
+                        .append(" -k ").append(NATClientKey);
+                try {
+                    Process process = Runtime.getRuntime().exec(cmd.toString());
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
+                    Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
+                } catch (IOException e) {
+                    useNATService = false;
+                    Logger.logErrorMessage("NAT Client execute Error", e);
+                }
             }
         }
 
