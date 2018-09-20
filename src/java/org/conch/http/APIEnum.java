@@ -273,6 +273,7 @@ public enum APIEnum {
     RESTART("restart", Restart.instance),
     UPGRADE_CLIENT("upgradeClient", UpgradeClient.instance),
     RECONFIG("reConfig", ReConfig.instance),
+    RECOVERY("recovery", Recovery.instance),
 
     TRIM_DERIVED_TABLES("trimDerivedTables", TrimDerivedTables.instance),
     HASH("hash", Hash.instance),
