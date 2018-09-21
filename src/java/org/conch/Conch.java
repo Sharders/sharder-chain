@@ -439,11 +439,12 @@ public final class Conch {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
                 // [Hub] if owner binded then start forge automatic
+                Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
                 String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
-                String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase"));
-                if (hubBindPassPhrase != null) {
+                String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
+                if (hubBind && hubBindPassPhrase != null) {
                     Generator hubGenerator = Generator.startForging(hubBindPassPhrase.trim());
-                    if(hubGenerator != null && !Account.getAccount(hubGenerator.getAccountId()).equals(hubBindAddress)) {
+                    if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
                         Generator.stopForging(hubBindPassPhrase.trim());
                         Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
                     } else {
