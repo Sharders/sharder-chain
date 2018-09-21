@@ -36,7 +36,6 @@ import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
 import org.json.simple.JSONObject;
-import sun.rmi.runtime.Log;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -49,7 +48,7 @@ import java.util.*;
 
 public final class Conch {
 
-    public static final String VERSION = "0.0.9";
+    public static final String VERSION = "0.1.0";
     public static final String APPLICATION = "COS";
 
     private static volatile Time time = new Time.EpochTime();
