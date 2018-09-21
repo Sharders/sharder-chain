@@ -46,6 +46,7 @@ import org.conch.Conch;
 import org.conch.Constants;
 import org.conch.storage.ipfs.DaemonEvent.DaemonEventType;
 import io.ipfs.api.IPFS;
+import org.conch.util.Convert;
 import org.conch.util.Logger;
 
 public class Daemon{
@@ -55,7 +56,7 @@ public class Daemon{
     private Thread thread = null;
     private File bin;
     private File swarmKey;
-    private boolean useServerProfile = Conch.getStringProperty("sharder.myAddress").trim().length()>0;
+    private boolean useServerProfile = Convert.nullToEmpty(Conch.getStringProperty("sharder.myAddress")).trim().length()>0;
     private String swarmPort = Conch.getStringProperty("sharder.storage.ipfs.swarm.port");
     private String apiPort = Conch.getStringProperty("sharder.storage.ipfs.api.port");
     private String gatewayPort = Conch.getStringProperty("sharder.storage.ipfs.gateway.port");
