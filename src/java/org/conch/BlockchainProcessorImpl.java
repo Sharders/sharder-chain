@@ -1985,7 +1985,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         if(num - backNum > 0){
             if(backupNum.containsKey(storeTransaction.getId())){
                 Map<String, Long> info = backupNum.get(storeTransaction.getId());
-                info.put("mum", info.get("num") + 1);
+                info.put("num", info.get("num") + 1);
                 backupNum.put(storeTransaction.getId(), info);
             }else {
                 Map<String, Long> info = new HashMap<>();
