@@ -570,7 +570,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         try {
             for (Transaction transaction : transactions) {
                 BlockDb.transactionCache.remove(transaction.getId());
-                if (TransactionDb.hasTransaction(transaction.getId())) {
+                if (TransactionDb.hasTransaction(transaction.getId()) || transaction.getAttachment().getTransactionType() == TransactionType.CoinBase.ORDINARY) {
                     continue;
                 }
                 ((TransactionImpl)transaction).unsetBlock();
