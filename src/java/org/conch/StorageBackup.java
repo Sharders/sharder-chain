@@ -44,7 +44,7 @@ public class StorageBackup {
     };
 
     private static final PersistentDbTable<StorageBackup> storageTable = new PersistentDbTable<StorageBackup>(
-            "storage_backup", storageKeyFactory, "storer_id,store_transaction") {
+            "storage_backup", storageKeyFactory) {
 
         @Override
         protected StorageBackup load(Connection con, ResultSet rs, DbKey dbKey) throws SQLException {
