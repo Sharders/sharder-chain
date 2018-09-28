@@ -44,10 +44,6 @@ public final class Restart extends APIServlet.APIRequestHandler {
         if (scan) {
             Conch.getBlockchainProcessor().fullScanWithShutdown();
         } else {
-            HashMap map = new HashMap();
-            map.put("sharder.NATServiceAddress", "xx"+ new Date().toString());
-            map.put("sharder.NATServicePort", "12321");
-            Conch.storePropertiesToFile(map);
             Conch.restartApplication(null);
         }
         response.put("restart", true);
