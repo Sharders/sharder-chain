@@ -31,7 +31,7 @@ import java.util.*;
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
     static final ReConfig instance = new ReConfig();
-    static final List<String> excludeParams = Arrays.asList("restart", "requestType");
+    static final List<String> excludeParams = Arrays.asList("restart", "requestType", "newAdminPassword", "reBind");
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -40,10 +40,20 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
+        boolean bindNew = "true".equalsIgnoreCase(req.getParameter("reBind"));
+        boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap();
         Enumeration enu = req.getParameterNames();
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
+            if ("newAdminPassword".equals(paraName)) {
+                map.put("sharder.adminPassword", req.getParameter(paraName));
+                continue;
+            }
+            if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew) {
+                map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
+                continue;
+            }
             if (excludeParams.contains(paraName)) {
                 continue;
             }
