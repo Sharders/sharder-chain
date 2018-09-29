@@ -633,7 +633,7 @@ public final class Conch {
                 }
             }
             // init the command to execute, add the vm args
-            final StringBuffer cmd = new StringBuffer("\"" + java + "\" " + vmArgsOneLine);
+            final StringBuffer cmd = new StringBuffer(java + " " + vmArgsOneLine);
 
             // program main and program arguments
             String[] mainCommand = System.getProperty(SUN_JAVA_COMMAND).split(" ");
@@ -643,7 +643,7 @@ public final class Conch {
                 cmd.append("-jar " + new File(mainCommand[0]).getPath());
             } else {
                 // else it's a .class, add the classpath and mainClass
-                cmd.append("-cp \"" + System.getProperty("java.class.path") + "\" " + mainCommand[0]);
+                cmd.append("-cp " + System.getProperty("java.class.path") + " " + mainCommand[0]);
             }
             // finally add program arguments
             for (int i = 1; i < mainCommand.length; i++) {
