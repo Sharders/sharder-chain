@@ -36,6 +36,7 @@ import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
 import org.json.simple.JSONObject;
+import org.sharder.util.Https;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -608,6 +609,11 @@ public final class Conch {
             FileUtils.copyURLToFile(new URL(url), archive);
         }
         FileUtil.unzipAndReplace(archive, true);
+    }
+
+    public static String fetchLastestHubVersion() throws IOException {
+        String url = "http://120.79.243.35:8009/sharder-hub/release/lastest-version";
+        return Https.httpRequest(url,"GET", null);
     }
 
     // [NAT] init HubConfig or reconfiged restart the application itself
