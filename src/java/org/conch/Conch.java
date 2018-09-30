@@ -662,6 +662,7 @@ public final class Conch {
                 @Override
                 public void run() {
                     try {
+                        shutdown();
                         Logger.logDebugMessage(cmd.toString());
                         Runtime.getRuntime().exec(cmd.toString());
                     } catch (IOException e) {
@@ -674,6 +675,7 @@ public final class Conch {
                 runBeforeRestart.run();
             }
             // exit
+            Logger.logDebugMessage("Sharder Server Shutting down...");
             System.exit(0);
         } catch (Exception e) {
             // something went wrong
