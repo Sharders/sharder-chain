@@ -31,7 +31,7 @@ import java.util.*;
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
     static final ReConfig instance = new ReConfig();
-    static final List<String> excludeParams = Arrays.asList("restart", "requestType", "newAdminPassword", "reBind");
+    static final List<String> excludeParams = Arrays.asList("restart", "requestType", "newAdminPassword", "isInit", "adminPassword", "reBind");
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -41,6 +41,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         boolean bindNew = "true".equalsIgnoreCase(req.getParameter("reBind"));
+        boolean isInit = "true".equalsIgnoreCase(req.getParameter("isInit"));
         boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap();
         Enumeration enu = req.getParameterNames();
@@ -50,7 +51,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 map.put("sharder.adminPassword", req.getParameter(paraName));
                 continue;
             }
-            if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew) {
+            if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew && !isInit) {
                 map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
                 continue;
             }
