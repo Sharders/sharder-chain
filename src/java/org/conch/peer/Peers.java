@@ -192,12 +192,12 @@ public final class Peers {
                 // [NAT]
                 if (useNATService) {
                     Logger.logInfoMessage("Node joins the network via official or 3rd part NAT|DDNS service");
-                    if (NetStateUtil.isReachable(myHost)) {
-                        Logger.logInfoMessage("NAT service [" + myHost +"] can be connected");
-                        addrValid = true;
-                    } else {
-                        Logger.logErrorMessage("Node now trying to join the network via NAT service, but NAT service [" + myHost +"] can not be reached now");
-                    }
+//                    if (NetStateUtil.isReachable(myHost)) {
+//                        Logger.logInfoMessage("NAT service [" + myHost +"] can be connected");
+//                        addrValid = true;
+//                    } else {
+//                        Logger.logErrorMessage("Node now trying to join the network via NAT service, but NAT service [" + myHost +"] can not be reached now");
+//                    }
                 }
                 InetAddress[] myAddrs = InetAddress.getAllByName(myHost);
                 Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
