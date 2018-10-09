@@ -521,12 +521,19 @@ public final class Peers {
 
             //[NAT] run NAT client
             if (useNATService) {
-                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS?"nat.cmd":"./nat.sh");
-                cmd.append(" ").append(NATServiceAddress == null?Peers.addressHost(myAddress):NATServiceAddress)
-                        .append(" ").append(NATServicePort)
-                        .append(" ").append(NATClientKey);
+                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS?"nat_client.exe":"./nat_client");
+                cmd.append(" -s ").append(NATServiceAddress == null?Peers.addressHost(myAddress):NATServiceAddress)
+                        .append(" -p ").append(NATServicePort)
+                        .append(" -k ").append(NATClientKey);
                 try {
                     Process process = Runtime.getRuntime().exec(cmd.toString());
+                    // any error message?
+                    StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
+                    // any output?
+                    StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
+                    // kick them off
+                    errorGobbler.start();
+                    outputGobbler.start();
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
                     Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
                 } catch (IOException e) {
