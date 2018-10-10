@@ -609,6 +609,11 @@ public final class Conch {
             FileUtils.copyURLToFile(new URL(url), archive);
         }
         FileUtil.unzipAndReplace(archive, true);
+        try {
+            Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
+        } catch (Exception e) {
+            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);
+        }
     }
 
     public static String fetchLastestHubVersion() throws IOException {
