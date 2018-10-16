@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.apache.commons.io.FileUtils;
 import org.conch.addons.AddOns;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbBackup;
@@ -31,32 +32,24 @@ import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
 import org.conch.peer.Peers;
+import org.conch.storage.StorageManager;
 import org.conch.user.Users;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-import org.conch.util.ThreadPool;
-import org.conch.util.Time;
+import org.conch.util.*;
 import org.json.simple.JSONObject;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
+import org.sharder.util.Https;
+
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URL;
+import java.nio.file.*;
 import java.security.AccessControlException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public final class Conch {
 
-    public static final String VERSION = "0.0.8";
+    public static final String VERSION = "0.1.0";
     public static final String APPLICATION = "COS";
 
     private static volatile Time time = new Time.EpochTime();
@@ -120,6 +113,29 @@ public final class Conch {
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
+    }
+
+    public static void storePropertiesToFile(HashMap<String, String> parameters) {
+
+        OutputStream output = null;
+        Properties userProperties = loadProperties(properties, CONCH_PROPERTIES, false);;
+        parameters.entrySet().forEach(map -> userProperties.setProperty(map.getKey(), map.getValue()));
+        try {
+            output = new FileOutputStream("conf/" + CONCH_PROPERTIES);
+            LocalDateTime now = LocalDateTime.now();
+            userProperties.store(output , "Updated by HubConfig Manager " + now.toString());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                output.flush();
+                output.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static Properties loadProperties(Properties properties, String propertiesFile, boolean isDefault) {
@@ -352,6 +368,7 @@ public final class Conch {
                 setServerStatus(ServerStatus.BEFORE_DATABASE, null);
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
+                StorageManager.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
                 Account.init();
@@ -382,13 +399,17 @@ public final class Conch {
                 ShufflingParticipant.init();
                 PrunableMessage.init();
                 TaggedData.init();
+                StorageProcessorImpl.init();
+                StorageBackup.init();
                 FxtDistribution.init();
                 Peers.init();
                 APIProxy.init();
                 Generator.init();
                 AddOns.init();
                 API.init();
+//                HubConfig.init();
                 Users.init();
+                ForgePool.init();
                 DebugTrace.init();
                 // DbBackup Init
                 DbBackup.init();
@@ -418,6 +439,20 @@ public final class Conch {
                 if (Constants.isTestnet) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
+                // [Hub] if owner binded then start forge automatic
+                Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
+                String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
+                String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
+                if (hubBind && hubBindPassPhrase != null) {
+                    Generator hubGenerator = Generator.startForging(hubBindPassPhrase.trim());
+                    if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
+                        Generator.stopForging(hubBindPassPhrase.trim());
+                        Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
+                    } else {
+                        Logger.logInfoMessage("Account " + hubBindAddress + "started forging automatically");
+                    }
+                }
+
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
                 runtimeMode.alert(e.getMessage() + "\n" +
@@ -540,5 +575,117 @@ public final class Conch {
     }
 
     private Conch() {} // never
+
+    public static Thread fetchUpgradePackageThread(String version) {
+        String url = "http://120.79.243.35:8009/sharder-hub/release/cos-hub-" + version +".zip";
+        File projectPath = new File("temp/");
+        File archive = new File(projectPath, "cos-hub-" + version + ".zip");
+        Thread fetchUpgradePackageThread = new Thread(
+                () -> {
+                    try {
+                        if (!archive.exists()) {
+                            Logger.logDebugMessage("[UPGRADE CLIENT] Get upgrade package:" + archive.getName());
+                            FileUtils.copyURLToFile(new URL(url), archive);
+                        }
+                        FileUtil.unzipAndReplace(archive, true);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
+                    }
+                }
+
+        );
+        fetchUpgradePackageThread.setDaemon(true);
+        fetchUpgradePackageThread.start();
+        return fetchUpgradePackageThread;
+    }
+
+    public static void fetchUpgradePackage(String version) throws IOException {
+        String url = "http://120.79.243.35:8009/sharder-hub/release/cos-hub-" + version +".zip";
+        File projectPath = new File("temp/");
+        File archive = new File(projectPath, "cos-hub-" + version + ".zip");
+        if (!archive.exists()) {
+            Logger.logDebugMessage("[UPGRADE CLIENT] Get upgrade package:" + archive.getName());
+            FileUtils.copyURLToFile(new URL(url), archive);
+        }
+        FileUtil.unzipAndReplace(archive, true);
+        try {
+            Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
+        } catch (Exception e) {
+            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);
+        }
+    }
+
+    public static String fetchLastestHubVersion() throws IOException {
+        String url = "http://120.79.243.35:8009/sharder-hub/release/lastest-version";
+        return Https.httpRequest(url,"GET", null);
+    }
+
+    // [NAT] init HubConfig or reconfiged restart the application itself
+    public static final String SUN_JAVA_COMMAND = "sun.java.command";
+    /**
+     * Restart the current Java application
+     * @param runBeforeRestart some code to be run before restarting
+     * @throws IOException
+     */
+    public static void restartApplication(Runnable runBeforeRestart) {
+        try {
+            // java binary
+            String java = System.getProperty("java.home") + "/bin/java";
+            // vm arguments
+            List<String> vmArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+            StringBuffer vmArgsOneLine = new StringBuffer();
+            for (String arg : vmArguments) {
+                // if it's the agent argument : we ignore it otherwise the
+                // address of the old application and the new one will be in conflict
+                if (!arg.contains("-agentlib")) {
+                    vmArgsOneLine.append(arg);
+                    vmArgsOneLine.append(" ");
+                }
+            }
+            // init the command to execute, add the vm args
+            final StringBuffer cmd = new StringBuffer(java + " " + vmArgsOneLine);
+
+            // program main and program arguments
+            String[] mainCommand = System.getProperty(SUN_JAVA_COMMAND).split(" ");
+            // program main is a jar
+            if (mainCommand[0].endsWith(".jar")) {
+                // if it's a jar, add -jar mainJar
+                cmd.append("-jar " + new File(mainCommand[0]).getPath());
+            } else {
+                // else it's a .class, add the classpath and mainClass
+                cmd.append("-cp " + System.getProperty("java.class.path") + " " + mainCommand[0]);
+            }
+            // finally add program arguments
+            for (int i = 1; i < mainCommand.length; i++) {
+                cmd.append(" ");
+                cmd.append(mainCommand[i]);
+            }
+            // execute the command in a shutdown hook, to be sure that all the
+            // resources have been disposed before restarting the application
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        shutdown();
+                        Logger.logDebugMessage(cmd.toString());
+                        Runtime.getRuntime().exec(cmd.toString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            // execute some custom code before restarting
+            if (runBeforeRestart!= null) {
+                runBeforeRestart.run();
+            }
+            // exit
+            Logger.logDebugMessage("Sharder Server Shutting down...");
+            System.exit(0);
+        } catch (Exception e) {
+            // something went wrong
+            e.printStackTrace();
+        }
+    }
 
 }

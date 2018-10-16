@@ -47,7 +47,7 @@ public final class GetPeer extends APIServlet.APIRequestHandler {
             return MISSING_PEER;
         }
 
-        Peer peer = Peers.findOrCreatePeer(peerAddress, false);
+        Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), false);
         if (peer == null) {
             return UNKNOWN_PEER;
         }

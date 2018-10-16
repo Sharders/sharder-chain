@@ -30,6 +30,7 @@ public final class Constants {
     public static final boolean isTestnet = Conch.getBooleanProperty("sharder.isTestnet");
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
+    public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
 
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MIN_TRANSACTION_SIZE = 176;
@@ -147,6 +148,15 @@ public final class Constants {
     public static final int MAX_TAGGED_DATA_DATA_LENGTH = 10 * 1024 * 1024;
     public static final int MAX_RESPONSE_SIZE = 20 * 1024 * 1024;
 
+
+    public static final int MAX_STORED_DATA_NAME_LENGTH = 200;
+    public static final int MAX_STORED_DATA_DESCRIPTION_LENGTH = 1000;
+    public static final int MAX_STORED_DATA_TYPE_LENGTH = 100;
+    public static final int MAX_STORED_DATA_CHANNEL_LENGTH = 100;
+    public static final int MIN_EXISTENCE_HEIGHT = 100;
+
+
+
     /**conch**/
     public static final int ALIAS_SYSTEM_BLOCK = 0;
     public static final int TRANSPARENT_FORGING_BLOCK = 0;
@@ -194,6 +204,12 @@ public final class Constants {
 
     public static final long EPOCH_BEGINNING;
 
+    //forge pool
+    public static final int FORGE_POOL_DELAY = 10; //transaction become effective
+    public static final int FORGE_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
+    public static final int FORGE_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
+    public static final int FORGE_REWARD_DELAY = 10;
+
     //Conch chain begin time
     static {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -223,6 +239,7 @@ public final class Constants {
         configFee.add((long)Conch.getIntProperty("sharder.fee.monetarySystem"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.dataFee"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.shuffling"));
+        //TODO modify storage fee config
         long fee = (long)Conch.getIntProperty("sharder.fee.data0M");
         configFee.add(fee == 0 ? Constants.ONE_SS : fee);
         fee = (long)Conch.getIntProperty("sharder.fee.data1M");

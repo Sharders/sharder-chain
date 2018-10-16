@@ -1064,6 +1064,7 @@ public final class Account {
     private long balanceNQT;
     private long unconfirmedBalanceNQT;
     private long forgedBalanceNQT;
+    private long frozenBalanceNQT;
     private long activeLesseeId;
     private Set<ControlType> controls;
 
@@ -1082,6 +1083,7 @@ public final class Account {
         this.balanceNQT = rs.getLong("balance");
         this.unconfirmedBalanceNQT = rs.getLong("unconfirmed_balance");
         this.forgedBalanceNQT = rs.getLong("forged_balance");
+        this.frozenBalanceNQT = rs.getLong("frozen_balance");
         this.activeLesseeId = rs.getLong("active_lessee_id");
         if (rs.getBoolean("has_control_phasing")) {
             controls = Collections.unmodifiableSet(EnumSet.of(ControlType.PHASING_ONLY));
@@ -1092,14 +1094,15 @@ public final class Account {
 
     private void save(Connection con) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO account (id, "
-                + "balance, unconfirmed_balance, forged_balance, "
+                + "balance, unconfirmed_balance, forged_balance, frozen_balance,"
                 + "active_lessee_id, has_control_phasing, height, latest) "
-                + "KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + "KEY (id, height) VALUES (?, ?, ?, ?,?, ?, ?, ?, TRUE)")) {
             int i = 0;
             pstmt.setLong(++i, this.id);
             pstmt.setLong(++i, this.balanceNQT);
             pstmt.setLong(++i, this.unconfirmedBalanceNQT);
             pstmt.setLong(++i, this.forgedBalanceNQT);
+            pstmt.setLong(++i, this.frozenBalanceNQT);
             DbUtils.setLongZeroToNull(pstmt, ++i, this.activeLesseeId);
             pstmt.setBoolean(++i, controls.contains(ControlType.PHASING_ONLY));
             pstmt.setInt(++i, Conch.getBlockchain().getHeight());
@@ -1108,7 +1111,7 @@ public final class Account {
     }
 
     private void save() {
-        if (balanceNQT == 0 && unconfirmedBalanceNQT == 0 && forgedBalanceNQT == 0 && activeLesseeId == 0 && controls.isEmpty()) {
+        if (balanceNQT == 0 && unconfirmedBalanceNQT == 0 && forgedBalanceNQT == 0 && frozenBalanceNQT == 0 && activeLesseeId == 0 && controls.isEmpty()) {
             accountTable.delete(this, true);
         } else {
             accountTable.insert(this);
@@ -1181,6 +1184,10 @@ public final class Account {
 
     public long getForgedBalanceNQT() {
         return forgedBalanceNQT;
+    }
+
+    public long getFrozenBalanceNQT() {
+        return frozenBalanceNQT;
     }
 
     public long getEffectiveBalanceSS() {
@@ -1652,6 +1659,49 @@ public final class Account {
                     AccountLedger.LedgerHolding.CURRENCY_BALANCE, currencyId,
                     units, currencyUnits));
         }
+    }
+
+    void frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        if (amountNQT == 0) {
+            return;
+        }
+        this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
+        this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
+        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
+        addToGuaranteedBalanceNQT(amountNQT);
+        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
+        if (this.frozenBalanceNQT < 0) {
+            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
+        }
+        save();
+    }
+
+    void frozenBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        if (amountNQT == 0) {
+            return;
+        }
+        this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
+        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
+        addToGuaranteedBalanceNQT(amountNQT);
+        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
+        if (this.frozenBalanceNQT < 0) {
+            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
+        }
+        save();
+    }
+
+    //add frozen balance
+    void frozenNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        if (amountNQT == 0) {
+            return;
+        }
+        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
+        //addToGuaranteedBalanceNQT(amountNQT);
+        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
+        if (this.frozenBalanceNQT < 0) {
+            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
+        }
+        save();
     }
 
     void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {

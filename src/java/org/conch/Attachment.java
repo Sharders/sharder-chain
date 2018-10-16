@@ -21,18 +21,21 @@
 
 package org.conch;
 
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public interface Attachment extends Appendix {
 
@@ -135,9 +138,109 @@ public interface Attachment extends Appendix {
 
     };
 
+    final class CoinBase extends AbstractAttachment {
+        enum Type{
+            POOL,SINGLE
+        }
+        private final long creator; //transaction creator
+        private final long generatorId; //by pool or account
+        private final Map<Long,Long> consignors;
+
+        CoinBase(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.creator = buffer.getLong();
+            this.generatorId = buffer.getLong();
+            Map<Long,Long> temp = new HashMap<>();
+            if(buffer.hasRemaining()){
+                int size = buffer.remaining() / 16;
+                for(int i = 0;i < size; i++){
+                    long id = buffer.getLong();
+                    long amount = buffer.getLong();
+                    temp.put(id,amount);
+                }
+            }
+            consignors = temp;
+        }
+
+        CoinBase(JSONObject attachmentData) {
+            super(attachmentData);
+            this.creator = (Long) attachmentData.get("creator");
+            this.generatorId = (Long) attachmentData.get("generatorId");
+            this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
+        }
+
+        public CoinBase(long creator, long generatorId ,Map<Long,Long> consignors) {
+            this.creator = creator;
+            this.generatorId = generatorId;
+            this.consignors = consignors;
+        }
+
+        @Override
+        int getMySize() {
+            return 16 + consignors.size() * 16;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(creator);
+            buffer.putLong(generatorId);
+            for (Map.Entry<Long, Long> entry : consignors.entrySet()) {
+                buffer.putLong(entry.getKey());
+                buffer.putLong(entry.getValue());
+            }
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("creator", creator);
+            attachment.put("generatorId", generatorId);
+            attachment.put("consignors",mapToJson(consignors));
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.CoinBase.ORDINARY;
+        }
+
+        public Map<Long, Long> getConsignors() {
+            return consignors;
+        }
+
+        public long getGeneratorId() {
+            return generatorId;
+        }
+
+        private JSONObject mapToJson(Map<Long,Long> map){
+            if(map.isEmpty()){
+                return new JSONObject();
+            }else{
+                JSONObject jsonObject = new JSONObject();
+                for(Long key : map.keySet()){
+                    jsonObject.put(key,map.get(key));
+                }
+                return jsonObject;
+            }
+        }
+
+        private Map<Long,Long> jsonToMap(JSONObject jsonObject){
+            if(jsonObject.isEmpty()){
+                return new HashMap<>();
+            }else {
+                Map<Long,Long> map = new HashMap<>();
+                for(Object key : jsonObject.keySet()){
+                    if(key instanceof String){
+                        map.put(Long.parseLong((String)key),(Long)jsonObject.get(key));
+                    }else {
+                        map.put((Long)key,(Long)jsonObject.get(key));
+                    }
+                }
+                return map;
+            }
+        }
+    }
+
     // the message payload is in the Appendix
     EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
-
         @Override
         public TransactionType getTransactionType() {
             return TransactionType.Messaging.ARBITRARY_MESSAGE;
@@ -3643,5 +3746,419 @@ public interface Attachment extends Appendix {
             return maxDuration;
         }
 
+    }
+
+    final class ForgePoolCreate extends AbstractAttachment {
+
+        private final int period;
+        private final Map<String,Object> rule;
+
+        ForgePoolCreate(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.period = Short.toUnsignedInt(buffer.getShort());
+            Map<String,Object> map = null;
+            try{
+                ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.remaining());
+                byteBuffer.put(buffer);
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
+                map = (Map<String,Object>)ois.readObject();
+                ois.close();
+            }catch (Exception e){
+                Logger.logErrorMessage("forge pool create transaction can't load rule from byte", e);
+            }
+            this.rule = map;
+        }
+
+        ForgePoolCreate(JSONObject attachmentData) {
+            super(attachmentData);
+            this.period = ((Long) attachmentData.get("period")).intValue();
+            this.rule = Rule.jsonObjectToMap((JSONObject)attachmentData.get("rule"));
+        }
+
+        public ForgePoolCreate(int period,Map<String,Object> rule) {
+            this.period = period;
+            this.rule = rule;
+        }
+
+        @Override
+        int getMySize() {
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(rule);
+                os.close();
+                return 2 + bo.toByteArray().length;
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+            }
+            return 2 + (int)ObjectSizeCalculator.getObjectSize(rule);
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putShort((short)period);
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(rule);
+                os.close();
+                buffer.put(ByteBuffer.wrap(bo.toByteArray()));
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+            }
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("period", period);
+            attachment.put("rule", rule);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_CREATE;
+        }
+
+        public int getPeriod() {
+            return period;
+        }
+
+        public Map<String, Object> getRule() {
+            return rule;
+        }
+    }
+
+    final class ForgePoolDestroy extends AbstractAttachment {
+        private final long poolId;
+
+        ForgePoolDestroy(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.poolId = buffer.getLong();
+        }
+
+        ForgePoolDestroy(JSONObject attachmentData) {
+            super(attachmentData);
+            this.poolId = (Long) attachmentData.get("poolId");
+        }
+
+        public ForgePoolDestroy(long poolId) {
+            this.poolId = poolId;
+        }
+
+        @Override
+        int getMySize() {
+            return 8;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(poolId);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("poolId", poolId);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_DESTROY;
+        }
+
+        public long getPoolId() {
+            return poolId;
+        }
+    }
+
+    final class ForgePoolJoin extends AbstractAttachment {
+
+        private final long forgePoolId;
+        private final long amount;
+        private final int period;
+
+        ForgePoolJoin(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.forgePoolId = buffer.getLong();
+            this.amount = buffer.getLong();
+            this.period = Short.toUnsignedInt(buffer.getShort());
+        }
+
+        ForgePoolJoin(JSONObject attachmentData) {
+            super(attachmentData);
+            this.forgePoolId = (Long) attachmentData.get("forgePoolId");
+            this.amount = (Long) attachmentData.get("amount");
+            this.period = ((Long) attachmentData.get("period")).intValue();
+        }
+
+        public ForgePoolJoin(long forgePoolId , long amount ,int period) {
+            this.forgePoolId = forgePoolId;
+            this.amount = amount;
+            this.period = period;
+        }
+
+        @Override
+        int getMySize() {
+            return 18;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(forgePoolId);
+            buffer.putLong(amount);
+            buffer.putShort((short)period);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("forgePoolId", forgePoolId);
+            attachment.put("amount", amount);
+            attachment.put("period", period);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_JOIN;
+        }
+
+        public int getPeriod() {
+            return period;
+        }
+
+        public long getForgePoolId() {
+            return forgePoolId;
+        }
+
+        public long getAmount() {
+            return amount;
+        }
+    }
+
+    final class ForgePoolQuit extends AbstractAttachment {
+        private final long txId;
+        private final long poolId;
+
+        ForgePoolQuit(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.txId = buffer.getLong();
+            this.poolId = buffer.getLong();
+        }
+
+        ForgePoolQuit(JSONObject attachmentData) {
+            super(attachmentData);
+            this.txId = (Long) attachmentData.get("txId");
+            this.poolId = (Long) attachmentData.get("poolId");
+        }
+
+        public ForgePoolQuit(long txId, long poolId) {
+            this.txId = txId;
+            this.poolId = poolId;
+        }
+
+        @Override
+        int getMySize() {
+            return 16;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(txId);
+            buffer.putLong(poolId);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("txId", txId);
+            attachment.put("poolId", poolId);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.ForgePool.FORGE_POOL_QUIT;
+        }
+
+        public long getTxId() {
+            return txId;
+        }
+
+        public long getPoolId() {
+            return poolId;
+        }
+    }
+
+    final class DataStorageUpload extends AbstractAttachment {
+
+        private final String name;
+        private final String description;
+        private final String type;
+        private final String ssid;
+        private final String channel;
+        private final int existence_height;
+        private final int replicated_number;
+//        private final String filename;
+
+        DataStorageUpload(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            super(buffer, transactionVersion);
+            this.name = Convert.readString(buffer, buffer.get(), Constants.MAX_TAGGED_DATA_NAME_LENGTH);
+            this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_TAGGED_DATA_DESCRIPTION_LENGTH);
+            this.type = Convert.readString(buffer, buffer.get(), Constants.MAX_TAGGED_DATA_TYPE_LENGTH);
+            this.ssid = Convert.readString(buffer, buffer.get(), 200);
+            this.channel = Convert.readString(buffer, buffer.get(), Constants.MAX_TAGGED_DATA_CHANNEL_LENGTH);
+            this.existence_height = buffer.getInt();
+            this.replicated_number = buffer.getInt();
+        }
+
+        DataStorageUpload(JSONObject attachmentData) {
+            super(attachmentData);
+            this.name = (String) attachmentData.get("name");
+            this.description = (String) attachmentData.get("description");
+            this.type = (String) attachmentData.get("type");
+            this.ssid = (String) attachmentData.get("ssid");
+            this.channel = (String) attachmentData.get("channel");
+            this.existence_height = ((Long) attachmentData.get("existence_height")).intValue();
+            this.replicated_number = ((Long) attachmentData.get("replicated_number")).intValue();
+        }
+
+        public DataStorageUpload(String name, String description, String type, String ssid, String channel, int existence_height, int replicated_number) {
+            this.name = name;
+            this.description = description;
+            this.type = type;
+            this.ssid = ssid;
+            this.channel = channel;
+            this.existence_height = existence_height;
+            this.replicated_number = replicated_number;
+        }
+
+        @Override
+        int getMySize() {
+            return 1 + Convert.toBytes(name).length +
+                    2 + Convert.toBytes(description).length +
+                    1 + Convert.toBytes(type).length +
+                    1 + Convert.toBytes(ssid).length +
+                    1 + Convert.toBytes(channel).length +
+                    4 +
+                    4 ;
+//                    4 + Convert.toBytes(channel).length +
+//                    5 + Convert.toBytes(filename).length;
+
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            byte[] name = Convert.toBytes(this.name);
+            byte[] description = Convert.toBytes(this.description);
+            byte[] type = Convert.toBytes(this.type);
+            byte[] ssid = Convert.toBytes(this.ssid);
+            byte[] channel = Convert.toBytes(this.channel);
+            buffer.put((byte)name.length);
+            buffer.put(name);
+            buffer.putShort((short) description.length);
+            buffer.put(description);
+            buffer.put((byte) type.length);
+            buffer.put(type);
+            buffer.put((byte) ssid.length);
+            buffer.put(ssid);
+            buffer.put((byte) channel.length);
+            buffer.put(channel);
+            buffer.putInt(existence_height);
+            buffer.putInt(replicated_number);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("name", name);
+            attachment.put("description", description);
+            attachment.put("type", type);
+            attachment.put("ssid", ssid);
+            attachment.put("channel", channel);
+            attachment.put("existence_height", existence_height);
+            attachment.put("replicated_number", replicated_number);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return StorageTransaction.STORAGE_UPLOAD;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getSsid() {
+            return ssid;
+        }
+
+        public String getChannel() {
+            return channel;
+        }
+
+        public int getExistence_height() {
+            return existence_height;
+        }
+
+        public int getReplicated_number() {
+            return replicated_number;
+        }
+    }
+
+    final class DataStorageBackup extends AbstractAttachment {
+
+        private final long uploadTransaction;
+        private final long storerId;
+
+        DataStorageBackup(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            super(buffer, transactionVersion);
+            this.uploadTransaction = buffer.getLong();
+            this.storerId = buffer.getLong();
+        }
+
+        DataStorageBackup(JSONObject attachmentData) {
+            super(attachmentData);
+            this.uploadTransaction = (Long) attachmentData.get("uploadTransaction");
+            this.storerId = (Long) attachmentData.get("storerId");
+
+        }
+
+        public DataStorageBackup(Long uploadTransaction, Long storerId) {
+            this.uploadTransaction = uploadTransaction;
+            this.storerId = storerId;
+        }
+
+        @Override
+        int getMySize() {
+            return 8 + 8;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(this.uploadTransaction);
+            buffer.putLong(this.storerId);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("uploadTransaction", uploadTransaction);
+            attachment.put("storerId", storerId);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return StorageTransaction.STORAGE_BACKUP;
+        }
+
+        public long getUploadTransaction() {
+            return uploadTransaction;
+        }
+
+        public long getStorerId() {
+            return storerId;
+        }
     }
 }

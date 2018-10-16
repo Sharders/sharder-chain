@@ -41,7 +41,7 @@ final class AddPeers extends PeerServlet.PeerRequestHandler {
             Peers.peersService.submit(() -> {
                 for (int i=0; i<peers.size(); i++) {
                     String announcedAddress = (String)peers.get(i);
-                    PeerImpl newPeer = Peers.findOrCreatePeer(announcedAddress, true);
+                    PeerImpl newPeer = Peers.findOrCreatePeer(announcedAddress, Peers.isUseNATService(announcedAddress));
                     if (newPeer != null) {
                         if (Peers.addPeer(newPeer) && setServices) {
                             newPeer.setServices(Long.parseUnsignedLong((String)services.get(i)));

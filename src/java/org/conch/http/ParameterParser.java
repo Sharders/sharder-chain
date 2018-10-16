@@ -39,6 +39,10 @@ import org.conch.Shuffling;
 import org.conch.Transaction;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
+import org.conch.peer.Peer;
+import org.conch.storage.Ssid;
+import org.conch.storage.StorageManager;
+import org.conch.storage.ipfs.IpfsService;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.Search;
@@ -786,6 +790,100 @@ public final class ParameterParser {
             throw new ParameterException(INCORRECT_TAGGED_DATA_FILENAME);
         }
         return new Attachment.TaggedDataUpload(name, description, tags, type, channel, isText, filename, data);
+    }
+
+    public static Attachment.DataStorageUpload getDataStorage(HttpServletRequest req) throws ParameterException, ConchException.NotValidException {
+        String name = Convert.emptyToNull(req.getParameter("name"));
+        String description = Convert.nullToEmpty(req.getParameter("description"));
+        String type = Convert.nullToEmpty(req.getParameter("type")).trim();
+        String channel = Convert.nullToEmpty(req.getParameter("channel"));
+        String filename = Convert.nullToEmpty(req.getParameter("filename")).trim();
+        String dataValue = Convert.emptyToNull(req.getParameter("data"));
+        String existence_heightStr = Convert.emptyToNull(req.getParameter("existence_height"));
+        String replicated_numberStr = Convert.emptyToNull(req.getParameter("replicated_number"));
+        byte[] data;
+        String ssid;
+        if (dataValue == null) {
+            try {
+                Part part = req.getPart("file");
+                if (part == null) {
+                    throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
+                }
+                FileData fileData = new FileData(part).invoke();
+                data = fileData.getData();
+                if (filename.isEmpty() && fileData.getFilename() != null) {
+                    filename = fileData.getFilename().trim();
+                }
+                if (name == null) {
+                    name = filename;
+                }
+            } catch (IOException | ServletException e) {
+                Logger.logDebugMessage("error in reading file data", e);
+                throw new ParameterException(INCORRECT_TAGGED_DATA_FILE);
+            }
+        } else {
+            data = Convert.toBytes(dataValue);
+        }
+
+        ssid = Ssid.encode(Ssid.Type.IPFS, IpfsService.store(data));
+
+        String detectedMimeType = Search.detectMimeType(data, filename);
+        if (detectedMimeType != null) {
+            if (type.isEmpty()) {
+                type = detectedMimeType.substring(0, Math.min(detectedMimeType.length(), Constants.MAX_STORED_DATA_TYPE_LENGTH));
+            }
+        }
+
+        if (name == null) {
+            throw new ParameterException(MISSING_NAME);
+        }
+        name = name.trim();
+        if (name.length() > Constants.MAX_STORED_DATA_NAME_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_NAME);
+        }
+
+        if (description.length() > Constants.MAX_STORED_DATA_DESCRIPTION_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_DESCRIPTION);
+        }
+
+        type = type.trim();
+        if (type.length() > Constants.MAX_STORED_DATA_TYPE_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_TYPE);
+        }
+
+        channel = channel.trim();
+        if (channel.length() > Constants.MAX_STORED_DATA_CHANNEL_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_CHANNEL);
+        }
+
+        int existence_height;
+        if (existence_heightStr == null) {
+            existence_height = 0;
+        } else {
+            try {
+                existence_height = Integer.parseInt(existence_heightStr);
+                if (existence_height != 0 && existence_height < Constants.MIN_EXISTENCE_HEIGHT) {
+                    throw new ParameterException(INCORRECT_EXISTENCE_HEIGHT);
+                }
+            } catch (NumberFormatException e) {
+                throw new ParameterException(INCORRECT_EXISTENCE_HEIGHT);
+            }
+        }
+
+        int replicated_number;
+        if (replicated_numberStr == null) {
+            replicated_number = 3;
+        } else {
+            try {
+                replicated_number = Integer.parseInt(replicated_numberStr);
+                if (replicated_number < 3) {
+                    throw new ParameterException(INCORRECT_REPLICATED_NUMBER);
+                }
+            } catch (NumberFormatException e) {
+                throw new ParameterException(INCORRECT_REPLICATED_NUMBER);
+            }
+        }
+        return new Attachment.DataStorageUpload(name, description, type, ssid, channel, existence_height, replicated_number);
     }
 
     private ParameterParser() {} // never

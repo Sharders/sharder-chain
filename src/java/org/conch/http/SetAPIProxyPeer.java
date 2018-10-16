@@ -52,7 +52,7 @@ public class SetAPIProxyPeer extends APIServlet.APIRequestHandler {
             }
             return JSONData.peer(peer);
         }
-        Peer peer = Peers.findOrCreatePeer(peerAddress, false);
+        Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), false);
         if (peer == null) {
             return UNKNOWN_PEER;
         }

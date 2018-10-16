@@ -252,7 +252,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (peer == null) {
                     return;
                 }
-                JSONObject response = peer.send(getCumulativeDifficultyRequest);
+                //[NAT] inject useNATService property to the request params
+                JSONObject request = new JSONObject();
+                request.put("requestType", "getCumulativeDifficulty");
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Peers.getMyAddress());
+                JSONObject response = peer.send(JSON.prepareRequest(request));
                 if (response == null) {
                     return;
                 }
@@ -338,7 +343,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                             continue;
                         }
                         String otherPeerCumulativeDifficulty;
-                        JSONObject otherPeerResponse = peer.send(getCumulativeDifficultyRequest);
+                        //[NAT] inject useNATService property to the request params
+                        request.clear();
+                        request.put("requestType", "getCumulativeDifficulty");
+                        request.put("useNATService", Peers.isUseNATService());
+                        request.put("announcedAddress", Peers.getMyAddress());
+                        JSONObject otherPeerResponse = peer.send(JSON.prepareRequest(request));
                         if (otherPeerResponse == null || (otherPeerCumulativeDifficulty = (String) response.get("cumulativeDifficulty")) == null) {
                             continue;
                         }
@@ -380,6 +390,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             while (true) {
                 JSONObject milestoneBlockIdsRequest = new JSONObject();
                 milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
+                //[NAT] inject useNATService property to the request params
+                milestoneBlockIdsRequest.put("useNATService", Peers.isUseNATService());
+                milestoneBlockIdsRequest.put("announcedAddress", Peers.getMyAddress());
                 if (lastMilestoneBlockId == null) {
                     milestoneBlockIdsRequest.put("lastBlockId", blockchain.getLastBlock().getStringId());
                 } else {
@@ -423,7 +436,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             int limit = countFromStart ? 720 : 1440;
             while (true) {
                 JSONObject request = new JSONObject();
+                //[NAT] inject useNATService property to the request params
                 request.put("requestType", "getNextBlockIds");
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Peers.getMyAddress());
                 request.put("blockId", Long.toUnsignedString(matchId));
                 request.put("limit", limit);
                 JSONObject response = peer.send(JSON.prepareRequest(request));
@@ -717,8 +733,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             for (int i = start + 1; i <= stop; i++) {
                 idList.add(Long.toUnsignedString(blockIds.get(i)));
             }
+            //[NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getNextBlocks");
+            request.put("useNATService", Peers.isUseNATService());
+            request.put("announcedAddress", Peers.getMyAddress());
             request.put("blockIds", idList);
             request.put("blockId", Long.toUnsignedString(blockIds.get(start)));
             long startTime = System.currentTimeMillis();
@@ -938,7 +957,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 break;
                         }
                     }
+                    //[NAT] inject useNATService property to the request params
                     request.put("requestType", "getTransactions");
+                    request.put("useNATService", Peers.isUseNATService());
+                    request.put("announcedAddress", Peers.getMyAddress());
                     request.put("transactionIds", requestList);
                     JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {
@@ -1568,7 +1590,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         long calculatedTotalFee = 0;
         MessageDigest digest = Crypto.sha256();
         boolean hasPrunedTransactions = false;
+        int coinBaseNum = 0;
+        Map<Long,Transaction> uploadTransactions = new HashMap<>();
+        Map<Long, Map<String, Long>> backupNum = new HashMap<>();
         for (TransactionImpl transaction : block.getTransactions()) {
+            if(transaction.getAttachment() instanceof Attachment.CoinBase){
+                coinBaseNum++;
+            }
             if (transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) {
                 throw new BlockOutOfOrderException("Invalid transaction timestamp: " + transaction.getTimestamp()
                         + ", current time is " + curTime, block);
@@ -1615,6 +1643,23 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (transaction.attachmentIsDuplicate(duplicates, true)) {
                 throw new TransactionNotAcceptedException("Transaction is a duplicate", transaction);
             }
+
+            //backup number validate
+            if(transaction.getType() == StorageTransaction.STORAGE_UPLOAD){
+                uploadTransactions.put(transaction.getId(),transaction);
+            }
+            if(transaction.getType() == StorageTransaction.STORAGE_BACKUP){
+                if (!hasUploadTransaction(uploadTransactions, transaction)) {
+                    throw new TransactionNotAcceptedException("Current backup transaction is in the front of upload transaction ", transaction);
+                }
+                if (hasBackuped(backupNum, transaction)) {
+                    throw new TransactionNotAcceptedException(transaction.getSenderId() + " has already backup the upload transaction ", transaction);
+                }
+                if (isBackupNumberExceed(uploadTransactions, backupNum, transaction)) {
+                    throw new TransactionNotAcceptedException("Backup transaction is exceed ", transaction);
+                }
+            }
+
             if (!hasPrunedTransactions) {
                 for (Appendix.AbstractAppendix appendage : transaction.getAppendages()) {
                     if ((appendage instanceof Appendix.Prunable) && !((Appendix.Prunable)appendage).hasPrunableData()) {
@@ -1624,7 +1669,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }
             calculatedTotalAmount += transaction.getAmountNQT();
-            calculatedTotalFee += transaction.getFeeNQT();
+            if(!StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)){
+                calculatedTotalFee += transaction.getFeeNQT();
+            } else{
+                calculatedTotalFee += transaction.getMinimumFeeNQT(blockchain.getHeight());
+            }
             payloadLength += transaction.getFullSize();
             digest.update(transaction.bytes());
         }
@@ -1637,6 +1686,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (hasPrunedTransactions ? payloadLength > block.getPayloadLength() : payloadLength != block.getPayloadLength()) {
             throw new BlockNotAcceptedException("Transaction payload length " + payloadLength + " does not match block payload length "
                     + block.getPayloadLength(), block);
+        }
+        if(coinBaseNum != 1){
+            throw new BlockNotAcceptedException("The number of CoinBase transaction doesn't match", block);
         }
     }
 
@@ -1861,6 +1913,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         SortedSet<UnconfirmedTransaction> sortedTransactions = new TreeSet<>(transactionArrivalComparator);
         int payloadLength = 0;
+        Map<Long,Transaction> uploadTransactions = new HashMap<>();
+        Map<Long, Map<String, Long>> backupNum = new HashMap<>();
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && sortedTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
             int prevNumberOfNewTransactions = sortedTransactions.size();
             for (UnconfirmedTransaction unconfirmedTransaction : orderedUnconfirmedTransactions) {
@@ -1883,6 +1937,19 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (unconfirmedTransaction.getTransaction().attachmentIsDuplicate(duplicates, true)) {
                     continue;
                 }
+
+                //storage confirm transaction order and backup transaction number
+                if(unconfirmedTransaction.getTransaction().getType() == StorageTransaction.STORAGE_UPLOAD){
+                    uploadTransactions.put(unconfirmedTransaction.getId(),unconfirmedTransaction);
+                }
+                if(unconfirmedTransaction.getTransaction().getType() == StorageTransaction.STORAGE_BACKUP){
+                    if(!hasUploadTransaction(uploadTransactions,unconfirmedTransaction)
+                            || hasBackuped(backupNum, unconfirmedTransaction.getTransaction())
+                            || isBackupNumberExceed(uploadTransactions, backupNum, unconfirmedTransaction)) {
+                        continue;
+                    }
+                }
+
                 sortedTransactions.add(unconfirmedTransaction);
                 payloadLength += transactionLength;
             }
@@ -1891,6 +1958,52 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
         }
         return sortedTransactions;
+    }
+
+    private boolean hasUploadTransaction(Map<Long,Transaction> uploadTransactions,Transaction transaction){
+        Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
+        if(!uploadTransactions.containsKey(dataStorageBackup.getUploadTransaction()) && storeTransaction == null)
+            return false;
+        return true;
+    }
+
+    private boolean isBackupNumberExceed(Map<Long, Transaction> uploadTransactions, Map<Long, Map<String, Long>> backupNum,
+                                         Transaction transaction){
+        Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) transaction.getAttachment();
+        Transaction storeTransaction = Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
+
+        int replicated_number;
+        if(storeTransaction != null){
+            replicated_number = ((Attachment.DataStorageUpload)storeTransaction.getAttachment()).getReplicated_number();
+        }else {
+            storeTransaction = uploadTransactions.get(dataStorageBackup.getUploadTransaction());
+            replicated_number = ((Attachment.DataStorageUpload)uploadTransactions.get(dataStorageBackup.getUploadTransaction()).getAttachment()).getReplicated_number();
+        }
+        int num = replicated_number - StorageBackup.getCurrentBackupNum(dataStorageBackup.getUploadTransaction());
+        int backNum = backupNum.containsKey(storeTransaction.getId()) ? backupNum.get(storeTransaction.getId()).get("num").intValue() : 0;
+        if(num - backNum > 0){
+            if(backupNum.containsKey(storeTransaction.getId())){
+                Map<String, Long> info = backupNum.get(storeTransaction.getId());
+                info.put("num", info.get("num") + 1);
+                backupNum.put(storeTransaction.getId(), info);
+            }else {
+                Map<String, Long> info = new HashMap<>();
+                info.put("num", new Long(1));
+                info.put("backuper", transaction.getSenderId());
+                backupNum.put(storeTransaction.getId(), info);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private boolean hasBackuped(Map<Long, Map<String, Long>> backupNum, Transaction backup) {
+        Attachment.DataStorageBackup dataStorageBackup = (Attachment.DataStorageBackup) backup.getAttachment();
+        if (backupNum.containsKey(dataStorageBackup.getUploadTransaction()) &&
+                backupNum.get(dataStorageBackup.getUploadTransaction()).get("backuper") == backup.getSenderId())
+            return true;
+        return false;
     }
 
 
@@ -1926,8 +2039,25 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         int payloadLength = 0;
 
         //Forge reward
-        if(blockchain.getHeight() > 10){
-            sortedTransactions.add(new UnconfirmedTransaction(RewardIssuer.forgeReward(blockchain.getHeight() + 1,Account.getId(publicKey),blockTimestamp), System.currentTimeMillis()));
+        try {
+            Map<Long,Long> map;
+            long id = ForgePool.ownOnePool(Account.getId(publicKey));
+            if(id == -1 || !ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING) ){
+                id = Account.getId(publicKey);
+                map = new HashMap<>();
+            }else {
+                map = ForgePool.getForgePool(id).getConsignorsAmountMap();
+            }
+            //transaction version=1, deadline=10,timestamp=blockTimestamp
+            TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 1, publicKey,
+                    10 * Constants.ONE_SS, 0, (short) 10,
+                    new Attachment.CoinBase(Account.getId(publicKey),id,map))
+                    .timestamp(blockTimestamp)
+                    .recipientId(0)
+                    .build(secretPhrase);
+            sortedTransactions.add(new UnconfirmedTransaction(transaction,System.currentTimeMillis()));
+        } catch (ConchException.NotValidException e) {
+            Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]",e);
         }
 
         for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
@@ -1935,7 +2065,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             blockTransactions.add(transaction);
             digest.update(transaction.bytes());
             totalAmountNQT += transaction.getAmountNQT();
-            totalFeeNQT += transaction.getFeeNQT();
+            if(!StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)){
+                totalFeeNQT += transaction.getFeeNQT();
+            } else{
+                totalFeeNQT += transaction.getMinimumFeeNQT(blockchain.getHeight());
+            }
             payloadLength += transaction.getFullSize();
         }
 

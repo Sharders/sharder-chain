@@ -971,7 +971,8 @@ final public class TransactionImpl implements Transaction {
 
     @Override
     public void validate() throws ConchException.ValidationException {
-        if (timestamp == 0 ? (deadline != 0 || feeNQT != 0) : (deadline < 1 || feeNQT <= 0)
+        if (timestamp == 0 ? (deadline != 0 || feeNQT != 0) : (deadline < 1 || ((feeNQT < 0 && type instanceof TransactionType.CoinBase)
+                || feeNQT <= 0 && !(type instanceof TransactionType.CoinBase)))
                 || feeNQT > Constants.MAX_BALANCE_NQT
                 || amountNQT < 0
                 || amountNQT > Constants.MAX_BALANCE_NQT
@@ -990,7 +991,10 @@ final public class TransactionImpl implements Transaction {
 
         if (! type.canHaveRecipient()) {
             if (recipientId != 0 || getAmountNQT() != 0) {
-                throw new ConchException.NotValidException("Transactions of this type must have recipient == 0, amount == 0");
+                boolean isCoinBase = getAmountNQT() != 0 && type.getType() == TransactionType.TYPE_COIN_BASE;
+                if(!isCoinBase){
+                    throw new ConchException.NotValidException("Transactions of this type must have recipient == 0, amount == 0");
+                }
             }
         }
 
@@ -1103,9 +1107,12 @@ final public class TransactionImpl implements Transaction {
         return type.isUnconfirmedDuplicate(this, duplicates);
     }
 
-    private long getMinimumFeeNQT(int blockchainHeight) {
+    public long getMinimumFeeNQT(int blockchainHeight) {
         long totalFee = 0;
         byte transactionType = this.getType().getType();
+        if(transactionType == TransactionType.TYPE_COIN_BASE){
+            return 0;
+        }
         if(transactionType != TransactionType.TYPE_DATA && Constants.configFee.get(transactionType) == 0){
             for (Appendix.AbstractAppendix appendage : appendages) {
                 appendage.loadPrunable(this);

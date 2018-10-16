@@ -40,12 +40,11 @@ import org.json.simple.parser.ParseException;
 import org.sharder.util.Https;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequestWrapper;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
@@ -159,7 +158,28 @@ public final class PeerServlet extends WebSocketServlet {
         //
         // Process the peer request
         //
-        PeerImpl peer = Peers.findOrCreatePeer(req.getRemoteAddr());
+        PeerImpl peer = null;
+        // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
+        //avoid repeatedly parsing the same Reader. use ServletRequestWrapper
+        PeerRequestWrapper wrappedRequest = new PeerRequestWrapper(req);
+        req = wrappedRequest;
+        JSONObject request = null;
+        try (CountingInputReader cr = new CountingInputReader(req.getReader(), Peers.MAX_REQUEST_SIZE)) {
+            request = (JSONObject) JSONValue.parseWithException(cr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return;
+        }
+        boolean requestFromNATServer = (boolean)request.get("useNATService");
+        if (requestFromNATServer) {
+            peer = Peers.findOrCreatePeer((String)request.get("announcedAddress"), true);
+        } else {
+            if (Peers.isUseNATService()) {
+                peer = Peers.findOrCreatePeer((String)request.get("announcedAddress"), false);
+            } else {
+                peer = Peers.findOrCreatePeer(req.getRemoteAddr(), false);
+            }
+        }
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
         } else {
@@ -199,15 +219,43 @@ public final class PeerServlet extends WebSocketServlet {
      */
     void doPost(PeerWebSocket webSocket, long requestId, String request) {
         JSONStreamAware jsonResponse;
+        StringReader stringReader = new StringReader(request);
+        PeerImpl peer = null;
         //
         // Process the peer request
         //
-        InetSocketAddress socketAddress = webSocket.getRemoteAddress();
-        if (socketAddress == null) {
+
+        // [NAT] if requester is use NAT then create peer with announcedAddress instead of real remote address
+        JSONObject requestJson = null;
+        boolean requestFromNATServer = false;
+        try (CountingInputReader cr = new CountingInputReader(stringReader , Peers.MAX_REQUEST_SIZE)) {
+            requestJson = (JSONObject) JSONValue.parseWithException(cr);
+            if (requestJson.get("useNATService") ==null) {
+                Logger.logDebugMessage("useNATService == null");
+                Logger.logDebugMessage(requestJson.toJSONString());
+            } else {
+                requestFromNATServer = (boolean) requestJson.get("useNATService");
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
             return;
         }
-        String remoteAddress = socketAddress.getHostString();
-        PeerImpl peer = Peers.findOrCreatePeer(remoteAddress);
+
+        if (requestFromNATServer) {
+            peer = Peers.findOrCreatePeer((String)requestJson.get("announcedAddress"), requestFromNATServer);
+        } else {
+            InetSocketAddress socketAddress = webSocket.getRemoteAddress();
+            if (!Peers.isUseNATService() && socketAddress == null) {
+                return;
+            } else {
+                String remoteAddress = Peers.isUseNATService()?(String)requestJson.get("announcedAddress"):socketAddress.getHostString();
+                peer = Peers.findOrCreatePeer(remoteAddress, false);
+            }
+        }
+
         if (peer == null) {
             jsonResponse = UNKNOWN_PEER;
         } else {
@@ -266,38 +314,40 @@ public final class PeerServlet extends WebSocketServlet {
             //
             //network isolation
             //
-            String requestType = (String)request.get("requestType");
-            if("getInfo".equals(requestType) || "addPeers".equals(requestType)){
-                if(Peers.getPeer(peer.getHost()) == null){
-                    String url = Conch.getStringProperty("sharder.authenticationServer");
-                    url = url + peer.getHost();
-                    String responseValue = Https.httpRequest(url,"GET",null);
-                    Logger.logInfoMessage(peer.getHost() + " try to join in the network ,the serve response " + responseValue);
-                    if(responseValue == null){
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("error", Errors.CONNECTERROR);
-                        jsonObject.put("cause", "error with connecting to the serve,please try it later");
-                        return jsonObject;
-                    }
-                    if("".equals(responseValue)){
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("error", Errors.UNAUTHORIZED);
-                        jsonObject.put("cause", peer.getType());
-                        return jsonObject;
-                    }
-                    JSONObject response = (JSONObject) JSONValue.parseWithException(responseValue);
-                    String host = (String)response.get("address");
-                    Long type = (Long) response.get("type");
-                    if(peer.getHost().equals(host)){
-                        peer.setType(new Long(type).intValue());
-                    }
-                }
-            }
+//            String requestType = (String)request.get("requestType");
+//            if("getInfo".equals(requestType) || "addPeers".equals(requestType)){
+//                if(Peers.getPeer(peer.getHost()) == null){
+//                    String url = Conch.getStringProperty("sharder.authenticationServer");
+//                    url = url + peer.getHost();
+//                    String responseValue = Https.httpRequest(url,"GET",null);
+//                    Logger.logInfoMessage(peer.getHost() + " try to join in the network ,the serve response " + responseValue);
+//                    if(responseValue == null){
+//                        JSONObject jsonObject = new JSONObject();
+//                        jsonObject.put("error", Errors.CONNECTERROR);
+//                        jsonObject.put("cause", "error with connecting to the serve,please try it later");
+//                        return jsonObject;
+//                    }
+//                    if("".equals(responseValue)){
+//                        JSONObject jsonObject = new JSONObject();
+//                        jsonObject.put("error", Errors.UNAUTHORIZED);
+//                        jsonObject.put("cause", peer.getType());
+//                        return jsonObject;
+//                    }
+//                    JSONObject response = (JSONObject) JSONValue.parseWithException(responseValue);
+//                    String host = (String)response.get("address");
+//                    Long type = (Long) response.get("type");
+//                    if(peer.getHost().equals(host)){
+//                        peer.setType(new Long(type).intValue());
+//                    }
+//                }
+//            }
             Peers.addPeer(peer);
 
             peer.updateDownloadedVolume(cr.getCount());
             if (request.get("protocol") == null || ((Number)request.get("protocol")).intValue() != 1) {
-                Logger.logDebugMessage("Unsupported protocol " + request.get("protocol"));
+                Logger.logDebugMessage("Unsupported protocol "
+
+                        + request.get("protocol"));
                 return UNSUPPORTED_PROTOCOL;
             }
             PeerRequestHandler peerRequestHandler = peerRequestHandlers.get((String)request.get("requestType"));

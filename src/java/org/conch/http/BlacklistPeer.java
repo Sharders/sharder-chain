@@ -49,7 +49,7 @@ public class BlacklistPeer extends APIServlet.APIRequestHandler {
         if (peerAddress == null) {
             return MISSING_PEER;
         }
-        Peer peer = Peers.findOrCreatePeer(peerAddress, true);
+        Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
         if (peer == null) {
             return UNKNOWN_PEER;
         } else {

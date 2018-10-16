@@ -270,6 +270,13 @@ public enum APIEnum {
     RETRIEVE_PRUNED_TRANSACTION("retrievePrunedTransaction", RetrievePrunedTransaction.instance),
     SET_LOGGING("setLogging", SetLogging.instance),
     SHUTDOWN("shutdown", Shutdown.instance),
+    RESTART("restart", Restart.instance),
+    UPGRADE_CLIENT("upgradeClient", UpgradeClient.instance),
+    RECONFIG("reConfig", ReConfig.instance),
+    RECOVERY("recovery", Recovery.instance),
+    GET_USERCONFIG("getUserConfig", GetUserConfig.instance),
+    GET_LASTEST_HUB_VERSION("getLastestHubVersion", GetLastestHubVersion.instance),
+
     TRIM_DERIVED_TABLES("trimDerivedTables", TrimDerivedTables.instance),
     HASH("hash", Hash.instance),
     FULL_HASH_TO_ID("fullHashToId", FullHashToId.instance),
@@ -290,7 +297,19 @@ public enum APIEnum {
     GET_MOBILE_CONF("getMobileConf", GetMobileConf.instance),
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
-    Get_INFO("getInfo",GetInfo.instance);
+    GET_INFO("getInfo",GetInfo.instance),
+    CREATE_FORGE_POOL("createForgePool",CreateForgePool.instance),
+    DESTROY_FORGE_POOL("destroyForgePool",DestroyForgePool.instance),
+    JOIN_FORGE_POOL("joinForgePool",JoinForgePool.instance),
+    QUIT_FORGE_POOL("quitForgePool",QuitForgePool.instance),
+    GET_FORGE_POOL_INFO("getForgePoolInfo",GetForgePoolInfo.instance),
+    GET_FORGE_POOLS("getForgePools",GetForgePools.instance),
+    GET_FORGE_POOL_RULE("getForgePoolRule",GetForgePoolRule.instance),
+    START_STORING("startStoring", StartStoring.instance),
+    STOP_STORING("stopStoring", StopStoring.instance),
+    STORE_DATA("storeData", StoreData.instance),
+    GET_STORED_DATA("getStoredData", GetStoredData.instance),
+    DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

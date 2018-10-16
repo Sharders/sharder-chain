@@ -397,6 +397,7 @@ public class AccountLedger {
             TRANSACTION_FEE(50, true),
         // TYPE_PAYMENT
             ORDINARY_PAYMENT(3, true),
+            COIN_BASE(58, true),
         // TYPE_MESSAGING
             ACCOUNT_INFO(4, true),
             ALIAS_ASSIGNMENT(5, true),
@@ -456,8 +457,16 @@ public class AccountLedger {
             SHUFFLING_REGISTRATION(51, true),
             SHUFFLING_PROCESSING(52, true),
             SHUFFLING_CANCELLATION(53, true),
-            SHUFFLING_DISTRIBUTION(54, true);
-
+            SHUFFLING_DISTRIBUTION(54, true),
+        // TYPE_FORGE_POOL
+            FORGE_POOL_CREATE(61, true),
+            FORGE_POOL_DESTROY(62, true),
+            FORGE_POOL_JOIN(63, true),
+            FORGE_POOL_QUIT(64, true),
+        // TYPE_STORAGE
+            STORAGE_UPLOAD(71, true),
+            STORAGE_BACKUP(72, true),
+            STORAGE_EXTEND(73, true);
 
         /** Event code mapping */
         private static final Map<Integer, LedgerEvent> eventMap = new HashMap<>();

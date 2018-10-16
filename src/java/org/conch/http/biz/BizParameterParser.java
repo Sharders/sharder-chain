@@ -26,6 +26,7 @@ import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.http.ParameterException;
 import org.conch.http.biz.exception.BizParameterException;
+import org.conch.storage.ipfs.IpfsService;
 import org.conch.util.Convert;
 import org.conch.util.Search;
 
@@ -293,5 +294,65 @@ public class BizParameterParser  {
             throw new ParameterException(INCORRECT_TAGGED_DATA_FILENAME);
         }
         return new Attachment.TaggedDataUpload(name, description, tags, type, channel, isText, filename, data);
+    }
+
+    public static Attachment.DataStorageUpload storeCache(HttpServletRequest req) throws BizParameterException, ConchException.NotValidException, ParameterException {
+        //TODO validate condition
+        String name = Convert.emptyToNull(req.getParameter("name"));
+        String description = Convert.nullToEmpty(req.getParameter("description"));
+        String type = Convert.nullToEmpty(req.getParameter("type")).trim();
+        String channel = Convert.nullToEmpty(req.getParameter("channel"));
+        int existence_height = Integer.parseInt(req.getParameter("existence_height"));
+        int replicated_number = Integer.parseInt(req.getParameter("existence_height"));
+        boolean isText = !"false".equalsIgnoreCase(req.getParameter("isText"));
+        String filename = Convert.nullToEmpty(req.getParameter("filename")).trim();
+        String dataValue = Convert.emptyToNull(req.getParameter("data"));
+        byte[] data;
+        String ssid;
+        if(dataValue == null) {
+            throw new ParameterException(BIZ_MISSING_DATA);
+        }else {
+            data = Convert.toBytes(dataValue);
+        }
+        ssid = IpfsService.store(data);
+        String detectedMimeType = Search.detectMimeType(data, filename);
+        if (detectedMimeType != null) {
+            isText = detectedMimeType.startsWith("text/");
+            if (type.isEmpty()) {
+                type = detectedMimeType.substring(0, Math.min(detectedMimeType.length(), Constants.MAX_TAGGED_DATA_TYPE_LENGTH));
+            }
+        }
+
+
+        if (name == null) {
+            throw new ParameterException(MISSING_NAME);
+        }
+        name = name.trim();
+        if (name.length() > Constants.MAX_TAGGED_DATA_NAME_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_NAME);
+        }
+
+        if (description.length() > Constants.MAX_TAGGED_DATA_DESCRIPTION_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_DESCRIPTION);
+        }
+
+        type = type.trim();
+        if (type.length() > Constants.MAX_TAGGED_DATA_TYPE_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_TYPE);
+        }
+
+        channel = channel.trim();
+        if (channel.length() > Constants.MAX_TAGGED_DATA_CHANNEL_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_CHANNEL);
+        }
+
+        if (data.length == 0 || data.length > Constants.MAX_TAGGED_DATA_DATA_LENGTH) {
+            throw new ParameterException(INCORRECT_DATA);
+        }
+
+        if (filename.length() > Constants.MAX_TAGGED_DATA_FILENAME_LENGTH) {
+            throw new ParameterException(INCORRECT_TAGGED_DATA_FILENAME);
+        }
+        return new Attachment.DataStorageUpload(name, description, type, ssid, channel, existence_height, replicated_number);
     }
 }

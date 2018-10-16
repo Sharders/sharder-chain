@@ -31,6 +31,7 @@ public enum BizAPIEnum {
     //To preserve compatibility, please add new APIs to the end of the enum.
     //When an API is deleted, set its name to empty string and handler to null.
     UPLOAD_TEXTDATA("uploadTextData",UploadTextData.instance),
+    STORE_TEXTDATA("storeTextData",StoreTextData.instance),
     RETRIEVE_DATA("retrieveTextData",RetrieveTextData.instance),
     CREATE_CLIENT_ACCOUNT("createClientAccount",CreateClientAccount.instance),
     GET_LAST_BLOCK_HEIGHT("getLastBlockHeight",GetLastBlockHeight.instance),

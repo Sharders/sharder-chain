@@ -21,56 +21,21 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.AccountLedger;
+import org.conch.*;
 import org.conch.AccountLedger.LedgerEntry;
-import org.conch.AccountRestrictions;
-import org.conch.Alias;
-import org.conch.Appendix;
-import org.conch.Asset;
-import org.conch.AssetDelete;
-import org.conch.AssetDividend;
-import org.conch.AssetTransfer;
-import org.conch.Attachment;
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Currency;
-import org.conch.CurrencyExchangeOffer;
-import org.conch.CurrencyFounder;
-import org.conch.CurrencyTransfer;
-import org.conch.CurrencyType;
-import org.conch.DigitalGoodsStore;
-import org.conch.Exchange;
-import org.conch.ExchangeRequest;
-import org.conch.FundingMonitor;
-import org.conch.Generator;
-import org.conch.HoldingType;
-import org.conch.MonetarySystem;
-import org.conch.Conch;
-import org.conch.Order;
-import org.conch.PhasingPoll;
-import org.conch.PhasingVote;
-import org.conch.Poll;
-import org.conch.PrunableMessage;
-import org.conch.Shuffler;
-import org.conch.Shuffling;
-import org.conch.ShufflingParticipant;
-import org.conch.TaggedData;
-import org.conch.Token;
-import org.conch.Trade;
-import org.conch.Transaction;
-import org.conch.Vote;
-import org.conch.VoteWeighting;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
+import org.conch.storage.Ssid;
+import org.conch.storage.ipfs.IpfsService;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.conch.TransactionType;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +77,7 @@ public final class JSONData {
             json.put("balanceNQT", String.valueOf(account.getBalanceNQT()));
             json.put("unconfirmedBalanceNQT", String.valueOf(account.getUnconfirmedBalanceNQT()));
             json.put("forgedBalanceNQT", String.valueOf(account.getForgedBalanceNQT()));
+            json.put("frozenBalanceNQT", String.valueOf(account.getFrozenBalanceNQT()));
             if (includeEffectiveBalance) {
                 json.put("effectiveBalanceSS", account.getEffectiveBalanceSS(height));
                 json.put("guaranteedBalanceNQT", String.valueOf(account.getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height)));
@@ -1231,6 +1197,27 @@ public final class JSONData {
             Transaction transaction = Conch.getBlockchain().getTransaction(entry.getEventId());
             json.put("transaction", JSONData.transaction(transaction));
         }
+    }
+
+    public static JSONObject storedData(Transaction storage, boolean includeData) throws IOException {
+        JSONObject json = new JSONObject();
+        Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) storage.getAttachment();
+        json.put("transaction", Long.toUnsignedString(storage.getId()));
+        putAccount(json, "account", storage.getSenderId());
+        json.put("name", attachment.getName());
+        json.put("description", attachment.getDescription());
+        json.put("type", attachment.getType());
+        json.put("channel", attachment.getChannel());
+        json.put("ssid", attachment.getSsid());
+        json.put("existence_height", attachment.getExistence_height());
+        json.put("replicated_number", attachment.getReplicated_number());
+        if (includeData) {
+            byte[] data = IpfsService.retrieve(Ssid.decode(attachment.getSsid()));
+            json.put("data", Convert.toHexString(data));
+        }
+        json.put("transactionTimestamp", storage.getTimestamp());
+        json.put("blockTimestamp", storage.getBlockTimestamp());
+        return json;
     }
 
     private JSONData() {} // never

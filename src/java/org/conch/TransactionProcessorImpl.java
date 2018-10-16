@@ -31,7 +31,6 @@ import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -243,7 +242,10 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     return;
                 }
                 JSONObject request = new JSONObject();
+                //[NAT] inject useNATService property to the request params
                 request.put("requestType", "getUnconfirmedTransactions");
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Peers.getMyAddress());
                 JSONArray exclude = new JSONArray();
                 getAllUnconfirmedTransactionIds().forEach(transactionId -> exclude.add(Long.toUnsignedString(transactionId)));
                 Collections.sort(exclude);
@@ -432,6 +434,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     broadcastedTransactions.add((TransactionImpl) transaction);
                 }
             }
+            //
         } finally {
             BlockchainImpl.getInstance().writeUnlock();
         }
@@ -567,7 +570,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         try {
             for (Transaction transaction : transactions) {
                 BlockDb.transactionCache.remove(transaction.getId());
-                if (TransactionDb.hasTransaction(transaction.getId())) {
+                if (TransactionDb.hasTransaction(transaction.getId()) || transaction.getAttachment().getTransactionType() == TransactionType.CoinBase.ORDINARY) {
                     continue;
                 }
                 ((TransactionImpl)transaction).unsetBlock();
@@ -642,6 +645,15 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 }
                 addedUnconfirmedTransactions.add(transaction);
 
+                // TODO storage add storage tx handle and send a new backup tx
+                if (Constants.isStorageClient && Storer.getStorer() != null) {
+                    if(StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+                        Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
+                        Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) transaction.getAttachment();
+                        StorageProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
+                        broadcast(backupTransaction);
+                    }
+                }
             } catch (ConchException.NotCurrentlyValidException ignore) {
             } catch (ConchException.ValidationException|RuntimeException e) {
                 Logger.logDebugMessage(String.format("Invalid transaction from peer: %s", ((JSONObject) transactionData).toJSONString()), e);

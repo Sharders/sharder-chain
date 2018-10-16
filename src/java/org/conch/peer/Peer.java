@@ -55,8 +55,8 @@ public interface Peer extends Comparable<Peer> {
         API(4),                         // Provides open API access over http
         API_SSL(8),                     // Provides open API access over https
         CORS(16),                       // API CORS enabled
-        BAPI(32);                       // Provides business API access over http
-
+        BAPI(32),                       // Provides business API access over http
+        STORAGE(64);                    // Provides offchain data storage
         private final long code;        // Service code - must be a power of 2
 
         Service(int code) {
@@ -78,6 +78,8 @@ public interface Peer extends Comparable<Peer> {
     boolean providesService(Service service);
 
     boolean providesServices(long services);
+
+    boolean isUseNATService();
 
     String getHost();
 
