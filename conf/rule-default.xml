@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+    <version>1.0</version>
+    <level0 id="0">
+        <rule>
+            <totalBlocks>
+                <min>0</min>
+                <max>30</max>
+            </totalBlocks>
+        </rule>
+
+        <forgepool>
+            <number id="1">
+                <min>1</min>
+                <max>100</max>
+            </number>
+            <reward id="2">
+                <min>0.1</min>
+                <max>0.2</max>
+            </reward>
+        </forgepool>
+
+        <consignor>
+            <amount>
+                <min>1</min>
+                <max>100000000000000000</max>
+            </amount>
+        </consignor>
+    </level0>
+
+    <level1 id="1">
+        <rule>
+            <totalBlocks>
+                <min>30</min>
+                <max>50</max>
+            </totalBlocks>
+        </rule>
+
+        <forgepool>
+            <number id="1">
+                <min>1</min>
+                <max>100</max>
+            </number>
+            <reward id="2">
+                <min>0.1</min>
+                <max>0.2</max>
+            </reward>
+        </forgepool>
+
+        <consignor>
+            <amount>
+                <min>1</min>
+                <max>100000000000000000</max>
+            </amount>
+        </consignor>
+    </level1>
+</rules>
