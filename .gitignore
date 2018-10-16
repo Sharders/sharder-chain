@@ -9,10 +9,8 @@ logs
 sharder_db
 sharder_test_db
 *.bat
-lib
 html
 jre
-conf
 .ipfs
 DestroyForgePool
 
