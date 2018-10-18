@@ -24,8 +24,6 @@ package org.conch.storage.ipfs;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
@@ -412,8 +410,7 @@ public class Daemon{
     }
 
     public Process process(String... args) throws IOException{
-        File bin = getBin();
-        String[] cmd = ArrayUtils.insert(0, args, bin.getPath());
+        String[] cmd = ArrayUtils.insert(0, args, getBin().getPath());
         return Runtime.getRuntime().exec(cmd, new String[] {"IPFS_PATH="+ipfsStorePath.getAbsolutePath()});
     }
 
@@ -428,5 +425,27 @@ public class Daemon{
         }
         eventman.call(new DaemonEvent(DaemonEventType.ATTACHED));
         print("Successfully attached");
+    }
+
+    /**
+     * If you can't inst the Daemon in the Mac OS, you can call this method manually. We'll fix this environment problem later. xy-2018.10.18
+     *
+     * This method will init the ipfs server and generate the related files into specified repo
+     */
+    public static void initIPFS4Mac(){
+        // ipfs bin command path
+        String ipfsCmd = "/Users/ben/Coding/sharder-github/sharder-chain-testnet/storage/ipfs/bin";
+        // same as the configuration 'sharder.storage.ipfs.storepath'
+        String ipfsRepo = "/Users/ben/Coding/sharder-github/sharder-chain-testnet/storage/ipfs/.ipfs";
+
+        try {
+            Runtime.getRuntime().exec(new String[]{ipfsCmd,"init","-e"}, new String[] {"IPFS_PATH=" + ipfsRepo});
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        initIPFS4Mac();
     }
 }
