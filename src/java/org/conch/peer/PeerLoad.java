@@ -43,7 +43,7 @@ public final class PeerLoad {
     public PeerLoad(String host, int port, int load) {
         this.state = Peer.State.CONNECTED;
         this.host = host;
-        this.port = Constants.isTestnet ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
+        this.port = Constants.isTestnet() ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
         this.uri = host == null ? null : "http://" + host + ":" + this.port;
         this.load = load;
         this.lastUpdate = System.currentTimeMillis();

@@ -245,12 +245,12 @@ public final class Generator implements Comparable<Generator> {
                 && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
                 || hit.compareTo(prevTarget) >= 0
 //                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 3600)
-                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 300)
+                || (Constants.isTestnet() ? elapsedTime > 300 : elapsedTime > 300)
                 || Constants.isOffline);
     }
 
     static boolean allowsFakeForging(byte[] publicKey) {
-        return Constants.isTestnet && publicKey != null && Arrays.equals(publicKey, fakeForgingPublicKey);
+        return Constants.isTestnet() && publicKey != null && Arrays.equals(publicKey, fakeForgingPublicKey);
     }
 
     static BigInteger getHit(byte[] publicKey, Block block) {

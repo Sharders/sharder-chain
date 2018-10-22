@@ -74,7 +74,7 @@ public class CompactDatabase {
         //
         // Get the database URL
         //
-        String dbPrefix = Constants.isTestnet ? "sharder.testDb" : "sharder.db";
+        String dbPrefix = Constants.isTestnet() ? "sharder.testDb" : "sharder.db";
         String dbType = Conch.getStringProperty(dbPrefix + "Type");
         if (!"h2".equals(dbType)) {
             Logger.logErrorMessage("Database type must be 'h2'");

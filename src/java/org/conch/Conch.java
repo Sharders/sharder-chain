@@ -413,7 +413,7 @@ public final class Conch {
                 DebugTrace.init();
                 // DbBackup Init
                 DbBackup.init();
-                int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
+                int timeMultiplier = (Constants.isTestnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
                     setTime(new Time.FasterTime(Math.max(getEpochTime(), Conch.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
@@ -427,7 +427,6 @@ public final class Conch {
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + VERSION + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
-                Logger.logMessage("Copyright © 2014-2017 ichaoj.com.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) {
                     Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
@@ -436,7 +435,7 @@ public final class Conch {
                 if (isDesktopApplicationEnabled()) {
                     launchDesktopApplication();
                 }
-                if (Constants.isTestnet) {
+                if (Constants.isTestnet()) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
                 // [Hub] if owner binded then start forge automatic

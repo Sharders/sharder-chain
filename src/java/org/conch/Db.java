@@ -26,7 +26,7 @@ import org.conch.db.TransactionalDb;
 
 public final class Db {
 
-    public static final String PREFIX = Constants.isTestnet ? "sharder.testDb" : "sharder.db";
+    public static final String PREFIX = Constants.isTestnet() ? "sharder.testDb" : "sharder.db";
     public static final TransactionalDb db = new TransactionalDb(new BasicDb.DbProperties()
             .maxCacheSize(Conch.getIntProperty("sharder.dbCacheKB"))
             .dbUrl(Conch.getStringProperty(PREFIX + "Url"))

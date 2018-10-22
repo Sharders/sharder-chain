@@ -185,7 +185,7 @@ public final class VerifyTraceFile {
                 }
             }
 
-            final String fxtAssetId = Constants.isTestnet ? "861080501219231688" : "12422608354438203866";
+            final String fxtAssetId = Constants.isTestnet() ? "861080501219231688" : "12422608354438203866";
             Set<String> failed = new HashSet<>();
             for (Map.Entry<String,Map<String,Long>> mapEntry : totals.entrySet()) {
                 String accountId = mapEntry.getKey();

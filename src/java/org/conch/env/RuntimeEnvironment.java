@@ -21,13 +21,18 @@
 
 package org.conch.env;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class RuntimeEnvironment {
 
+
+
     public static final String RUNTIME_MODE_ARG = "sharder.runtime.mode";
     public static final String DIRPROVIDER_ARG = "sharder.runtime.dirProvider";
+    public static final String NETWORK_ARG = "sharder.runtime.network";
 
     private static final String osname = System.getProperty("os.name").toLowerCase();
     private static final boolean isHeadless;
@@ -115,4 +120,12 @@ public class RuntimeEnvironment {
         }
         return new DefaultDirProvider();
     }
+
+    public static Network getNetwork(){
+        String network = System.getProperty(NETWORK_ARG);
+        if(StringUtils.isEmpty(network)) return Network.TESTNET;
+
+        return Network.valueOfIgnoreCase(Network.class,network);
+    }
+
 }

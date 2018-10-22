@@ -178,7 +178,7 @@ public final class Peers {
         }
         myPlatform = platform;
         myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
-        if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
+        if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet()) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
         String myHost = null;
@@ -235,7 +235,7 @@ public final class Peers {
             }
         }
         myPeerServerPort = Conch.getIntProperty("sharder.peerServerPort");
-        if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet) {
+        if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet()) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
         shareMyAddress = Conch.getBooleanProperty("sharder.shareMyAddress") && ! Constants.isOffline;
@@ -268,7 +268,7 @@ public final class Peers {
                 String host = uri.getHost();
                 int port = uri.getPort();
                 String announcedAddress;
-                if (!Constants.isTestnet) {
+                if (!Constants.isTestnet()) {
                     if (port >= 0)
                         announcedAddress = myAddress;
                     else
@@ -356,9 +356,9 @@ public final class Peers {
 
         myLoad = new PeerLoad("127.0.0.1",API.openAPIPort,-1);
 
-        final List<String> defaultPeers = Constants.isTestnet ? Conch.getStringListProperty("sharder.defaultTestnetPeers")
+        final List<String> defaultPeers = Constants.isTestnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers")
                 : Conch.getStringListProperty("sharder.defaultPeers");
-        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnet ? Conch.getStringListProperty("sharder.testnetPeers")
+        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnet() ? Conch.getStringListProperty("sharder.testnetPeers")
                 : Conch.getStringListProperty("sharder.wellKnownPeers"));
 
         List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
@@ -463,7 +463,7 @@ public final class Peers {
             if (Peers.shareMyAddress) {
                 peerServer = new Server();
                 ServerConnector connector = new ServerConnector(peerServer);
-                final int port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
+                final int port = Constants.isTestnet() ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
                 connector.setPort(port);
                 final String host = Conch.getStringProperty("sharder.peerServerHost");
                 connector.setHost(host);
@@ -905,7 +905,7 @@ public final class Peers {
     }
 
     public static int getDefaultPeerPort() {
-        return Constants.isTestnet ? TESTNET_PEER_PORT : DEFAULT_PEER_PORT;
+        return Constants.isTestnet() ? TESTNET_PEER_PORT : DEFAULT_PEER_PORT;
     }
 
     public static Collection<? extends Peer> getAllPeers() {
@@ -1035,11 +1035,11 @@ public final class Peers {
         peer = new PeerImpl(host, announcedAddress);
         peer.setUseNATService(useNATService);
         if (!useNATService) {
-            if (Constants.isTestnet && peer.getPort() != TESTNET_PEER_PORT) {
+            if (Constants.isTestnet() && peer.getPort() != TESTNET_PEER_PORT) {
                 Logger.logDebugMessage("Peer " + host + " on testnet is not using port " + TESTNET_PEER_PORT + ", ignoring");
                 return null;
             }
-            if (!Constants.isTestnet && peer.getPort() == TESTNET_PEER_PORT) {
+            if (!Constants.isTestnet() && peer.getPort() == TESTNET_PEER_PORT) {
                 Logger.logDebugMessage("Peer " + host + " is using testnet port " + peer.getPort() + ", ignoring");
                 return null;
             }
@@ -1361,7 +1361,7 @@ public final class Peers {
                 //区块链处于下载中 or 区块链中最后一个块的创建时间小于创世块(2013-10-24 12:00:00)的时间 -> 下载中
                 (Conch.getBlockchainProcessor().isDownloading() || Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
                         //区块链中最后一个块的基础难度除以基础难度大于10并且不是测试网络 -> 分叉 : 最新的
-                        (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet) ? Peer.BlockchainState.FORK :
+                        (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet()) ? Peer.BlockchainState.FORK :
                         Peer.BlockchainState.UP_TO_DATE;
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);
