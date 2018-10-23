@@ -50,6 +50,7 @@ import java.util.*;
 public final class Conch {
 
     public static final String VERSION = "0.1.0";
+    public static final String STAGE = "-Beta";
     public static final String APPLICATION = "COS";
 
     private static volatile Time time = new Time.EpochTime();
@@ -685,6 +686,10 @@ public final class Conch {
             // something went wrong
             e.printStackTrace();
         }
+    }
+
+    public static String getFullVersion(){
+        return VERSION + STAGE;
     }
 
 }

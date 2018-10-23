@@ -124,7 +124,7 @@ public final class Peers {
 
     private static final int DEFAULT_PEER_PORT = 3218;
     private static final int TESTNET_PEER_PORT = 8218;
-    private static final int DEVNET_PEER_PORT = 7218;
+    private static final int DEVNET_PEER_PORT = 9218;
     private static final String myPlatform;
     private static final String myAddress;
     private static final int myPeerServerPort;
