@@ -66,7 +66,7 @@ public class DesktopSystemTray {
         }
     }
 
-    private static final boolean inCN = true;
+    private static final boolean inCN = false;
     private static String getItemDisplay(String key){
         if(!itemNameMap.containsKey(key)) return key;
         return inCN ? itemNameMap.get(key).cn : itemNameMap.get(key).en;
