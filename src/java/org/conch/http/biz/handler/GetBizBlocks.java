@@ -30,6 +30,7 @@ import org.conch.Transaction;
 import org.conch.db.DbIterator;
 import org.conch.http.*;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.h2.util.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -90,7 +91,7 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
             ArrayList list = mapper.readValue(dtrJson, new TypeReference<List<Map<String, Object>>>(){});
             response.addAll(list);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.logErrorMessage(e.getMessage());
             return JSONResponses.BIZ_JSON_IO_ERROR;
         }
 

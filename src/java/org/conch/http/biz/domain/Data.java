@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.conch.Account;
+import org.conch.Constants;
 import org.conch.util.Convert;
 
 /**
@@ -106,6 +107,7 @@ public class Data {
     }
 
     private void setAccountInfo() {
+        if(!this.channel.startsWith(Constants.ACCOUNT_PREFIX)) return;
         Account account = Account.getAccount(Convert.parseAccountId(this.channel));
         if(account != null) {
             Account.AccountInfo info = account.getAccountInfo();
