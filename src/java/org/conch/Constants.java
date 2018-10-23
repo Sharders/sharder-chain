@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -32,7 +34,6 @@ public final class Constants {
      */
     public enum Network {
         MAINNET("Mainnet"),
-        BIZNET("Biznet"),
         TESTNET("Testnet"),
         DEVNET("Devnet");
 
@@ -79,7 +80,6 @@ public final class Constants {
 
     }
 
-    public static final boolean isTestnet = Conch.getBooleanProperty("sharder.isTestnet");
     public static final String NetworkDef = Conch.getStringProperty("sharder.network");
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
@@ -243,21 +243,20 @@ public final class Constants {
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
 
     public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_22;
-    // LAST_KNOWN_BLOCK must also be set in html/www/js/nrs.constants.js
     public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_22;
 
     public static final int[] MIN_VERSION = new int[] {0, 0, 1};
     public static final int[] MIN_PROXY_VERSION = new int[] {0, 0, 1};
 
-    static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_SS;
-    public static final long SHUFFLING_DEPOSIT_NQT = (isTestnet ? 7 : 1000) * ONE_SS;
+    static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet() ? 50 : 100) * ONE_SS;
+    public static final long SHUFFLING_DEPOSIT_NQT = (isTestnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
     public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix, you can replace all in files to redefine it
 
     public static final long EPOCH_BEGINNING;
 
-    //Mine pool
+    //Mining pool
     public static final int FORGE_POOL_DELAY = 10; //transaction become effective
     public static final int FORGE_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
     public static final int FORGE_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
@@ -287,7 +286,6 @@ public final class Constants {
     static {
         configFee.add((long)Conch.getIntProperty("sharder.fee.payment"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.message"));
-        configFee.add((long)Conch.getIntProperty("sharder.fee.coloredCions"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.digitalGoods"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.accountControl"));
         configFee.add((long)Conch.getIntProperty("sharder.fee.monetarySystem"));
@@ -323,15 +321,15 @@ public final class Constants {
         return Network.MAINNET.isSame(NetworkDef);
     }
 
-    public static final boolean isBiznet() {
-        return Network.BIZNET.isSame(NetworkDef);
-    }
-
     public static final boolean isTestnet() {
         return Network.TESTNET.isSame(NetworkDef);
     }
 
     public static final boolean isDevnet() {
         return Network.DEVNET.isSame(NetworkDef);
+    }
+
+    public static Network getNetwork(){
+        return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
 }

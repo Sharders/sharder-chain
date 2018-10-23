@@ -124,6 +124,7 @@ public final class Peers {
 
     private static final int DEFAULT_PEER_PORT = 3218;
     private static final int TESTNET_PEER_PORT = 8218;
+    private static final int DEVNET_PEER_PORT = 7218;
     private static final String myPlatform;
     private static final String myAddress;
     private static final int myPeerServerPort;
@@ -235,6 +236,9 @@ public final class Peers {
             }
         }
         myPeerServerPort = Conch.getIntProperty("sharder.peerServerPort");
+        if (myPeerServerPort == DEVNET_PEER_PORT && !Constants.isDevnet()) {
+            throw new RuntimeException("Port " + DEVNET_PEER_PORT + " should only be used for devnet!!!");
+        }
         if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet()) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
@@ -274,7 +278,7 @@ public final class Peers {
                     else
                         announcedAddress = host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : "");
                 } else {
-                    //[lanproxy] lanproxy use serverIP+port(for client),so use host+port = myAddress
+                    //Lanproxy use serverIP+port(for client),so use host+port = myAddress
                     announcedAddress = myAddress;
                 }
                 if (announcedAddress == null || announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
@@ -463,7 +467,7 @@ public final class Peers {
             if (Peers.shareMyAddress) {
                 peerServer = new Server();
                 ServerConnector connector = new ServerConnector(peerServer);
-                final int port = Constants.isTestnet() ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
+                final int port = Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? TESTNET_PEER_PORT : Peers.myPeerServerPort);
                 connector.setPort(port);
                 final String host = Conch.getStringProperty("sharder.peerServerHost");
                 connector.setHost(host);
