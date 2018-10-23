@@ -21,6 +21,7 @@
 
 package org.conch.peer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Account;
 import org.conch.Block;
@@ -127,7 +128,7 @@ public final class Peers {
     private static final int DEVNET_PEER_PORT = 9218;
     private static final String myPlatform;
     private static final String myAddress;
-    private static final int myPeerServerPort;
+    private static final int configuredServerPort;
     private static final String myHallmark;
     private static final boolean shareMyAddress;
     private static final boolean enablePeerUPnP;
@@ -204,7 +205,7 @@ public final class Peers {
                 boolean addrValid = false;
                 // [NAT] NAT Service check
                 if (useNATService) {
-                    Logger.logInfoMessage("Node joins the network via official or 3rd part NAT|DDNS service");
+                    Logger.logInfoMessage("Node joins the network via sharder official or 3rd part NAT|DDNS service");
 //                    if (NetStateUtil.isReachable(myHost)) {
 //                        Logger.logInfoMessage("NAT service [" + myHost +"] can be connected");
 //                        addrValid = true;
@@ -247,8 +248,8 @@ public final class Peers {
                 Logger.logWarningMessage("Your announced address is not valid: " + e.toString());
             }
         }
-        myPeerServerPort = Conch.getIntProperty("sharder.peerServerPort");
-        checkNetworkWhetherRight(myHost, myPeerServerPort , true);
+        configuredServerPort = Conch.getIntProperty("sharder.peerServerPort");
+        checkNetworkWhetherRight(myHost, getPort(), true);
         shareMyAddress = Conch.getBooleanProperty("sharder.shareMyAddress") && ! Constants.isOffline;
         enablePeerUPnP = Conch.getBooleanProperty("sharder.enablePeerUPnP");
         myHallmark = Convert.emptyToNull(Conch.getStringProperty("sharder.myHallmark", "").trim());
@@ -283,7 +284,7 @@ public final class Peers {
                     if (port >= 0)
                         announcedAddress = myAddress;
                     else
-                        announcedAddress = host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : "");
+                        announcedAddress = host + (configuredServerPort != DEFAULT_PEER_PORT ? ":" + configuredServerPort : "");
                 } else {
                     //[NAT] Lanproxy use serverIP+port(for client),so use host+port = myAddress
                     announcedAddress = myAddress;
@@ -467,6 +468,11 @@ public final class Peers {
 
     }
 
+    private static final int getPort() {
+        return Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? TESTNET_PEER_PORT : Peers.configuredServerPort);
+    }
+
+
     private static class Init {
 
         private final static Server peerServer;
@@ -475,7 +481,7 @@ public final class Peers {
             if (Peers.shareMyAddress) {
                 peerServer = new Server();
                 ServerConnector connector = new ServerConnector(peerServer);
-                final int port = Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? TESTNET_PEER_PORT : Peers.myPeerServerPort);
+                final int port = getPort();
                 connector.setPort(port);
                 final String host = Conch.getStringProperty("sharder.peerServerHost");
                 connector.setHost(host);
@@ -1053,26 +1059,29 @@ public final class Peers {
     }
 
     static void checkNetworkWhetherRight(String host, int port, boolean abortWhenBadNetwork) {
+        Logger.logInfoMessage("Network is " + Constants.getNetwork().getName() + ", host is " + host + ", port is " + port);
+        host = StringUtils.isEmpty(host) ? "null" : host;
         String networkDetail = "";
+        boolean badNetwork = false;
         if (Constants.isTestnet() && port != TESTNET_PEER_PORT) {
-            networkDetail = "Peer " + host + " on testnet is not using port " + TESTNET_PEER_PORT ;
+            networkDetail = "Peer host " + host + " on testnet is not using port " + TESTNET_PEER_PORT ;
+            badNetwork = true;
+        }else if (Constants.isDevnet() && port != DEVNET_PEER_PORT) {
+            networkDetail = "Peer host " + host + " on devnet is not using port " + DEVNET_PEER_PORT ;
+            badNetwork = true;
         }
 
         if (!Constants.isTestnet() && port == TESTNET_PEER_PORT) {
-            networkDetail = "Peer " + host + " is using testnet port " + port ;
+            networkDetail = "Peer host " + host + " is using testnet port " + port ;
+            badNetwork = true;
+        }else if (!Constants.isDevnet() && port == DEVNET_PEER_PORT) {
+            networkDetail ="Peer host " + host + " is using devnet port " + port;
+            badNetwork = true;
         }
 
-        if (Constants.isDevnet() && port != DEVNET_PEER_PORT) {
-            networkDetail = "Peer " + host + " on devnet is not using port " + DEVNET_PEER_PORT ;
-        }
+        if(badNetwork && abortWhenBadNetwork) throw new RuntimeException(networkDetail);
 
-        if (!Constants.isDevnet() && port == DEVNET_PEER_PORT) {
-            networkDetail ="Peer " + host + " is using devnet port " + port;
-        }
-
-        if(abortWhenBadNetwork) throw new RuntimeException(networkDetail);
-
-        Logger.logDebugMessage(networkDetail,"ignoring");
+        if(badNetwork) Logger.logDebugMessage(networkDetail,"ignoring");
     }
 
 

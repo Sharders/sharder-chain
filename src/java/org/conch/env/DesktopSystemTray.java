@@ -21,6 +21,8 @@
 
 package org.conch.env;
 
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.conch.*;
 import org.conch.http.API;
 import org.conch.peer.Peers;
@@ -90,19 +92,19 @@ public class DesktopSystemTray {
         itemNameMap.put("Network",new ItemName("Network","网络"));
         itemNameMap.put("WorkingO",new ItemName("Working offline","离线模式"));
         itemNameMap.put("Wallet",new ItemName("Wallet","浏览器端"));
-        itemNameMap.put("PeerP",new ItemName("Peer port","节点端口"));
+        itemNameMap.put("PeerP",new ItemName("Peer port","监听端口"));
         itemNameMap.put("ProgramF",new ItemName("Program folder","程序目录"));
         itemNameMap.put("UserF",new ItemName("User folder","配置目录"));
         itemNameMap.put("DatabaseU",new ItemName("Database URL","数据库"));
         itemNameMap.put("LastB",new ItemName("Last Block","最新区块"));
         itemNameMap.put("Height",new ItemName("Height","区块高度"));
         itemNameMap.put("Timestamp",new ItemName("Timestamp","时间戳"));
-        itemNameMap.put("Time",new ItemName("Time","时间"));
+        itemNameMap.put("Time",new ItemName("Last Block","最后一块"));
         itemNameMap.put("SecondsP",new ItemName("Seconds passed","过去秒数"));
-        itemNameMap.put("Forging",new ItemName("Forging","挖矿中"));
+        itemNameMap.put("Forging",new ItemName("Forging","开启挖矿"));
         itemNameMap.put("ForgingA",new ItemName("Forging accounts","挖矿账户"));
         itemNameMap.put("Environment",new ItemName("Environment","环境信息"));
-        itemNameMap.put("NumberOP",new ItemName("Number of peers","节点数量"));
+        itemNameMap.put("NumberOP",new ItemName("Number of peers","节点数"));
         itemNameMap.put("Unavailable",new ItemName("Unavailable","不可用"));
         itemNameMap.put("DevNet",new ItemName("DevNet","开发网络"));
         itemNameMap.put("TestNet",new ItemName("TestNet","测试网络"));
@@ -257,17 +259,18 @@ public class DesktopSystemTray {
         addDataRow(statusPanel, getItemDisplay("Network"), getNetwork());
         addDataRow(statusPanel, getItemDisplay("WorkingO"), "" + Constants.isOffline);
         addDataRow(statusPanel, getItemDisplay("Wallet"), String.valueOf(API.getWelcomePageUri()));
-        addDataRow(statusPanel, getItemDisplay("PeerP"), String.valueOf(Peers.getMyAddress()));
+        addDataRow(statusPanel, getItemDisplay("PeerP"), String.valueOf(Peers.getDefaultPeerPort()));
         addDataRow(statusPanel, getItemDisplay("ProgramF"), String.valueOf(Paths.get(".").toAbsolutePath().getParent()));
         addDataRow(statusPanel, getItemDisplay("UserF"), String.valueOf(Paths.get(Conch.getUserHomeDir()).toAbsolutePath()));
         addDataRow(statusPanel, getItemDisplay("DatabaseU"), Db.db == null ? getItemDisplay("Unavailable") : Db.db.getUrl());
         addEmptyRow(statusPanel);
 
+        String lastBlockEpochTime = DateFormatUtils.format(new Date(Convert.fromEpochTime(lastBlock.getTimestamp())),"yyyy-mm-dd HH:MM:SS");
         if (lastBlock != null) {
             addLabelRow(statusPanel, getItemDisplay("LastB"));
             addDataRow(statusPanel, getItemDisplay("Height"), String.valueOf(lastBlock.getHeight()));
             addDataRow(statusPanel, getItemDisplay("Timestamp"), String.valueOf(lastBlock.getTimestamp()));
-            addDataRow(statusPanel, getItemDisplay("Time"), String.valueOf(new Date(Convert.fromEpochTime(lastBlock.getTimestamp()))));
+            addDataRow(statusPanel, getItemDisplay("Time"), lastBlockEpochTime);
             addDataRow(statusPanel, getItemDisplay("SecondsP"), String.valueOf(Conch.getEpochTime() - lastBlock.getTimestamp()));
             addDataRow(statusPanel, getItemDisplay("Forging"), String.valueOf(allGenerators.size() > 0));
             if (allGenerators.size() > 0) {

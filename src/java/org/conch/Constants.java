@@ -70,14 +70,6 @@ public final class Constants {
             }
             return null;
         }
-
-        public static boolean isSame(String name) {
-            for(Network  network :  values()) {
-                if(network.name.equalsIgnoreCase(name)) return true;
-            }
-            return false;
-        }
-
     }
 
     public static final String NetworkDef = Conch.getStringProperty("sharder.network");
@@ -318,15 +310,15 @@ public final class Constants {
 
     // Network
     public static final boolean isMainnet() {
-        return Network.MAINNET.isSame(NetworkDef);
+        return Network.MAINNET.is(NetworkDef);
     }
 
     public static final boolean isTestnet() {
-        return Network.TESTNET.isSame(NetworkDef);
+        return Network.TESTNET.is(NetworkDef);
     }
 
     public static final boolean isDevnet() {
-        return Network.DEVNET.isSame(NetworkDef);
+        return Network.DEVNET.is(NetworkDef);
     }
 
     public static Network getNetwork(){
