@@ -196,7 +196,7 @@ public class Daemon{
                     configRootNode = objMapper.readValue(configFile, ObjectNode.class);
                     JsonNode bootstrapNode = configRootNode.path("Bootstrap");
                     if (!bootstrapNode.isNull()) {
-                        List<String> defaultBootstrapNodes = Constants.isTestnet() ? Conch.getStringListProperty("sharder.storage.ipfs.bootstrap.defaultTestnetNodes")
+                        List<String> defaultBootstrapNodes = Constants.isTestnet() || Constants.isDevnet() ? Conch.getStringListProperty("sharder.storage.ipfs.bootstrap.defaultTestnetNodes")
                                 : Conch.getStringListProperty("sharder.storage.ipfs.bootstrap.defaultNodes");
                         ((ObjectNode) configRootNode).putPOJO("Bootstrap", defaultBootstrapNodes.toArray());
                     }

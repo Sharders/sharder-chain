@@ -80,7 +80,7 @@ public final class Users {
 
         boolean enableUIServer = Conch.getBooleanProperty("sharder.enableUIServer");
         if (enableUIServer) {
-            final int port = Constants.isTestnet() ? TESTNET_UI_PORT : Conch.getIntProperty("sharder.uiServerPort");
+            final int port = Constants.isTestnet() || Constants.isDevnet() ? TESTNET_UI_PORT : Conch.getIntProperty("sharder.uiServerPort");
             final String host = Conch.getStringProperty("sharder.uiServerHost");
             userServer = new Server();
             ServerConnector connector;

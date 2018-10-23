@@ -215,7 +215,7 @@ public class MintWorker {
             HttpsURLConnection.setDefaultSSLSocketFactory(TrustAllSSLProvider.getSslSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier(TrustAllSSLProvider.getHostNameVerifier());
         }
-        int port = Constants.isTestnet() ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
+        int port = (Constants.isTestnet() || Constants.isDevnet()) ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
         String urlParams = getUrlParams(params);
         URL url;
         try {
