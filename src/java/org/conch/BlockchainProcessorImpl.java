@@ -1668,6 +1668,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             int fromTimestamp = Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
             for (TransactionImpl transaction : block.getTransactions()) {
                 try {
+                    //FIXME-ENH Move contract tx process logic to TransactionType.java#CONTRACT_ORDINARY#applyAttachment
                     if (transaction.getType().getType() == TransactionType.TYPE_CONTRACT) {
                         RepositoryImpl repository = new RepositoryImpl(SourceAdapter.getStateRoot());
                         byte[] publicKey = block.getGeneratorPublicKey();

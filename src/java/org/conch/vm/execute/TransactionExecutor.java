@@ -150,7 +150,7 @@ public class TransactionExecutor {
         }
 
         BigInteger reqNonce = track.getNonce(tx.getSenderPublicKey());
-        // TODO wj txNounce is not defined
+        // FIXME txNonce is not defined and reqNonce for AccountState.Nonce used RLP encode
         BigInteger txNonce = reqNonce;
         if (isNotEqual(reqNonce, txNonce)) {
             execError(String.format("Invalid nonce: required: %s , tx.nonce: %s", reqNonce, txNonce));
@@ -181,6 +181,8 @@ public class TransactionExecutor {
 
             BigInteger txGasLimit = toBI(contract.getGasLimit());
             BigInteger txGasCost = toBI(contract.getGasPrice()).multiply(txGasLimit);
+
+            // FIXME Temp code, there is 2 account mgr ( ethereum and sharder), so sender (ethereum account) haven't balance.
             track.addBalance(tx.getSenderPublicKey(), txGasCost.negate());
 
             if (logger.isInfoEnabled())
