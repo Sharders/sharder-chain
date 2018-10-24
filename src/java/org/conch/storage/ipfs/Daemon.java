@@ -433,16 +433,16 @@ public class Daemon{
      * This method will init the ipfs server and generate the related files into specified repo
      */
     public static void initIPFS4Mac(){
-        // ipfs bin command path
-        String ipfsCmd = "/Users/ben/Coding/sharder-github/sharder-chain-testnet/storage/ipfs/bin";
-        // same as the configuration 'sharder.storage.ipfs.storepath'
-        String ipfsRepo = "/Users/ben/Coding/sharder-github/sharder-chain-testnet/storage/ipfs/.ipfs";
+
+        File ipfsRepo = new File(Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs"));
+        File ipfsCmd = new File("storage/ipfs/bin");
 
         try {
-            Runtime.getRuntime().exec(new String[]{ipfsCmd,"init","-e"}, new String[] {"IPFS_PATH=" + ipfsRepo});
+            Runtime.getRuntime().exec(new String[]{ipfsCmd.getPath(),"init","-e"}, new String[] {"IPFS_PATH=" + ipfsRepo.getAbsolutePath()});
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Manually init IPFS success.");
     }
 
     public static void main(String[] args) {

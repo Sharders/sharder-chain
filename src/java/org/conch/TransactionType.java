@@ -3510,6 +3510,7 @@ public abstract class TransactionType {
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
                 long amountNQT = ((Attachment.ForgePoolJoin)transaction.getAttachment()).getAmount();
+                //Balance and genesis creator check
                 if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT
                         && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
                     return false;
@@ -3594,7 +3595,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-                //TODO unconfirmedBanlance
+                //TODO unconfirmedBalance
                 return true;
             }
 

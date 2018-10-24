@@ -173,6 +173,13 @@ public abstract class StorageTransaction extends TransactionType {
 //            if (!TransactionDb.hasTransaction(attachment.getUploadTransaction())) {
 //                throw new ConchException.NotValidException("Transaction not accepted: " + attachment.getUploadTransaction());
 //            }
+
+            // Check backup number
+            Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+            if (Storer.getStorer() != null) {
+                StorageProcessorImpl.checkAndupdateStoreNumbers(storeTransaction.getId());
+            }
+
             if (Account.getAccount(attachment.getStorerId()) == null) {
                 throw new ConchException.NotValidException("Invalid storer account: " + attachment.getStorerId());
             }
@@ -184,8 +191,12 @@ public abstract class StorageTransaction extends TransactionType {
 
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            // If sender is storer self, save the file into local disk by ssid
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
             Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
+
+            //FIXME-BUG transaction.getSenderId is storer who process last backup tx and brodcast backup tx to network.
+            // Check following backup and reward logic; Consider checkAndupdateStoreNumbers firstly.
             if (Storer.getStorer() != null && Storer.getStorer().getAccountId() == transaction.getSenderId()) {
                 StorageProcessorImpl.getInstance().backup(transaction);
             } else {
@@ -193,19 +204,23 @@ public abstract class StorageTransaction extends TransactionType {
             }
 
             if (Storer.getStorer() != null) {
-                StorageProcessorImpl.updateTaskList(storeTransaction.getId());
+                StorageProcessorImpl.checkAndupdateStoreNumbers(storeTransaction.getId());
             }
 
-            if (Constants.isStorageClient) {
+            if (!Constants.isStorageClient) {
                 StorageProcessorImpl.clearUploadTempFile(transaction);
             }
 
+            //FIXME-REQ Storage reward logic, we just cal the min fee and transfer fee to storer once now.
             long storeFee = storeTransaction.getFeeNQT() - ((TransactionImpl) storeTransaction).getMinimumFeeNQT(storeTransaction.getHeight());
             storeFee /= ((Attachment.DataStorageUpload) storeTransaction.getAttachment()).getReplicated_number();
             storeFee *= 0.1;
+
+            // Freeze store fee from  uploader who process the upload tx sender (storage customer)
             Account account = Account.getAccount(storeTransaction.getSenderId());
             account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), -storeFee);
 
+            // Transfer storage reward to storer who process the storage tx
             Account backupAccount = Account.getAccount(transaction.getSenderId());
             backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), storeFee);
             backupAccount.addToForgedBalanceNQT(storeFee);

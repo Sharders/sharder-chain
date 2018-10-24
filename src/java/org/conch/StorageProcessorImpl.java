@@ -159,7 +159,11 @@ public class StorageProcessorImpl implements StorageProcessor {
         backupTask.put(id,map);
     }
 
-    public static void updateTaskList(long storeId){
+    /**
+     * Check storage exceed the required number, then update the backup numbers by storeId.
+     * @param storeId
+     */
+    public static void checkAndupdateStoreNumbers(long storeId){
         if(backupTask.containsKey(storeId)){
             int num = backupTask.get(storeId).get("current") +1;
             backupTask.get(storeId).put("current",num);

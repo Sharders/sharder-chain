@@ -1668,7 +1668,9 @@ public final class Account {
         this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
         this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
         this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
+        //FIXME Remove addToGuaranteedBalanceNQT if unused
         addToGuaranteedBalanceNQT(amountNQT);
+
         checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
         if (this.frozenBalanceNQT < 0) {
             throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
