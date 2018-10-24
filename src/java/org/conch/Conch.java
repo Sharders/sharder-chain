@@ -36,6 +36,7 @@ import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 import org.conch.util.Time;
+import org.conch.vm.db.ContractTable;
 import org.json.simple.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
@@ -355,6 +356,7 @@ public final class Conch {
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
                 Account.init();
+                ContractTable.init();
                 AccountRestrictions.init();
                 AccountLedger.init();
                 Alias.init();

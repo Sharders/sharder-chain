@@ -23,6 +23,7 @@ package org.conch.db;
 
 import org.conch.Conch;
 import org.conch.util.Logger;
+import org.conch.vm.db.ContractTable;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -99,6 +100,7 @@ public class TransactionalDb extends BasicDb {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
+        ContractTable.commit();
     }
 
     public void rollbackTransaction() {
@@ -118,6 +120,7 @@ public class TransactionalDb extends BasicDb {
                 transactionCallback.set(null);
             }
         }
+        ContractTable.rollback();
     }
 
     public void endTransaction() {

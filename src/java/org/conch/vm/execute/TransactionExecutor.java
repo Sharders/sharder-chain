@@ -19,7 +19,10 @@ package org.conch.vm.execute;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.conch.*;
+import org.conch.Attachment;
+import org.conch.Block;
+import org.conch.Constants;
+import org.conch.Transaction;
 import org.conch.vm.*;
 import org.conch.vm.db.AccountState;
 import org.conch.vm.db.BlockStore;
@@ -157,8 +160,6 @@ public class TransactionExecutor {
 
         BigInteger txGasCost = toBI(contract.getGasPrice()).multiply(txGasLimit);
         BigInteger totalCost = toBI(tx.getAmountNQT()).add(txGasCost);
-        // TODO wj balance caculate the sum of AccountState and Account
-        track.addBalance(tx.getSenderPublicKey(), new BigInteger(String.valueOf(Account.getAccount(tx.getSenderId()).getBalanceNQT())));
         BigInteger senderBalance = track.getBalance(tx.getSenderPublicKey());
 
         if (!isCovers(senderBalance, totalCost)) {

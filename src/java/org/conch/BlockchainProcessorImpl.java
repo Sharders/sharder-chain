@@ -33,6 +33,7 @@ import org.conch.peer.Peers;
 import org.conch.util.*;
 import org.conch.vm.db.BlockStoreDummy;
 import org.conch.vm.db.RepositoryImpl;
+import org.conch.vm.db.SourceAdapter;
 import org.conch.vm.execute.TransactionExecutionSummary;
 import org.conch.vm.execute.TransactionExecutor;
 import org.conch.vm.program.invoke.ProgramInvokeFactoryImpl;
@@ -1420,7 +1421,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             for (TransactionImpl transaction : transactions) {
                 digest.update(transaction.bytes());
             }
-            byte[] state = ByteUtil.hexStringToBytes("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421");
+            byte[] state = ByteUtil.hexStringToBytes("2accbd9ca576a9337fa07a134daf0803056f814dc70736f6b9e1d055e7bd13a2");
             BlockImpl genesisBlock = new BlockImpl(state, ConchGenesis.GENESIS_BLOCK_ID, -1, 0, 0, Constants.MAX_BALANCE_NQT, 0, transactions.size() * 128, digest.digest(),
                     ConchGenesis.CREATOR_PUBLIC_KEY, new byte[64], ConchGenesis.GENESIS_BLOCK_SIGNATURE, null, transactions);
 //            BlockImpl genesisBlock = new BlockImpl(-1, 0, 0, Constants.MAX_BALANCE_NQT, 0, transactions.size() * 128, digest.digest(),
@@ -1469,6 +1470,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
                 TransactionProcessorImpl.getInstance().requeueAllUnconfirmedTransactions();
                 addBlock(block);
+                if (!FastByteComparisons.equal(previousLastBlock.getStateRoot(), SourceAdapter.getStateRoot()))
+                    throw new BlockchainProcessor.BlockNotAcceptedException("state root doesn't roll back after getting new block state root", block);
                 byte[] state = accept(block, validPhasedTransactions, invalidPhasedTransactions, duplicates);
                 if (!FastByteComparisons.equal(block.getStateRoot(), state))
                     throw new BlockchainProcessor.BlockNotAcceptedException("block state root doesn't match", block);
@@ -1663,24 +1666,20 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             validPhasedTransactions.forEach(transaction -> transaction.getPhasing().countVotes(transaction));
             invalidPhasedTransactions.forEach(transaction -> transaction.getPhasing().reject(transaction));
             int fromTimestamp = Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
-            BlockImpl previousLastBlock = blockchain.getLastBlock();
-            byte[] stateRoot = previousLastBlock.getStateRoot();
-            RepositoryImpl repository = new RepositoryImpl(stateRoot);
             for (TransactionImpl transaction : block.getTransactions()) {
                 try {
-                    // TODO wj need to modify,just for test
                     if (transaction.getType().getType() == TransactionType.TYPE_CONTRACT) {
+                        RepositoryImpl repository = new RepositoryImpl(SourceAdapter.getStateRoot());
                         byte[] publicKey = block.getGeneratorPublicKey();
-                        RepositoryImpl track = repository.startTracking();
                         TransactionExecutor executor = new TransactionExecutor
-                                (transaction, publicKey, track, new BlockStoreDummy(),
+                                (transaction, publicKey, repository, new BlockStoreDummy(),
                                         new ProgramInvokeFactoryImpl(), block);
 
                         executor.init();
                         executor.execute();
                         executor.go();
                         TransactionExecutionSummary summary = executor.finalization();
-                        track.commit();
+                        repository.commit();
                     } else {
                         transaction.apply();
                     }
@@ -1753,7 +1752,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 TransactionProcessorImpl.getInstance().notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
             }
             AccountLedger.commitEntries();
-            return repository.getRoot();
+            return SourceAdapter.getStateRoot();
         } finally {
             isProcessingBlock = false;
             AccountLedger.clearEntries();
@@ -1979,7 +1978,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         BlockImpl block = new BlockImpl(getBlockVersion(previousBlock.getHeight()), blockTimestamp, previousBlock.getId(), totalAmountNQT, totalFeeNQT, payloadLength,
                 payloadHash, publicKey, generationSignature, null, previousBlockHash, blockTransactions);
 
-        byte[] state = getBlcokStateRoot(block);
+        byte[] state = getBlockStateRoot(block);
         block = new BlockImpl(state, getBlockVersion(previousBlock.getHeight()), blockTimestamp, previousBlock.getId(), totalAmountNQT, totalFeeNQT, payloadLength,
                 payloadHash, publicKey, generationSignature, previousBlockHash, blockTransactions, secretPhrase);
 
@@ -2006,23 +2005,34 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    private byte[] getBlcokStateRoot(BlockImpl block) {
+    private byte[] getBlockStateRoot(BlockImpl block) throws BlockNotAcceptedException {
         try {
+
             Db.db.beginTransaction();
             BlockImpl previousLastBlock = blockchain.getLastBlock();
             byte[] stateRoot = previousLastBlock.getStateRoot();
-            RepositoryImpl repository = new RepositoryImpl(stateRoot);
+            if (!FastByteComparisons.equal(SourceAdapter.getStateRoot(), stateRoot))
+                throw new BlockchainProcessor.BlockNotAcceptedException("current state doesn't match with precious block state root ", previousLastBlock);
+
+            //block apply
+            Account generatorAccount = Account.addOrGetAccount(block.getGeneratorId());
+            generatorAccount.apply(block.getGeneratorPublicKey());
+            generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getPreviousBlockId(), block.getTotalFeeNQT());
+            generatorAccount.addToForgedBalanceNQT(block.getTotalFeeNQT());
+
+            //transaction apply
             for (TransactionImpl transaction : block.getTransactions()) {
                 try {
                     if (transaction.getType().getType() == TransactionType.TYPE_CONTRACT) {
-                        RepositoryImpl track = repository.startTracking();
+                        RepositoryImpl repository = new RepositoryImpl(SourceAdapter.getStateRoot());
                         TransactionExecutor executor = new TransactionExecutor
-                                (transaction, block.getGeneratorPublicKey(), track, new BlockStoreDummy(),
+                                (transaction, block.getGeneratorPublicKey(), repository, new BlockStoreDummy(),
                                         new ProgramInvokeFactoryImpl(), block);
 
                         executor.init();
                         executor.execute();
                         executor.go();
+                        repository.commit();
                     } else {
                         transaction.apply();
                     }
@@ -2031,8 +2041,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     throw new BlockchainProcessor.TransactionNotAcceptedException(e, transaction);
                 }
             }
+            stateRoot = SourceAdapter.getStateRoot();
             Db.db.rollbackTransaction();
-            return repository.getRoot();
+            return stateRoot;
         } catch (TransactionNotAcceptedException e) {
             Logger.logErrorMessage("get block state root error " + e.toString());
         } finally {

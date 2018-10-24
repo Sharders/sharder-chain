@@ -37,9 +37,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.*;
 
-/**
- * Created by Anton Nashatyrev on 07.10.2016.
- */
+
 public class RepositoryImpl implements Repository {
 
     protected RepositoryImpl parent;
@@ -100,7 +98,12 @@ public class RepositoryImpl implements Repository {
         }
     }
 
-    synchronized AccountState getOrCreateAccountState(byte[] addr) {
+    synchronized void setRootHash(byte[] addr, byte[] hash) {
+        AccountState ret = getOrCreateAccountState(addr);
+        accountStateCache.put(ByteUtil.toHexString(addr), ret.withStateRoot(hash));
+    }
+
+    public synchronized AccountState getOrCreateAccountState(byte[] addr) {
         AccountState ret = getAccountState(addr);
         if (ret == null) {
             ret = createAccount(addr);
@@ -257,7 +260,12 @@ public class RepositoryImpl implements Repository {
                 sourceAdapter.flushCodeCache(codeCache);
 
                 sourceAdapter.flushAccountState(stateTrie, accountStateCache);
+                stateTrie.flush();
                 connection.commit();
+                ContractTable.commit();
+
+                if (parent != null)
+                    parent.stateTrie = stateTrie;
 
                 codeCache.clear();
                 storageCache.clear();
@@ -269,19 +277,58 @@ public class RepositoryImpl implements Repository {
                         return;
                     }
                     connection.rollback(savepoint);
+                    ContractTable.rollback();
                 } catch (SQLException e1) {
                     Logger.logErrorMessage("Contract roll back error ", e1);
                 }
             }
         }
+    }
 
-        stateTrie.flush();
-        // TODO wj delete trie cache flush? because SourceImpl has no cache
+    /**
+     * just for keeping sharder account state to contract table
+     */
+    public synchronized void commitAccountState() {
+        Repository parentSync = parent == null ? this : parent;
+        // need to synchronize on parent since between different caches flush
+        // the parent repo would not be in consistent state
+        // when no parent just take this instance as a mock
+        synchronized (parentSync) {
+            Connection connection = null;
+            Savepoint savepoint = null;
+            try {
+                // TODO wj should be delete ,because the block already has transaction
+                connection = Db.db.getConnection();
+                savepoint = connection.setSavepoint();
+                SourceAdapter sourceAdapter = new SourceAdapter();
+
+                sourceAdapter.flushAccountStateToDB(stateTrie, accountStateCache);
+                stateTrie.flush();
+                connection.commit();
+                ContractTable.commit();
+
+                if (parent != null)
+                    parent.stateTrie = stateTrie;
+
+                accountStateCache.clear();
+            } catch (SQLException e) {
+                try {
+                    if (connection == null || savepoint == null) {
+                        Logger.logErrorMessage(" save contract data to database error : ", e);
+                        return;
+                    }
+                    connection.rollback(savepoint);
+                    ContractTable.rollback();
+                } catch (SQLException e1) {
+                    Logger.logErrorMessage("Contract roll back error ", e1);
+                }
+            }
+        }
     }
 
     @Override
     public synchronized void rollback() {
-        // nothing to do, will be GCed
+        ContractTable.rollback();
     }
 
     public synchronized String getTrieDump() {
@@ -465,8 +512,6 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public synchronized byte[] getRoot() {
-        this.commit();
-
         return stateTrie.getRootHash();
     }
 

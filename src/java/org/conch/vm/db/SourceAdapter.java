@@ -1,15 +1,13 @@
 package org.conch.vm.db;
 
-import org.conch.Db;
-import org.conch.util.Logger;
+import org.conch.Account;
+import org.conch.AccountLedger;
 import org.conch.vm.DataWord;
 import org.conch.vm.trie.SecureTrie;
 import org.conch.vm.trie.Trie;
 import org.conch.vm.util.ByteUtil;
 import org.conch.vm.util.RLP;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -37,9 +35,9 @@ public class SourceAdapter {
             Serializer<byte[], byte[]> keyCompositor = new NodeKeyCompositor(ByteUtil.hexStringToBytes(key));
             for (DataWord dataKey : storageCache.get(key).keySet()) {
                 trie.put(keyCompositor.serialize(dataKey.getData()), StorageValueSerializer.serialize(storageCache.get(key).get(dataKey)));
-                //saveValue(key + dataKey.toString(), ByteUtil.toHexString(StorageValueSerializer.serialize(storageCache.get(key).get(dataKey))));
             }
-            accountState.withStateRoot(trie.getRootHash());
+            trie.flush();
+            repository.setRootHash(ByteUtil.hexStringToBytes(key), trie.getRootHash());
         }
     }
 
@@ -51,21 +49,25 @@ public class SourceAdapter {
 
     public void flushAccountState(Trie<byte[]> stateTrie, HashMap<String, AccountState> accountStateCache) throws SQLException {
         for (String key : accountStateCache.keySet()) {
-            // TODO wj account should save in sharder account table
             stateTrie.put(ByteUtil.hexStringToBytes(key), accountStateCache.get(key).getEncoded());
-            //saveValue(key, ByteUtil.toHexString(accountStateCache.get(key).getEncoded()));
+
+            // update to sharder account table
+            Account account = Account.getAccount(ByteUtil.hexStringToBytes(key));
+            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.CONTRACT, accountStateCache.get(key).getNonce().intValue(),
+                    accountStateCache.get(key).getBalance().longValue() - account.getBalanceNQT());
+        }
+        setStateRoot(stateTrie.getRootHash());
+    }
+
+    public void flushAccountStateToDB(Trie<byte[]> stateTrie, HashMap<String, AccountState> accountStateCache) throws SQLException {
+        for (String key : accountStateCache.keySet()) {
+            stateTrie.put(ByteUtil.hexStringToBytes(key), accountStateCache.get(key).getEncoded());
         }
     }
 
     private void saveValue(String key, String value) throws SQLException {
-        try (PreparedStatement pstmt =
-                     Db.db.getConnection()
-                             .prepareStatement("MERGE INTO CONTRACT (KEY, VALUE) VALUES (?, ?)")) {
-            int i = 0;
-            pstmt.setString(++i, key);
-            pstmt.setString(++i, value);
-            pstmt.executeUpdate();
-        }
+        ContractTable contractTable = new ContractTable(key, value);
+        contractTable.save();
     }
 
     public static DataWord getStorage(Repository repository, byte[] addr, DataWord key) {
@@ -84,18 +86,15 @@ public class SourceAdapter {
     }
 
     public static byte[] getBytesValue(String addr) {
-        byte[] result = null;
-        try (PreparedStatement pstmt =
-                     Db.db.getConnection()
-                             .prepareStatement("SELECT * FROM CONTRACT where KEY = ?")) {
-            int i = 0;
-            pstmt.setString(++i, addr);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next())
-                result = ByteUtil.hexStringToBytes(rs.getString("value"));
-        } catch (SQLException e) {
-            Logger.logErrorMessage("load the value of " + addr + " from database error ", e);
-        }
-        return result;
+        return ContractTable.getValueByKey(addr);
+    }
+
+    public static byte[] getStateRoot() {
+        return ContractTable.getValueByKey("stateRoot");
+    }
+
+    public static void setStateRoot(byte[] root) {
+        ContractTable contractTable = new ContractTable("stateRoot", ByteUtil.toHexString(root));
+        contractTable.save();
     }
 }

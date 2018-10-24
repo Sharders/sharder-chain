@@ -29,7 +29,12 @@ import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;
 import org.conch.util.Logger;
+import org.conch.vm.db.AccountState;
+import org.conch.vm.db.RepositoryImpl;
+import org.conch.vm.db.SourceAdapter;
+import org.conch.vm.util.ByteUtil;
 
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -1105,6 +1110,17 @@ public final class Account {
             pstmt.setInt(++i, Conch.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
+
+        if (id == 7690917826419382695L)
+            return;
+        byte[] stateRoot = SourceAdapter.getStateRoot();
+        RepositoryImpl repository = new RepositoryImpl(stateRoot);
+        AccountState accountState = repository.getOrCreateAccountState(getPublicKey(this.id));
+        BigInteger balance = new BigInteger(ByteUtil.longToBytes(balanceNQT));
+        repository.addBalance(getPublicKey(this.id), balance.subtract(accountState.getBalance()));
+        repository.commitAccountState();
+        stateRoot = repository.getRoot();
+        SourceAdapter.setStateRoot(stateRoot);
     }
 
     private void save() {
@@ -1705,7 +1721,7 @@ public final class Account {
         }
     }
 
-    void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceAndUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
     }
 
