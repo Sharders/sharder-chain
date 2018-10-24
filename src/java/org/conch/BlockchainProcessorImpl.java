@@ -2040,6 +2040,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         //Forge reward
         try {
+            // Check generator whether pool owner:
+            // Pool owner -> pool rewards map (send rewards to pool)
+            // Single miner -> empty map (send rewards to miner)
             Map<Long,Long> map;
             long id = ForgePool.ownOnePool(Account.getId(publicKey));
             if(id == -1 || !ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING) ){
