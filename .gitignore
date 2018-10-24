@@ -8,7 +8,5 @@ contrib
 logs
 sharder_db
 *.bat
-lib
 html
 jre
-conf
