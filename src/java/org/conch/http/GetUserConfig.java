@@ -38,7 +38,7 @@ import java.util.Properties;
 public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
     static final GetUserConfig instance = new GetUserConfig();
-    static final List<String> excludeKeys = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase","sharder.NATClientKey");
+    static final List<String> excludeKeys = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
     private GetUserConfig() {
         super(new APITag[]{APITag.INFO});
     }
