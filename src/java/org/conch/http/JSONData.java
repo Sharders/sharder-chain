@@ -1211,6 +1211,8 @@ public final class JSONData {
         json.put("ssid", attachment.getSsid());
         json.put("existence_height", attachment.getExistence_height());
         json.put("replicated_number", attachment.getReplicated_number());
+
+        //Retrieve the data by ssid
         if (includeData) {
             byte[] data = IpfsService.retrieve(Ssid.decode(attachment.getSsid()));
             json.put("data", Convert.toHexString(data));

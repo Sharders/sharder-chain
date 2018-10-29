@@ -408,7 +408,6 @@ public final class Conch {
                 Generator.init();
                 AddOns.init();
                 API.init();
-//                HubConfig.init();
                 Users.init();
                 ForgePool.init();
                 DebugTrace.init();
@@ -439,7 +438,7 @@ public final class Conch {
                 if (Constants.isTestnet()) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
-                // [Hub] if owner binded then start forge automatic
+                // [Hub] if owner binded then start mine automatic
                 Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
                 String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
                 String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));

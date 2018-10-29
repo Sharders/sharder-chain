@@ -66,6 +66,8 @@ public final class DownloadStoredData extends APIServlet.APIRequestHandler {
         if (attachment == null) {
             return JSONResponses.incorrect("transaction", "stored data not found");
         }
+
+        //Retrieve the data by ssid
         byte[] data;
         try {
             data = StorageProcessorImpl.getInstance().getData(transactionId);
@@ -78,12 +80,17 @@ public final class DownloadStoredData extends APIServlet.APIRequestHandler {
             response.setContentType("application/octet-stream");
         }
 
+
         String filename = attachment.getName().trim();
         String contentDisposition = "attachment";
         try {
             URI uri = new URI(null, null, filename, null);
             contentDisposition += "; filename*=UTF-8''" + uri.toASCIIString();
-        } catch (URISyntaxException ignore) {}
+        } catch (URISyntaxException ignore) {
+
+        }
+
+        // write the data into response
         response.setHeader("Content-Disposition", contentDisposition);
         response.setContentLength(data.length);
         try (OutputStream out = response.getOutputStream()) {
@@ -95,6 +102,7 @@ public final class DownloadStoredData extends APIServlet.APIRequestHandler {
         } catch (IOException e) {
             throw new ParameterException(JSONResponses.RESPONSE_STREAM_ERROR);
         }
+
         return null;
     }
 

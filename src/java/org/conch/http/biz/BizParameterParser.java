@@ -239,10 +239,10 @@ public class BizParameterParser  {
         String description = Convert.nullToEmpty(req.getParameter("description"));
         String tags = Convert.nullToEmpty(req.getParameter("tags"));
         String type = Convert.nullToEmpty(req.getParameter("type")).trim();
-        String channel = Convert.nullToEmpty(req.getParameter("channel"));
+        String channel = Convert.nullToEmpty(req.getParameter("channel")); // Sub account
         boolean isText = !"false".equalsIgnoreCase(req.getParameter("isText"));
         String filename = Convert.nullToEmpty(req.getParameter("filename")).trim();
-        String dataValue = Convert.emptyToNull(req.getParameter("data"));
+        String dataValue = Convert.emptyToNull(req.getParameter("data")); // uploaded data values
         byte[] data;
 
         if(dataValue == null) {

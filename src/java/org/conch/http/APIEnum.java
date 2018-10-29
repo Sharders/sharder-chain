@@ -305,11 +305,12 @@ public enum APIEnum {
     GET_FORGE_POOL_INFO("getForgePoolInfo",GetForgePoolInfo.instance),
     GET_FORGE_POOLS("getForgePools",GetForgePools.instance),
     GET_FORGE_POOL_RULE("getForgePoolRule",GetForgePoolRule.instance),
+    // off-chain storage
     START_STORING("startStoring", StartStoring.instance),
     STOP_STORING("stopStoring", StopStoring.instance),
     STORE_DATA("storeData", StoreData.instance),
-    GET_STORED_DATA("getStoredData", GetStoredData.instance),
-    DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance);
+    GET_STORED_DATA("getStoredData", GetStoredData.instance), // get off-chain file content
+    DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance);// download off-chain file
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 
