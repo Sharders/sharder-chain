@@ -195,8 +195,9 @@ public abstract class StorageTransaction extends TransactionType {
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
             Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
 
-            //FIXME-BUG transaction.getSenderId is storer who process last backup tx and brodcast backup tx to network.
-            // Check following backup and reward logic; Consider checkAndupdateStoreNumbers firstly.
+            // When the storer received the backup tx, just update the num to get the right to backup.
+            // Real backup execution: when the storer received the new block and process backup tx in block, because backup tx that in the block means be confirmed by network.
+            // Backup right: confirmed backup sender is the current node storer
             if (Storer.getStorer() != null && Storer.getStorer().getAccountId() == transaction.getSenderId()) {
                 StorageProcessorImpl.getInstance().backup(transaction);
             } else {
@@ -207,7 +208,8 @@ public abstract class StorageTransaction extends TransactionType {
                 StorageProcessorImpl.checkAndupdateStoreNumbers(storeTransaction.getId());
             }
 
-            if (!Constants.isStorageClient) {
+            // Clear first upload file that created in StoreData
+            if (Constants.isStorageClient) {
                 StorageProcessorImpl.clearUploadTempFile(transaction);
             }
 

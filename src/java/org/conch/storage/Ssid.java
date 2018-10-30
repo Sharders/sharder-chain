@@ -44,6 +44,7 @@ public class Ssid {
         return new String(Base58.decode(rest));
     }
 
+    //TODO impl more store method: OSS, Cloud, Local Disk
     public static enum Type {
         Local('l'),
         IPFS('i');

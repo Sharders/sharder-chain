@@ -177,6 +177,10 @@ public class StorageProcessorImpl implements StorageProcessor {
         backupTask.clear();
     }
 
+    /**
+     * Clear first upload file created in org/conch/http/StoreData.java
+     * @param transaction
+     */
     public static void clearUploadTempFile(Transaction transaction){
         Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());

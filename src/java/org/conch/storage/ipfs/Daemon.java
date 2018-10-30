@@ -202,6 +202,9 @@ public class Daemon{
                     }
                     JsonNode addressNode = configRootNode.path("Addresses");
                     JsonNode apiNode = addressNode.path("API");
+                    // 127.0.0.1 means can be accessed locally
+                    // 0.0.0.0 means anyone can accessed
+                    // API: call api; Gateway: get and view the file by ssid; Swarm : connect to other node
                     if (!apiNode.isNull()) {
                         ((ObjectNode) addressNode).put("API", "/ip4/127.0.0.1/tcp/" + apiPort);
                     }
@@ -210,6 +213,7 @@ public class Daemon{
                         ((ObjectNode) addressNode).put("Gateway", "/ip4/127.0.0.1/tcp/" + gatewayPort);
                     }
                     JsonNode swarmNode = addressNode.path("Swarm");
+
                     if (!swarmNode.isNull()) {
                         ((ObjectNode) addressNode).putPOJO("Swarm", new String[]{
                                 "/ip4/0.0.0.0/tcp/" + swarmPort,
@@ -224,6 +228,7 @@ public class Daemon{
 
 
                 try {
+                    // enable-gc will auto delete unpin profile in storage network
                     daemon = process("daemon",enableGc?"--enable-gc":"","--enable-pubsub-experiment");
                     gobble(daemon);
                     eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STARTED));
