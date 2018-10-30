@@ -126,6 +126,7 @@ public final class Peers {
     private static final int DEFAULT_PEER_PORT = 3218;
     private static final int TESTNET_PEER_PORT = 8218;
     private static final int DEVNET_PEER_PORT = 9218;
+    private static final int MAX_PUBLIC_PEER_CONNECT_IN_TEST_OR_DEV = 50;
     private static final String myPlatform;
     private static final String myAddress;
     private static final int configuredServerPort;
@@ -383,7 +384,7 @@ public final class Peers {
 
         maxNumberOfInboundConnections = Conch.getIntProperty("sharder.maxNumberOfInboundConnections");
         maxNumberOfOutboundConnections = Conch.getIntProperty("sharder.maxNumberOfOutboundConnections");
-        maxNumberOfConnectedPublicPeers = Math.min(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"),
+        maxNumberOfConnectedPublicPeers = (Constants.isTestnet() || Constants.isDevnet()) ? Math.max(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"), MAX_PUBLIC_PEER_CONNECT_IN_TEST_OR_DEV) : Math.min(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"),
                 maxNumberOfOutboundConnections);
         maxNumberOfKnownPeers = Conch.getIntProperty("sharder.maxNumberOfKnownPeers");
         minNumberOfKnownPeers = Conch.getIntProperty("sharder.minNumberOfKnownPeers");
