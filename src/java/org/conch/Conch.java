@@ -575,7 +575,7 @@ public final class Conch {
 
     private Conch() {} // never
 
-    private static final String UPGRADE_SERVER = "https://oss.sharder.org/resource";
+    private static final String UPGRADE_SERVER = "https://resource.sharder.io";
 
     public static Thread fetchUpgradePackageThread(String version) {
         String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
@@ -611,6 +611,8 @@ public final class Conch {
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
+            // TODO update the version of sharder-default.properites
+
             // TODO support windows command
             Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
         } catch (Exception e) {
