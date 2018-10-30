@@ -575,8 +575,10 @@ public final class Conch {
 
     private Conch() {} // never
 
+    private static final String UPGRADE_SERVER = "https://oss.sharder.org/resource";
+
     public static Thread fetchUpgradePackageThread(String version) {
-        String url = "http://120.79.243.35:8009/sharder-hub/release/cos-hub-" + version +".zip";
+        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         Thread fetchUpgradePackageThread = new Thread(
@@ -600,7 +602,7 @@ public final class Conch {
     }
 
     public static void fetchUpgradePackage(String version) throws IOException {
-        String url = "http://120.79.243.35:8009/sharder-hub/release/cos-hub-" + version +".zip";
+        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         if (!archive.exists()) {
@@ -609,6 +611,7 @@ public final class Conch {
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
+            // TODO support windows command
             Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);
@@ -616,7 +619,7 @@ public final class Conch {
     }
 
     public static String fetchLastestHubVersion() throws IOException {
-        String url = "https://oss.sharder.org/resource/sharder-hub/release/lastest-version";
+        String url = UPGRADE_SERVER + "/sharder-hub/release/lastest-version";
         return Https.httpRequest(url,"GET", null);
     }
 
