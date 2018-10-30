@@ -26,10 +26,10 @@ import org.conch.storage.ipfs.IpfsService;
 
 public class StorageManager {
     public static void init() {
-        Boolean enable = Conch.getBooleanProperty("sharder.enableStorage");
-        if (enable) {
-            //default StorageManager Provider
-            IpfsService.init();
-        }
+
+        if (!Conch.getBooleanProperty("sharder.enableStorage")) return;
+
+        //init and run daemon
+        IpfsService.init();
     }
 }
