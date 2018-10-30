@@ -616,7 +616,7 @@ public final class Conch {
     }
 
     public static String fetchLastestHubVersion() throws IOException {
-        String url = "http://120.79.243.35:8009/sharder-hub/release/lastest-version";
+        String url = "https://oss.sharder.org/resource/sharder-hub/release/lastest-version";
         return Https.httpRequest(url,"GET", null);
     }
 
