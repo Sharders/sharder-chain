@@ -73,11 +73,6 @@ public final class Conch {
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(defaultProperties, CONCH_DEFAULT_PROPERTIES, true);
-
-        boolean checkVersion = Boolean.valueOf(Conch.defaultProperties.getProperty("sharder.version"));
-        if (checkVersion && !VERSION.equals(Conch.defaultProperties.getProperty("sharder.version"))) {
-            throw new RuntimeException("Using an sharder-default.properties file from a version other than " + VERSION + " is not supported!!!");
-        }
     }
 
     private static void redirectSystemStreams(String streamName) {
@@ -611,8 +606,6 @@ public final class Conch {
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
-            // TODO update the version of sharder-default.properites
-
             // TODO support windows command
             Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
         } catch (Exception e) {
@@ -692,6 +685,11 @@ public final class Conch {
         }
     }
 
+    /**
+     * Full version format is : version number - stage
+     * e.g. 0.0.1-Beta or 0.0.1-Alpha
+     * @return
+     */
     public static String getFullVersion(){
         return VERSION + STAGE;
     }

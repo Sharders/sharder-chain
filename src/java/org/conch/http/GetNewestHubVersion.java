@@ -22,19 +22,17 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-public final class GetLastestHubVersion extends APIServlet.APIRequestHandler {
+public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
 
-    static final GetLastestHubVersion instance = new GetLastestHubVersion();
+    static final GetNewestHubVersion instance = new GetNewestHubVersion();
 
-    private GetLastestHubVersion() {
+    private GetNewestHubVersion() {
         super(new APITag[] {APITag.DEBUG});
     }
 
