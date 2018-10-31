@@ -46,6 +46,7 @@ public final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         response.put("application", Conch.APPLICATION);
         response.put("version", Conch.VERSION);
+        response.put("fullVersion", Conch.getFullVersion());
         response.put("time", Conch.getEpochTime());
         Block lastBlock = Conch.getBlockchain().getLastBlock();
         response.put("lastBlock", lastBlock.getStringId());
