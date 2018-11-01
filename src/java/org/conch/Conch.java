@@ -693,5 +693,8 @@ public final class Conch {
     public static String getFullVersion(){
         return VERSION + STAGE;
     }
+   public static String getVersion(){
+        return VERSION;
+    }
 
 }
