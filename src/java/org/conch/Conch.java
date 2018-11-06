@@ -58,6 +58,7 @@ public final class Conch {
 
     private static volatile Time time = new Time.EpochTime();
 
+
     public static final String CONCH_DEFAULT_PROPERTIES = "sharder-default.properties";
     public static final String CONCH_PROPERTIES = "sharder.properties";
     public static final String CONFIG_DIR = "conf";
