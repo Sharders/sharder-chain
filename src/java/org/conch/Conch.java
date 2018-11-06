@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.conch.addons.AddOns;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbBackup;
@@ -32,6 +33,7 @@ import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
 import org.conch.peer.Peers;
+import org.conch.peer.StreamGobbler;
 import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -41,6 +43,7 @@ import org.sharder.util.Https;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
 import java.security.AccessControlException;
@@ -49,7 +52,7 @@ import java.util.*;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "0.1.1";
     public static final String STAGE = "-Beta";
     public static final String APPLICATION = "COS";
 
@@ -58,6 +61,9 @@ public final class Conch {
     public static final String CONCH_DEFAULT_PROPERTIES = "sharder-default.properties";
     public static final String CONCH_PROPERTIES = "sharder.properties";
     public static final String CONFIG_DIR = "conf";
+
+    private static final String myAddress;
+    private static final int TESTNET_PEER_PORT = 8218;
 
     private static final RuntimeMode runtimeMode;
     private static final DirProvider dirProvider;
@@ -73,6 +79,15 @@ public final class Conch {
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(defaultProperties, CONCH_DEFAULT_PROPERTIES, true);
+    }
+
+
+    public static int getTestnetPeerPort(){
+        return TESTNET_PEER_PORT;
+    }
+
+    public static String getMyAddress(){
+        return myAddress;
     }
 
     private static void redirectSystemStreams(String streamName) {
@@ -109,6 +124,78 @@ public final class Conch {
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
+
+        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
+        if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet()) {
+            throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
+        }
+    }
+
+    // [NAT] useNATService and client configuration
+    static boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
+    static final String NATServiceAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.NATServiceAddress"));
+    static final int NATServicePort = Conch.getIntProperty("sharder.NATServicePort");
+    static final String NATClientKey = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
+
+    public static boolean getUseNATService(){
+        return useNATService;
+    }
+
+    static {
+        // [NAT] NAT Service check
+        if (Conch.getUseNATService()) {
+            Logger.logInfoMessage("Node joins the network via sharder official or 3rd part NAT|DDNS service");
+        }
+        try {
+
+            if (useNATService) {
+                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
+                cmd.append(" -s ").append(NATServiceAddress == null?addressHost(myAddress):NATServiceAddress)
+                        .append(" -p ").append(NATServicePort)
+                        .append(" -k ").append(NATClientKey);
+                Process process = Runtime.getRuntime().exec(cmd.toString());
+                // any error message?
+                StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
+                // any output?
+                StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
+                // kick them off
+                errorGobbler.start();
+                outputGobbler.start();
+                Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
+                InputStreamReader isr = new InputStreamReader(findName.getInputStream());
+                BufferedReader br = new BufferedReader(isr);
+                if (br.readLine() == null){
+                    Logger.logInfoMessage("Open NAT Client Auto Start");
+                    Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+                }
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
+                Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
+            }
+        } catch (IOException e) {
+            useNATService = false;
+            Logger.logErrorMessage("NAT Client execute Error", e);
+        }
+
+
+    }
+
+    static String addressHost(String address) {
+        if (address == null) {
+            return null;
+        }
+        URI uri = addressURI(address);
+        return uri.getHost();
+    }
+
+    static URI addressURI(String address) {
+        try {
+            URI uri = new URI("http://" + address);
+            return uri;
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     public static void storePropertiesToFile(HashMap<String, String> parameters) {
@@ -354,6 +441,9 @@ public final class Conch {
         private static volatile boolean initialized = false;
 
         static {
+            //[NAT] Run NAT client command
+
+
             try {
                 long startTime = System.currentTimeMillis();
                 Logger.init();

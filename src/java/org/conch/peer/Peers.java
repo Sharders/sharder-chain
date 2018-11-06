@@ -103,32 +103,24 @@ public final class Peers {
     static final int webSocketIdleTimeout;
 
     public static String getMyAddress() {
-        return myAddress;
+        return Conch.getMyAddress();
     }
 
     public static boolean isUseNATService() {
-        return useNATService;
+        return Conch.getUseNATService();
     }
 
     public static boolean isMyAddressAnnounced() {
-        return myAddress != null;
+        return Conch.getMyAddress() != null;
     }
-
-    // [NAT] useNATService and client configuration
-    static boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
-    static final String NATServiceAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.NATServiceAddress"));
-    static final int NATServicePort = Conch.getIntProperty("sharder.NATServicePort");
-    static final String NATClientKey = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
 
     static final boolean useProxy = System.getProperty("socksProxyHost") != null || System.getProperty("http.proxyHost") != null;
     static final boolean isGzipEnabled;
 
     private static final int DEFAULT_PEER_PORT = 3218;
-    private static final int TESTNET_PEER_PORT = 8218;
     private static final int DEVNET_PEER_PORT = 9218;
     private static final int MAX_PUBLIC_PEER_CONNECT_IN_TEST_OR_DEV = 50;
     private static final String myPlatform;
-    private static final String myAddress;
     private static final int configuredServerPort;
     private static final String myHallmark;
     private static final boolean shareMyAddress;
@@ -191,29 +183,15 @@ public final class Peers {
             platform = platform.substring(0, MAX_PLATFORM_LENGTH);
         }
         myPlatform = platform;
-        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
-        if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet()) {
-            throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
-        }
 
         String myHost = null;
         int myPort = -1;
-        if (myAddress != null) {
+        if (Conch.getMyAddress() != null) {
             try {
-                URI uri = new URI("http://" + myAddress);
+                URI uri = new URI("http://" + Conch.getMyAddress());
                 myHost = uri.getHost();
                 myPort = (uri.getPort() == -1 ? Peers.getDefaultPeerPort() : uri.getPort());
                 boolean addrValid = false;
-                // [NAT] NAT Service check
-                if (useNATService) {
-                    Logger.logInfoMessage("Node joins the network via sharder official or 3rd part NAT|DDNS service");
-//                    if (NetStateUtil.isReachable(myHost)) {
-//                        Logger.logInfoMessage("NAT service [" + myHost +"] can be connected");
-//                        addrValid = true;
-//                    } else {
-//                        Logger.logErrorMessage("Node now trying to join the network via NAT service, but NAT service [" + myHost +"] can not be reached now");
-//                    }
-                }
                 InetAddress[] myAddrs = InetAddress.getAllByName(myHost);
                 Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
                 chkAddr: while (intfs.hasMoreElements()) {
@@ -260,7 +238,7 @@ public final class Peers {
                 if (!hallmark.isValid()) {
                     throw new RuntimeException("Hallmark is not valid");
                 }
-                if (myAddress != null) {
+                if (Conch.getMyAddress() != null) {
                     if (!hallmark.getHost().equals(myHost)) {
                         throw new RuntimeException("Invalid hallmark host");
                     }
@@ -269,33 +247,33 @@ public final class Peers {
                     }
                 }
             } catch (RuntimeException e) {
-                Logger.logErrorMessage("Your hallmark is invalid: " + Peers.myHallmark + " for your address: " + myAddress + "[" + e.getMessage() + "]");
+                Logger.logErrorMessage("Your hallmark is invalid: " + Peers.myHallmark + " for your address: " + Conch.getMyAddress() + "[" + e.getMessage() + "]");
                 throw new RuntimeException(e.toString(), e);
             }
         }
         List<Peer.Service> servicesList = new ArrayList<>();
         JSONObject json = new JSONObject();
-        if (myAddress != null) {
+        if (Conch.getMyAddress() != null) {
             try {
-                URI uri = new URI("http://" + myAddress);
+                URI uri = new URI("http://" + Conch.getMyAddress());
                 String host = uri.getHost();
                 int port = uri.getPort();
                 String announcedAddress;
                 if (!Constants.isTestnet()) {
                     if (port >= 0)
-                        announcedAddress = myAddress;
+                        announcedAddress = Conch.getMyAddress();
                     else
                         announcedAddress = host + (configuredServerPort != DEFAULT_PEER_PORT ? ":" + configuredServerPort : "");
                 } else {
                     //[NAT] Lanproxy use serverIP+port(for client),so use host+port = myAddress
-                    announcedAddress = myAddress;
+                    announcedAddress = Conch.getMyAddress();
                 }
                 if (announcedAddress == null || announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
                     throw new RuntimeException("Invalid announced address length: " + announcedAddress);
                 }
                 json.put("announcedAddress", announcedAddress);
             } catch (URISyntaxException e) {
-                Logger.logMessage("Your announce address is invalid: " + myAddress);
+                Logger.logMessage("Your announce address is invalid: " + Conch.getMyAddress());
                 throw new RuntimeException(e.toString(), e);
             }
         }
@@ -303,7 +281,7 @@ public final class Peers {
             json.put("hallmark", Peers.myHallmark);
             servicesList.add(Peer.Service.HALLMARK);
         }
-        json.put("useNATService", useNATService);
+        json.put("useNATService", Conch.getUseNATService());
         json.put("application", Conch.APPLICATION);
         json.put("version", Conch.VERSION);
         json.put("platform", Peers.myPlatform);
@@ -470,7 +448,7 @@ public final class Peers {
     }
 
     private static final int getPort() {
-        return Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? TESTNET_PEER_PORT : Peers.configuredServerPort);
+        return Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? Conch.getTestnetPeerPort() : Peers.configuredServerPort);
     }
 
 
@@ -536,29 +514,6 @@ public final class Peers {
             } else {
                 peerServer = null;
                 Logger.logMessage("shareMyAddress is disabled, will not start peer networking server");
-            }
-
-            //[NAT] Run NAT client command
-            if (useNATService) {
-                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
-                cmd.append(" -s ").append(NATServiceAddress == null?Peers.addressHost(myAddress):NATServiceAddress)
-                        .append(" -p ").append(NATServicePort)
-                        .append(" -k ").append(NATClientKey);
-                try {
-                    Process process = Runtime.getRuntime().exec(cmd.toString());
-                    // any error message?
-                    StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
-                    // any output?
-                    StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
-                    // kick them off
-                    errorGobbler.start();
-                    outputGobbler.start();
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
-                    Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
-                } catch (IOException e) {
-                    useNATService = false;
-                    Logger.logErrorMessage("NAT Client execute Error", e);
-                }
             }
         }
 
@@ -731,7 +686,7 @@ public final class Peers {
                     JSONObject request = new JSONObject();
                     request.put("requestType", "getPeers");
                     request.put("useNATService", Peers.isUseNATService());
-                    request.put("announcedAddress", Peers.getMyAddress());
+                    request.put("announcedAddress", Conch.getMyAddress());
                     JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
                     if (response == null) {
                         return;
@@ -781,7 +736,7 @@ public final class Peers {
                         request.clear();
                         request.put("requestType", "addPeers");
                         request.put("useNATService", Peers.isUseNATService());
-                        request.put("announcedAddress", Peers.getMyAddress());
+                        request.put("announcedAddress", Conch.getMyAddress());
                         request.put("peers", myPeers);
                         request.put("services", myServices);            // Separate array for backwards compatibility
                         peer.send(JSON.prepareRequest(request), 0);
@@ -924,7 +879,7 @@ public final class Peers {
     }
 
     public static int getDefaultPeerPort() {
-        return Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? TESTNET_PEER_PORT : DEFAULT_PEER_PORT);
+        return Constants.isDevnet() ? DEVNET_PEER_PORT : (Constants.isTestnet() ? Conch.getTestnetPeerPort() : DEFAULT_PEER_PORT);
     }
 
     public static Collection<? extends Peer> getAllPeers() {
@@ -1026,7 +981,7 @@ public final class Peers {
         if (inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
             return null;
         }
-        if (Peers.myAddress != null && Peers.myAddress.equalsIgnoreCase(announcedAddress)) {
+        if (Conch.getMyAddress() != null && Conch.getMyAddress().equalsIgnoreCase(announcedAddress)) {
             return null;
         }
         if (announcedAddress != null && announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
@@ -1064,15 +1019,15 @@ public final class Peers {
         host = StringUtils.isEmpty(host) ? "null" : host;
         String networkDetail = "";
         boolean badNetwork = false;
-        if (Constants.isTestnet() && port != TESTNET_PEER_PORT) {
-            networkDetail = "Peer host " + host + " on testnet is not using port " + TESTNET_PEER_PORT ;
+        if (Constants.isTestnet() && port != Conch.getTestnetPeerPort()) {
+            networkDetail = "Peer host " + host + " on testnet is not using port " + Conch.getTestnetPeerPort() ;
             badNetwork = true;
         }else if (Constants.isDevnet() && port != DEVNET_PEER_PORT) {
             networkDetail = "Peer host " + host + " on devnet is not using port " + DEVNET_PEER_PORT ;
             badNetwork = true;
         }
 
-        if (!Constants.isTestnet() && port == TESTNET_PEER_PORT) {
+        if (!Constants.isTestnet() && port == Conch.getTestnetPeerPort()) {
             networkDetail = "Peer host " + host + " is using testnet port " + port ;
             badNetwork = true;
         }else if (!Constants.isDevnet() && port == DEVNET_PEER_PORT) {
@@ -1174,7 +1129,7 @@ public final class Peers {
                         && peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT) {
                     //[NAT] inject useNATService property to the request params
                     request.put("useNATService", Peers.isUseNATService());
-                    request.put("announcedAddress", Peers.getMyAddress());
+                    request.put("announcedAddress", Conch.getMyAddress());
                     Future<JSONObject> futureResponse = peersService.submit(() -> peer.send(JSON.prepareRequest(request)));
                     expectedResponses.add(futureResponse);
                 }
