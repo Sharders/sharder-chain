@@ -11,10 +11,12 @@ sharder_test_db
 *.bat
 html
 jre
-.ipfs
+
 DestroyForgePool
 
 ForgePools
 
-storage/ipfs/bin
+# storage/ipfs/bin
+storage/
+.ipfs
 bin.exe
