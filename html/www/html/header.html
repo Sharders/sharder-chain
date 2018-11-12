@@ -1,0 +1,64 @@
+<header class="header">
+    <div class="header-content">
+        <div id="logo">
+            <a href="#" class="logo">
+                <img src="../img/header-logo.png"/>
+                <div>
+                    <span>Sharder</span>
+                    <span>COS 版本：0.1.0-Alpha</span>
+                </div>
+            </a>
+        </div>
+        <nav class="navbar-main" role="navigation">
+            <ul class="navbar-left">
+                <li id="navbar_account">
+                    <span>账户</span>
+                </li>
+                <li id="navbar_net" data-page="new_block">
+                    <span>网络</span>
+                </li>
+                <li id="navbar_pool">
+                    <span>矿池</span>
+                </li>
+                <li class="ignore">
+                    <span>
+                        <a href="#" onclick="NRS.showConsole();return false;" style="color:black;"><img src="../img/header-console.png"></a>
+                    </span>
+                </li>
+            </ul>
+            <div class="navbar-search">
+                <div>
+                    <input class="navbar-search-input" placeholder="搜索" type="text" name="search"/>
+                    <img src="../img/search.png"/>
+                </div>
+            </div>
+            <div class="navbar-right">
+                <div class="navbar-status">
+                    <span>SSA-9WKZ-DV7P-M6MN-SMH8B | 观察模式</span>
+                </div>
+                <div class="navbar-pilotLamp">
+                    <div class="pilotLamp-circle"></div>
+                </div>
+                <div class="navbar-exit">
+                    <span><a>退出</a></span>
+                </div>
+                <div class="navbar-lang">
+                    <button>语言&nbsp;<span class="triangle "></span></button>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+<script>
+    $(".navbar-left li").click(function () {
+        $("li.activeLi").removeClass("activeLi");
+         $(this).addClass("activeLi");
+    });
+</script>
+<style>
+
+
+</style>
+<script>
+
+</script>
