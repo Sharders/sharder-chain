@@ -66,7 +66,9 @@ public final class Constants {
 
         public static Network get(String name) {
             for(Network  network :  values()) {
-                if(network.name.equalsIgnoreCase(name)) return network;
+                if(network.name.equalsIgnoreCase(name)){
+                    return network;
+                }
             }
             return null;
         }

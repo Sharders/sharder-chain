@@ -524,6 +524,9 @@ public final class Conch {
                 if (Constants.isTestnet()) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
+                if (Constants.isDevnet()) {
+                    Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
+                }
                 // [Hub] if owner binded then start mine automatic
                 Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
                 String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
