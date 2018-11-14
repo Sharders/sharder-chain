@@ -9,11 +9,9 @@ logs
 sharder_db
 sharder_test_db
 *.bat
-html
 jre
 
 DestroyForgePool
-
 ForgePools
 
 # storage/ipfs/bin
