@@ -15,6 +15,9 @@
                     <el-menu-item index="/account" :class="activeIndex == '/account' ? 'activeLi' : ''">账户</el-menu-item>
                     <el-menu-item index="/mining" :class="activeIndex == '/mining' ? 'activeLi' : ''">网络</el-menu-item>
                     <el-menu-item index="/network" :class="activeIndex == '/network' ? 'activeLi' : ''">矿池</el-menu-item>
+                    <el-menu-item index="/console" :class="activeIndex == '/console' ? 'activeLi' : ''">
+                        <img src="../../../static/asset/header-console.png">
+                    </el-menu-item>
                 </el-menu>
                 <div class="navbar-search">
                     <div>
