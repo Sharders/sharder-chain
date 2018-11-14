@@ -54,13 +54,14 @@
                 background: transparent;
                 .el-menu-item {
                     list-style: none;
-                    height: 76px!important;
+                    height: 76px !important;
                     width: 60px;
                     text-align: center;
-                    line-height: 80px!important;
+                    line-height: 80px !important;
                     font-size: 14px;
                     color: #333;
                     font-family: "Microsoft YaHei UI";
+                    padding:0;
                     &:hover{
                         background: transparent;
                         font-weight: bold;
