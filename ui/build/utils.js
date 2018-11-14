@@ -6,8 +6,8 @@ _.cwd = file => {
   return path.join(process.cwd(), file || '')
 }
 
-_.outputPath = path.join(__dirname, '../dist/')
+_.outputPath = path.join(__dirname, '../../html/www')
 
-_.outputIndexPath = path.join(__dirname, '../dist/index.html')
+_.outputIndexPath = path.join(__dirname, '../../html/www/index.html')
 
 _.target = 'web'
