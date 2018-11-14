@@ -51,6 +51,7 @@ export default {
 </script>
 
 <style lang="scss">
-// You can import all your SCSS variables using webpack alias
+/*// You can import all your SCSS variables using webpack alias*/
 @import '~scss_vars';
-@import './style.scss';</style>
+@import './style.scss';
+</style>
