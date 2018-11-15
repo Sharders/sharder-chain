@@ -1,35 +1,35 @@
-import Vue from "vue"
-import { sync } from "vuex-router-sync"
-import Element from "element-ui"
-import App from "components/App"
-import { router } from "./router"
-import store from "./store"
-import locale from "element-ui/lib/locale/lang/en"
-import "theme/index.css"
-import "normalize.css"
-import "whatwg-fetch"
-import "material-design-icons"
-import "styles/index.scss"
+import Vue from "vue";
+import { sync } from "vuex-router-sync";
+import Element from "element-ui";
+import App from "components/App";
+import { router } from "./router";
+import store from "./store";
+import locale from "element-ui/lib/locale/lang/en";
+import "theme/index.css";
+import "normalize.css";
+import "whatwg-fetch";
+import "material-design-icons";
+import "styles/index.scss";
 
 router.beforeEach((to, from, next) => {
   if (to.path !== "/login") {
     if (store.state.isLogin) {
-      next()
+      next();
     } else {
-      next("/login")
+      next("/login");
     }
   } else {
-    next()
+    next();
   }
-})
+});
 
-sync(store, router)
-Vue.use(Element, { locale })
+sync(store, router);
+Vue.use(Element, { locale });
 
 const app = new Vue({
   router,
   store,
   ...App
-})
+});
 
-export { app, router, store }
+export { app, router, store };

@@ -26,4 +26,6 @@
 <<style lang="scss">
     @import '~scss_vars';
     @import './style.scss';
+    @import '../../styles/base.scss';
+    @import '../../styles/common.scss';
 </style>

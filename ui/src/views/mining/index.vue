@@ -7,14 +7,14 @@
         </el-radio-group>
         <div v-if="tabTitle === 'miner'">
             <div class="mining-content">
-                <img src="../../../static/asset/shouyi.png" id="shouyi">
+                <img src="../../assets/shouyi.png" id="shouyi">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
                         <li>我的资产: 100000 SS</li>
                         <li>我的收益: 100000 SS</li>
                         <li class="strong">
-                            <img src="../../../static/asset/kuangchii_chakan.png">
+                            <img src="../../assets/kuangchii_chakan.png">
                             <span>查看排行</span>
                         </li>
                     </ul>
@@ -27,12 +27,12 @@
                 </div>
                 <div class="instructions">豆匣矿场说明</div>
                 <div class="create">
-                    <img src="../../../static/asset/chuanjiankuangchi.png">
+                    <img src="../../assets/chuanjiankuangchi.png">
                     <p>创建矿池</p>
                 </div>
             </div>
             <div class="mining-notice">
-                <img src="../../../static/asset/logo.png" class="notice-img">
+                <img src="../../assets/logo.png" class="notice-img">
                 <span class="notice-info">
                     矿产第2345块 | 出块者023 | 奖励: 1000 SS
                 </span>
@@ -40,7 +40,7 @@
             <div class="mining-list">
                 <h5>
                     <div class="list-title">
-                        <img src="../../../static/asset/miner.png" class="mining-list-img">
+                        <img src="../../assets/miner.png" class="mining-list-img">
                         <span>矿池列表</span>
                     </div>
                     <el-select v-model="value" placeholder="排序">
@@ -63,15 +63,15 @@
                                 </div>
                                 <div class="tag">
                                     <p>
-                                        <img src="../../../static/asset/kuangchisouyi.png">
+                                        <img src="../../assets/kuangchisouyi.png">
                                         <span>矿池收益 : 1000 SS</span>
                                     </p>
                                     <p>
-                                        <img src="../../../static/asset/kuagnchifhenpei.png">
+                                        <img src="../../assets/kuagnchifhenpei.png">
                                         <span>收益分配 : 80%</span>
                                     </p>
                                     <p>
-                                        <img src="../../../static/asset/kuangchishenyu.png">
+                                        <img src="../../assets/kuangchishenyu.png">
                                         <span>剩余挖矿 : 800块(约13.5h)</span>
                                     </p>
                                 </div>
@@ -222,7 +222,7 @@
         height: 300px;
         background-color: #513acB;
         padding: 30px;
-        background-image: url("../../../static/asset/kuangchi_bg.png");
+        background-image: url("../../assets/kuangchi_bg.png");
         background-repeat: no-repeat;
         background-position: center 140px;
     }

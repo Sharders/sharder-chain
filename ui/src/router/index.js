@@ -1,12 +1,12 @@
-import Vue from "vue"
-import Router from "vue-router"
-import Login from "components/login"
-import Main from "components/main"
-import Account from "views/account"
-import Mining from "views/mining"
-import Network from "views/network"
+import Vue from "vue";
+import Router from "vue-router";
+import Login from "components/login";
+import Main from "components/main";
+import Account from "views/account";
+import Mining from "views/mining";
+import Network from "views/network";
 
-Vue.use(Router)
+Vue.use(Router);
 
 export const routes = [
     {
@@ -32,6 +32,6 @@ export const routes = [
         }
         ]
     }
-]
+];
 
-export const router = new Router({ mode: "history", routes })
+export const router = new Router({ mode: "history", routes });
