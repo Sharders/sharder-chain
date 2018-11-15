@@ -29,21 +29,21 @@ body {
                 width: calc(100% - #{$sidebar-size}); //
                 transform: translate3d($sidebar-size, 0, 0)!important; //
             }
-            .main-content {
-                width: 100%;
-                margin: 0;
-                @include respond-to('sm', 'xs') {
-                    margin: 0 auto;
-                }
-                .container {
-                    margin-top: 0;
-                    max-width: 1140px;
-                    padding: 0 20px;
-                    > div:first-child {
-                        width: 100%;
-                    }
-                }
-            }
+            //.main-content {
+            //    width: 100%;
+            //    margin: 0;
+            //    @include respond-to('sm', 'xs') {
+            //        margin: 0 auto;
+            //    }
+            //    .container {
+            //        margin-top: 0;
+            //        max-width: 1140px;
+            //        padding: 0 20px;
+            //        > div:first-child {
+            //            width: 100%;
+            //        }
+            //    }
+            //}
         }
     }
 }
