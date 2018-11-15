@@ -12,9 +12,11 @@
             </div>
             <nav class="navbar-main" role="navigation">
                 <el-menu class="navbar-left el-menu-demo" mode="horizontal" :router=isRouter @select="activeItem">
-                    <el-menu-item index="/account" :class="activeIndex == '/account' ? 'activeLi' : ''">账户</el-menu-item>
-                    <el-menu-item index="/mining" :class="activeIndex == '/mining' ? 'activeLi' : ''">网络</el-menu-item>
-                    <el-menu-item index="/network" :class="activeIndex == '/network' ? 'activeLi' : ''">矿池</el-menu-item>
+                    <el-menu-item index="/account" :class="activeIndex == '/account' ? 'activeLi' : ''">账户
+                    </el-menu-item>
+                    <el-menu-item index="/network" :class="activeIndex == '/network' ? 'activeLi' : ''">网络
+                    </el-menu-item>
+                    <el-menu-item index="/mining" :class="activeIndex == '/mining' ? 'activeLi' : ''">矿池</el-menu-item>
                     <el-menu-item index="/console" :class="activeIndex == '/console' ? 'activeLi' : ''">
                         <img src="../../../static/asset/header-console.png">
                     </el-menu-item>
@@ -48,20 +50,20 @@
 
 <script>
 export default {
-  name: 'Header',
-  props: ['openSidebar', 'title'],
-    data () {
+    name: 'Header',
+    props: ['openSidebar', 'title'],
+    data() {
         return {
             activeIndex: '/account',
-            isRouter:true,
+            isRouter: true,
         }
     },
-    methods:{
-        activeItem:function(val){
+    methods: {
+        activeItem: function (val) {
             this.activeIndex = val;
         },
-        search_mouseup:function () {
-            $(this).animate({ width: '300px' }, 500);
+        search_mouseup: function () {
+            $(this).animate({width: '300px'}, 500);
         }
     }
 }
