@@ -1,0 +1,73 @@
+.block-account{
+    .w{
+        background: #fff;
+        height: 290px;
+        text-align: center;
+        border-radius: 4px;
+        .account-address{
+            margin-left: 112px;
+            color:#493eda;
+            font:{
+                size:18px;
+                family: "Microsoft YaHei UI";
+            }
+            img{
+                vertical-align: middle;
+                margin: 0 20px 0 10px;
+            }
+            span{
+                &:first-child{
+                    vertical-align: middle;
+                    font-weight: bold;
+                }
+                &:last-child{
+                    font-size:14px;
+                }
+            }
+        }
+        .account-asset{
+            margin-top: 50px;
+            color:#333;
+            font:{
+                size:24px;
+                family: "Microsoft YaHei UI";
+                weight: bold;
+            }
+        }
+        .account-tool{
+            text-align: center;
+            display: inline-flex;
+            margin-top: 50px;
+            button{
+                width:120px;
+                height:40px;
+                margin: 0 15px;
+                background: #493eda;
+                border: none;
+                border-radius: 4px;
+                color:#fff;
+                img{
+                    vertical-align: middle;
+                    margin-bottom: 3px;
+                }
+                span{
+                    vertical-align: middle;
+                    margin-left: 5px;
+                }
+            }
+        }
+    }
+}
+
+.block-receiptDisbursement{
+    .w{
+        background: #fff;
+        height: 200px;
+        display: flex;
+        div{
+            border:1px solid #f00;
+            height: 100%;
+            text-align: center;
+        }
+    }
+}

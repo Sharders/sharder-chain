@@ -27,7 +27,7 @@
                 <span>旷工信息</span>
             </p>
             <div class="whf xs-section-fa">
-                <div class="xs-section">
+                <div class="xs-section br4">
                     <div>
                         <img src="../../assets/miner-info1.png"/>
                         <div class="section-info">
@@ -36,7 +36,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="xs-section">
+                <div class="xs-section br4">
                     <div>
                         <img src="../../assets/miner-info2.png"/>
                         <div class="section-info">
@@ -46,7 +46,7 @@
                     </div>
 
                 </div>
-                <div class="xs-section">
+                <div class="xs-section br4">
                     <div>
                         <img src="../../assets/miner-info3.png"/>
                         <div class="section-info">
@@ -55,7 +55,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="xs-section">
+                <div class="xs-section br4">
                     <div>
                         <img src="../../assets/miner-info4.png"/>
                         <div class="section-info">
@@ -64,7 +64,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="xs-section">
+                <div class="xs-section br4">
                     <div>
                         <img src="../../assets/miner-info5.png"/>
                         <div class="section-info">
@@ -73,7 +73,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="xs-section">
+                <div class="xs-section br4">
                     <div>
                         <img src="../../assets/miner-info6.png"/>
                         <div class="section-info">
@@ -97,7 +97,7 @@
                 </span>
             </p>
             <span class="cb"></span>
-            <div class="w600">
+            <div class="w600 br4">
 
             </div>
         </div>
@@ -106,17 +106,17 @@
                 <img src="../../assets/block.png"/>
                 <span>区块列表</span>
             </p>
-            <div class="list-table w">
+            <div class="list-table w br4">
                 <div class="list-content data-container table-responsive data-loading ">
                     <table class="table table-striped" id="blocks_table">
                         <thead>
                         <tr>
                             <th>高度</th>
-                            <th>出块时间</th>
+                            <th class="w200">出块时间</th>
                             <th>金额</th>
                             <th>手续费</th>
                             <th>交易数</th>
-                            <th>出块者</th>
+                            <th class="w200 ">出块者</th>
                             <th>操作</th>
                         </tr>
                         </thead>
@@ -127,8 +127,8 @@
                             <td>10</td>
                             <td>0</td>
                             <td>1</td>
-                            <td>SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                            <td>查看详情</td>
+                            <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                            <td class="linker">查看详情</td>
                         </tr>
                         <tr>
                             <td>1263</td>
@@ -136,8 +136,8 @@
                             <td>10</td>
                             <td>0</td>
                             <td>1</td>
-                            <td>SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                            <td>查看详情</td>
+                            <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                            <td class="linker">查看详情</td>
                         </tr>
                         <tr>
                             <td>1263</td>
@@ -145,8 +145,8 @@
                             <td>10</td>
                             <td>0</td>
                             <td>1</td>
-                            <td>SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                            <td>查看详情</td>
+                            <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                            <td class="linker">查看详情</td>
                         </tr>
                         <tr>
                             <td>1263</td>
@@ -154,8 +154,8 @@
                             <td>10</td>
                             <td>0</td>
                             <td>1</td>
-                            <td>SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                            <td>查看详情</td>
+                            <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                            <td class="linker">查看详情</td>
                         </tr>
                         </tbody>
                     </table>

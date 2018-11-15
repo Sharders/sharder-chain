@@ -78,8 +78,18 @@
                     color: #333;
                     font:{
                         family: "Microsoft YaHei UI";
-                        size: 13px;
+                        size: 12px;
                     }
+                }
+
+                .linker{
+                    color:#493eda;
+                }
+
+                .transaction{
+                    width: 300px;
+                    span{vertical-align: middle}
+                    img{vertical-align: middle}
                 }
             }
         }
