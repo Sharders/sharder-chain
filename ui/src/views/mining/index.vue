@@ -149,6 +149,15 @@
         background: #00000010;
     }
 
+    #app .page-layout main {
+        height: initial !important;
+        transform: initial !important;
+        overflow-x: initial !important;
+        position: initial !important;
+        width: 1200px !important;
+        margin: auto;
+    }
+
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
         -webkit-appearance: none;
