@@ -1,7 +1,7 @@
-export const OPEN_SIDEBAR = 'OPEN_SIDEBAR'
-export const CLOSE_SIDEBAR = 'CLOSE_SIDEBAR'
-export const LOCATION_CHANGE = 'router/ROUTE_CHANGED'
-export const WINDOW_RESIZE = 'WINDOW_RESIZE'
+export const OPEN_SIDEBAR = "OPEN_SIDEBAR"
+export const CLOSE_SIDEBAR = "CLOSE_SIDEBAR"
+export const LOCATION_CHANGE = "router/ROUTE_CHANGED"
+export const WINDOW_RESIZE = "WINDOW_RESIZE"
 
 const state = {
   sidebarOpened: false,
@@ -28,6 +28,7 @@ const mutations = {
     state.isMobile = isMobile
     state.sidebarOpened = isMobile
   }
+
 }
 
 const actions = {

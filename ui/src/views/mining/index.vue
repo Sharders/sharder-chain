@@ -9,7 +9,7 @@
 
 <script>
 export default {
-  name: 'Mining',
+  name: "Mining",
   data () {
     return {}
   },

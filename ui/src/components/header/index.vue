@@ -21,9 +21,7 @@
                 </el-menu>
                 <div class="navbar-search">
                     <div>
-                        <transition name="flix">
-                            <input class="navbar-search-input" placeholder="搜索" type="text" name="search"/>
-                        </transition>
+                        <input class="navbar-search-input" :placeholder="placeholder" type="text" name="search"/>
                         <img src="../../../static/asset/search.png"/>
                     </div>
                 </div>
@@ -48,20 +46,26 @@
 
 <script>
 export default {
-  name: 'Header',
-  props: ['openSidebar', 'title'],
+  name: "Header",
+  props: ["openSidebar", "title"],
     data () {
         return {
-            activeIndex: '/account',
-            isRouter:true,
+            activeIndex: "/account",
+            isRouter: true,
+            placeholder: "搜索"
         }
     },
-    methods:{
-        activeItem:function(val){
-            this.activeIndex = val;
+    methods: {
+      activeItem: function (val) {
+            this.activeIndex = val
         },
-        search_mouseup:function () {
-            $(this).animate({ width: '300px' }, 500);
+        search_mouseup: function () {
+            this.$ref.search.animate({ width: "300px" }, 500)
+        },
+        search_focusout: function () {
+            if (this.$ref.search.value === "") {
+                this.$ref.search.animate({ width: "100px" }, 500)
+            }
         }
     }
 }

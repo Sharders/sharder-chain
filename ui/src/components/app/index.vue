@@ -16,15 +16,15 @@
 </div>
 </template>
 <script>
-import Header from 'components/Header'
-import Sidebar from 'components/Sidebar'
-import Dimmer from 'components/Dimmer'
-import { mapActions, mapState } from 'vuex'
+import Header from "components/header"
+import Sidebar from "components/sidebar"
+import Dimmer from "components/dimmer"
+import { mapActions, mapState } from "vuex"
 
 export default {
-  name: 'App',
+  name: "App",
   methods: {
-    ...mapActions(['handleResize', 'openSidebar', 'closeSidebar'])
+    ...mapActions(["handleResize", "openSidebar", "closeSidebar"])
   },
   computed: {
     ...mapState({
@@ -40,12 +40,12 @@ export default {
     })
   },
   components: {
-    'header-component': Header,
-    'sidebar-component': Sidebar,
+    "header-component": Header,
+    "sidebar-component": Sidebar,
     Dimmer
   },
   created: function () {
-    window.addEventListener('resize', this.handleResize)
+    window.addEventListener("resize", this.handleResize)
   }
 }
 </script>

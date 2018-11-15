@@ -1,3 +1,7 @@
 {
-  "extends": ["vue", "standard"]
+  "extends": ["vue", "standard"],
+    "rules":{
+        "quotes": [1, "double"],
+        "indent":[0]
+    }
 }

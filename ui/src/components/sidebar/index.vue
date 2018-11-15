@@ -28,8 +28,8 @@
 
 <script>
 export default {
-  name: 'Sidebar',
-  props: ['active'],
+  name: "Sidebar",
+  props: ["active"],
   computed () {
       active: () => {
           console.log(this)
