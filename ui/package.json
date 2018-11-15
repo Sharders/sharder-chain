@@ -1,7 +1,7 @@
 {
-  "name": "Vue-Element-Starter",
+  "name": "Sharder-Client",
   "version": "1.0.0",
-  "description": "Vue-Element-Starter",
+  "description": "Sharder-Client",
   "main": "src/index.js",
   "scripts": {
     "test": "testcafe all tests/index.js --app \"npm run dev\" --app-init-delay 10000",
@@ -14,6 +14,7 @@
   "author": "Vladimir Metnev <vladimirmetnew@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.17.1",
     "babel-runtime": "^6.23.0",
     "element-ui": "^2.4.9",
     "material-design-icons": "^3.0.1",

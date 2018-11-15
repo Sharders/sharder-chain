@@ -97,12 +97,12 @@
                         color: #999;
                         font-size: 14px;
                         outline: none;
+                        transition:500ms width;
+
                     }
-                    .flix-enter-active{
-                        transition: width .5s;
-                    }
-                    .flix-enter{
-                        animationwidth: 300px;
+                    .navbar-search-input-active{
+                        transition:500ms width;
+                        width: 300px;
                     }
                 }
             }
@@ -166,10 +166,8 @@
         }
     }
 }
-
-
-
-
-
-
-
+//
+//@keyframes extension {
+//    0%{width:100px;}
+//    100%{width:300px;}
+//}
