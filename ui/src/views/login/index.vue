@@ -1,11 +1,8 @@
 <template>
-
     <div>
         this is login page
-
         <button @click="login()"></button>
     </div>
-
 </template>
 
 <script>

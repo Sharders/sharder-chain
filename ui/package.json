@@ -1,7 +1,7 @@
 {
-  "name": "Vue-Element-Starter",
+  "name": "Sharder-Client",
   "version": "1.0.0",
-  "description": "Vue-Element-Starter",
+  "description": "Sharder-Client",
   "main": "src/index.js",
   "scripts": {
     "test": "testcafe all tests/index.js --app \"npm run dev\" --app-init-delay 10000",

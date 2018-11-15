@@ -2,7 +2,7 @@
 <div id="app">
     <div class="page-layout">
         <div class="page-layout-inner">
-            <header-component :openSidebar="openSidebar" :title="title" />
+            <header-component />
             <main>
             <div class="main-content">
                 <el-row class="container">
@@ -11,41 +11,16 @@
             </div>
         </main>
     </div>
-        <dimmer :active="obfuscatorActive" :closeSidebar="closeSidebar" />
     </div>
 </div>
 </template>
 <script>
 import Header from "components/header"
-import Sidebar from "components/sidebar"
-import Dimmer from "components/dimmer"
-import { mapActions, mapState } from "vuex"
 
 export default {
   name: "App",
-  methods: {
-    ...mapActions(["handleResize", "openSidebar", "closeSidebar"])
-  },
-  computed: {
-    ...mapState({
-        sidebarOpened: state => {
-            return state.ui.sidebarOpened
-        },
-        obfuscatorActive: state => {
-            return state.ui.obfuscatorActive
-        },
-        title: state => {
-          return state.route.meta.title
-        }
-    })
-  },
   components: {
-    "header-component": Header,
-    "sidebar-component": Sidebar,
-    Dimmer
-  },
-  created: function () {
-    window.addEventListener("resize", this.handleResize)
+    "header-component": Header
   }
 }
 </script>
