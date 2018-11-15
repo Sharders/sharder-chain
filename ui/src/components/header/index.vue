@@ -21,7 +21,9 @@
                 </el-menu>
                 <div class="navbar-search">
                     <div>
-                        <input class="navbar-search-input" :placeholder="placeholder" type="text" name="search"/>
+                        <input class="navbar-search-input" :class="activeSearch ? 'navbar-search-input-active' : ''"
+                               :placeholder="placeholder" type="text" name="search" v-model="search_val"
+                                @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
                         <img src="../../../static/asset/search.png"/>
                     </div>
                 </div>
@@ -46,26 +48,38 @@
 
 <script>
 export default {
-  name: "Header",
-  props: ["openSidebar", "title"],
+  name : "Header",
+  props : ["openSidebar", "title"],
     data () {
         return {
-            activeIndex: "/account",
-            isRouter: true,
-            placeholder: "搜索"
+            activeIndex : "/account",
+            isRouter : true,
+            placeholder : "搜索",
+            activeSearch : false,
+            search_val: ""
         }
     },
     methods: {
-      activeItem: function (val) {
-            this.activeIndex = val
+        activeItem: function(val){
+            let _this = this;
+            _this.activeIndex = val;
         },
-        search_mouseup: function () {
-            this.$ref.search.animate({ width: "300px" }, 500)
+        search_focus:function () {
+            let _this = this;
+            _this.activeSearch = true;
+            _this.placeholder = "输入账户ID/交易ID/区块ID进行搜索"
         },
-        search_focusout: function () {
-            if (this.$ref.search.value === "") {
-                this.$ref.search.animate({ width: "100px" }, 500)
+        search_blur:function () {
+            let _this = this;
+            if(_this.search_val === ""){
+                _this.activeSearch = false;
+                _this.placeholder = "搜索"
             }
+        },
+        search_keydown:function () {
+            let _this = this;
+            console.log("你输入的值是" + _this.search_val);
+            _this.search_val = "";
         }
     }
 }
