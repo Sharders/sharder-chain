@@ -16,6 +16,8 @@
   "dependencies": {
     "axios": "^0.17.1",
     "babel-runtime": "^6.23.0",
+    "echarts": "^4.2.0-rc.2",
+    "echarts-gl": "^1.1.1",
     "element-ui": "^2.4.9",
     "material-design-icons": "^3.0.1",
     "normalize.css": "^6.0.0",
