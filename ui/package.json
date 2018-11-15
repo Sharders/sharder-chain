@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-runtime": "^6.23.0",
-    "element-ui": "^1.2.9",
+    "element-ui": "^2.4.9",
     "material-design-icons": "^3.0.1",
     "normalize.css": "^6.0.0",
     "vue": "^2.3.0",
