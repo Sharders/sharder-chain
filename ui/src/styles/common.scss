@@ -1,28 +1,31 @@
 /*可复用组件样式*/
 
 
-.block-title{
+.block_title{
     font-size: 14px;
     font-family: "Microsoft YaHei UI";
     color:#493eda;
     margin-bottom: 10px;
-    img{
+    >img{
         vertical-align: middle;
         margin-right: 5px;
     }
-    span{
+    >span{
         color:#000;
         vertical-align: middle;
     }
 }
 
-.block-blue{
+.radius_blue{
+    border-radius: 4px;
+    background: #493eda;
+}
+
+.block_blue{
     height: 120px;
     width: 390px;
     padding: 20px;
-    background: #493eda;
     margin-right: 15px;
-    border-radius: 4px;
     font-family: "Microsoft YaHei UI";
     font-weight: bold;
     color: #fff;
@@ -47,13 +50,13 @@
     }
 }
 
-.block-list{
-    .list-table{
+.block_list{
+    .list_table{
         display: grid;
         background: #fff;
         box-shadow: 0 0 1em #493eda1f;
         margin-bottom: 80px;
-        .list-content {
+        .list_content {
             display: grid;
             table{
                 border-collapse: collapse;
@@ -84,20 +87,48 @@
 
                 .linker{
                     color:#493eda;
+                    a{
+                        margin: 0 6px;
+                    }
+
                 }
 
-                .transaction{
-                    width: 300px;
+                .image_text{
                     span{vertical-align: middle}
                     img{vertical-align: middle}
                 }
+
+                .patch{
+                    background: #edeff5;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                }
+
+                .list_button{
+                    background: #493eda;
+                    color: #fff;
+                    border: none;
+                    margin: 5px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                }
             }
         }
-        .list-pagination {
+        .list_pagination {
             border-top: 1px solid #ddd;
             text-align: right;
         }
     }
+}
+
+
+/*element tooltip background color*/
+.el-tooltip__popper{
+    background: #493eda!important;
+}
+.el-tooltip__popper .popper__arrow:after {
+    border-top-color:  #493eda!important;
+    border-bottom-color:  #493eda!important;
 }
 
 .common_btn{

@@ -6,7 +6,7 @@ address,caption,cite,code,dfn,em,strong,th,var{font-style: normal;font-weight: n
 ol,ul{list-style: none;}
 h1,h2,h3,h4,h5,h6{font-size: 100%;font-weight: normal;}
 abbr,acronym{ border:0;}
-button{outline: none;}
+button,a,li,div,label{outline: none;}
 
 /*布局*/
 .dfl{display: flex}
@@ -43,7 +43,7 @@ button{outline: none;}
 .vm{vertical-align: middle;}
 .pr{position: relative;}
 .pa{position: absolute;}
-abs-right{position: absolute;right: 0;}
+.abs-right{position: absolute;right: 0;}
 .zoom{zoom:1;}
 .hidden{visibility: hidden;}
 .none{display: none}
@@ -145,3 +145,5 @@ abs-right{position: absolute;right: 0;}
 .br6{border-radius: 6px}
 .br8{border-radius: 8px}
 
+/*鼠标指针样式*/
+.csp{cursor:pointer}

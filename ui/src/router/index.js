@@ -1,12 +1,15 @@
 import Vue from "vue";
 import Router from "vue-router";
+import VueClipboard from "vue-clipboard2";
 import Login from "components/login";
 import Main from "components/main";
 import Account from "views/account";
 import Mining from "views/mining";
 import Network from "views/network";
+import Peers from "views/peers";
 
 Vue.use(Router);
+Vue.use(VueClipboard);
 
 export const routes = [
     {
@@ -29,7 +32,10 @@ export const routes = [
             }, {
                 path: "/network",
                 component: Network
-        }
+            }, {
+                path: "/network/peers",
+                component: Peers
+            }
         ]
     }
 ];
