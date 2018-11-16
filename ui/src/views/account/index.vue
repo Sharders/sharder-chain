@@ -13,9 +13,9 @@
                 </div>
                 <p class="account-asset">资产：1,234,567,890 SS</p>
                 <div class="account-tool">
-                    <button><img src="../../assets/transfer.png"/><span>转账</span></button>
-                    <button><img src="../../assets/message.png"/><span>发送消息</span></button>
-                    <button><img src="../../assets/setting.png"/><span>HUB设置</span></button>
+                    <button class="common_btn"><img src="../../assets/transfer.png"/><span>转账</span></button>
+                    <button class="common_btn"><img src="../../assets/message.png"/><span>发送消息</span></button>
+                    <button class="common_btn"><img src="../../assets/setting.png"/><span>HUB设置</span></button>
                 </div>
             </div>
         </div>
