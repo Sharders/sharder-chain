@@ -6,17 +6,18 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
 
-  state: {
-    isLogin: false
-  },
-  mutations: { // 类似 vue 的 methods
-    loginState (state) {
-      state.isLogin = true;
+    state: {
+        isLogin: false,
+        mask: ""
+    },
+    mutations: { // 类似 vue 的 methods
+        loginState (state) {
+            state.isLogin = true;
+        }
+    },
+    modules: {
+        ui
     }
-  },
-  modules: {
-    ui
-  }
 
 });
 

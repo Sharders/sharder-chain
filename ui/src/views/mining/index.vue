@@ -17,7 +17,7 @@
                         <li>我的收益: 100000 SS</li>
                         <li class="strong">
                             <img src="../../assets/kuangchii_chakan.png">
-                            <span>查看排行</span>
+                            <span @click="checkRanking()">查看排行</span>
                         </li>
                     </ul>
                 </div>
@@ -28,7 +28,7 @@
                     </div>
                 </div>
                 <div class="instructions">豆匣矿场说明</div>
-                <div class="create">334
+                <div class="create" @click="isVisiblePool()">
                     <img src="../../assets/chuanjiankuangchi.png">
                     <p>创建矿池</p>
                 </div>
@@ -129,14 +129,107 @@
                 </div>
             </div>
         </div>
+        <!--挖矿排行-->
+        <div v-if="isRanking">
+            <div class="ranking">
+                <span src="../../assets/miner-info1.png" class="img-close" @click="checkRanking()"></span>
+                <div class="ranking-content">
+                    <h3 class="ranking-title">挖矿排行</h3>
+                    <table class="ranking-table">
+                        <tr>
+                            <th>排名</th>
+                            <th>账户</th>
+                            <th>SS数量</th>
+                        </tr>
+                        <tr v-for="(ranking,index) in rankingList">
+                            <td>
+                                <span v-if="index <= 2" :class="'ranking-logo bg-'+ index"></span>
+                                <span v-if="index > 2">0{{index}}</span>
+                            </td>
+                            <td>
+                                {{ranking.account}}
+                            </td>
+                            <td>
+                                {{ranking.assets}}
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="my-assets">
+                        我的资产 : 100000 SS | 排名 : 98 名
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--创建矿池-->
+        <div v-if="isCreatePool">
+            <div class="create-pool">
+                <span class="img-close" @click="isVisiblePool()"></span>
+                <div class="create-pool-content">
+                    <h3 class="pool-header">创建矿池</h3>
+                    <div class="pool-attribute">
+                        <h1 class="pool-title">
+                            <img src="../../assets/kuangchi_attribute.png">
+                            <span>矿池属性</span>
+                        </h1>
+                        <p>
+                            <span class="strong">矿池数量</span>:
+                            <span>21/51</span>
+                        </p>
+                        <p>
+                            <span class="strong">当前账户</span>:
+                            <span>SSA-9WKZ-DV7P-M6MN-5MH8B</span>
+                        </p>
+                        <p>
+                            <span class="strong">矿池容量</span>:
+                            <span>1000000 SS</span>
+                        </p>
+                        <p>
+                            <span class="strong">挖矿时长</span>:
+                            <span>2880块(约24h)</span>
+                        </p>
+                    </div>
+                    <div class="pool-set">
+                        <h1 class="pool-title">
+                            <img src="../../assets/kuangchi_set.png">
+                            <span>矿池属性</span>
+                        </h1>
+                        <div class="pool-data">
+                            <p>
+                                <span class="strong">投入SS:</span>
+                                <span class="user-input">
+                                    <el-input v-model="investment" placeholder="请输入投入矿池SS数量, 最低20000SS"></el-input>
+                                </span>
+                            </p>
+                            <p>创建矿池时投入的SS也将参与挖矿并获得收益分配</p>
+                        </div>
+                        <div class="pool-data">
+                            <p>
+                                <span class="strong">收益分配:</span>
+                                <span class="user-input slider">
+                                    <el-slider v-model="incomeDistribution"></el-slider>
+                                </span>
+                            </p>
+                            <p>将按照设置的百分比从矿池收入 (挖矿奖励等) 中提取并分配给其余矿池的参与者.</p>
+                        </div>
+                        <div class="pool-bth">
+                            <button class="cancel" @click="isVisiblePool()">取消</button>
+                            <button class="immediately-create">立即创建</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+
     export default {
         name: 'mining',
         data() {
             return {
+                isCreatePool: false,
+                isRanking: false,
                 tabTitle: 'miner',
                 options: [{
                     value: 'default',
@@ -152,11 +245,74 @@
                     label: '剩余时间'
                 }],
                 value: '',
+                incomeDistribution: 80,
+                investment: '',
                 miningList: ['1', '2', '3', '4', '5', '6'],
                 rewardList: ['1', '2', '3', '4'],
+                rankingList: [
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    },
+                    {
+                        account: "SSA-92HT-CNBE-YADN-B4JPW",
+                        assets: 1000000
+                    }
+                ],
             }
         },
         methods: {
+            isVisiblePool() {
+                if (this.isCreatePool) {
+                    this.$store.state.mask = '';
+                } else {
+                    this.$store.state.mask = 'mask';
+                }
+                this.isCreatePool = !this.isCreatePool;
+            },
+            checkRanking() {
+                if (this.isRanking) {
+                    this.$store.state.mask = '';
+                } else {
+                    this.$store.state.mask = 'mask';
+                    console.info("发送请求刷新数据....");
+
+
+                }
+                this.isRanking = !this.isRanking;
+            },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
             },
@@ -185,6 +341,17 @@
         position: initial !important;
         width: 1200px !important;
         margin: auto;
+    }
+
+    .mask {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.4;
+        z-index: 999;
     }
 
     input::-webkit-outer-spin-button,
@@ -248,6 +415,11 @@
 
     .mining .mining-paging .el-pager li.active:hover {
         color: #fff;
+    }
+
+    .mining .create-pool .el-slider__button,
+    .mining .create-pool .el-slider__bar {
+        background-color: #513acB;
     }
 
 </style>
@@ -562,7 +734,196 @@
     }
 
 </style>
-<!--移动端兼容-->
+<!--排行-->
+<style scoped>
+    .ranking {
+        position: fixed;
+        top: 150px;
+        left: calc(50% - 250px);
+        background-color: #fff;
+        width: 500px;
+        border-radius: 6px;
+        text-align: center;
+        z-index: 9999;
+    }
+
+    .img-close {
+        position: relative;
+        float: right;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        margin: 10px 10px 0 0;
+        cursor: pointer;
+        background: url("../../assets/miner-info1.png") no-repeat center;
+    }
+
+    .img-close:hover {
+        opacity: 0.8;
+    }
+
+    .ranking-content .ranking-title {
+        padding: 20px 0;
+        font-size: 16px;
+        font-weight: bold;
+        background-color: #462cae;
+        color: #fff;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+    }
+
+    .ranking-content .ranking-table {
+        width: 100%;
+        text-align: center;
+    }
+
+    .ranking-table .ranking-logo {
+        display: inline-block;
+        width: 100px;
+        height: 40px;
+        background: no-repeat center;
+    }
+
+    .ranking-table .ranking-logo.bg-0 {
+        background-image: url("../../assets/ranking_1.png");
+    }
+
+    .ranking-table .ranking-logo.bg-1 {
+        background-image: url("../../assets/ranking_2.png");
+    }
+
+    .ranking-table .ranking-logo.bg-2 {
+        background-image: url("../../assets/ranking_3.png");
+    }
+
+    .ranking-content .my-assets {
+        padding: 30px 0;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .ranking-table th {
+        font-weight: bold;
+        height: 60px;
+        min-width: 100px;
+        font-size: 14px;
+    }
+
+    .ranking-table tr {
+        height: 50px;
+        border-bottom: 1px solid #f4f7fd;
+    }
+</style>
+<!--创建矿池-->
+<style scoped>
+    .create-pool {
+        position: fixed;
+        z-index: 9999;
+        top: 150px;
+        left: calc(50% - 250px);
+        background-color: #fff;
+        width: 500px;
+        border-radius: 6px;
+    }
+
+    .create-pool-content .pool-header {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        max-height: 60px;
+        padding: 20px 0;
+    }
+
+    .create-pool-content .pool-title {
+        font-size: 14px;
+        font-weight: bold;
+        padding-bottom: 20px;
+    }
+
+    .create-pool-content .pool-title img {
+        position: relative;
+        top: 4px;
+    }
+
+    .create-pool-content .pool-attribute {
+        padding: 30px 40px;
+        background-color: #513ac8;
+        color: #fff;
+    }
+
+    .create-pool-content .pool-attribute p {
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
+    .pool-attribute p .strong {
+        font-weight: bold;
+    }
+
+    .create-pool-content .pool-set {
+        padding: 30px 40px;
+        color: #999;
+        font-size: 14px;
+        line-height: 24px;
+    }
+
+    .pool-data p {
+        padding-bottom: 10px;
+        position: relative;
+    }
+
+    .pool-data .strong {
+        font-weight: bold;
+        font-size: 16px;
+        color: #000;
+        display: inline-block;
+        width: 70px;
+    }
+
+    .pool-data .user-input {
+        width: 340px;
+        display: inline-block;
+    }
+
+    .pool-data .user-input.slider {
+        position: absolute;
+        top: -5px;
+        left: 76px;
+    }
+
+    .pool-set .pool-bth button {
+        height: 40px;
+        width: 200px;
+        border-radius: 6px;
+        outline: none;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .pool-bth .immediately-create {
+        float: right;
+        background-color: #513ac8;
+        color: #fff;
+        border: none;
+    }
+
+    .pool-bth .immediately-create:hover {
+        background-color: #513ac8aa;
+    }
+
+    .pool-bth .cancel {
+        background-color: #fff;
+        color: #513ac8;
+        border: 1px solid #513ac8;
+    }
+
+    .pool-bth .cancel:hover {
+        background-color: #513ac810;
+    }
+
+</style>
+<!--钱包内置兼容-->
 <style>
     @media (min-width: 640px) {
 
