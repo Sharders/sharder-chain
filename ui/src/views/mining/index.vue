@@ -108,7 +108,7 @@
 <script>
     export default {
         name: 'mining',
-        data() {
+        data () {
             return {
                 tabTitle: 'miner',
                 options: [{
@@ -125,24 +125,23 @@
                     label: '剩余时间'
                 }],
                 value: '',
-                miningList: ['1', '2', '3', '4', '5', '6'],
-            }
+                miningList: ['1', '2', '3', '4', '5', '6']
+            };
         },
         methods: {
-            handleSizeChange(val) {
+            handleSizeChange (val) {
                 console.log(`每页 ${val} 条`);
             },
-            handleCurrentChange(val) {
+            handleCurrentChange (val) {
                 console.log(`当前页: ${val}`);
             }
         },
         mounted: function () {
-            let _this = this;
         },
         created: function () {
 
         }
-    }
+    };
 </script>
 <style>
     body {

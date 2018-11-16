@@ -1,8 +1,8 @@
-import Vue from "vue"
-import Vuex from "vuex"
-import ui from "./ui"
+import Vue from "vue";
+import Vuex from "vuex";
+import ui from "./ui";
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 const store = new Vuex.Store({
 
@@ -11,13 +11,13 @@ const store = new Vuex.Store({
   },
   mutations: { // 类似 vue 的 methods
     loginState (state) {
-      state.isLogin = true
+      state.isLogin = true;
     }
   },
   modules: {
     ui
   }
 
-})
+});
 
-export default store
+export default store;

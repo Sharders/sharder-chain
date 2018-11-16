@@ -1,0 +1,36 @@
+html { overflow-x: hidden; overflow-y: hidden; }
+.container_login{
+    height: 1080px;
+    width: 1920px;
+    margin: auto;
+    overflow:auto;
+    background: url("../../../static/img/background-login.svg") ;
+    .content{
+        width: 600px;
+        height: 640px;
+        margin: 120px auto;
+        > div {
+            background-color: #fff;
+            box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
+            border-radius:2px;
+        }
+    }
+    .content_message{
+        height: 90px;
+        margin-bottom: 20px;
+        text-align:center;
+        overflow:auto;
+        a {
+            color: #ff0f0f;
+            font-size: 14px;
+            font-family: "Microsoft YaHei";
+        }
+        > div{
+            margin-top:4%;
+        }
+    }
+    .content_login{
+        height: 530px;
+    }
+}
+

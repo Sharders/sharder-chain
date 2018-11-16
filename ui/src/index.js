@@ -1,12 +1,12 @@
-import { app } from "./app"
+import { app } from "./app";
 
 // enable progressive web app support (with offline-plugin)
 if (process.env.NODE_ENV === "production") {
-  require("./pwa")
+  require("./pwa");
 }
 
-app.$mount("#app")
+app.$mount("#app");
 
 if (module.hot) {
-  module.hot.accept()
+  module.hot.accept();
 }
