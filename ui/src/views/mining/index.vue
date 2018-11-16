@@ -132,7 +132,7 @@
         <!--挖矿排行-->
         <div v-if="isRanking">
             <div class="ranking">
-                <span src="../../assets/miner-info1.png" class="img-close" @click="checkRanking()"></span>
+                <span class="img-close" @click="checkRanking()"></span>
                 <div class="ranking-content">
                     <h3 class="ranking-title">挖矿排行</h3>
                     <table class="ranking-table">
@@ -231,19 +231,24 @@
                 isCreatePool: false,
                 isRanking: false,
                 tabTitle: 'miner',
-                options: [{
-                    value: 'default',
-                    label: '默认排序'
-                }, {
-                    value: 'capacity',
-                    label: '矿池容量'
-                }, {
-                    value: 'distribution',
-                    label: '奖励分配'
-                }, {
-                    value: 'time',
-                    label: '剩余时间'
-                }],
+                options: [
+                    {
+                        value: 'default',
+                        label: '默认排序'
+                    },
+                    {
+                        value: 'capacity',
+                        label: '矿池容量'
+                    },
+                    {
+                        value: 'distribution',
+                        label: '奖励分配'
+                    },
+                    {
+                        value: 'time',
+                        label: '剩余时间'
+                    }
+                ],
                 value: '',
                 incomeDistribution: 80,
                 investment: '',
@@ -548,7 +553,7 @@
         top: 2px;
         margin-right: 6px;
         width: 14px;
-        height:14px;
+        height: 14px;
     }
 
     .grid-content {
@@ -755,7 +760,7 @@
         height: 20px;
         margin: 10px 10px 0 0;
         cursor: pointer;
-        background: url("../../assets/miner-info1.png") no-repeat center;
+        background: url("../../assets/miner-info1.svg") no-repeat center;
     }
 
     .img-close:hover {
