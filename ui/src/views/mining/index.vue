@@ -1,20 +1,22 @@
 <template>
     <div class="mining">
+        <!--切换按钮-->
         <el-radio-group v-model="tabTitle" class="title">
             <el-radio-button label="miner" class="btn">豆匣矿场</el-radio-button>
             <el-radio-button label="welfare" class="btn">免费领SS</el-radio-button>
             <el-radio-button label="exchange" class="btn">SS兑换</el-radio-button>
         </el-radio-group>
+        <!--豆匣矿场-->
         <div v-if="tabTitle === 'miner'">
             <div class="mining-content">
-                <img src="../../../static/asset/shouyi.png" id="shouyi">
+                <img src="../../assets/shouyi.png" id="shouyi">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
                         <li>我的资产: 100000 SS</li>
                         <li>我的收益: 100000 SS</li>
                         <li class="strong">
-                            <img src="../../../static/asset/kuangchii_chakan.png">
+                            <img src="../../assets/kuangchii_chakan.png">
                             <span>查看排行</span>
                         </li>
                     </ul>
@@ -26,13 +28,13 @@
                     </div>
                 </div>
                 <div class="instructions">豆匣矿场说明</div>
-                <div class="create">
-                    <img src="../../../static/asset/chuanjiankuangchi.png">
+                <div class="create">334
+                    <img src="../../assets/chuanjiankuangchi.png">
                     <p>创建矿池</p>
                 </div>
             </div>
             <div class="mining-notice">
-                <img src="../../../static/asset/logo.png" class="notice-img">
+                <img src="../../assets/logo.png" class="notice-img">
                 <span class="notice-info">
                     矿产第2345块 | 出块者023 | 奖励: 1000 SS
                 </span>
@@ -40,7 +42,7 @@
             <div class="mining-list">
                 <h5>
                     <div class="list-title">
-                        <img src="../../../static/asset/miner.png" class="mining-list-img">
+                        <img src="../../assets/miner.png" class="mining-list-img">
                         <span>矿池列表</span>
                     </div>
                     <el-select v-model="value" placeholder="排序">
@@ -63,15 +65,15 @@
                                 </div>
                                 <div class="tag">
                                     <p>
-                                        <img src="../../../static/asset/kuangchisouyi.png">
+                                        <img src="../../assets/kuangchisouyi.png">
                                         <span>矿池收益 : 1000 SS</span>
                                     </p>
                                     <p>
-                                        <img src="../../../static/asset/kuagnchifhenpei.png">
+                                        <img src="../../assets/kuagnchifhenpei.png">
                                         <span>收益分配 : 80%</span>
                                     </p>
                                     <p>
-                                        <img src="../../../static/asset/kuangchishenyu.png">
+                                        <img src="../../assets/kuangchishenyu.png">
                                         <span>剩余挖矿 : 800块(约13.5h)</span>
                                     </p>
                                 </div>
@@ -90,17 +92,42 @@
                 </el-pagination>
             </div>
         </div>
+        <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
-                <img src="">
-                <p>
+                <img src="../../assets/logo.png" class="receive-qr-img">
+                <p class="receive-text">
                     请扫描二维码下载0X钱包,<br>
                     进入"豆匣矿场"应用免费领取
                 </p>
             </div>
         </div>
+        <!--SS兑换-->
         <div v-if="tabTitle === 'exchange'">
-            cc
+            <div class="reward">
+                <div class="reward-title">
+                    目前豆匣网络为开放测试网络,内部流通的SS为测试的SS,为了回馈社区用户参与测试网络及使用,开放SS兑换功能.数量有限先到先得.
+                </div>
+                <div class="reward-content">
+                    <el-row :gutter="20">
+                        <el-col :span="12" v-for="(reward,index) in rewardList">
+                            <div class="reward-content-div">
+                                <div class="content-left">
+                                    <p>
+                                        <img src="../../assets/logo.png" class="content-left-img">
+                                        <span class="strong">1000 SS(ERC-20)</span>
+                                        <span>剩余: 0</span>
+                                    </p>
+                                    <p class="reward-instructions">说明:兑换成功后请联系官方管理员领取</p>
+                                </div>
+                                <div class="content-right">
+                                    <el-button type="info">暂未开放</el-button>
+                                </div>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -108,7 +135,7 @@
 <script>
     export default {
         name: 'mining',
-        data () {
+        data() {
             return {
                 tabTitle: 'miner',
                 options: [{
@@ -125,24 +152,27 @@
                     label: '剩余时间'
                 }],
                 value: '',
-                miningList: ['1', '2', '3', '4', '5', '6']
-            };
+                miningList: ['1', '2', '3', '4', '5', '6'],
+                rewardList: ['1', '2', '3', '4'],
+            }
         },
         methods: {
-            handleSizeChange (val) {
+            handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
             },
-            handleCurrentChange (val) {
+            handleCurrentChange(val) {
                 console.log(`当前页: ${val}`);
             }
         },
         mounted: function () {
+            let _this = this;
         },
         created: function () {
 
         }
-    };
+    }
 </script>
+<!--全局样式处理-->
 <style>
     body {
         background: #00000010;
@@ -221,6 +251,7 @@
     }
 
 </style>
+<!--豆匣矿场-->
 <style scoped>
     .mining-content {
         position: relative;
@@ -230,7 +261,7 @@
         height: 300px;
         background-color: #513acB;
         padding: 30px;
-        background-image: url("../../../static/asset/kuangchi_bg.png");
+        background-image: url("../../assets/kuangchi_bg.png");
         background-repeat: no-repeat;
         background-position: center 140px;
     }
@@ -332,9 +363,12 @@
 
     .mining-list .list-title {
         display: inline-block;
-        position: relative;
-        top: -4px;
-        margin-right: 6px;
+        padding: 20px 0 16px;
+        font-size: 15px;
+    }
+
+    .mining-list .list-title + div {
+        top: 3px;
     }
 
     .mining-list .mining-list-img {
@@ -425,7 +459,108 @@
         /*播放方式开始到结束,结束回到开始;*/
     }
 
+    .mining .receive {
+        text-align: center;
+        height: 300px;
+        background: #fff;
+        margin-top: 10px;
+        border-radius: 6px;
+    }
 </style>
+<!--免费领SS-->
+<style scoped>
+    .receive .receive-qr-img {
+        width: 160px;
+        height: 160px;
+        border-radius: 6px;
+        margin: 40px 0 30px;
+        background-color: #dbe2e8;
+    }
+
+    .receive .receive-text {
+        color: #513ac8;
+        font-size: 14px;
+    }
+</style>
+<!--SS兑换-->
+<style scoped>
+    .reward .reward-title {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #333;
+        padding: 22px 0;
+        max-height: 60px;
+        background-color: #fff;
+        text-align: center;
+        border-radius: 4px;
+    }
+
+    .reward-content .reward-content-div {
+        background-color: #fff;
+        height: 120px;
+        padding: 20px;
+        border-radius: 4px;
+        margin-top: 20px;
+    }
+
+    .reward-content .reward-content-div > div {
+        display: inline-block;
+
+    }
+
+    .reward-content-div .content-left-img {
+        width: 50px;
+        height: 50px;
+        margin: 0 10px 0 0;
+    }
+
+    .reward-content-div .content-left {
+        font-size: 16px;
+        color: #999;
+    }
+
+    .content-left span.strong {
+        font-size: 31px;
+        font-weight: bold;
+        color: #666;
+        padding-right: 20px;
+    }
+
+    .content-left span {
+        position: relative;
+        top: -16px;
+    }
+
+    .content-left .reward-instructions {
+        padding-top: 6px;
+    }
+
+    .reward-content-div .content-right {
+        float: right;
+        position: relative;
+        top: calc(50% - 26px);
+        margin-right: 10px;
+    }
+
+    .reward-content-div .content-right button {
+        width: 120px;
+        height: 50px;
+        font-size: 16px;
+        border-radius: 4px;
+        background-color: #513ac8;
+        border: none;
+    }
+
+    .content-right button:hover {
+        background-color: #513ac8dd;
+    }
+
+    .content-right button:active {
+        background-color: #513ac8aa;
+    }
+
+</style>
+<!--移动端兼容-->
 <style>
     @media (min-width: 640px) {
 

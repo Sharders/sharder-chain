@@ -1,5 +1,6 @@
 body {
     margin: 0;
+    background: #edeff5!important;
 }
 
 * {
@@ -18,32 +19,21 @@ body {
             z-index: 1;
             overflow-x: auto;
             height: calc(100% - 80px);
-            padding-top: 80px;
+            padding-top: 60px;
             position: absolute;
-            transform-style: preserve-3d;
-            will-change: transform;
-            transition-property: transform;
             width: 100%;
-            transform: translate3d(0, 0, 0)!important;
-            @include respond-to('lg') {
-                width: calc(100% - #{$sidebar-size}); //
-                transform: translate3d($sidebar-size, 0, 0)!important; //
+            background: #edeff5;
+            .main-content {
+                width: 1200px;
+                margin: 0 auto;
+                .container {
+                    margin-top: 0;
+                    max-width: 1200px;
+                    > div:first-child {
+                        width: 100%;
+                    }
+                }
             }
-            //.main-content {
-            //    width: 100%;
-            //    margin: 0;
-            //    @include respond-to('sm', 'xs') {
-            //        margin: 0 auto;
-            //    }
-            //    .container {
-            //        margin-top: 0;
-            //        max-width: 1140px;
-            //        padding: 0 20px;
-            //        > div:first-child {
-            //            width: 100%;
-            //        }
-            //    }
-            //}
         }
     }
 }

@@ -1,8 +1,8 @@
 {
   "extends": ["vue", "standard"],
     "rules":{
-        "quotes": [1, "double"],
         "indent":[0],
+        "quotes": [1, "double"],
         "semi": ["error", "always"]
     }
 }

@@ -1,0 +1,118 @@
+/*可复用组件样式*/
+
+
+.block-title{
+    font-size: 14px;
+    font-family: "Microsoft YaHei UI";
+    color:#493eda;
+    margin-bottom: 10px;
+    img{
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+    span{
+        color:#000;
+        vertical-align: middle;
+    }
+}
+
+.block-blue{
+    height: 120px;
+    width: 390px;
+    padding: 20px;
+    background: #493eda;
+    margin-right: 15px;
+    border-radius: 4px;
+    font-family: "Microsoft YaHei UI";
+    font-weight: bold;
+    color: #fff;
+    &:last-child{
+        margin-right: 0;
+    }
+    p:first-child{
+        margin-bottom: 0;
+    }
+    P:nth-child(2){
+        vertical-align: middle;
+        font-size: 28px;
+        margin: 0;
+        text-align: center;
+    }
+    p:nth-child(3){
+        font-weight: normal;
+        text-align: center;
+        font-size: 13px;
+        margin-top: 18px;
+        margin-bottom: 0;
+    }
+}
+
+.block-list{
+    .list-table{
+        display: grid;
+        background: #fff;
+        box-shadow: 0 0 1em #493eda1f;
+        margin-bottom: 80px;
+        .list-content {
+            display: grid;
+            table{
+                border-collapse: collapse;
+                tr {
+                    border-top: 1px solid #ddd;
+                    height: 40px;
+                }
+                th {
+                    vertical-align: middle;
+                    text-align: center;
+                    height: 60px;
+                    color: #333;
+                    font:{
+                        family: "Microsoft YaHei UI";
+                        size: 14px;
+                        weight: bold;
+                    }
+                }
+                td {
+                    vertical-align: middle;
+                    text-align: center;
+                    color: #333;
+                    font:{
+                        family: "Microsoft YaHei UI";
+                        size: 12px;
+                    }
+                }
+
+                .linker{
+                    color:#493eda;
+                }
+
+                .transaction{
+                    width: 300px;
+                    span{vertical-align: middle}
+                    img{vertical-align: middle}
+                }
+            }
+        }
+        .list-pagination {
+            border-top: 1px solid #ddd;
+            text-align: right;
+        }
+    }
+}
+
+.common_btn{
+    height:40px;
+    margin: 0 15px;
+    background: #493eda;
+    border: none;
+    border-radius: 4px;
+    color:#fff;
+    img{
+        vertical-align: middle;
+        margin-bottom: 3px;
+    }
+    span{
+        vertical-align: middle;
+        margin-left: 5px;
+    }
+}

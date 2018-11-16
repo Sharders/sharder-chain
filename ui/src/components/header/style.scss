@@ -55,7 +55,7 @@
                 .el-menu-item {
                     outline: none;
                     list-style: none;
-                    height: 76px !important;
+                    height: 80px !important;
                     width: 60px;
                     text-align: center;
                     line-height: 80px !important;
@@ -63,6 +63,7 @@
                     color: #333;
                     font-family: "Microsoft YaHei UI";
                     padding:0;
+                    outline: none;
                     &:hover{
                         background: transparent;
                         font-weight: bold;
@@ -167,8 +168,3 @@
         }
     }
 }
-//
-//@keyframes extension {
-//    0%{width:100px;}
-//    100%{width:300px;}
-//}
