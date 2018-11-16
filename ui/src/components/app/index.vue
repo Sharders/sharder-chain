@@ -1,12 +1,12 @@
 <template>
     <div id="app">
-        <router-view />
+        <router-view/>
+        <div :class="$store.state.mask"></div>
     </div>
 </template>
 <script>
-
-export default {
-  name: "App"
-}
+    export default {
+        name: "App"
+    }
 </script>
 
