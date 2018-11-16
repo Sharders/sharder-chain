@@ -125,15 +125,31 @@
             </div>
         </div>
     </div>
-</template>
 
+
+    <!--blacklist-->
+    <!--<el-dialog
+        title="加入黑名单"
+        :visible.sync="blacklistDialog"
+        width="30%"
+        center>
+        <span>是否将节点"114.115.210.116"添加到黑名单？</span>
+        <span>管理密码</span>
+        <input/>
+        <span slot="footer" class="dialog-footer">
+            <el-button type="primary" @click="blacklistDialog = false">添加</el-button>
+        </span>
+    </el-dialog>-->
+</template>
+<!--<span>是否将节点"114.115.210.116"添加到黑名单？</span>
+            <span>管理密码</span>-->
 <script>
     export default {
         name: "Peers",
         components: {},
         data () {
             return {
-
+                blacklist:false
             };
         },
         methods: {
