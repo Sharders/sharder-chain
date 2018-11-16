@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="mining-notice">
-                <img src="../../assets/logo.png" class="notice-img">
+                <img src="../../assets/logo.svg" class="notice-img">
                 <span class="notice-info">
                     矿产第2345块 | 出块者023 | 奖励: 1000 SS
                 </span>
@@ -42,7 +42,7 @@
             <div class="mining-list">
                 <h5>
                     <div class="list-title">
-                        <img src="../../assets/miner.png" class="mining-list-img">
+                        <img src="../../assets/miner.svg" class="mining-list-img">
                         <span>矿池列表</span>
                     </div>
                     <el-select v-model="value" placeholder="排序">
@@ -95,7 +95,7 @@
         <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
-                <img src="../../assets/logo.png" class="receive-qr-img">
+                <img src="../../assets/logo.svg" class="receive-qr-img">
                 <p class="receive-text">
                     请扫描二维码下载0X钱包,<br>
                     进入"豆匣矿场"应用免费领取
@@ -114,7 +114,7 @@
                             <div class="reward-content-div">
                                 <div class="content-left">
                                     <p>
-                                        <img src="../../assets/logo.png" class="content-left-img">
+                                        <img src="../../assets/logo.svg" class="content-left-img">
                                         <span class="strong">1000 SS(ERC-20)</span>
                                         <span>剩余: 0</span>
                                     </p>
@@ -375,6 +375,8 @@
         position: relative;
         top: 2px;
         margin-right: 6px;
+        width: 14px;
+        height:14px;
     }
 
     .grid-content {

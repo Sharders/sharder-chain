@@ -26,7 +26,7 @@
         </div>
         <div class="block_list">
             <p class="block_title">
-                <img src="../../assets/peerlist.png"/>
+                <img src="../../assets/peerlist.svg"/>
                 <span>节点列表</span>
             </p>
             <div class="list_table w br4">
@@ -46,7 +46,7 @@
                         <tbody>
                             <tr>
                                 <td class="image_text">
-                                    <img src="../../assets/success.png"/>
+                                    <img src="../../assets/success.svg"/>
                                     <span>114.115.210.116</span>
                                 </td>
                                 <td>113KB</td>
@@ -74,7 +74,7 @@
                             </tr>
                             <tr>
                                 <td class="image_text">
-                                    <img src="../../assets/error.png"/>
+                                    <img src="../../assets/error.svg"/>
                                     <span>114.115.210.117</span>
                                 </td>
                                 <td>113KB</td>
@@ -96,7 +96,7 @@
                             </tr>
                             <tr>
                                 <td class="image_text">
-                                    <img src="../../assets/success.png"/>
+                                    <img src="../../assets/success.svg"/>
                                     <span>114.115.210.116</span>
                                 </td>
                                 <td>113KB</td>

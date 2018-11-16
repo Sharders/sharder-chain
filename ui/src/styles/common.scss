@@ -9,6 +9,8 @@
     >img{
         vertical-align: middle;
         margin-right: 5px;
+        width:14px;
+        height:14px;
     }
     >span{
         color:#000;
@@ -95,7 +97,11 @@
 
                 .image_text{
                     span{vertical-align: middle}
-                    img{vertical-align: middle}
+                    img{
+                        vertical-align: middle;
+                        width:14px;
+                        height:14px;
+                    }
                 }
 
                 .patch{
@@ -141,6 +147,8 @@
     img{
         vertical-align: middle;
         margin-bottom: 3px;
+        width:14px;
+        height:14px;
     }
     span{
         vertical-align: middle;

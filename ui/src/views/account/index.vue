@@ -2,26 +2,26 @@
     <div>
         <div class="block_account mb20">
             <p class="block_title">
-                <img src="../../assets/account.png"/>
+                <img src="../../assets/account.svg"/>
                 <span>账户总览</span>
             </p>
             <div class="w pt60">
                 <div class="account_address">
                     <span>{{address}}</span>
-                    <img class="csp" src="../../assets/copy.png" v-clipboard:copy="address"/>
+                    <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="address"/>
                     <span>账户详情</span>
                 </div>
                 <p class="account_asset">资产：1,234,567,890 SS</p>
                 <div class="account_tool">
-                    <button class="common_btn"><img src="../../assets/transfer.png"/><span>转账</span></button>
-                    <button class="common_btn"><img src="../../assets/message.png"/><span>发送消息</span></button>
-                    <button class="common_btn"><img src="../../assets/setting.png"/><span>HUB设置</span></button>
+                    <button class="common_btn"><img src="../../assets/transfer.svg"/><span>转账</span></button>
+                    <button class="common_btn"><img src="../../assets/message.svg"/><span>发送消息</span></button>
+                    <button class="common_btn"><img src="../../assets/setting.svg"/><span>HUB设置</span></button>
                 </div>
             </div>
         </div>
         <div class="block_receiptDisbursement mb20">
             <p class="block_title">
-                <img src="../../assets/receipt&disbursementInfo.png"/>
+                <img src="../../assets/receipt&disbursementInfo.svg"/>
                 <span>收支明细</span>
             </p>
             <div class="w">
@@ -35,7 +35,7 @@
         </div>
         <div class="block_list">
             <p  class="block_title">
-                <img src="../../assets/transaction.png"/>
+                <img src="../../assets/transaction.svg"/>
                 <span>交易记录</span>
             </p>
             <div class="list_table w br4">
@@ -62,7 +62,7 @@
                             <td>1 SS</td>
                             <td class="linker image_text">
                                 <span>SSA-9WKZ-DV7P-M6MN-5MH8B</span>
-                                <img src="../../assets/right_arrow.png"/>
+                                <img src="../../assets/right_arrow.svg"/>
                                 <span>您</span>
                             </td>
                             <td>12323</td>

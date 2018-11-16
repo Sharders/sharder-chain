@@ -3,7 +3,7 @@
         <div class="header_content">
             <div id="logo">
                 <a href="#" class="logo">
-                    <img src="../../assets/header-logo.png"/>
+                    <img src="../../assets/logo.svg"/>
                     <div>
                         <span>Sharder</span>
                         <span>COS 版本：0.1.0-Alpha</span>
@@ -12,11 +12,11 @@
             </div>
             <nav class="navbar_main" role="navigation">
                 <el-menu class="navbar_left el-menu-demo" mode="horizontal" :router=isRouter @select="activeItem">
-                    <el-menu-item index="/account" :class="activeIndex == '/account' ? 'activeLi' : ''">账户</el-menu-item>
-                    <el-menu-item index="/network" :class="activeIndex == '/network' ? 'activeLi' : ''">网络</el-menu-item>
-                    <el-menu-item index="/mining" :class="activeIndex == '/mining' ? 'activeLi' : ''">矿池</el-menu-item>
-                    <el-menu-item index="/console" :class="activeIndex == '/console' ? 'activeLi' : ''">
-                        <img src="../../assets/header-console.png">
+                    <el-menu-item index="/account" :class="activeIndex === '/account' ? 'activeLi' : ''">账户</el-menu-item>
+                    <el-menu-item index="/network" :class="activeIndex === '/network' ? 'activeLi' : ''">网络</el-menu-item>
+                    <el-menu-item index="/mining" :class="activeIndex === '/mining' ? 'activeLi' : ''">矿池</el-menu-item>
+                    <el-menu-item index="/console" :class="activeIndex === '/console' ? 'activeLi' : ''">
+                        <img src="../../assets/console.svg">
                     </el-menu-item>
                 </el-menu>
                 <div class="navbar_search">
@@ -24,7 +24,7 @@
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
                                :placeholder="placeholder" type="text" name="search" v-model="search_val"
                                @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
-                        <img src="../../assets/search.png"/>
+                        <img src="../../assets/search.svg"/>
                     </div>
                 </div>
                 <div class="navbar_right">
