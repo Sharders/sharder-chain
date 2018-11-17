@@ -58,23 +58,24 @@
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
-                                <div class="info">
-                                    <h2>矿池{{index}}</h2>
-                                    <p>180000/500000</p>
-                                    <el-progress :percentage="(180000/500000)*100" :show-text="false"></el-progress>
+                                <div class="info" @click="poolAttribute(mining)">
+                                    <h2>矿池{{mining.serialNumber}}</h2>
+                                    <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
+                                    <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
+                                                 :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/kuangchisouyi.png">
-                                        <span>矿池收益 : 1000 SS</span>
+                                        <span>矿池收益 : {{mining.earnings}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/kuagnchifhenpei.png">
-                                        <span>收益分配 : 80%</span>
+                                        <span>收益分配 : {{mining.distribution}}%</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/kuangchishenyu.png">
-                                        <span>剩余挖矿 : 800块(约13.5h)</span>
+                                        <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
                                     </p>
                                 </div>
                             </div>
@@ -252,7 +253,56 @@
                 value: '',
                 incomeDistribution: 80,
                 investment: '',
-                miningList: ['1', '2', '3', '4', '5', '6'],
+                miningList: [
+                    {
+                        serialNumber: "001",
+                        investmentTotal: 500000,
+                        currentInvestment: 180000,
+                        earnings: 1000,
+                        distribution: 80,
+                        remaining: 800,
+                    },
+                    {
+                        serialNumber: "002",
+                        investmentTotal: 500000,
+                        currentInvestment: 180000,
+                        earnings: 1000,
+                        distribution: 80,
+                        remaining: 800,
+                    },
+                    {
+                        serialNumber: "003",
+                        investmentTotal: 500000,
+                        currentInvestment: 180000,
+                        earnings: 1000,
+                        distribution: 80,
+                        remaining: 800,
+                    },
+                    {
+                        serialNumber: "004",
+                        investmentTotal: 500000,
+                        currentInvestment: 180000,
+                        earnings: 1000,
+                        distribution: 80,
+                        remaining: 800,
+                    },
+                    {
+                        serialNumber: "005",
+                        investmentTotal: 500000,
+                        currentInvestment: 180000,
+                        earnings: 1000,
+                        distribution: 80,
+                        remaining: 800,
+                    },
+                    {
+                        serialNumber: "006",
+                        investmentTotal: 500000,
+                        currentInvestment: 180000,
+                        earnings: 1000,
+                        distribution: 80,
+                        remaining: 800,
+                    },
+                ],
                 rewardList: ['1', '2', '3', '4'],
                 rankingList: [
                     {
@@ -299,6 +349,10 @@
             }
         },
         methods: {
+            poolAttribute(mining) {
+                console.info(mining);
+                this.$router.push({name: "mining-attribute", params: mining});
+            },
             isVisiblePool() {
                 if (this.isCreatePool) {
                     this.$store.state.mask = false;
@@ -564,6 +618,7 @@
         text-align: center;
         background-color: #513ac8;
         border-radius: 6px;
+        cursor: pointer;
     }
 
     .grid-content .info h2 {
