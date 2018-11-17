@@ -19,5 +19,6 @@
         background-color: #000;
         opacity: 0.4;
         z-index: 999;
+        min-width: 1200px;
     }
 </style>

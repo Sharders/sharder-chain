@@ -9,7 +9,7 @@
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'miner'">
             <div class="mining-content">
-                <img src="../../assets/shouyi.png" id="shouyi">
+                <img src="../../assets/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
@@ -470,6 +470,21 @@
         background-color: #513acB;
     }
 
+    .img-close {
+        position: relative;
+        float: right;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        margin: 10px 10px 0 0;
+        cursor: pointer;
+        background: url("../../assets/error.svg") no-repeat center;
+    }
+
+    .img-close:hover {
+        opacity: 0.8;
+    }
+
 </style>
 <!--豆匣矿场-->
 <style scoped>
@@ -479,11 +494,9 @@
         border-top-left-radius: 6px;
         border-top-right-radius: 6px;
         height: 300px;
-        background-color: #513acB;
         padding: 30px;
-        background-image: url("../../assets/kuangchi_bg.png");
-        background-repeat: no-repeat;
-        background-position: center 140px;
+        background: url("../../assets/kuangchi_bg.png") no-repeat center 140px;
+        background-color: #513acB;
     }
 
     .mining-content .assets ul {
@@ -663,7 +676,7 @@
         margin: 0;
     }
 
-    @keyframes shouyi {
+    @keyframes chatu {
         0% {
             top: 110px;
         }
@@ -672,11 +685,11 @@
         }
     }
 
-    #shouyi {
+    #chatu {
         position: absolute;
         top: 110px;
         left: calc(50% - 34px);
-        animation: shouyi 1s infinite;
+        animation: chatu 1s infinite;
         /*播放动画myfirst 时间为 1秒 循环播放10次(infinite:循环播放)*/
         animation-direction: alternate;
         /*播放方式开始到结束,结束回到开始;*/
@@ -719,7 +732,7 @@
     }
 
     .reward-content .reward-content-div {
-        background-color: #fff;
+        background: #fff;
         height: 120px;
         padding: 20px;
         border-radius: 4px;
@@ -794,21 +807,6 @@
         border-radius: 6px;
         text-align: center;
         z-index: 9999;
-    }
-
-    .img-close {
-        position: relative;
-        float: right;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        margin: 10px 10px 0 0;
-        cursor: pointer;
-        background: url("../../assets/miner-info1.svg") no-repeat center;
-    }
-
-    .img-close:hover {
-        opacity: 0.8;
     }
 
     .ranking-content .ranking-title {
@@ -939,6 +937,10 @@
         position: absolute;
         top: -5px;
         left: 76px;
+    }
+
+    .pool-set .pool-bth {
+        margin-top: 50px;
     }
 
     .pool-set .pool-bth button {
