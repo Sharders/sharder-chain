@@ -301,17 +301,17 @@
         methods: {
             isVisiblePool() {
                 if (this.isCreatePool) {
-                    this.$store.state.mask = '';
+                    this.$store.state.mask = false;
                 } else {
-                    this.$store.state.mask = 'mask';
+                    this.$store.state.mask = true;
                 }
                 this.isCreatePool = !this.isCreatePool;
             },
             checkRanking() {
                 if (this.isRanking) {
-                    this.$store.state.mask = '';
+                    this.$store.state.mask = false;
                 } else {
-                    this.$store.state.mask = 'mask';
+                    this.$store.state.mask = true;
                     console.info("发送请求刷新数据....");
 
 
@@ -346,17 +346,6 @@
         position: initial !important;
         width: 1200px !important;
         margin: auto;
-    }
-
-    .mask {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #000;
-        opacity: 0.4;
-        z-index: 999;
     }
 
     input::-webkit-outer-spin-button,
@@ -743,7 +732,7 @@
 <style scoped>
     .ranking {
         position: fixed;
-        top: 150px;
+        top: 160px;
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -825,7 +814,7 @@
     .create-pool {
         position: fixed;
         z-index: 9999;
-        top: 150px;
+        top: 180px;
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
