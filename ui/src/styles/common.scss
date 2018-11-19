@@ -1,5 +1,12 @@
 /*可复用组件样式*/
-
+#app .page-layout main {
+    height: initial !important;
+    transform: initial !important;
+    overflow-x: initial !important;
+    position: initial !important;
+    width: 1200px !important;
+    margin: auto;
+}
 
 .block_title{
     font-size: 14px;
@@ -90,6 +97,7 @@
 
                 .linker{
                     color:#493eda;
+                    cursor: pointer;
                     a{
                         margin: 0 6px;
                     }
@@ -126,6 +134,9 @@
             border-top: 1px solid #ddd;
             text-align: right;
         }
+    }
+    .blockInfo{
+        margin-top: 20px;
     }
 }
 
@@ -221,6 +232,68 @@
                     font-size: 14px;
                     color: #fff;
                 }
+            }
+        }
+    }
+}
+
+.modal_info{
+    position: absolute;
+    background: #fff;
+    top: 10%;
+    width: 1200px;
+    border-radius: 4px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    .modal-header{
+        position: relative;
+        padding: 0 30px;
+        height: 60px;
+        border-bottom: 1px solid #eee;
+        .close{
+            width: 24px;
+            position: absolute;
+            right: 30px;
+            top: 18px;
+            cursor: pointer;
+        }
+        .modal-title{
+            line-height: 60px;
+            font-size: 16px;
+            color:#333;
+            font-weight: bold;
+        }
+    }
+    .modal-body{
+        margin: 30px;
+        .table{
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            word-break:break-all;
+            tr{
+                height:40px;
+                &:nth-child(even){
+                    background: #f4f7fc;
+                }
+            }
+            td{
+                border-left: 1px solid #ddd;
+                border-top: 1px solid #ddd;
+                width: 370px;
+                padding-left: 20px;
+                font-size: 14px;
+                color: #333;
+                line-height: 40px;
+            }
+            th{
+                border-left: 1px solid #ddd;
+                border-top: 1px solid #ddd;
+                width: 200px;
+                font-size: 14px;
+                font-weight: bold;
+                color: #333;
             }
         }
     }

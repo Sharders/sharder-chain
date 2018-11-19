@@ -46,7 +46,7 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="image_text">
+                                    <td class="image_text linker csp" @click="openInfo">
                                         <img src="../../assets/success.svg"/>
                                         <span>114.115.210.116</span>
                                     </td>
@@ -58,10 +58,10 @@
                                         <el-tooltip class="item" content="API服务" placement="top">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top">
                                             <a>CS</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                        <el-tooltip class="item" content="商业API" placement="top">
                                             <a>BI</a>
                                         </el-tooltip>
                                         <el-tooltip class="item" content="存储服务" placement="top">
@@ -69,14 +69,14 @@
                                         </el-tooltip>
                                     </td>
                                     <td>
-                                        <button class="list_button w40">连接</button>
-                                        <button class="list_button w50">黑名单</button>
+                                        <button class="list_button w40" @click="openConnectPeer">连接</button>
+                                        <button class="list_button w50" @click="openBlackDialog">黑名单</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="image_text">
-                                        <img src="../../assets/error.svg"/>
-                                        <span>114.115.210.117</span>
+                                    <td class="image_text linker csp" @click="openInfo">
+                                        <img src="../../assets/success.svg"/>
+                                        <span>114.115.210.116</span>
                                     </td>
                                     <td>113KB</td>
                                     <td>133KB</td>
@@ -86,17 +86,17 @@
                                         <el-tooltip class="item" content="API服务" placement="top">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top">
                                             <a>CS</a>
                                         </el-tooltip>
                                     </td>
                                     <td>
-                                        <button class="list_button w40">连接</button>
-                                        <button class="list_button w50 csp">黑名单</button>
+                                        <button class="list_button w40" @click="openConnectPeer">连接</button>
+                                        <button class="list_button w50" @click="openBlackDialog">黑名单</button>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="image_text">
+                                    <td class="image_text linker csp" @click="openInfo">
                                         <img src="../../assets/success.svg"/>
                                         <span>114.115.210.116</span>
                                     </td>
@@ -108,15 +108,15 @@
                                         <el-tooltip class="item" content="API服务" placement="top">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top">
                                             <a>CS</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                        <el-tooltip class="item" content="商业API" placement="top">
                                             <a>BI</a>
                                         </el-tooltip>
                                     </td>
                                     <td>
-                                        <button class="list_button w40">连接</button>
+                                        <button class="list_button w40" @click="openConnectPeer">连接</button>
                                         <button class="list_button w50" @click="openBlackDialog">黑名单</button>
                                     </td>
                                 </tr>
@@ -133,7 +133,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title" data-i18n="blacklist_peer" style="text-align: center">加入黑名单</h4>
+                        <h4 class="modal-title">加入黑名单</h4>
                     </div>
                     <div class="modal-body modal-peer">
                         <p>是否将节点"114.115.210.116"添加到黑名单？</p>
@@ -141,11 +141,94 @@
                         <input type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary">添加</button>
+                        <button type="button" class="btn">添加</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="modal" id="connect_peer_modal" v-show="connectPeer">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">管理密码</h4>
+                    </div>
+                    <div class="modal-body modal-peer">
+                        <p>节点名称：114.115.210.116</p>
+                        <p>管理密码</p>
+                        <input type="password"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn">连接</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal_info" id="peer_info" v-show="peerInfo">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >节点：114.115.210.116</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>blockchain_state</th>
+                            <td>UP_TO_DATE</td>
+                            <th>通讯端口</th>
+                            <td>8218</td>
+                        </tr>
+                        <tr>
+                            <th>服务</th>
+                            <td>API,CORS,BAPI,STORAGE</td>
+                            <th>Outbound Web Socket</th>
+                            <td>true</td>
+                        </tr>
+                        <tr>
+                            <th>版本</th>
+                            <td>COS 0.1.0</td>
+                            <th>peer_load</th>
+                            <td>[object Object]</td>
+                        </tr>
+                        <tr>
+                            <th>平台</th>
+                            <td>Linux amd64</td>
+                            <th>Last Connection Attempt</th>
+                            <td>2018/10/19 9:47:02</td>
+                        </tr>
+                        <tr>
+                            <th>最后更新</th>
+                            <td>2018/10/19 9:47:02</td>
+                            <th>状态</th>
+                            <td>CONNECTION</td>
+                        </tr>
+                        <tr>
+                            <th>黑名单</th>
+                            <td>false</td>
+                            <th>共享地址</th>
+                            <td>true</td>
+                        </tr>
+                        <tr>
+                            <th>公布的地址</th>
+                            <td>114.115.210.116</td>
+                            <th>已下载</th>
+                            <td>388 KB</td>
+                        </tr>
+                        <tr>
+                            <th>Api Port</th>
+                            <td>8215</td>
+                            <th>已上传</th>
+                            <td>988 KB</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 </template>
@@ -159,6 +242,8 @@
         data () {
             return {
                 blacklist:false,
+                connectPeer:false,
+                peerInfo:false
             };
         },
         methods: {
@@ -169,9 +254,19 @@
                 this.$store.state.mask = true;
                 this.blacklist = true;
             },
-            closeModal:function(){
+            closeDialog:function(){
                 this.$store.state.mask = false;
                 this.blacklist = false;
+                this.connectPeer = false;
+                this.peerInfo = false
+            },
+            openConnectPeer:function () {
+                this.$store.state.mask = true;
+                this.connectPeer = true;
+            },
+            openInfo:function () {
+                this.$store.state.mask = true;
+                this.peerInfo = true;
             }
         },
         watch:{
