@@ -11,14 +11,13 @@
 </script>
 <style scoped>
     .mask {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #000;
+        background: #000;
         opacity: 0.4;
         z-index: 999;
-        min-width: 1200px;
     }
 </style>
