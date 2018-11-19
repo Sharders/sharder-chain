@@ -1,6 +1,6 @@
 <template>
     <div class="pool-attribute">
-        <div v-if="true">
+        <div>
             <p @click="$router.back()" class="pool-back">&lt;&lt;返回矿池</p>
             <div class="pool-content">
                 <div class="attribute-info">
@@ -9,7 +9,7 @@
                     <span class="pool-serial-number">
                         矿池编号:{{mining.serialNumber}} | 挖矿几率 : {{mining.distribution}}%
                     </span>
-                        <span class="pool-attribute-info" @click="miningAttribute()">矿池属性</span>
+                        <span class="pool-attribute-info" @click="miningMask('isAttribute')">矿池属性</span>
                     </div>
                     <div class="earnings">收益+2000SS</div>
                 </div>
@@ -47,15 +47,15 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button class="join">投入SS</button>
-                        <button class="exit">退出矿池</button>
+                        <button class="join" @click="miningMask('isJoinPool')">投入SS</button>
+                        <button class="exit" @click="miningMask('isExitPool')">退出矿池</button>
                     </div>
                 </div>
             </div>
         </div>
         <div v-if="isAttribute">
             <div class="mining-attribute">
-                <span class="img-close" @click="miningAttribute()"></span>
+                <span class="img-close" @click="miningMask('isAttribute')"></span>
                 <div class="attribute">
                     <h1>
                         <img src="../../assets/pay.svg" class="attribute-img">
@@ -98,6 +98,31 @@
                 </div>
             </div>
         </div>
+        <div v-if="isJoinPool">
+            <div class="join-pool">
+                <span class="img-close" @click="miningMask('isJoinPool')"></span>
+                <h1 class="title">投入SS</h1>
+                <p class="attribute">当前可用:200000SS | 矿池容量:2000000SS</p>
+                <p class="input">
+                    <el-input v-model="joinPool" placeholder="请输入投入数量"></el-input>
+                </p>
+                <p class="btn">
+                    <button class="cancel" @click="miningMask('isJoinPool')">取消</button>
+                    <button class="confirm">确认</button>
+                </p>
+            </div>
+        </div>
+        <div v-if="isExitPool">
+            <div class="exit-pool">
+                <span class="img-close" @click="miningMask('isExitPool')"></span>
+                <h1 class="title">退出矿池</h1>
+                <p class="info">退出就无法继续挖矿获得收益</p>
+                <p class="btn">
+                    <button class="cancel" @click="miningMask('isExitPool')">取消</button>
+                    <button class="confirm">确认</button>
+                </p>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -108,16 +133,23 @@
             return {
                 mining: this.$route.params,
                 isAttribute: false,
+                isJoinPool: false,
+                isExitPool: false,
+                joinPool: '',
             }
         },
         methods: {
-            miningAttribute() {
-                if (this.isAttribute) {
+            miningExit() {
+                this.miningMask('isExitPool');
+
+            },
+            miningMask(val) {
+                if (this[val]) {
                     this.$store.state.mask = false;
                 } else {
                     this.$store.state.mask = true;
                 }
-                this.isAttribute = !this.isAttribute
+                this[val] = !this[val];
             },
         },
         created: function () {
@@ -283,6 +315,115 @@
         margin-top: 10px;
         color: #513acB;
         font-size: 16px;
+    }
+
+</style>
+<!--加入矿池-->
+<style scoped>
+    .join-pool {
+        position: fixed;
+        top: calc(50% - 128px);
+        z-index: 9999;
+        left: calc(50% - 250px);
+        width: 500px;
+        background: #fff;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .join-pool .title {
+        font-size: 16px;
+        font-weight: bold;
+        padding: 20px 0;
+        border-bottom: 1px solid #d2d2d2;
+    }
+
+    .join-pool .attribute {
+        font-size: 14px;
+        padding: 20px 0;
+        color: #333;
+    }
+
+    .join-pool .input {
+        padding: 0 40px;
+    }
+
+    .join-pool .btn {
+        margin: 30px 40px;
+        height: 40px;
+    }
+
+    .join-pool .btn button {
+        outline: none;
+        border: none;
+        width: 200px;
+        height: 40px;
+        border-radius: 4px;
+        font-size: 14px;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .btn button.cancel {
+        border: 1px solid #513acB;
+        color: #513acB;
+        float: left;
+        background: #fff;
+    }
+
+    .btn button.confirm {
+        float: right;
+        background: #513acB;
+        color: #fff;
+    }
+
+    .btn button.cancel:hover {
+        background: #513acB11;
+    }
+
+    .btn button.confirm:hover {
+        background: #513acBdd;
+    }
+
+</style>
+<!--退出矿池-->
+<style scoped>
+    .exit-pool {
+        position: fixed;
+        width: 500px;
+        height: 220px;
+        top: calc(50% - 110px);
+        left: calc(50% - 250px);
+        background: #fff;
+        border-radius: 4px;
+        z-index: 9999;
+    }
+
+    .exit-pool .title {
+        text-align: center;
+        padding: 22px 0;
+        font-weight: bold;
+    }
+
+    .exit-pool .info {
+        text-align: center;
+        padding: 35px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .exit-pool .btn {
+        height: 40px;
+        padding: 0 40px;
+    }
+
+    .exit-pool .btn button {
+        outline: none;
+        border-radius: 4px;
+        width: 200px;
+        height: 40px;
+        font-size: 14px;
+        cursor: pointer;
     }
 
 </style>
