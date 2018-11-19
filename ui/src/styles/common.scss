@@ -112,6 +112,7 @@
                 }
 
                 .list_button{
+                    cursor: pointer;
                     background: #493eda;
                     color: #fff;
                     border: none;
@@ -154,5 +155,73 @@
     span{
         vertical-align: middle;
         margin-left: 5px;
+    }
+}
+
+
+.modal{
+    position: absolute;
+    background: #fff;
+    top: 28%;
+    width: 500px;
+    border-radius: 7px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    .modal-dialog{
+        .modal-content{
+            .modal-header{
+                position: relative;
+                text-align: center;
+                height: 60px;
+                border-bottom: 1px solid #eee;
+                .close{
+                    position: absolute;
+                    right: 25px;
+                    background: none;
+                    border: none;
+                    font-size: 16px;
+                    color: #333;
+                    font-weight: bold;
+                    padding: 0;
+                    top: 0;
+                    bottom: 0;
+                    cursor: pointer;
+                }
+                .modal-title{
+                    text-align: center;
+                    font-size: 16px;
+                    color: #333;
+                    font-weight: bold;
+                    line-height: 60px;
+                }
+            }
+            .modal-body{
+                margin: 22px 40px;
+                p{
+                    font-size: 14px;
+                    color: #333;
+                }
+                input{
+                    width: 100%;
+                    height: 40px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                }
+            }
+            .modal-footer{
+                margin: 30px 40px;
+                .btn{
+                    width: 100%;
+                    height: 35px;
+                    background: #493eda;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    color: #fff;
+                }
+            }
+        }
     }
 }

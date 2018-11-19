@@ -11,3 +11,13 @@
     }
 }
 
+.modal-peer{
+    span{
+        &:first-child{
+            margin-bottom: 23px;
+        }
+        &:nth-child(2){
+            margin-bottom: 10px;
+        }
+    }
+}

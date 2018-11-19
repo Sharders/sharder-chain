@@ -111,7 +111,7 @@
                 </div>
                 <div class="reward-content">
                     <el-row :gutter="20">
-                        <el-col :span="12" v-for="(reward,index) in rewardList">
+                        <el-col :span="12" v-for="reward in rewardList">
                             <div class="reward-content-div">
                                 <div class="content-left">
                                     <p>
