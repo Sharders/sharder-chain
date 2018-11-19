@@ -1,170 +1,435 @@
 <template>
     <div>
-        <div class="block_network mb20">
-            <p class="block_title">
-                <img src="../../assets/network.svg"/>
-                <span>网络总览</span>
-            </p>
-            <div class="w dfl">
-                <div class="block_blue radius_blue">
-                    <p>区块高度</p>
-                    <p><span></span>个</p>
-                    <p>生成时间：2018/10/27 11:49:28</p>
-                </div>
-                <div class="block_blue radius_blue">
-                    <p>区块平均交易量</p>
-                    <p><span></span>个</p>
-                </div>
-                <div class="block_blue radius_blue">
-                    <p>节点数量</p>
-                    <p><span></span>个</p>
+        <div>
+            <div class="block_network mb20">
+                <p class="block_title">
+                    <img src="../../assets/network.svg"/>
+                    <span>网络总览</span>
+                </p>
+                <div class="w dfl">
+                    <div class="block_blue radius_blue">
+                        <p>区块高度</p>
+                        <p><span></span>个</p>
+                        <p>生成时间：2018/10/27 11:49:28</p>
+                    </div>
+                    <div class="block_blue radius_blue">
+                        <p>区块平均交易量</p>
+                        <p><span></span>个</p>
+                    </div>
+                    <div class="block_blue radius_blue">
+                        <p>节点数量</p>
+                        <p><span></span>个</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="mb20 fl">
-            <p class="block_title">
-                <img src="../../assets/miner.svg"/>
-                <span>旷工信息</span>
-            </p>
-            <div class="whf xs_section_fa">
-                <div class="xs_section br4">
-                    <div>
-                        <img src="../../assets/miner-info1.svg"/>
-                        <div class="section_info">
-                            <span>24</span>
-                            <span>旷工数量</span>
+            <div class="mb20 fl">
+                <p class="block_title">
+                    <img src="../../assets/miner.svg"/>
+                    <span>旷工信息</span>
+                </p>
+                <div class="whf xs_section_fa">
+                    <div class="xs_section br4">
+                        <div>
+                            <img src="../../assets/miner-info1.svg"/>
+                            <div class="section_info">
+                                <span>24</span>
+                                <span>旷工数量</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xs_section br4">
+                        <div>
+                            <img src="../../assets/miner-info2.svg"/>
+                            <div class="section_info">
+                                <span>9999999</span>
+                                <span>总交易量</span>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="xs_section br4">
+                        <div>
+                            <img src="../../assets/miner-info3.svg"/>
+                            <div class="section_info">
+                                <span>1234</span>
+                                <span>转账交易</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xs_section br4">
+                        <div>
+                            <img src="../../assets/miner-info4.svg"/>
+                            <div class="section_info">
+                                <span>123456</span>
+                                <span>CoinBase交易</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xs_section br4">
+                        <div>
+                            <img src="../../assets/miner-info5.svg"/>
+                            <div class="section_info">
+                                <span>12345</span>
+                                <span>存储交易</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xs_section br4">
+                        <div>
+                            <img src="../../assets/miner-info6.svg"/>
+                            <div class="section_info">
+                                <span>45</span>
+                                <span>别名修改</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="xs_section br4">
-                    <div>
-                        <img src="../../assets/miner-info2.svg"/>
-                        <div class="section_info">
-                            <span>9999999</span>
-                            <span>总交易量</span>
-                        </div>
-                    </div>
+            </div>
+            <div class="block_peers mb20 fr">
+                <p>
+                    <span class="block_title fl">
+                        <img src="../../assets/peerlist.svg"/>
+                        <span>节点信息</span>
+                    </span>
+                    <span class="hrefbtn fr block_title csp">
+                        <a @click="turn2peers">
+                            <span>节点详情</span>
+                        </a>
+                    </span>
+                </p>
+                <span class="cb"></span>
+                <div class="w600 br4" id="peers-map">
 
                 </div>
-                <div class="xs_section br4">
-                    <div>
-                        <img src="../../assets/miner-info3.svg"/>
-                        <div class="section_info">
-                            <span>1234</span>
-                            <span>转账交易</span>
-                        </div>
+            </div>
+            <div class="cb"></div>
+            <div class="block_list">
+                <p  class="block_title">
+                    <img src="../../assets/block.svg"/>
+                    <span>区块列表</span>
+                </p>
+                <div class="list_table w br4">
+                    <div class="list_content data_container table_responsive data_loading ">
+                        <table class="table table_striped" id="blocks_table">
+                            <thead>
+                                <tr>
+                                    <th>高度</th>
+                                    <th class="w200">出块时间</th>
+                                    <th>金额</th>
+                                    <th>手续费</th>
+                                    <th>交易数</th>
+                                    <th class="w200 ">出块者</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1263</td>
+                                    <td>2018/10/18 17:26:25</td>
+                                    <td>10</td>
+                                    <td>0</td>
+                                    <td>1</td>
+                                    <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                                    <td class="linker">查看详情</td>
+                                </tr>
+                                <tr>
+                                    <td>1263</td>
+                                    <td>2018/10/18 17:26:25</td>
+                                    <td>10</td>
+                                    <td>0</td>
+                                    <td>1</td>
+                                    <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                                    <td class="linker">查看详情</td>
+                                </tr>
+                                <tr>
+                                    <td>1263</td>
+                                    <td>2018/10/18 17:26:25</td>
+                                    <td>10</td>
+                                    <td>0</td>
+                                    <td>1</td>
+                                    <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                                    <td class="linker">查看详情</td>
+                                </tr>
+                                <tr>
+                                    <td>1263</td>
+                                    <td>2018/10/18 17:26:25</td>
+                                    <td>10</td>
+                                    <td>0</td>
+                                    <td>1</td>
+                                    <td class="linker" @click="openAccountInfo">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                                    <td class="linker" @click="openBlockInfo">查看详情</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <div class="xs_section br4">
-                    <div>
-                        <img src="../../assets/miner-info4.svg"/>
-                        <div class="section_info">
-                            <span>123456</span>
-                            <span>CoinBase交易</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="xs_section br4">
-                    <div>
-                        <img src="../../assets/miner-info5.svg"/>
-                        <div class="section_info">
-                            <span>12345</span>
-                            <span>存储交易</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="xs_section br4">
-                    <div>
-                        <img src="../../assets/miner-info6.svg"/>
-                        <div class="section_info">
-                            <span>45</span>
-                            <span>别名修改</span>
-                        </div>
+                    <div class="list_pagination">
+                        <div id="pagination_blocks" class="pagination"></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="block_peers mb20 fr">
-            <p>
-                <span class="block_title fl">
-                    <img src="../../assets/peerlist.svg"/>
-                    <span>节点信息</span>
-                </span>
-                <span class="hrefbtn fr block_title csp">
-                    <a @click="turn2peers">
-                        <span>节点详情</span>
-                    </a>
-                </span>
-            </p>
-            <span class="cb"></span>
-            <div class="w600 br4" id="peers-map">
 
+        <div class="modal_info" id="block_info" v-show="blockInfo">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >区块：1221 信息</span>
+                </h4>
             </div>
-        </div>
-        <div class="cb"></div>
-        <div class="block_list">
-            <p  class="block_title">
-                <img src="../../assets/block.svg"/>
-                <span>区块列表</span>
-            </p>
-            <div class="list_table w br4">
-                <div class="list_content data_container table_responsive data_loading ">
-                    <table class="table table_striped" id="blocks_table">
-                        <thead>
-                            <tr>
-                                <th>高度</th>
-                                <th class="w200">出块时间</th>
-                                <th>金额</th>
-                                <th>手续费</th>
-                                <th>交易数</th>
-                                <th class="w200 ">出块者</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
+            <div class="modal-body">
+                <el-radio-group v-model="tabTitle" class="title">
+                    <el-radio-button label="account" class="btn">所有交易</el-radio-button>
+                    <el-radio-button label="blockInfo" class="btn">区块详情</el-radio-button>
+                </el-radio-group>
+
+                <div v-if="tabTitle === 'account'" class="account_list">
+                    <table class="table">
                         <tbody>
                             <tr>
-                                <td>1263</td>
-                                <td>2018/10/18 17:26:25</td>
-                                <td>10</td>
-                                <td>0</td>
-                                <td>1</td>
-                                <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                <td class="linker">查看详情</td>
+                                <th>时间</th>
+                                <th>类型</th>
+                                <th>数量</th>
+                                <th>手续费</th>
+                                <th>发送者</th>
+                                <th>接受者</th>
                             </tr>
                             <tr>
-                                <td>1263</td>
-                                <td>2018/10/18 17:26:25</td>
+                                <td>2018/10/18 8:29:16</td>
+                                <td>
+                                    <img src="../../assets/coinBase.svg"/>
+                                    <span>CoinBase</span>
+                                </td>
                                 <td>10</td>
                                 <td>0</td>
-                                <td>1</td>
-                                <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                <td class="linker">查看详情</td>
+                                <td>CoinBase</td>
+                                <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
                             </tr>
                             <tr>
-                                <td>1263</td>
-                                <td>2018/10/18 17:26:25</td>
-                                <td>10</td>
-                                <td>0</td>
+                                <td>2018/10/18 8:29:16</td>
+                                <td>
+                                    <img src="../../assets/pay.svg"/>
+                                    <span>普通支付</span>
+                                </td>
+                                <td>100,000</td>
                                 <td>1</td>
-                                <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                <td class="linker">查看详情</td>
-                            </tr>
-                            <tr>
-                                <td>1263</td>
-                                <td>2018/10/18 17:26:25</td>
-                                <td>10</td>
-                                <td>0</td>
-                                <td>1</td>
-                                <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                <td class="linker">查看详情</td>
+                                <td class="linker">SSA-9WKZ-DV7P-M6MN-5MH8B</td>
+                                <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="list_pagination">
-                    <div id="pagination_blocks" class="pagination"></div>
+                <div v-if="tabTitle === 'blockInfo'" class="blockInfo">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th>上一个区块哈希</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>载荷长度</th>
+                                <td>193</td>
+                            </tr>
+                            <tr>
+                                <th>总数</th>
+                                <td>10 SS</td>
+                            </tr>
+                            <tr>
+                                <th>矿工签名</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>矿工公钥</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>交易数量</th>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <th>区块签名</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>版本：</th>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <th>总手续费</th>
+                                <td>0 SS</td>
+                            </tr>
+                            <tr>
+                                <th>挖矿难度</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>区块高度</th>
+                                <td>1216</td>
+                            </tr>
+                            <tr>
+                                <th>时间戳</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>矿工</th>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th>上一个区块</th>
+                                <td>1220</td>
+                            </tr>
+                            <tr>
+                                <th>下一个区块</th>
+                                <td>122</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+
+
+        <div class="modal_info" id="account_info" v-show="accountInfo">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >账户：SSA-9WKZ-DV7P-M6MN-5MH8B 信息</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="account_preInfo">
+                    <span>账户命名&nbsp;</span><span>Kuhoerk</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>可用资金&nbsp;</span><span>1,000,046&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>别名：</span><span>无</span>
+                </div>
+                <div class="account_allInfo">
+                    <el-radio-group v-model="tabTitle" class="title">
+                        <el-radio-button label="account" class="btn">所有交易</el-radio-button>
+                    </el-radio-group>
+
+                    <div v-if="tabTitle === 'account'" class="account_list">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th>交易时间</th>
+                                    <th>交易类型</th>
+                                    <th>数量</th>
+                                    <th>手续费</th>
+                                    <th>账户</th>
+                                    <th>操作</th>
+                                </tr>
+                                <tr>
+                                    <td>2018/10/18 8:29:16</td>
+                                    <td>
+                                        <img src="../../assets/coinBase.svg"/>
+                                        <span>CoinBase</span>
+                                    </td>
+                                    <td>10</td>
+                                    <td>0</td>
+                                    <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
+                                    <td class="linker">查看详情</td>
+                                </tr>
+                                <tr>
+                                    <td>2018/10/18 8:29:16</td>
+                                    <td>
+                                        <img src="../../assets/pay.svg"/>
+                                        <span>普通支付</span>
+                                    </td>
+                                    <td>100,000</td>
+                                    <td>1</td>
+                                    <td class="linker" @click="openAccountInfo">SSA-DEUD-WXFN-AZ8H-BPKX</td>
+                                    <td class="linker" @click="openAccountTransaction">查看详情</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal_info" id="account_transaction" v-show="accountTransaction">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >账户：SSA-9WKZ-DV7P-M6MN-5MH8B 信息</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="account_preInfo">
+                    <span>账户命名&nbsp;</span><span>Kuhoerk</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>可用资金&nbsp;</span><span>1,000,046&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>别名：</span><span>无</span>
+                </div>
+                <div class="account_transactionInfo">
+                    <p class="fl">交易详情</p>
+                    <button class="fr common_btn" @click="openAccountInfo">返回账户信息</button>
+                    <div class="cb"></div>
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <th>上一个区块哈希</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>载荷长度</th>
+                            <td>193</td>
+                        </tr>
+                        <tr>
+                            <th>总数</th>
+                            <td>10 SS</td>
+                        </tr>
+                        <tr>
+                            <th>矿工签名</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>矿工公钥</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>交易数量</th>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <th>区块签名</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>版本：</th>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <th>总手续费</th>
+                            <td>0 SS</td>
+                        </tr>
+                        <tr>
+                            <th>挖矿难度</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>区块高度</th>
+                            <td>1216</td>
+                        </tr>
+                        <tr>
+                            <th>时间戳</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>矿工</th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>上一个区块</th>
+                            <td>1220</td>
+                        </tr>
+                        <tr>
+                            <th>下一个区块</th>
+                            <td>122</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 </template>
@@ -177,7 +442,10 @@
         components: { echarts, world },
         data () {
             return {
-
+                tabTitle: 'account',
+                blockInfo:false,
+                accountInfo:false,
+                accountTransaction:false
             };
         },
         methods: {
@@ -444,6 +712,27 @@
                 };
 
                 myChart.setOption(option);
+            },
+            openBlockInfo:function () {
+                this.closeDialog();
+                this.$store.state.mask = true;
+                this.blockInfo = true;
+            },
+            openAccountInfo:function(){
+                this.closeDialog();
+                this.$store.state.mask = true;
+                this.accountInfo = true;
+            },
+            openAccountTransaction:function(){
+                this.closeDialog();
+                this.$store.state.mask = true;
+                this.accountTransaction = true;
+            },
+            closeDialog:function(){
+                this.$store.state.mask = false;
+                this.blockInfo = false;
+                this.accountInfo = false;
+                this.accountTransaction = false;
             }
         },
         mounted () {

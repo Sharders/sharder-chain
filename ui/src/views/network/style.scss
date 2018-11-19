@@ -47,4 +47,180 @@
     }
 }
 
+.block_list{
+    th{
+        width:172px;
+    }
+}
 
+#block_info{
+    top: 0;
+    .modal-body{
+        margin: 30px 20px 40px!important;
+        .title{
+            .el-radio-button__orig-radio:checked + .el-radio-button__inner,
+            .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
+                background-color: #493eda;
+            }
+            .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
+                color: #fff;
+            }
+            .el-radio-button__inner:hover {
+                color: #493eda;
+            }
+        }
+
+        .account_list{
+            .table{
+                border: none !important;
+                word-break:break-all;
+                margin-top: 33px;
+                td{
+                    border: none !important;
+                    text-align: center;
+                    line-height: 40px;
+                    font-size: 12px;
+                    padding: 0;
+                    img{
+                        width:12px;
+                        vertical-align: middle;
+                    }
+                    span{
+                        vertical-align: middle;
+                    }
+                }
+                th{
+                    border: none !important;
+                }
+                .linker{
+                    color:#493eda;
+                    cursor: pointer;
+                    a{
+                        margin: 0 6px;
+                    }
+                }
+            }
+        }
+        .blockInfo{
+            .table{
+                word-break:break-all;
+                margin-top: 20px;
+                th{
+                    width:160px;
+                }
+                td{
+                    width:1140px;
+                    padding:0 60px;
+                    line-height: 40px;
+                }
+            }
+        }
+    }
+}
+
+#account_info{
+    top: 0;
+    .modal-body{
+        margin:0;
+        .account_preInfo{
+            background: #f4f7fd;
+            width: 100%;
+            padding-left: 41px;
+            height: 60px;
+            span{
+                line-height: 60px;
+                font-size: 16px;
+                color:#333;
+            }
+        }
+        .account_allInfo{
+            margin: 20px;
+            .el-radio-button__orig-radio:checked + .el-radio-button__inner,
+            .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
+                background-color: #493eda;
+            }
+            .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
+                color: #fff;
+            }
+            .el-radio-button__inner:hover {
+                color: #493eda;
+            }
+            .account_list{
+                .table{
+                    border: none !important;
+                    word-break:break-all;
+                    margin-top: 33px;
+                    td{
+                        border: none !important;
+                        text-align: center;
+                        line-height: 40px;
+                        font-size: 12px;
+                        padding: 0;
+                        img{
+                            width:12px;
+                            vertical-align: middle;
+                        }
+                        span{
+                            vertical-align: middle;
+                        }
+                    }
+                    th{
+                        border: none !important;
+                    }
+                    .linker{
+                        color:#493eda;
+                        cursor: pointer;
+                        a{
+                            margin: 0 6px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#account_transaction{
+    top: 0;
+    .modal-body{
+        margin:0;
+        .account_preInfo{
+            background: #f4f7fd;
+            width: 100%;
+            padding-left: 41px;
+            height: 60px;
+            span{
+                line-height: 60px;
+                font-size: 16px;
+                color:#333;
+            }
+        }
+        .account_transactionInfo{
+            margin: 0 30px 20px;
+            p{
+                line-height: 80px;
+                font-size: 17px;
+                font-weight: bold;
+                margin-left: 11px;
+                color: #000;
+            }
+            button{
+                margin: 20px 0;
+                padding: 0 20px;
+                height: 40px;
+            }
+            .table{
+                word-break:break-all;
+                margin-top: 20px;
+                th{
+                    width:160px;
+                }
+                td{
+                    width:1140px;
+                    padding:0 60px;
+                    line-height: 40px;
+                }
+            }
+        }
+    }
+}

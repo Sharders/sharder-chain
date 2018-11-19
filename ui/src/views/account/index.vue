@@ -48,7 +48,7 @@
                             <th>交易类型</th>
                             <th>金额</th>
                             <th>手续费</th>
-                            <th>交易账户</th>
+                            <th class="dbw">交易账户</th>
                             <th>确认数量</th>
                             <th>操作</th>
                         </tr>
