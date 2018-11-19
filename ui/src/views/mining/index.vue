@@ -192,7 +192,7 @@
                     <div class="pool-set">
                         <h1 class="pool-title">
                             <img src="../../assets/kuangchi_set.png">
-                            <span>矿池属性</span>
+                            <span>矿池设定</span>
                         </h1>
                         <div class="pool-data">
                             <p>
@@ -471,12 +471,13 @@
     }
 
     .img-close {
-        position: relative;
+        position: absolute;
         float: right;
         border-radius: 50%;
         width: 20px;
         height: 20px;
-        margin: 10px 10px 0 0;
+        right: 10px;
+        top: 10px;
         cursor: pointer;
         background: url("../../assets/error.svg") no-repeat center;
     }
@@ -976,7 +977,155 @@
 </style>
 <!--钱包内置兼容-->
 <style>
-    @media (min-width: 640px) {
+    @media (max-width: 640px) {
+        #app .header {
+            display: none;
+        }
+
+        #app .page-layout main {
+            padding-top: 0;
+            width: 100% !important;
+        }
+
+        #app .page-layout main .main-content {
+            width: 100% !important;
+        }
+
+        .mining .el-radio-group {
+            display: none;
+        }
+
+        .mining .mining-content {
+            margin-top: 0;
+            padding: 15px;
+            border-radius: initial;
+            height: 400px;
+            background-position: center 210px;
+        }
+
+        .mining .mining-list-info .el-col.el-col-8 {
+            width: 100%;
+        }
+
+        .mining .mining-content .instructions {
+            right: -15px;
+        }
+
+        .mining .mining-content .create {
+            position: absolute;
+            top: 320px;
+            right: 15px;
+            font-size: 13px;
+        }
+
+        .mining .mining-content .create img {
+            width: 45px;
+            height: 45px;
+        }
+
+        .mining .mining-paging {
+            display: none;
+        }
+
+        .mining .mining-content .assets ul {
+            font-size: 12px;
+        }
+
+        .mining .mining-content .assets .strong {
+            font-size: 13px;
+        }
+
+        .mining .mining-content .assets .strong img {
+            width: 12px;
+            height: 12px;
+            top: 1px;
+        }
+
+        .mining .mining-content .state .state-info {
+            /*width: 130px;*/
+            height: 45px;
+            font-size: 14px;
+            position: relative;
+            top: 80px;
+        }
+
+        .mining .mining-list .mining-list-img {
+            margin-left: 15px;
+        }
+
+        #chatu {
+            top: 170px !important;
+            animation-name: chatu-mobel !important;
+        }
+
+        @keyframes chatu-mobel {
+            0% {
+                top: 150px;
+            }
+            100% {
+                top: 170px;
+            }
+        }
+
+        .mining .ranking, .mining .create-pool {
+            position: absolute;
+            width: calc(100% - 20px);
+            left: 10px;
+            top: 80px;
+        }
+
+        .mining .create-pool {
+            position: fixed;
+            top: calc(50% - 270px);
+        }
+
+        .mining .create-pool-content .pool-title {
+            padding: 0;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .mining .pool-set .pool-title {
+            color: #333;
+            margin: 0 0 20px 0;
+        }
+
+        .pool-attribute p span {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .pool-attribute p .strong {
+            font-size: 12px;
+            font-weight: initial;
+        }
+
+        .ranking .ranking-content .ranking-title, .create-pool .pool-header {
+            /*display: none;*/
+        }
+
+        .mining .create-pool .pool-attribute, .mining .create-pool .pool-set {
+            padding: 15px;
+            font-size: 12px;
+        }
+
+        .mining .create-pool .pool-set .user-input {
+            width: calc(100% - 90px);
+            font-size: 12px;
+        }
+
+        .mining .create-pool .pool-set .pool-bth {
+            margin: 0;
+        }
+
+        .mining .create-pool .pool-set .pool-bth .immediately-create {
+            width: 100% !important;
+            float: initial;
+        }
+
+        .mining .create-pool .pool-set .pool-bth .cancel {
+            display: none;
+        }
 
     }
 </style>
