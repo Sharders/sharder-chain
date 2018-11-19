@@ -151,6 +151,7 @@
 }
 
 .common_btn{
+    cursor: pointer;
     height:40px;
     margin: 0 15px;
     background: #493eda;
@@ -171,9 +172,9 @@
 
 
 .modal{
-    position: absolute;
+    position: fixed;
     background: #fff;
-    top: 28%;
+    top: 180px;
     width: 500px;
     border-radius: 7px;
     margin: 0 auto;
@@ -238,9 +239,9 @@
 }
 
 .modal_info{
-    position: absolute;
+    position: fixed;
     background: #fff;
-    top: 10%;
+    top: 120px;
     width: 1200px;
     border-radius: 4px;
     margin: 0 auto;

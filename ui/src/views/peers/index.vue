@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <div class="block_network mb10">
+            <div class="block_network mb20">
                 <p class="block_title csp">
                     <a @click="turn2network">
                         <span>&lt;&lt;返回网络</span>
@@ -127,7 +127,7 @@
             </div>
         </div>
 
-        <!--blacklist-->
+        <!--add black list-->
         <div class="modal" id="blacklist_peer_modal" v-show="blacklist">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -147,6 +147,7 @@
             </div>
         </div>
 
+        <!--connect peer-->
         <div class="modal" id="connect_peer_modal" v-show="connectPeer">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -166,6 +167,7 @@
             </div>
         </div>
 
+        <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfo">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
