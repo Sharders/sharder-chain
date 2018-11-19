@@ -3,12 +3,10 @@ import Vuex from "vuex";
 import ui from "./ui";
 
 Vue.use(Vuex);
-
 const store = new Vuex.Store({
-
     state: {
         isLogin: false,
-        mask: ""
+        mask: false
     },
     mutations: { // 类似 vue 的 methods
         loginState (state) {
@@ -18,7 +16,5 @@ const store = new Vuex.Store({
     modules: {
         ui
     }
-
 });
-
 export default store;
