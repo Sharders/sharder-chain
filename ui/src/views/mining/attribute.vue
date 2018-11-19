@@ -355,7 +355,6 @@
 
     .join-pool .btn button {
         outline: none;
-        border: none;
         width: 200px;
         height: 40px;
         border-radius: 4px;
@@ -375,6 +374,7 @@
         float: right;
         background: #513acB;
         color: #fff;
+        border: none;
     }
 
     .btn button.cancel:hover {
