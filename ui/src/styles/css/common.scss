@@ -142,8 +142,7 @@
 
 
 /*element tooltip background color*/
-.el-tooltip__popper.is-light{
-    color:#fff;
+.el-tooltip__popper{
     background: #493eda!important;
     z-index: 9999 !important;
 }
@@ -153,6 +152,7 @@
     z-index: 9999 !important;
 }
 
+/*按钮样式 正色*/
 .common_btn{
     cursor: pointer;
     height:40px;
@@ -161,7 +161,7 @@
     border: none;
     border-radius: 4px;
     color:#fff;
-    img{
+    /*img{
         vertical-align: middle;
         margin-bottom: 3px;
         width:14px;
@@ -170,7 +170,30 @@
     span{
         vertical-align: middle;
         margin-left: 5px;
-    }
+    }*/
+}
+.common_btn:hover{
+    background: #fff;
+    color:#493eda;
+    border: 1px solid #493eda;
+    transition: .4s;
+}
+/*按钮样式 反色*/
+.common_btn_contrary{
+    background: #fff;
+    border: 1px solid #493eda;
+    color:#493eda;
+}
+.common_btn_contrary:hover{
+    background: #493eda;
+    color:#fff;
+    transition: .4s;
+}
+
+.medium{
+    height: 40px;
+    width: 120px;
+    margin-top: 10px;
 }
 
 

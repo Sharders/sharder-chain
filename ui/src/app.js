@@ -12,17 +12,19 @@ import "material-design-icons";
 import "styles/css/index.scss";
 import "element-ui/lib/theme-chalk/index.css";
 
+var passUrls = ["static", "login", "register", "enter"];
+
 router.beforeEach((to, from, next) => {
-  if (to.path !== "/login") {
-    if (store.state.isLogin) {
-      next();
-    } else {
-      next("/login");
-    }
-  } else {
-    next();
-  }
-});
+        if (passUrls.indexOf(to.path.split("/")[1]) === -1) {
+            if (store.state.isLogin) {
+                next();
+            } else {
+                next("/");
+            }
+        } else {
+            next();
+        }
+    });
 
 sync(store, router);
 Vue.use(Element, { locale });

@@ -19,7 +19,7 @@
                 </div>
                 <div class="my-info">
                     <h1>
-                        <img src="../../assets/miner-info1.svg" class="head-portrait">
+                        <img src="../../assets/wodexingxi.png" class="head-portrait">
                         <span>我的信息</span>
                     </h1>
                     <div class="my-attribute">
@@ -239,11 +239,10 @@
     .my-info .head-portrait {
         width: 20px;
         height: 20px;
-        background: #513acB;
         border-radius: 50%;
         position: relative;
         top: 4px;
-        margin-right: 12px;
+        margin: 0 12px 0 0;
     }
 
     .my-attribute .info {
@@ -598,6 +597,18 @@
         .pool-attribute .exit-pool .btn button {
             margin-top: 40px;
             width: 49%;
+        }
+
+        .pool-attribute .pool-content .my-info h1 {
+            font-size: 15px;
+            padding: 12px 0;
+        }
+
+        .pool-attribute .my-info .head-portrait {
+            width: 16px;
+            height: 16px;
+            margin: 0 6px 0 0;
+            top: 2px;
         }
 
     }

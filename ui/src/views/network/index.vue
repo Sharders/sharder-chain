@@ -442,10 +442,10 @@
         components: { echarts, world },
         data () {
             return {
-                tabTitle: 'account',
-                blockInfo:false,
-                accountInfo:false,
-                accountTransaction:false
+                tabTitle: "account",
+                blockInfo: false,
+                accountInfo: false,
+                accountTransaction: false
             };
         },
         methods: {
@@ -713,22 +713,22 @@
 
                 myChart.setOption(option);
             },
-            openBlockInfo:function () {
+            openBlockInfo: function () {
                 this.closeDialog();
                 this.$store.state.mask = true;
                 this.blockInfo = true;
             },
-            openAccountInfo:function(){
+            openAccountInfo: function () {
                 this.closeDialog();
                 this.$store.state.mask = true;
                 this.accountInfo = true;
             },
-            openAccountTransaction:function(){
+            openAccountTransaction: function () {
                 this.closeDialog();
                 this.$store.state.mask = true;
                 this.accountTransaction = true;
             },
-            closeDialog:function(){
+            closeDialog: function () {
                 this.$store.state.mask = false;
                 this.blockInfo = false;
                 this.accountInfo = false;
@@ -741,6 +741,6 @@
     };
 </script>
 <style lang="scss" type="text/scss">
-    @import '~scss_vars';
+    /*@import '~scss_vars';*/
     @import './style.scss';
 </style>

@@ -19,9 +19,10 @@
                         <img src="../../assets/console.svg">
                     </el-menu-item>-->
                 </el-menu>
-                <div class="console_bar csp">
-                    <img src="../../assets/console.svg">
-
+                <div class="navbar_console">
+                    <el-button type="text">
+                        <span class="console"></span>
+                    </el-button>
                 </div>
                 <div class="navbar_search">
                     <div>
@@ -54,44 +55,44 @@
 
 <script>
     export default {
-        name : "Header",
-        props : ["openSidebar", "title"],
+        name: "Header",
+        props: ["openSidebar", "title"],
         data () {
             return {
-                activeIndex : "/account",
-                isRouter : true,
-                placeholder : "搜索",
-                activeSearch : false,
+                activeIndex: "/account",
+                isRouter: true,
+                placeholder: "搜索",
+                activeSearch: false,
                 search_val: ""
-            }
+            };
         },
         methods: {
-            activeItem: function(val){
-                let _this = this;
+            activeItem: function (val) {
+                const _this = this;
                 _this.activeIndex = val;
             },
-            search_focus:function () {
-                let _this = this;
+            search_focus: function () {
+                const _this = this;
                 _this.activeSearch = true;
-                _this.placeholder = "输入账户ID/交易ID/区块ID进行搜索"
+                _this.placeholder = "输入账户ID/交易ID/区块ID进行搜索";
             },
-            search_blur:function () {
-                let _this = this;
-                if(_this.search_val === ""){
+            search_blur: function () {
+                const _this = this;
+                if (_this.search_val === "") {
                     _this.activeSearch = false;
-                    _this.placeholder = "搜索"
+                    _this.placeholder = "搜索";
                 }
             },
-            search_keydown:function () {
-                let _this = this;
+            search_keydown: function () {
+                const _this = this;
                 console.log("你输入的值是" + _this.search_val);
                 _this.search_val = "";
             }
         }
-    }
+    };
 </script>
 <style lang="scss" type="text/scss">
     /* You can import all your SCSS variables using webpack alias*/
-    @import '~scss_vars';
+    /*@import '~scss_vars';*/
     @import './style.scss';
 </style>
