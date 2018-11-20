@@ -62,7 +62,7 @@
                                 <td>普通支付</td>
                                 <td>+10000000 SS</td>
                                 <td>1 SS</td>
-                                <td class="linker image_text">
+                                <td class="linker image_text w300">
                                     <span>SSA-9WKZ-DV7P-M6MN-5MH8B</span>
                                     <img src="../../assets/right_arrow.svg"/>
                                     <span>您</span>
@@ -85,15 +85,38 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">管理密码</h4>
+                        <h4 class="modal-title">发送信息</h4>
                     </div>
-                    <div class="modal-body modal-peer">
-                        <p>节点名称：114.115.210.116</p>
-                        <p>管理密码</p>
-                        <input type="password"/>
+                    <div class="modal-body modal-message">
+                        <el-form>
+                            <el-form-item label="接受者">
+                                <el-input v-model="messageForm.receiver"></el-input>
+                            </el-form-item>
+                            <el-form-item label="信息">
+                                <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
+                                <el-input
+                                    type="textarea"
+                                    :rows="2"
+                                    autosize
+                                    resize="none"
+                                    placeholder="请输入内容"
+                                    v-model="messageForm.message">
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="文件">
+                                <el-input placeholder="请输入内容" v-model="messageForm.file" class="input-with-select">
+
+                                    <el-button slot="append">浏览</el-button>
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="手续费">
+                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
+                                </el-slider>
+                            </el-form-item>
+                        </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn">连接</button>
+                        <button type="button" class="btn">发送信息</button>
                     </div>
                 </div>
             </div>
@@ -107,7 +130,16 @@
         data () {
             return {
                 address: "SSA-9WKZ0DV7P-M6MN-5MH8B",
-                sendMessage:false
+                sendMessage:false,
+
+                messageForm:{
+                    receiver:'',
+                    message:'',
+                    isEncrypted:true,
+                    file:'',
+                    fee:0,
+                    password:''
+                }
             };
         },
         methods:{
@@ -123,18 +155,16 @@
                 let _this = this;
                 _this.$message({
                     showClose: true,
-                    message: '已粘贴到剪切板',
+                    message: '已复制到剪切板',
                     type: 'success',
-                    duration:0
                 });
             },
             copyError:function () {
                 let _this = this;
                 _this.$message({
                     showClose: true,
-                    message: '粘贴失败',
+                    message: '复制失败',
                     type: 'error',
-                    duration:0
 
                 });
             }

@@ -66,3 +66,21 @@
     }
     .dbw{width:270px;}
 }
+/*.el-tooltip__popper {
+    border: none!important;
+    padding: 0;
+    top: +20px;
+    background: #fff!important;
+    color: #493eda !important;
+    z-index: 9999 !important;
+}
+.el-tooltip__popper  {
+    .popper__arrow{
+        border-width:0;
+    }
+    .popper__arrow:after{
+        background: transparent;
+        color: transparent;
+        border: none;
+    }
+}*/

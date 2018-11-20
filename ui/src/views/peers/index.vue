@@ -54,17 +54,17 @@
                                     <td>133KB</td>
                                     <td><span class="patch">COS0.1.0</span></td>
                                     <td>Linux amd64</td>
-                                    <td class="linker">
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                    <td class="linker tl pl30">
+                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
                                             <a>CS</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="商业API" placement="top">
+                                        <el-tooltip class="item" content="商业API" placement="top" effect="light">
                                             <a>BI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="存储服务" placement="top">
+                                        <el-tooltip class="item" content="存储服务" placement="top" effect="light">
                                             <a>SE</a>
                                         </el-tooltip>
                                     </td>
@@ -82,11 +82,11 @@
                                     <td>133KB</td>
                                     <td><span class="patch">COS0.0.1</span></td>
                                     <td>Linux amd64</td>
-                                    <td class="linker">
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                    <td class="linker tl pl30">
+                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
                                             <a>CS</a>
                                         </el-tooltip>
                                     </td>
@@ -104,14 +104,14 @@
                                     <td>133KB</td>
                                     <td><span class="patch">COS0.1.0</span></td>
                                     <td>Linux amd64</td>
-                                    <td class="linker tl">
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                    <td class="linker tl pl30">
+                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
                                             <a>CS</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="商业API" placement="top">
+                                        <el-tooltip class="item" content="商业API" placement="top" effect="light">
                                             <a>BI</a>
                                         </el-tooltip>
                                     </td>

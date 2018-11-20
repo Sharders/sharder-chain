@@ -15,10 +15,14 @@
                     <el-menu-item index="/account" :class="activeIndex === '/account' ? 'activeLi' : ''">账户</el-menu-item>
                     <el-menu-item index="/network" :class="activeIndex === '/network' ? 'activeLi' : ''">网络</el-menu-item>
                     <el-menu-item index="/mining" :class="activeIndex === '/mining' ? 'activeLi' : ''">矿池</el-menu-item>
-                    <el-menu-item index="/console" :class="activeIndex === '/console' ? 'activeLi' : ''">
+                    <!--<el-menu-item index="/1" :class="activeIndex === '/1' ? 'activeLi' : ''">
                         <img src="../../assets/console.svg">
-                    </el-menu-item>
+                    </el-menu-item>-->
                 </el-menu>
+                <div class="console_bar csp">
+                    <img src="../../assets/console.svg">
+
+                </div>
                 <div class="navbar_search">
                     <div>
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
@@ -32,7 +36,7 @@
                         <span>SSA-9WKZ-DV7P-M6MN-SMH8B | 观察模式</span>
                     </div>
                     <div class="navbar_pilotLamp">
-                        <el-tooltip class="item" content="挖矿中" placement="bottom">
+                        <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light">
                             <div class="pilotLamp_circle"></div>
                         </el-tooltip>
                     </div>

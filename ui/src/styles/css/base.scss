@@ -28,9 +28,9 @@ button,a,li,div,label{outline: none;}
 .no_unl{text-decoration: none;}
 
 /*定位*/
-.tl{text-align: left;}
-.tc{text-align: center;}
-.tr{text-align: right;}
+.tl{text-align: left!important;}
+.tc{text-align: center!important;}
+.tr{text-align: right!important;}
 .bc{margin-left: auto;margin-right: auto;}
 .fl{float: left;display:inline;}
 .fr{float: right;display:inline;}
