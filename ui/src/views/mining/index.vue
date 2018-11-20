@@ -27,10 +27,10 @@
                         <p>全网收益 1000 SS</p>
                     </div>
                 </div>
-                <div class="instructions">豆匣矿场说明</div>
-                <div class="invite-friends">邀请好友得奖励</div>
-                <div class="rule-description">规则说明</div>
-                <div class="my-mining create">
+                <div class="instructions" @click="">豆匣矿场说明</div>
+                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">邀请好友得奖励</div>
+                <div class="rule-description" @click="$router.push({name: 'rule-description'})">规则说明</div>
+                <div class="my-mining create" @click="$router.push({name: 'my-mining'})">
                     <img src="../../assets/wodekuangchi.png">
                     <p>我的矿池</p>
                 </div>

@@ -8,6 +8,9 @@ import Mining from "views/mining";
 import Network from "views/network";
 import Peers from "views/peers";
 import Attribute from "views/mining/attribute";
+import InviteFriends from "views/mining/invite-friends";
+import RuleDescription from "views/mining/rule-description";
+import MyMining from "views/mining/my-mining";
 
 Vue.use(Router);
 Vue.use(VueClipboard);
@@ -36,6 +39,21 @@ export const routes = [
                 path: "/mining/attribute",
                 name: "mining-attribute",
                 component: Attribute
+            },
+            {
+                path: "/mining/invite-friends",
+                name: "invite-friends",
+                component: InviteFriends
+            },
+            {
+                path: "/mining/rule-description",
+                name: "rule-description",
+                component: RuleDescription
+            },
+            {
+                path: "/mining/my-mining",
+                name: "my-mining",
+                component: MyMining
             },
             {
                 path: "/network",
