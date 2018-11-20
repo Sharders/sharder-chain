@@ -94,7 +94,12 @@ module.exports = {
         // to the root of dist path
         to: "./"
       }
-    ])
+    ]),
+      new webpack.optimize.CommonsChunkPlugin('common.js'),
+      new webpack.ProvidePlugin({
+          jQuery: "jquery",
+          $: "jquery"
+      })
   ],
   target: _.target
 };

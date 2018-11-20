@@ -8,42 +8,49 @@
                     <a>The testnet peer port is 8218</a>
                 </div>
             </div>
-            <div class="content_login">
-                <el-row>
-                    <el-col :span="24">
-                        <div >语言</div>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="24">
-                        <div >this is login page2</div>
-                    </el-col>
-                </el-row>
-                <button @click="login()"></button>
-            </div>
+
+            <el-col :span="24">
+                <el-dropdown trigger="click"  @command="languageChange">
+                        <span  class="el-dropdown-link" >
+                            <a>语言</a><img src="../../assets/select-language.png"/>
+                        </span>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item command="cn">中文</el-dropdown-item>
+                        <el-dropdown-item command="en">English</el-dropdown-item>
+                    </el-dropdown-menu>
+                </el-dropdown>
+            </el-col>
+
+            <el-col :span="24" class="sharder_style">
+                <img src="../../assets/logo.svg"/><br/>
+                <a>Sharder</a>
+            </el-col>
+
+           <div class="content_operation">
+               <div class="content_container">
+                   <router-view />
+               </div>
+           </div>
         </div>
     </div>
 </template>
 
 <script>
-    import store from "../../store";
     export default {
         name: "index",
         data () {
-            return {
-            };
+            return {};
         },
         methods: {
-            login: function () {
-                store.commit("loginState");
-                this.$router.push("/");
-                console.log(store.state.isLogin);
+            languageChange: function (language) {
+                console.log(language);
             }
         }
     };
 </script>
 
-<<style lang="scss">
+
+<style lang="scss">
     @import '~scss_vars';
     @import './style.scss';
 </style>

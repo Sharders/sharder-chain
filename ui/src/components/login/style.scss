@@ -1,36 +1,66 @@
-html { overflow-x: hidden; overflow-y: hidden; }
 .container_login{
-    height: 1080px;
-    width: 1920px;
-    margin: auto;
-    overflow:auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
     background: url("../../../static/img/background-login.svg") ;
+    a{
+        font-family: "Microsoft YaHei";
+        color: #493eda;
+        text-align: center;
+    }
     .content{
         width: 600px;
         height: 640px;
-        margin: 120px auto;
-        > div {
+        margin:auto;
+        padding-top: 120px;
+        .content_operation{
+            height: 530px;
             background-color: #fff;
             box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
             border-radius:2px;
+            .content_container{
+                margin: 0 auto;
+                width: 510px;
+            }
         }
-    }
-    .content_message{
-        height: 90px;
-        margin-bottom: 20px;
-        text-align:center;
-        overflow:auto;
-        a {
-            color: #ff0f0f;
+        .el-dropdown-link {
+            cursor: pointer;
             font-size: 14px;
-            font-family: "Microsoft YaHei";
+            outline: none;
+            img{
+                margin-left: 10px;
+            }
         }
-        > div{
-            margin-top:4%;
+        .el-dropdown{
+            float: right;
+            margin: 30px 30px;
+        }
+        .sharder_style{
+            font-size: 22px;
+            text-align: center;
+            img{
+                width:100px;
+            }
+        }
+        .content_message{
+            background-color: #fff;
+            box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
+            border-radius:2px;
+            height: 90px;
+            margin-bottom: 20px;
+            text-align:center;
+            overflow:auto;
+            > div{
+                margin-top:4%;
+                a{
+                    color: #ff0f0f;
+                }
+            }
         }
     }
-    .content_login{
-        height: 530px;
-    }
+
 }
 

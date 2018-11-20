@@ -1,0 +1,56 @@
+.content_login{
+    text-align: center;
+    .login_operation{
+        margin-top: 10px;
+        .secret_key_input{
+            display: none;
+        }
+        > input{
+            text-align: center;
+            width: 510px;
+            height: 40px;
+            background-color:#edeff5;
+            border-radius: 4px;
+            border: 0px;
+            font-size: 14px;
+            font-family:"Microsoft YaHei";
+            outline: none;
+        }
+        .common_btn{
+            width: 510px;
+        }
+    }
+    :nth-child(3){
+        a{
+            font-size: 16px;
+            margin-left: 2px;
+            cursor: pointer;
+            text-decoration:none;
+        }
+        img{
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        text-align: center;
+    }
+    .switch{
+        margin-top: 15px;
+        text-align: left;
+        > button {
+            border-radius: 4px;
+            height: 30px;
+            width: 100px;
+            cursor: pointer;
+            outline: none;
+        }
+    }
+    .el-button{
+        height: 45px;
+        color: #fff;
+        margin-top: 40px;
+        margin-bottom: 50px;
+        font-size: 16px;
+    }
+}
+

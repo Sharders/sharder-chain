@@ -11,14 +11,14 @@ import "whatwg-fetch";
 import "material-design-icons";
 import "styles/index.scss";
 
-var passUrls = ["static", "login"];
+var passUrls = ["static", "login", "register", "enter"];
 
 router.beforeEach((to, from, next) => {
         if (passUrls.indexOf(to.path.split("/")[1]) === -1) {
             if (store.state.isLogin) {
                 next();
             } else {
-                next("/login");
+                next("/");
             }
         } else {
             next();

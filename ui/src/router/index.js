@@ -3,6 +3,9 @@ import Router from "vue-router";
 import VueClipboard from "vue-clipboard2";
 import Login from "components/login";
 import Main from "components/main";
+import LoginPage from "views/login";
+import Register from "views/register";
+import Enter from "views/enter";
 import Account from "views/account";
 import Mining from "views/mining";
 import Network from "views/network";
@@ -17,15 +20,29 @@ Vue.use(VueClipboard);
 
 export const routes = [
     {
-        path: "/login",
+        path: "/",
         component: Login,
-        hidden: true
+        redirect: "/login",
+        children: [
+            {
+                path: "/login",
+                component: LoginPage,
+                hidden: true
+            },
+            {
+                path: "/register",
+                component: Register
+            },
+            {
+                path: "/enter",
+                component: Enter
+            }
+        ]
     },
     {
-        path: "/",
+        path: "/account",
         component: Main,
         leaf: true,
-        redirect: "/account",
         children: [
             {
                 path: "/account",
