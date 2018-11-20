@@ -14,6 +14,7 @@ import Attribute from "views/mining/attribute";
 import InviteFriends from "views/mining/invite-friends";
 import RuleDescription from "views/mining/rule-description";
 import MyMining from "views/mining/my-mining";
+import CreateHistory from "views/mining/create-history";
 
 Vue.use(Router);
 Vue.use(VueClipboard);
@@ -71,6 +72,11 @@ export const routes = [
                 path: "/mining/my-mining",
                 name: "my-mining",
                 component: MyMining
+            },
+            {
+                path: "/mining/create-history",
+                name: "create-history",
+                component: CreateHistory
             },
             {
                 path: "/network",
