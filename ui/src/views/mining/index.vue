@@ -28,13 +28,19 @@
                     </div>
                 </div>
                 <div class="instructions">豆匣矿场说明</div>
+                <div class="invite-friends">邀请好友得奖励</div>
+                <div class="rule-description">规则说明</div>
+                <div class="my-mining create">
+                    <img src="../../assets/wodekuangchi.png">
+                    <p>我的矿池</p>
+                </div>
                 <div class="create" @click="isVisiblePool()">
                     <img src="../../assets/chuanjiankuangchi.png">
                     <p>创建矿池</p>
                 </div>
             </div>
             <div class="mining-notice">
-                <img src="../../assets/logo.svg" class="notice-img">
+                <img src="../../assets/guangbo.png" class="notice-img">
                 <span class="notice-info">
                     矿产第2345块 | 出块者023 | 奖励: 1000 SS
                 </span>
@@ -554,6 +560,11 @@
         border-top-left-radius: 20px;
     }
 
+    .invite-friends, .rule-description {
+        cursor: pointer;
+        display: none;
+    }
+
     .create {
         position: relative;
         text-align: center;
@@ -562,6 +573,11 @@
         float: right;
         right: -130px;
         cursor: pointer;
+    }
+
+    .my-mining.create {
+        margin: 0 0 0 10px;
+        display: none;
     }
 
     .create img {
@@ -1008,14 +1024,38 @@
         }
 
         .mining .mining-content .instructions {
-            right: -15px;
+            display: none;
+        }
+
+        .mining .mining-content .invite-friends,
+        .mining .mining-content .rule-description {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            padding: 10px 20px;
+            background: #0000ff;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            position: absolute;
+            right: 0;
+            top: 20px;
+            font-size: 14px;
+        }
+
+        .mining .mining-content .rule-description {
+            top: 66px;
         }
 
         .mining .mining-content .create {
             position: absolute;
             top: 320px;
-            right: 15px;
+            right: 75px;
             font-size: 13px;
+        }
+
+        .mining .mining-content .create.my-mining {
+            display: initial;
+            right: 15px;
         }
 
         .mining .mining-content .create img {
@@ -1076,7 +1116,7 @@
 
         .mining .create-pool {
             position: fixed;
-            top: calc(50% - 270px);
+            top: calc(50% - 250px);
         }
 
         .mining .create-pool-content .pool-title {
@@ -1100,8 +1140,8 @@
             font-weight: initial;
         }
 
-        .ranking .ranking-content .ranking-title, .create-pool .pool-header {
-            /*display: none;*/
+        .create-pool .pool-header {
+            display: none;
         }
 
         .mining .create-pool .pool-attribute, .mining .create-pool .pool-set {
