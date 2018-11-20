@@ -47,5 +47,5 @@
 <style lang="scss">
     @import '~scss_vars';
     @import './style.scss';
-    @import '../../styles/common.scss';
+    @import '../../styles/css/common.scss';
 </style>

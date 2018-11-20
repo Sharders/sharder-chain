@@ -143,6 +143,7 @@
 
 /*element tooltip background color*/
 .el-tooltip__popper{
+    color: #ffffff !important;
     background: #493eda!important;
     z-index: 9999 !important;
 }
@@ -156,12 +157,15 @@
 .common_btn{
     cursor: pointer;
     height:40px;
-    margin: 0 15px;
     background: #493eda;
     border: none;
     border-radius: 4px;
     color:#fff;
-    /*img{
+}
+
+.imgBtn{
+    margin: 0 15px;
+    img{
         vertical-align: middle;
         margin-bottom: 3px;
         width:14px;
@@ -170,7 +174,7 @@
     span{
         vertical-align: middle;
         margin-left: 5px;
-    }*/
+    }
 }
 .common_btn:hover{
     background: #fff;
@@ -299,7 +303,7 @@
 
                         .el-slider__runway{
                             height: 2px;
-                            margin: 35px 0 20px;
+                            margin: 35px 0 0;
                             background-color: #e4e7ed;
                             .el-slider__bar{
                                 height: 2px;
@@ -335,6 +339,7 @@
                                 }
                             }
                         }
+
                     }
                 }
             }
@@ -348,6 +353,7 @@
                     border-radius: 4px;
                     font-size: 14px;
                     color: #fff;
+                    cursor: pointer;
                 }
             }
         }

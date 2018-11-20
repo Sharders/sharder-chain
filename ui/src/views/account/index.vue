@@ -15,9 +15,9 @@
                     </div>
                     <p class="account_asset">资产：1,234,567,890 SS</p>
                     <div class="account_tool">
-                        <button class="common_btn"><img src="../../assets/transfer.svg"/><span>转账</span></button>
-                        <button class="common_btn" @click="openSendMessageDialog"><img src="../../assets/message.svg"/><span>发送消息</span></button>
-                        <button class="common_btn"><img src="../../assets/setting.svg"/><span>HUB设置</span></button>
+                        <button class="common_btn imgBtn"><img src="../../assets/transfer.svg"/><span>转账</span></button>
+                        <button class="common_btn imgBtn" @click="openSendMessageDialog"><img src="../../assets/message.svg"/><span>发送消息</span></button>
+                        <button class="common_btn imgBtn"><img src="../../assets/setting.svg"/><span>HUB设置</span></button>
                     </div>
                 </div>
             </div>
@@ -96,22 +96,68 @@
                                 <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
                                 <el-input
                                     type="textarea"
-                                    :rows="2"
-                                    autosize
+                                    :autosize="{ minRows: 2, maxRows: 10}"
                                     resize="none"
-                                    placeholder="请输入内容"
+                                    placeholder="请输入信息内容"
                                     v-model="messageForm.message">
                                 </el-input>
                             </el-form-item>
                             <el-form-item label="文件">
-                                <el-input placeholder="请输入内容" v-model="messageForm.file" class="input-with-select">
-
+                                <el-input placeholder="请选择文件" v-model="messageForm.file">
                                     <el-button slot="append">浏览</el-button>
                                 </el-input>
+                                <input id="file" ref="file" type="file" @change="fileChange"/>
                             </el-form-item>
                             <el-form-item label="手续费">
                                 <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
                                 </el-slider>
+                            </el-form-item>
+                            <el-form-item label="秘钥">
+                                <el-input v-model="messageForm.password" type="password"></el-input>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn">发送信息</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="tranfer_accounts_modal" v-show="tranferAccounts">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">发送信息</h4>
+                    </div>
+                    <div class="modal-body modal-message">
+                        <el-form>
+                            <el-form-item label="接受者">
+                                <el-input v-model="messageForm.receiver"></el-input>
+                            </el-form-item>
+                            <el-form-item label="信息">
+                                <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
+                                <el-input
+                                    type="textarea"
+                                    :autosize="{ minRows: 2, maxRows: 10}"
+                                    resize="none"
+                                    placeholder="请输入信息内容"
+                                    v-model="messageForm.message">
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="文件">
+                                <el-input placeholder="请选择文件" v-model="messageForm.file">
+                                    <el-button slot="append">浏览</el-button>
+                                </el-input>
+                                <input id="file" ref="file" type="file" @change="fileChange"/>
+                            </el-form-item>
+                            <el-form-item label="手续费">
+                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
+                                </el-slider>
+                            </el-form-item>
+                            <el-form-item label="秘钥">
+                                <el-input v-model="messageForm.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
@@ -131,13 +177,14 @@
             return {
                 address: "SSA-9WKZ0DV7P-M6MN-5MH8B",
                 sendMessage:false,
+                tranferAccounts:false,
 
                 messageForm:{
-                    receiver:'',
-                    message:'',
+                    receiver:'1',
+                    message:'2',
                     isEncrypted:true,
                     file:'',
-                    fee:0,
+                    fee:10,
                     password:''
                 }
             };
@@ -166,6 +213,19 @@
                     message: '复制失败',
                     type: 'error',
 
+                });
+            },
+
+            fileChange:function (e) {
+
+                let _this = this;
+                _this.file = e.target.files[0].name;
+                console.log("file",_this.file);
+
+                _this.$message({
+                    showClose: true,
+                    message: _this.file,
+                    type: 'success',
                 });
             }
         }

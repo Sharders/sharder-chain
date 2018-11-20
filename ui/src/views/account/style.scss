@@ -66,21 +66,11 @@
     }
     .dbw{width:270px;}
 }
-/*.el-tooltip__popper {
-    border: none!important;
-    padding: 0;
-    top: +20px;
-    background: #fff!important;
-    color: #493eda !important;
-    z-index: 9999 !important;
+#file{
+    position: absolute;
+    width: 70px;
+    height: 40px;
+    right: 0;
+    top: 30px;
+    opacity: 0;
 }
-.el-tooltip__popper  {
-    .popper__arrow{
-        border-width:0;
-    }
-    .popper__arrow:after{
-        background: transparent;
-        color: transparent;
-        border: none;
-    }
-}*/
