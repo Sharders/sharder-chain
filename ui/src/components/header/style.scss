@@ -52,7 +52,7 @@
                 display: inline-flex;
                 padding: 0;
                 height: 100%;
-                margin: 0 55px 0 0;
+                margin: 0;
                 background: transparent;
                 .el-menu-item {
                     outline: none;
@@ -81,6 +81,24 @@
                     border-bottom: 4px solid #493eda!important;
                     color: #493eda !important;
                     font-weight: bold;
+                }
+            }
+            .navbar_console {
+                margin-right: 55px;
+                width: 60px;
+                height: calc(100% - 5px);
+                border-bottom: 5px;
+                button {
+                    width: 100%;
+                    height: 100%;
+                    padding: 0;
+                    .console {
+                        display: inline-flex;
+                        height: 75px;
+                        width: 100%;
+                        background: url("../../assets/console.svg") no-repeat center center transparent;
+                        background-size: 20px;
+                    }
                 }
             }
             .navbar_search {
