@@ -6,7 +6,7 @@ address,caption,cite,code,dfn,em,strong,th,var{font-style: normal;font-weight: n
 ol,ul{list-style: none;}
 h1,h2,h3,h4,h5,h6{font-size: 100%;font-weight: normal;}
 abbr,acronym{ border:0;}
-button{outline: none;}
+button,a,li,div,label{outline: none;}
 
 /*布局*/
 .dfl{display: flex}
@@ -43,7 +43,7 @@ button{outline: none;}
 .vm{vertical-align: middle;}
 .pr{position: relative;}
 .pa{position: absolute;}
-abs-right{position: absolute;right: 0;}
+.abs-right{position: absolute;right: 0;}
 .zoom{zoom:1;}
 .hidden{visibility: hidden;}
 .none{display: none}
@@ -71,6 +71,7 @@ abs-right{position: absolute;right: 0;}
 .hhf{height:50%;}
 
 /*编剧*/
+.m0{margin: 0;}
 .m10{margin:10px;}
 .m15{margin:15px;}
 .m30{margin:30px;}
@@ -82,6 +83,7 @@ abs-right{position: absolute;right: 0;}
 .mt50{margin-top:50px;}
 .mt60{margin-top: 60px;}
 .mt100{margin-top:100px;}
+.mb0{margin-bottom: 0;}
 .mb5{margin-bottom: 5px;}
 .mb10{margin-bottom: 10px;}
 .mb15{margin-bottom: 15px;}
@@ -103,6 +105,7 @@ abs-right{position: absolute;right: 0;}
 .mr30{margin-right: 30px;}
 .mr50{margin-right: 50px;}
 .mr100{margin-right: 100px;}
+.p0{padding: 0;}
 .p5{padding: 5px;}
 .p10{padding:10px;}
 .p15{padding: 15px;}
@@ -145,3 +148,5 @@ abs-right{position: absolute;right: 0;}
 .br6{border-radius: 6px}
 .br8{border-radius: 8px}
 
+/*鼠标指针样式*/
+.csp{cursor:pointer}

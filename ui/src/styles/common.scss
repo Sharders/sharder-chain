@@ -1,28 +1,40 @@
 /*可复用组件样式*/
+#app .page-layout main {
+    height: initial !important;
+    transform: initial !important;
+    overflow-x: initial !important;
+    position: initial !important;
+    width: 1200px !important;
+    margin: auto;
+}
 
-
-.block-title{
+.block_title{
     font-size: 14px;
     font-family: "Microsoft YaHei UI";
     color:#493eda;
     margin-bottom: 10px;
-    img{
+    >img{
         vertical-align: middle;
         margin-right: 5px;
+        width:14px;
+        height:14px;
     }
-    span{
+    >span{
         color:#000;
         vertical-align: middle;
     }
 }
 
-.block-blue{
+.radius_blue{
+    border-radius: 4px;
+    background: #493eda;
+}
+
+.block_blue{
     height: 120px;
     width: 390px;
     padding: 20px;
-    background: #493eda;
     margin-right: 15px;
-    border-radius: 4px;
     font-family: "Microsoft YaHei UI";
     font-weight: bold;
     color: #fff;
@@ -47,13 +59,13 @@
     }
 }
 
-.block-list{
-    .list-table{
+.block_list{
+    .list_table{
         display: grid;
         background: #fff;
         box-shadow: 0 0 1em #493eda1f;
         margin-bottom: 80px;
-        .list-content {
+        .list_content {
             display: grid;
             table{
                 border-collapse: collapse;
@@ -80,24 +92,62 @@
                         family: "Microsoft YaHei UI";
                         size: 12px;
                     }
+
                 }
 
                 .linker{
                     color:#493eda;
+                    cursor: pointer;
+                    a{
+                        margin: 0 6px;
+                    }
+
                 }
 
-                .transaction{
-                    width: 300px;
+                .image_text{
                     span{vertical-align: middle}
-                    img{vertical-align: middle}
+                    img{
+                        vertical-align: middle;
+                        width:14px;
+                        height:14px;
+                    }
+                }
+
+                .patch{
+                    background: #edeff5;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                }
+
+                .list_button{
+                    cursor: pointer;
+                    background: #493eda;
+                    color: #fff;
+                    border: none;
+                    margin: 5px;
+                    border-radius: 4px;
+                    font-size: 12px;
                 }
             }
         }
-        .list-pagination {
+        .list_pagination {
             border-top: 1px solid #ddd;
             text-align: right;
         }
     }
+    .blockInfo{
+        margin-top: 20px;
+    }
+}
+
+
+/*element tooltip background color*/
+.el-tooltip__popper{
+    background: #493eda!important;
+}
+.el-tooltip__popper .popper__arrow:after {
+    border-top-color:  #493eda!important;
+    border-bottom-color:  #493eda!important;
 }
 
 .common_btn{
@@ -110,9 +160,141 @@
     img{
         vertical-align: middle;
         margin-bottom: 3px;
+        width:14px;
+        height:14px;
     }
     span{
         vertical-align: middle;
         margin-left: 5px;
+    }
+}
+
+
+.modal{
+    position: absolute;
+    background: #fff;
+    top: 28%;
+    width: 500px;
+    border-radius: 7px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    .modal-dialog{
+        .modal-content{
+            .modal-header{
+                position: relative;
+                text-align: center;
+                height: 60px;
+                border-bottom: 1px solid #eee;
+                .close{
+                    position: absolute;
+                    right: 25px;
+                    background: none;
+                    border: none;
+                    font-size: 16px;
+                    color: #333;
+                    font-weight: bold;
+                    padding: 0;
+                    top: 0;
+                    bottom: 0;
+                    cursor: pointer;
+                }
+                .modal-title{
+                    text-align: center;
+                    font-size: 16px;
+                    color: #333;
+                    font-weight: bold;
+                    line-height: 60px;
+                }
+            }
+            .modal-body{
+                margin: 22px 40px;
+                p{
+                    font-size: 14px;
+                    color: #333;
+                }
+                input{
+                    width: 100%;
+                    height: 40px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                }
+            }
+            .modal-footer{
+                margin: 30px 40px;
+                .btn{
+                    width: 100%;
+                    height: 35px;
+                    background: #493eda;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    color: #fff;
+                }
+            }
+        }
+    }
+}
+
+.modal_info{
+    position: absolute;
+    background: #fff;
+    top: 10%;
+    width: 1200px;
+    border-radius: 4px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    .modal-header{
+        position: relative;
+        padding: 0 30px;
+        height: 60px;
+        border-bottom: 1px solid #eee;
+        .close{
+            width: 24px;
+            position: absolute;
+            right: 30px;
+            top: 18px;
+            cursor: pointer;
+        }
+        .modal-title{
+            line-height: 60px;
+            font-size: 16px;
+            color:#333;
+            font-weight: bold;
+        }
+    }
+    .modal-body{
+        margin: 30px;
+        .table{
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            word-break:break-all;
+            tr{
+                height:40px;
+                &:nth-child(even){
+                    background: #f4f7fc;
+                }
+            }
+            td{
+                border-left: 1px solid #ddd;
+                border-top: 1px solid #ddd;
+                width: 370px;
+                padding-left: 20px;
+                font-size: 14px;
+                color: #333;
+                line-height: 40px;
+            }
+            th{
+                border-left: 1px solid #ddd;
+                border-top: 1px solid #ddd;
+                width: 200px;
+                font-size: 14px;
+                font-weight: bold;
+                color: #333;
+            }
+        }
     }
 }

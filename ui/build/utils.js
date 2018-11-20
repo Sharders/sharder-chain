@@ -1,13 +1,13 @@
-'use strict'
-const path = require('path')
-const _ = (module.exports = {})
+"use strict";
+const path = require("path");
+const _ = (module.exports = {});
 
 _.cwd = file => {
-  return path.join(process.cwd(), file || '')
-}
+  return path.join(process.cwd(), file || "");
+};
 
-_.outputPath = path.join(__dirname, '../../html/www')
+_.outputPath = path.join(__dirname, "../../html/www");
 
-_.outputIndexPath = path.join(__dirname, '../../html/www/index.html')
+_.outputIndexPath = path.join(__dirname, "../../html/www/index.html");
 
-_.target = 'web'
+_.target = "web";
