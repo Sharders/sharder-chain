@@ -9,7 +9,8 @@
                 <div class="w pt60">
                     <div class="account_address">
                         <span>{{address}}</span>
-                        <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="address"/>
+                        <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="address"
+                             v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span>账户详情</span>
                     </div>
                     <p class="account_asset">资产：1,234,567,890 SS</p>
@@ -118,6 +119,25 @@
                 this.$store.state.mask = false;
                 this.sendMessage = false;
             },
+            copySuccess:function () {
+                let _this = this;
+                _this.$message({
+                    showClose: true,
+                    message: '已粘贴到剪切板',
+                    type: 'success',
+                    duration:0
+                });
+            },
+            copyError:function () {
+                let _this = this;
+                _this.$message({
+                    showClose: true,
+                    message: '粘贴失败',
+                    type: 'error',
+                    duration:0
+
+                });
+            }
         }
 
     };
