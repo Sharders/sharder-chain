@@ -1,6 +1,6 @@
 <template>
     <div class="invite-friends">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回矿池</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
         <div class="invite">
             <h1 class="title">共识矿场</h1>
             <p class="info">每邀请好友下载钱包并进入应用获得钻石奖励</p>

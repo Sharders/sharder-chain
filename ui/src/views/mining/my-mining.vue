@@ -1,7 +1,7 @@
 <template>
     <div class="my-mining">
         <div class="tabs">
-            <p @click="$router.back()" class="mining-back">&lt;&lt;返回矿池</p>
+            <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
             <el-radio-group v-model="tabPosition" class="title">
                 <el-radio-button label="join" class="btn">我加入的</el-radio-button>
                 <el-radio-button label="create" class="btn">我创建的</el-radio-button>

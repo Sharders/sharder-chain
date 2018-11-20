@@ -1,6 +1,6 @@
 <template>
     <div class="rule-description">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回矿池</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
         <div class="description">
             <h1 class="description-title">系统规则</h1>
             <p class="description-info">豆匣矿场规则说明,不看错过一个亿</p>
