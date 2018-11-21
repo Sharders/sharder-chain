@@ -153,7 +153,6 @@
     z-index: 9999 !important;
 }
 
-/*按钮样式 正色*/
 .common_btn{
     cursor: pointer;
     height:40px;
@@ -161,23 +160,27 @@
     border: none;
     border-radius: 4px;
     color:#fff;
+    .icon {
+        display: inline-flex;
+        height: 100%;
+        width: 14px;
+        svg {
+            width:14px;
+        }
+    }
 }
 
 .imgBtn{
     margin: 0 15px;
-    embed{
-        vertical-align: middle;
-        margin-bottom: 3px;
-        width:14px;
-        height:14px;
-    }
     span{
         vertical-align: middle;
         margin-left: 5px;
     }
 }
-.imgBtn:hover img{
-    color:#493eda;
+.imgBtn:hover{
+    svg {
+        fill: #493eda;
+    }
 }
 
 
