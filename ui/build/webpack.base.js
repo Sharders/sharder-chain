@@ -36,8 +36,9 @@ module.exports = {
       views: path.join(__dirname, "../src/views"),
       router: path.join(__dirname, "../src/router"),
       theme: path.join(__dirname, "../theme"), // get Element-UI icons
-      scss_vars: path.resolve(__dirname, "../src/styles/vars.scss"), //  get scss vars
+      scss_vars: path.resolve(__dirname, "../src/styles/css/vars.scss"), //  get scss vars
       styles: path.join(__dirname, "../src/styles") // get scss files
+
     },
     modules: [
       // places where to search for required modules

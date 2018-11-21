@@ -9,7 +9,8 @@ import "theme/index.css";
 import "normalize.css";
 import "whatwg-fetch";
 import "material-design-icons";
-import "styles/index.scss";
+import "styles/css/index.scss";
+import "element-ui/lib/theme-chalk/index.css";
 
 var passUrls = ["static", "login", "register", "enter"];
 

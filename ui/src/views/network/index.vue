@@ -169,6 +169,7 @@
             </div>
         </div>
 
+        <!--view block info-->
         <div class="modal_info" id="block_info" v-show="blockInfo">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
@@ -286,8 +287,7 @@
                 </div>
             </div>
         </div>
-
-
+        <!--view account info-->
         <div class="modal_info" id="account_info" v-show="accountInfo">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
@@ -345,7 +345,7 @@
                 </div>
             </div>
         </div>
-
+        <!--view account transaction info-->
         <div class="modal_info" id="account_transaction" v-show="accountTransaction">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
