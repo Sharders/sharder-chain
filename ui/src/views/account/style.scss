@@ -1,0 +1,269 @@
+.block_account{
+    .w{
+        background: #fff;
+        height: 290px;
+        text-align: center;
+        border-radius: 4px;
+        .account_address{
+            margin-left: 112px;
+            color:#493eda;
+            font:{
+                size:18px;
+                family: "Microsoft YaHei UI";
+            }
+            img{
+                vertical-align: middle;
+                margin: 0 20px 0 10px;
+                width:16px;
+                height: 18px;
+            }
+            span{
+                &:first-child{
+                    vertical-align: middle;
+                    font-weight: bold;
+                }
+                &:last-child{
+                    font-size:14px;
+                }
+            }
+        }
+        .account_asset{
+            margin-top: 50px;
+            color:#333;
+            font:{
+                size:24px;
+                family: "Microsoft YaHei UI";
+                weight: bold;
+            }
+        }
+        .account_tool{
+            text-align: center;
+            display: inline-flex;
+            margin-top: 50px;
+            .common_btn{
+                width:120px;
+            }
+        }
+    }
+}
+
+.block_receiptDisbursement{
+    .w{
+        background: #fff;
+        height: 200px;
+        display: flex;
+        div{
+            border:1px solid #f00;
+            height: 100%;
+            text-align: center;
+        }
+    }
+}
+
+.block_list{
+    th{
+        width:132px;
+    }
+    .dbw{width:270px;}
+}
+#file{
+    position: absolute;
+    width: 70px;
+    height: 40px;
+    right: 0;
+    top: 30px;
+    opacity: 0;
+}
+
+.modal_hubSetting{
+    position: fixed;
+    background: #fff;
+    top: 80px;
+    width: 1200px;
+    border-radius: 4px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    .modal-header{
+        position: relative;
+        text-align: center;
+        height: 60px;
+        border-bottom: 1px solid #eee;
+        padding: 0 100px;
+        .modal-title{
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            line-height: 60px;
+            margin-left: 170px;
+        }
+        button{
+            float: right;
+            margin-top: 15px;
+            font-size: 14px;
+            height: 30px;
+            width: 80px;
+            &:first-child{
+                margin-left: 10px;
+            }
+        }
+    }
+    .modal-body{
+        padding: 30px 100px 80px;
+        .version_info{
+            span{
+                font-size: 16px;
+                font-family: "Microsoft YaHei UI";
+                color:#333;
+                &:nth-child(2){
+                    color: #493eda;
+                    font-weight: bold;
+                    padding: 0 10px;
+                }
+                &:nth-child(4){
+                    color: #f71616;
+                    font-weight: bold;
+                    padding: 0 10px;
+                }
+            }
+        }
+        .el-form{
+            margin-top: 40px;
+            .el-form-item{
+                margin-bottom: 10px;
+                .el-form-item__label{
+                    font-weight: bold;
+                    color: #333;
+                    padding: 0;
+                    font-size: 16px;
+                    font-family: "Microsoft YaHei UI";
+                }
+                .el-checkbox{
+                    .el-checkbox__input.is-checked .el-checkbox__inner,
+                    .el-checkbox__input.is-indeterminate .el-checkbox__inner{
+                        background: #493eda;
+                        border-color: #493eda;
+                    }
+                    .el-checkbox__inner:hover{
+                        border-color: #493eda;
+                    }
+                    .el-checkbox__input.is-focus .el-checkbox__inner{
+                        border-color: #493eda;
+                    }
+                    .el-checkbox__label{
+                        padding-left:6px;
+                        font-size: 13px;
+                        color:#bbb;
+                    }
+                    .el-checkbox__input.is-checked+.el-checkbox__label {
+                        color: #31da78;
+                    }
+                }
+            }
+        }
+        .footer-btn{
+            margin-top: 30px;
+            button{
+                float: right;
+                height: 40px;
+                width: 120px;
+                font-size: 16px;
+                &:first-child{
+                    margin-left: 30px;
+                }
+            }
+        }
+    }
+}
+
+#trading_info{
+    top: 80px;
+    .table{
+        td{
+            width: 980px;
+            padding: 0 60px;
+        }
+        th{
+            width:160px;
+        }
+    }
+}
+
+#account_info{
+    .modal-header{
+        border-bottom: none;
+        padding: 0 20px 0 60px;
+        height: auto;
+    }
+    .modal-body{
+        margin: 20px 0 40px;
+        .table{
+            border:none;
+            td{
+                border:none;
+                padding-left: 0;
+                width: 900px;
+                line-height: normal;
+                font-weight: bold;
+                .accountName{
+                    span{
+                        line-height: 40px;
+                        vertical-align: middle;
+                    }
+                    img{
+                        margin-left: 20px;
+                        width: 20px;
+                        line-height: 40px;
+                        vertical-align: middle;
+                    }
+                }
+                .rewriteName{
+                    .el-input{
+                        width: 140px;
+                        .el-input__inner{
+                            height: 30px;
+                        }
+                        .el-input__inner:focus{
+                            border-color: #493eda;
+                        }
+                    }
+                    .common_btn{
+                        width: 60px;
+                        height: 30px;
+                        margin-left: 10px;
+                    }
+                }
+                .QRcode{
+                    position: relative;
+                    height: 80px;
+                    padding-top: 10px;
+                    img{
+                        width: 25px;
+                        display: inline;
+                        &:hover{
+                            width:80px;
+                        }
+                    }
+                }
+
+            }
+            th{
+                border:none;
+                text-align: left;
+                padding-left: 60px;
+                font-weight: normal;
+            }
+            tr{
+                background: none;
+            }
+            .th80{
+                vertical-align: top;
+                padding-top: 10px;
+            }
+
+        }
+    }
+
+}

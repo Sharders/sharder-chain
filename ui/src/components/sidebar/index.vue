@@ -28,8 +28,8 @@
 
 <script>
 export default {
-  name: 'Sidebar',
-  props: ['active'],
+  name: "Sidebar",
+  props: ["active"],
   computed () {
       active: () => {
           console.log(this)
@@ -39,8 +39,8 @@ export default {
 }
 </script>
 
-<style lang="scss">
-// You can import all your SCSS variables using webpack alias
+<style lang="scss" type="text/scss">
+/* You can import all your SCSS variables using webpack alias*/
 @import '~scss_vars';
 @import './style.scss';
 </style>

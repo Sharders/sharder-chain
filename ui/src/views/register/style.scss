@@ -1,0 +1,31 @@
+.content_register{
+    a{
+        font-family: "Microsoft YaHei";
+        color: #333333;
+        font-size: 14px;
+    }
+    :nth-child(4){
+        text-align: right;
+    }
+    .radius_blue{
+        height: 120px;
+        margin: 10px auto;
+        color: #fff;
+        overflow:auto;
+        .phrase{
+            width: 400px;
+            margin: 30px auto;
+        }
+    }
+
+    .tip{
+        height: 70px;
+        margin: 10px auto;
+        color: #333333;
+        background: #edeff5;
+        > div{
+            margin: 10px auto;
+        }
+    }
+}
+
