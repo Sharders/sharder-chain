@@ -176,6 +176,18 @@
         margin-left: 5px;
     }
 }
+.imgBtn:hover{
+    background: #fff;
+    color:#493eda;
+    border: 1px solid #493eda;
+    transition: .4s;
+    //fill: #493eda!important;
+    img{
+        fill: #493eda!important;
+    }
+}
+
+
 .common_btn:hover{
     background: #fff;
     color:#493eda;
@@ -293,6 +305,8 @@
                         .input-with-select{
                             .el-input__inner{
                                 border-radius: 4px 0 0 4px;
+                                border-right: none;
+                                height: 42px;
                             }
                             .el-input-group__append, .el-input-group__prepend{
                                 color:#fff;
@@ -324,6 +338,7 @@
                         .el-slider__input{
                             float: left;
                             margin-top: 0;
+                            line-height: normal;
                             width: 30px;
                             .el-input-number__increase{
                                 display: none;
