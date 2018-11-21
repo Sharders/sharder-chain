@@ -79,7 +79,8 @@ public final class Constants {
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
 
-    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
+//    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
+    public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
     public static final int MIN_TRANSACTION_SIZE = 176;
     public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * MIN_TRANSACTION_SIZE * 244;
     public static final long MAX_BALANCE_SS = 1000000000;
