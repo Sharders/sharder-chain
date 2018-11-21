@@ -180,6 +180,7 @@
 .imgBtn:hover{
     svg {
         fill: #493eda;
+        transition: .4s;
     }
 }
 
@@ -273,6 +274,7 @@
                         .el-checkbox{
                             line-height: 19.2px;
                             float: left;
+                            margin-bottom: 10px;
                             .el-checkbox__input.is-checked .el-checkbox__inner,
                             .el-checkbox__input.is-indeterminate .el-checkbox__inner{
                                 background: #493eda;
@@ -286,6 +288,7 @@
                             }
                             .el-checkbox__label{
                                 padding-left:6px;
+                                font-size: 13px;
                                 color:#bbb;
                             }
                             .el-checkbox__input.is-checked+.el-checkbox__label {
@@ -309,8 +312,17 @@
                                 background: #493eda;
                                 border: none;
                             }
-                        }
 
+                        }
+                        .input_suffix{
+                            position: absolute;
+                            right: 15px;
+                            top: calc(85% - 29.2px);
+                            color: #333;
+                            line-height: 40px;
+                            background: none;
+                            border: none;
+                        }
                         .el-slider__runway{
                             height: 2px;
                             margin: 35px 0 0;

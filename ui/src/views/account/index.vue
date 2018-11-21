@@ -15,7 +15,7 @@
                     </div>
                     <p class="account_asset">资产：1,234,567,890 SS</p>
                     <div class="account_tool">
-                        <button class="common_btn imgBtn">
+                        <button class="common_btn imgBtn" @click="openTransferDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 162.5">
                                     <path d="M49,73.87H61.21v49.19a8.21,8.21,0,0,0,8.19,8.19h61.2a8.19,8.19,0,0,0,8.19-8.19h0V73.86H151a6.29,6.29,0,0,0,6.36-6.21,6.13,6.13,0,0,0-1.41-3.9,3.49,3.49,0,0,0-.66-0.73l-48.63-42a8.67,8.67,0,0,0-5.91-2.3,8.39,8.39,0,0,0-5.7,2.14L44.72,63a4.49,4.49,0,0,0-.79.87,6.13,6.13,0,0,0-1.32,3.8A6.3,6.3,0,0,0,49,73.87h0Z" transform="translate(-25 -18.75)"/>
@@ -33,7 +33,7 @@
                             </span>
                             <span>发送消息</span>
                         </button>
-                        <button class="common_btn imgBtn">
+                        <button class="common_btn imgBtn" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -80,7 +80,7 @@
                                 <th>交易类型</th>
                                 <th>金额</th>
                                 <th>手续费</th>
-                                <th class="dbw">交易账户</th>
+                                <th class="dbw w300">交易账户</th>
                                 <th>确认数量</th>
                                 <th>操作</th>
                             </tr>
@@ -93,12 +93,12 @@
                                 <td>+10000000 SS</td>
                                 <td>1 SS</td>
                                 <td class="linker image_text w300">
-                                    <span>SSA-9WKZ-DV7P-M6MN-5MH8B</span>
+                                    <span @click="openAccountInfoDialog">SSA-9WKZ-DV7P-M6MN-5MH8B</span>
                                     <img src="../../assets/right_arrow.svg"/>
-                                    <span>您</span>
+                                    <span @click="openAccountInfoDialog">您</span>
                                 </td>
                                 <td>12323</td>
-                                <td class="linker">查看详情</td>
+                                <td class="linker" @click="openTradingInfoDialog">查看详情</td>
                             </tr>
                             </tbody>
                         </table>
@@ -109,7 +109,7 @@
                 </div>
             </div>
         </div>
-
+        <!--view send message dialog-->
         <div class="modal" id="send_message_modal" v-show="sendMessage">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -119,7 +119,7 @@
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接受者">
+                            <el-form-item label="接收者">
                                 <el-input v-model="messageForm.receiver"></el-input>
                             </el-form-item>
                             <el-form-item label="信息">
@@ -153,7 +153,7 @@
                 </div>
             </div>
         </div>
-
+        <!--view tranfer account dialog-->
         <div class="modal" id="tranfer_accounts_modal" v-show="tranferAccounts">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -163,39 +163,199 @@
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接受者">
-                                <el-input v-model="messageForm.receiver"></el-input>
+                            <el-form-item label="接收者">
+                                <el-input v-model="transfer.receiver"></el-input>
                             </el-form-item>
-                            <el-form-item label="信息">
-                                <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
-                                <el-input
-                                    type="textarea"
-                                    :autosize="{ minRows: 2, maxRows: 10}"
-                                    resize="none"
-                                    placeholder="请输入信息内容"
-                                    v-model="messageForm.message">
-                                </el-input>
-                            </el-form-item>
-                            <el-form-item label="文件">
-                                <el-input placeholder="请选择文件" v-model="messageForm.file">
-                                    <el-button slot="append">浏览</el-button>
-                                </el-input>
+                            <el-form-item label="数额">
+                                <el-input v-model="transfer.number"></el-input>
+                                <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="手续费">
                                 <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
                                 </el-slider>
                             </el-form-item>
+                            <el-form-item label="">
+                                <el-checkbox v-model="transfer.hasMessage">添加一条信息</el-checkbox>
+                                <el-checkbox ref="encrypted2" v-model="transfer.isEncrypted" :disabled="ncryptedDisabled">加密信息</el-checkbox>
+                                <el-input
+                                    type="textarea"
+                                    :autosize="{ minRows: 2, maxRows: 10}"
+                                    resize="none"
+                                    placeholder="请输入信息内容"
+                                    v-model="transfer.message">
+                                </el-input>
+                            </el-form-item>
                             <el-form-item label="秘钥">
-                                <el-input v-model="messageForm.password" type="password"></el-input>
+                                <el-input v-model="transfer.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn">发送信息</button>
+                        <button type="button" class="btn">发送</button>
                     </div>
                 </div>
             </div>
         </div>
+        <!--view tranfer account dialog-->
+        <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
+            <div class="modal-header">
+                <button class="common_btn">重置Hub</button>
+                <button class="common_btn">重启Hub</button>
+                <h4 class="modal-title">
+                    <span>Hub设置</span>
+                </h4>
+
+            </div>
+            <div class="modal-body">
+                <div class="version_info">
+                    <span>当前版本：</span>
+                    <span>0.1.0</span>
+                    <span>发现新版本</span>
+                    <span>点击更新</span>
+                </div>
+                <el-form label-position="left" label-width="160px">
+                    <el-form-item label="启动内网穿透服务:">
+                        <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
+                    </el-form-item>
+                    <el-form-item label="Sharder官网账户:">
+                        <el-input v-model="hubsetting.sharderAccount"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Sharder官网密码:">
+                        <el-input v-model="hubsetting.sharderPwd" :disabled="punchthroughDisabled"></el-input>
+                    </el-form-item>
+                    <el-form-item label="穿透服务地址:">
+                        <el-input v-model="hubsetting.address" :disabled="punchthroughDisabled"></el-input>
+                    </el-form-item>
+                    <el-form-item label="穿透服务端口:">
+                        <el-input v-model="hubsetting.port" :disabled="punchthroughDisabled"></el-input>
+                    </el-form-item>
+                    <el-form-item label="穿透服务客户端秘钥:">
+                        <el-input v-model="hubsetting.clientSecretkey" :disabled="punchthroughDisabled"></el-input>
+                    </el-form-item>
+                    <el-form-item label="公网地址:">
+                        <el-input v-model="hubsetting.publicAddress" :disabled="punchthroughDisabled"></el-input>
+                    </el-form-item>
+                    <el-form-item label="关联SS地址:">
+                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    </el-form-item>
+                    <el-form-item label="是否开启挖矿:">
+                        <el-checkbox v-model="hubsetting.isOpenMining">锻造以启用</el-checkbox>
+                    </el-form-item>
+                    <el-form-item label="改绑助记词:">
+                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    </el-form-item>
+                    <el-form-item label="新密码:">
+                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    </el-form-item>
+                    <el-form-item label="确认新密码:">
+                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div class="footer-btn">
+                    <button class="common_btn">确认</button>
+                    <button class="common_btn" @click="closeDialog()">取消</button>
+                </div>
+            </div>
+        </div>
+        <!--view account transaction dialog-->
+        <div class="modal_info" id="trading_info" v-show="tradingInfo">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >交易详情</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <tbody>
+                    <tr><th>签名</th>
+                        <td>4342343j4hj343b3i4hgb3hb43jkbi34gh3b43j4n32i4gh32i4b324b33
+                        334j3h4nj3k4b3jk4b3kj4b34kj3b4jk3b43kj4b3k4b3k4jb3k4j3b4kj3b4
+                        4343jk4b3kj4b3kj4b3kj4b3k4b3k4b343</td></tr>
+                    <tr>
+                        <th>交易</th><td>0</td></tr>
+                    <tr>
+                        <th>类型</th><td>0</td></tr>
+                    <tr>
+                        <th>哈希签名</th><td>234k3n43lk4n3ln4jk32nh4jikbh4k3j2b4kj324bn32kj4b232bk23b3b3kj</td></tr>
+                    <tr>
+                        <th>发送者</th><td>SSA-9W2N-D8F2-M9DN-2JD4F</td></tr>
+                    <tr>
+                        <th>数额</th><td>1,000,000 SS</td></tr>
+                    <tr>
+                        <th>接收者</th><td>您</td></tr>
+                    <tr>
+                        <th>区块时间戳</th><td>67943707 | 2018/10/11 17:21:24</td></tr>
+                    <tr>
+                        <th>时间戳</th><td>67943707 | 2018/10/11 17:21:24</td></tr>
+                    <tr>
+                        <th>发送者公钥</th><td></td></tr>
+                    <tr>
+                        <th>手续费</th><td>1 SS</td></tr>
+                    <tr>
+                        <th>确认</th><td>12345</td></tr>
+                    <tr>
+                        <th>类型完整哈希：</th><td>234k3n43lk4n3ln4jk32nh4jikbh4k3j2b4kj324bn32kj4b232bk23b3b3kj</td></tr>
+                    <tr>
+                        <th>版本：</th><td>1</td></tr>
+                    <tr>
+                        <th>发送者</th><td>21321312122121213</td></tr>
+                    <tr>
+                        <th>接收者</th><td>您</td></tr>
+                    <tr>
+                        <th>区块高度</th><td>12345</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <!--view account transaction dialog-->
+        <div class="modal_info" id="account_info" v-show="accountInfo">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >账户详情</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th>账户地址:</th>
+                        <td>SSA-9W2N-D8F2-M9DN-2JD4F</td></tr>
+                    <tr>
+                        <th>账户名：</th>
+                        <td>
+                            <div class="accountName" v-if="isShowName">
+                                <span>未设置</span><img src="../../assets/rewrite.svg" @click="isShowName = false"/>
+                            </div>
+                            <div class="rewriteName" v-else>
+                                <el-input v-model="messageForm.receiver"></el-input>
+                                <button class="common_btn" @click="isShowName = true">确认</button>
+                            </div>
+                        </td></tr>
+                    <tr>
+                        <th>账户余额：</th><td>1,000,000 SS</td></tr>
+                    <tr>
+                        <th>可用余额：</th><td>1,000,000 SS</td></tr>
+                    <tr>
+                        <th>挖矿余额：</th><td>0 SS</td></tr>
+                    <tr>
+                        <th>公钥</th><td>1,000,000 SS</td></tr>
+                    <tr>
+                        <th class="th80">秘钥二维码</th>
+                        <td>
+                            <div  class="QRcode">
+                                <img src="../../assets/QRcode.svg"/>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
     </div>
 </template>
 <script>
@@ -205,16 +365,47 @@
         data () {
             return {
                 address: "SSA-9WKZ0DV7P-M6MN-5MH8B",
+                //dialog
                 sendMessage: false,
                 tranferAccounts: false,
+                hubSettingDialog:false,
+                tradingInfo:false,
+                accountInfo:false,
+
+                ncryptedDisabled:true,
+                punchthroughDisabled:true,
+                isShowName:true,
 
                 messageForm: {
                     receiver: "1",
                     message: "2",
-                    isEncrypted: true,
+                    isEncrypted: false,
                     file: "",
-                    fee: 10,
+                    fee: 0,
                     password: ""
+                },
+                transfer: {
+                    receiver: "1",
+                    number:0,
+                    fee:0,
+                    hasMessage:false,
+                    message:"",
+                    isEncrypted:false,
+                    password:""
+                },
+                hubsetting:{
+                    openPunchthrough:false,
+                    sharderAccount:'',
+                    sharderPwd:'',
+                    address:'',
+                    port:'',
+                    clientSecretkey:'',
+                    publicAddress:'',
+                    SS_Address:'',
+                    isOpenMining:false,
+                    modifyMnemonicWord:'',
+                    newPwd:'',
+                    confirmPwd:''
                 }
             };
         },
@@ -223,9 +414,29 @@
                 this.$store.state.mask = true;
                 this.sendMessage = true;
             },
+            openTransferDialog:function(){
+                this.$store.state.mask = true;
+                this.tranferAccounts = true;
+            },
+            openHubSettingDialog:function(){
+                this.$store.state.mask = true;
+                this.hubSettingDialog = true;
+            },
+            openTradingInfoDialog:function(){
+                this.$store.state.mask = true;
+                this.tradingInfo = true;
+            },
+            openAccountInfoDialog:function(){
+                this.$store.state.mask = true;
+                this.accountInfo = true;
+            },
             closeDialog: function () {
                 this.$store.state.mask = false;
                 this.sendMessage = false;
+                this.tranferAccounts = false;
+                this.hubSettingDialog = false;
+                this.tradingInfo = false;
+                this.accountInfo = false;
             },
             copySuccess: function () {
                 const _this = this;
@@ -256,8 +467,38 @@
                     type: "success"
                 });
             }
-        }
+        },
+        watch:{
+            transfer:{
+                handler(val, oldVal){
+                    const _this = this;
+                    if(_this.transfer.hasMessage){
+                        _this.ncryptedDisabled = false;
+                    }else{
+                        _this.ncryptedDisabled = true;
+                        _this.transfer.isEncrypted = false;
+                    }
+                },
+                deep: true
+            },
+            hubsetting:{
+                handler(val, oldVal){
+                    const _this = this;
+                    if(_this.hubsetting.openPunchthrough){
+                        _this.punchthroughDisabled = false;
+                    }else{
+                        _this.punchthroughDisabled = true;
+                        _this.hubsetting.sharderPwd = '';
+                        _this.hubsetting.address = '';
+                        _this.hubsetting.port = '';
+                        _this.hubsetting.clientSecretkey = '';
+                        _this.hubsetting.publicAddress = '';
 
+                    }
+                },
+                deep: true
+            }
+        }
     };
 </script>
 <style lang="scss" type="text/scss">
