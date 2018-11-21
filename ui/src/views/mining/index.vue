@@ -492,6 +492,18 @@
         opacity: 0.8;
     }
 
+    .mining-back {
+        position: absolute;
+        left: 9px;
+        top: 9px;
+        color: #513ac8;
+        cursor: pointer;
+    }
+
+    .mining-back:hover {
+        color: #513ac8aa;
+    }
+
 </style>
 <!--豆匣矿场-->
 <style scoped>
