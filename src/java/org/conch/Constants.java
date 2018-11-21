@@ -193,7 +193,6 @@ public final class Constants {
     public static final int MAX_TAGGED_DATA_CHANNEL_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_FILENAME_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_DATA_LENGTH = 10 * 1024 * 1024;
-    public static final int MAX_RESPONSE_SIZE = 20 * 1024 * 1024;
 
 
     public static final int MAX_STORED_DATA_NAME_LENGTH = 200;
