@@ -165,7 +165,7 @@
 
 .imgBtn{
     margin: 0 15px;
-    img{
+    embed{
         vertical-align: middle;
         margin-bottom: 3px;
         width:14px;
@@ -176,15 +176,8 @@
         margin-left: 5px;
     }
 }
-.imgBtn:hover{
-    background: #fff;
+.imgBtn:hover img{
     color:#493eda;
-    border: 1px solid #493eda;
-    transition: .4s;
-    //fill: #493eda!important;
-    img{
-        fill: #493eda!important;
-    }
 }
 
 

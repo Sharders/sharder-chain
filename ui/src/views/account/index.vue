@@ -16,16 +16,16 @@
                     <p class="account_asset">资产：1,234,567,890 SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn">
-                            <img src="../../assets/transfer.svg"/>
+                            <embed   src="../../assets/transfer.svg"/>
                             <!--<svg id="图层_1" data-name="图层 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 162.5"><defs><style>.cls-1{fill:#fff;}</style></defs><title>转账</title><path class="cls-1" d="M49,73.87H61.21v49.19a8.21,8.21,0,0,0,8.19,8.19h61.2a8.19,8.19,0,0,0,8.19-8.19h0V73.86H151a6.29,6.29,0,0,0,6.36-6.21,6.13,6.13,0,0,0-1.41-3.9,3.49,3.49,0,0,0-.66-0.73l-48.63-42a8.67,8.67,0,0,0-5.91-2.3,8.39,8.39,0,0,0-5.7,2.14L44.72,63a4.49,4.49,0,0,0-.79.87,6.13,6.13,0,0,0-1.32,3.8A6.3,6.3,0,0,0,49,73.87h0Z" transform="translate(-25 -18.75)"/><rect class="cls-1" y="150" width="150" height="12.5"/><rect class="cls-1" y="127.01" width="150" height="12.5"/></svg>-->
                             <span>转账</span>
                         </button>
                         <button class="common_btn imgBtn" @click="openSendMessageDialog">
-                            <img src="../../assets/message.svg"/>
+                            <embed  src="../../assets/message.svg"/>
                             <span>发送消息</span>
                         </button>
                         <button class="common_btn imgBtn">
-                            <img src="../../assets/setting.svg"/>
+                            <embed  src="../../assets/setting.svg"/>
                             <span>HUB设置</span>
                         </button>
                     </div>
@@ -139,11 +139,11 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">发送信息</h4>
+                        <h4 class="modal-title">转账</h4>
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接受者">
+                            <el-form-item label="接收者">
                                 <el-input v-model="messageForm.receiver"></el-input>
                             </el-form-item>
                             <el-form-item label="信息">
