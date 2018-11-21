@@ -150,7 +150,6 @@
                                 <el-input placeholder="请选择文件" v-model="messageForm.file">
                                     <el-button slot="append">浏览</el-button>
                                 </el-input>
-                                <input id="file" ref="file" type="file" @change="fileChange"/>
                             </el-form-item>
                             <el-form-item label="手续费">
                                 <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
