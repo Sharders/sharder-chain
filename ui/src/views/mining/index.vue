@@ -2,12 +2,12 @@
     <div class="mining">
         <!--切换按钮-->
         <el-radio-group v-model="tabTitle" class="title">
-            <el-radio-button label="miner" class="btn">豆匣矿场</el-radio-button>
+            <el-radio-button label="mining" class="btn">豆匣矿场</el-radio-button>
             <el-radio-button label="welfare" class="btn">免费领SS</el-radio-button>
             <el-radio-button label="exchange" class="btn">SS兑换</el-radio-button>
         </el-radio-group>
         <!--豆匣矿场-->
-        <div v-if="tabTitle === 'miner'">
+        <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
             <div class="mining-content">
                 <img src="../../assets/chatu.png" id="chatu">
                 <div class="assets">
@@ -17,7 +17,7 @@
                         <li>我的收益: 100000 SS</li>
                         <li class="strong">
                             <img src="../../assets/kuangchii_chakan.png">
-                            <span @click="checkRanking()">查看排行</span>
+                            <span @click="isVisible('isRanking')">查看排行</span>
                         </li>
                     </ul>
                 </div>
@@ -34,7 +34,7 @@
                     <img src="../../assets/wodekuangchi.png">
                     <p>我的矿池</p>
                 </div>
-                <div class="create" @click="isVisiblePool()">
+                <div class="create" @click="isVisible('isCreatePool')">
                     <img src="../../assets/chuanjiankuangchi.png">
                     <p>创建矿池</p>
                 </div>
@@ -42,8 +42,8 @@
             <div class="mining-notice">
                 <img src="../../assets/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                    矿产第2345块 | 出块者023 | 奖励: 1000 SS
-                </span>
+                矿产第2345块 | 出块者023 | 奖励: 1000 SS
+            </span>
             </div>
             <div class="mining-list">
                 <h5>
@@ -136,10 +136,74 @@
                 </div>
             </div>
         </div>
+        <!--个人中心-->
+        <div v-if="tabMenu === 'personal'">
+            <div class="personal-content">
+                <div class="user">
+                    <img src="../../assets/wodezichan.png" class="header-img">
+                    <p>
+                        <span>矿工名称</span>:
+                        <span>未设置</span>
+                        <img src="../../assets/set.png" @click="isVisible('isSetName')">
+                    </p>
+                    <p>
+                        <span>TSS地址</span>:
+                        <span>SSA-WHXU-6UB3-DB75-78GAT</span>
+                        <img src="../../assets/TSS.png" @click="isVisible('isTSS')">
+                    </p>
+                </div>
+                <div class="list" @click="$router.push({name: 'my-assets'})">
+                    <img src="../../assets/wodezichan.png">
+                    <span>我的资产</span>
+                </div>
+                <div class="list" @click="$router.push({name: 'free-collar-drill'})">
+                    <img src="../../assets/zhuanshi.png">
+                    <span>免费领钻</span>
+                </div>
+                <div class="list" @click="$router.push({name: 'invite-friends'})">
+                    <img src="../../assets/haoyou.png">
+                    <span>邀请好友</span>
+                </div>
+                <div class="list" @click="$router.push({name: 'diamond-exchange'})">
+                    <img src="../../assets/zhuanshiduihuan.png">
+                    <span>钻石兑换</span>
+                </div>
+                <div class="list">
+                    <img src="../../assets/guanyuwomen.png">
+                    <span>关于我们</span>
+                </div>
+                <div class="about">
+                    <p>关注我们</p>
+                    <p>www.oxwallet.org</p>
+                </div>
+            </div>
+        </div>
+        <!--名称设置-->
+        <div v-if="isSetName">
+            <div class="set-name">
+                <span class="img-close" @click="isVisible('isSetName')"></span>
+                <h1>名称设置</h1>
+                <div class="input">
+                    <el-input v-model="setname" placeholder="请输入名称"></el-input>
+                </div>
+                <div class="determine">确定</div>
+            </div>
+        </div>
+        <!--TSS说明-->
+        <div v-if="isTSS">
+            <div class="tss">
+                <h1>TSS地址说明</h1>
+                <div class="text">
+                    TSS地址为豆匣测试网络的账户地址,共识矿场是基于豆匣链开发的DAPP,此地址同时也是你共识矿场应用内的账户.
+                    TSS不具备价格流通.目前只能作为测试及与矿场砖石产生兑换关系所用,与钻石为一一对应关系.
+                </div>
+                <div class="close" @click="isVisible('isTSS')">关闭</div>
+            </div>
+        </div>
         <!--挖矿排行-->
         <div v-if="isRanking">
             <div class="ranking">
-                <span class="img-close" @click="checkRanking()"></span>
+                <span class="img-close" @click="isVisible('isRanking')"></span>
                 <div class="ranking-content">
                     <h3 class="ranking-title">挖矿排行</h3>
                     <table class="ranking-table">
@@ -170,7 +234,7 @@
         <!--创建矿池-->
         <div v-if="isCreatePool">
             <div class="create-pool">
-                <span class="img-close" @click="isVisiblePool()"></span>
+                <span class="img-close" @click="isVisible('isCreatePool')"></span>
                 <div class="create-pool-content">
                     <h3 class="pool-header">创建矿池</h3>
                     <div class="pool-attribute">
@@ -219,25 +283,34 @@
                             <p>将按照设置的百分比从矿池收入 (挖矿奖励等) 中提取并分配给其余矿池的参与者.</p>
                         </div>
                         <div class="pool-bth">
-                            <button class="cancel" @click="isVisiblePool()">取消</button>
+                            <button class="cancel" @click="isVisible('isCreatePool')">取消</button>
                             <button class="immediately-create">立即创建</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!--菜单栏-->
+        <div class="menu" style="display: none">
+            <el-radio-group v-model="tabMenu" class="title">
+                <el-radio-button label="mining" class="btn miner">矿场</el-radio-button>
+                <el-radio-button label="personal" class="btn personal">个人中心</el-radio-button>
+            </el-radio-group>
+        </div>
     </div>
 </template>
 
 <script>
-
     export default {
         name: 'mining',
         data() {
             return {
                 isCreatePool: false,
                 isRanking: false,
-                tabTitle: 'miner',
+                isTSS: false,
+                isSetName: false,
+                tabTitle: 'mining',
+                tabMenu: 'mining',
                 options: [
                     {
                         value: 'default',
@@ -257,6 +330,7 @@
                     }
                 ],
                 value: '',
+                setname: '',
                 incomeDistribution: 80,
                 investment: '',
                 miningList: [
@@ -356,27 +430,11 @@
         },
         methods: {
             poolAttribute(mining) {
-                console.info(mining);
                 this.$router.push({name: "mining-attribute", params: mining});
             },
-            isVisiblePool() {
-                if (this.isCreatePool) {
-                    this.$store.state.mask = false;
-                } else {
-                    this.$store.state.mask = true;
-                }
-                this.isCreatePool = !this.isCreatePool;
-            },
-            checkRanking() {
-                if (this.isRanking) {
-                    this.$store.state.mask = false;
-                } else {
-                    this.$store.state.mask = true;
-                    console.info("发送请求刷新数据....");
-
-
-                }
-                this.isRanking = !this.isRanking;
+            isVisible(val) {
+                this.$store.state.mask = !this[val];
+                this[val] = !this[val];
             },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
@@ -1177,6 +1235,210 @@
 
         .mining .create-pool .pool-set .pool-bth .cancel {
             display: none;
+        }
+
+        .mining .menu {
+            display: initial !important;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: calc(100% - 70px);
+            background: #fff;
+        }
+
+        .mining .menu .el-radio-group {
+            display: block;
+        }
+
+        .mining .menu .el-radio-button {
+            width: 50%;
+        }
+
+        .mining .menu .title .el-radio-button__inner {
+            max-width: initial;
+            width: 100%;
+            height: 70px;
+            border: none;
+            outline: none;
+            background-color: initial !important;
+            box-shadow: none;
+            font-size: 15px;
+        }
+
+        .menu .title .btn {
+            background-size: 40px 40px !important;
+        }
+
+        .menu .title .btn.miner {
+            background: url("../../assets/index.png") no-repeat center 26px;
+        }
+
+        .menu .title .btn.personal {
+            background: url("../../assets/personal.png") no-repeat center 26px;
+        }
+
+        .menu .title .is-active.btn.miner {
+            background: url("../../assets/index-1.png") no-repeat center 26px;
+        }
+
+        .menu .title .is-active.btn.personal {
+            background: url("../../assets/personal-1.png") no-repeat center 26px;
+        }
+
+        .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
+            color: #513ac8 !important;
+        }
+
+        .mining .mining-list .mining-list-info {
+            padding: 0 0 70px 0;
+        }
+    }
+</style>
+<!--个人中心-->
+<style>
+    @media (max-width: 640px) {
+        .mining .personal-content {
+            padding: 15px 15px 0;
+        }
+
+        .mining .personal-content .user {
+            height: 170px;
+            width: 100%;
+            background: #513ac8;
+            border-radius: 4px;
+            text-align: center;
+            color: #fff;
+            font-size: 12px;
+            margin: 0 0 15px 0;
+        }
+
+        .mining .personal-content .user img.header-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #fff;
+            margin: 15px 0;
+            border: 10px solid #0000ff55;
+            top: 0;
+        }
+
+        .mining .personal-content .user img {
+            width: 13px;
+            height: 13px;
+            position: relative;
+            top: 3px;
+            margin-left: 4px;
+            cursor: pointer;
+        }
+
+        .mining .personal-content .user p {
+            margin: 0 0 10px 0;
+        }
+
+        .mining .personal-content .list {
+            background: #fff;
+            border-bottom: 1px solid #dbe2e8;
+            padding: 10px 15px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .mining .personal-content .list img {
+            width: 15px;
+            height: 15px;
+            position: relative;
+            top: 2px;
+            margin-right: 6px;
+        }
+
+        .mining .personal-content .about {
+            padding: 60px 0 0;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+    }
+</style>
+<!--TSS兑换-->
+<style>
+    @media (max-width: 640px) {
+        .mining .tss {
+            position: fixed;
+            z-index: 9999;
+            width: calc(100% - 20px);
+            left: 10px;
+            top: calc(50% - 100px);
+            background: #fff;
+            border-radius: 6px;
+        }
+
+        .mining .tss h1 {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            padding: 15px 0;
+            text-align: center;
+        }
+
+        .mining .tss .text {
+            padding: 0 20px 20px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .mining .tss .close {
+            background: #513ac8;
+            cursor: pointer;
+            color: #fff;
+            width: 100%;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 15px 0;
+            text-align: center;
+            border-bottom-right-radius: 6px;
+            border-bottom-left-radius: 6px;
+        }
+
+    }
+</style>
+<!--名称设置-->
+<style>
+    @media (max-width: 640px) {
+        .mining .set-name {
+            position: fixed;
+            width: calc(100% - 20px);
+            left: 10px;
+            top: calc(50% - 50px);
+            z-index: 9999;
+            background: #fff;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .mining .set-name h1 {
+            font-weight: bold;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .mining .set-name .input {
+            padding: 0 15px 15px;
+        }
+
+        .mining .set-name .input input {
+            text-align: center;
+        }
+
+        .mining .set-name .determine {
+            width: 100%;
+            background: #513ac8;
+            padding: 15px 0;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            text-align: center;
+            color: #fff;
         }
 
     }
