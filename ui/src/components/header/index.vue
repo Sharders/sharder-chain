@@ -20,7 +20,7 @@
                     </el-menu-item>-->
                 </el-menu>
                 <div class="navbar_console">
-                    <el-button type="text">
+                    <el-button type="text" @click="goConsole">
                         <span class="console"></span>
                     </el-button>
                 </div>
@@ -71,6 +71,7 @@
                 const _this = this;
                 _this.activeIndex = val;
             },
+            goConsole: function () {},
             search_focus: function () {
                 const _this = this;
                 _this.activeSearch = true;
