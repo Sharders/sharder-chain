@@ -205,56 +205,55 @@
         data () {
             return {
                 address: "SSA-9WKZ0DV7P-M6MN-5MH8B",
-                sendMessage:false,
-                tranferAccounts:false,
+                sendMessage: false,
+                tranferAccounts: false,
 
-                messageForm:{
-                    receiver:'1',
-                    message:'2',
-                    isEncrypted:true,
-                    file:'',
-                    fee:10,
-                    password:''
+                messageForm: {
+                    receiver: "1",
+                    message: "2",
+                    isEncrypted: true,
+                    file: "",
+                    fee: 10,
+                    password: ""
                 }
             };
         },
-        methods:{
-            openSendMessageDialog:function () {
+        methods: {
+            openSendMessageDialog: function () {
                 this.$store.state.mask = true;
                 this.sendMessage = true;
             },
-            closeDialog:function(){
+            closeDialog: function () {
                 this.$store.state.mask = false;
                 this.sendMessage = false;
             },
-            copySuccess:function () {
-                let _this = this;
+            copySuccess: function () {
+                const _this = this;
                 _this.$message({
                     showClose: true,
-                    message: '已复制到剪切板',
-                    type: 'success',
+                    message: "已复制到剪切板",
+                    type: "success"
                 });
             },
-            copyError:function () {
-                let _this = this;
+            copyError: function () {
+                const _this = this;
                 _this.$message({
                     showClose: true,
-                    message: '复制失败',
-                    type: 'error',
+                    message: "复制失败",
+                    type: "error"
 
                 });
             },
 
-            fileChange:function (e) {
-
-                let _this = this;
+            fileChange: function (e) {
+                const _this = this;
                 _this.file = e.target.files[0].name;
-                console.log("file",_this.file);
+                console.log("file", _this.file);
 
                 _this.$message({
                     showClose: true,
                     message: _this.file,
-                    type: 'success',
+                    type: "success"
                 });
             }
         }
@@ -262,6 +261,6 @@
     };
 </script>
 <style lang="scss" type="text/scss">
-    @import '~scss_vars';
+    /*@import '~scss_vars';*/
     @import './style.scss';
 </style>
