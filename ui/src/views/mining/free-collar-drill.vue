@@ -15,7 +15,7 @@
                 <span class="state-info" v-if="free.state !== 'IN'">
                     <span>{{stateInfo(free.state)}}</span>
                 </span>
-                <button v-if="free.state === 'IN'">立即领取</button>
+                <button v-if="free.state === 'IN'" @click="toReceive(free)">立即领取</button>
             </div>
         </div>
     </div>
@@ -30,21 +30,29 @@
                     {
                         name: "每日登陆",
                         num: 100,
+                        type: "ORDINARY",
+                        typeInfo: "daily",
                         state: "GET",
                     },
                     {
                         name: "注册赠送",
                         num: 100,
+                        type: "ORDINARY",
+                        typeInfo: "registered",
                         state: "IN",
                     },
                     {
                         name: "绑定手机",
                         num: 100,
+                        type: "BINDING",
+                        typeInfo: "mobile-phone",
                         state: "IN",
                     },
                     {
                         name: "绑定邮箱",
                         num: 100,
+                        type: "BINDING",
+                        typeInfo: "email",
                         state: "IN",
                     },
                 ],
@@ -54,7 +62,18 @@
                 if (val === "GET") {
                     return "已领取";
                 }
-            }
+            },
+            toReceive(val) {
+                if (val.type === 'BINDING') {
+                    this.binding(val);
+                }
+
+
+
+            },
+            binding(val) {
+                this.$router.push({name: 'binding-validation', params: val});
+            },
         }
     }
 </script>

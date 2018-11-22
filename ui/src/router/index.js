@@ -18,6 +18,7 @@ import CreateHistory from "views/mining/create-history";
 import MyAssets from "views/mining/my-assets";
 import FreeCollarDrill from "views/mining/free-collar-drill";
 import DiamondExchange from "views/mining/diamond-exchange";
+import BindingValidation from "views/mining/binding-validation";
 
 Vue.use(Router);
 Vue.use(VueClipboard);
@@ -96,6 +97,11 @@ export const routes = [
                 path: "/mining/diamond-exchange",
                 name: "diamond-exchange",
                 component: DiamondExchange
+            },
+            {
+                path: "/mining/binding-validation",
+                name: "binding-validation",
+                component: BindingValidation
             },
             {
                 path: "/network",
