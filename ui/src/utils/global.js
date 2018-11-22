@@ -1,4 +1,4 @@
-import router from '../router/index'
+import router from "../router/index";
 
 export default {
     install (Vue, options) {
@@ -6,6 +6,6 @@ export default {
             if (sessionStorage.getItem("login") == null) {
                 router.push("/login");
             }
-        }
+        };
     }
 }

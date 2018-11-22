@@ -109,7 +109,7 @@
                     <span>区块列表</span>
                 </p>
                 <div class="list_table w br4">
-                    <div class="list_content data_container table_responsive data_loading ">
+                    <div class="list_content data_container table_responsive data_loading">
                         <table class="table table_striped" id="blocks_table">
                             <thead>
                                 <tr>
@@ -123,47 +123,27 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1263</td>
-                                    <td>2018/10/18 17:26:25</td>
-                                    <td>10</td>
-                                    <td>0</td>
-                                    <td>1</td>
-                                    <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                    <td class="linker">查看详情</td>
-                                </tr>
-                                <tr>
-                                    <td>1263</td>
-                                    <td>2018/10/18 17:26:25</td>
-                                    <td>10</td>
-                                    <td>0</td>
-                                    <td>1</td>
-                                    <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                    <td class="linker">查看详情</td>
-                                </tr>
-                                <tr>
-                                    <td>1263</td>
-                                    <td>2018/10/18 17:26:25</td>
-                                    <td>10</td>
-                                    <td>0</td>
-                                    <td>1</td>
-                                    <td class="linker">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
-                                    <td class="linker">查看详情</td>
-                                </tr>
-                                <tr>
-                                    <td>1263</td>
-                                    <td>2018/10/18 17:26:25</td>
-                                    <td>10</td>
-                                    <td>0</td>
-                                    <td>1</td>
-                                    <td class="linker" @click="openAccountInfo">SSA-ZR3T-SD2F-V2R2-1E7F4</td>
+                                <tr v-for="block in blocklist">
+                                    <td><span>{{block.height }}</span></td>
+                                    <td><span>{{myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
+                                    <td><span>{{block.totalAmount}}</span></td>
+                                    <td><span>{{block.totalFee}}</span></td>
+                                    <td><span>{{block.numberOfTransactions}}</span></td>
+                                    <td class="linker" @click="openAccountInfo">{{block.generatorRS}}</td>
                                     <td class="linker" @click="openBlockInfo">查看详情</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination">
-                        <div id="pagination_blocks" class="pagination"></div>
+                    <div >
+                        <el-pagination
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            layout="total, prev, pager, next, jumper"
+                            :total="totalSize">
+                        </el-pagination>
                     </div>
                 </div>
             </div>
@@ -445,10 +425,32 @@
                 tabTitle: "account",
                 blockInfo: false,
                 accountInfo: false,
-                accountTransaction: false
+                accountTransaction: false,
+                blocklist:[],
+
+                currentPage:1,
+                totalSize:1000,
+                pageSize:10,
+
             };
         },
+        created:function(){
+            const _this = this;
+            console.log("创世时间", this.$global.epochBeginning);
+            this.$http.get('/sharder?requestType=getBizBlocks').then(function(res){
+                _this.blocklist = res.data;
+                console.log(_this.blocklist);
+            }).catch(function (err) {
+                console.error(err);
+            });
+        },
         methods: {
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+            },
             turn2peers: function () {
                 this.$router.push("/network/peers");
             },
@@ -530,7 +532,6 @@
                     "Vienna": [16.373819, 48.208174],
                     "Zurich": [8.541694, 47.376887]
                 };
-
                 const rawData = [
                     ["Amsterdam", 101.6],
                     ["Athens", 62.6],
@@ -607,7 +608,7 @@
                     ["Zurich", 119.1]
                 ];
 
-                function makeMapData (rawData) {
+                function makeMapData(rawData) {
                     const mapData = [];
                     for (let i = 0; i < rawData.length; i++) {
                         const geoCoord = geoCoordMap[rawData[i][0]];
@@ -733,10 +734,44 @@
                 this.blockInfo = false;
                 this.accountInfo = false;
                 this.accountTransaction = false;
+            },
+            myFormatTime: function(value,type){
+                const _this = this;
+                let dataTime="";
+                let data = new Date();
+                let date = parseInt(value+'000')+_this.$global.epochBeginning;
+                data.setTime(date);
+                let year   =  data.getFullYear();
+                let month  =  _this.addZero(data.getMonth() + 1);
+                let day    =  _this.addZero(data.getDate());
+                let hour   =  _this.addZero(data.getHours());
+                let minute =  _this.addZero(data.getMinutes());
+                let second =  _this.addZero(data.getSeconds());
+                if(type === "YMD"){
+                    dataTime =  year + "-"+ month + "-" + day;
+                }else if(type === "YMDHMS"){
+                    dataTime = year + "-"+month + "-" + day + " " +hour+ ":"+minute+":" +second;
+                }else if(type === "HMS"){
+                    dataTime = hour+":" + minute+":" + second;
+                }else if(type === "YM"){
+                    dataTime = year + "-" + month;
+
+                }
+                return dataTime;//将格式化后的字符串输出到前端显示
+            },
+            addZero: function (val) {
+                if (val < 10) {
+                    return "0" + val;
+                } else {
+                    return val;
+                }
             }
         },
         mounted () {
             this.drawPeers();
+        },
+        filters: {
+
         }
     };
 </script>

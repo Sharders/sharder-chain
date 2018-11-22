@@ -7,9 +7,7 @@
     "test": "testcafe all tests/index.js --app \"npm run dev\" --app-init-delay 10000",
     "build": "webpack --config build/webpack.prod.js",
     "dev": "node build/server.js",
-    "lint": "eslint src/* --ext .js --ext .vue",
-    "generate_default_styles": "et -i ./src/styles/element-variables.css",
-    "generate_theme": "et -c ./src/styles/element-variables.css"
+    "lint": "eslint src/* --ext .js --ext .vue"
   },
   "author": "Vladimir Metnev <vladimirmetnew@gmail.com>",
   "license": "MIT",
@@ -24,8 +22,8 @@
     "material-design-icons": "^3.0.1",
     "normalize.css": "^6.0.0",
     "vue": "^2.3.0",
-    "vue-masked-input": "^0.5.2",
     "vue-clipboard2": "^0.2.1",
+    "vue-masked-input": "^0.5.2",
     "vue-router": "^2.5.2",
     "vuex": "^2.3.1",
     "vuex-router-sync": "^4.1.2",

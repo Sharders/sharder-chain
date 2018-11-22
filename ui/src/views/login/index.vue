@@ -38,6 +38,7 @@
             login: function () {
                 Store.commit("loginState");
                 this.$router.push("/account");
+                this.$global.setEpochBeginning(this);
             },
             loginChange: function (type) {
                 if (type === 0) {

@@ -21,7 +21,6 @@ import DiamondExchange from "views/mining/diamond-exchange";
 
 Vue.use(Router);
 Vue.use(VueClipboard);
-
 export const routes = [
     {
         path: "/",

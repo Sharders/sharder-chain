@@ -12,9 +12,9 @@
             </div>
             <nav class="navbar_main" role="navigation">
                 <el-menu class="navbar_left el-menu-demo" mode="horizontal" :router=isRouter @select="activeItem">
-                    <el-menu-item index="/account" :class="activeIndex === '/account' ? 'activeLi' : ''">账户</el-menu-item>
-                    <el-menu-item index="/network" :class="activeIndex === '/network' ? 'activeLi' : ''">网络</el-menu-item>
-                    <el-menu-item index="/mining" :class="activeIndex === '/mining' ? 'activeLi' : ''">矿池</el-menu-item>
+                    <el-menu-item index="/account" :class="this.$route.path.indexOf('/account') >= 0 ? 'activeLi' : ''">账户</el-menu-item>
+                    <el-menu-item index="/network" :class="this.$route.path.indexOf('/network') >= 0 ? 'activeLi' : ''">网络</el-menu-item>
+                    <el-menu-item index="/mining" :class="this.$route.path.indexOf('/mining') >= 0 ? 'activeLi' : ''">矿池</el-menu-item>
                     <!--<el-menu-item index="/1" :class="activeIndex === '/1' ? 'activeLi' : ''">
                         <img src="../../assets/console.svg">
                     </el-menu-item>-->
@@ -88,7 +88,11 @@
                 const _this = this;
                 console.log("你输入的值是" + _this.search_val);
                 _this.search_val = "";
-            }
+            },
+           /* validatePath: function (val,path) {
+                let reg = /^*$/;
+                console.log(reg.test(val));
+            }*/
         }
     };
 </script>

@@ -53,8 +53,9 @@
                 padding: 0;
                 height: 100%;
                 margin: 0;
-                background: transparent;
+                background: #fff;
                 .el-menu-item {
+                    border-bottom-color: #fff!important;
                     outline: none;
                     list-style: none;
                     height: 80px !important;
@@ -65,18 +66,21 @@
                     color: #333;
                     font-family: "Microsoft YaHei UI";
                     padding:0;
-                    outline: none;
                     img{
                         width: 20px;
                         height: 16px;
                     }
                     &:hover{
-                        background: transparent;
+                        background: #fff;
                         font-weight: bold;
                         border-bottom: 4px solid #493eda;
                         cursor: pointer;
                     }
                 }
+                .el-menu-item.is-active{
+                    border: none;
+                }
+
                 .activeLi {
                     border-bottom: 4px solid #493eda!important;
                     color: #493eda !important;
@@ -131,6 +135,7 @@
                         transition:500ms width;
                         width: 300px;
                     }
+
                 }
             }
             .navbar_right {
