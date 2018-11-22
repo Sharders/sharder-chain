@@ -95,9 +95,10 @@ public final class Peers {
     static final int readTimeout;
     static final int blacklistingPeriod;
     static final boolean getMorePeers;
-    static final int MAX_REQUEST_SIZE = 20 * 1024 * 1024;
-    static final int MAX_RESPONSE_SIZE = 20 * 1024 * 1024;
-    static final int MAX_MESSAGE_SIZE = 20 * 1024 * 1024;
+    // change 20 -> 400, because one block include more than 2000 txs at 2018.11.21 
+    public static final int MAX_REQUEST_SIZE = 400 * 1024 * 1024;
+    public static final int MAX_RESPONSE_SIZE = 400 * 1024 * 1024;
+    public static final int MAX_MESSAGE_SIZE = 400 * 1024 * 1024;
     public static final int MIN_COMPRESS_SIZE = 256;
     static final boolean useWebSockets;
     static final int webSocketIdleTimeout;
@@ -687,7 +688,7 @@ public final class Peers {
                     request.put("requestType", "getPeers");
                     request.put("useNATService", Peers.isUseNATService());
                     request.put("announcedAddress", Conch.getMyAddress());
-                    JSONObject response = peer.send(JSON.prepareRequest(request), Constants.MAX_RESPONSE_SIZE);
+                    JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
                     if (response == null) {
                         return;
                     }

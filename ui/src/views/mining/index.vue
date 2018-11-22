@@ -9,7 +9,7 @@
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
             <div class="mining-content">
-                <img src="../../assets/chatu.png" id="chatu">
+                <img src="../../assets/chatu.png" id="chatu" @click="$router.push({name: 'binding-account'})">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
