@@ -65,10 +65,7 @@
 
                 });
             },
-        },
-        created() {
-            console.info(this);
-        },
+        }
     }
 </script>
 

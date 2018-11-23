@@ -490,8 +490,8 @@
         top: 0 !important;
     }
 
-    .el-select-dropdown__item.selected,.el-pager li.active {
-        color: #fff!important;
+    .el-select-dropdown__item.selected, .el-pager li.active {
+        color: #fff !important;
     }
 
     input::-webkit-outer-spin-button,
@@ -1117,8 +1117,25 @@
             background-position: center 210px;
         }
 
+        .mining .mining-list-info .el-row {
+            padding: 0 !important;
+        }
+
         .mining .mining-list-info .el-col.el-col-8 {
             width: 100%;
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info .grid-content .info {
+            width: 35%;
+        }
+
+        .mining .mining-list-info .grid-content .tag {
+            width: initial !important;
+        }
+
+        .mining .mining-list-info .grid-content .tag img {
+            padding: 0 10px;
         }
 
         .mining .mining-content .instructions {
@@ -1319,7 +1336,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 0 0 70px 0;
+            padding: 0 10px 70px 10px;
         }
     }
 </style>
