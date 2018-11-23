@@ -486,6 +486,14 @@
         margin: auto;
     }
 
+    #app .el-select .el-input .el-select__caret {
+        top: 0 !important;
+    }
+
+    .el-select-dropdown__item.selected,.el-pager li.active {
+        color: #fff!important;
+    }
+
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -1199,8 +1207,8 @@
 
         .mining .ranking, .mining .create-pool {
             position: absolute;
-            width: calc(100% - 20px);
-            left: 10px;
+            width: calc(100% - 30px);
+            left: 15px;
             top: 80px;
         }
 

@@ -1,4 +1,4 @@
-<template>
+<template xmlns:v-clipboard="http://www.w3.org/1999/xhtml">
     <div class="invite-friends">
         <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
         <div class="invite">
@@ -8,19 +8,21 @@
             <div class="code">
                 <p class="you-code">你的邀请码</p>
                 <p class="invite-code">
-                    <span>ABC123</span>
+                    <span>{{inviteCode}}</span>
                 </p>
                 <p class="copy">
-                    <button>复制邀请码</button>
+                    <button v-clipboard:copy="inviteCode" v-clipboard:success="copySuccess"
+                            v-clipboard:error="copyError">复制邀请码{{$store.$fun}}
+                    </button>
                 </p>
                 <div class="data">
                     <div>
                         <p>已邀请</p>
-                        <p>8人</p>
+                        <p>{{invitePeople}}人</p>
                     </div>
                     <div>
                         <p>获得奖励</p>
-                        <p>1600钻石</p>
+                        <p>{{inviteReward}}钻石</p>
                     </div>
                 </div>
             </div>
@@ -37,7 +39,36 @@
 
 <script>
     export default {
-        name: "invite-friends"
+        name: "invite-friends",
+        data() {
+            return {
+                inviteCode: "ABC1234",
+                invitePeople: 8,
+                inviteReward: 1600,
+            }
+        },
+        methods: {
+            copySuccess: function () {
+                const _this = this;
+                _this.$message({
+                    showClose: true,
+                    message: "已复制到剪切板",
+                    type: "success"
+                });
+            },
+            copyError: function () {
+                const _this = this;
+                _this.$message({
+                    showClose: true,
+                    message: "复制失败",
+                    type: "error"
+
+                });
+            },
+        },
+        created() {
+            console.info(this);
+        },
     }
 </script>
 
@@ -45,6 +76,12 @@
     .invite-friends {
         background: #fff;
         text-align: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: auto;
     }
 
     .invite .title {

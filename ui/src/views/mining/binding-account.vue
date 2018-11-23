@@ -69,10 +69,10 @@
                 </div>
             </div>
         </div>
-        <!--绑定-->
+        <!--绑定状态-->
         <div v-if="isBinding">
             <div class="binding">
-                <span class="img-close" @click="isBindingAccount('isBinding')"></span>
+                <span class="img-close" @click="isBindingAccount('isBinding')" v-if="binding !== 'padding'"></span>
                 <h1>绑定地址</h1>
                 <p class="img">
                     <span v-if="binding === 'padding'"><i class="el-icon-loading"></i></span>

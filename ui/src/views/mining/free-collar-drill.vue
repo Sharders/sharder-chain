@@ -18,12 +18,19 @@
                 <button v-if="free.state === 'IN'" @click="toReceive(free)">立即领取</button>
             </div>
         </div>
+        <!--领取弹窗-->
+        <ReceiveAlert :visible="isReceiveAlert" :alertInfo="alertInfo"></ReceiveAlert>
     </div>
 </template>
 
 <script>
+    import ReceiveAlert from "./receiveAlert";
+
     export default {
         name: "free-collar-drill",
+        components: {
+            ReceiveAlert: ReceiveAlert,
+        },
         data() {
             return {
                 freeList: [
@@ -36,26 +43,28 @@
                     },
                     {
                         name: "注册赠送",
-                        num: 100,
+                        num: 120,
                         type: "ORDINARY",
                         typeInfo: "registered",
                         state: "IN",
                     },
                     {
                         name: "绑定手机",
-                        num: 100,
+                        num: 140,
                         type: "BINDING",
                         typeInfo: "mobile-phone",
                         state: "IN",
                     },
                     {
                         name: "绑定邮箱",
-                        num: 100,
+                        num: 160,
                         type: "BINDING",
                         typeInfo: "email",
                         state: "IN",
                     },
                 ],
+                alertInfo: {},
+                isReceiveAlert: false,
             }
         }, methods: {
             stateInfo(val) {
@@ -65,14 +74,18 @@
             },
             toReceive(val) {
                 if (val.type === 'BINDING') {
-                    this.binding(val);
+                    this.$router.push({name: 'binding-validation', params: val});
+                }
+                if (val.type === 'ORDINARY' && val.state === "IN") {
+                    this.registered(val);
                 }
 
-
-
             },
-            binding(val) {
-                this.$router.push({name: 'binding-validation', params: val});
+            registered(val) {
+                //领取校验是否已经领取过了
+
+                this.alertInfo = {title: "领取成功", content: "恭喜你," + val.name + " +" + val.num + " 砖石"};
+                this.isReceiveAlert = true;
             },
         }
     }
