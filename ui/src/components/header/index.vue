@@ -12,12 +12,15 @@
             </div>
             <nav class="navbar_main" role="navigation">
                 <el-menu class="navbar_left el-menu-demo" mode="horizontal" :router=isRouter @select="activeItem">
-                    <el-menu-item index="/account" :class="activeIndex === '/account' ? 'activeLi' : ''">账户</el-menu-item>
-                    <el-menu-item index="/network" :class="activeIndex === '/network' ? 'activeLi' : ''">网络</el-menu-item>
-                    <el-menu-item index="/mining" :class="activeIndex === '/mining' ? 'activeLi' : ''">矿池</el-menu-item>
+                    <el-menu-item index="/account" :class="this.$route.path.indexOf('/account') >= 0 ? 'activeLi' : ''">账户</el-menu-item>
+                    <el-menu-item index="/network" :class="this.$route.path.indexOf('/network') >= 0 ? 'activeLi' : ''">网络</el-menu-item>
+                    <el-menu-item index="/mining" :class="this.$route.path.indexOf('/mining') >= 0 ? 'activeLi' : ''">矿池</el-menu-item>
+                    <!--<el-menu-item index="/1" :class="activeIndex === '/1' ? 'activeLi' : ''">
+                        <img src="../../assets/console.svg">
+                    </el-menu-item>-->
                 </el-menu>
                 <div class="navbar_console">
-                    <el-button type="text">
+                    <el-button type="text" @click="goConsole">
                         <span class="console"></span>
                     </el-button>
                 </div>
@@ -34,7 +37,7 @@
                         <span>SSA-9WKZ-DV7P-M6MN-SMH8B | 观察模式</span>
                     </div>
                     <div class="navbar_pilotLamp">
-                        <el-tooltip class="item" content="挖矿中" placement="bottom">
+                        <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light">
                             <div class="pilotLamp_circle"></div>
                         </el-tooltip>
                     </div>
@@ -68,6 +71,7 @@
                 const _this = this;
                 _this.activeIndex = val;
             },
+            goConsole: function () {},
             search_focus: function () {
                 const _this = this;
                 _this.activeSearch = true;
@@ -84,7 +88,11 @@
                 const _this = this;
                 console.log("你输入的值是" + _this.search_val);
                 _this.search_val = "";
-            }
+            },
+           /* validatePath: function (val,path) {
+                let reg = /^*$/;
+                console.log(reg.test(val));
+            }*/
         }
     };
 </script>

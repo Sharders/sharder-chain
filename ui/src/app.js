@@ -3,13 +3,15 @@ import { sync } from "vuex-router-sync";
 import Element from "element-ui";
 import App from "components/App";
 import { router } from "./router";
+import axios from "./httpConfig/http.js";
 import store from "./store";
-import locale from "element-ui/lib/locale/lang/en";
 import "theme/index.css";
 import "normalize.css";
 import "whatwg-fetch";
 import "material-design-icons";
-import "styles/index.scss";
+import "styles/css/index.scss";
+import "element-ui/lib/theme-chalk/index.css";
+import global from "./utils/common.js";
 
 var passUrls = ["static", "login", "register", "enter"];
 
@@ -26,11 +28,12 @@ router.beforeEach((to, from, next) => {
 });
 
 sync(store, router);
-Vue.use(Element, { locale });
+Vue.use(Element);
+Vue.prototype.$global = global;
+Vue.prototype.$http = axios;
 const app = new Vue({
     router,
     store,
     ...App
 });
-
 export { app, router, store };

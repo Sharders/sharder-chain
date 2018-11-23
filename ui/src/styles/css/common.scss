@@ -26,11 +26,11 @@
 }
 
 .radius_blue{
-    background: #493eda;
     border-radius: 4px;
+    background: #493eda;
 }
 
-.block-blue{
+.block_blue{
     height: 120px;
     width: 390px;
     padding: 20px;
@@ -132,7 +132,9 @@
         }
         .list_pagination {
             border-top: 1px solid #ddd;
+            height: 60px;
             text-align: right;
+            vertical-align: middle;
         }
     }
     .blockInfo{
@@ -143,34 +145,54 @@
 
 /*element tooltip background color*/
 .el-tooltip__popper{
+    color: #ffffff !important;
     background: #493eda!important;
+    z-index: 9999 !important;
 }
-.el-tooltip__popper .popper__arrow:after {
+.el-tooltip__popper.is-light .popper__arrow:after {
     border-top-color:  #493eda!important;
     border-bottom-color:  #493eda!important;
+    z-index: 9999 !important;
 }
 
-/*按钮样式 正色*/
 .common_btn{
+    cursor: pointer;
+    height:40px;
     background: #493eda;
-    border: 1px solid #493eda;
+    border: none;
+    border-radius: 4px;
     color:#fff;
-    //img{
-    //    vertical-align: middle;
-    //    margin-bottom: 3px;
-    //}
-    //span{
-    //    vertical-align: middle;
-    //    margin-left: 5px;
-    //}
+    .icon {
+        display: inline-flex;
+        height: 100%;
+        width: 14px;
+        svg {
+            width:14px;
+        }
+    }
 }
+
+.imgBtn{
+    margin: 0 15px;
+    span{
+        vertical-align: middle;
+        margin-left: 5px;
+    }
+}
+.imgBtn:hover{
+    svg {
+        fill: #493eda;
+        transition: .4s;
+    }
+}
+
+
 .common_btn:hover{
     background: #fff;
     color:#493eda;
     border: 1px solid #493eda;
     transition: .4s;
 }
-
 /*按钮样式 反色*/
 .common_btn_contrary{
     background: #fff;
@@ -191,9 +213,9 @@
 
 
 .modal{
-    position: absolute;
+    position: fixed;
     background: #fff;
-    top: 28%;
+    top: 180px;
     width: 500px;
     border-radius: 7px;
     margin: 0 auto;
@@ -240,17 +262,123 @@
                     border: 1px solid #ddd;
                     border-radius: 4px;
                 }
+
+                .el-form{
+                    .el-form-item{
+                        margin-bottom: 20px;
+                        .el-form-item__label{
+                            font-size:14px;
+                            color:#333;
+                            line-height: 19.2px;
+                            margin-bottom: 10px;
+                            padding-right: 20px;
+                        }
+                        .el-checkbox{
+                            line-height: 19.2px;
+                            float: left;
+                            margin-bottom: 10px;
+                            .el-checkbox__input.is-checked .el-checkbox__inner,
+                            .el-checkbox__input.is-indeterminate .el-checkbox__inner{
+                                background: #493eda;
+                                border-color: #493eda;
+                            }
+                            .el-checkbox__inner:hover{
+                                border-color: #493eda;
+                            }
+                            .el-checkbox__input.is-focus .el-checkbox__inner{
+                                border-color: #493eda;
+                            }
+                            .el-checkbox__label{
+                                padding-left:6px;
+                                font-size: 13px;
+                                color:#bbb;
+                            }
+                            .el-checkbox__input.is-checked+.el-checkbox__label {
+                                color: #493eda;
+                            }
+                        }
+                        .el-form-item__content{
+                            line-height: normal;
+                        }
+                        .el-textarea__inner:focus{
+                            border-color: #493eda;
+                        }
+                        .input-with-select{
+                            .el-input__inner{
+                                border-radius: 4px 0 0 4px;
+                                border-right: none;
+                                height: 42px;
+                            }
+                            .el-input-group__append, .el-input-group__prepend{
+                                color:#fff;
+                                background: #493eda;
+                                border: none;
+                            }
+
+                        }
+                        .input_suffix{
+                            position: absolute;
+                            right: 15px;
+                            top: calc(85% - 29.2px);
+                            color: #333;
+                            line-height: 40px;
+                            background: none;
+                            border: none;
+                        }
+                        .el-slider__runway{
+                            height: 2px;
+                            margin: 35px 0 0;
+                            background-color: #e4e7ed;
+                            .el-slider__bar{
+                                height: 2px;
+                                background-color: #493eda;
+                            }
+
+                            .el-slider__button-wrapper{
+                                top: -12px;
+                                height: 25px;
+                                width: 25px;
+                                line-height: normal;
+                                .el-slider__button{
+                                    border: none;
+                                    background-color: #493eda;
+                                }
+                            }
+                        }
+                        .el-slider__input{
+                            float: left;
+                            margin-top: 0;
+                            line-height: normal;
+                            width: 30px;
+                            .el-input-number__increase{
+                                display: none;
+                            }
+                            .el-input-number__decrease{
+                                display: none;
+                            }
+                            .el-input{
+                                .el-input__inner{
+                                    height: 20px;
+                                    padding: 0;
+                                    width: 30px;
+                                }
+                            }
+                        }
+
+                    }
+                }
             }
             .modal-footer{
                 margin: 30px 40px;
                 .btn{
                     width: 100%;
-                    height: 35px;
+                    height: 40px;
                     background: #493eda;
                     border: none;
                     border-radius: 4px;
                     font-size: 14px;
                     color: #fff;
+                    cursor: pointer;
                 }
             }
         }
@@ -258,9 +386,9 @@
 }
 
 .modal_info{
-    position: absolute;
+    position: fixed;
     background: #fff;
-    top: 10%;
+    top: 120px;
     width: 1200px;
     border-radius: 4px;
     margin: 0 auto;

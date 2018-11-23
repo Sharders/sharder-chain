@@ -14,10 +14,15 @@ import Attribute from "views/mining/attribute";
 import InviteFriends from "views/mining/invite-friends";
 import RuleDescription from "views/mining/rule-description";
 import MyMining from "views/mining/my-mining";
+import CreateHistory from "views/mining/create-history";
+import MyAssets from "views/mining/my-assets";
+import FreeCollarDrill from "views/mining/free-collar-drill";
+import DiamondExchange from "views/mining/diamond-exchange";
+import BindingValidation from "views/mining/binding-validation";
+import BindingAccount from "views/mining/binding-account";
 
 Vue.use(Router);
 Vue.use(VueClipboard);
-
 export const routes = [
     {
         path: "/",
@@ -50,6 +55,7 @@ export const routes = [
             },
             {
                 path: "/mining",
+                name: "mining",
                 component: Mining
             },
             {
@@ -71,6 +77,36 @@ export const routes = [
                 path: "/mining/my-mining",
                 name: "my-mining",
                 component: MyMining
+            },
+            {
+                path: "/mining/create-history",
+                name: "create-history",
+                component: CreateHistory
+            },
+            {
+                path: "/mining/my-assets",
+                name: "my-assets",
+                component: MyAssets
+            },
+            {
+                path: "/mining/free-collar-drill",
+                name: "free-collar-drill",
+                component: FreeCollarDrill
+            },
+            {
+                path: "/mining/diamond-exchange",
+                name: "diamond-exchange",
+                component: DiamondExchange
+            },
+            {
+                path: "/mining/binding-validation",
+                name: "binding-validation",
+                component: BindingValidation
+            },
+            {
+                path: "/mining/binding-account",
+                name: "binding-account",
+                component: BindingAccount
             },
             {
                 path: "/network",

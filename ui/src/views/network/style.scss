@@ -47,14 +47,7 @@
     }
 }
 
-.block_list{
-    th{
-        width:172px;
-    }
-}
-
 #block_info{
-    top: 0;
     .modal-body{
         margin: 30px 20px 40px!important;
         .title{
@@ -119,7 +112,6 @@
 }
 
 #account_info{
-    top: 0;
     .modal-body{
         margin:0;
         .account_preInfo{
@@ -181,7 +173,6 @@
 }
 
 #account_transaction{
-    top: 0;
     .modal-body{
         margin:0;
         .account_preInfo{

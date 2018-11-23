@@ -1,7 +1,7 @@
 <template>
     <div class="pool-attribute">
         <div>
-            <p @click="$router.back()" class="pool-back">&lt;&lt;返回矿池</p>
+            <p @click="$router.back()" class="pool-back">&lt;&lt;返回上一页</p>
             <div class="pool-content">
                 <div class="attribute-info">
                     <img src="../../assets/shouyi.png" id="shouyi">

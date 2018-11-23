@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <div class="block_network mb10">
+            <div class="block_network mb20">
                 <p class="block_title csp">
                     <a @click="turn2network">
                         <span>&lt;&lt;返回网络</span>
@@ -54,17 +54,17 @@
                                     <td>133KB</td>
                                     <td><span class="patch">COS0.1.0</span></td>
                                     <td>Linux amd64</td>
-                                    <td class="linker">
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                    <td class="linker tl pl30">
+                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
                                             <a>CS</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="商业API" placement="top">
+                                        <el-tooltip class="item" content="商业API" placement="top" effect="light">
                                             <a>BI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="存储服务" placement="top">
+                                        <el-tooltip class="item" content="存储服务" placement="top" effect="light">
                                             <a>SE</a>
                                         </el-tooltip>
                                     </td>
@@ -82,11 +82,11 @@
                                     <td>133KB</td>
                                     <td><span class="patch">COS0.0.1</span></td>
                                     <td>Linux amd64</td>
-                                    <td class="linker">
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                    <td class="linker tl pl30">
+                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
                                             <a>CS</a>
                                         </el-tooltip>
                                     </td>
@@ -104,14 +104,14 @@
                                     <td>133KB</td>
                                     <td><span class="patch">COS0.1.0</span></td>
                                     <td>Linux amd64</td>
-                                    <td class="linker tl">
-                                        <el-tooltip class="item" content="API服务" placement="top">
+                                    <td class="linker tl pl30">
+                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
                                             <a>AI</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top">
+                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
                                             <a>CS</a>
                                         </el-tooltip>
-                                        <el-tooltip class="item" content="商业API" placement="top">
+                                        <el-tooltip class="item" content="商业API" placement="top" effect="light">
                                             <a>BI</a>
                                         </el-tooltip>
                                     </td>
@@ -127,7 +127,7 @@
             </div>
         </div>
 
-        <!--blacklist-->
+        <!--add black list-->
         <div class="modal" id="blacklist_peer_modal" v-show="blacklist">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -147,6 +147,7 @@
             </div>
         </div>
 
+        <!--connect peer-->
         <div class="modal" id="connect_peer_modal" v-show="connectPeer">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -166,6 +167,7 @@
             </div>
         </div>
 
+        <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfo">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>

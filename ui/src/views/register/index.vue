@@ -239,5 +239,5 @@
 
 <style lang="scss">
     @import './style.scss';
-    @import '../../styles/common.scss';
+    @import '../../styles/css/common.scss';
 </style>

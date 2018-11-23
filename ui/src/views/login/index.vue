@@ -45,6 +45,7 @@
                 console.log(accountRS);
                 // this.$store.state.isLogin = true;
                 // this.$router.push("/account");
+                this.$global.setEpochBeginning(this);
             },
             loginChange: function (type) {
                 this.type = type;
@@ -71,23 +72,6 @@
             languageChange: function (language) {
                 console.log(language);
             }
-        },
-        created: function () {
-            var i;
-            for (i = 0; i <= 9; ++i) {
-                var character = i.toString();
-                this.charToNibble[character] = i;
-                this.nibbleToChar.push(character);
-            }
-
-            for (i = 10; i <= 15; ++i) {
-                var lowerChar = String.fromCharCode("a".charCodeAt(0) + i - 10);
-                var upperChar = String.fromCharCode("A".charCodeAt(0) + i - 10);
-
-                this.charToNibble[lowerChar] = i;
-                this.charToNibble[upperChar] = i;
-                this.nibbleToChar.push(lowerChar);
-            }
         }
     };
 </script>
@@ -95,5 +79,5 @@
 
 <style lang="scss">
     @import './style.scss';
-    @import '../../styles/common.scss';
+    @import '../../styles/css/common.scss';
 </style>
