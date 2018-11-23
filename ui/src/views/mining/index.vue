@@ -9,7 +9,7 @@
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
             <div class="mining-content">
-                <img src="../../assets/chatu.png" id="chatu" @click="$router.push({name: 'binding-account'})">
+                <img src="../../assets/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
@@ -441,12 +441,32 @@
             },
             handleCurrentChange(val) {
                 console.log(`当前页: ${val}`);
-            }
+            },
+            account() {
+                let _this = this;
+                let platform = navigator.userAgent;
+                console.info(platform);
+                if (platform.indexOf("iPhone") !== -1 || platform.indexOf("Android") !== -1) {
+                    console.info("移动");
+                    let token = localStorage.getItem("MOBILE_ACCOUNT");
+                    if (token === null) {
+                        _this.$router.push({name: 'binding-account'});
+                        return false;
+                    }
+                }
+                return true;
+            },
         },
         mounted: function () {
             let _this = this;
         },
         created: function () {
+            //先判断是否为手机端和授权状态
+            if (this.account()) {
+                return;
+            }
+
+            console.info(this);
 
         }
     }
