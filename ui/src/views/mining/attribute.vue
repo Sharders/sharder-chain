@@ -32,7 +32,7 @@
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
-                                    <p>投入SS</p>
+                                    <p>投入砖石</p>
                                     <p class="strong">100000</p>
                                 </button>
                             </el-col>
@@ -51,12 +51,13 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button class="join" @click="miningMask('isJoinPool')">投入SS</button>
+                        <button class="join" @click="miningMask('isJoinPool')">投入砖石</button>
                         <button class="exit" @click="miningMask('isExitPool')">退出矿池</button>
                     </div>
                 </div>
             </div>
         </div>
+        <!--矿池属性-->
         <div v-if="isAttribute">
             <div class="mining-attribute">
                 <span class="img-close" @click="miningMask('isAttribute')"></span>
@@ -99,13 +100,15 @@
                             </el-col>
                         </el-row>
                     </div>
+                    <button class="btn" style="display: none" @click="miningMask('isAttribute')">关闭</button>
                 </div>
             </div>
         </div>
+        <!--加入矿池-->
         <div v-if="isJoinPool">
             <div class="join-pool">
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
-                <h1 class="title">投入SS</h1>
+                <h1 class="title">投入砖石</h1>
                 <p class="attribute">当前可用:200000SS | 矿池容量:2000000SS</p>
                 <p class="input">
                     <el-input v-model="joinPool" placeholder="请输入投入数量"></el-input>
@@ -116,6 +119,7 @@
                 </p>
             </div>
         </div>
+        <!--退出矿池-->
         <div v-if="isExitPool">
             <div class="exit-pool">
                 <span class="img-close" @click="miningMask('isExitPool')"></span>
@@ -204,6 +208,7 @@
     .attribute-info .pool-attribute-info {
         float: right;
         cursor: pointer;
+        font-size: 11px;
         border-bottom: 1px solid #fff;
     }
 
@@ -540,11 +545,29 @@
         }
 
         .pool-attribute .mining-attribute {
-            width: calc(100% - 20px);
+            width: calc(100% - 30px);
             position: fixed;
             top: calc(50% - 80px);
-            left: 10px;
-            right: 10px;
+            left: 15px;
+        }
+
+        .pool-attribute .mining-attribute .img-close,
+        .pool-attribute .exit-pool .img-close {
+            display: none;
+        }
+
+        .pool-attribute .mining-attribute .btn {
+            display: inline-block !important;
+            width: 100%;
+            height: 40px;
+            outline: none;
+            border: none;
+            background: #513acB;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom-right-radius: 6px;
+            border-bottom-left-radius: 6px;
         }
 
         .pool-attribute .mining-attribute .attribute h1 {

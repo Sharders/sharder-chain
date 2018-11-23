@@ -145,7 +145,7 @@
 
     .history-details {
         position: fixed;
-        top: calc(50% - 130px);
+        top: calc(50% - 150px);
         width: calc(100% - 20px);
         left: 10px;
         background: #fff;
