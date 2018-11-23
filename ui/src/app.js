@@ -14,24 +14,23 @@ import "styles/index.scss";
 var passUrls = ["static", "login", "register", "enter"];
 
 router.beforeEach((to, from, next) => {
-        if (passUrls.indexOf(to.path.split("/")[1]) === -1) {
-            if (store.state.isLogin) {
-                next();
-            } else {
-                next("/");
-            }
-        } else {
+    if (passUrls.indexOf(to.path.split("/")[1]) === -1) {
+        if (store.state.isLogin) {
             next();
+        } else {
+            next("/");
         }
-    });
+    } else {
+        next();
+    }
+});
 
 sync(store, router);
 Vue.use(Element, { locale });
-
 const app = new Vue({
-  router,
-  store,
-  ...App
+    router,
+    store,
+    ...App
 });
 
 export { app, router, store };

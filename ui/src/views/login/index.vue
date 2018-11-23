@@ -7,8 +7,8 @@
         </el-col>
 
         <el-col :span="24" class="login_operation">
-            <input class="secret_key_input" v-model="data" placeholder="请输入账户密钥"/>
-            <masked-input class="account_input" v-model="data" mask="AAA-****-****-****-*****" placeholder="Sharder账户" />
+            <input class="secret_key_input" type="password" v-model="data" placeholder="请输入账户密钥"/>
+            <masked-input class="account_input" v-model="data" mask="AAA-****-****-****-*****" placeholder="Sharder账户"/>
             <el-button class="common_btn" @click="login">登录</el-button>
         </el-col>
 
@@ -21,30 +21,39 @@
 </template>
 
 <script>
-    import Store from "../../store";
-    import $ from "jquery";
-    import MaskedInput from "vue-masked-input";
+    import SSO from "../../../static/js/sso";
     export default {
         components: {
-            "masked-input": MaskedInput
+            "masked-input": SSO.MaskedInput
         },
         name: "index",
         data () {
             return {
-                data: ""
+                data: "",
+                type:1
             };
         },
         methods: {
             login: function () {
-                Store.commit("loginState");
-                this.$router.push("/account");
+                console.log(this.type)
+                let secretPhrase = SSO.NRS.getAccountId("together learn possibly change son search alive quick feather shape change chance");
+                let nxtAddress = new SSO.NxtAddress();
+                let accountRS = "";
+                if (nxtAddress.set(secretPhrase)) {
+                    accountRS = nxtAddress.toString();
+                }
+                console.log(accountRS);
+                // this.$store.state.isLogin = true;
+                // this.$router.push("/account");
             },
             loginChange: function (type) {
+                this.type = type;
                 if (type === 0) {
                     $("#secretKeyLogin").addClass("common_btn");
                     $("#secretKeyLogin").removeClass("common_btn_contrary");
                     $("#accountLogin").addClass("common_btn_contrary");
                     $("#accountLogin").removeClass("common_btn");
+                    $(".secret_key_input").val("");
                     $(".secret_key_input").show();
                     $(".account_input").hide();
                 } else {
@@ -62,13 +71,29 @@
             languageChange: function (language) {
                 console.log(language);
             }
+        },
+        created: function () {
+            var i;
+            for (i = 0; i <= 9; ++i) {
+                var character = i.toString();
+                this.charToNibble[character] = i;
+                this.nibbleToChar.push(character);
+            }
+
+            for (i = 10; i <= 15; ++i) {
+                var lowerChar = String.fromCharCode("a".charCodeAt(0) + i - 10);
+                var upperChar = String.fromCharCode("A".charCodeAt(0) + i - 10);
+
+                this.charToNibble[lowerChar] = i;
+                this.charToNibble[upperChar] = i;
+                this.nibbleToChar.push(lowerChar);
+            }
         }
     };
 </script>
 
 
 <style lang="scss">
-    @import '~scss_vars';
     @import './style.scss';
     @import '../../styles/common.scss';
 </style>

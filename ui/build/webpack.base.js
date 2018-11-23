@@ -52,12 +52,12 @@ module.exports = {
         test: /\.vue$/,
         use: "vue-loader"
       },
-      {
-        test: /\.js$/,
-        enforce: "pre",
-        use: "eslint-loader?fix=true",
-        exclude: [/node_modules/]
-      },
+      // {
+      //   test: /\.js$/,
+      //   enforce: "pre",
+      //   use: "eslint-loader?fix=true",
+      //   exclude: [/node_modules/]
+      // },
       {
         test: /\.js$/,
         use: "babel-loader",

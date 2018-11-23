@@ -51,6 +51,5 @@
 
 
 <style lang="scss">
-    @import '~scss_vars';
     @import './style.scss';
 </style>
