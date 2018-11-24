@@ -21,13 +21,14 @@
 
 package org.conch;
 
-import org.conch.cpos.core.ConchGenesis;
-import org.conch.Account.ControlType;
-import org.conch.Attachment.AbstractAttachment;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
+import org.conch.Account.ControlType;
+import org.conch.Attachment.AbstractAttachment;
+import org.conch.cpos.core.ConchGenesis;
+import org.conch.pool.SharderPoolProcessor;
+import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -91,6 +92,7 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_DATA_TAGGED_DATA_UPLOAD = 0;
     private static final byte SUBTYPE_DATA_TAGGED_DATA_EXTEND = 1;
 
+    // sharder-pool
     private static final byte SUBTYPE_FORGE_POOL_CREATE = 0;
     private static final byte SUBTYPE_FORGE_POOL_DESTROY = 1;
     private static final byte SUBTYPE_FORGE_POOL_JOIN = 2;
@@ -549,9 +551,9 @@ public abstract class TransactionType {
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
                 Map<Long,Long> consignors = coinBase.getConsignors();
-                long id = org.conch.ForgePool.ownOnePool(transaction.getSenderId());
-                if(id != -1 && org.conch.ForgePool.getForgePool(id).getState().equals(org.conch.ForgePool.State.WORKING)
-                        && !org.conch.ForgePool.getForgePool(id).validateConsignorsAmountMap(consignors)){
+                long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
+                if (id != -1 && SharderPoolProcessor.getForgePool(id).getState().equals(SharderPoolProcessor.State.WORKING)
+                        && !SharderPoolProcessor.getForgePool(id).validateConsignorsAmountMap(consignors)) {
                     throw new ConchException.NotValidException("Allocation rule is wrong");
                 }
             }
@@ -3404,7 +3406,7 @@ public abstract class TransactionType {
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO node certify
                 // forge pool total No.
-                long poolId = org.conch.ForgePool.ownOnePool(transaction.getSenderId());
+                long poolId = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
                 if(poolId != -1){
                     throw new ConchException.NotValidException("Creator already owned one forge pool " + poolId);
                 }
@@ -3420,7 +3422,7 @@ public abstract class TransactionType {
             void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.ForgePoolCreate create =(Attachment.ForgePoolCreate)transaction.getAttachment();
-                org.conch.ForgePool.createForgePool(senderAccount.getId(),transaction.getId(),curHeight + Constants.FORGE_POOL_DELAY ,
+                SharderPoolProcessor.createForgePool(senderAccount.getId(), transaction.getId(), curHeight + Constants.FORGE_POOL_DELAY,
                         curHeight + Constants.FORGE_POOL_DELAY + create.getPeriod(),
                         Rule.getRuleInstance(senderAccount.getId(),Rule.mapToJsonObject(create.getRule())));
             }
@@ -3440,7 +3442,6 @@ public abstract class TransactionType {
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
             }
 
             @Override
@@ -3472,11 +3473,11 @@ public abstract class TransactionType {
             void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO unconfirmed transaction already has this kind of transaction
                 Attachment.ForgePoolDestroy destroy =(Attachment.ForgePoolDestroy)transaction.getAttachment();
-                org.conch.ForgePool forgePool = org.conch.ForgePool.getForgePool(destroy.getPoolId());
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(destroy.getPoolId());
                 if(forgePool == null){
                     throw new ConchException.NotValidException("Forge pool " + destroy.getPoolId() + " doesn't exists");
                 }
-                if(transaction.getSenderId() != org.conch.ForgePool.getForgePool(destroy.getPoolId()).getCreatorId()){
+                if (transaction.getSenderId() != SharderPoolProcessor.getForgePool(destroy.getPoolId()).getCreatorId()) {
                     throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " +
                             forgePool.getCreatorId());
                 }
@@ -3495,7 +3496,7 @@ public abstract class TransactionType {
             void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.ForgePoolDestroy destroy =(Attachment.ForgePoolDestroy)transaction.getAttachment();
-                org.conch.ForgePool forgePool = org.conch.ForgePool.getForgePool(destroy.getPoolId());
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(destroy.getPoolId());
                 forgePool.destroyForgePool(curHeight);
             }
 
@@ -3551,7 +3552,7 @@ public abstract class TransactionType {
                 //TODO unconfirmed transaction already has this kind of transaction double spend
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.ForgePoolJoin join =(Attachment.ForgePoolJoin)transaction.getAttachment();
-                org.conch.ForgePool forgePool = org.conch.ForgePool.getForgePool(join.getForgePoolId());
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(join.getForgePoolId());
                 if(forgePool == null){
                     throw new ConchException.NotValidException("Forge pool doesn't exists");
                 }
@@ -3562,7 +3563,7 @@ public abstract class TransactionType {
                 if(curHeight + Constants.FORGE_POOL_DELAY > endHeight){
                     throw new ConchException.NotValidException("Forge pool will be destroyed at " + endHeight + " before transaction apply at " + curHeight);
                 }
-                if(!Rule.validateConsignor(org.conch.ForgePool.getForgePool(join.getForgePoolId()).getCreatorId(),join,forgePool.getRule())){
+                if (!Rule.validateConsignor(SharderPoolProcessor.getForgePool(join.getForgePoolId()).getCreatorId(), join, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
 
@@ -3580,7 +3581,7 @@ public abstract class TransactionType {
                 long poolId = forgePoolJoin.getForgePoolId();
                 long transactionId = transaction.getId();
                 senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
-                org.conch.ForgePool forgePool = org.conch.ForgePool.getForgePool(poolId);
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(poolId);
                 height = height > forgePool.getStartBlockNo() ? height : forgePool.getStartBlockNo();
                 forgePool.addOrUpdateConsignor(senderAccount.getId(),transaction.getId(),height,height + forgePoolJoin.getPeriod(),amountNQT);
             }
@@ -3630,7 +3631,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.ForgePoolQuit quit =(Attachment.ForgePoolQuit)transaction.getAttachment();
                 long poolId = quit.getPoolId();
-                org.conch.ForgePool forgePool = org.conch.ForgePool.getForgePool(poolId);
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(poolId);
                 if(forgePool == null){
                     throw new ConchException.NotValidException("Forge pool " + poolId + " doesn't exists");
                 }
@@ -3641,7 +3642,7 @@ public abstract class TransactionType {
                 if(curHeight + Constants.FORGE_POOL_DELAY > forgePool.getEndBlockNo()){
                     throw new ConchException.NotValidException("Forge pool will be destroyed at " + forgePool.getEndBlockNo() + " before transaction apply at " + curHeight);
                 }
-                if(!Rule.validateConsignor(org.conch.ForgePool.getForgePool(poolId).getCreatorId(),quit,forgePool.getRule())){
+                if (!Rule.validateConsignor(SharderPoolProcessor.getForgePool(poolId).getCreatorId(), quit, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
             }
@@ -3650,7 +3651,7 @@ public abstract class TransactionType {
             void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ForgePoolQuit forgePoolQuit = (Attachment.ForgePoolQuit)transaction.getAttachment();
                 long poolId = forgePoolQuit.getPoolId();
-                org.conch.ForgePool forgePool = org.conch.ForgePool.getForgePool(poolId);
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(poolId);
                 long amountNQT = forgePool.quitConsignor(senderAccount.getId(),forgePoolQuit.getTxId());
                 if(amountNQT != -1){
                     senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);

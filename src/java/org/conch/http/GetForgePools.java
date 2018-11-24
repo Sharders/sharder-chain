@@ -1,7 +1,7 @@
 package org.conch.http;
 
 import org.conch.ConchException;
-import org.conch.ForgePool;
+import org.conch.pool.SharderPoolProcessor;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +15,7 @@ public class GetForgePools extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         long creatorId = ParameterParser.getLong(request,"creatorId",Long.MIN_VALUE,Long.MAX_VALUE,true);
-        return ForgePool.getForgePoolsFromNowAndDestroy(creatorId);
+        return SharderPoolProcessor.getForgePoolsFromNowAndDestroy(creatorId);
     }
 
     @Override

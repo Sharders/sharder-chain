@@ -1,5 +1,6 @@
 package org.conch;
 
+import org.conch.pool.SharderPoolProcessor;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;
@@ -67,7 +68,7 @@ public class Rule implements Serializable {
     }
 
     public static int getLevel(long creatorId){
-        ForgePool forgePool = ForgePool.getNewForgePoolFromDestroy(creatorId);
+        SharderPoolProcessor forgePool = SharderPoolProcessor.getNewForgePoolFromDestroy(creatorId);
         if(forgePool == null){
             return 0;
         }
@@ -76,7 +77,7 @@ public class Rule implements Serializable {
             if(key.equals("version")){
                 continue;
             }
-            Map<String,Object> objectMap = (Map<String,Object>)(Map<String,Object>)rules.get(key);
+            Map<String, Object> objectMap = (Map<String, Object>) rules.get(key);
             Map<String,Object> map = (Map<String,Object>)objectMap.get("rule");
             for(String ruleKey : map.keySet()){
                 try {
@@ -260,7 +261,7 @@ public class Rule implements Serializable {
 
     public static Map<Long,Long> getRewardMap(Long creator, Long poolId,Long amount, Map<Long,Long> map){
         Map<Long,Long> result = new HashMap<>();
-        ForgePool forgePool = ForgePool.getForgePoolFromAll(creator,poolId);
+        SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePoolFromAll(creator, poolId);
         int level = forgePool.getLevel();
         Map<String,Object> ruleMap = (Map<String,Object>)((Map<String,Object>)forgePool.getRule().get("level" + level)).get("forgepool");
         long creatorAmount = 0;

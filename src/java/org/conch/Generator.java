@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.conch.crypto.Crypto;
+import org.conch.pool.SharderPoolProcessor;
 import org.conch.util.*;
 
 import java.math.BigInteger;
@@ -341,9 +342,9 @@ public final class Generator implements Comparable<Generator> {
         if (account == null) {
             effectiveBalance = BigInteger.ZERO;
         } else {
-            long id = ForgePool.ownOnePool(account.getId());
-            if(id != -1 && ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING)){
-                effectiveBalance = BigInteger.valueOf(Math.max(ForgePool.getForgePool(id).getPower() / Constants.ONE_SS, 0))
+            long id = SharderPoolProcessor.ownOnePool(account.getId());
+            if (id != -1 && SharderPoolProcessor.getForgePool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getForgePool(id).getPower() / Constants.ONE_SS, 0))
                         .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
             }else {
                 effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));

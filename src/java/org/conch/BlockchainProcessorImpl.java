@@ -30,6 +30,7 @@ import org.conch.db.FilteringIterator;
 import org.conch.db.FullTextTrigger;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.pool.SharderPoolProcessor;
 import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -2044,12 +2045,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             // Pool owner -> pool rewards map (send rewards to pool)
             // Single miner -> empty map (send rewards to miner)
             Map<Long,Long> map;
-            long id = ForgePool.ownOnePool(Account.getId(publicKey));
-            if(id == -1 || !ForgePool.getForgePool(id).getState().equals(ForgePool.State.WORKING) ){
+            long id = SharderPoolProcessor.ownOnePool(Account.getId(publicKey));
+            if (id == -1 || !SharderPoolProcessor.getForgePool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
                 id = Account.getId(publicKey);
                 map = new HashMap<>();
             }else {
-                map = ForgePool.getForgePool(id).getConsignorsAmountMap();
+                map = SharderPoolProcessor.getForgePool(id).getConsignorsAmountMap();
             }
             //transaction version=1, deadline=10,timestamp=blockTimestamp
             TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 1, publicKey,

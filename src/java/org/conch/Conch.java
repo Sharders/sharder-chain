@@ -34,6 +34,7 @@ import org.conch.http.API;
 import org.conch.http.APIProxy;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
+import org.conch.pool.SharderPoolProcessor;
 import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -45,7 +46,10 @@ import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -495,7 +499,7 @@ public final class Conch {
                 AddOns.init();
                 API.init();
                 Users.init();
-                ForgePool.init();
+                SharderPoolProcessor.init();
                 DebugTrace.init();
                 // DbBackup Init
                 DbBackup.init();
