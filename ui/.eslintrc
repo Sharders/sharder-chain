@@ -3,6 +3,7 @@
     "rules":{
         "indent":[0],
         "quotes": [1, "double"],
-        "semi": ["error", "always"]
+        "semi": ["error", "always"],
+        "no-tabs":"off"
     }
 }

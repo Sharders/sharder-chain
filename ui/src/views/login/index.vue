@@ -2,13 +2,13 @@
     <div class="content_login">
 
         <el-col :span="24" class="switch">
-            <button class="common_btn_contrary" id="secretKeyLogin" @click="loginChange(0)">密钥登录</button>
-            <button class="common_btn" id="accountLogin" @click="loginChange(1)">账户登录</button>
+            <button class="common_btn_contrary" id="secretKeyLogin" @click="loginChange(1)">密钥登录</button>
+            <button class="common_btn" id="accountLogin" @click="loginChange(0)">账户登录</button>
         </el-col>
 
         <el-col :span="24" class="login_operation">
-            <input class="secret_key_input" v-model="data" placeholder="请输入账户密钥"/>
-            <masked-input class="account_input" v-model="data" mask="AAA-****-****-****-*****" placeholder="Sharder账户" />
+            <input class="account_input" type="password" v-model="account" placeholder="请输入账户密钥"/>
+            <masked-input class="secret_key_input" v-model="account" mask="AAA-****-****-****-*****" placeholder="Sharder账户"/>
             <el-button class="common_btn" @click="login">登录</el-button>
         </el-col>
 
@@ -21,9 +21,7 @@
 </template>
 
 <script>
-    import Store from "../../store";
-    import $ from "jquery";
-    import MaskedInput from "vue-masked-input";
+    import "../../../static/js/sso";
     export default {
         components: {
             "masked-input": MaskedInput
@@ -31,16 +29,56 @@
         name: "index",
         data () {
             return {
-                data: ""
+                account: "",
+                type:0
             };
         },
         methods: {
             login: function () {
-                Store.commit("loginState");
+                // console.log(Login)
+                // Login.login(this.type,this.account,this)
+
+                // console.log(this.type)
+                // console.info(this.account)
+                // let account = this.account;
+                // let secretPhrase = SSO.getAccountId(account);
+                // let nxtAddress = new NxtAddress();
+                // let accountRS = "";
+                // if (nxtAddress.set(secretPhrase)) {
+                //     accountRS = nxtAddress.toString();
+                // }
+                // console.log(accountRS);
+                // let accountRequest;
+                // let requestVariable;
+                // if (this.type) {
+                //     accountRequest = "getAccountId";
+                //     requestVariable = {secretPhrase: account};
+                // }else {
+                //     accountRequest = "getAccount";
+                //     requestVariable = {account: account};
+                // };
+                // this.$http.post(this.url + "getBlockchainStatus").then(res => {
+                //     console.log(res)
+                //     if (res.errorCode) {
+                //         this.$message.error(res.errorDescription);
+                //         return;
+                //     }
+                //     // global.state = res;
+                // })
+                if (this.type && $.trim(this.account)) {
+                    this.$store.state.isPassphrase = true;
+                    this.$store.state.passphrase = this.account;
+                }else {
+                    this.$store.state.isPassphrase = false;
+                    this.$store.state.passphrase = "";
+                };
+                this.$store.state.isLogin = true;
                 this.$router.push("/account");
                 this.$global.setEpochBeginning(this);
             },
             loginChange: function (type) {
+                this.type = type;
+                this.account = "";
                 if (type === 0) {
                     $("#secretKeyLogin").addClass("common_btn");
                     $("#secretKeyLogin").removeClass("common_btn_contrary");
@@ -69,7 +107,6 @@
 
 
 <style lang="scss">
-    @import '~scss_vars';
     @import './style.scss';
     @import '../../styles/css/common.scss';
 </style>
