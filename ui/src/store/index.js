@@ -7,8 +7,8 @@ const store = new Vuex.Store({
     state: {
         mask: false,
         isLogin: false,
-        isPassphrase:false,
-        passphrase:""
+        isPassphrase: false,
+        passphrase: ""
 
     },
     mutations: { // 类似 vue 的 methods

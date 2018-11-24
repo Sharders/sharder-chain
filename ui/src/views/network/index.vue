@@ -508,13 +508,11 @@
                 }
             }).then(function(res){
                 _this.blocklist = res.data;
-                console.log(_this.blocklist);
                 _this.calcAverageAmount(res);
                 _this.newestHeight = res.data[0].height;
                 _this.totalSize = res.data[0].height;
                 _this.newestTime = _this.myFormatTime(res.data[0].timestamp,'YMDHMS');
 
-                console.log(res);
             }).catch(function (err) {
                 console.error("error",err);
             });
@@ -818,7 +816,6 @@
                     }
                 }).then(function (res) {
                     _this.blockInfo = res.data;
-                    console.log(_this.blockInfo);
                 }).catch(function (err) {
                     console.error("error",err);
                 });
@@ -836,7 +833,6 @@
                     }
                 }).then(function (res) {
                     _this.accountTransactionInfo = res.data.transactions;
-                    console.log(_this.accountTransactionInfo);
                 }).catch(function (err) {
                     console.error("error",err);
                 });
@@ -846,7 +842,6 @@
                     }
                 }).then(function (res) {
                     _this.accountInfo = res.data;
-                    console.log("accountInfo",_this.accountInfo);
                 }).catch(function (err) {
                     console.error("error",err);
                 });
@@ -864,9 +859,7 @@
                     }
                 }).then(function (res) {
                     _this.transactionInfo = res.data;
-                    console.log("transactionInfo",_this.transactionInfo);
                 }).catch(function (err) {
-                    console.error("error",err);
                 })
 
                 this.$store.state.mask = true;
@@ -922,11 +915,9 @@
                     }
                 }).then(function(res){
                     _this.blocklist = res.data;
-                    console.log(_this.blocklist);
                     _this.calcAverageAmount(res);
                     return res;
                 }).catch(function (err) {
-                    console.error(err);
                     return null;
                 });
             },
