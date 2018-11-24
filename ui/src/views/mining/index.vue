@@ -9,7 +9,7 @@
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
             <div class="mining-content">
-                <img src="../../assets/chatu.png" id="chatu" @click="$router.push({name: 'binding-account'})">
+                <img src="../../assets/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
@@ -441,12 +441,32 @@
             },
             handleCurrentChange(val) {
                 console.log(`当前页: ${val}`);
-            }
+            },
+            account() {
+                let _this = this;
+                let platform = navigator.userAgent;
+                console.info(platform);
+                if (platform.indexOf("iPhone") !== -1 || platform.indexOf("Android") !== -1) {
+                    console.info("移动");
+                    let token = localStorage.getItem("MOBILE_ACCOUNT");
+                    if (token === null) {
+                        _this.$router.push({name: 'binding-account'});
+                        return false;
+                    }
+                }
+                return true;
+            },
         },
         mounted: function () {
             let _this = this;
         },
         created: function () {
+            //先判断是否为手机端和授权状态
+            if (this.account()) {
+                return;
+            }
+
+            console.info(this);
 
         }
     }
@@ -464,6 +484,14 @@
         position: initial !important;
         width: 1200px !important;
         margin: auto;
+    }
+
+    #app .el-select .el-input .el-select__caret {
+        top: 0 !important;
+    }
+
+    .el-select-dropdown__item.selected, .el-pager li.active {
+        color: #fff !important;
     }
 
     input::-webkit-outer-spin-button,
@@ -1089,8 +1117,25 @@
             background-position: center 210px;
         }
 
+        .mining .mining-list-info .el-row {
+            padding: 0 !important;
+        }
+
         .mining .mining-list-info .el-col.el-col-8 {
             width: 100%;
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info .grid-content .info {
+            width: 35%;
+        }
+
+        .mining .mining-list-info .grid-content .tag {
+            width: initial !important;
+        }
+
+        .mining .mining-list-info .grid-content .tag img {
+            padding: 0 10px;
         }
 
         .mining .mining-content .instructions {
@@ -1179,8 +1224,8 @@
 
         .mining .ranking, .mining .create-pool {
             position: absolute;
-            width: calc(100% - 20px);
-            left: 10px;
+            width: calc(100% - 30px);
+            left: 15px;
             top: 80px;
         }
 
@@ -1291,7 +1336,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 0 0 70px 0;
+            padding: 0 10px 70px 10px;
         }
     }
 </style>

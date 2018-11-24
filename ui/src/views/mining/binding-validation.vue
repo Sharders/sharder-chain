@@ -54,14 +54,23 @@
                 <button @click="getRewards()">领取奖励</button>
             </div>
         </div>
+        <!--领取弹窗-->
+        <ReceiveAlert :visible="isReceiveAlert" :alertInfo="alertInfo" @callback="$router.back()"></ReceiveAlert>
     </div>
 </template>
 
 <script>
+    import ReceiveAlert from "./receiveAlert";
+
     export default {
         name: "binding-validation",
+        components: {
+            ReceiveAlert: ReceiveAlert,
+        },
         data() {
             return {
+                isReceiveAlert: false,
+                alertInfo: {},
                 binding: this.$route.params,
                 isValidation: false,
                 options: [
@@ -90,14 +99,24 @@
         },
         methods: {
             next() {
-                this.isValidation = true;
+                if (this.phone || this.email) {
+                    this.isValidation = true;
+                }
             },
             getRewards() {
+                if (this.validationCode.length !== 6) {
+                    return;
+                }
+                //校验验证码
 
+                this.alertInfo = {title: "领取成功", content: "恭喜你," + this.binding.name + " +" + this.binding.num + " 砖石"};
+                this.isReceiveAlert = true;
             },
         }, watch: {
             validationCode: function (val) {
-                console.info(val);
+                if (val.length === 6) {
+                    this.getRewards();
+                }
             }
         }
     }

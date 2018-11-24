@@ -9,16 +9,16 @@
                 <div class="w dfl">
                     <div class="block_blue radius_blue">
                         <p>区块高度</p>
-                        <p><span></span>个</p>
-                        <p>生成时间：2018/10/27 11:49:28</p>
+                        <p><span>{{newestHeight}}</span>个</p>
+                        <p>生成时间：{{newestTime}}</p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>区块平均交易量</p>
-                        <p><span></span>个</p>
+                        <p><span>{{averageAmount}}</span>个</p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>节点数量</p>
-                        <p><span></span>个</p>
+                        <p><span>{{peerNum}}</span>个</p>
                     </div>
                 </div>
             </div>
@@ -32,7 +32,7 @@
                         <div>
                             <img src="../../assets/miner-info1.svg"/>
                             <div class="section_info">
-                                <span>24</span>
+                                <span>{{activeCount}}</span>
                                 <span>旷工数量</span>
                             </div>
                         </div>
@@ -41,7 +41,7 @@
                         <div>
                             <img src="../../assets/miner-info2.svg"/>
                             <div class="section_info">
-                                <span>9999999</span>
+                                <span>{{totalCount}}</span>
                                 <span>总交易量</span>
                             </div>
                         </div>
@@ -51,7 +51,7 @@
                         <div>
                             <img src="../../assets/miner-info3.svg"/>
                             <div class="section_info">
-                                <span>1234</span>
+                                <span>{{transferCount}}</span>
                                 <span>转账交易</span>
                             </div>
                         </div>
@@ -60,7 +60,7 @@
                         <div>
                             <img src="../../assets/miner-info4.svg"/>
                             <div class="section_info">
-                                <span>123456</span>
+                                <span>{{coinbaseCount}}</span>
                                 <span>CoinBase交易</span>
                             </div>
                         </div>
@@ -69,7 +69,7 @@
                         <div>
                             <img src="../../assets/miner-info5.svg"/>
                             <div class="section_info">
-                                <span>12345</span>
+                                <span>{{storageCount}}</span>
                                 <span>存储交易</span>
                             </div>
                         </div>
@@ -78,7 +78,7 @@
                         <div>
                             <img src="../../assets/miner-info6.svg"/>
                             <div class="section_info">
-                                <span>45</span>
+                                <span>无</span>
                                 <span>别名修改</span>
                             </div>
                         </div>
@@ -123,19 +123,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="block in blocklist">
-                                    <td><span>{{block.height }}</span></td>
+                                <tr v-for="(block,index) in blocklist">
+                                    <td><span>{{block.height}}</span></td>
                                     <td><span>{{myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
                                     <td><span>{{block.totalAmount}}</span></td>
                                     <td><span>{{block.totalFee}}</span></td>
                                     <td><span>{{block.numberOfTransactions}}</span></td>
-                                    <td class="linker" @click="openAccountInfo">{{block.generatorRS}}</td>
-                                    <td class="linker" @click="openBlockInfo">查看详情</td>
+                                    <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}</td>
+                                    <td class="linker" @click="openBlockInfo(block.height,block.totalAmount,'')">查看详情</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div >
+                    <div class="list_pagination">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -150,11 +150,11 @@
         </div>
 
         <!--view block info-->
-        <div class="modal_info" id="block_info" v-show="blockInfo">
+        <div class="modal_info" id="block_info" v-show="blockInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >区块：1221 信息</span>
+                    <span >区块：{{blockInfo.block}} 信息</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -174,93 +174,100 @@
                                 <th>发送者</th>
                                 <th>接受者</th>
                             </tr>
-                            <tr>
-                                <td>2018/10/18 8:29:16</td>
-                                <td>
-                                    <img src="../../assets/coinBase.svg"/>
-                                    <span>CoinBase</span>
+                            <tr v-for="(transaction,index) in blockInfo.transactions">
+                                <td>{{myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
+
                                 </td>
-                                <td>10</td>
-                                <td>0</td>
-                                <td>CoinBase</td>
-                                <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
-                            </tr>
-                            <tr>
-                                <td>2018/10/18 8:29:16</td>
-                                <td>
+                                <td v-if="transaction.type === 0">
                                     <img src="../../assets/pay.svg"/>
                                     <span>普通支付</span>
                                 </td>
-                                <td>100,000</td>
-                                <td>1</td>
-                                <td class="linker">SSA-9WKZ-DV7P-M6MN-5MH8B</td>
-                                <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
+                                <td v-else-if="transaction.type === 1">
+                                    <img src="../../assets/infomation.svg"/>
+                                    <span>任意信息</span>
+                                </td>
+                                <td v-else-if="transaction.type === 6">
+                                    <img src="../../assets/infomation.svg"/>
+                                    <span>数据存储</span>
+                                </td>
+                                <td v-else-if="transaction.type === 9">
+                                    <img src="../../assets/coinBase.svg"/>
+                                    <span>CoinBase</span>
+                                </td>
+                                <td>{{transaction.amountNQT/100000000}}</td>
+                                <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
+                                <td v-else></td>
+                                <td v-if="transaction.type === 9">CoinBase</td>
+                                <td class="linker" v-else>{{transaction.senderRS}}</td>
+                                <td class="linker" v-if="transaction.type === 9">{{transaction.senderRS}}</td>
+                                <td class="linker" v-else>{{transaction.recipientRS}}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div v-if="tabTitle === 'blockInfo'" class="blockInfo">
+                <div v-else-if="tabTitle === 'blockInfo'" class="blockInfo">
                     <table class="table">
                         <tbody>
                             <tr>
                                 <th>上一个区块哈希</th>
-                                <td></td>
+                                <td>{{blockInfo.previousBlockHash}}</td>
                             </tr>
                             <tr>
                                 <th>载荷长度</th>
-                                <td>193</td>
+                                <td>{{blockInfo.payloadLength}}</td>
                             </tr>
                             <tr>
                                 <th>总数</th>
-                                <td>10 SS</td>
+                                <td>{{totalAmount}} SS</td>
                             </tr>
                             <tr>
                                 <th>矿工签名</th>
-                                <td></td>
+                                <td>{{blockInfo.generationSignature}}</td>
                             </tr>
                             <tr>
                                 <th>矿工公钥</th>
-                                <td></td>
+                                <td>{{blockInfo.generatorPublicKey}}</td>
                             </tr>
                             <tr>
                                 <th>交易数量</th>
-                                <td>1</td>
+                                <td>{{blockInfo.numberOfTransactions}}</td>
                             </tr>
                             <tr>
                                 <th>区块签名</th>
-                                <td></td>
+                                <td>{{blockInfo.blockSignature}}</td>
                             </tr>
                             <tr>
                                 <th>版本：</th>
-                                <td>3</td>
+                                <td>{{blockInfo.version}}</td>
                             </tr>
                             <tr>
                                 <th>总手续费</th>
-                                <td>0 SS</td>
+                                <td>{{blockInfo.totalFeeNQT/100000000}} SS</td>
                             </tr>
                             <tr>
                                 <th>挖矿难度</th>
-                                <td></td>
+                                <td>{{blockInfo.cumulativeDifficulty}}</td>
                             </tr>
                             <tr>
                                 <th>区块高度</th>
-                                <td>1216</td>
+                                <td>{{blockInfo.height}}</td>
                             </tr>
                             <tr>
                                 <th>时间戳</th>
-                                <td></td>
+                                <td>{{blockInfo.timestamp}}</td>
                             </tr>
                             <tr>
                                 <th>矿工</th>
-                                <td></td>
+                                <td class="linker">{{blockInfo.generatorRS}}</td>
                             </tr>
                             <tr>
                                 <th>上一个区块</th>
-                                <td>1220</td>
+                                <td class="linker" @click="openBlockInfo('',totalAmount,blockInfo.previousBlock)">{{blockInfo.previousBlock}}</td>
                             </tr>
                             <tr>
                                 <th>下一个区块</th>
-                                <td>122</td>
+                                <td class="linker" v-if="blockInfo.nextBlock" @click="openBlockInfo('',totalAmount,blockInfo.nextBlock)">{{blockInfo.nextBlock}}</td>
+                                <td v-else></td>
                             </tr>
                         </tbody>
                     </table>
@@ -268,18 +275,18 @@
             </div>
         </div>
         <!--view account info-->
-        <div class="modal_info" id="account_info" v-show="accountInfo">
+        <div class="modal_info" id="account_info" v-show="accountInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >账户：SSA-9WKZ-DV7P-M6MN-5MH8B 信息</span>
+                    <span >账户：{{accountInfo.accountRS}} 信息</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>账户命名&nbsp;</span><span>Kuhoerk</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金&nbsp;</span><span>1,000,046&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：</span><span>无</span>
+                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>别名：&nbsp;</span><span>无</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -288,45 +295,62 @@
 
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
-                            <tbody>
-                                <tr>
-                                    <th>交易时间</th>
-                                    <th>交易类型</th>
-                                    <th>数量</th>
-                                    <th>手续费</th>
-                                    <th>账户</th>
-                                    <th>操作</th>
-                                </tr>
-                                <tr>
-                                    <td>2018/10/18 8:29:16</td>
-                                    <td>
-                                        <img src="../../assets/coinBase.svg"/>
-                                        <span>CoinBase</span>
-                                    </td>
-                                    <td>10</td>
-                                    <td>0</td>
-                                    <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
-                                    <td class="linker">查看详情</td>
-                                </tr>
-                                <tr>
-                                    <td>2018/10/18 8:29:16</td>
-                                    <td>
-                                        <img src="../../assets/pay.svg"/>
-                                        <span>普通支付</span>
-                                    </td>
-                                    <td>100,000</td>
-                                    <td>1</td>
-                                    <td class="linker" @click="openAccountInfo">SSA-DEUD-WXFN-AZ8H-BPKX</td>
-                                    <td class="linker" @click="openAccountTransaction">查看详情</td>
-                                </tr>
-                            </tbody>
+                            <tr>
+                                <th>交易时间</th>
+                                <th>交易类型</th>
+                                <th>数量</th>
+                                <th>手续费</th>
+                                <th>账户</th>
+                                <th>操作</th>
+                                <th class="gutter"></th>
+                            </tr>
                         </table>
+                        <div class="table_body">
+                            <table class="table">
+                                <tbody>
+                                    <tr v-for="transaction in accountTransactionInfo">
+                                        <td>{{myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
+                                        <td v-if="transaction.type === 0">
+                                            <img src="../../assets/pay.svg"/>
+                                            <span>普通支付</span>
+                                        </td>
+                                        <td v-else-if="transaction.type === 1">
+                                            <img src="../../assets/infomation.svg"/>
+                                            <span>任意信息</span>
+                                        </td>
+                                        <td v-else-if="transaction.type === 6">
+                                            <img src="../../assets/infomation.svg"/>
+                                            <span>数据存储</span>
+                                        </td>
+                                        <td v-else-if="transaction.type === 9">
+                                            <img src="../../assets/coinBase.svg"/>
+                                            <span>CoinBase</span>
+                                        </td>
+                                        <td>{{transaction.amountNQT/100000000}}</td>
+                                        <td>{{transaction.feeNQT/100000000}}</td>
+                                        <td class="linker" @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}</td>
+                                        <td class="linker" @click="openAccountTransaction">查看详情</td>
+                                    </tr>
+                                    <!--<tr>
+                                        <td>2018/10/18 8:29:16</td>
+                                        <td>
+                                            <img src="../../assets/pay.svg"/>
+                                            <span>普通支付</span>
+                                        </td>
+                                        <td>100,000</td>
+                                        <td>1</td>
+                                        <td class="linker" >SSA-DEUD-WXFN-AZ8H-BPKX</td>
+                                        <td class="linker" >查看详情</td>
+                                    </tr>-->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <!--view account transaction info-->
-        <div class="modal_info" id="account_transaction" v-show="accountTransaction">
+        <div class="modal_info" id="account_transaction" v-show="accountTransactionDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
@@ -423,33 +447,79 @@
         data () {
             return {
                 tabTitle: "account",
-                blockInfo: false,
-                accountInfo: false,
-                accountTransaction: false,
+                //dialog开关
+                blockInfoDialog: false,
+                accountInfoDialog: false,
+                accountTransactionDialog: false,
+                //list列表
                 blocklist:[],
-
+                //网络总览
+                newestHeight:0,
+                newestTime:0,
+                averageAmount:0,
+                peerNum:0,
+                //旷工信息
+                activeCount:0,
+                totalCount:0,
+                storageCount:0,
+                transferCount:0,
+                coinbaseCount:0,
+                //分页信息
                 currentPage:1,
-                totalSize:1000,
+                totalSize:0,
                 pageSize:10,
+                //区块信息dialog
+                blockInfo:[],
+                totalAmount:0,
+                //旷工信息dialog
+                accountInfo:[],
+                accountTransactionInfo:[]
 
             };
         },
         created:function(){
             const _this = this;
-            console.log("创世时间", this.$global.epochBeginning);
-            this.$http.get('/sharder?requestType=getBizBlocks').then(function(res){
+            this.$http.get('/sharder?requestType=getBizBlocks',{
+                params: {
+                    firstIndex: (_this.currentPage-1)*10,
+                    lastIndex:_this.currentPage * 10 -1
+                }
+            }).then(function(res){
                 _this.blocklist = res.data;
                 console.log(_this.blocklist);
+                _this.calcAverageAmount(res);
+                _this.newestHeight = res.data[0].height;
+                _this.totalSize = res.data[0].height;
+                _this.newestTime = _this.myFormatTime(res.data[0].timestamp,'YMDHMS');
+
+                console.log(res);
             }).catch(function (err) {
-                console.error(err);
+                console.error("error",err);
+            });
+            this.$http.get('/sharder?requestType=getPeers').then(function (res) {
+                _this.peerNum = res.data.peers.length;
+            }).catch(function (err) {
+                console.error("error",err);
+            });
+            this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+                _this.activeCount = res.data.activeCount;
+            }).catch(function (err) {
+                console.error("error",err);
+            });
+            this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
+                _this.transferCount = res.data.transferCount;
+                _this.storageCount = res.data.storageCount;
+                _this.totalCount = _this.transferCount + _this.storageCount + _this.coinbaseCount;
+            }).catch(function (err) {
+                console.error("error",err);
             });
         },
         methods: {
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                this.getBlockList(val);
             },
             handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
+                this.getBlockList(val);
             },
             turn2peers: function () {
                 this.$router.push("/network/peers");
@@ -714,26 +784,68 @@
 
                 myChart.setOption(option);
             },
-            openBlockInfo: function () {
+            openBlockInfo: function (height, totalAmount,block) {
                 this.closeDialog();
+                const _this = this;
+                _this.totalAmount = totalAmount;
+                this.$http.get('/sharder?requestType=getBlock',{
+                    params: {
+                        height:height,
+                        includeTransactions:true,
+                        block:block
+                    }
+                }).then(function (res) {
+                    _this.blockInfo = res.data;
+                    console.log(_this.blockInfo);
+                }).catch(function (err) {
+                    console.error("error",err);
+                });
+
                 this.$store.state.mask = true;
-                this.blockInfo = true;
+                this.blockInfoDialog = true;
             },
-            openAccountInfo: function () {
+            openAccountInfo: function (generatorRS) {
                 this.closeDialog();
+
+                const _this = this;
+                this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                    params: {
+                        account:generatorRS
+                    }
+                }).then(function (res) {
+                    _this.accountTransactionInfo = res.data.transactions;
+                    console.log(_this.accountTransactionInfo);
+                }).catch(function (err) {
+                    console.error("error",err);
+                });
+                this.$http.get('/sharder?requestType=getAccount',{
+                    params: {
+                        account:generatorRS
+                    }
+                }).then(function (res) {
+                    _this.accountInfo = res.data;
+                    console.log("accountInfo",_this.accountInfo);
+                }).catch(function (err) {
+                    console.error("error",err);
+                });
+
                 this.$store.state.mask = true;
-                this.accountInfo = true;
+                this.accountInfoDialog = true;
             },
             openAccountTransaction: function () {
                 this.closeDialog();
                 this.$store.state.mask = true;
-                this.accountTransaction = true;
+                this.accountTransactionDialog = true;
             },
             closeDialog: function () {
                 this.$store.state.mask = false;
-                this.blockInfo = false;
-                this.accountInfo = false;
-                this.accountTransaction = false;
+                this.blockInfoDialog = false;
+                this.accountInfoDialog = false;
+                this.accountTransactionDialog = false;
+
+                this.initDialog();
+
+
             },
             myFormatTime: function(value,type){
                 const _this = this;
@@ -765,13 +877,48 @@
                 } else {
                     return val;
                 }
+            },
+            getBlockList(currentPage){
+                const _this = this;
+                this.$http.get('/sharder?requestType=getBizBlocks',{
+                    params: {
+                        firstIndex: (currentPage-1)*10,
+                        lastIndex:currentPage * 10 -1
+                    }
+                }).then(function(res){
+                    _this.blocklist = res.data;
+                    console.log(_this.blocklist);
+                    _this.calcAverageAmount(res);
+                    return res;
+                }).catch(function (err) {
+                    console.error(err);
+                    return null;
+                });
+            },
+            calcAverageAmount(res){
+                const _this = this;
+                let num = 0;
+                res.data.forEach(function(item){
+                    num += parseInt(item.totalAmount);
+                });
+                _this.averageAmount = num/10;
+            },
+            initDialog(){
+                const _this = this;
+                _this.tabTitle = "account";
+                _this.blockInfo = [];
+                _this.totalAmount = 0;
+
             }
+
         },
         mounted () {
             this.drawPeers();
         },
         filters: {
+            formatCurrency(){
 
+            }
         }
     };
 </script>

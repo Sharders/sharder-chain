@@ -95,14 +95,7 @@
 
                 }
 
-                .linker{
-                    color:#493eda;
-                    cursor: pointer;
-                    a{
-                        margin: 0 6px;
-                    }
 
-                }
 
                 .image_text{
                     span{vertical-align: middle}
@@ -445,4 +438,13 @@
             }
         }
     }
+}
+
+.linker{
+    color:#493eda!important;
+    cursor: pointer!important;
+    a{
+        margin: 0 6px!important;
+    }
+
 }
