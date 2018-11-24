@@ -24,7 +24,6 @@
 </script>
 
 <style lang="scss">
-    @import '~scss_vars';
     @import './style.scss';
     @import '../../styles/css/base.scss';
     @import '../../styles/css/common.scss';

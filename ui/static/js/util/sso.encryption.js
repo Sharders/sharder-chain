@@ -869,7 +869,7 @@ var NRS = (function (NRS, $) {
     };
 
     return NRS;
-}({}, jQuery));
+}(global.client, jQuery));
 
 // if (isNode) {
 //     module.exports = NRS;

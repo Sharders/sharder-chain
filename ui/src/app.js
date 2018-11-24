@@ -31,6 +31,7 @@ sync(store, router);
 Vue.use(Element);
 Vue.prototype.$global = global;
 Vue.prototype.$http = axios;
+Vue.prototype.url = "http://localhost:8215/sharder?requestType=";
 const app = new Vue({
     router,
     store,
