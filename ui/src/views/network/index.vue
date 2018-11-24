@@ -129,7 +129,7 @@
                                     <td><span>{{block.totalAmount}}</span></td>
                                     <td><span>{{block.totalFee}}</span></td>
                                     <td><span>{{block.numberOfTransactions}}</span></td>
-                                    <td class="linker" @click="openAccountInfo">{{block.generatorRS}}</td>
+                                    <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}</td>
                                     <td class="linker" @click="openBlockInfo(block.height,block.totalAmount,'')">查看详情</td>
                                 </tr>
                             </tbody>
@@ -279,14 +279,14 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >账户：SSA-9WKZ-DV7P-M6MN-5MH8B 信息</span>
+                    <span >账户：{{accountInfo.accountRS}} 信息</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>账户命名&nbsp;</span><span>Kuhoerk</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金&nbsp;</span><span>1,000,046&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：</span><span>无</span>
+                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>别名：&nbsp;</span><span>无</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -295,39 +295,56 @@
 
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
-                            <tbody>
-                                <tr>
-                                    <th>交易时间</th>
-                                    <th>交易类型</th>
-                                    <th>数量</th>
-                                    <th>手续费</th>
-                                    <th>账户</th>
-                                    <th>操作</th>
-                                </tr>
-                                <tr>
-                                    <td>2018/10/18 8:29:16</td>
-                                    <td>
-                                        <img src="../../assets/coinBase.svg"/>
-                                        <span>CoinBase</span>
-                                    </td>
-                                    <td>10</td>
-                                    <td>0</td>
-                                    <td class="linker">SSA-DEUD-WXFN-AZ8H-BPKX</td>
-                                    <td class="linker">查看详情</td>
-                                </tr>
-                                <tr>
-                                    <td>2018/10/18 8:29:16</td>
-                                    <td>
-                                        <img src="../../assets/pay.svg"/>
-                                        <span>普通支付</span>
-                                    </td>
-                                    <td>100,000</td>
-                                    <td>1</td>
-                                    <td class="linker" @click="openAccountInfo">SSA-DEUD-WXFN-AZ8H-BPKX</td>
-                                    <td class="linker" @click="openAccountTransaction">查看详情</td>
-                                </tr>
-                            </tbody>
+                            <tr>
+                                <th>交易时间</th>
+                                <th>交易类型</th>
+                                <th>数量</th>
+                                <th>手续费</th>
+                                <th>账户</th>
+                                <th>操作</th>
+                                <th class="gutter"></th>
+                            </tr>
                         </table>
+                        <div class="table_body">
+                            <table class="table">
+                                <tbody>
+                                    <tr v-for="transaction in accountTransactionInfo">
+                                        <td>{{myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
+                                        <td v-if="transaction.type === 0">
+                                            <img src="../../assets/pay.svg"/>
+                                            <span>普通支付</span>
+                                        </td>
+                                        <td v-else-if="transaction.type === 1">
+                                            <img src="../../assets/infomation.svg"/>
+                                            <span>任意信息</span>
+                                        </td>
+                                        <td v-else-if="transaction.type === 6">
+                                            <img src="../../assets/infomation.svg"/>
+                                            <span>数据存储</span>
+                                        </td>
+                                        <td v-else-if="transaction.type === 9">
+                                            <img src="../../assets/coinBase.svg"/>
+                                            <span>CoinBase</span>
+                                        </td>
+                                        <td>{{transaction.amountNQT/100000000}}</td>
+                                        <td>{{transaction.feeNQT/100000000}}</td>
+                                        <td class="linker" @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}</td>
+                                        <td class="linker" @click="openAccountTransaction">查看详情</td>
+                                    </tr>
+                                    <!--<tr>
+                                        <td>2018/10/18 8:29:16</td>
+                                        <td>
+                                            <img src="../../assets/pay.svg"/>
+                                            <span>普通支付</span>
+                                        </td>
+                                        <td>100,000</td>
+                                        <td>1</td>
+                                        <td class="linker" >SSA-DEUD-WXFN-AZ8H-BPKX</td>
+                                        <td class="linker" >查看详情</td>
+                                    </tr>-->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -454,6 +471,9 @@
                 //区块信息dialog
                 blockInfo:[],
                 totalAmount:0,
+                //旷工信息dialog
+                accountInfo:[],
+                accountTransactionInfo:[]
 
             };
         },
@@ -784,8 +804,31 @@
                 this.$store.state.mask = true;
                 this.blockInfoDialog = true;
             },
-            openAccountInfo: function () {
+            openAccountInfo: function (generatorRS) {
                 this.closeDialog();
+
+                const _this = this;
+                this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                    params: {
+                        account:generatorRS
+                    }
+                }).then(function (res) {
+                    _this.accountTransactionInfo = res.data.transactions;
+                    console.log(_this.accountTransactionInfo);
+                }).catch(function (err) {
+                    console.error("error",err);
+                });
+                this.$http.get('/sharder?requestType=getAccount',{
+                    params: {
+                        account:generatorRS
+                    }
+                }).then(function (res) {
+                    _this.accountInfo = res.data;
+                    console.log("accountInfo",_this.accountInfo);
+                }).catch(function (err) {
+                    console.error("error",err);
+                });
+
                 this.$store.state.mask = true;
                 this.accountInfoDialog = true;
             },
@@ -873,7 +916,9 @@
             this.drawPeers();
         },
         filters: {
+            formatCurrency(){
 
+            }
         }
     };
 </script>
