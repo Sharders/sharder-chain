@@ -2046,11 +2046,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             // Single miner -> empty map (send rewards to miner)
             Map<Long,Long> map;
             long id = SharderPoolProcessor.ownOnePool(Account.getId(publicKey));
-            if (id == -1 || !SharderPoolProcessor.getForgePool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+            if (id == -1 || !SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
                 id = Account.getId(publicKey);
                 map = new HashMap<>();
             }else {
-                map = SharderPoolProcessor.getForgePool(id).getConsignorsAmountMap();
+                map = SharderPoolProcessor.getSharderPool(id).getConsignorsAmountMap();
             }
             //transaction version=1, deadline=10,timestamp=blockTimestamp
             TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 1, publicKey,

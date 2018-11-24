@@ -31,7 +31,7 @@ public final class Db {
             .maxCacheSize(Conch.getIntProperty("sharder.dbCacheKB"))
             .dbUrl(Conch.getStringProperty(PREFIX + "Url"))
             .dbType(Conch.getStringProperty(PREFIX + "Type"))
-            .dbDir(Conch.getStringProperty(PREFIX + "Dir"))
+            .dbDir(getDir())
             .dbParams(Conch.getStringProperty(PREFIX + "Params"))
             .dbUsername(Conch.getStringProperty(PREFIX + "Username"))
             .dbPassword(Conch.getStringProperty(PREFIX + "Password", null, true))
@@ -50,5 +50,9 @@ public final class Db {
     }
 
     private Db() {} // never
+
+    public static String getDir() {
+        return Conch.getStringProperty(PREFIX + "Dir");
+    }
 
 }

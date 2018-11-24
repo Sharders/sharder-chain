@@ -19,7 +19,7 @@ public class CreateForgePool extends CreateTransaction {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
         Account account = ParameterParser.getSenderAccount(req);
-        int period = ParameterParser.getInt(req, "period", Constants.FORGE_POOL_DELAY, 65535, true);
+        int period = ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
         JSONObject rules = null;
         try{
             rules = (JSONObject)(new JSONParser().parse(req.getParameter("rule")));
@@ -27,7 +27,7 @@ public class CreateForgePool extends CreateTransaction {
             Logger.logErrorMessage("cant obtain rule when create forge pool");
         }
         Map<String,Object> rule = Rule.jsonObjectToMap(rules);
-        Attachment attachment = new Attachment.ForgePoolCreate(period,rule);
+        Attachment attachment = new Attachment.SharderPoolCreate(period, rule);
         return createTransaction(req, account, 0, 0, attachment);
     }
 }

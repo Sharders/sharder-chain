@@ -343,8 +343,8 @@ public final class Generator implements Comparable<Generator> {
             effectiveBalance = BigInteger.ZERO;
         } else {
             long id = SharderPoolProcessor.ownOnePool(account.getId());
-            if (id != -1 && SharderPoolProcessor.getForgePool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getForgePool(id).getPower() / Constants.ONE_SS, 0))
+            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
                         .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
             }else {
                 effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));

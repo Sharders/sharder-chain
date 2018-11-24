@@ -16,7 +16,7 @@ public class GetForgePoolInfo extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         long poolId = ParameterParser.getLong(request,"poolId",Long.MIN_VALUE,Long.MAX_VALUE,true);
-        SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePool(poolId);
+        SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
         if(forgePool == null){
             JSONObject response  = new JSONObject();
             response.put("errorCode", 1);

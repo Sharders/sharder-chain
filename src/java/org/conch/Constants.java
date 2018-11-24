@@ -21,8 +21,6 @@
 
 package org.conch;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -251,10 +249,10 @@ public final class Constants {
     public static final long EPOCH_BEGINNING;
 
     //Mining pool
-    public static final int FORGE_POOL_DELAY = 10; //transaction become effective
-    public static final int FORGE_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
-    public static final int FORGE_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
-    public static final int FORGE_REWARD_DELAY = 10;
+    public static final int SHARDER_POOL_DELAY = 10; //transaction become effective
+    public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
+    public static final int SHARDER_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
+    public static final int SHARDER_REWARD_DELAY = 10;
 
     //Chain begin time
     static {

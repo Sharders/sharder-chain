@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentMap;
 
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
-    private static final ConcurrentMap<Long, SharderPoolProcessor> forgePools;
-    private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyForgePool;
+    private static final ConcurrentMap<Long, SharderPoolProcessor> sharderPools;
+    private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools;
 
     public enum State {
         INIT,
@@ -48,19 +48,19 @@ public class SharderPoolProcessor implements Serializable {
         this.level = Rule.getLevel(creatorId);
     }
 
-    public static void createForgePool(
+    public static void createSharderPool(
             long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
-        if (destroyForgePool.containsKey(creatorId)) {
+        if (destroyedPools.containsKey(creatorId)) {
             SharderPoolProcessor forgePool =
                     new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
-            SharderPoolProcessor past = getNewForgePoolFromDestroy(creatorId);
+            SharderPoolProcessor past = newSharderPoolFromDestroyed(creatorId);
             forgePool.chance = past.chance;
             forgePool.state = State.INIT;
             forgePool.historicalBlocks = past.historicalBlocks;
             forgePool.historicalIncome = past.historicalIncome;
             forgePool.totalBlocks = past.totalBlocks;
             forgePool.rule = rule;
-            forgePools.put(forgePool.poolId, forgePool);
+            sharderPools.put(forgePool.poolId, forgePool);
             Logger.logDebugMessage("create forge pool from old pool, chance " + past);
         } else {
             SharderPoolProcessor forgePool =
@@ -71,12 +71,12 @@ public class SharderPoolProcessor implements Serializable {
             forgePool.historicalIncome = 0;
             forgePool.totalBlocks = 0;
             forgePool.rule = rule;
-            forgePools.put(forgePool.poolId, forgePool);
+            sharderPools.put(forgePool.poolId, forgePool);
             Logger.logDebugMessage(creatorId + " create new forge pool");
         }
     }
 
-    public void destroyForgePool(int height) {
+    public void destroySharderPool(int height) {
         state = State.DESTROYED;
         endBlockNo = height;
 
@@ -90,18 +90,18 @@ public class SharderPoolProcessor implements Serializable {
             }
         }
         if (startBlockNo > endBlockNo) {
-            forgePools.remove(poolId);
+            sharderPools.remove(poolId);
             Logger.logDebugMessage("destroy forge pool " + poolId + " before start ");
             return;
         }
-        if (destroyForgePool.containsKey(creatorId)) {
-            destroyForgePool.get(creatorId).add(this);
-            forgePools.remove(poolId);
+        if (destroyedPools.containsKey(creatorId)) {
+            destroyedPools.get(creatorId).add(this);
+            sharderPools.remove(poolId);
         } else {
             List<SharderPoolProcessor> destroy = new ArrayList<>();
             destroy.add(this);
-            destroyForgePool.put(creatorId, destroy);
-            forgePools.remove(poolId);
+            destroyedPools.put(creatorId, destroy);
+            sharderPools.remove(poolId);
         }
         Logger.logDebugMessage("destroy forge pool " + poolId);
     }
@@ -150,7 +150,7 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static long ownOnePool(long creator) {
-        for (SharderPoolProcessor forgePool : forgePools.values()) {
+        for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creator) {
                 return forgePool.poolId;
             }
@@ -158,42 +158,48 @@ public class SharderPoolProcessor implements Serializable {
         return -1;
     }
 
-    private static void updateForePool(long poolId, long incom) {
-        SharderPoolProcessor forgePool = forgePools.get(poolId);
+    private static void updateSharderPool(long poolId, long incom) {
+        SharderPoolProcessor forgePool = sharderPools.get(poolId);
         forgePool.historicalBlocks++;
         forgePool.historicalIncome += incom;
     }
 
+
+    private static final String LOCAL_STORAGE_FORDER = Db.getDir() + File.separator + "local";
+    private static final String LOCAL_STOAGE_SHARDER_POOLS = "SharderPools";
+    private static final String LOCAL_STOAGE_DESTROYED_POOLS = "DestroyedPools";
+
     static {
-        File file = new File("ForgePools");
+        File file = new File(getLocalStoragePath(LOCAL_STOAGE_SHARDER_POOLS));
         if (file.exists()) {
-            forgePools = (ConcurrentMap<Long, SharderPoolProcessor>) getObjFromFile("ForgePools");
+            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) getObjFromFile(LOCAL_STOAGE_SHARDER_POOLS);
         } else {
             // TODO delete by user ,pop off get block from network
-            forgePools = new ConcurrentHashMap<>();
+            sharderPools = new ConcurrentHashMap<>();
         }
-        file = new File("DestroyForgePool");
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_DESTROYED_POOLS));
         if (file.exists()) {
-            destroyForgePool =
-                    (ConcurrentMap<Long, List<SharderPoolProcessor>>) getObjFromFile("DestroyForgePool");
+            destroyedPools =
+                    (ConcurrentMap<Long, List<SharderPoolProcessor>>) getObjFromFile(LOCAL_STOAGE_DESTROYED_POOLS);
         } else {
             // TODO delete by user
-            destroyForgePool = new ConcurrentHashMap<>();
+            destroyedPools = new ConcurrentHashMap<>();
         }
 
         Conch.getBlockchainProcessor()
                 .addListener(
                         block -> {
                             int height = block.getHeight();
-                            for (SharderPoolProcessor forgePool : forgePools.values()) {
+                            for (SharderPoolProcessor forgePool : sharderPools.values()) {
                                 forgePool.updateHeight = height;
                                 if (forgePool.consignors.size() == 0
-                                        && height - forgePool.startBlockNo > Constants.FORGE_POOL_DEADLINE) {
-                                    forgePool.destroyForgePool(height);
+                                        && height - forgePool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
+                                    forgePool.destroySharderPool(height);
                                     continue;
                                 }
                                 if (forgePool.endBlockNo == height) {
-                                    forgePool.destroyForgePool(height);
+                                    forgePool.destroySharderPool(height);
                                     continue;
                                 }
                                 if (forgePool.startBlockNo == height) {
@@ -202,9 +208,9 @@ public class SharderPoolProcessor implements Serializable {
                                     continue;
                                 }
                                 // TODO auto destroy pool because the number or amount of pool is too small
-                                if (forgePool.startBlockNo + Constants.FORGE_POOL_DEADLINE == height
+                                if (forgePool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height
                                         && forgePool.consignors.size() == 0) {
-                                    forgePool.destroyForgePool(height);
+                                    forgePool.destroySharderPool(height);
                                     continue;
                                 }
                                 // transaction is time out
@@ -230,15 +236,15 @@ public class SharderPoolProcessor implements Serializable {
 
                             long id = ownOnePool(block.getGeneratorId());
                             if (id != -1
-                                    && SharderPoolProcessor.getForgePool(id)
+                                    && SharderPoolProcessor.getSharderPool(id)
                                     .getState()
                                     .equals(SharderPoolProcessor.State.WORKING)) {
-                                updateForePool(id, block.getTotalFeeNQT());
+                                updateSharderPool(id, block.getTotalFeeNQT());
                             }
 
-                            if (height > Constants.FORGE_REWARD_DELAY) {
+                            if (height > Constants.SHARDER_REWARD_DELAY) {
                                 Block past =
-                                        Conch.getBlockchain().getBlockAtHeight(height - Constants.FORGE_REWARD_DELAY);
+                                        Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
                                 for (Transaction transaction : past.getTransactions()) {
                                     if (transaction.getType() == TransactionType.CoinBase.ORDINARY) {
                                         TransactionType.CoinBase.unFreezeForgeBalance(transaction);
@@ -246,8 +252,8 @@ public class SharderPoolProcessor implements Serializable {
                                 }
                             }
 
-                            saveObjToFile(forgePools, "ForgePools");
-                            saveObjToFile(destroyForgePool, "DestroyForgePool");
+                            saveObjToFile(sharderPools, LOCAL_STOAGE_SHARDER_POOLS);
+                            saveObjToFile(destroyedPools, LOCAL_STOAGE_DESTROYED_POOLS);
                         },
                         BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
@@ -256,33 +262,40 @@ public class SharderPoolProcessor implements Serializable {
         Rule.init();
     }
 
-    private static void saveObjToFile(Object o, String file) {
+    private static String getLocalStoragePath(String fileName) {
+        return LOCAL_STORAGE_FORDER + File.separator + fileName;
+    }
+
+    private static void saveObjToFile(Object o, String fileName) {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+            File localStorageFolder = new File(LOCAL_STORAGE_FORDER);
+            if (!localStorageFolder.exists()) localStorageFolder.mkdir();
+
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getLocalStoragePath(fileName)));
             oos.writeObject(o);
             oos.close();
         } catch (Exception e) {
-            Logger.logErrorMessage("save forge pool to file failed, file " + file + e.toString());
+            Logger.logErrorMessage("save sharder pool to file failed, file " + fileName + e.toString());
         }
     }
 
-    private static Object getObjFromFile(String file) {
+    private static Object getObjFromFile(String fileName) {
         try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
             Object object = ois.readObject();
             return object;
         } catch (Exception e) {
-            Logger.logErrorMessage("failed read forge pool from file " + file + e.toString());
+            Logger.logErrorMessage("failed to read sharder pool from file " + fileName + e.toString());
             return null;
         }
     }
 
-    public static SharderPoolProcessor getNewForgePoolFromDestroy(long creator) {
-        if (!destroyForgePool.containsKey(creator)) {
+    public static SharderPoolProcessor newSharderPoolFromDestroyed(long creator) {
+        if (!destroyedPools.containsKey(creator)) {
             return null;
         }
-        SharderPoolProcessor past = destroyForgePool.get(creator).get(0);
-        for (SharderPoolProcessor destroy : destroyForgePool.get(creator)) {
+        SharderPoolProcessor past = destroyedPools.get(creator).get(0);
+        for (SharderPoolProcessor destroy : destroyedPools.get(creator)) {
             if (destroy.getEndBlockNo() > past.getEndBlockNo()) {
                 past = destroy;
             }
@@ -290,16 +303,16 @@ public class SharderPoolProcessor implements Serializable {
         return past;
     }
 
-    public static SharderPoolProcessor getForgePool(long poolId) {
-        return forgePools.containsKey(poolId) ? forgePools.get(poolId) : null;
+    public static SharderPoolProcessor getSharderPool(long poolId) {
+        return sharderPools.containsKey(poolId) ? sharderPools.get(poolId) : null;
     }
 
-    public static SharderPoolProcessor getForgePoolFromAll(long creatorId, long poolId) {
-        SharderPoolProcessor forgePool = getForgePool(poolId);
+    public static SharderPoolProcessor getSharderPoolFromAll(long creatorId, long poolId) {
+        SharderPoolProcessor forgePool = getSharderPool(poolId);
         if (forgePool != null) {
             return forgePool;
         }
-        for (SharderPoolProcessor destroy : destroyForgePool.get(creatorId)) {
+        for (SharderPoolProcessor destroy : destroyedPools.get(creatorId)) {
             if (destroy.poolId == poolId) {
                 return destroy;
             }
@@ -307,17 +320,17 @@ public class SharderPoolProcessor implements Serializable {
         return null;
     }
 
-    public static JSONObject getForgePoolsFromNowAndDestroy(long creatorId) {
+    public static JSONObject getSharderPoolsFromNowAndDestroy(long creatorId) {
         SharderPoolProcessor now = null;
-        for (SharderPoolProcessor forgePool : forgePools.values()) {
+        for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creatorId) {
                 now = forgePool;
                 break;
             }
         }
         List<SharderPoolProcessor> pasts = new ArrayList<>();
-        if (destroyForgePool.containsKey(creatorId)) {
-            pasts = destroyForgePool.get(creatorId);
+        if (destroyedPools.containsKey(creatorId)) {
+            pasts = destroyedPools.get(creatorId);
         }
 
         if (now != null) {

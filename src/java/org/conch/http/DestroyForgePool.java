@@ -18,7 +18,7 @@ public class DestroyForgePool extends CreateTransaction {
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         Account account = ParameterParser.getSenderAccount(request);
         long poolId = ParameterParser.getLong(request,"poolId",Long.MIN_VALUE,Long.MAX_VALUE,true);
-        Attachment attachment = new Attachment.ForgePoolDestroy(poolId);
+        Attachment attachment = new Attachment.SharderPoolDestroy(poolId);
         return createTransaction(request, account, 0, 0, attachment);
     }
 }

@@ -15,7 +15,7 @@ public class GetForgePools extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         long creatorId = ParameterParser.getLong(request,"creatorId",Long.MIN_VALUE,Long.MAX_VALUE,true);
-        return SharderPoolProcessor.getForgePoolsFromNowAndDestroy(creatorId);
+        return SharderPoolProcessor.getSharderPoolsFromNowAndDestroy(creatorId);
     }
 
     @Override

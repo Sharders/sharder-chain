@@ -19,7 +19,7 @@ public class QuitForgePool extends CreateTransaction {
         Account account = ParameterParser.getSenderAccount(request);
         long poolId = ParameterParser.getLong(request,"poolId",Long.MIN_VALUE,Long.MAX_VALUE,true);
         long txId = ParameterParser.getLong(request,"txId",Long.MIN_VALUE,Long.MAX_VALUE,true);
-        Attachment attachment = new Attachment.ForgePoolQuit(txId,poolId);
+        Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
         return createTransaction(request, account, 0, 0, attachment);
     }
 }

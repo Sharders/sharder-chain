@@ -68,8 +68,8 @@ public class Rule implements Serializable {
     }
 
     public static int getLevel(long creatorId){
-        SharderPoolProcessor forgePool = SharderPoolProcessor.getNewForgePoolFromDestroy(creatorId);
-        if(forgePool == null){
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.newSharderPoolFromDestroyed(creatorId);
+        if (poolProcessor == null) {
             return 0;
         }
         int level = 0;
@@ -81,16 +81,16 @@ public class Rule implements Serializable {
             Map<String,Object> map = (Map<String,Object>)objectMap.get("rule");
             for(String ruleKey : map.keySet()){
                 try {
-                    Field field = forgePool.getClass().getDeclaredField(ruleKey);
+                    Field field = poolProcessor.getClass().getDeclaredField(ruleKey);
                     field.setAccessible(true);
-                    if(!validate((Map<String,Object>)map.get(field.getName()),field.get(forgePool))){
+                    if (!validate((Map<String, Object>) map.get(field.getName()), field.get(poolProcessor))) {
                         break;
                     }
                     if(Integer.parseInt(key.substring(key.length()-1,key.length())) > level){
                         level = Integer.parseInt(key.substring(key.length()-1,key.length()));
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {
-                    Logger.logErrorMessage("can't get account forge pool level,id "+ creatorId ,e);
+                    Logger.logErrorMessage("can't get account sharder pool level,id " + creatorId, e);
                 }
             }
         }
@@ -261,7 +261,7 @@ public class Rule implements Serializable {
 
     public static Map<Long,Long> getRewardMap(Long creator, Long poolId,Long amount, Map<Long,Long> map){
         Map<Long,Long> result = new HashMap<>();
-        SharderPoolProcessor forgePool = SharderPoolProcessor.getForgePoolFromAll(creator, poolId);
+        SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPoolFromAll(creator, poolId);
         int level = forgePool.getLevel();
         Map<String,Object> ruleMap = (Map<String,Object>)((Map<String,Object>)forgePool.getRule().get("level" + level)).get("forgepool");
         long creatorAmount = 0;

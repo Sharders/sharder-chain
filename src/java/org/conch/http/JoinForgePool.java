@@ -17,10 +17,10 @@ public class JoinForgePool extends CreateTransaction{
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         Account account = ParameterParser.getSenderAccount(request);
-        int period = ParameterParser.getInt(request, "period", Constants.FORGE_POOL_DELAY, 65535, true);
+        int period = ParameterParser.getInt(request, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
         long poolId = ParameterParser.getLong(request,"poolId",Long.MIN_VALUE,Long.MAX_VALUE,true);
         long amount = ParameterParser.getLong(request,"amount",0,Long.MAX_VALUE,true);
-        Attachment attachment = new Attachment.ForgePoolJoin(poolId,amount,period);
+        Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
         return createTransaction(request, account, 0, 0, attachment);
     }
 }
