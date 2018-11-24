@@ -16,24 +16,25 @@ import global from "./utils/common.js";
 var passUrls = ["static", "login", "register", "enter"];
 
 router.beforeEach((to, from, next) => {
-        if (passUrls.indexOf(to.path.split("/")[1]) === -1) {
-            if (store.state.isLogin) {
-                next();
-            } else {
-                next("/");
-            }
-        } else {
+    if (passUrls.indexOf(to.path.split("/")[1]) === -1) {
+        if (store.state.isLogin) {
             next();
+        } else {
+            next("/");
         }
-    });
+    } else {
+        next();
+    }
+});
 
 sync(store, router);
 Vue.use(Element);
 Vue.prototype.$global = global;
 Vue.prototype.$http = axios;
+Vue.prototype.url = "http://localhost:8215/sharder?requestType=";
 const app = new Vue({
-  router,
-  store,
-  ...App
+    router,
+    store,
+    ...App
 });
 export { app, router, store };
