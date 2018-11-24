@@ -112,6 +112,9 @@
 }
 
 #account_info{
+    .modal-header{
+        padding: 0 20px 0 40px;
+    }
     .modal-body{
         margin:0;
         .account_preInfo{
@@ -143,6 +146,12 @@
                     border: none !important;
                     word-break:break-all;
                     margin-top: 33px;
+                    tr{
+                        height:40px;
+                        &:nth-child(even){
+                            background: #f4f7fc;
+                        }
+                    }
                     td{
                         border: none !important;
                         text-align: center;
@@ -162,6 +171,7 @@
                         padding: 0;
                         text-align: center;
                         font-weight: bold;
+
                     }
                     .linker{
                         color:#493eda;
@@ -189,6 +199,11 @@
 }
 
 #account_transaction{
+    top: 20px;
+    .modal-header{
+        padding: 0 40px;
+        border-bottom: none;
+    }
     .modal-body{
         margin:0;
         .account_preInfo{
@@ -218,7 +233,7 @@
             }
             .table{
                 word-break:break-all;
-                margin-top: 20px;
+                //margin-top: 20px;
                 th{
                     width:160px;
                 }

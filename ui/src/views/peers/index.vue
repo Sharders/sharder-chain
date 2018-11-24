@@ -9,16 +9,16 @@
                 </p>
                 <div class="w dfl">
                     <div class="block_blue radius_blue">
-                        <p>在线节点数</p>
-                        <p><span></span>个</p>
+                        <p>节点数量</p>
+                        <p><span>{{peersCount}}</span>个</p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>HUB运行数</p>
-                        <p><span></span>个</p>
+                        <p><span>{{activeHubCount}}</span>个</p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>活跃节点数</p>
-                        <p><span></span>个</p>
+                        <p><span>{{activePeersCount}}</span>个</p>
                     </div>
                 </div>
             </div>
@@ -45,79 +45,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="image_text linker csp" @click="openInfo">
-                                        <img src="../../assets/success.svg"/>
-                                        <span>114.115.210.116</span>
+                                <tr v-for="peer in peersList">
+                                    <td class="image_text linker" v-if="peer.state === 1" @click="openInfo">
+                                        <span>
+                                            <img src="../../assets/success.svg"/>
+                                            <span>{{peer.address}}</span>
+                                        </span>
                                     </td>
-                                    <td>113KB</td>
-                                    <td>133KB</td>
-                                    <td><span class="patch">COS0.1.0</span></td>
-                                    <td>Linux amd64</td>
+                                    <td class="image_text linker" v-if="peer.state === 0" @click="openInfo">
+                                        <span>
+                                            <img src="../../assets/error.svg"/>
+                                            <span>{{peer.address}}</span>
+                                        </span>
+                                    </td>
+                                    <td>{{peer.downloadedVolume | formatByte}}</td>
+                                    <td>{{peer.uploadedVolume | formatByte}}</td>
+                                    <td><span class="patch">{{peer.application}}&nbsp;{{peer.version}}</span></td>
+                                    <td>{{peer.platform}}</td>
                                     <td class="linker tl pl30">
-                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
-                                            <a>AI</a>
-                                        </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
-                                            <a>CS</a>
-                                        </el-tooltip>
-                                        <el-tooltip class="item" content="商业API" placement="top" effect="light">
-                                            <a>BI</a>
-                                        </el-tooltip>
-                                        <el-tooltip class="item" content="存储服务" placement="top" effect="light">
-                                            <a>SE</a>
+                                        <el-tooltip class="item" placement="top" effect="light" v-for="service in peer.services" :content="service | getPeerServicesTooltip">
+                                            <a>{{service | getPeerServicesLabel}}</a>
                                         </el-tooltip>
                                     </td>
                                     <td>
-                                        <button class="list_button w40" @click="openConnectPeer">连接</button>
-                                        <button class="list_button w50" @click="openBlackDialog">黑名单</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="image_text linker csp" @click="openInfo">
-                                        <img src="../../assets/success.svg"/>
-                                        <span>114.115.210.116</span>
-                                    </td>
-                                    <td>113KB</td>
-                                    <td>133KB</td>
-                                    <td><span class="patch">COS0.0.1</span></td>
-                                    <td>Linux amd64</td>
-                                    <td class="linker tl pl30">
-                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
-                                            <a>AI</a>
-                                        </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
-                                            <a>CS</a>
-                                        </el-tooltip>
-                                    </td>
-                                    <td>
-                                        <button class="list_button w40" @click="openConnectPeer">连接</button>
-                                        <button class="list_button w50" @click="openBlackDialog">黑名单</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="image_text linker csp" @click="openInfo">
-                                        <img src="../../assets/success.svg"/>
-                                        <span>114.115.210.116</span>
-                                    </td>
-                                    <td>113KB</td>
-                                    <td>133KB</td>
-                                    <td><span class="patch">COS0.1.0</span></td>
-                                    <td>Linux amd64</td>
-                                    <td class="linker tl pl30">
-                                        <el-tooltip class="item" content="API服务" placement="top" effect="light">
-                                            <a>AI</a>
-                                        </el-tooltip>
-                                        <el-tooltip class="item" content="核心服务" placement="top" effect="light">
-                                            <a>CS</a>
-                                        </el-tooltip>
-                                        <el-tooltip class="item" content="商业API" placement="top" effect="light">
-                                            <a>BI</a>
-                                        </el-tooltip>
-                                    </td>
-                                    <td>
-                                        <button class="list_button w40" @click="openConnectPeer">连接</button>
-                                        <button class="list_button w50" @click="openBlackDialog">黑名单</button>
+                                        <button class="list_button w40" @click="openConnectPeer(peer.address)">连接</button>
+                                        <button class="list_button w50" @click="openBlackDialog(peer.address)">黑名单</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -245,10 +197,34 @@
         components: { echarts, world },
         data () {
             return {
+                //dialog开关
                 blacklist: false,
                 connectPeer: false,
-                peerInfo: false
+                peerInfo: false,
+
+                //list列表
+                peersList:[],
+                //节点总览
+                peersCount:0,
+                activeHubCount:0,
+                activePeersCount:0
+
             };
+        },
+        created:function(){
+            const _this = this;
+            this.$http.get('/sharder?requestType=getPeers',{
+                params: {
+                    includePeerInfo:true
+                }
+            }).then(function(res){
+                _this.peersList = res.data.peers;
+                console.log(_this.peersList);
+                _this.getPeersInfo(_this.peersList);
+                console.log(res);
+            }).catch(function (err){
+                console.log(err);
+            });
         },
         methods: {
             drawPeers: function () {
@@ -532,11 +508,62 @@
             openInfo: function () {
                 this.$store.state.mask = true;
                 this.peerInfo = true;
+            },
+            getPeersInfo:function (data) {
+                const _this = this;
+                _this.peersCount = data.length;
+                data.forEach(function(item){
+                    if(item.platform === 'Sharder Hub'){
+                        _this.activeHubCount++;
+                    }
+                    if(item.state === 1){
+                        _this.activePeersCount++;
+                    }
+                });
             }
         },
         watch: {
             blacklist: function (val) {
                 console.log("变了," + val);
+            }
+        },
+        filters:{
+            formatByte:function (val) {
+                if(val < 1024){
+                    return Math.round(val) + " Byte";
+                }else if(val>=1024){
+                    val = val/1024;
+                    if(val < 1024){
+                        return Math.round(val) + " KB";
+                    }else if(val>=1024){
+                        val = val/1024;
+                        if(val < 1024){
+                            return Math.round(val) + " MB";
+                        }else if(val>=1024){
+                            val = val/1024;
+                            if(val < 1024){
+                                return Math.round(val) + " GB";
+                            }else if(val>=1024){
+                                val = val/1024;
+                                return Math.round(val) + " TB";
+                            }
+                        }
+                    }
+                }
+            },
+            getPeerServicesLabel:function (service) {
+                return service.substring(0, 1) + service.substring(service.length - 1);
+            },
+            getPeerServicesTooltip:function (service) {
+                let s = service.substring(0, 1) + service.substring(service.length - 1);
+                if(s === 'AI')
+                    return 'API服务';
+                else if(s === 'CS')
+                    return '核心服务';
+                else if(s === 'BI')
+                    return '商业API';
+                else if(s === 'SE')
+                    return '存储服务';
             }
         },
         mounted () {

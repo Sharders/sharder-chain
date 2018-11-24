@@ -329,7 +329,7 @@
                                         <td>{{transaction.amountNQT/100000000}}</td>
                                         <td>{{transaction.feeNQT/100000000}}</td>
                                         <td class="linker" @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}</td>
-                                        <td class="linker" @click="openAccountTransaction">查看详情</td>
+                                        <td class="linker" @click="openAccountTransaction(transaction.transaction)">查看详情</td>
                                     </tr>
                                     <!--<tr>
                                         <td>2018/10/18 8:29:16</td>
@@ -354,80 +354,101 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >账户：SSA-9WKZ-DV7P-M6MN-5MH8B 信息</span>
+                    <span >账户：{{accountInfo.accountRS}} 信息</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>账户命名&nbsp;</span><span>Kuhoerk</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金&nbsp;</span><span>1,000,046&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：</span><span>无</span>
+                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>别名：&nbsp;</span><span>无</span>
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">交易详情</p>
-                    <button class="fr common_btn" @click="openAccountInfo">返回账户信息</button>
+                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">返回账户信息</button>
                     <div class="cb"></div>
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>上一个区块哈希</th>
-                            <td></td>
+                            <th>签名</th>
+                            <td>{{transactionInfo.signature}}</td>
                         </tr>
                         <tr>
-                            <th>载荷长度</th>
-                            <td>193</td>
+                            <th>交易序列号</th>
+                            <td>{{transactionInfo.transactionIndex}}</td>
                         </tr>
                         <tr>
-                            <th>总数</th>
-                            <td>10 SS</td>
+                            <th>类型</th>
+                            <td v-if="transactionInfo.type === 0">
+                                <span>普通支付</span>
+                            </td>
+                            <td v-else-if="transactionInfo.type === 1">
+                                <span>任意信息</span>
+                            </td>
+                            <td v-else-if="transactionInfo.type === 6">
+                                <span>数据存储</span>
+                            </td>
+                            <td v-else-if="transactionInfo.type === 9">
+                                <span>CoinBase</span>
+                            </td>
                         </tr>
                         <tr>
-                            <th>矿工签名</th>
-                            <td></td>
+                            <th>哈希签名</th>
+                            <td>{{transactionInfo.signatureHash}}</td>
                         </tr>
                         <tr>
-                            <th>矿工公钥</th>
-                            <td></td>
+                            <th>发送者</th>
+                            <td>{{transactionInfo.senderRS}}</td>
                         </tr>
                         <tr>
-                            <th>交易数量</th>
-                            <td>1</td>
+                            <th>数额</th>
+                            <td>{{transactionInfo.amountNQT/10000000}}</td>
                         </tr>
                         <tr>
-                            <th>区块签名</th>
-                            <td></td>
+                            <th>接收者</th>
+                            <td>您</td>
                         </tr>
                         <tr>
-                            <th>版本：</th>
-                            <td>3</td>
-                        </tr>
-                        <tr>
-                            <th>总手续费</th>
-                            <td>0 SS</td>
-                        </tr>
-                        <tr>
-                            <th>挖矿难度</th>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <th>区块高度</th>
-                            <td>1216</td>
+                            <th>区块时间戳</th>
+                            <td>{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
+                                &nbsp;&nbsp;{{myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
                         </tr>
                         <tr>
                             <th>时间戳</th>
-                            <td></td>
+                            <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
+                                &nbsp;&nbsp;{{myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
                         </tr>
                         <tr>
-                            <th>矿工</th>
-                            <td></td>
+                            <th>发送者公钥</th>
+                            <td>{{transactionInfo.senderPublicKey}}</td>
                         </tr>
                         <tr>
-                            <th>上一个区块</th>
-                            <td>1220</td>
+                            <th>手续费</th>
+                            <td>{{transactionInfo.feeNQT/10000000}}</td>
                         </tr>
                         <tr>
-                            <th>下一个区块</th>
-                            <td>122</td>
+                            <th>确认</th>
+                            <td>{{transactionInfo.confirmations}}</td>
+                        </tr>
+                        <tr>
+                            <th>类型完整哈希：</th>
+                            <td>{{transactionInfo.fullHash}}</td>
+                        </tr>
+                        <tr>
+                            <th>版本：</th>
+                            <td>{{transactionInfo.version}}</td>
+                        </tr>
+                        <tr>
+                            <th>发送者</th>
+                            <td>{{transactionInfo.sender}}</td>
+                        </tr>
+                        <tr>
+                            <th>接收者</th>
+                            <td>您</td>
+                        </tr>
+                        <tr>
+                            <th>区块高度</th>
+                            <td>{{transactionInfo.height}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -473,7 +494,8 @@
                 totalAmount:0,
                 //旷工信息dialog
                 accountInfo:[],
-                accountTransactionInfo:[]
+                accountTransactionInfo:[],
+                transactionInfo:[]
 
             };
         },
@@ -832,8 +854,21 @@
                 this.$store.state.mask = true;
                 this.accountInfoDialog = true;
             },
-            openAccountTransaction: function () {
+            openAccountTransaction: function (transaction) {
                 this.closeDialog();
+
+                const _this = this;
+                this.$http.get('/sharder?requestType=getTransaction',{
+                    params:{
+                        transaction:transaction
+                    }
+                }).then(function (res) {
+                    _this.transactionInfo = res.data;
+                    console.log("transactionInfo",_this.transactionInfo);
+                }).catch(function (err) {
+                    console.error("error",err);
+                })
+
                 this.$store.state.mask = true;
                 this.accountTransactionDialog = true;
             },
