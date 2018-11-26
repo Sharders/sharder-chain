@@ -11,6 +11,9 @@ sharder_test_db
 *.bat
 jre
 
+conf/.lock
+conf/localstorage
+
 DestroyForgePool
 ForgePools
 

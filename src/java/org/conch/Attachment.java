@@ -24,6 +24,7 @@ package org.conch;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
+import org.conch.mint.pool.PoolRule;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -3747,12 +3748,12 @@ public interface Attachment extends Appendix {
 
     }
 
-    final class ForgePoolCreate extends AbstractAttachment {
+    final class SharderPoolCreate extends AbstractAttachment {
 
         private final int period;
         private final Map<String,Object> rule;
 
-        ForgePoolCreate(ByteBuffer buffer, byte transactionVersion) {
+        SharderPoolCreate(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.period = Short.toUnsignedInt(buffer.getShort());
             Map<String,Object> map = null;
@@ -3763,18 +3764,18 @@ public interface Attachment extends Appendix {
                 map = (Map<String,Object>)ois.readObject();
                 ois.close();
             }catch (Exception e){
-                Logger.logErrorMessage("forge pool create transaction can't load rule from byte", e);
+                Logger.logErrorMessage("sharder pool create transaction can't load rule from byte", e);
             }
             this.rule = map;
         }
 
-        ForgePoolCreate(JSONObject attachmentData) {
+        SharderPoolCreate(JSONObject attachmentData) {
             super(attachmentData);
             this.period = ((Long) attachmentData.get("period")).intValue();
-            this.rule = Rule.jsonObjectToMap((JSONObject)attachmentData.get("rule"));
+            this.rule = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("rule"));
         }
 
-        public ForgePoolCreate(int period,Map<String,Object> rule) {
+        public SharderPoolCreate(int period, Map<String, Object> rule) {
             this.period = period;
             this.rule = rule;
         }
@@ -3788,7 +3789,7 @@ public interface Attachment extends Appendix {
                 os.close();
                 return 2 + bo.toByteArray().length;
             }catch (Exception e){
-                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+                Logger.logDebugMessage("rule can't turn to byte in sharder pool create", e);
             }
             return 2 + (int)ObjectSizeCalculator.getObjectSize(rule);
         }
@@ -3803,7 +3804,7 @@ public interface Attachment extends Appendix {
                 os.close();
                 buffer.put(ByteBuffer.wrap(bo.toByteArray()));
             }catch (Exception e){
-                Logger.logDebugMessage("rule can't turn to byte in forge pool create",e);
+                Logger.logDebugMessage("rule can't turn to byte in sharder pool create", e);
             }
         }
 
@@ -3815,7 +3816,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return TransactionType.ForgePool.FORGE_POOL_CREATE;
+            return TransactionType.SharderPool.SHARDER_POOL_CREATE;
         }
 
         public int getPeriod() {
@@ -3827,20 +3828,20 @@ public interface Attachment extends Appendix {
         }
     }
 
-    final class ForgePoolDestroy extends AbstractAttachment {
+    final class SharderPoolDestroy extends AbstractAttachment {
         private final long poolId;
 
-        ForgePoolDestroy(ByteBuffer buffer, byte transactionVersion) {
+        SharderPoolDestroy(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.poolId = buffer.getLong();
         }
 
-        ForgePoolDestroy(JSONObject attachmentData) {
+        SharderPoolDestroy(JSONObject attachmentData) {
             super(attachmentData);
             this.poolId = (Long) attachmentData.get("poolId");
         }
 
-        public ForgePoolDestroy(long poolId) {
+        public SharderPoolDestroy(long poolId) {
             this.poolId = poolId;
         }
 
@@ -3861,7 +3862,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return TransactionType.ForgePool.FORGE_POOL_DESTROY;
+            return TransactionType.SharderPool.SHARDER_POOL_DESTROY;
         }
 
         public long getPoolId() {
@@ -3869,28 +3870,28 @@ public interface Attachment extends Appendix {
         }
     }
 
-    final class ForgePoolJoin extends AbstractAttachment {
+    final class SharderPoolJoin extends AbstractAttachment {
 
-        private final long forgePoolId;
+        private final long poolId;
         private final long amount;
         private final int period;
 
-        ForgePoolJoin(ByteBuffer buffer, byte transactionVersion) {
+        SharderPoolJoin(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.forgePoolId = buffer.getLong();
+            this.poolId = buffer.getLong();
             this.amount = buffer.getLong();
             this.period = Short.toUnsignedInt(buffer.getShort());
         }
 
-        ForgePoolJoin(JSONObject attachmentData) {
+        SharderPoolJoin(JSONObject attachmentData) {
             super(attachmentData);
-            this.forgePoolId = (Long) attachmentData.get("forgePoolId");
+            this.poolId = (Long) attachmentData.get("poolId");
             this.amount = (Long) attachmentData.get("amount");
             this.period = ((Long) attachmentData.get("period")).intValue();
         }
 
-        public ForgePoolJoin(long forgePoolId , long amount ,int period) {
-            this.forgePoolId = forgePoolId;
+        public SharderPoolJoin(long poolId, long amount, int period) {
+            this.poolId = poolId;
             this.amount = amount;
             this.period = period;
         }
@@ -3902,29 +3903,29 @@ public interface Attachment extends Appendix {
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(forgePoolId);
+            buffer.putLong(poolId);
             buffer.putLong(amount);
             buffer.putShort((short)period);
         }
 
         @Override
         void putMyJSON(JSONObject attachment) {
-            attachment.put("forgePoolId", forgePoolId);
+            attachment.put("poolId", poolId);
             attachment.put("amount", amount);
             attachment.put("period", period);
         }
 
         @Override
         public TransactionType getTransactionType() {
-            return TransactionType.ForgePool.FORGE_POOL_JOIN;
+            return TransactionType.SharderPool.SHARDER_POOL_JOIN;
         }
 
         public int getPeriod() {
             return period;
         }
 
-        public long getForgePoolId() {
-            return forgePoolId;
+        public long getPoolId() {
+            return poolId;
         }
 
         public long getAmount() {
@@ -3932,23 +3933,23 @@ public interface Attachment extends Appendix {
         }
     }
 
-    final class ForgePoolQuit extends AbstractAttachment {
+    final class SharderPoolQuit extends AbstractAttachment {
         private final long txId;
         private final long poolId;
 
-        ForgePoolQuit(ByteBuffer buffer, byte transactionVersion) {
+        SharderPoolQuit(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.txId = buffer.getLong();
             this.poolId = buffer.getLong();
         }
 
-        ForgePoolQuit(JSONObject attachmentData) {
+        SharderPoolQuit(JSONObject attachmentData) {
             super(attachmentData);
             this.txId = (Long) attachmentData.get("txId");
             this.poolId = (Long) attachmentData.get("poolId");
         }
 
-        public ForgePoolQuit(long txId, long poolId) {
+        public SharderPoolQuit(long txId, long poolId) {
             this.txId = txId;
             this.poolId = poolId;
         }
@@ -3972,7 +3973,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return TransactionType.ForgePool.FORGE_POOL_QUIT;
+            return TransactionType.SharderPool.SHARDER_POOL_QUIT;
         }
 
         public long getTxId() {

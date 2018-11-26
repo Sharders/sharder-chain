@@ -32,6 +32,7 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
 import org.conch.storage.StorageManager;
@@ -45,7 +46,10 @@ import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -495,7 +499,7 @@ public final class Conch {
                 AddOns.init();
                 API.init();
                 Users.init();
-                ForgePool.init();
+                SharderPoolProcessor.init();
                 DebugTrace.init();
                 // DbBackup Init
                 DbBackup.init();
@@ -700,7 +704,7 @@ public final class Conch {
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
-            // TODO support windows command
+            // TODO[Enh] support windows command
             Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);

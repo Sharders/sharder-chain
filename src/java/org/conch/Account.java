@@ -1661,7 +1661,7 @@ public final class Account {
         }
     }
 
-    void frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
@@ -1678,7 +1678,7 @@ public final class Account {
         save();
     }
 
-    void frozenBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void frozenBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         if (amountNQT == 0) {
             return;
         }

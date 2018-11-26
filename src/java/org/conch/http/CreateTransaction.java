@@ -23,7 +23,6 @@ package org.conch.http;
 
 import org.conch.*;
 import org.conch.crypto.Crypto;
-import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -31,28 +30,51 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
-import static org.conch.http.JSONResponses.FEATURE_NOT_AVAILABLE;
-import static org.conch.http.JSONResponses.INCORRECT_DEADLINE;
-import static org.conch.http.JSONResponses.INCORRECT_EC_BLOCK;
-import static org.conch.http.JSONResponses.INCORRECT_LINKED_FULL_HASH;
-import static org.conch.http.JSONResponses.INCORRECT_WHITELIST;
-import static org.conch.http.JSONResponses.MISSING_DEADLINE;
-import static org.conch.http.JSONResponses.MISSING_SECRET_PHRASE;
-import static org.conch.http.JSONResponses.NOT_ENOUGH_FUNDS;
+import static org.conch.http.JSONResponses.*;
 
 public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
-    private static final String[] commonParameters = new String[]{"secretPhrase", "publicKey", "feeNQT",
-            "deadline", "referencedTransactionFullHash", "broadcast",
-            "message", "messageIsText", "messageIsPrunable",
-            "messageToEncrypt", "messageToEncryptIsText", "encryptedMessageData", "encryptedMessageNonce", "encryptedMessageIsPrunable", "compressMessageToEncrypt",
-            "messageToEncryptToSelf", "messageToEncryptToSelfIsText", "encryptToSelfMessageData", "encryptToSelfMessageNonce", "compressMessageToEncryptToSelf",
-            "phased", "phasingFinishHeight", "phasingVotingModel", "phasingQuorum", "phasingMinBalance", "phasingHolding", "phasingMinBalanceModel",
-            "phasingWhitelisted", "phasingWhitelisted", "phasingWhitelisted",
-            "phasingLinkedFullHash", "phasingLinkedFullHash", "phasingLinkedFullHash",
-            "phasingHashedSecret", "phasingHashedSecretAlgorithm",
-            "recipientPublicKey",
-            "ecBlockId", "ecBlockHeight"};
+    private static final String[] commonParameters =
+            new String[]{
+                    "secretPhrase",
+                    "publicKey",
+                    "feeNQT",
+                    "deadline",
+                    "referencedTransactionFullHash",
+                    "broadcast",
+                    "message",
+                    "messageIsText",
+                    "messageIsPrunable",
+                    "messageToEncrypt",
+                    "messageToEncryptIsText",
+                    "encryptedMessageData",
+                    "encryptedMessageNonce",
+                    "encryptedMessageIsPrunable",
+                    "compressMessageToEncrypt",
+                    "messageToEncryptToSelf",
+                    "messageToEncryptToSelfIsText",
+                    "encryptToSelfMessageData",
+                    "encryptToSelfMessageNonce",
+                    "compressMessageToEncryptToSelf",
+                    "phased",
+                    "phasingFinishHeight",
+                    "phasingVotingModel",
+                    "phasingQuorum",
+                    "phasingMinBalance",
+                    "phasingHolding",
+                    "phasingMinBalanceModel",
+                    "phasingWhitelisted",
+                    "phasingWhitelisted",
+                    "phasingWhitelisted",
+                    "phasingLinkedFullHash",
+                    "phasingLinkedFullHash",
+                    "phasingLinkedFullHash",
+                    "phasingHashedSecret",
+                    "phasingHashedSecretAlgorithm",
+                    "recipientPublicKey",
+                    "ecBlockId",
+                    "ecBlockHeight"
+            };
 
     private static String[] addCommonParameters(String[] parameters) {
         String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
@@ -220,8 +242,8 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 if (Math.addExact(amountNQT, transaction.getFeeNQT()) > senderAccount.getUnconfirmedBalanceNQT()) {
                     return NOT_ENOUGH_FUNDS;
                 }
-                if(transaction.getType() == TransactionType.ForgePool.FORGE_POOL_JOIN){
-                    if(Math.addExact(((Attachment.ForgePoolJoin)attachment).getAmount(), transaction.getFeeNQT()) > senderAccount.getUnconfirmedBalanceNQT()){
+                if (transaction.getType() == TransactionType.SharderPool.SHARDER_POOL_JOIN) {
+                    if (Math.addExact(((Attachment.SharderPoolJoin) attachment).getAmount(), transaction.getFeeNQT()) > senderAccount.getUnconfirmedBalanceNQT()) {
                         return NOT_ENOUGH_FUNDS;
                     }
                 }

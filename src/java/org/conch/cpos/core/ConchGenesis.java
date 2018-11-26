@@ -36,7 +36,7 @@ public class ConchGenesis {
             Long.parseUnsignedLong("5628842911358453445"), //Community Fund
             Long.parseUnsignedLong("8272678158411255877"), //BusinessApp Fund
             Long.parseUnsignedLong("9119357057198283839"), //Operation Fund
-            Long.parseUnsignedLong("9011521658538046719"), //Forge Fund
+            Long.parseUnsignedLong("9011521658538046719"), //Mint Fund
             Long.parseUnsignedLong("3197158431999605856")  //Reserve Fund
     };
 

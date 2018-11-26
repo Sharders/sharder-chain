@@ -21,12 +21,7 @@
 
 package org.conch.http;
 
-import java.util.Base64;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public enum APIEnum {
     //To preserve compatibility, please add new APIs to the end of the enum.
@@ -298,13 +293,14 @@ public enum APIEnum {
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
     GET_INFO("getInfo",GetInfo.instance),
-    CREATE_FORGE_POOL("createForgePool",CreateForgePool.instance),
-    DESTROY_FORGE_POOL("destroyForgePool",DestroyForgePool.instance),
-    JOIN_FORGE_POOL("joinForgePool",JoinForgePool.instance),
-    QUIT_FORGE_POOL("quitForgePool",QuitForgePool.instance),
-    GET_FORGE_POOL_INFO("getForgePoolInfo",GetForgePoolInfo.instance),
-    GET_FORGE_POOLS("getForgePools",GetForgePools.instance),
-    GET_FORGE_POOL_RULE("getForgePoolRule",GetForgePoolRule.instance),
+    // sharder pool
+    CREATE_SHARDER_POOL("createPool", SharderPoolTx.CreatePoolTx.instance),
+    DESTROY_SHARDER_POOL("destroyPool", SharderPoolTx.DestoryPoolTx.instance),
+    JOIN_SHARDER_POOL("joinPool", SharderPoolTx.JoinPoolTx.instance),
+    QUIT_SHARDER_POOL("quitPool", SharderPoolTx.QuitPoolTx.instance),
+    GET_SHARDER_POOL_INFO("getPoolInfo", SharderPoolTx.GetPoolInfo.instance),
+    GET_SHARDER_POOLS("getPools", SharderPoolTx.GetPools.instance),
+    GET_SHARDER_POOL_RULE("getPoolRule", SharderPoolTx.GetPoolRule.instance),
     // off-chain storage
     START_STORING("startStoring", StartStoring.instance),
     STOP_STORING("stopStoring", StopStoring.instance),
