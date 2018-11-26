@@ -4243,19 +4243,96 @@ public interface Attachment extends Appendix {
     }
 
     final class PocWeight extends AbstractAttachment {
+
+        private final String device; // 设备
+        private final int nodeWeight; // 节点类型 加权后的值
+        private final int serverWeight; // 开启服务 加权后的值
+        private final int configWeight; //硬件配置 加权后的值
+        private final int networkWeight; // 网络配置 加权后的值
+        private final int tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
+        private final int ssHoldWeight; // SS持有量 加权后的值
+
+        public int getNodeWeight() {
+            return nodeWeight;
+        }
+
+        public int getServerWeight() {
+            return serverWeight;
+        }
+
+        public int getConfigWeight() {
+            return configWeight;
+        }
+
+        public int getNetworkWeight() {
+            return networkWeight;
+        }
+
+        public int getTpWeight() {
+            return tpWeight;
+        }
+
+        public int getSsHoldWeight() {
+            return ssHoldWeight;
+        }
+
+        public PocWeight(String device, int nodeWeight, int serverWeight, int configWeight, int networkWeight, int tpWeight, int ssHoldWeight) {
+            this.device = device;
+            this.nodeWeight = nodeWeight;
+            this.serverWeight = serverWeight;
+            this.configWeight = configWeight;
+            this.networkWeight = networkWeight;
+            this.tpWeight = tpWeight;
+            this.ssHoldWeight = ssHoldWeight;
+        }
+
+        public PocWeight(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.nodeWeight = buffer.getInt();
+            this.serverWeight = buffer.getInt();
+            this.configWeight = buffer.getInt();
+            this.networkWeight = buffer.getInt();
+            this.tpWeight = buffer.getInt();
+            this.ssHoldWeight = buffer.getInt();
+        }
+
+        public PocWeight(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.nodeWeight = ((Long) attachmentData.get("nodeWeight")).intValue();
+            this.serverWeight = ((Long) attachmentData.get("serverWeight")).intValue();
+            this.configWeight = ((Long) attachmentData.get("configWeight")).intValue();
+            this.networkWeight = ((Long) attachmentData.get("networkWeight")).intValue();
+            this.tpWeight = ((Long) attachmentData.get("tpWeight")).intValue();
+            this.ssHoldWeight = ((Long) attachmentData.get("ssHoldWeight")).intValue();
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 12 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(nodeWeight);
+            buffer.putInt(serverWeight);
+            buffer.putInt(configWeight);
+            buffer.putInt(networkWeight);
+            buffer.putInt(tpWeight);
+            buffer.putInt(ssHoldWeight);
         }
 
         @Override
-        void putMyJSON(JSONObject json) {
-
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("device", device);
+            attachment.put("nodeWeight", nodeWeight);
+            attachment.put("serverWeight", serverWeight);
+            attachment.put("configWeight", configWeight);
+            attachment.put("networkWeight", networkWeight);
+            attachment.put("tpWeight", tpWeight);
+            attachment.put("ssHoldWeight", ssHoldWeight);
         }
 
         @Override
