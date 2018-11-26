@@ -1,7 +1,7 @@
 var NRS = (function (NRS, $, undefined) {
     NRS.formatVolume = function (volume) {
-		var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-		if (volume == 0) return '0 B';
+		var sizes = ["B", "KB", "MB", "GB", "TB"];
+		if (volume == 0) return "0 B";
 		var i = parseInt(Math.floor(Math.log(volume) / Math.log(1024)));
 
         volume = Math.round(volume / Math.pow(1024, i));
@@ -44,7 +44,7 @@ var NRS = (function (NRS, $, undefined) {
 	};
 
     NRS.calculateOrderPricePerWholeQNT = function (price, decimals, returnAsObject) {
-		if (typeof price != "object") {
+		if (typeof price !== "object") {
 			price = new BigInteger(String(price));
 		}
 
@@ -58,7 +58,7 @@ var NRS = (function (NRS, $, undefined) {
 			var toRemove = price.slice(-decimals);
 
 			if (!/^[0]+$/.test(toRemove)) {
-				//return new Big(price).div(new Big(Math.pow(10, decimals))).round(8, 0);
+				// return new Big(price).div(new Big(Math.pow(10, decimals))).round(8, 0);
 				throw $.t("error_invalid_input");
 			} else {
 				return price.slice(0, -decimals);
@@ -68,11 +68,11 @@ var NRS = (function (NRS, $, undefined) {
 		}
 	};
 
-    function calculateOrderTotalImpl(quantityQNT, priceNQT) {
-        if (typeof quantityQNT != "object") {
+    function calculateOrderTotalImpl (quantityQNT, priceNQT) {
+        if (typeof quantityQNT !== "object") {
             quantityQNT = new BigInteger(String(quantityQNT));
         }
-        if (typeof priceNQT != "object") {
+        if (typeof priceNQT !== "object") {
             priceNQT = new BigInteger(String(priceNQT));
         }
         return quantityQNT.multiply(priceNQT);
@@ -105,7 +105,7 @@ var NRS = (function (NRS, $, undefined) {
         var negative = "";
         var mantissa = "";
 
-		if (typeof amount != "object") {
+		if (typeof amount !== "object") {
 			amount = new BigInteger(String(amount));
 		}
 
@@ -145,7 +145,7 @@ var NRS = (function (NRS, $, undefined) {
 
 		var parts = amount.split(".");
 
-		//no fractional part
+		// no fractional part
 		if (parts.length == 1) {
 			return parts[0];
 		} else if (parts.length == 2) {
@@ -169,7 +169,7 @@ var NRS = (function (NRS, $, undefined) {
 
 		var amount = parts[0];
 
-		//no fractional part
+		// no fractional part
         var fraction;
 		if (parts.length == 1) {
             fraction = "00000000";
@@ -189,12 +189,12 @@ var NRS = (function (NRS, $, undefined) {
 
 		var result = amount + "" + fraction;
 
-		//in case there's a comma or something else in there.. at this point there should only be numbers
+		// in case there's a comma or something else in there.. at this point there should only be numbers
 		if (!/^\d+$/.test(result)) {
 			throw $.t("error_invalid_input");
 		}
 
-		//remove leading zeroes
+		// remove leading zeroes
 		result = result.replace(/^0+/, "");
 
 		if (result === "") {
@@ -247,7 +247,7 @@ var NRS = (function (NRS, $, undefined) {
 
 		var qnt = parts[0];
 
-		//no fractional part
+		// no fractional part
         var i;
 		if (parts.length == 1) {
 			if (decimals) {
@@ -271,7 +271,7 @@ var NRS = (function (NRS, $, undefined) {
 			throw $.t("error_invalid_input");
 		}
 
-		//in case there's a comma or something else in there.. at this point there should only be numbers
+		// in case there's a comma or something else in there.. at this point there should only be numbers
 		if (!/^\d+$/.test(qnt)) {
 			throw $.t("error_invalid_input_numbers");
 		}
@@ -282,7 +282,7 @@ var NRS = (function (NRS, $, undefined) {
         } catch (e) {
         }
 
-		//remove leading zeroes
+		// remove leading zeroes
 		return qnt.replace(/^0+/, "");
 	};
 
@@ -290,7 +290,7 @@ var NRS = (function (NRS, $, undefined) {
     NRS.format = function (params, no_escaping, zeroPad) {
         var amount;
         var mantissa;
-		if (typeof params != "object") {
+		if (typeof params !== "object") {
             amount = String(params);
             if (amount.indexOf(".") !== -1) {
                 mantissa = amount.substr(amount.indexOf("."));
@@ -345,23 +345,23 @@ var NRS = (function (NRS, $, undefined) {
 	};
 
     NRS.formatAmount = function (amount, round, no_escaping, zeroPad) {
-        if (typeof amount == "undefined") {
+        if (typeof amount === "undefined") {
             return "0";
-        } else if (typeof amount == "string") {
+        } else if (typeof amount === "string") {
             amount = new BigInteger(amount);
         }
 
         var negative = "";
         var mantissa = "";
 
-        if (typeof amount == "object") {
+        if (typeof amount === "object") {
             var params = NRS.convertToNXT(amount, true);
 
             negative = params.negative;
             amount = params.amount;
             mantissa = params.mantissa;
         } else {
-            //rounding only applies to non-nqt
+            // rounding only applies to non-nqt
             if (round) {
                 amount = (Math.round(amount * 100) / 100);
             }
@@ -382,7 +382,7 @@ var NRS = (function (NRS, $, undefined) {
         if (NRS.settings) {
             var offset = 0;
             if (mantissa != "" && mantissa.substring(0, 1) == ".") {
-                offset ++;
+                offset++;
             }
             var maxLength = parseInt(NRS.settings.max_nxt_decimals) + offset;
             if (mantissa.length > maxLength) {
@@ -400,7 +400,7 @@ var NRS = (function (NRS, $, undefined) {
         }, no_escaping, zeroPad);
     };
 
-    NRS.getTransactionsAmountDecimals = function(transactions) {
+    NRS.getTransactionsAmountDecimals = function (transactions) {
         var decimals = {};
    		decimals.amount = NRS.getNumberOfDecimals(transactions, "amountNQT", function (transaction) {
    			return NRS.formatAmount(transaction.amountNQT);
@@ -411,10 +411,10 @@ var NRS = (function (NRS, $, undefined) {
         return decimals;
    	};
 
-    NRS.getNumberOfDecimals = function(rows, key, callback) {
+    NRS.getNumberOfDecimals = function (rows, key, callback) {
         var locale = NRS.getLocale();
         var decimals = 0;
-        for (var i=0; i<rows.length; i++) {
+        for (var i = 0; i < rows.length; i++) {
             var val = rows[i][key];
             if (callback) {
                 val = callback(rows[i]);
@@ -448,7 +448,7 @@ var NRS = (function (NRS, $, undefined) {
     NRS.formatTimestamp = function (timestamp, date_only, isAbsoluteTime) {
         var locale = NRS.getLocale();
         var date;
-		if (typeof timestamp == "object") {
+		if (typeof timestamp === "object") {
             date = timestamp;
         } else if (isAbsoluteTime) {
             date = new Date(timestamp);
@@ -456,11 +456,11 @@ var NRS = (function (NRS, $, undefined) {
             date = new Date(NRS.fromEpochTime(timestamp));
 		}
 
-		if (!isNaN(date) && typeof(date.getFullYear) == 'function') {
+		if (!isNaN(date) && typeof (date.getFullYear) === "function") {
 			var d = date.getDate();
-			var dd = d < 10 ? '0' + d : d;
+			var dd = d < 10 ? "0" + d : d;
 			var M = date.getMonth() + 1;
-			var MM = M < 10 ? '0' + M : M;
+			var MM = M < 10 ? "0" + M : M;
 			var yyyy = date.getFullYear();
             var yy = String(yyyy).substring(2);
 
@@ -503,15 +503,15 @@ var NRS = (function (NRS, $, undefined) {
 		}
 	};
 
-    NRS.getBlockHeightMoment = function(height) {
+    NRS.getBlockHeightMoment = function (height) {
         if (!height || !NRS.lastBlockHeight || !NRS.averageBlockGenerationTime) {
             return "-";
         }
         var heightDiff = height - NRS.lastBlockHeight;
-        return moment().add(heightDiff * NRS.averageBlockGenerationTime, 'seconds');
+        return moment().add(heightDiff * NRS.averageBlockGenerationTime, "seconds");
     };
 
-    NRS.getBlockHeightTimeEstimate = function(height) {
+    NRS.getBlockHeightTimeEstimate = function (height) {
         var heightMoment = NRS.getBlockHeightMoment(height);
         if (heightMoment == "-") {
             return "-";
@@ -519,9 +519,9 @@ var NRS = (function (NRS, $, undefined) {
         return heightMoment.format("YYYY/MM/DD hh:mm a");
    	};
 
-    NRS.baseTargetPercent = function(block) {
+    NRS.baseTargetPercent = function (block) {
         if (block) {
-            return Math.round(block.baseTarget / 153722867 * 100)
+            return Math.round(block.baseTarget / 153722867 * 100);
         } else {
             return 0;
         }
@@ -550,8 +550,8 @@ var NRS = (function (NRS, $, undefined) {
 	};
 
     NRS.convertFromHex8 = function (hex) {
-        var hexStr = hex.toString(); //force conversion
-		var str = '';
+        var hexStr = hex.toString(); // force conversion
+		var str = "";
         for (var i = 0; i < hexStr.length; i += 2) {
             str += String.fromCharCode(parseInt(hexStr.substr(i, 2), 16));
         }
@@ -559,9 +559,9 @@ var NRS = (function (NRS, $, undefined) {
 	};
 
     NRS.convertToHex8 = function (str) {
-		var hex = '';
+		var hex = "";
 		for (var i = 0; i < str.length; i++) {
-			hex += '' + str.charCodeAt(i).toString(16);
+			hex += "" + str.charCodeAt(i).toString(16);
 		}
 		return hex;
 	};
@@ -575,16 +575,16 @@ var NRS = (function (NRS, $, undefined) {
                 continue;
 		}
 			if (multiValuedFields.indexOf(serialized[s]["name"]) > -1) {
-				if (serialized[s]['value'] != "") {
-					if (serialized[s]['name'] in data) {
-						var index = data[serialized[s]['name']].length;
-						data[serialized[s]['name']][index] = serialized[s]['value'];
+				if (serialized[s]["value"] != "") {
+					if (serialized[s]["name"] in data) {
+						var index = data[serialized[s]["name"]].length;
+						data[serialized[s]["name"]][index] = serialized[s]["value"];
 					} else {
-						data[serialized[s]['name']] = [serialized[s]['value']]; //all data as list (traditional, to allow multiple values)
+						data[serialized[s]["name"]] = [serialized[s]["value"]]; // all data as list (traditional, to allow multiple values)
 					}
 				}
 			} else {
-				data[serialized[s]['name']] = serialized[s]['value'];
+				data[serialized[s]["name"]] = serialized[s]["value"];
 			}
 		}
 		if (!unmodified) {
@@ -612,7 +612,6 @@ var NRS = (function (NRS, $, undefined) {
 	};
 
     NRS.getAccountLink = function (object, accountKey, accountRef, title, showAccountRS, clazz) {
-
         if (!clazz) {
             clazz = "";
         } else {
@@ -623,22 +622,22 @@ var NRS = (function (NRS, $, undefined) {
             }
         }
 
-        if(object.type === 9 && object.subtype === 0){
+        if (object.type === 9 && object.subtype === 0) {
             return getCoinBaseAccountLink(object, accountKey, accountRef, title, showAccountRS, clazz);
         }
 
         var accountRS;
-        if (typeof object[accountKey + "RS"] != "undefined") {
+        if (typeof object[accountKey + "RS"] !== "undefined") {
             accountRS = object[accountKey + "RS"];
-        } else if (typeof object[accountKey] != "undefined") {
+        } else if (typeof object[accountKey] !== "undefined") {
             accountRS = NRS.convertNumericToRSAccountFormat(object[accountKey]);
         } else {
-            return '/';
+            return "/";
         }
         var accountTitle;
         if (accountRef && accountRS == accountRef) {
             accountTitle = $.t(title);
-        } else if(showAccountRS) {
+        } else if (showAccountRS) {
             accountTitle = String(accountRS).escapeHTML();
         } else {
             accountTitle = NRS.getAccountTitle(object, accountKey);
@@ -647,47 +646,45 @@ var NRS = (function (NRS, $, undefined) {
         return "<a href='#' data-user='" + String(accountRS).escapeHTML() +
             "' class='show_account_modal_action user-info" + clazz + "'>" + accountTitle + "</a>";
     };
-    let getCoinBaseAccountLink = function(object, accountKey, accountRef, title, showAccountRS, clazz){
+    const getCoinBaseAccountLink = function (object, accountKey, accountRef, title, showAccountRS, clazz) {
         var accountTitle;
-        if("sender" === accountKey){
+        if (accountKey === "sender") {
             accountTitle = NRS.getAccountTitle(object, accountKey);
             return "<a href='#'>" + accountTitle + "</a>";
-        }else if("recipient" === accountKey){
+        } else if (accountKey === "recipient") {
             accountTitle = NRS.getAccountTitle(object, accountKey);
             var accountRS = object["senderRS"];
             return "<a href='#' data-user='" + String(accountRS).escapeHTML() +
                 "' class='show_account_modal_action user-info" + clazz + "'>" + accountTitle + "</a>";
-        }else {
+        } else {
             return "/";
         }
-
-
     };
-    NRS.getTransactionLink = function(id, text, isEscapedText) {
+    NRS.getTransactionLink = function (id, text, isEscapedText) {
         if (!text) {
             text = id;
         }
-        return "<a href='#' class='show_transaction_modal_action' data-transaction='" + String(id).escapeHTML() + "'>"
-            + (isEscapedText ? text : String(text).escapeHTML()) + "</a>";
+        return "<a href='#' class='show_transaction_modal_action' data-transaction='" + String(id).escapeHTML() + "'>" +
+            (isEscapedText ? text : String(text).escapeHTML()) + "</a>";
     };
 
-    NRS.getBlockLink = function(height, text, isEscapedText) {
+    NRS.getBlockLink = function (height, text, isEscapedText) {
         if (!text) {
             text = height;
         }
-        return "<a href='#' class='show_block_modal_action' data-block='" + String(height).escapeHTML() + "'>"
-            + (isEscapedText ? text : String(text).escapeHTML()) + "</a>";
+        return "<a href='#' class='show_block_modal_action' data-block='" + String(height).escapeHTML() + "'>" +
+            (isEscapedText ? text : String(text).escapeHTML()) + "</a>";
     };
 
-    NRS.getPeerLink = function(address) {
-        if (!address ) {
+    NRS.getPeerLink = function (address) {
+        if (!address) {
             return "(" + $.t("temporarily_disconnected") + ")";
         }
-        return "<a href='#' class='show_peer_modal_action' data-address='" + String(address).escapeHTML() + "'>"
-            + String(address).escapeHTML() + "</a>";
+        return "<a href='#' class='show_peer_modal_action' data-address='" + String(address).escapeHTML() + "'>" +
+            String(address).escapeHTML() + "</a>";
     };
 
-    NRS.setBackLink = function() {
+    NRS.setBackLink = function () {
         var backLink = $(".back-link");
         if (NRS.modalStack.length > 0) {
             var backModalInfo = NRS.modalStack[NRS.modalStack.length - 1];
@@ -710,23 +707,22 @@ var NRS = (function (NRS, $, undefined) {
             formattedAcc = object;
             object = null;
         } else {
-            if(object != null ){
-                if(object.type === 9 && object.subtype === 0){
-                    if("sender" == acc){
+            if (object != null) {
+                if (object.type === 9 && object.subtype === 0) {
+                    if (acc == "sender") {
                         return $.t("coinbase");
                     }
-                    if("recipient" == acc){
+                    if (acc == "recipient") {
                         var senderAcc = String(object["senderRS"]).escapeHTML();
-                        if(senderAcc === NRS.account || senderAcc === NRS.accountRS){
+                        if (senderAcc === NRS.account || senderAcc === NRS.accountRS) {
                             return $.t("you");
                         }
                         return senderAcc;
                         // return String(object["senderRS"]).escapeHTML();
                     }
                 }
-
             }
-            if (object == null || typeof object[acc + "RS"] == "undefined") {
+            if (object == null || typeof object[acc + "RS"] === "undefined") {
                 return "/";
             } else {
                 formattedAcc = String(object[acc + "RS"]).escapeHTML();
@@ -750,7 +746,7 @@ var NRS = (function (NRS, $, undefined) {
 		if (type == "string" || type == "number") {
 			return String(object).escapeHTML();
 		} else {
-			if (typeof object[acc + "RS"] == "undefined") {
+			if (typeof object[acc + "RS"] === "undefined") {
 				return "";
 			} else {
 				return String(object[acc + "RS"]).escapeHTML();
@@ -766,7 +762,7 @@ var NRS = (function (NRS, $, undefined) {
 		} else {
 			$el = $("#" + NRS.currentPage + "_table");
 			$el.find("tbody").empty().append(data);
-            $el.find('[data-toggle="tooltip"]').tooltip();
+            $el.find("[data-toggle=\"tooltip\"]").tooltip();
 		}
 
 		NRS.dataLoadFinished($el);
@@ -840,14 +836,14 @@ var NRS = (function (NRS, $, undefined) {
 
 			if (match && match[1]) {
 				key = match[1];
-				//type = match[2];
+				// type = match[2];
 			}
 
             key = key.replace(/\s+/g, "").replace(/([A-Z])/g, function ($1) {
                 return "_" + $1.toLowerCase();
             });
 
-            //no need to mess with input, already done if Formatted is at end of key
+            // no need to mess with input, already done if Formatted is at end of key
             if (/_formatted_html$/i.test(key)) {
                 key = key.replace("_formatted_html", "");
                 value = String(value);
@@ -862,7 +858,7 @@ var NRS = (function (NRS, $, undefined) {
                 } else {
                     value = NRS.formatQuantity(value, 0);
                 }
-            } else if (key == "price" || key == "total" || key == "amount" || key == "fee" || key == "refund" || key == "discount" || key=="total_fee" || key=="total_amount") {
+            } else if (key == "price" || key == "total" || key == "amount" || key == "fee" || key == "refund" || key == "discount" || key == "total_fee" || key == "total_amount") {
                 value = NRS.formatAmount(new BigInteger(String(value))) + " SS";
             } else if (key == "sender" || key == "recipient" || key == "account" || key == "seller" || key == "buyer" || key == "lessee") {
                 value = "<a href='#' data-user='" + NRS.escapeRespStr(value) + "' class='show_account_modal_action'>" + NRS.getAccountTitle(value) + "</a>";
@@ -905,11 +901,11 @@ var NRS = (function (NRS, $, undefined) {
 			return false;
 		}
 
-		if (typeof type == "number") {
+		if (typeof type === "number") {
 			type = [type];
 		}
 
-		if (typeof subtype == "number") {
+		if (typeof subtype === "number") {
 			subtype = [subtype];
 		}
 
@@ -991,17 +987,17 @@ var NRS = (function (NRS, $, undefined) {
         $el.find(".showmore > .moreblock").each(function () {
 			if ($(this).height() > adjustheight) {
 				$(this).css("height", adjustheight).css("overflow", "hidden");
-				$(this).parent(".showmore").append(' <a href="#" class="adjust"></a>');
+				$(this).parent(".showmore").append(" <a href=\"#\" class=\"adjust\"></a>");
                 $(this).parent(".showmore").find("a.adjust").text(moreText).click(function (e) {
 					e.preventDefault();
 
 					if ($(this).text() == moreText) {
-						$(this).parents("div:first").find(".moreblock").css('height', 'auto').css('overflow', 'visible');
-						$(this).parents("div:first").find("p.continued").css('display', 'none');
+						$(this).parents("div:first").find(".moreblock").css("height", "auto").css("overflow", "visible");
+						$(this).parents("div:first").find("p.continued").css("display", "none");
 						$(this).text(lessText);
 					} else {
-						$(this).parents("div:first").find(".moreblock").css('height', adjustheight).css('overflow', 'hidden');
-						$(this).parents("div:first").find("p.continued").css('display', 'block');
+						$(this).parents("div:first").find(".moreblock").css("height", adjustheight).css("overflow", "hidden");
+						$(this).parents("div:first").find("p.continued").css("display", "block");
 						$(this).text(moreText);
 					}
 				});
@@ -1036,17 +1032,17 @@ var NRS = (function (NRS, $, undefined) {
     $("#offcanvas_toggle").on("click", function (e) {
 		e.preventDefault();
 
-		//If window is small enough, enable sidebar push menu
+		// If window is small enough, enable sidebar push menu
         var leftSide = $(".left-side");
         var rightSide = $(".right-side");
 		if ($(window).width() <= 992) {
-            var rowOffCanvas = $('.row-offcanvas');
-            rowOffCanvas.toggleClass('active');
+            var rowOffCanvas = $(".row-offcanvas");
+            rowOffCanvas.toggleClass("active");
             leftSide.removeClass("collapse-left");
             rightSide.removeClass("strech");
             rowOffCanvas.toggleClass("relative");
 		} else {
-			//Else, enable content streching
+			// Else, enable content streching
             leftSide.toggleClass("collapse-left");
             rightSide.toggleClass("strech");
 		}
@@ -1061,24 +1057,24 @@ var NRS = (function (NRS, $, undefined) {
         return this.each(function () {
 			var btn = $(this).children("a").first();
 			var menu = $(this).children(".treeview-menu").first();
-			var isActive = $(this).hasClass('active');
+			var isActive = $(this).hasClass("active");
 
-			//initialize already active menus
+			// initialize already active menus
 			if (isActive) {
 				menu.show();
 				btn.children(".fa-angle-right").first().removeClass("fa-angle-right").addClass("fa-angle-down");
 			}
-			//Slide open or close the menu on link click
+			// Slide open or close the menu on link click
             btn.click(function (e) {
 				e.preventDefault();
 				if (isActive) {
-					//Slide up to close menu
+					// Slide up to close menu
 					menu.slideUp();
 					isActive = false;
 					btn.children(".fa-angle-down").first().removeClass("fa-angle-down").addClass("fa-angle-right");
 					btn.parent("li").removeClass("active");
 				} else {
-					//Slide down to open menu
+					// Slide down to open menu
 					menu.slideDown();
 					isActive = true;
 					btn.children(".fa-angle-right").first().removeClass("fa-angle-right").addClass("fa-angle-down");
@@ -1094,7 +1090,7 @@ var NRS = (function (NRS, $, undefined) {
 			if (response.errorMessage) {
 				response.errorDescription = response.errorMessage;
 			} else if (response.error) {
-				if (typeof response.error == "string") {
+				if (typeof response.error === "string") {
 					response.errorDescription = response.error;
 					response.errorCode = -1;
 				} else {
@@ -1229,7 +1225,7 @@ var NRS = (function (NRS, $, undefined) {
                 if (match && match[1]) {
                     var fieldNames = match[1].split(",");
                     var translatedFieldNames = [];
-                    for (var i=0; i<fieldNames.length; i++) {
+                    for (var i = 0; i < fieldNames.length; i++) {
                         translatedFieldNames.push(NRS.getTranslatedFieldName(fieldNames[i].toLowerCase()));
                     }
 
@@ -1349,7 +1345,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.validateDecimals = function (maxFractionLength, charCode, val, e) {
         if (maxFractionLength) {
-            //allow 1 single period character
+            // allow 1 single period character
             if (charCode == 110 || charCode == 190) {
                 if (val.indexOf(".") != -1) {
                     e.preventDefault();
@@ -1359,7 +1355,7 @@ var NRS = (function (NRS, $, undefined) {
                 }
             }
         } else {
-            //do not allow period
+            // do not allow period
             if (charCode == 110 || charCode == 190 || charCode == 188) {
                 $.growl($.t("error_fractions"), {
                     "type": "danger"
@@ -1377,7 +1373,7 @@ var NRS = (function (NRS, $, undefined) {
 
         var mantissa = input.match(/\.(\d*)$/);
 
-        //only allow as many as there are decimals allowed..
+        // only allow as many as there are decimals allowed..
         if (mantissa && mantissa[1].length > maxFractionLength) {
             var selectedText = NRS.getSelectedText();
 
@@ -1394,11 +1390,11 @@ var NRS = (function (NRS, $, undefined) {
             }
         }
 
-        //numeric characters, left/right key, backspace, delete
+        // numeric characters, left/right key, backspace, delete
         if (charCode == 8 || charCode == 37 || charCode == 39 || charCode == 46 || (charCode >= 48 && charCode <= 57 && !isNaN(String.fromCharCode(charCode)))) {
             return true;
         } else {
-            //comma
+            // comma
             if (charCode == 188) {
                 $.growl($.t("error_comma_not_allowed"), {
                     "type": "danger"
@@ -1411,7 +1407,7 @@ var NRS = (function (NRS, $, undefined) {
 
 	// http://stackoverflow.com/questions/12518830/java-string-getbytesutf8-javascript-analog
     NRS.getUtf8Bytes = function (str) {
-        //noinspection JSDeprecatedSymbols
+        // noinspection JSDeprecatedSymbols
         var utf8 = unescape(encodeURIComponent(str));
         var arr = [];
         for (var i = 0; i < utf8.length; i++) {
@@ -1434,7 +1430,7 @@ var NRS = (function (NRS, $, undefined) {
         return statusIcon;
     };
 
-    NRS.getAccountForDecryption = function(transaction, recipient, sender) {
+    NRS.getAccountForDecryption = function (transaction, recipient, sender) {
         if (!recipient && transaction.recipient == NRS.account) {
             return transaction.sender;
         }
@@ -1450,7 +1446,7 @@ var NRS = (function (NRS, $, undefined) {
         return null;
     };
 
-    NRS.phasingControlObjectToPhasingParams = function(controlObj) {
+    NRS.phasingControlObjectToPhasingParams = function (controlObj) {
         var phasingParams = {};
 
         phasingParams.phasingVotingModel = controlObj.votingModel;
@@ -1462,7 +1458,7 @@ var NRS = (function (NRS, $, undefined) {
         }
         if (controlObj.whitelist) {
             phasingParams.phasingWhitelisted = [];
-            $.each(controlObj.whitelist, function(index, accObject) {
+            $.each(controlObj.whitelist, function (index, accObject) {
                 phasingParams.phasingWhitelisted.push(accObject.whitelisted);
             });
         }
@@ -1470,7 +1466,7 @@ var NRS = (function (NRS, $, undefined) {
     };
 
     // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
-    NRS.strToUTF8Arr = function(str) {
+    NRS.strToUTF8Arr = function (str) {
         var utf8 = [];
         for (var i = 0; i < str.length; i++) {
             var charcode = str.charCodeAt(i);
@@ -1478,8 +1474,7 @@ var NRS = (function (NRS, $, undefined) {
             else if (charcode < 0x800) {
                 utf8.push(0xc0 | (charcode >> 6),
                           0x80 | (charcode & 0x3f));
-            }
-            else if (charcode < 0xd800 || charcode >= 0xe000) {
+            } else if (charcode < 0xd800 || charcode >= 0xe000) {
                 utf8.push(0xe0 | (charcode >> 12),
                           0x80 | ((charcode >> 6) & 0x3f),
                           0x80 | (charcode & 0x3f));
@@ -1490,8 +1485,8 @@ var NRS = (function (NRS, $, undefined) {
                 // UTF-16 encodes 0x10000-0x10FFFF by
                 // subtracting 0x10000 and splitting the
                 // 20 bits of 0x0-0xFFFFF into two halves
-                charcode = 0x10000 + (((charcode & 0x3ff) << 10)
-                          | (str.charCodeAt(i) & 0x3ff));
+                charcode = 0x10000 + (((charcode & 0x3ff) << 10) |
+                          (str.charCodeAt(i) & 0x3ff));
                 utf8.push(0xf0 | (charcode >> 18),
                           0x80 | ((charcode >> 12) & 0x3f),
                           0x80 | ((charcode >> 6) & 0x3f),
@@ -1501,7 +1496,7 @@ var NRS = (function (NRS, $, undefined) {
         return utf8;
     };
 
-    function byteArrayToBigInteger(byteArray) {
+    function byteArrayToBigInteger (byteArray) {
         var value = new BigInteger("0", 10);
         for (var i = byteArray.length - 1; i >= 0; i--) {
             value = value.multiply(new BigInteger("256", 10)).add(new BigInteger(byteArray[i].toString(10), 10));
@@ -1509,7 +1504,7 @@ var NRS = (function (NRS, $, undefined) {
         return value;
     }
 
-    NRS.initialCaps = function(str) {
+    NRS.initialCaps = function (str) {
         if (!str || str == "") {
             return str;
         }
@@ -1520,14 +1515,14 @@ var NRS = (function (NRS, $, undefined) {
         return firstChar + str.slice(1);
     };
 
-    NRS.addEllipsis = function(str, length) {
+    NRS.addEllipsis = function (str, length) {
         if (!str || str == "" || str.length <= length) {
             return str;
         }
         return str.substring(0, length) + "...";
     };
 
-    NRS.generateToken = function(message, secretPhrase) {
+    NRS.generateToken = function (message, secretPhrase) {
         var messageBytes = NRS.getUtf8Bytes(message);
         var pubKeyBytes = converters.hexStringToByteArray(NRS.getPublicKey(converters.stringToHexString(secretPhrase)));
         var token = pubKeyBytes;
@@ -1548,10 +1543,10 @@ var NRS = (function (NRS, $, undefined) {
         for (var ptr = 0; ptr < 100; ptr += 5) {
             var nbr = [];
             nbr[0] = token[ptr] & 0xFF;
-            nbr[1] = token[ptr+1] & 0xFF;
-            nbr[2] = token[ptr+2] & 0xFF;
-            nbr[3] = token[ptr+3] & 0xFF;
-            nbr[4] = token[ptr+4] & 0xFF;
+            nbr[1] = token[ptr + 1] & 0xFF;
+            nbr[2] = token[ptr + 2] & 0xFF;
+            nbr[3] = token[ptr + 3] & 0xFF;
+            nbr[4] = token[ptr + 4] & 0xFF;
             var number = byteArrayToBigInteger(nbr);
             if (number < 32) {
                 buf += "0000000";
@@ -1568,7 +1563,7 @@ var NRS = (function (NRS, $, undefined) {
             } else if (number < 34359738368) {
                 buf += "0";
             }
-            buf +=number.toString(32);
+            buf += number.toString(32);
         }
         return buf;
     };
@@ -1580,26 +1575,26 @@ var NRS = (function (NRS, $, undefined) {
             return -1;
         }
 
-        //https://gist.github.com/TheDistantSea/8021359 (based on)
+        // https://gist.github.com/TheDistantSea/8021359 (based on)
         var v1last = v1.slice(-1);
         var v2last = v2.slice(-1);
 
-        if (v1last == 'e') {
+        if (v1last == "e") {
             v1 = v1.substring(0, v1.length - 1);
         } else {
-            v1last = '';
+            v1last = "";
         }
 
-        if (v2last == 'e') {
+        if (v2last == "e") {
             v2 = v2.substring(0, v2.length - 1);
         } else {
-            v2last = '';
+            v2last = "";
         }
 
-        var v1parts = v1.split('.');
-        var v2parts = v2.split('.');
+        var v1parts = v1.split(".");
+        var v2parts = v2.split(".");
 
-        function isValidPart(x) {
+        function isValidPart (x) {
             return /^\d+$/.test(x);
         }
 
@@ -1646,9 +1641,9 @@ var NRS = (function (NRS, $, undefined) {
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
                 var val = obj[key];
-                if (typeof val === 'string') {
+                if (typeof val === "string") {
                     obj[key] = String(val).escapeHTML();
-                } else if (typeof val === 'object') {
+                } else if (typeof val === "object") {
                     NRS.escapeResponseObjStrings(obj[key]);
                 }
             }
@@ -1669,11 +1664,11 @@ var NRS = (function (NRS, $, undefined) {
         return String(val).unescapeHTML();
     };
 
-    NRS.getRandomPermutation = function(array) {
+    NRS.getRandomPermutation = function (array) {
         var currentIndex = array.length, temporaryValue, randomIndex;
 
         // While there remain elements to shuffle...
-        while (0 !== currentIndex) {
+        while (currentIndex !== 0) {
             // Pick a remaining element...
             randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex -= 1;
@@ -1686,20 +1681,19 @@ var NRS = (function (NRS, $, undefined) {
         return array;
     };
 
-    NRS.getErrorMessage = function(response) {
+    NRS.getErrorMessage = function (response) {
         return response.errorDescription || response.errorMessage || response.error;
     };
 
-    NRS.getMandatoryParams = function() {
+    NRS.getMandatoryParams = function () {
         return {
             feeNQT: "0",
             deadline: "1440"
-        }
+        };
     };
 
-
     return NRS;
-}( global.client, jQuery));
+}(global.client, jQuery));
 
 // if (isNode) {
 //     module.exports = NRS;

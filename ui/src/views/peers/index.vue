@@ -45,14 +45,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="peer in peersList">
-                                    <td class="image_text linker" v-if="peer.state === 1" @click="openInfo">
+                                <tr v-for="(peer,index) in peersList" v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
+                                    <td class="image_text linker" v-if="peer.state === 1" @click="openInfo(peer.address)">
                                         <span>
                                             <img src="../../assets/success.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
                                     </td>
-                                    <td class="image_text linker" v-if="peer.state === 0" @click="openInfo">
+                                    <td class="image_text linker" v-if="peer.state === 0" @click="openInfo(peer.address)">
                                         <span>
                                             <img src="../../assets/error.svg"/>
                                             <span>{{peer.address}}</span>
@@ -62,7 +62,7 @@
                                     <td>{{peer.uploadedVolume | formatByte}}</td>
                                     <td><span class="patch">{{peer.application}}&nbsp;{{peer.version}}</span></td>
                                     <td>{{peer.platform}}</td>
-                                    <td class="linker tl pl30">
+                                    <td class="linker tl pl30 ">
                                         <el-tooltip class="item" placement="top" effect="light" v-for="service in peer.services" :content="service | getPeerServicesTooltip">
                                             <a>{{service | getPeerServicesLabel}}</a>
                                         </el-tooltip>
@@ -73,14 +73,25 @@
                                     </td>
                                 </tr>
                             </tbody>
+
                         </table>
+                    </div>
+                    <div class="list_pagination">
+                        <el-pagination
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            layout="total, prev, pager, next, jumper"
+                            :total="totalSize">
+                        </el-pagination>
                     </div>
                 </div>
             </div>
         </div>
 
         <!--add black list-->
-        <div class="modal" id="blacklist_peer_modal" v-show="blacklist">
+        <div class="modal" id="blacklist_peer_modal" v-show="blacklistDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -100,7 +111,7 @@
         </div>
 
         <!--connect peer-->
-        <div class="modal" id="connect_peer_modal" v-show="connectPeer">
+        <div class="modal" id="connect_peer_modal" v-show="connectPeerDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -120,11 +131,11 @@
         </div>
 
         <!--view peer info-->
-        <div class="modal_info" id="peer_info" v-show="peerInfo">
+        <div class="modal_info" id="peer_info" v-show="peerInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >节点：114.115.210.116</span>
+                    <span >节点：{{peerInfo.address}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -132,33 +143,33 @@
                     <tbody>
                         <tr>
                             <th>blockchain_state</th>
-                            <td>UP_TO_DATE</td>
+                            <td>{{peerInfo.blockchainState}}</td>
                             <th>通讯端口</th>
-                            <td>8218</td>
+                            <td>{{peerInfo.port}}</td>
                         </tr>
                         <tr>
                             <th>服务</th>
-                            <td>API,CORS,BAPI,STORAGE</td>
+                            <td>{{peerInfo.services}}</td>
                             <th>Outbound Web Socket</th>
-                            <td>true</td>
+                            <td>{{peerInfo.outboundWebSocket}}</td>
                         </tr>
                         <tr>
                             <th>版本</th>
-                            <td>COS 0.1.0</td>
+                            <td>{{peerInfo.application}} {{peerInfo.version}}</td>
                             <th>peer_load</th>
-                            <td>[object Object]</td>
+                            <td>{{peerInfo.peerLoad}}</td>
                         </tr>
                         <tr>
                             <th>平台</th>
-                            <td>Linux amd64</td>
+                            <td>{{peerInfo.platform}}</td>
                             <th>Last Connection Attempt</th>
-                            <td>2018/10/19 9:47:02</td>
+                            <td>{{peerInfo.platform}}</td>
                         </tr>
                         <tr>
                             <th>最后更新</th>
-                            <td>2018/10/19 9:47:02</td>
+                            <td>{{myFormatTime(peerInfo.lastUpdated,'YMDHMS')}}</td>
                             <th>状态</th>
-                            <td>CONNECTION</td>
+                            <td>{{peerInfo.state === 1 ? 'CONNECTED' : 'UNCONNECTED'}}</td>
                         </tr>
                         <tr>
                             <th>黑名单</th>
@@ -198,17 +209,22 @@
         data () {
             return {
                 //dialog开关
-                blacklist: false,
-                connectPeer: false,
-                peerInfo: false,
+                blacklistDialog: false,
+                connectPeerDialog: false,
+                peerInfoDialog: false,
 
                 //list列表
                 peersList:[],
                 //节点总览
                 peersCount:0,
                 activeHubCount:0,
-                activePeersCount:0
-
+                activePeersCount:0,
+                //分页信息
+                currentPage:1,
+                totalSize:0,
+                pageSize:10,
+                //节点详情
+                peerInfo:[]
             };
         },
         created:function(){
@@ -219,6 +235,7 @@
                 }
             }).then(function(res){
                 _this.peersList = res.data.peers;
+                _this.totalSize = res.data.peers.length;
                 console.log(_this.peersList);
                 _this.getPeersInfo(_this.peersList);
                 console.log(res);
@@ -382,6 +399,8 @@
                     ["Zurich", 119.1]
                 ];
 
+
+
                 function makeMapData (rawData) {
                     const mapData = [];
                     for (let i = 0; i < rawData.length; i++) {
@@ -488,26 +507,42 @@
 
                 myChart.setOption(option);
             },
+
             turn2network: function () {
                 this.$router.push("/network");
             },
+
+
+
             openBlackDialog: function () {
                 this.$store.state.mask = true;
-                this.blacklist = true;
+                this.blacklistDialog = true;
             },
             closeDialog: function () {
                 this.$store.state.mask = false;
-                this.blacklist = false;
-                this.connectPeer = false;
-                this.peerInfo = false;
+                this.blacklistDialog = false;
+                this.connectPeerDialog = false;
+                this.peerInfoDialog = false;
             },
             openConnectPeer: function () {
                 this.$store.state.mask = true;
-                this.connectPeer = true;
+                this.connectPeerDialog = true;
             },
-            openInfo: function () {
+            openInfo: function (address) {
+                const _this = this;
+                this.closeDialog();
+                _this.$http.get('/sharder?requestType=getPeer',{
+                    params:{
+                        peer:address
+                    }
+                }).then(function (res) {
+                    _this.peerInfo = res.data;
+                }).catch(function (err) {
+                    console.log(err);
+                })
+
                 this.$store.state.mask = true;
-                this.peerInfo = true;
+                this.peerInfoDialog = true;
             },
             getPeersInfo:function (data) {
                 const _this = this;
@@ -520,10 +555,45 @@
                         _this.activePeersCount++;
                     }
                 });
-            }
+            },
+            myFormatTime: function(value,type){
+                const _this = this;
+                let dataTime="";
+                let data = new Date();
+                let date = parseInt(value+'000')+_this.$global.epochBeginning;
+                data.setTime(date);
+                let year   =  data.getFullYear();
+                let month  =  _this.addZero(data.getMonth() + 1);
+                let day    =  _this.addZero(data.getDate());
+                let hour   =  _this.addZero(data.getHours());
+                let minute =  _this.addZero(data.getMinutes());
+                let second =  _this.addZero(data.getSeconds());
+                if(type === "YMD"){
+                    dataTime =  year + "-"+ month + "-" + day;
+                }else if(type === "YMDHMS"){
+                    dataTime = year + "-"+month + "-" + day + " " +hour+ ":"+minute+":" +second;
+                }else if(type === "HMS"){
+                    dataTime = hour+":" + minute+":" + second;
+                }else if(type === "YM"){
+                    dataTime = year + "-" + month;
+
+                }
+                return dataTime;//将格式化后的字符串输出到前端显示
+            },
+            addZero: function (val) {
+                if (val < 10) {
+                    return "0" + val;
+                } else {
+                    return val;
+                }
+            },
+            handleSizeChange(val) {
+            },
+            handleCurrentChange(val) {
+            },
         },
         watch: {
-            blacklist: function (val) {
+            blacklistDialog: function (val) {
                 console.log("变了," + val);
             }
         },

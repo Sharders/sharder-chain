@@ -23,14 +23,14 @@ var NRS = (function (NRS) {
     var isMobileDevice = window["cordova"] !== undefined;
     var isLocalHost = false;
     var remoteNode = null;
-    var isLoadedOverHttps = ("https:" == window.location.protocol);
+    var isLoadedOverHttps = (window.location.protocol == "https:");
 
     NRS.isPrivateIP = function (ip) {
         if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) {
             return false;
         }
-        var parts = ip.split('.');
-        return parts[0] === '10' || parts[0] == '127' || parts[0] === '172' && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31) || parts[0] === '192' && parts[1] === '168';
+        var parts = ip.split(".");
+        return parts[0] === "10" || parts[0] == "127" || parts[0] === "172" && (parseInt(parts[1], 10) >= 16 && parseInt(parts[1], 10) <= 31) || parts[0] === "192" && parts[1] === "168";
     };
 
     if (window.location && window.location.hostname) {
@@ -38,11 +38,11 @@ var NRS = (function (NRS) {
         isLocalHost = hostName == "localhost" || hostName == "127.0.0.1" || NRS.isPrivateIP(hostName);
     }
 
-    NRS.isIndexedDBSupported = function() {
+    NRS.isIndexedDBSupported = function () {
         return window.indexedDB !== undefined;
     };
 
-    NRS.isExternalLinkVisible = function() {
+    NRS.isExternalLinkVisible = function () {
         // When using JavaFX add a link to a web wallet except on Linux since on Ubuntu it sometimes hangs
         if (NRS.isMobileApp()) {
             return false;
@@ -50,7 +50,7 @@ var NRS = (function (NRS) {
         return !(isDesktopApplication && navigator.userAgent.indexOf("Linux") >= 0);
     };
 
-    NRS.isWebWalletLinkVisible = function() {
+    NRS.isWebWalletLinkVisible = function () {
         if (NRS.isMobileApp()) {
             return false;
         }
@@ -69,16 +69,16 @@ var NRS = (function (NRS) {
         return !isMobileDevice;
     };
 
-    NRS.isPollGetState = function() {
+    NRS.isPollGetState = function () {
         // When using JavaFX do not poll the server unless it's a working as a proxy
         return !isDesktopApplication || NRS.state && NRS.state.apiProxy;
     };
 
-    NRS.isUpdateRemoteNodes = function() {
+    NRS.isUpdateRemoteNodes = function () {
         return NRS.state && NRS.state.apiProxy;
     };
 
-    NRS.isRemoteNodeConnectionAllowed = function() {
+    NRS.isRemoteNodeConnectionAllowed = function () {
         // The client always connects to remote nodes over Http since most Https nodes use a test certificate and
         // therefore cannot be used.
         // However, if the client itself is loaded over Https, it cannot connect to nodes over Http since this will
@@ -86,19 +86,19 @@ var NRS = (function (NRS) {
         return !isLoadedOverHttps;
     };
 
-    NRS.isExportContactsAvailable = function() {
+    NRS.isExportContactsAvailable = function () {
         return !isDesktopApplication; // When using JavaFX you cannot export the contact list
     };
 
-    NRS.isShowDummyCheckbox = function() {
+    NRS.isShowDummyCheckbox = function () {
         return isDesktopApplication && navigator.userAgent.indexOf("Linux") >= 0; // Correct rendering problem of checkboxes on Linux
     };
 
-    NRS.isDecodePeerHallmark = function() {
+    NRS.isDecodePeerHallmark = function () {
         return isPromiseSupported;
     };
 
-    NRS.getRemoteNodeUrl = function() {
+    NRS.getRemoteNodeUrl = function () {
         if (!NRS.isMobileApp()) {
             return "";
         }
@@ -120,21 +120,21 @@ var NRS = (function (NRS) {
         return remoteNode;
     };
 
-    NRS.resetRemoteNode = function(blacklist) {
+    NRS.resetRemoteNode = function (blacklist) {
         if (remoteNode && blacklist) {
             remoteNode.blacklist();
         }
         remoteNode = null;
     };
 
-    NRS.getDownloadLink = function(url, link) {
+    NRS.getDownloadLink = function (url, link) {
         if (NRS.isMobileApp()) {
             var script = "NRS.openMobileBrowser(\"" + url + "\");";
             if (link) {
                 link.attr("onclick", script);
                 return;
             }
-            return "<a onclick='" + script +"' class='btn btn-xs btn-default'>" + $.t("download") + "</a>";
+            return "<a onclick='" + script + "' class='btn btn-xs btn-default'>" + $.t("download") + "</a>";
         } else {
             if (link) {
                 link.attr("href", url);
@@ -144,11 +144,11 @@ var NRS = (function (NRS) {
         }
     };
 
-    NRS.openMobileBrowser = function(url) {
+    NRS.openMobileBrowser = function (url) {
         try {
             // Works on Android 6.0 (does not work in 5.1)
-            cordova.InAppBrowser.open(url, '_system');
-        } catch(e) {
+            cordova.InAppBrowser.open(url, "_system");
+        } catch (e) {
             console.warn(e.message);
         }
     };
@@ -165,7 +165,7 @@ var NRS = (function (NRS) {
         return device && device.platform == "Android" && device.version >= "6.0.0";
     };
 
-    NRS.getShapeShiftUrl = function() {
+    NRS.getShapeShiftUrl = function () {
         if (isDesktopApplication) {
             return location.origin + "/shapeshift/";
         } else {
@@ -173,51 +173,51 @@ var NRS = (function (NRS) {
         }
     };
 
-    NRS.isForgingSupported = function() {
+    NRS.isForgingSupported = function () {
         return !NRS.isMobileApp() && !(NRS.state && NRS.state.apiProxy);
     };
 
-    NRS.isFundingMonitorSupported = function() {
+    NRS.isFundingMonitorSupported = function () {
         return !NRS.isMobileApp() && !(NRS.state && NRS.state.apiProxy);
     };
 
-    NRS.isShufflingSupported = function() {
+    NRS.isShufflingSupported = function () {
         return !NRS.isMobileApp() && !(NRS.state && NRS.state.apiProxy);
     };
 
-    NRS.isConfirmResponse = function() {
+    NRS.isConfirmResponse = function () {
         return NRS.isMobileApp() || (NRS.state && NRS.state.apiProxy);
     };
 
-    NRS.isDisplayOptionalDashboardTiles = function() {
+    NRS.isDisplayOptionalDashboardTiles = function () {
         return !NRS.isMobileApp();
     };
 
-    NRS.isShowClientOptionsLink = function() {
-        //return NRS.isMobileApp() || (NRS.state && NRS.state.apiProxy);
+    NRS.isShowClientOptionsLink = function () {
+        // return NRS.isMobileApp() || (NRS.state && NRS.state.apiProxy);
         return false;
     };
 
-    NRS.getGeneratorAccuracyWarning = function() {
+    NRS.getGeneratorAccuracyWarning = function () {
         if (isDesktopApplication) {
             return "";
         }
         return $.t("generator_timing_accuracy_warning");
     };
 
-    NRS.isInitializePlugins = function() {
+    NRS.isInitializePlugins = function () {
         return !NRS.isMobileApp();
     };
 
-    NRS.isShowRemoteWarning = function() {
+    NRS.isShowRemoteWarning = function () {
         return !isLocalHost;
     };
 
-    NRS.isForgingSafe = function() {
+    NRS.isForgingSafe = function () {
         return isLocalHost;
     };
 
-    NRS.isPassphraseAtRisk = function() {
+    NRS.isPassphraseAtRisk = function () {
         return !isLocalHost || NRS.state && NRS.state.apiProxy || NRS.isMobileApp();
     };
 

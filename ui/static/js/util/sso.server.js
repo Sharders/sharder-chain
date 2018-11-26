@@ -6,7 +6,6 @@ var NRS = (function (NRS, $, undefined) {
     };
 
     NRS.sendRequest = function (requestType, data, callback, options) {
-
         if (!options) {
             options = {};
         }
@@ -36,12 +35,12 @@ var NRS = (function (NRS, $, undefined) {
 
         $.each(data, function (key, val) {
             if (key != "secretPhrase") {
-                if (typeof val == "string") {
+                if (typeof val === "string") {
                     data[key] = $.trim(val);
                 }
             }
         });
-        //convert NXT to NQT...
+        // convert NXT to NQT...
         var field = "N/A";
         try {
             var nxtFields = [
@@ -111,12 +110,11 @@ var NRS = (function (NRS, $, undefined) {
             return;
         }
 
-        //Fill phasing parameters when mandatory approval is enabled
-        if (requestType != "approveTransaction"
-            && NRS.accountInfo.accountControls && $.inArray('PHASING_ONLY', NRS.accountInfo.accountControls) > -1
-                && NRS.accountInfo.phasingOnly
-                && NRS.accountInfo.phasingOnly.votingModel >= 0) {
-
+        // Fill phasing parameters when mandatory approval is enabled
+        if (requestType != "approveTransaction" &&
+            NRS.accountInfo.accountControls && $.inArray("PHASING_ONLY", NRS.accountInfo.accountControls) > -1 &&
+                NRS.accountInfo.phasingOnly &&
+                NRS.accountInfo.phasingOnly.votingModel >= 0) {
             var phasingControl = NRS.accountInfo.phasingOnly;
             var maxFees = new BigInteger(phasingControl.maxFees);
             if (maxFees > 0 && new BigInteger(data.feeNQT).compareTo(new BigInteger(phasingControl.maxFees)) > 0) {
@@ -159,7 +157,7 @@ var NRS = (function (NRS, $, undefined) {
             delete data.referencedTransactionFullHash;
         }
 
-        //gets account id from passphrase client side, used only for login.
+        // gets account id from passphrase client side, used only for login.
         var accountId;
         if (requestType == "getAccountId") {
             accountId = NRS.getAccountId(data.secretPhrase);
@@ -175,7 +173,7 @@ var NRS = (function (NRS, $, undefined) {
             });
             return;
         }
-        //check to see if secretPhrase supplied matches logged in account, if not - show error.
+        // check to see if secretPhrase supplied matches logged in account, if not - show error.
         if ("secretPhrase" in data) {
             accountId = NRS.getAccountId(NRS.rememberPassword ? _password : data.secretPhrase);
             if (accountId != NRS.account && !data.calculateFee) {
@@ -184,7 +182,7 @@ var NRS = (function (NRS, $, undefined) {
                     "errorDescription": $.t("error_passphrase_incorrect")
                 });
             } else {
-                //ok, accountId matches..continue with the real request.
+                // ok, accountId matches..continue with the real request.
                 NRS.processAjaxRequest(requestType, data, callback, options);
             }
         } else {
@@ -192,7 +190,7 @@ var NRS = (function (NRS, $, undefined) {
         }
     };
 
-    function isVolatileRequest(doNotSign, type, requestType, secretPhrase) {
+    function isVolatileRequest (doNotSign, type, requestType, secretPhrase) {
         if (secretPhrase && NRS.isMobileApp()) {
             return true;
         }
@@ -208,12 +206,12 @@ var NRS = (function (NRS, $, undefined) {
         var currentPage = null;
         var currentSubPage = null;
 
-        //means it is a page request, not a global request.. Page requests can be aborted.
+        // means it is a page request, not a global request.. Page requests can be aborted.
         if (requestType.slice(-1) == "+") {
             requestType = requestType.slice(0, -1);
             currentPage = NRS.currentPage;
         } else {
-            //not really necessary... we can just use the above code..
+            // not really necessary... we can just use the above code..
             var plusCharacter = requestType.indexOf("+");
 
             if (plusCharacter > 0) {
@@ -236,7 +234,7 @@ var NRS = (function (NRS, $, undefined) {
         url += "?requestType=" + requestType;
 
         if (type == "GET") {
-            if (typeof data == "string") {
+            if (typeof data === "string") {
                 data += "&random=" + Math.random();
             } else {
                 data.random = Math.random();
@@ -357,7 +355,7 @@ var NRS = (function (NRS, $, undefined) {
             contentType: contentType,
             processData: processData
         }).done(function (response) {
-            if (typeof data == "string") {
+            if (typeof data === "string") {
                 data = { "querystring": data };
                 if (extra) {
                     data["_extra"] = extra;
@@ -365,7 +363,7 @@ var NRS = (function (NRS, $, undefined) {
             }
             if (!options.remoteNode && NRS.isConfirmResponse() &&
                 !(response.errorCode || response.errorDescription || response.errorMessage || response.error)) {
-                var requestRemoteNode = NRS.isMobileApp() ? NRS.getRemoteNode() : {address: "localhost", announcedAddress: "localhost"}; //TODO unify getRemoteNode with apiProxyPeer
+                var requestRemoteNode = NRS.isMobileApp() ? NRS.getRemoteNode() : { address: "localhost", announcedAddress: "localhost" }; // TODO unify getRemoteNode with apiProxyPeer
                 NRS.confirmResponse(requestType, data, response, requestRemoteNode);
             }
             if (!options.doNotEscape) {
@@ -544,7 +542,7 @@ var NRS = (function (NRS, $, undefined) {
 
         if (transaction.recipient !== data.recipient) {
             if ((data.recipient == NRS.constants.GENESIS || data.recipient == "") && transaction.recipient == "0") {
-                //ok
+                // ok
             } else {
                 return false;
             }
@@ -563,7 +561,7 @@ var NRS = (function (NRS, $, undefined) {
         }
         var pos;
         if (transaction.version > 0) {
-            //has empty attachment, so no attachmentVersion byte...
+            // has empty attachment, so no attachmentVersion byte...
             if (requestType == "sendMoney" || requestType == "sendMessage") {
                 pos = 176;
             } else {
@@ -577,7 +575,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.verifyTransactionTypes = function (byteArray, transaction, requestType, data, pos, attachment) {
         var length = 0;
-        var i=0;
+        var i = 0;
         var serverHash, sha256, utfBytes, isText, hashWords, calculatedHash;
         switch (requestType) {
             case "sendMoney":
@@ -1270,13 +1268,13 @@ var NRS = (function (NRS, $, undefined) {
                 pos += 2;
                 break;
             default:
-                //invalid requestType..
+                // invalid requestType..
                 return false;
         }
 
         var position = 1;
         var attachmentVersion;
-        //non-encrypted message
+        // non-encrypted message
         if ((transaction.flags & position) != 0 ||
             ((requestType == "sendMessage" && data.message && !(data.messageIsPrunable === "true")))) {
             attachmentVersion = byteArray[pos];
@@ -1310,7 +1308,7 @@ var NRS = (function (NRS, $, undefined) {
 
         position <<= 1;
 
-        //encrypted note
+        // encrypted note
         if ((transaction.flags & position) != 0) {
             attachmentVersion = byteArray[pos];
             if (attachmentVersion < 0 || attachmentVersion > 2) {
@@ -1486,7 +1484,7 @@ var NRS = (function (NRS, $, undefined) {
     };
 
     NRS.broadcastTransactionBytes = function (transactionData, callback, originalResponse, originalData) {
-        var requestType = NRS.state.apiProxy ? "sendTransaction": "broadcastTransaction";
+        var requestType = NRS.state.apiProxy ? "sendTransaction" : "broadcastTransaction";
         $.ajax({
             url: NRS.getRequestPath() + "?requestType=" + requestType,
             crossDomain: true,
@@ -1544,11 +1542,11 @@ var NRS = (function (NRS, $, undefined) {
         });
     };
 
-    NRS.generateQRCode = function(target, qrCodeData, minType) {
-        var type = minType ? minType : 2;
+    NRS.generateQRCode = function (target, qrCodeData, minType) {
+        var type = minType || 2;
         while (type <= 40) {
             try {
-                var qr = qrcode(type, 'M');
+                var qr = qrcode(type, "M");
                 qr.addData(qrCodeData);
                 qr.make();
                 var img = qr.createImgTag();
@@ -1562,8 +1560,8 @@ var NRS = (function (NRS, $, undefined) {
         $(target).empty().html($.t("cannot_encode_message", qrCodeData.length));
     };
 
-    function addAddressData(data) {
-        if (typeof data == "object" && ("recipient" in data)) {
+    function addAddressData (data) {
+        if (typeof data === "object" && ("recipient" in data)) {
             var address = new NxtAddress();
             if (/^SSA\-/i.test(data.recipient)) {
                 data.recipientRS = data.recipient;
@@ -1578,7 +1576,7 @@ var NRS = (function (NRS, $, undefined) {
         }
     }
 
-    function addMissingData(data) {
+    function addMissingData (data) {
         if (!("amountNQT" in data)) {
             data.amountNQT = "0";
         }
@@ -1588,7 +1586,7 @@ var NRS = (function (NRS, $, undefined) {
         }
     }
 
-    function validateCommonPhasingData(byteArray, pos, data, prefix) {
+    function validateCommonPhasingData (byteArray, pos, data, prefix) {
         if (byteArray[pos] != (parseInt(data[prefix + "VotingModel"]) & 0xFF)) {
             return -1;
         }

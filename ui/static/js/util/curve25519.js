@@ -10,9 +10,8 @@
  * Based on work by Daniel J Bernstein, http://cr.yp.to/ecdh.html
  */
 
-var curve25519 = function () {
-
-    //region Constants
+var curve25519 = (function () {
+    // region Constants
 
     var KEY_SIZE = 32;
 
@@ -66,9 +65,9 @@ var curve25519 = function () {
     var P25 = 33554431; /* (1 << 25) - 1 */
     var P26 = 67108863; /* (1 << 26) - 1 */
 
-    //#endregion
+    // #endregion
 
-    //region Key Agreement
+    // region Key Agreement
 
     /* Private key clamping
      *   k [out] your private key for key agreement
@@ -80,13 +79,12 @@ var curve25519 = function () {
         k[ 0] &= 0xF8;
     }
 
-    //endregion
+    // endregion
 
-    //region radix 2^8 math
+    // region radix 2^8 math
 
     function cpy32 (d, s) {
-        for (var i = 0; i < 32; i++)
-            d[i] = s[i];
+        for (var i = 0; i < 32; i++) { d[i] = s[i]; }
     }
 
     /* p[m..n+m-1] = q[m..n+m-1] + z * x */
@@ -119,7 +117,7 @@ var curve25519 = function () {
         var i = 0;
         for (; i < t; i++) {
             var zy = z * (y[i] & 0xFF);
-            w += mula_small(p, p, i, x, n, zy) + (p[i+n] & 0xFF) + zy * (x[n] & 0xFF);
+            w += mula_small(p, p, i, x, n, zy) + (p[i + n] & 0xFF) + zy * (x[n] & 0xFF);
             p[i + n] = w & 0xFF;
             w >>= 8;
         }
@@ -138,13 +136,11 @@ var curve25519 = function () {
 
         var rn = 0;
         var dt = (d[t - 1] & 0xFF) << 8;
-        if (t > 1)
-            dt |= (d[t - 2] & 0xFF);
+        if (t > 1) { dt |= (d[t - 2] & 0xFF); }
 
         while (n-- >= t) {
             var z = (rn << 16) | ((r[n] & 0xFF) << 8);
-            if (n > 0)
-                z |= (r[n - 1] & 0xFF);
+            if (n > 0) { z |= (r[n - 1] & 0xFF); }
 
             var i = n - t + 1;
             z /= dt;
@@ -156,7 +152,7 @@ var curve25519 = function () {
             r[n] = 0;
         }
 
-        r[t-1] = rn & 0xFF;
+        r[t - 1] = rn & 0xFF;
     }
 
     function numsize (x, n) {
@@ -171,40 +167,35 @@ var curve25519 = function () {
      * requires that a[-1] and b[-1] are valid memory locations  */
     function egcd32 (x, y, a, b) {
         var an, bn = 32, qn, i;
-        for (i = 0; i < 32; i++)
-            x[i] = y[i] = 0;
+        for (i = 0; i < 32; i++) { x[i] = y[i] = 0; }
         x[0] = 1;
         an = numsize(a, 32);
-        if (an === 0)
-            return y; /* division by zero */
+        if (an === 0) { return y; } /* division by zero */
         var temp = new Array(32);
         while (true) {
             qn = bn - an + 1;
             divmod(temp, b, bn, a, an);
             bn = numsize(b, bn);
-            if (bn === 0)
-                return x;
+            if (bn === 0) { return x; }
             mula32(y, x, temp, qn, -1);
 
             qn = an - bn + 1;
             divmod(temp, a, an, b, bn);
             an = numsize(a, an);
-            if (an === 0)
-                return y;
+            if (an === 0) { return y; }
             mula32(x, y, temp, qn, -1);
         }
     }
 
-    //endregion
+    // endregion
 
-    //region radix 2^25.5 GF(2^255-19) math
+    // region radix 2^25.5 GF(2^255-19) math
 
-    //region pack / unpack
+    // region pack / unpack
 
     /* Convert to internal format from little-endian byte format */
     function unpack (x, m) {
-        for (var i = 0; i < KEY_SIZE; i += 2)
-            x[i / 2] = m[i] & 0xFF | ((m[i + 1] & 0xFF) << 8);
+        for (var i = 0; i < KEY_SIZE; i += 2) { x[i / 2] = m[i] & 0xFF | ((m[i + 1] & 0xFF) << 8); }
     }
 
     /* Check if reduced-form input >= 2^255-19 */
@@ -228,7 +219,7 @@ var curve25519 = function () {
         }
     }
 
-    //endregion
+    // endregion
 
     function createUnpackedArray () {
         return new Uint16Array(UNPACKED_SIZE);
@@ -236,15 +227,13 @@ var curve25519 = function () {
 
     /* Copy a number */
     function cpy (d, s) {
-        for (var i = 0; i < UNPACKED_SIZE; ++i)
-            d[i] = s[i];
+        for (var i = 0; i < UNPACKED_SIZE; ++i) { d[i] = s[i]; }
     }
 
     /* Set a number to value, which must be in range -185861411 .. 185861411 */
     function set (d, s) {
         d[0] = s;
-        for (var i = 1; i < UNPACKED_SIZE; ++i)
-            d[i] = 0;
+        for (var i = 1; i < UNPACKED_SIZE; ++i) { d[i] = 0; }
     }
 
     /* Add/subtract two numbers.  The inputs must be in reduced form, and the
@@ -361,28 +350,28 @@ var curve25519 = function () {
         mul(x, u, t1); /* x = uv(2uv^2-1)	*/
     }
 
-    //endregion
+    // endregion
 
-    //region JavaScript Fast Math
+    // region JavaScript Fast Math
 
     function c255lsqr8h (a7, a6, a5, a4, a3, a2, a1, a0) {
         var r = [];
         var v;
-        r[0] = (v = a0*a0) & 0xFFFF;
-        r[1] = (v = ((v / 0x10000) | 0) + 2*a0*a1) & 0xFFFF;
-        r[2] = (v = ((v / 0x10000) | 0) + 2*a0*a2 + a1*a1) & 0xFFFF;
-        r[3] = (v = ((v / 0x10000) | 0) + 2*a0*a3 + 2*a1*a2) & 0xFFFF;
-        r[4] = (v = ((v / 0x10000) | 0) + 2*a0*a4 + 2*a1*a3 + a2*a2) & 0xFFFF;
-        r[5] = (v = ((v / 0x10000) | 0) + 2*a0*a5 + 2*a1*a4 + 2*a2*a3) & 0xFFFF;
-        r[6] = (v = ((v / 0x10000) | 0) + 2*a0*a6 + 2*a1*a5 + 2*a2*a4 + a3*a3) & 0xFFFF;
-        r[7] = (v = ((v / 0x10000) | 0) + 2*a0*a7 + 2*a1*a6 + 2*a2*a5 + 2*a3*a4) & 0xFFFF;
-        r[8] = (v = ((v / 0x10000) | 0) + 2*a1*a7 + 2*a2*a6 + 2*a3*a5 + a4*a4) & 0xFFFF;
-        r[9] = (v = ((v / 0x10000) | 0) + 2*a2*a7 + 2*a3*a6 + 2*a4*a5) & 0xFFFF;
-        r[10] = (v = ((v / 0x10000) | 0) + 2*a3*a7 + 2*a4*a6 + a5*a5) & 0xFFFF;
-        r[11] = (v = ((v / 0x10000) | 0) + 2*a4*a7 + 2*a5*a6) & 0xFFFF;
-        r[12] = (v = ((v / 0x10000) | 0) + 2*a5*a7 + a6*a6) & 0xFFFF;
-        r[13] = (v = ((v / 0x10000) | 0) + 2*a6*a7) & 0xFFFF;
-        r[14] = (v = ((v / 0x10000) | 0) + a7*a7) & 0xFFFF;
+        r[0] = (v = a0 * a0) & 0xFFFF;
+        r[1] = (v = ((v / 0x10000) | 0) + 2 * a0 * a1) & 0xFFFF;
+        r[2] = (v = ((v / 0x10000) | 0) + 2 * a0 * a2 + a1 * a1) & 0xFFFF;
+        r[3] = (v = ((v / 0x10000) | 0) + 2 * a0 * a3 + 2 * a1 * a2) & 0xFFFF;
+        r[4] = (v = ((v / 0x10000) | 0) + 2 * a0 * a4 + 2 * a1 * a3 + a2 * a2) & 0xFFFF;
+        r[5] = (v = ((v / 0x10000) | 0) + 2 * a0 * a5 + 2 * a1 * a4 + 2 * a2 * a3) & 0xFFFF;
+        r[6] = (v = ((v / 0x10000) | 0) + 2 * a0 * a6 + 2 * a1 * a5 + 2 * a2 * a4 + a3 * a3) & 0xFFFF;
+        r[7] = (v = ((v / 0x10000) | 0) + 2 * a0 * a7 + 2 * a1 * a6 + 2 * a2 * a5 + 2 * a3 * a4) & 0xFFFF;
+        r[8] = (v = ((v / 0x10000) | 0) + 2 * a1 * a7 + 2 * a2 * a6 + 2 * a3 * a5 + a4 * a4) & 0xFFFF;
+        r[9] = (v = ((v / 0x10000) | 0) + 2 * a2 * a7 + 2 * a3 * a6 + 2 * a4 * a5) & 0xFFFF;
+        r[10] = (v = ((v / 0x10000) | 0) + 2 * a3 * a7 + 2 * a4 * a6 + a5 * a5) & 0xFFFF;
+        r[11] = (v = ((v / 0x10000) | 0) + 2 * a4 * a7 + 2 * a5 * a6) & 0xFFFF;
+        r[12] = (v = ((v / 0x10000) | 0) + 2 * a5 * a7 + a6 * a6) & 0xFFFF;
+        r[13] = (v = ((v / 0x10000) | 0) + 2 * a6 * a7) & 0xFFFF;
+        r[14] = (v = ((v / 0x10000) | 0) + a7 * a7) & 0xFFFF;
         r[15] = ((v / 0x10000) | 0);
         return r;
     }
@@ -393,43 +382,43 @@ var curve25519 = function () {
         var y = c255lsqr8h(a[15] + a[7], a[14] + a[6], a[13] + a[5], a[12] + a[4], a[11] + a[3], a[10] + a[2], a[9] + a[1], a[8] + a[0]);
 
         var v;
-        r[0] = (v = 0x800000 + z[0] + (y[8] -x[8] -z[8] + x[0] -0x80) * 38) & 0xFFFF;
-        r[1] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[1] + (y[9] -x[9] -z[9] + x[1]) * 38) & 0xFFFF;
-        r[2] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[2] + (y[10] -x[10] -z[10] + x[2]) * 38) & 0xFFFF;
-        r[3] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[3] + (y[11] -x[11] -z[11] + x[3]) * 38) & 0xFFFF;
-        r[4] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[4] + (y[12] -x[12] -z[12] + x[4]) * 38) & 0xFFFF;
-        r[5] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[5] + (y[13] -x[13] -z[13] + x[5]) * 38) & 0xFFFF;
-        r[6] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[6] + (y[14] -x[14] -z[14] + x[6]) * 38) & 0xFFFF;
-        r[7] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[7] + (y[15] -x[15] -z[15] + x[7]) * 38) & 0xFFFF;
-        r[8] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[8] + y[0] -x[0] -z[0] + x[8] * 38) & 0xFFFF;
-        r[9] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[9] + y[1] -x[1] -z[1] + x[9] * 38) & 0xFFFF;
-        r[10] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[10] + y[2] -x[2] -z[2] + x[10] * 38) & 0xFFFF;
-        r[11] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[11] + y[3] -x[3] -z[3] + x[11] * 38) & 0xFFFF;
-        r[12] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[12] + y[4] -x[4] -z[4] + x[12] * 38) & 0xFFFF;
-        r[13] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[13] + y[5] -x[5] -z[5] + x[13] * 38) & 0xFFFF;
-        r[14] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[14] + y[6] -x[6] -z[6] + x[14] * 38) & 0xFFFF;
-        var r15 = 0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] -x[7] -z[7] + x[15] * 38;
+        r[0] = (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xFFFF;
+        r[1] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) & 0xFFFF;
+        r[2] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) & 0xFFFF;
+        r[3] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) & 0xFFFF;
+        r[4] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) & 0xFFFF;
+        r[5] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) & 0xFFFF;
+        r[6] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) & 0xFFFF;
+        r[7] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) & 0xFFFF;
+        r[8] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) & 0xFFFF;
+        r[9] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) & 0xFFFF;
+        r[10] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) & 0xFFFF;
+        r[11] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) & 0xFFFF;
+        r[12] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) & 0xFFFF;
+        r[13] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) & 0xFFFF;
+        r[14] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) & 0xFFFF;
+        var r15 = 0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] - x[7] - z[7] + x[15] * 38;
         c255lreduce(r, r15);
     }
 
     function c255lmul8h (a7, a6, a5, a4, a3, a2, a1, a0, b7, b6, b5, b4, b3, b2, b1, b0) {
         var r = [];
         var v;
-        r[0] = (v = a0*b0) & 0xFFFF;
-        r[1] = (v = ((v / 0x10000) | 0) + a0*b1 + a1*b0) & 0xFFFF;
-        r[2] = (v = ((v / 0x10000) | 0) + a0*b2 + a1*b1 + a2*b0) & 0xFFFF;
-        r[3] = (v = ((v / 0x10000) | 0) + a0*b3 + a1*b2 + a2*b1 + a3*b0) & 0xFFFF;
-        r[4] = (v = ((v / 0x10000) | 0) + a0*b4 + a1*b3 + a2*b2 + a3*b1 + a4*b0) & 0xFFFF;
-        r[5] = (v = ((v / 0x10000) | 0) + a0*b5 + a1*b4 + a2*b3 + a3*b2 + a4*b1 + a5*b0) & 0xFFFF;
-        r[6] = (v = ((v / 0x10000) | 0) + a0*b6 + a1*b5 + a2*b4 + a3*b3 + a4*b2 + a5*b1 + a6*b0) & 0xFFFF;
-        r[7] = (v = ((v / 0x10000) | 0) + a0*b7 + a1*b6 + a2*b5 + a3*b4 + a4*b3 + a5*b2 + a6*b1 + a7*b0) & 0xFFFF;
-        r[8] = (v = ((v / 0x10000) | 0) + a1*b7 + a2*b6 + a3*b5 + a4*b4 + a5*b3 + a6*b2 + a7*b1) & 0xFFFF;
-        r[9] = (v = ((v / 0x10000) | 0) + a2*b7 + a3*b6 + a4*b5 + a5*b4 + a6*b3 + a7*b2) & 0xFFFF;
-        r[10] = (v = ((v / 0x10000) | 0) + a3*b7 + a4*b6 + a5*b5 + a6*b4 + a7*b3) & 0xFFFF;
-        r[11] = (v = ((v / 0x10000) | 0) + a4*b7 + a5*b6 + a6*b5 + a7*b4) & 0xFFFF;
-        r[12] = (v = ((v / 0x10000) | 0) + a5*b7 + a6*b6 + a7*b5) & 0xFFFF;
-        r[13] = (v = ((v / 0x10000) | 0) + a6*b7 + a7*b6) & 0xFFFF;
-        r[14] = (v = ((v / 0x10000) | 0) + a7*b7) & 0xFFFF;
+        r[0] = (v = a0 * b0) & 0xFFFF;
+        r[1] = (v = ((v / 0x10000) | 0) + a0 * b1 + a1 * b0) & 0xFFFF;
+        r[2] = (v = ((v / 0x10000) | 0) + a0 * b2 + a1 * b1 + a2 * b0) & 0xFFFF;
+        r[3] = (v = ((v / 0x10000) | 0) + a0 * b3 + a1 * b2 + a2 * b1 + a3 * b0) & 0xFFFF;
+        r[4] = (v = ((v / 0x10000) | 0) + a0 * b4 + a1 * b3 + a2 * b2 + a3 * b1 + a4 * b0) & 0xFFFF;
+        r[5] = (v = ((v / 0x10000) | 0) + a0 * b5 + a1 * b4 + a2 * b3 + a3 * b2 + a4 * b1 + a5 * b0) & 0xFFFF;
+        r[6] = (v = ((v / 0x10000) | 0) + a0 * b6 + a1 * b5 + a2 * b4 + a3 * b3 + a4 * b2 + a5 * b1 + a6 * b0) & 0xFFFF;
+        r[7] = (v = ((v / 0x10000) | 0) + a0 * b7 + a1 * b6 + a2 * b5 + a3 * b4 + a4 * b3 + a5 * b2 + a6 * b1 + a7 * b0) & 0xFFFF;
+        r[8] = (v = ((v / 0x10000) | 0) + a1 * b7 + a2 * b6 + a3 * b5 + a4 * b4 + a5 * b3 + a6 * b2 + a7 * b1) & 0xFFFF;
+        r[9] = (v = ((v / 0x10000) | 0) + a2 * b7 + a3 * b6 + a4 * b5 + a5 * b4 + a6 * b3 + a7 * b2) & 0xFFFF;
+        r[10] = (v = ((v / 0x10000) | 0) + a3 * b7 + a4 * b6 + a5 * b5 + a6 * b4 + a7 * b3) & 0xFFFF;
+        r[11] = (v = ((v / 0x10000) | 0) + a4 * b7 + a5 * b6 + a6 * b5 + a7 * b4) & 0xFFFF;
+        r[12] = (v = ((v / 0x10000) | 0) + a5 * b7 + a6 * b6 + a7 * b5) & 0xFFFF;
+        r[13] = (v = ((v / 0x10000) | 0) + a6 * b7 + a7 * b6) & 0xFFFF;
+        r[14] = (v = ((v / 0x10000) | 0) + a7 * b7) & 0xFFFF;
         r[15] = ((v / 0x10000) | 0);
         return r;
     }
@@ -442,22 +431,22 @@ var curve25519 = function () {
             b[15] + b[7], b[14] + b[6], b[13] + b[5], b[12] + b[4], b[11] + b[3], b[10] + b[2], b[9] + b[1], b[8] + b[0]);
 
         var v;
-        r[0] = (v = 0x800000 + z[0] + (y[8] -x[8] -z[8] + x[0] -0x80) * 38) & 0xFFFF;
-        r[1] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[1] + (y[9] -x[9] -z[9] + x[1]) * 38) & 0xFFFF;
-        r[2] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[2] + (y[10] -x[10] -z[10] + x[2]) * 38) & 0xFFFF;
-        r[3] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[3] + (y[11] -x[11] -z[11] + x[3]) * 38) & 0xFFFF;
-        r[4] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[4] + (y[12] -x[12] -z[12] + x[4]) * 38) & 0xFFFF;
-        r[5] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[5] + (y[13] -x[13] -z[13] + x[5]) * 38) & 0xFFFF;
-        r[6] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[6] + (y[14] -x[14] -z[14] + x[6]) * 38) & 0xFFFF;
-        r[7] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[7] + (y[15] -x[15] -z[15] + x[7]) * 38) & 0xFFFF;
-        r[8] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[8] + y[0] -x[0] -z[0] + x[8] * 38) & 0xFFFF;
-        r[9] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[9] + y[1] -x[1] -z[1] + x[9] * 38) & 0xFFFF;
-        r[10] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[10] + y[2] -x[2] -z[2] + x[10] * 38) & 0xFFFF;
-        r[11] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[11] + y[3] -x[3] -z[3] + x[11] * 38) & 0xFFFF;
-        r[12] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[12] + y[4] -x[4] -z[4] + x[12] * 38) & 0xFFFF;
-        r[13] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[13] + y[5] -x[5] -z[5] + x[13] * 38) & 0xFFFF;
-        r[14] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[14] + y[6] -x[6] -z[6] + x[14] * 38) & 0xFFFF;
-        var r15 = 0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] -x[7] -z[7] + x[15] * 38;
+        r[0] = (v = 0x800000 + z[0] + (y[8] - x[8] - z[8] + x[0] - 0x80) * 38) & 0xFFFF;
+        r[1] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[1] + (y[9] - x[9] - z[9] + x[1]) * 38) & 0xFFFF;
+        r[2] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[2] + (y[10] - x[10] - z[10] + x[2]) * 38) & 0xFFFF;
+        r[3] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[3] + (y[11] - x[11] - z[11] + x[3]) * 38) & 0xFFFF;
+        r[4] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[4] + (y[12] - x[12] - z[12] + x[4]) * 38) & 0xFFFF;
+        r[5] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[5] + (y[13] - x[13] - z[13] + x[5]) * 38) & 0xFFFF;
+        r[6] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[6] + (y[14] - x[14] - z[14] + x[6]) * 38) & 0xFFFF;
+        r[7] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[7] + (y[15] - x[15] - z[15] + x[7]) * 38) & 0xFFFF;
+        r[8] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[8] + y[0] - x[0] - z[0] + x[8] * 38) & 0xFFFF;
+        r[9] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[9] + y[1] - x[1] - z[1] + x[9] * 38) & 0xFFFF;
+        r[10] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[10] + y[2] - x[2] - z[2] + x[10] * 38) & 0xFFFF;
+        r[11] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[11] + y[3] - x[3] - z[3] + x[11] * 38) & 0xFFFF;
+        r[12] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[12] + y[4] - x[4] - z[4] + x[12] * 38) & 0xFFFF;
+        r[13] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[13] + y[5] - x[5] - z[5] + x[13] * 38) & 0xFFFF;
+        r[14] = (v = 0x7fff80 + ((v / 0x10000) | 0) + z[14] + y[6] - x[6] - z[6] + x[14] * 38) & 0xFFFF;
+        var r15 = 0x7fff80 + ((v / 0x10000) | 0) + z[15] + y[7] - x[7] - z[7] + x[15] * 38;
         c255lreduce(r, r15);
     }
 
@@ -476,8 +465,7 @@ var curve25519 = function () {
     function c255laddmodp (r, a, b) {
         var v;
         r[0] = (v = (((a[15] / 0x8000) | 0) + ((b[15] / 0x8000) | 0)) * 19 + a[0] + b[0]) & 0xFFFF;
-        for (var i = 1; i <= 14; ++i)
-            r[i] = (v = ((v / 0x10000) | 0) + a[i] + b[i]) & 0xFFFF;
+        for (var i = 1; i <= 14; ++i) { r[i] = (v = ((v / 0x10000) | 0) + a[i] + b[i]) & 0xFFFF; }
 
         r[15] = ((v / 0x10000) | 0) + (a[15] & 0x7FFF) + (b[15] & 0x7FFF);
     }
@@ -485,8 +473,7 @@ var curve25519 = function () {
     function c255lsubmodp (r, a, b) {
         var v;
         r[0] = (v = 0x80000 + (((a[15] / 0x8000) | 0) - ((b[15] / 0x8000) | 0) - 1) * 19 + a[0] - b[0]) & 0xFFFF;
-        for (var i = 1; i <= 14; ++i)
-            r[i] = (v = ((v / 0x10000) | 0) + 0x7fff8 + a[i] - b[i]) & 0xFFFF;
+        for (var i = 1; i <= 14; ++i) { r[i] = (v = ((v / 0x10000) | 0) + 0x7fff8 + a[i] - b[i]) & 0xFFFF; }
 
         r[15] = ((v / 0x10000) | 0) + 0x7ff8 + (a[15] & 0x7FFF) - (b[15] & 0x7FFF);
     }
@@ -494,16 +481,15 @@ var curve25519 = function () {
     function c255lmulasmall (r, a, m) {
         var v;
         r[0] = (v = a[0] * m) & 0xFFFF;
-        for (var i = 1; i <= 14; ++i)
-            r[i] = (v = ((v / 0x10000) | 0) + a[i]*m) & 0xFFFF;
+        for (var i = 1; i <= 14; ++i) { r[i] = (v = ((v / 0x10000) | 0) + a[i] * m) & 0xFFFF; }
 
-        var r15 = ((v / 0x10000) | 0) + a[15]*m;
+        var r15 = ((v / 0x10000) | 0) + a[15] * m;
         c255lreduce(r, r15);
     }
 
-    //endregion
+    // endregion
 
-    /********************* Elliptic curve *********************/
+    /** ******************* Elliptic curve *********************/
 
     /* y^2 = x^3 + 486662 x^2 + x  over GF(2^255-19) */
 
@@ -566,10 +552,7 @@ var curve25519 = function () {
         var i, j;
 
         /* unpack the base */
-        if (Gx !== null)
-            unpack(dx, Gx);
-        else
-            set(dx, 9);
+        if (Gx !== null) { unpack(dx, Gx); } else { set(dx, 9); }
 
         /* 0G = point-at-infinity */
         set(x[0], 1);
@@ -618,13 +601,12 @@ var curve25519 = function () {
             mul(t1, dx, BASE_R2Y); /* t1 = -Py  */
 
             if (is_negative(t1) !== 0)    /* sign is 1, so just copy  */
-                cpy32(s, k);
-            else            /* sign is -1, so negate  */
-                mula_small(s, ORDER_TIMES_8, 0, k, 32, -1);
+                { cpy32(s, k); } else            /* sign is -1, so negate  */
+                { mula_small(s, ORDER_TIMES_8, 0, k, 32, -1); }
 
             /* reduce s mod q
              * (is this needed?  do it just in case, it's fast anyway) */
-            //divmod((dstptr) t1, s, 32, order25519, 32);
+            // divmod((dstptr) t1, s, 32, order25519, 32);
 
             /* take reciprocal of s mod q */
             var temp1 = new Array(32);
@@ -632,13 +614,11 @@ var curve25519 = function () {
             var temp3 = new Array(64);
             cpy32(temp1, ORDER);
             cpy32(s, egcd32(temp2, temp3, s, temp1));
-            if ((s[31] & 0x80) !== 0)
-                mula_small(s, s, 0, ORDER, 32, 1);
-
+            if ((s[31] & 0x80) !== 0) { mula_small(s, s, 0, ORDER, 32, 1); }
         }
     }
 
-    /********* DIGITAL SIGNATURES *********/
+    /** ******* DIGITAL SIGNATURES *********/
 
     /* deterministic EC-KCDSA
      *
@@ -685,7 +665,7 @@ var curve25519 = function () {
     function sign (h, x, s) {
         // v = (x - h) s  mod q
         var w, i;
-        var h1 = new Array(32)
+        var h1 = new Array(32);
         var x1 = new Array(32);
         var tmp1 = new Array(64);
         var tmp2 = new Array(64);
@@ -705,14 +685,13 @@ var curve25519 = function () {
         // when adding the order because v < ORDER and 2*ORDER < 2^256
         var v = new Array(32);
         mula_small(v, x1, 0, h1, 32, -1);
-        mula_small(v, v , 0, ORDER, 32, 1);
+        mula_small(v, v, 0, ORDER, 32, 1);
 
         // tmp1 = (x-h)*s mod q
         mula32(tmp1, v, s, 32, 1);
         divmod(tmp2, tmp1, 64, ORDER, 32);
 
-        for (w = 0, i = 0; i < 32; i++)
-            w |= v[i] = tmp1[i];
+        for (w = 0, i = 0; i < 32; i++) { w |= v[i] = tmp1[i]; }
 
         return w !== 0 ? v : undefined;
     }
@@ -811,8 +790,8 @@ var curve25519 = function () {
                 mont_prep(t1[1], t2[1], yx[1], yz[1]);
                 mont_prep(t1[2], t2[2], yx[2], yz[2]);
 
-                k = ((vi ^ vi >> 1) >> j & 1)
-                    + ((hi ^ hi >> 1) >> j & 1);
+                k = ((vi ^ vi >> 1) >> j & 1) +
+                    ((hi ^ hi >> 1) >> j & 1);
                 mont_dbl(yx[2], yz[2], t1[k], t2[k], yx[0], yz[0]);
 
                 k = (di >> j & 2) ^ ((di >> j & 1) << 1);
@@ -856,7 +835,7 @@ var curve25519 = function () {
         verify: verify,
         keygen: keygen
     };
-}();
+}());
 
 // if (isNode) {
 //     module.exports = curve25519;

@@ -1,4 +1,4 @@
-function Nxtaddress() {
+function Nxtaddress () {
 	var codeword = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	var syndrome = [0, 0, 0, 0, 0];
 
@@ -7,24 +7,24 @@ function Nxtaddress() {
 
 	var cwmap = [3, 2, 1, 0, 7, 6, 5, 4, 13, 14, 15, 16, 12, 8, 9, 10, 11];
 
-	var alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-	//var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ345679';
+	var alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+	// var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ345679';
 
 	this.guess = [];
 
-	function ginv(a) {
+	function ginv (a) {
 		return gexp[31 - glog[a]];
 	}
 
-	function gmult(a, b) {
+	function gmult (a, b) {
 		if (a == 0 || b == 0) return 0;
 
 		var idx = (glog[a] + glog[b]) % 31;
 
 		return gexp[idx];
-	} //__________________________
+	} // __________________________
 
-	function calc_discrepancy(lambda, r) {
+	function calc_discrepancy (lambda, r) {
 		var discr = 0;
 
 		for (var i = 0; i < r; i++) {
@@ -32,9 +32,9 @@ function Nxtaddress() {
 		}
 
 		return discr;
-	} //__________________________
+	} // __________________________
 
-	function find_errors(lambda) {
+	function find_errors (lambda) {
 		var errloc = [];
 
 		for (var i = 1; i <= 31; i++) {
@@ -53,9 +53,9 @@ function Nxtaddress() {
 		}
 
 		return errloc;
-	} //__________________________
+	} // __________________________
 
-	function guess_errors() {
+	function guess_errors () {
 		var el = 0,
 			b = [0, 0, 0, 0, 0],
 			t = [];
@@ -140,9 +140,9 @@ function Nxtaddress() {
 		}
 
 		return true;
-	} //__________________________
+	} // __________________________
 
-	function encode() {
+	function encode () {
 		var p = [0, 0, 0, 0];
 
 		for (var i = 12; i >= 0; i--) {
@@ -158,22 +158,22 @@ function Nxtaddress() {
 		codeword[14] = p[1];
 		codeword[15] = p[2];
 		codeword[16] = p[3];
-	} //__________________________
+	} // __________________________
 
-	function reset() {
+	function reset () {
 		for (var i = 0; i < 17; i++) codeword[i] = 1;
-	} //__________________________
+	} // __________________________
 
-	function set_codeword(cw, len, skip) {
-		if (typeof len === 'undefined') len = 17;
-		if (typeof skip === 'undefined') skip = -1;
+	function set_codeword (cw, len, skip) {
+		if (typeof len === "undefined") len = 17;
+		if (typeof skip === "undefined") skip = -1;
 
 		for (var i = 0, j = 0; i < len; i++) {
 			if (i != skip) codeword[cwmap[j++]] = cw[i];
 		}
-	} //__________________________
+	} // __________________________
 
-	this.add_guess = function() {
+	this.add_guess = function () {
 		var s = this.toString(),
 			len = this.guess.length;
 
@@ -184,9 +184,9 @@ function Nxtaddress() {
 		}
 
 		this.guess[len] = s;
-	} //__________________________
+	}; // __________________________
 
-	this.ok = function() {
+	this.ok = function () {
 		var sum = 0;
 
 		for (var i = 1; i < 5; i++) {
@@ -204,18 +204,18 @@ function Nxtaddress() {
 		}
 
 		return (sum == 0);
-	} //__________________________
+	}; // __________________________
 
-	function from_acc(acc) {
+	function from_acc (acc) {
 		var inp = [],
 			out = [],
 			pos = 0,
 			len = acc.length;
 
-		if (len == 20 && acc.charAt(0) != '1') return false;
+		if (len == 20 && acc.charAt(0) != "1") return false;
 
 		for (var i = 0; i < len; i++) {
-			inp[i] = acc.charCodeAt(i) - '0'.charCodeAt(0);
+			inp[i] = acc.charCodeAt(i) - "0".charCodeAt(0);
 		}
 
 		do // base 10 to base 32 conversion
@@ -247,22 +247,22 @@ function Nxtaddress() {
 		encode();
 
 		return true;
-	} //__________________________
+	} // __________________________
 
-	this.toString = function() {
-		var out = 'SSA-';
+	this.toString = function () {
+		var out = "SSA-";
 
 		for (var i = 0; i < 17; i++) {
 			out += alphabet[codeword[cwmap[i]]];
 
-			if ((i & 3) == 3 && i < 13) out += '-';
+			if ((i & 3) == 3 && i < 13) out += "-";
 		}
 
 		return out;
-	} //__________________________
+	}; // __________________________
 
-	this.account_id = function() {
-		var out = '',
+	this.account_id = function () {
+		var out = "",
 			inp = [],
 			len = 13;
 
@@ -287,15 +287,15 @@ function Nxtaddress() {
 			}
 
 			len = newlen;
-			out += String.fromCharCode(divide + '0'.charCodeAt(0));
+			out += String.fromCharCode(divide + "0".charCodeAt(0));
 		}
 		while (newlen);
 
 		return out.split("").reverse().join("");
-	} //__________________________
+	}; // __________________________
 
-	this.set = function(adr, allow_accounts) {
-		if (typeof allow_accounts === 'undefined') allow_accounts = true;
+	this.set = function (adr, allow_accounts) {
+		if (typeof allow_accounts === "undefined") allow_accounts = true;
 
 		var len = 0;
 		this.guess = [];
@@ -303,9 +303,9 @@ function Nxtaddress() {
 
 		adr = String(adr);
 
-		adr = adr.replace(/(^\s+)|(\s+$)/g, '').toUpperCase();
+		adr = adr.replace(/(^\s+)|(\s+$)/g, "").toUpperCase();
 
-		if (adr.indexOf('SSA-') == 0) adr = adr.substr(4);
+		if (adr.indexOf("SSA-") == 0) adr = adr.substr(4);
 
 		if (adr.match(/^\d{1,20}$/g)) // account id
 		{
@@ -363,10 +363,10 @@ function Nxtaddress() {
 		reset();
 
 		return false;
-	}
+	};
 
-	this.format_guess = function(s, org) {
-		var d = '',
+	this.format_guess = function (s, org) {
+		var d = "",
 			list = [];
 
 		s = s.toUpperCase();
@@ -385,8 +385,8 @@ function Nxtaddress() {
 
 			if (m) {
 				list[list.length] = {
-					's': i,
-					'e': i + m
+					"s": i,
+					"e": i + m
 				};
 				i += m;
 			} else i++;
@@ -408,12 +408,12 @@ function Nxtaddress() {
 			if (i >= list[j].s && i < list[j].e) {
 				d += s.charAt(i);
 			} else {
-				d += '<b style="color:red">' + s.charAt(i) + '</b>';
+				d += "<b style=\"color:red\">" + s.charAt(i) + "</b>";
 			}
 		}
 
 		return d;
-	}
+	};
 }
 
 // if (isNode) {

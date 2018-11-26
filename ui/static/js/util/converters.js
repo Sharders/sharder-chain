@@ -1,4 +1,4 @@
-var converters = function() {
+var converters = (function () {
 	var charToNibble = {};
 	var nibbleToChar = [];
 	var i;
@@ -9,8 +9,8 @@ var converters = function() {
 	}
 
 	for (i = 10; i <= 15; ++i) {
-		var lowerChar = String.fromCharCode('a'.charCodeAt(0) + i - 10);
-		var upperChar = String.fromCharCode('A'.charCodeAt(0) + i - 10);
+		var lowerChar = String.fromCharCode("a".charCodeAt(0) + i - 10);
+		var upperChar = String.fromCharCode("A".charCodeAt(0) + i - 10);
 
 		charToNibble[lowerChar] = i;
 		charToNibble[upperChar] = i;
@@ -18,8 +18,8 @@ var converters = function() {
 	}
 
 	return {
-		byteArrayToHexString: function(bytes) {
-			var str = '';
+		byteArrayToHexString: function (bytes) {
+			var str = "";
 			for (var i = 0; i < bytes.length; ++i) {
 				if (bytes[i] < 0) {
 					bytes[i] += 256;
@@ -29,52 +29,50 @@ var converters = function() {
 
 			return str;
 		},
-		stringToByteArray: function(str) {
-			str = unescape(encodeURIComponent(str)); //temporary
+		stringToByteArray: function (str) {
+			str = unescape(encodeURIComponent(str)); // temporary
 
 			var bytes = new Array(str.length);
-			for (var i = 0; i < str.length; ++i)
-				bytes[i] = str.charCodeAt(i);
+			for (var i = 0; i < str.length; ++i)				{ bytes[i] = str.charCodeAt(i); }
 
 			return bytes;
 		},
-		hexStringToByteArray: function(str) {
+		hexStringToByteArray: function (str) {
 			var bytes = [];
 			var i = 0;
-			if (0 !== str.length % 2) {
+			if (str.length % 2 !== 0) {
 				bytes.push(charToNibble[str.charAt(0)]);
 				++i;
 			}
 
-			for (; i < str.length - 1; i += 2)
-				bytes.push((charToNibble[str.charAt(i)] << 4) + charToNibble[str.charAt(i + 1)]);
+			for (; i < str.length - 1; i += 2)				{ bytes.push((charToNibble[str.charAt(i)] << 4) + charToNibble[str.charAt(i + 1)]); }
 
 			return bytes;
 		},
-		stringToHexString: function(str) {
+		stringToHexString: function (str) {
 			return this.byteArrayToHexString(this.stringToByteArray(str));
 		},
-		hexStringToString: function(hex) {
+		hexStringToString: function (hex) {
 			return this.byteArrayToString(this.hexStringToByteArray(hex));
 		},
-		checkBytesToIntInput: function(bytes, numBytes, opt_startIndex) {
+		checkBytesToIntInput: function (bytes, numBytes, opt_startIndex) {
 			var startIndex = opt_startIndex || 0;
 			if (startIndex < 0) {
-				throw new Error('Start index should not be negative');
+				throw new Error("Start index should not be negative");
 			}
 
 			if (bytes.length < startIndex + numBytes) {
-				throw new Error('Need at least ' + (numBytes) + ' bytes to convert to an integer');
+				throw new Error("Need at least " + (numBytes) + " bytes to convert to an integer");
 			}
 			return startIndex;
 		},
-		byteArrayToSignedShort: function(bytes, opt_startIndex) {
+		byteArrayToSignedShort: function (bytes, opt_startIndex) {
 			var index = this.checkBytesToIntInput(bytes, 2, opt_startIndex);
 			var value = bytes[index];
 			value += bytes[index + 1] << 8;
 			return value;
 		},
-		byteArrayToSignedInt32: function(bytes, opt_startIndex) {
+		byteArrayToSignedInt32: function (bytes, opt_startIndex) {
 			var index = this.checkBytesToIntInput(bytes, 4, opt_startIndex);
 			value = bytes[index];
 			value += bytes[index + 1] << 8;
@@ -82,7 +80,7 @@ var converters = function() {
 			value += bytes[index + 3] << 24;
 			return value;
 		},
-		byteArrayToBigInteger: function(bytes, opt_startIndex) {
+		byteArrayToBigInteger: function (bytes, opt_startIndex) {
 			var index = this.checkBytesToIntInput(bytes, 8, opt_startIndex);
 
 			var value = new BigInteger("0", 10);
@@ -98,7 +96,7 @@ var converters = function() {
 			return value;
 		},
 		// create a wordArray that is Big-Endian
-		byteArrayToWordArray: function(byteArray) {
+		byteArrayToWordArray: function (byteArray) {
 			var i = 0,
 				offset = 0,
 				word = 0,
@@ -125,10 +123,10 @@ var converters = function() {
 			return wordArray;
 		},
 		// assumes wordArray is Big-Endian
-		wordArrayToByteArray: function(wordArray) {
+		wordArrayToByteArray: function (wordArray) {
 			return converters.wordArrayToByteArrayImpl(wordArray, true);
 		},
-		wordArrayToByteArrayImpl: function(wordArray, isFirstByteHasSign) {
+		wordArrayToByteArrayImpl: function (wordArray, isFirstByteHasSign) {
 			var len = wordArray.words.length;
 			if (len == 0) {
 				return new Array(0);
@@ -158,7 +156,7 @@ var converters = function() {
 			}
 			return byteArray;
 		},
-		byteArrayToString: function(bytes, opt_startIndex, length) {
+		byteArrayToString: function (bytes, opt_startIndex, length) {
 			if (length == 0) {
 				return "";
 			}
@@ -171,7 +169,7 @@ var converters = function() {
 
 			return decodeURIComponent(escape(String.fromCharCode.apply(null, bytes)));
 		},
-		byteArrayToShortArray: function(byteArray) {
+		byteArrayToShortArray: function (byteArray) {
 			var shortArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 			var i;
 			for (i = 0; i < 16; i++) {
@@ -179,7 +177,7 @@ var converters = function() {
 			}
 			return shortArray;
 		},
-		shortArrayToByteArray: function(shortArray) {
+		shortArrayToByteArray: function (shortArray) {
 			var byteArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 			var i;
 			for (i = 0; i < 16; i++) {
@@ -189,7 +187,7 @@ var converters = function() {
 
 			return byteArray;
 		},
-		shortArrayToHexString: function(ary) {
+		shortArrayToHexString: function (ary) {
 			var res = "";
 			for (var i = 0; i < ary.length; i++) {
 				res += nibbleToChar[(ary[i] >> 4) & 0x0f] + nibbleToChar[ary[i] & 0x0f] + nibbleToChar[(ary[i] >> 12) & 0x0f] + nibbleToChar[(ary[i] >> 8) & 0x0f];
@@ -202,19 +200,19 @@ var converters = function() {
 		 * as well as unsigned integers. Due to limitations in JavaScript's number
 		 * format, x cannot be a true 64 bit integer (8 bytes).
 		 */
-		intToBytes_: function(x, numBytes, unsignedMax, opt_bigEndian) {
+		intToBytes_: function (x, numBytes, unsignedMax, opt_bigEndian) {
 			var signedMax = Math.floor(unsignedMax / 2);
 			var negativeMax = (signedMax + 1) * -1;
 			if (x != Math.floor(x) || x < negativeMax || x > unsignedMax) {
 				throw new Error(
-					x + ' is not a ' + (numBytes * 8) + ' bit integer');
+					x + " is not a " + (numBytes * 8) + " bit integer");
 			}
 			var bytes = [];
 			var current;
 			// Number type 0 is in the positive int range, 1 is larger than signed int,
 			// and 2 is negative int.
-			var numberType = x >= 0 && x <= signedMax ? 0 :
-				x > signedMax && x <= unsignedMax ? 1 : 2;
+			var numberType = x >= 0 && x <= signedMax ? 0
+				: x > signedMax && x <= unsignedMax ? 1 : 2;
 			if (numberType == 2) {
 				x = (x * -1) - 1;
 			}
@@ -238,9 +236,8 @@ var converters = function() {
 				}
 			}
 			return bytes;
-
 		},
-		int32ToBytes: function(x, opt_bigEndian) {
+		int32ToBytes: function (x, opt_bigEndian) {
 			return converters.intToBytes_(x, 4, 4294967295, opt_bigEndian);
 		},
         /**
@@ -258,7 +255,7 @@ var converters = function() {
             var u8 = new Uint8Array(sigBytes);
             for (var i = 0; i < sigBytes; i++) {
                 var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-                u8[i]=byte;
+                u8[i] = byte;
             }
 
             return u8;
@@ -294,7 +291,7 @@ var converters = function() {
             }
         }
     };
-}();
+}());
 
 // if (isNode) {
 //     module.exports = converters;

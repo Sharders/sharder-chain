@@ -19,60 +19,60 @@
  */
 var NRS = (function (NRS, $) {
     NRS.constants = {
-        'DB_VERSION': 2,
+        "DB_VERSION": 2,
 
-        'PLUGIN_VERSION': 1,
-        'MAX_SHORT_JAVA': 32767,
-        'MAX_UNSIGNED_SHORT_JAVA': 65535,
-        'MAX_INT_JAVA': 2147483647,
-        'MIN_PRUNABLE_MESSAGE_LENGTH': 28,
-        'DISABLED_API_ERROR_CODE': 16,
+        "PLUGIN_VERSION": 1,
+        "MAX_SHORT_JAVA": 32767,
+        "MAX_UNSIGNED_SHORT_JAVA": 65535,
+        "MAX_INT_JAVA": 2147483647,
+        "MIN_PRUNABLE_MESSAGE_LENGTH": 28,
+        "DISABLED_API_ERROR_CODE": 16,
 
-        //Plugin launch status numbers
-        'PL_RUNNING': 1,
-        'PL_PAUSED': 2,
-        'PL_DEACTIVATED': 3,
-        'PL_HALTED': 4,
+        // Plugin launch status numbers
+        "PL_RUNNING": 1,
+        "PL_PAUSED": 2,
+        "PL_DEACTIVATED": 3,
+        "PL_HALTED": 4,
 
-        //Plugin validity status codes
-        'PV_VALID': 100,
-        'PV_NOT_VALID': 300,
-        'PV_UNKNOWN_MANIFEST_VERSION': 301,
-        'PV_INCOMPATIBLE_MANIFEST_VERSION': 302,
-        'PV_INVALID_MANIFEST_FILE': 303,
-        'PV_INVALID_MISSING_FILES': 304,
-        'PV_INVALID_JAVASCRIPT_FILE': 305,
+        // Plugin validity status codes
+        "PV_VALID": 100,
+        "PV_NOT_VALID": 300,
+        "PV_UNKNOWN_MANIFEST_VERSION": 301,
+        "PV_INCOMPATIBLE_MANIFEST_VERSION": 302,
+        "PV_INVALID_MANIFEST_FILE": 303,
+        "PV_INVALID_MISSING_FILES": 304,
+        "PV_INVALID_JAVASCRIPT_FILE": 305,
 
-        //Plugin NRS compatibility status codes
-        'PNC_COMPATIBLE': 100,
-        'PNC_COMPATIBILITY_MINOR_RELEASE_DIFF': 101,
-        'PNC_COMPATIBILITY_WARNING': 200,
-        'PNC_COMPATIBILITY_MAJOR_RELEASE_DIFF': 202,
-        'PNC_NOT_COMPATIBLE': 300,
-        'PNC_COMPATIBILITY_UNKNOWN': 301,
-        'PNC_COMPATIBILITY_CLIENT_VERSION_TOO_OLD': 302,
+        // Plugin NRS compatibility status codes
+        "PNC_COMPATIBLE": 100,
+        "PNC_COMPATIBILITY_MINOR_RELEASE_DIFF": 101,
+        "PNC_COMPATIBILITY_WARNING": 200,
+        "PNC_COMPATIBILITY_MAJOR_RELEASE_DIFF": 202,
+        "PNC_NOT_COMPATIBLE": 300,
+        "PNC_COMPATIBILITY_UNKNOWN": 301,
+        "PNC_COMPATIBILITY_CLIENT_VERSION_TOO_OLD": 302,
 
-        'VOTING_MODELS': {},
-        'MIN_BALANCE_MODELS': {},
+        "VOTING_MODELS": {},
+        "MIN_BALANCE_MODELS": {},
         "HASH_ALGORITHMS": {},
         "PHASING_HASH_ALGORITHMS": {},
         "MINTING_HASH_ALGORITHMS": {},
         "REQUEST_TYPES": {},
         "API_TAGS": {},
 
-        'SERVER': {},
-        'MAX_TAGGED_DATA_DATA_LENGTH': 0,
-        'MAX_PRUNABLE_MESSAGE_LENGTH': 0,
-        'GENESIS': '',
-        'GENESIS_RS': '',
-        'EPOCH_BEGINNING': 0,
-        'FORGING': 'forging',
-        'NOT_FORGING': 'not_forging',
-        'UNKNOWN': 'unknown',
-        //'LAST_KNOWN_BLOCK': { id: "4936781828829390790", height: "1204000" }, //nxt
-        'LAST_KNOWN_BLOCK': { id: "6840612405442242239", height: "0" }, // conch
-        //'LAST_KNOWN_TESTNET_BLOCK': { id: "5448152106691693909", height: "1152000" } //nxt test
-        'LAST_KNOWN_TESTNET_BLOCK': { id: "6840612405442242239", height: "0" } //conch
+        "SERVER": {},
+        "MAX_TAGGED_DATA_DATA_LENGTH": 0,
+        "MAX_PRUNABLE_MESSAGE_LENGTH": 0,
+        "GENESIS": "",
+        "GENESIS_RS": "",
+        "EPOCH_BEGINNING": 0,
+        "FORGING": "forging",
+        "NOT_FORGING": "not_forging",
+        "UNKNOWN": "unknown",
+        // 'LAST_KNOWN_BLOCK': { id: "4936781828829390790", height: "1204000" }, //nxt
+        "LAST_KNOWN_BLOCK": { id: "6840612405442242239", height: "0" }, // conch
+        // 'LAST_KNOWN_TESTNET_BLOCK': { id: "5448152106691693909", height: "1152000" } //nxt test
+        "LAST_KNOWN_TESTNET_BLOCK": { id: "6840612405442242239", height: "0" } // conch
     };
 
     NRS.loadAlgorithmList = function (algorithmSelect, isPhasingHash) {
@@ -89,7 +89,7 @@ var NRS = (function (NRS, $) {
         }
     };
 
-    NRS.processConstants = function(response, resolve) {
+    NRS.processConstants = function (response, resolve) {
         if (response.genesisAccountId) {
             NRS.constants.SERVER = response;
             NRS.constants.VOTING_MODELS = response.votingModels;
@@ -118,14 +118,14 @@ var NRS = (function (NRS, $) {
         }
     };
 
-    NRS.loadServerConstants = function(resolve) {
-        function processConstants(response) {
+    NRS.loadServerConstants = function (resolve) {
+        function processConstants (response) {
             NRS.processConstants(response, resolve);
         }
         if (NRS.isMobileApp()) {
             jQuery.ajaxSetup({ async: false });
-            $.getScript("js/data/constants.js" );
-            jQuery.ajaxSetup({async: true});
+            $.getScript("js/data/constants.js");
+            jQuery.ajaxSetup({ async: true });
             processConstants(NRS.constants.SERVER);
         } else {
             if (isNode) {
@@ -136,7 +136,7 @@ var NRS = (function (NRS, $) {
         }
     };
 
-    function getKeyByValue(map, value) {
+    function getKeyByValue (map, value) {
         for (var key in map) {
             if (map.hasOwnProperty(key)) {
                 if (value === map[key]) {
@@ -179,45 +179,45 @@ var NRS = (function (NRS, $) {
         return getKeyByValue(NRS.constants.PEER_STATES, code);
     };
 
-    NRS.getECBlock = function(isTestNet) {
+    NRS.getECBlock = function (isTestNet) {
         return isTestNet ? NRS.constants.LAST_KNOWN_TESTNET_BLOCK : NRS.constants.LAST_KNOWN_BLOCK;
     };
 
-    NRS.isRequireBlockchain = function(requestType) {
+    NRS.isRequireBlockchain = function (requestType) {
         if (!NRS.constants.REQUEST_TYPES[requestType]) {
             // For requests invoked before the getConstants request returns,
             // we implicitly assume that they do not require the blockchain
             return false;
         }
-        return true == NRS.constants.REQUEST_TYPES[requestType].requireBlockchain;
+        return NRS.constants.REQUEST_TYPES[requestType].requireBlockchain == true;
     };
 
-    NRS.isRequireFullClient = function(requestType) {
+    NRS.isRequireFullClient = function (requestType) {
         if (!NRS.constants.REQUEST_TYPES[requestType]) {
             // For requests invoked before the getConstants request returns,
             // we implicitly assume that they do not require full client
             return false;
         }
-        return true == NRS.constants.REQUEST_TYPES[requestType].requireFullClient;
+        return NRS.constants.REQUEST_TYPES[requestType].requireFullClient == true;
     };
 
-    NRS.isRequestForwardable = function(requestType) {
+    NRS.isRequestForwardable = function (requestType) {
         return NRS.isRequireBlockchain(requestType) &&
             !NRS.isRequireFullClient(requestType) &&
             (!(NRS.constants.PROXY_NOT_FORWARDED_REQUESTS instanceof Array) ||
             NRS.constants.PROXY_NOT_FORWARDED_REQUESTS.indexOf(requestType) < 0);
     };
 
-    NRS.isRequirePost = function(requestType) {
+    NRS.isRequirePost = function (requestType) {
         if (!NRS.constants.REQUEST_TYPES[requestType]) {
             // For requests invoked before the getConstants request returns
             // we implicitly assume that they can use GET
             return false;
         }
-        return true == NRS.constants.REQUEST_TYPES[requestType].requirePost;
+        return NRS.constants.REQUEST_TYPES[requestType].requirePost == true;
     };
 
-    NRS.isRequestTypeEnabled = function(requestType) {
+    NRS.isRequestTypeEnabled = function (requestType) {
         if ($.isEmptyObject(NRS.constants.REQUEST_TYPES)) {
             return true;
         }
@@ -264,13 +264,13 @@ var NRS = (function (NRS, $) {
         return null;
     };
 
-    NRS.isApiEnabled = function(depends) {
+    NRS.isApiEnabled = function (depends) {
         if (!depends) {
             return true;
         }
         var tags = depends.tags;
         if (tags) {
-            for (var i=0; i < tags.length; i++) {
+            for (var i = 0; i < tags.length; i++) {
                 if (tags[i] && !tags[i].enabled) {
                     return false;
                 }
@@ -278,7 +278,7 @@ var NRS = (function (NRS, $) {
         }
         var apis = depends.apis;
         if (apis) {
-            for (i=0; i < apis.length; i++) {
+            for (i = 0; i < apis.length; i++) {
                 if (apis[i] && !apis[i].enabled) {
                     return false;
                 }

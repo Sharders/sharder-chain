@@ -34,7 +34,7 @@
  * @depends {util/extensions.js}
  * @depends {util/nxtaddress.js}
  */
-var NRS = (function(NRS, $, undefined) {
+var NRS = (function (NRS, $, undefined) {
 	"use strict";
 
 	NRS.client = "";
@@ -88,7 +88,7 @@ var NRS = (function(NRS, $, undefined) {
 	NRS.currentPage = "dashboard";
 	NRS.currentSubPage = "";
 	NRS.pageNumber = 1;
-	//NRS.itemsPerPage = 50;  /* Now set in nrs.settings.js */
+	// NRS.itemsPerPage = 50;  /* Now set in nrs.settings.js */
 
 	NRS.pages = {};
 	NRS.incoming = {};
@@ -106,10 +106,9 @@ var NRS = (function(NRS, $, undefined) {
 	var stateIntervalSeconds = 30;
 	var isScanning = false;
 
-
 	var debugLocal = true;
 	function debug (msg) {
-		if(debugLocal) console.debug(msg);
+		if (debugLocal) console.debug(msg);
 	}
 
 	NRS.loadMobileSettings = function () {
@@ -133,34 +132,34 @@ var NRS = (function(NRS, $, undefined) {
         }
 	};
 
-	function initSpinner() {
+	function initSpinner () {
         var opts = {
-            lines: 13 // The number of lines to draw
-            , length: 10 // The length of each line
-            , width: 4 // The line thickness
-            , radius: 20 // The radius of the inner circle
-            , scale: 1 // Scales overall size of the spinner
-            , corners: 1 // Corner roundness (0..1)
-            , color: '#ffffff' // #rgb or #rrggbb or array of colors
-            , opacity: 0.25 // Opacity of the lines
-            , rotate: 0 // The rotation offset
-            , direction: 1 // 1: clockwise, -1: counterclockwise
-            , speed: 1 // Rounds per second
-            , trail: 60 // After glow percentage
-            , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
-            , zIndex: 2e9 // The z-index (defaults to 2000000000)
-            , className: 'spinner' // The CSS class to assign to the spinner
-            , top: '50%' // Top position relative to parent
-            , left: '50%' // Left position relative to parent
-            , shadow: false // Whether to render a shadow
-            , hwaccel: false // Whether to use hardware acceleration
-            , position: 'absolute' // Element positioning
+            lines: 13, // The number of lines to draw
+             length: 10, // The length of each line
+             width: 4, // The line thickness
+             radius: 20, // The radius of the inner circle
+             scale: 1, // Scales overall size of the spinner
+             corners: 1, // Corner roundness (0..1)
+             color: "#ffffff", // #rgb or #rrggbb or array of colors
+             opacity: 0.25, // Opacity of the lines
+             rotate: 0, // The rotation offset
+             direction: 1, // 1: clockwise, -1: counterclockwise
+             speed: 1, // Rounds per second
+             trail: 60, // After glow percentage
+             fps: 20, // Frames per second when using setTimeout() as a fallback for CSS
+             zIndex: 2e9, // The z-index (defaults to 2000000000)
+             className: "spinner", // The CSS class to assign to the spinner
+             top: "50%", // Top position relative to parent
+             left: "50%", // Left position relative to parent
+             shadow: false, // Whether to render a shadow
+             hwaccel: false, // Whether to use hardware acceleration
+             position: "absolute" // Element positioning
         };
         NRS.spinner = new Spinner(opts);
 		NRS.logConsole("Spinner initialized");
     }
 
-    NRS.init = function() {
+    NRS.init = function () {
         i18next.use(i18nextXHRBackend)
             .use(i18nextLocalStorageCache)
             .use(i18nextBrowserLanguageDetector)
@@ -171,10 +170,10 @@ var NRS = (function(NRS, $, undefined) {
                 lowerCaseLng: true,
                 detectLngFromLocalStorage: true,
                 resGetPath: "locales/__lng__/translation.json",
-                compatibilityJSON: 'v1',
-                compatibilityAPI: 'v1',
+                compatibilityJSON: "v1",
+                compatibilityAPI: "v1",
                 debug: true
-            }, function() {
+            }, function () {
                 NRS.initSettings();
 
                 jqueryI18next.init(i18next, $, {
@@ -185,96 +184,98 @@ var NRS = (function(NRS, $, undefined) {
                 NRS.spinner.spin($("#center")[0]);
                 NRS.loadMobileSettings();
                 if (NRS.isMobileApp()) {
-                    //$('body').css('overflow-x', 'auto');
+                    // $('body').css('overflow-x', 'auto');
 					FastClick.attach(document.body); // fast click
                     initMobile();
                 } else {
                     initImpl();
                 }
 
-				//initSlideTouch();
+				// initSlideTouch();
                 $("[data-i18n]").i18n();
                 NRS.initClipboard();
             });
     };
 
-    function initMobile() {
-        var promise = new Promise(function(resolve, reject) {
+    function initMobile () {
+        var promise = new Promise(function (resolve, reject) {
             NRS.initRemoteNodesMgr(NRS.mobileSettings.is_testnet, resolve, reject);
         });
-        promise.then(function() {
+        promise.then(function () {
             NRS.remoteNodesMgr.findMoreNodes(true);
             initImpl();
 			mobileHide();
-        }).catch(function() {
+        }).catch(function () {
             var msg = $.t("cannot_find_remote_nodes");
 			NRS.logConsole(msg);
             $.growl(msg);
-			var loadConstantsPromise = new Promise(function(resolve) {
+			var loadConstantsPromise = new Promise(function (resolve) {
 				NRS.logConsole("load server constants");
 				NRS.loadServerConstants(resolve);
 			});
-			loadConstantsPromise.then(function() {
+			loadConstantsPromise.then(function () {
 				var mobileSettingsModal = $("#mobile_settings_modal");
 				mobileSettingsModal.find("input[name=is_offline]").val("true");
 				mobileSettingsModal.modal("show");
 			});
-        })
+        });
     }
 
-	//slide touch [xy-todo]
-	var startPos,endPos,isScrolling;
-	function initSlideTouch(){
+	// slide touch [xy-todo]
+	var startPos, endPos, isScrolling;
+	function initSlideTouch () {
 		console.info("initSlideTouch...");
-		var slider = { //判断设备是否支持touch事件
-			touch:('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch, slider:document.getElementById('sidebar_menu'), //事件
-			events:{
-				index:0, //显示元素的索引
-				slider:this.slider, //this为slider对象
-				icons:document.getElementById('icons'),
-				icon:this.icons.getElementsByTagName('span'),
-				handleEvent:function(event){
-					var self = this; //this指events对象
-					if(event.type == 'touchstart'){
+		var slider = { // 判断设备是否支持touch事件
+			touch: ("ontouchstart" in window) || window.DocumentTouch && document instanceof DocumentTouch,
+slider: document.getElementById("sidebar_menu"), // 事件
+			events: {
+				index: 0, // 显示元素的索引
+				slider: this.slider, // this为slider对象
+				icons: document.getElementById("icons"),
+				icon: this.icons.getElementsByTagName("span"),
+				handleEvent: function (event) {
+					var self = this; // this指events对象
+					if (event.type == "touchstart") {
 						self.start(event);
-					}else if(event.type == 'touchmove'){
+					} else if (event.type == "touchmove") {
 						self.move(event);
-					}else if(event.type == 'touchend'){
+					} else if (event.type == "touchend") {
 						self.end(event);
 					}
 				},
-				//滑动开始
-				start:function(event){
-					var touch = event.targetTouches[0]; //touches数组对象获得屏幕上所有的touch，取第一个touch
-					startPos = {x:touch.pageX,y:touch.pageY,time:+new Date}; //取第一个touch的坐标值
-					isScrolling = 0; //这个参数判断是垂直滚动还是水平滚动
-					this.slider.addEventListener('touchmove',this,false);
-					this.slider.addEventListener('touchend',this,false); }, //移动
-				move:function(event){ //当屏幕有多个touch或者页面被缩放过，就不执行move操作
-					if(event.targetTouches.length > 1 || event.scale && event.scale !== 1) return;
+				// 滑动开始
+				start: function (event) {
+					var touch = event.targetTouches[0]; // touches数组对象获得屏幕上所有的touch，取第一个touch
+					startPos = { x: touch.pageX, y: touch.pageY, time: +new Date() }; // 取第一个touch的坐标值
+					isScrolling = 0; // 这个参数判断是垂直滚动还是水平滚动
+					this.slider.addEventListener("touchmove", this, false);
+					this.slider.addEventListener("touchend", this, false);
+}, // 移动
+				move: function (event) { // 当屏幕有多个touch或者页面被缩放过，就不执行move操作
+					if (event.targetTouches.length > 1 || event.scale && event.scale !== 1) return;
 					var touch = event.targetTouches[0];
-					endPos = {x:touch.pageX - startPos.x,y:touch.pageY - startPos.y};
-					isScrolling = Math.abs(endPos.x) < Math.abs(endPos.y) ? 1:0; //isScrolling为1时，表示纵向滑动，0为横向滑动
-					if(isScrolling === 0){
-						event.preventDefault(); //阻止触摸事件的默认行为，即阻止滚屏
-						this.slider.className = 'cnt'; this.slider.style.left = -this.index*600 + endPos.x + 'px';
+					endPos = { x: touch.pageX - startPos.x, y: touch.pageY - startPos.y };
+					isScrolling = Math.abs(endPos.x) < Math.abs(endPos.y) ? 1 : 0; // isScrolling为1时，表示纵向滑动，0为横向滑动
+					if (isScrolling === 0) {
+						event.preventDefault(); // 阻止触摸事件的默认行为，即阻止滚屏
+						this.slider.className = "cnt"; this.slider.style.left = -this.index * 600 + endPos.x + "px";
 					}
 				},
-				//滑动释放
-				end:function(event){
-					var duration = +new Date - startPos.time; //滑动的持续时间
+				// 滑动释放
+				end: function (event) {
+					var duration = +new Date() - startPos.time; // 滑动的持续时间
 					console.info("touch duration=" + duration);
-					if(isScrolling === 0){ //当为水平滚动时
-						//this.icon[this.index].className = '';
-						//if(Number(duration) > 10){ //判断是左移还是右移，当偏移量大于10时执行
+					if (isScrolling === 0) { // 当为水平滚动时
+						// this.icon[this.index].className = '';
+						// if(Number(duration) > 10){ //判断是左移还是右移，当偏移量大于10时执行
 						//	if(endPos.x > 10){
 						//		if(this.index !== 0) this.index -= 1;
 						//	}else if(endPos.x < -10){
 						//		if(this.index !== this.icon.length-1) this.index += 1; }
-						//}
-						//this.icon[this.index].className = 'curr';
-						//this.slider.className = 'cnt f-anim';
-						//this.slider.style.left = -this.index*600 + 'px';
+						// }
+						// this.icon[this.index].className = 'curr';
+						// this.slider.className = 'cnt f-anim';
+						// this.slider.style.left = -this.index*600 + 'px';
 
 						e.preventDefault();
 						NRS.closeContextMenu();
@@ -293,7 +294,7 @@ var NRS = (function(NRS, $, undefined) {
 						var $contextMenu = $("#" + contextMenu);
 						if ($contextMenu.length) {
 							var $options = $contextMenu.find("ul.dropdown-menu a");
-							$.each($options, function() {
+							$.each($options, function () {
 								var requiredClass = $(this).data("class");
 								if (!requiredClass) {
 									$(this).show();
@@ -312,27 +313,27 @@ var NRS = (function(NRS, $, undefined) {
 						}
 						return false;
 					}
-					//解绑事件
-					this.slider.removeEventListener('touchmove',this,false);
-					this.slider.removeEventListener('touchend',this,false);
+					// 解绑事件
+					this.slider.removeEventListener("touchmove", this, false);
+					this.slider.removeEventListener("touchend", this, false);
 				}
 			},
-			//初始化
-			init:function(){
-				var self = this; //this指slider对象
-				if(!!self.touch) self.slider.addEventListener('touchstart',self.events,false); //addEventListener第二个参数可以传一个对象，会调用该对象的handleEvent属性
+			// 初始化
+			init: function () {
+				var self = this; // this指slider对象
+				if (self.touch) self.slider.addEventListener("touchstart", self.events, false); // addEventListener第二个参数可以传一个对象，会调用该对象的handleEvent属性
 			}
 		};
 		slider.init();
 	}
 
-    function initImpl() {
-		var loadConstantsPromise = new Promise(function(resolve) {
+    function initImpl () {
+		var loadConstantsPromise = new Promise(function (resolve) {
 			NRS.logConsole("load server constants");
 			NRS.loadServerConstants(resolve);
 		});
-		loadConstantsPromise.then(function() {
-			var getStatePromise = new Promise(function(resolve) {
+		loadConstantsPromise.then(function () {
+			var getStatePromise = new Promise(function (resolve) {
 				NRS.logConsole("calling getState");
 				NRS.sendRequest("getState", {
 					"includeCounts": "false"
@@ -386,11 +387,11 @@ var NRS = (function(NRS, $, undefined) {
 				});
 			});
 
-			getStatePromise.then(function() {
+			getStatePromise.then(function () {
 				NRS.logConsole("continue initialization");
 				var hasLocalStorage = false;
 				try {
-					//noinspection BadExpressionStatementJS
+					// noinspection BadExpressionStatementJS
 					window.localStorage && localStorage;
 					hasLocalStorage = checkLocalStorage();
 				} catch (err) {
@@ -404,9 +405,9 @@ var NRS = (function(NRS, $, undefined) {
 					return; // do not load client if local storage is disabled
 				}
 
-				if (!(navigator.userAgent.indexOf('Safari') != -1 &&
-					navigator.userAgent.indexOf('Chrome') == -1) &&
-					navigator.userAgent.indexOf('JavaFX') == -1) {
+				if (!(navigator.userAgent.indexOf("Safari") != -1 &&
+					navigator.userAgent.indexOf("Chrome") == -1) &&
+					navigator.userAgent.indexOf("JavaFX") == -1) {
 					// Don't use account based DB in Safari due to a buggy indexedDB implementation (2015-02-24)
 					NRS.createLegacyDatabase();
 				}
@@ -426,7 +427,7 @@ var NRS = (function(NRS, $, undefined) {
 					"selector": ".show_popover",
 					"html": true,
 					"trigger": "hover",
-					 delay : {show: 0, hide: 3000}
+					 delay: { show: 0, hide: 3000 }
 				});
 
 				var savedPassphrase = NRS.getStrItem("savedPassphrase");
@@ -473,27 +474,27 @@ var NRS = (function(NRS, $, undefined) {
 		});
 	}
 
-	function mobileHide(){
-		if (window["cordova"] && "iOS" == device.platform) {
-			NRS.sendRequest("getMobileConf", {}, function(response) {
-				if(response.hideSendCC){
+	function mobileHide () {
+		if (window["cordova"] && device.platform == "iOS") {
+			NRS.sendRequest("getMobileConf", {}, function (response) {
+				if (response.hideSendCC) {
 					$("#header_send_money").hide();
 					$("#header_send_message").hide();
 				}
 
-				if(response.hideBeta) {
+				if (response.hideBeta) {
 					$("#nrs_version").html(NRS.state.version).removeClass("loading_dots");
 				}
 			});
 		}
 	}
 
-    NRS.initClipboard = function() {
-        var clipboard = new Clipboard('#copy_account_id');
-        function onCopySuccess(e) {
-            NRS.logConsole('Action:' + e.action);
-            NRS.logConsole('Text:' + e.text);
-            NRS.logConsole('Trigger:' + e.trigger);
+    NRS.initClipboard = function () {
+        var clipboard = new Clipboard("#copy_account_id");
+        function onCopySuccess (e) {
+            NRS.logConsole("Action:" + e.action);
+            NRS.logConsole("Text:" + e.text);
+            NRS.logConsole("Trigger:" + e.trigger);
 
             $.growl($.t("success_clipboard_copy"), {
                 "type": "success"
@@ -501,20 +502,19 @@ var NRS = (function(NRS, $, undefined) {
 
             e.clearSelection();
         }
-        clipboard.on('success', onCopySuccess);
-        clipboard.on('error', function(e) {
+        clipboard.on("success", onCopySuccess);
+        clipboard.on("error", function (e) {
             if (window.java) {
                 if (window.java.copyText(e.text)) {
                     onCopySuccess(e);
                     return;
                 }
             }
-            NRS.logConsole('Copy failed. Action: ' + e.action + '; Text: ' + e.text);
-
+            NRS.logConsole("Copy failed. Action: " + e.action + "; Text: " + e.text);
         });
     };
 
-	function _fix() {
+	function _fix () {
 		var height = $(window).height() - $("body > .header").height();
 		var content = $(".wrapper").height();
 
@@ -526,7 +526,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	}
 
-	NRS.setStateInterval = function(seconds) {
+	NRS.setStateInterval = function (seconds) {
 		if (!NRS.isPollGetState()) {
 			return;
 		}
@@ -537,7 +537,7 @@ var NRS = (function(NRS, $, undefined) {
 			clearInterval(stateInterval);
 		}
 		stateIntervalSeconds = seconds;
-		stateInterval = setInterval(function() {
+		stateInterval = setInterval(function () {
 			NRS.getState(null);
 			NRS.updateForgingStatus();
 		}, 1000 * seconds);
@@ -546,11 +546,11 @@ var NRS = (function(NRS, $, undefined) {
 	var _firstTimeAfterLoginRun = false;
 	var _prevLastProxyBlock = "0";
 
-	NRS.getLastBlock = function() {
+	NRS.getLastBlock = function () {
 		return NRS.state.apiProxy ? NRS.lastProxyBlock : NRS.state.lastBlock;
 	};
 
-	NRS.handleBlockchainStatus = function(response, callback) {
+	NRS.handleBlockchainStatus = function (response, callback) {
 		var firstTime = !("lastBlock" in NRS.state);
 		var previousLastBlock = (firstTime ? "0" : NRS.state.lastBlock);
 
@@ -562,14 +562,14 @@ var NRS = (function(NRS, $, undefined) {
 		NRS.ledgerTrimKeep = response.ledgerTrimKeep;
 		$("#sidebar_block_link").html(NRS.getBlockLink(height));
 		if (firstTime) {
-			var versionTxt = (window["cordova"] && "iOS" == device.platform) ? NRS.state.version : (NRS.state.version + '-Alpha');
+			var versionTxt = (window["cordova"] && device.platform == "iOS") ? NRS.state.version : (NRS.state.version + "-Alpha");
 			$("#nrs_version").html(versionTxt).removeClass("loading_dots");
 			NRS.getBlock(lastBlock, NRS.handleInitialBlocks);
 		} else if (NRS.state.isScanning) {
-			//do nothing but reset NRS.state so that when isScanning is done, everything is reset.
+			// do nothing but reset NRS.state so that when isScanning is done, everything is reset.
 			isScanning = true;
 		} else if (isScanning) {
-			//rescan is done, now we must reset everything...
+			// rescan is done, now we must reset everything...
 			isScanning = false;
 			NRS.blocks = [];
 			NRS.tempBlocks = [];
@@ -590,13 +590,13 @@ var NRS = (function(NRS, $, undefined) {
 			}
 		} else {
 			if (NRS.account) {
-				NRS.getUnconfirmedTransactions(function(unconfirmedTransactions) {
+				NRS.getUnconfirmedTransactions(function (unconfirmedTransactions) {
 					NRS.handleIncomingTransactions(unconfirmedTransactions, false);
 				});
 			}
 		}
 		if (NRS.account && !_firstTimeAfterLoginRun) {
-			//Executed ~30 secs after login, can be used for tasks needing this condition state
+			// Executed ~30 secs after login, can be used for tasks needing this condition state
 			_firstTimeAfterLoginRun = true;
 		}
 
@@ -605,9 +605,9 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	};
 
-    NRS.connectionError = function(errorDescription) {
+    NRS.connectionError = function (errorDescription) {
         NRS.serverConnect = false;
-        var msg = $.t("error_server_connect", {url: NRS.getRequestPath()}) +
+        var msg = $.t("error_server_connect", { url: NRS.getRequestPath() }) +
             (errorDescription ? " " + NRS.escapeRespStr(errorDescription) : "");
         $.growl(msg, {
             "type": "danger",
@@ -616,11 +616,11 @@ var NRS = (function(NRS, $, undefined) {
         NRS.logConsole(msg);
     };
 
-    NRS.getState = function(callback, msg) {
+    NRS.getState = function (callback, msg) {
 		if (msg) {
 			NRS.logConsole("getState event " + msg);
 		}
-		NRS.sendRequest("getBlockchainStatus", {}, function(response) {
+		NRS.sendRequest("getBlockchainStatus", {}, function (response) {
 			if (response.errorCode) {
                 NRS.connectionError(response.errorDescription);
 			} else {
@@ -638,7 +638,7 @@ var NRS = (function(NRS, $, undefined) {
                     }
 					NRS.sendRequest("getBlocks", {
 						"firstIndex": 0, "lastIndex": 0
-					}, function(proxyBlocksResponse) {
+					}, function (proxyBlocksResponse) {
 						if (proxyBlocksResponse.errorCode) {
                             NRS.connectionError(proxyBlocksResponse.errorDescription);
 						} else {
@@ -672,14 +672,14 @@ var NRS = (function(NRS, $, undefined) {
 			}
 			/* Checks if the client is connected to active peers */
 			NRS.checkConnected();
-			//only done so that download progress meter updates correctly based on lastFeederHeight
+			// only done so that download progress meter updates correctly based on lastFeederHeight
 			if (NRS.downloadingBlockchain) {
 				NRS.updateBlockchainDownloadProgress();
 			}
 		});
 	};
 
-	$("#logo, .sidebar-menu").on("click", "a", function(e, data) {
+	$("#logo, .sidebar-menu").on("click", "a", function (e, data) {
 		if ($(this).hasClass("ignore")) {
 			$(this).removeClass("ignore");
 			return;
@@ -716,7 +716,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
 		var $newActivePageLi = $newActiveA.closest("li.treeview");
 
-		$("ul.sidebar-menu > li.active").each(function(key, elem) {
+		$("ul.sidebar-menu > li.active").each(function (key, elem) {
 			if ($newActivePageLi.attr("id") != $(elem).attr("id")) {
 				$(elem).children("a").first().addClass("ignore").click();
 			}
@@ -728,7 +728,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
 
 		$("ul.sidebar-menu li.sm_treeview_submenu").removeClass("active");
-		if($(this).parent("li").hasClass("sm_treeview_submenu")) {
+		if ($(this).parent("li").hasClass("sm_treeview_submenu")) {
 			$(this).closest("li").addClass("active");
 		}
 
@@ -736,7 +736,7 @@ var NRS = (function(NRS, $, undefined) {
 			$("#inline_message_password").val("");
 		}
 
-		//NRS.previousPage = NRS.currentPage;
+		// NRS.previousPage = NRS.currentPage;
 		NRS.currentPage = page;
 		NRS.currentSubPage = "";
 		NRS.pageNumber = 1;
@@ -765,17 +765,17 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	});
 
-	$("button.goto-page, a.goto-page").click(function(event) {
+	$("button.goto-page, a.goto-page").click(function (event) {
 		event.preventDefault();
 		NRS.goToPage($(this).data("page"), undefined, $(this).data("subpage"));
 	});
 
-	NRS.loadPage = function(page, callback, subpage) {
+	NRS.loadPage = function (page, callback, subpage) {
 		NRS.pageLoading();
 		NRS.pages[page](callback, subpage);
 	};
 
-	NRS.goToPage = function(page, callback, subpage) {
+	NRS.goToPage = function (page, callback, subpage) {
 		var $link = $("ul.sidebar-menu a[data-page=" + page + "]");
 
 		if ($link.length > 1) {
@@ -809,7 +809,7 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	};
 
-	NRS.pageLoading = function() {
+	NRS.pageLoading = function () {
 		NRS.hasMorePages = false;
 
 		var $pageHeader = $("#" + NRS.currentPage + "_page .content-header h1");
@@ -817,7 +817,7 @@ var NRS = (function(NRS, $, undefined) {
 		$pageHeader.append("<span class='loading_dots'><span>.</span><span>.</span><span>.</span></span>");
 	};
 
-	NRS.pageLoaded = function(callback) {
+	NRS.pageLoaded = function (callback) {
 		var $currentPage = $("#" + NRS.currentPage + "_page");
 
 		$currentPage.find(".content-header h1 .loading_dots").remove();
@@ -829,26 +829,26 @@ var NRS = (function(NRS, $, undefined) {
 		if (callback) {
 			try {
                 callback();
-            } catch(e) { /* ignore since sometimes callback is not a function */ }
+            } catch (e) { /* ignore since sometimes callback is not a function */ }
 		}
 	};
 
 NRS.addPagination = function () {
         var firstStartNr = 1;
 		var firstEndNr = NRS.itemsPerPage;
-		var currentStartNr = (NRS.pageNumber-1) * NRS.itemsPerPage + 1;
+		var currentStartNr = (NRS.pageNumber - 1) * NRS.itemsPerPage + 1;
 		var currentEndNr = NRS.pageNumber * NRS.itemsPerPage;
 
-		var prevHTML = '<span style="display:inline-block;width:48px;text-align:right;">';
-		var firstHTML = '<span style="display:inline-block;min-width:48px;text-align:right;vertical-align:top;margin-top:4px;">';
-		var currentHTML = '<span style="display:inline-block;min-width:48px;text-align:left;vertical-align:top;margin-top:4px;">';
-		var nextHTML = '<span style="display:inline-block;width:48px;text-align:left;">';
+		var prevHTML = "<span style=\"display:inline-block;width:48px;text-align:right;\">";
+		var firstHTML = "<span style=\"display:inline-block;min-width:48px;text-align:right;vertical-align:top;margin-top:4px;\">";
+		var currentHTML = "<span style=\"display:inline-block;min-width:48px;text-align:left;vertical-align:top;margin-top:4px;\">";
+		var nextHTML = "<span style=\"display:inline-block;width:48px;text-align:left;\">";
 
 		if (NRS.pageNumber > 1) {
 			prevHTML += "<a href='#' data-page='" + (NRS.pageNumber - 1) + "' title='" + $.t("previous") + "' style='font-size:20px;'>";
 			prevHTML += "<i class='fa fa-arrow-circle-left'></i></a>";
 		} else {
-			prevHTML += '&nbsp;';
+			prevHTML += "&nbsp;";
 		}
 
 		if (NRS.hasMorePages) {
@@ -869,10 +869,10 @@ NRS.addPagination = function () {
 			firstHTML += "&nbsp;";
 		}
 
-		prevHTML += '</span>';
-		firstHTML += '</span>';
-		currentHTML += '</span>';
-		nextHTML += '</span>';
+		prevHTML += "</span>";
+		firstHTML += "</span>";
+		currentHTML += "</span>";
+		nextHTML += "</span>";
 
 		var output = prevHTML + firstHTML + currentHTML + nextHTML;
 		var $paginationContainer = $("#" + NRS.currentPage + "_page .data-pagination");
@@ -882,16 +882,16 @@ NRS.addPagination = function () {
 		}
 	};
 
-	$(document).on("click", ".data-pagination a", function(e) {
+	$(document).on("click", ".data-pagination a", function (e) {
 		e.preventDefault();
 
 		NRS.goToPageNumber($(this).data("page"));
 	});
 
-	NRS.goToPageNumber = function(pageNumber) {
-		/*if (!pageLoaded) {
+	NRS.goToPageNumber = function (pageNumber) {
+		/* if (!pageLoaded) {
 			return;
-		}*/
+		} */
 		NRS.pageNumber = pageNumber;
 
 		NRS.pageLoading();
@@ -899,12 +899,12 @@ NRS.addPagination = function () {
 		NRS.pages[NRS.currentPage]();
 	};
 
-	function initUserDB() {
+	function initUserDB () {
 		NRS.storageSelect("data", [{
 			"id": "asset_exchange_version"
-		}], function(error, result) {
+		}], function (error, result) {
 			if (!result || !result.length) {
-				NRS.storageDelete("assets", [], function(error) {
+				NRS.storageDelete("assets", [], function (error) {
 					if (!error) {
 						NRS.storageInsert("data", "id", {
 							"id": "asset_exchange_version",
@@ -917,7 +917,7 @@ NRS.addPagination = function () {
 
 		NRS.storageSelect("data", [{
 			"id": "closed_groups"
-		}], function(error, result) {
+		}], function (error, result) {
 			if (result && result.length) {
 				NRS.setClosedGroups(result[0].contents.split("#"));
 			} else {
@@ -947,7 +947,7 @@ NRS.addPagination = function () {
 		if (NRS.getUrlParameter("modal")) {
 			var urlParams = [];
 			if (window.location.search && window.location.search.length > 1) {
-				urlParams = window.location.search.substring(1).split('&');
+				urlParams = window.location.search.substring(1).split("&");
 			}
 			var modalId = "#" + NRS.getUrlParameter("modal").escapeHTML();
 			var modal = $(modalId);
@@ -955,7 +955,7 @@ NRS.addPagination = function () {
 			if (modal[0]) {
 				var isValidParams = true;
 				for (var i = 0; i < urlParams.length; i++) {
-					var paramKeyValue = urlParams[i].split('=');
+					var paramKeyValue = urlParams[i].split("=");
 					if (paramKeyValue.length != 2) {
 						continue;
 					}
@@ -980,7 +980,7 @@ NRS.addPagination = function () {
 								isChecked = true;
 							}
 							if (isValidParams) {
-								input.prop('checked', isChecked);
+								input.prop("checked", isChecked);
 							}
 						}
 					} else if (modal.find("textarea[name=" + key + "]")[0]) {
@@ -990,14 +990,14 @@ NRS.addPagination = function () {
 					}
 				}
 				if (isValidParams) {
-					var a = $('<a />');
-					a.attr('href', '#');
-					a.attr('data-toggle', 'modal');
-					a.attr('data-target', modalId);
+					var a = $("<a />");
+					a.attr("href", "#");
+					a.attr("data-toggle", "modal");
+					a.attr("data-target", modalId);
 					Object.keys(attributes).forEach(function (key) {
 						a.attr(key, attributes[key]);
 					});
-					$('body').append(a);
+					$("body").append(a);
 					a.click();
 				}
 			} else {
@@ -1009,32 +1009,32 @@ NRS.addPagination = function () {
 		}
 	}
 
-	NRS.initUserDBSuccess = function() {
+	NRS.initUserDBSuccess = function () {
 		NRS.databaseSupport = true;
 		initUserDB();
         NRS.logConsole("IndexedDB initialized");
     };
 
-	NRS.initUserDBWithLegacyData = function() {
+	NRS.initUserDBWithLegacyData = function () {
 		var legacyTables = ["contacts", "assets", "data"];
-		$.each(legacyTables, function(key, table) {
-			NRS.legacyDatabase.select(table, null, function(error, results) {
+		$.each(legacyTables, function (key, table) {
+			NRS.legacyDatabase.select(table, null, function (error, results) {
 				if (!error && results && results.length >= 0) {
-					NRS.database.insert(table, results, function(error, inserts) {});
+					NRS.database.insert(table, results, function (error, inserts) {});
 				}
 			});
 		});
-		setTimeout(function(){ NRS.initUserDBSuccess(); }, 1000);
+		setTimeout(function () { NRS.initUserDBSuccess(); }, 1000);
 	};
 
-	NRS.initLocalStorage = function() {
+	NRS.initLocalStorage = function () {
 		NRS.database = null;
 		NRS.databaseSupport = false;
 		initUserDB();
         NRS.logConsole("local storage initialized");
     };
 
-	NRS.createLegacyDatabase = function() {
+	NRS.createLegacyDatabase = function () {
 		var schema = {};
 		var versionLegacyDB = 2;
 
@@ -1073,11 +1073,11 @@ NRS.addPagination = function () {
 		};
 		if (versionLegacyDB == NRS.constants.DB_VERSION) {
 			try {
-				NRS.legacyDatabase = new WebDB("NRS_USER_DB", schema, versionLegacyDB, 4, function(error) {
+				NRS.legacyDatabase = new WebDB("NRS_USER_DB", schema, versionLegacyDB, 4, function (error) {
 					if (!error) {
 						NRS.legacyDatabase.select("data", [{
 							"id": "settings"
-						}], function(error, result) {
+						}], function (error, result) {
 							if (result && result.length > 0) {
 								NRS.legacyDatabaseWithData = true;
 							}
@@ -1090,7 +1090,7 @@ NRS.addPagination = function () {
 		}
 	};
 
-	function createSchema(){
+	function createSchema () {
 		var schema = {};
 
 		schema["contacts"] = {
@@ -1136,11 +1136,11 @@ NRS.addPagination = function () {
 		return schema;
 	}
 
-	function initUserDb(){
+	function initUserDb () {
 		NRS.logConsole("Database is open");
 		NRS.database.select("data", [{
 			"id": "settings"
-		}], function(error, result) {
+		}], function (error, result) {
 			if (result && result.length > 0) {
 				NRS.logConsole("Settings already exist");
 				NRS.databaseFirstStart = false;
@@ -1168,7 +1168,7 @@ NRS.addPagination = function () {
 		NRS.pollsTableKeys = ["account", "accountRS", "poll", "description", "name", "finishHeight"];
 		try {
 			NRS.logConsole("Opening database " + dbName);
-            NRS.database = new WebDB(dbName, schema, NRS.constants.DB_VERSION, 4, function(error, db) {
+            NRS.database = new WebDB(dbName, schema, NRS.constants.DB_VERSION, 4, function (error, db) {
                 if (!error) {
                     NRS.indexedDB = db;
                     initUserDb();
@@ -1185,10 +1185,10 @@ NRS.addPagination = function () {
 	};
 
 	/* Display connected state in Sidebar */
-	NRS.checkConnected = function() {
+	NRS.checkConnected = function () {
 		NRS.sendRequest("getPeers+", {
 			"state": "CONNECTED"
-		}, function(response) {
+		}, function (response) {
             var connectedIndicator = $("#connected_indicator");
             if (response.peers && response.peers.length) {
 				NRS.peerConnect = true;
@@ -1213,14 +1213,14 @@ NRS.addPagination = function () {
 		}
 	};
 
-	NRS.getAccountInfo = function(firstRun, callback, isAccountSwitch) {
+	NRS.getAccountInfo = function (firstRun, callback, isAccountSwitch) {
 		NRS.sendRequest("getAccount", {
 			"account": NRS.account,
 			"includeAssets": true,
 			"includeCurrencies": true,
 			"includeLessors": true,
 			"includeEffectiveBalance": true
-		}, function(response) {
+		}, function (response) {
 			var previousAccountInfo = NRS.accountInfo;
 			NRS.accountInfo = response;
 			if (response.errorCode) {
@@ -1255,7 +1255,7 @@ NRS.addPagination = function () {
                                 }
                                 var current_balances = JSON.stringify(NRS.accountInfo.assetBalances);
                                 if (previous_balances != current_balances) {
-                                    if (previous_balances != "undefined" && typeof previous_balances != "undefined") {
+                                    if (previous_balances != "undefined" && typeof previous_balances !== "undefined") {
                                         previous_balances = JSON.parse(previous_balances);
                                     } else {
                                         previous_balances = [];
@@ -1343,7 +1343,7 @@ NRS.addPagination = function () {
                         $("#account_nr_currencies").html(0);
                     }
 
-                    /* Display message count in top and limit to 100 for now because of possible performance issues*/
+                    /* Display message count in top and limit to 100 for now because of possible performance issues */
                     NRS.sendRequest("getBlockchainTransactions+", {
                         "account": NRS.account,
                         "type": 1,
@@ -1352,10 +1352,7 @@ NRS.addPagination = function () {
                         "lastIndex": 99
                     }, function (response) {
                         if (response.transactions && response.transactions.length) {
-                            if (response.transactions.length > 99)
-                                $("#account_message_count").empty().append("99+");
-                            else
-                                $("#account_message_count").empty().append(response.transactions.length);
+                            if (response.transactions.length > 99) { $("#account_message_count").empty().append("99+"); } else { $("#account_message_count").empty().append(response.transactions.length); }
                         } else {
                             $("#account_message_count").empty().append("0");
                         }
@@ -1439,7 +1436,7 @@ NRS.addPagination = function () {
 		});
 	};
 
-    NRS.updateDashboardMessage = function() {
+    NRS.updateDashboardMessage = function () {
         if (NRS.accountInfo.errorCode) {
             if (NRS.accountInfo.errorCode == 5) {
                 if (NRS.downloadingBlockchain && !(NRS.state && NRS.state.apiProxy) && !NRS.state.isLightClient) {
@@ -1484,7 +1481,7 @@ NRS.addPagination = function () {
             } else if (NRS.state && NRS.state.isScanning) {
                 $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html($.t("status_blockchain_rescanning")).show();
             } else if (!NRS.accountInfo.publicKey) {
-                var warning = NRS.publicKey != 'undefined' ? $.t("public_key_not_announced_warning", { "public_key": NRS.publicKey }) : $.t("no_public_key_warning");
+                var warning = NRS.publicKey != "undefined" ? $.t("public_key_not_announced_warning", { "public_key": NRS.publicKey }) : $.t("no_public_key_warning");
                 $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html(warning + " " + $.t("public_key_actions")).show();
             } else if (NRS.state.isLightClient) {
                 $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html(NRS.blockchainDownloadingMessage()).show();
@@ -1494,7 +1491,7 @@ NRS.addPagination = function () {
         }
     };
 
-	NRS.updateAccountLeasingStatus = function() {
+	NRS.updateAccountLeasingStatus = function () {
 		var accountLeasingLabel = "";
 		var accountLeasingStatus = "";
 		var nextLesseeStatus = "";
@@ -1503,7 +1500,7 @@ NRS.addPagination = function () {
 				"start": NRS.escapeRespStr(NRS.accountInfo.nextLeasingHeightFrom),
 				"end": NRS.escapeRespStr(NRS.accountInfo.nextLeasingHeightTo),
 				"account": String(NRS.convertNumericToRSAccountFormat(NRS.accountInfo.nextLessee)).escapeHTML()
-			})
+			});
 		}
 
 		if (NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom) {
@@ -1531,7 +1528,7 @@ NRS.addPagination = function () {
 			accountLeasingStatus += "<br>" + nextLesseeStatus;
 		}
 
-		//no reed solomon available? do it myself? todo
+		// no reed solomon available? do it myself? todo
         var accountLessorTable = $("#account_lessor_table");
         if (NRS.accountInfo.lessors) {
 			if (accountLeasingLabel) {
@@ -1560,7 +1557,7 @@ NRS.addPagination = function () {
 					nextTooltip = "From block " + lessorInfo.nextHeightFrom + " to block " + lessorInfo.nextHeightTo;
 				} else if (lessorInfo.nextHeightFrom < NRS.constants.MAX_INT_JAVA) {
 					nextLessee = "Not you";
-					nextTooltip = "Account " + NRS.getAccountTitle(lessorInfo.nextLesseeRS) +" from block " + lessorInfo.nextHeightFrom + " to block " + lessorInfo.nextHeightTo;
+					nextTooltip = "Account " + NRS.getAccountTitle(lessorInfo.nextLesseeRS) + " from block " + lessorInfo.nextHeightFrom + " to block " + lessorInfo.nextHeightTo;
 				}
 				rows += "<tr>" +
 					"<td>" + NRS.getAccountLink({ lessorRS: lessor }, "lessor") + "</td>" +
@@ -1591,13 +1588,13 @@ NRS.addPagination = function () {
 		}
 	};
 
-	NRS.updateAccountControlStatus = function() {
-		var onNoPhasingOnly = function() {
+	NRS.updateAccountControlStatus = function () {
+		var onNoPhasingOnly = function () {
 			$("#setup_mandatory_approval").show();
 			$("#mandatory_approval_details").hide();
 			delete NRS.accountInfo.phasingOnly;
 		};
-		if (NRS.accountInfo.accountControls && $.inArray('PHASING_ONLY', NRS.accountInfo.accountControls) > -1) {
+		if (NRS.accountInfo.accountControls && $.inArray("PHASING_ONLY", NRS.accountInfo.accountControls) > -1) {
 			NRS.sendRequest("getPhasingOnlyControl", {
 				"account": NRS.account
 			}, function (response) {
@@ -1633,7 +1630,7 @@ NRS.addPagination = function () {
 		}
 	};
 
-	NRS.checkAssetDifferences = function(current_balances, previous_balances) {
+	NRS.checkAssetDifferences = function (current_balances, previous_balances) {
 		var current_balances_ = {};
 		var previous_balances_ = {};
 
@@ -1690,7 +1687,7 @@ NRS.addPagination = function () {
 						"asset": k,
 						"difference": diff[k]
 					}
-				}, function(asset, input) {
+				}, function (asset, input) {
 					if (asset.errorCode) {
 						return;
 					}
@@ -1747,13 +1744,13 @@ NRS.addPagination = function () {
 		}
 	};
 
-	NRS.updateBlockchainDownloadProgress = function() {
+	NRS.updateBlockchainDownloadProgress = function () {
 		debug("Check block chain download progess....");
 		var lastNumBlocks = 5000;
-        var downloadingBlockchain = $('#downloading_blockchain');
-        downloadingBlockchain.find('.last_num_blocks').html($.t('last_num_blocks', { "blocks": lastNumBlocks }));
+        var downloadingBlockchain = $("#downloading_blockchain");
+        downloadingBlockchain.find(".last_num_blocks").html($.t("last_num_blocks", { "blocks": lastNumBlocks }));
 
-		debug("NRS.state.isLightClient="+NRS.state.isLightClient+ ",NRS.serverConnect=" + NRS.serverConnect + ",NRS.peerConnect=" + NRS.peerConnect);
+		debug("NRS.state.isLightClient=" + NRS.state.isLightClient + ",NRS.serverConnect=" + NRS.serverConnect + ",NRS.peerConnect=" + NRS.peerConnect);
 		if (NRS.state.isLightClient) {
 			downloadingBlockchain.find(".db_active").hide();
 			downloadingBlockchain.find(".db_halted").hide();
@@ -1802,7 +1799,7 @@ NRS.addPagination = function () {
 		}
 	};
 
-	NRS.checkIfOnAFork = function() {
+	NRS.checkIfOnAFork = function () {
 		if (!NRS.downloadingBlockchain) {
 			var isForgingAllBlocks = true;
 			if (NRS.blocks && NRS.blocks.length >= 10) {
@@ -1822,7 +1819,7 @@ NRS.addPagination = function () {
 				});
 			}
 
-            //FIXME[xy]测试网络暂时不进行分叉警告
+            // FIXME[xy]测试网络暂时不进行分叉警告
             if (NRS.blocks && NRS.blocks.length > 0 && NRS.baseTargetPercent(NRS.blocks[0]) > 1000 && !NRS.isTestNet) {
                 $.growl($.t("fork_warning_base_target"), {
                     "type": "danger"
@@ -1831,7 +1828,7 @@ NRS.addPagination = function () {
 		}
 	};
 
-    NRS.printEnvInfo = function() {
+    NRS.printEnvInfo = function () {
         NRS.logProperty("navigator.userAgent");
         NRS.logProperty("navigator.platform");
         NRS.logProperty("navigator.appVersion");
@@ -1853,16 +1850,16 @@ NRS.addPagination = function () {
         NRS.logProperty("NRS.needsAdminPassword");
     };
 
-	$("#id_search").on("submit", function(e) {
+	$("#id_search").on("submit", function (e) {
 		e.preventDefault();
 
 		var id = $.trim($("#id_search").find("input[name=q]").val());
 
-		//if (/NXT\-/i.test(id)) {
+		// if (/NXT\-/i.test(id)) {
 		if (/SSA\-/i.test(id)) {
 			NRS.sendRequest("getAccount", {
 				"account": id
-			}, function(response, input) {
+			}, function (response, input) {
 				if (!response.errorCode) {
 					response.account = input.account;
 					NRS.showAccountModal(response);
@@ -1881,14 +1878,14 @@ NRS.addPagination = function () {
 			}
 			NRS.sendRequest("getTransaction", {
 				"transaction": id
-			}, function(response, input) {
+			}, function (response, input) {
 				if (!response.errorCode) {
 					response.transaction = input.transaction;
 					NRS.showTransactionModal(response);
 				} else {
 					NRS.sendRequest("getAccount", {
 						"account": id
-					}, function(response, input) {
+					}, function (response, input) {
 						if (!response.errorCode) {
 							response.account = input.account;
 							NRS.showAccountModal(response);
@@ -1896,7 +1893,7 @@ NRS.addPagination = function () {
 							NRS.sendRequest("getBlock", {
 								"block": id,
                                 "includeTransactions": "true"
-							}, function(response, input) {
+							}, function (response, input) {
 								if (!response.errorCode) {
 									response.block = input.block;
 									NRS.showBlockModal(response);
@@ -1913,7 +1910,7 @@ NRS.addPagination = function () {
 		}
 	});
 
-	function checkLocalStorage() {
+	function checkLocalStorage () {
 	    var storage;
 	    var fail;
 	    var uid;
@@ -1924,7 +1921,7 @@ NRS.addPagination = function () {
 	        storage.removeItem(uid);
 	        fail && (storage = false);
 	    } catch (exception) {
-	        NRS.logConsole("checkLocalStorage " + exception.message)
+	        NRS.logConsole("checkLocalStorage " + exception.message);
 	    }
 	    return storage;
 	}

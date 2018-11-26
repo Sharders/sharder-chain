@@ -83,7 +83,7 @@ var NRS = (function (NRS, $, undefined) {
         var $loading = $("#account_phrase_generator_loading");
         var $loaded = $("#account_phrase_generator_loaded");
 
-        //noinspection JSUnresolvedVariable
+        // noinspection JSUnresolvedVariable
         if (window.crypto || window.msCrypto) {
             $loading.find("span.loading_text").html($.t("generating_passphrase_wait"));
         }
@@ -91,7 +91,7 @@ var NRS = (function (NRS, $, undefined) {
         $loading.show();
         $loaded.hide();
 
-        if (typeof PassPhraseGenerator == "undefined") {
+        if (typeof PassPhraseGenerator === "undefined") {
             $.when(
                 $.getScript("js/crypto/passphrasegenerator.js")
             ).done(function () {
@@ -176,8 +176,7 @@ var NRS = (function (NRS, $, undefined) {
                 $("#login_account_container_other").show();
             });
             $otherHTML.appendTo(loginAccount);
-        }
-        else {
+        } else {
             $("#login_account_container").hide();
             $("#login_account_container_other").show();
         }
@@ -478,7 +477,7 @@ var NRS = (function (NRS, $, undefined) {
                         callback();
                     }
 
-                    //页面加载:调用每个页面定义的NRS.setup.XX方法
+                    // 页面加载:调用每个页面定义的NRS.setup.XX方法
                     $.each(NRS.pages, function (key) {
                         if (key in NRS.setup) {
                             NRS.setup[key]();
@@ -520,7 +519,6 @@ var NRS = (function (NRS, $, undefined) {
                     NRS.updateApprovalRequests();
                 });
             });
-
         });
     };
 
@@ -610,7 +608,7 @@ var NRS = (function (NRS, $, undefined) {
         } else {
             NRS.setDecryptionPassword("");
             NRS.setPassword("");
-            //window.location.reload();
+            // window.location.reload();
             window.location.href = window.location.pathname;
         }
     };
@@ -618,11 +616,11 @@ var NRS = (function (NRS, $, undefined) {
     $("#logout_clear_user_data_confirm_btn").click(function (e) {
         e.preventDefault();
         if (NRS.database) {
-            //noinspection JSUnresolvedFunction
+            // noinspection JSUnresolvedFunction
             indexedDB.deleteDatabase(NRS.database.name);
         }
         if (NRS.legacyDatabase) {
-            //noinspection JSUnresolvedFunction
+            // noinspection JSUnresolvedFunction
             indexedDB.deleteDatabase(NRS.legacyDatabase.name);
         }
         NRS.removeItem("logged_in");

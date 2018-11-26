@@ -4,12 +4,12 @@ code.google.com/p/crypto-js
 (c) 2009-2013 by Jeff Mott. All rights reserved.
 code.google.com/p/crypto-js/wiki/License
 */
-var CryptoJS = CryptoJS || function (h, s) {
+var CryptoJS = CryptoJS || (function (h, s) {
     var f = {}, t = f.lib = {}, g = function () {
         }, j = t.Base = {
             extend: function (a) {
                 g.prototype = this;
-                var c = new g;
+                var c = new g();
                 a && c.mixIn(a);
                 c.hasOwnProperty("init") || (c.init = function () {
                     c.$super.init.apply(this, arguments);
@@ -49,7 +49,7 @@ var CryptoJS = CryptoJS || function (h, s) {
                 this.clamp();
                 if (b % 4) {
                     for (var e = 0; e < a; e++) c[b + e >>> 2] |= (d[e >>> 2] >>> 24 - 8 * (e % 4) & 255) << 24 - 8 * ((b + e) % 4);
-                } else if (65535 < d.length) {
+                } else if (d.length > 65535) {
                     for (e = 0; e < a; e += 4) c[b + e >>> 2] = d[e >>> 2];
                 } else {
                     c.push.apply(c, d);
@@ -117,11 +117,11 @@ var CryptoJS = CryptoJS || function (h, s) {
         },
         x = t.BufferedBlockAlgorithm = j.extend({
             reset: function () {
-                this._data = new q.init;
+                this._data = new q.init();
                 this._nDataBytes = 0;
             },
             _append: function (a) {
-                "string" == typeof a && (a = l.parse(a));
+                typeof a === "string" && (a = l.parse(a));
                 this._data.concat(a);
                 this._nDataBytes += a.sigBytes;
             },
@@ -182,11 +182,11 @@ var CryptoJS = CryptoJS || function (h, s) {
     });
     var w = f.algo = {};
     return f;
-}(Math);
+}(Math));
 (function (h) {
     for (var s = CryptoJS, f = s.lib, t = f.WordArray, g = f.Hasher, f = s.algo, j = [], q = [], v = function (a) {
         return 4294967296 * (a - (a | 0)) | 0;
-    }, u = 2, k = 0; 64 > k;) {
+    }, u = 2, k = 0; k < 64;) {
         var l;
         a: {
             l = u;
@@ -198,7 +198,7 @@ var CryptoJS = CryptoJS || function (h, s) {
             }
             l = !0;
         }
-        l && (8 > k && (j[k] = v(h.pow(u, 0.5))), q[k] = v(h.pow(u, 1 / 3)), k++);
+        l && (k < 8 && (j[k] = v(h.pow(u, 0.5))), q[k] = v(h.pow(u, 1 / 3)), k++);
         u++;
     }
     var a = [],
@@ -207,8 +207,8 @@ var CryptoJS = CryptoJS || function (h, s) {
                 this._hash = new t.init(j.slice(0));
             },
             _doProcessBlock: function (c, d) {
-                for (var b = this._hash.words, e = b[0], f = b[1], m = b[2], h = b[3], p = b[4], j = b[5], k = b[6], l = b[7], n = 0; 64 > n; n++) {
-                    if (16 > n) {
+                for (var b = this._hash.words, e = b[0], f = b[1], m = b[2], h = b[3], p = b[4], j = b[5], k = b[6], l = b[7], n = 0; n < 64; n++) {
+                    if (n < 16) {
                         a[n] =
                             c[d + n] | 0;
                     } else {
