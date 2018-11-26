@@ -4163,24 +4163,82 @@ public interface Attachment extends Appendix {
     }
 
     final class PocNodeConfiguration extends AbstractAttachment {
+
+        private final String device;
+        private final Map<String,Object> configuration;
+
+        public String getDevice() {
+            return device;
+        }
+
+        public Map<String, Object> getConfiguration() {
+            return configuration;
+        }
+
+        public PocNodeConfiguration(String device, Map<String, Object> configuration) {
+            this.device = device;
+            this.configuration = configuration;
+        }
+
+        PocNodeConfiguration(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            Map<String,Object> map = null;
+            try{
+                ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.remaining());
+                byteBuffer.put(buffer);
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
+                map = (Map<String,Object>) ois.readObject();
+                ois.close();
+            }catch (Exception e){
+                Logger.logErrorMessage("poc node configuration transaction can't load configuration from byte", e);
+            }
+            this.configuration = map;
+        }
+
+        PocNodeConfiguration(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.configuration = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("configuration"));
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(configuration);
+                os.close();
+                return device.getBytes().length + bo.toByteArray().length;
+            }catch (Exception e){
+                Logger.logDebugMessage("configuration can't turn to byte in poc node configuration", e);
+            }
+            return device.getBytes().length + (int)ObjectSizeCalculator.getObjectSize(configuration);
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(configuration);
+                os.close();
+                buffer.put(ByteBuffer.wrap(bo.toByteArray()));
+            }catch (Exception e){
+                Logger.logDebugMessage("configuration can't turn to byte in poc node configuration", e);
+            }
         }
 
         @Override
-        void putMyJSON(JSONObject json) {
-
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("device", device);
+            attachment.put("configuration", configuration);
         }
 
         @Override
         public TransactionType getTransactionType() {
-            return null;
+            return TransactionType.Poc.POC_NODE_CONFIGURATION;
         }
     }
 
@@ -4202,7 +4260,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return null;
+            return TransactionType.Poc.POC_WEIGHT;
         }
     }
 
@@ -4224,7 +4282,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return null;
+            return TransactionType.Poc.POC_ONLINE_RATE;
         }
     }
 
@@ -4246,7 +4304,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return null;
+            return TransactionType.Poc.POC_BLOCKING_MISS;
         }
     }
 
@@ -4268,7 +4326,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return null;
+            return TransactionType.Poc.POC_BIFURACTION_OF_CONVERGENCE;
         }
     }
 }
