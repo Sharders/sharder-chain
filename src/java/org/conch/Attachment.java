@@ -4161,4 +4161,114 @@ public interface Attachment extends Appendix {
             return storerId;
         }
     }
+
+    final class PocNodeConfiguration extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return null;
+        }
+    }
+
+    final class PocWeight extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return null;
+        }
+    }
+
+    final class PocOnlineRate extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return null;
+        }
+    }
+
+    final class PocBlockingMiss extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return null;
+        }
+    }
+
+    final class PocBifuractionOfConvergence extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return null;
+        }
+    }
 }
