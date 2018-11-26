@@ -22,13 +22,7 @@
 package org.conch.peer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
-import org.conch.Account;
-import org.conch.Block;
-import org.conch.Constants;
-import org.conch.Db;
-import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.*;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
 import org.conch.util.*;
@@ -45,34 +39,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.DispatcherType;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InterfaceAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.*;
 
 public final class Peers {
 
@@ -174,7 +143,7 @@ public final class Peers {
             return devPeers;
         }
 
-        return Constants.isTestnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers") : Conch.getStringListProperty("sharder.defaultPeers");
+        return Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers") : Conch.getStringListProperty("sharder.defaultPeers");
     }
 
     static {
@@ -260,11 +229,12 @@ public final class Peers {
                 String host = uri.getHost();
                 int port = uri.getPort();
                 String announcedAddress;
-                if (!Constants.isTestnet()) {
-                    if (port >= 0)
+                if (!Constants.isTestnetOrDevnet()) {
+                    if (port >= 0) {
                         announcedAddress = Conch.getMyAddress();
-                    else
+                    } else {
                         announcedAddress = host + (configuredServerPort != DEFAULT_PEER_PORT ? ":" + configuredServerPort : "");
+                    }
                 } else {
                     //[NAT] Lanproxy use serverIP+port(for client),so use host+port = myAddress
                     announcedAddress = Conch.getMyAddress();
@@ -351,7 +321,7 @@ public final class Peers {
 
         final List<String> defaultPeers = loadPeersSetting();
 
-        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnet() ? Conch.getStringListProperty("sharder.testnetPeers")
+        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.testnetPeers")
                 : Conch.getStringListProperty("sharder.wellKnownPeers"));
 
         List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
@@ -363,7 +333,7 @@ public final class Peers {
 
         maxNumberOfInboundConnections = Conch.getIntProperty("sharder.maxNumberOfInboundConnections");
         maxNumberOfOutboundConnections = Conch.getIntProperty("sharder.maxNumberOfOutboundConnections");
-        maxNumberOfConnectedPublicPeers = (Constants.isTestnet() || Constants.isDevnet()) ? Math.max(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"), MAX_PUBLIC_PEER_CONNECT_IN_TEST_OR_DEV) : Math.min(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"),
+        maxNumberOfConnectedPublicPeers = (Constants.isTestnetOrDevnet()) ? Math.max(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"), MAX_PUBLIC_PEER_CONNECT_IN_TEST_OR_DEV) : Math.min(Conch.getIntProperty("sharder.maxNumberOfConnectedPublicPeers"),
                 maxNumberOfOutboundConnections);
         maxNumberOfKnownPeers = Conch.getIntProperty("sharder.maxNumberOfKnownPeers");
         minNumberOfKnownPeers = Conch.getIntProperty("sharder.minNumberOfKnownPeers");

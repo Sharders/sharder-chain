@@ -30,16 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 public class APITestServlet extends HttpServlet {
 
@@ -50,7 +41,7 @@ public class APITestServlet extends HttpServlet {
             "    <meta charset='UTF-8'/>\n" +
             "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\n" +
             "    <meta name='viewport' content='width=device-width, initial-scale=1'>\n" +
-            "    <title>Nxt http API</title>\n" +
+                    "    <title>Sharder http API</title>\n" +
             "    <link href='css/bootstrap.min.css' rel='stylesheet' type='text/css' />\n" +
             "    <link href='css/font-awesome.min.css' rel='stylesheet' type='text/css' />\n" +
             "    <link href='css/highlight.style.css' rel='stylesheet' type='text/css' />\n" +
@@ -64,7 +55,7 @@ public class APITestServlet extends HttpServlet {
             "<div class='navbar navbar-default' role='navigation'>\n" +
             "   <div class='container' style='min-width: 90%;'>\n" +
             "       <div class='navbar-header'>\n" +
-            "           <a class='navbar-brand' href='/test'>Nxt http API</a>\n" +
+                    "           <a class='navbar-brand' href='/test'>Sharder http API</a>\n" +
             "       </div>\n" +
             "       <div class='navbar-collapse collapse'>\n" +
             "           <ul class='nav navbar-nav navbar-right'>\n" +

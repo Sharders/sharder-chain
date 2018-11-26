@@ -92,7 +92,7 @@ public final class Constants {
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
-    public static final int BLOCK_GAP = isTestnet() ?  Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap");
+    public static final int BLOCK_GAP = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap");
 
 //    public static final long INITIAL_BASE_TARGET = 6000;
 //    public static final int MIN_BLOCKTIME_LIMIT = 17;
@@ -101,15 +101,15 @@ public final class Constants {
 
     public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), 720);
     public static final long MAX_BASE_TARGET = MAX_BALANCE_SS * INITIAL_BASE_TARGET;
-    public static final long MAX_BASE_TARGET_2 = isTestnet() ? MAX_BASE_TARGET : INITIAL_BASE_TARGET * 50;
+    public static final long MAX_BASE_TARGET_2 = isTestnetOrDevnet() ? MAX_BASE_TARGET : INITIAL_BASE_TARGET * 50;
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
 
 //  public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnet ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 1440) : 1440;
 //  public static final int LEASING_DELAY = isTestnet ? Conch.getIntProperty("sharder.testnetLeasingDelay", 1440) : 1440;
     //内测期间只需要10次确认
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnet() ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 10) : 10;
-    public static final int LEASING_DELAY = isTestnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 10;
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 10) : 10;
+    public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 10;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
@@ -132,7 +132,7 @@ public final class Constants {
     public static final int MAX_PRUNABLE_MESSAGE_LENGTH = 42 * 1024;
     public static final int MAX_PRUNABLE_ENCRYPTED_MESSAGE_LENGTH = 42 * 1024;
 
-    public static final int MIN_PRUNABLE_LIFETIME = isTestnet() ? 1440 * 60 : 14 * 1440 * 60;
+    public static final int MIN_PRUNABLE_LIFETIME = isTestnetOrDevnet() ? 1440 * 60 : 14 * 1440 * 60;
     public static final int MAX_PRUNABLE_LIFETIME;
     public static final boolean ENABLE_PRUNING;
     static {
@@ -186,7 +186,7 @@ public final class Constants {
     public static final byte MIN_NUMBER_OF_SHUFFLING_PARTICIPANTS = 3;
     public static final byte MAX_NUMBER_OF_SHUFFLING_PARTICIPANTS = 30; // max possible at current block payload limit is 51
     public static final short MAX_SHUFFLING_REGISTRATION_PERIOD = (short)1440 * 7;
-    public static final short SHUFFLING_PROCESSING_DEADLINE = (short)(isTestnet() ? 10 : 100);
+    public static final short SHUFFLING_PROCESSING_DEADLINE = (short) (isTestnetOrDevnet() ? 10 : 100);
 
     public static final int MAX_TAGGED_DATA_NAME_LENGTH = 100;
     public static final int MAX_TAGGED_DATA_DESCRIPTION_LENGTH = 1000;
@@ -211,27 +211,27 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_DIRECT = 3000; //此节点数之前官方节点可直接挖矿
     public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
     public static final int TRANSPARENT_FORGING_BLOCK_5 = 0;
-    public static final int TRANSPARENT_FORGING_BLOCK_6 = isTestnet() ? 0 : 0;
+    public static final int TRANSPARENT_FORGING_BLOCK_6 = isTestnetOrDevnet() ? 0 : 0;
     public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
-    public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnet() ? 0 : 0;
-    public static final int NQT_BLOCK = isTestnet() ? 0 : 0;
-    public static final int CONCH_BV_BLOCK = isTestnet() ? 43000 : 43000;
-    public static final int FRACTIONAL_BLOCK = isTestnet() ? NQT_BLOCK : 0;
-    public static final int ASSET_EXCHANGE_BLOCK = isTestnet() ? NQT_BLOCK : 0;
-    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = isTestnet() ? NQT_BLOCK : 0;
-    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = isTestnet() ? 0 : 0;
-    public static final int DIGITAL_GOODS_STORE_BLOCK = isTestnet() ? 0 : 0;
-    public static final int MONETARY_SYSTEM_BLOCK = isTestnet() ? 0 : 0;
-    public static final int PHASING_BLOCK = isTestnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_16 = isTestnet() ? 0 : 0;
-    public static final int SHUFFLING_BLOCK = isTestnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_17 = isTestnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_18 = isTestnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_19 = isTestnet() ? 0 : 0;
-    public static final int FXT_BLOCK = isTestnet() ? 10000 : 10000; //封闭内测块高度
-    public static final int CHECKSUM_BLOCK_20 = isTestnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_21 = isTestnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_22 = isTestnet() ? 0 : 0;
+    public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CONCH_BV_BLOCK = isTestnetOrDevnet() ? 43000 : 43000;
+    public static final int FRACTIONAL_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
+    public static final int ASSET_EXCHANGE_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
+    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
+    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = isTestnetOrDevnet() ? 0 : 0;
+    public static final int DIGITAL_GOODS_STORE_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int MONETARY_SYSTEM_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int PHASING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_16 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_17 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_18 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_19 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
+    public static final int CHECKSUM_BLOCK_20 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_21 = isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_22 = isTestnetOrDevnet() ? 0 : 0;
 
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
 
@@ -241,8 +241,8 @@ public final class Constants {
     public static final int[] MIN_VERSION = new int[] {0, 0, 1};
     public static final int[] MIN_PROXY_VERSION = new int[] {0, 0, 1};
 
-    static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet() ? 50 : 100) * ONE_SS;
-    public static final long SHUFFLING_DEPOSIT_NQT = (isTestnet() ? 7 : 1000) * ONE_SS;
+    static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnetOrDevnet() ? 50 : 100) * ONE_SS;
+    public static final long SHUFFLING_DEPOSIT_NQT = (isTestnetOrDevnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
     public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix, you can replace all in files to redefine it
@@ -320,6 +320,10 @@ public final class Constants {
 
     public static final boolean isDevnet() {
         return Network.DEVNET.is(NetworkDef);
+    }
+
+    public static final boolean isTestnetOrDevnet() {
+        return isTestnet() || isDevnet();
     }
 
     public static Network getNetwork(){

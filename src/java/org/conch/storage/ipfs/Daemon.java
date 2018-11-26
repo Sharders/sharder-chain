@@ -21,6 +21,22 @@
 
 package org.conch.storage.ipfs;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.rhaz.events.EventManager;
+import io.ipfs.api.IPFS;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.conch.Conch;
+import org.conch.Constants;
+import org.conch.storage.ipfs.DaemonEvent.DaemonEventType;
+import org.conch.util.Convert;
+import org.conch.util.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,36 +46,21 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.SystemUtils;
-
-import fr.rhaz.events.EventManager;
-import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.storage.ipfs.DaemonEvent.DaemonEventType;
-import io.ipfs.api.IPFS;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-
-public class Daemon{
+public class Daemon {
     private IPFS ipfs;
     private OS os;
     private boolean attached = false;
     private Thread thread = null;
     private File bin;
     private File swarmKey;
-    private boolean useServerProfile = Convert.nullToEmpty(Conch.getStringProperty("sharder.myAddress")).trim().length()>0;
+    private boolean useServerProfile =
+            Convert.nullToEmpty(Conch.getStringProperty("sharder.myAddress")).trim().length() > 0;
     private String swarmPort = Conch.getStringProperty("sharder.storage.ipfs.swarm.port");
     private String apiPort = Conch.getStringProperty("sharder.storage.ipfs.api.port");
     private String gatewayPort = Conch.getStringProperty("sharder.storage.ipfs.gateway.port");
 
-    private String ipfsStorePathStr = Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs");
+    private String ipfsStorePathStr =
+            Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs");
     private File ipfsStorePath = new File(ipfsStorePathStr);
     private File storepath = new File("storage/ipfs");
     private File binspath = new File("storage/ipfs/bins");
@@ -113,7 +114,7 @@ public class Daemon{
         this.printer = printer;
 
         getOS();
-        if(os == null || (os.equals(OS.FREEBSD) && !is64bits())) {
+        if (os == null || (os.equals(OS.FREEBSD) && !is64bits())) {
             print("System not supported");
             System.exit(1);
         }
@@ -131,64 +132,69 @@ public class Daemon{
     }
 
     public void stop() {
-        if(thread != null && thread.isAlive()) thread.interrupt();
+        if (thread != null && thread.isAlive()) thread.interrupt();
     }
 
     public void start() {
-        if(thread != null && thread.isAlive()) thread.interrupt();
-        thread = run(new Runnable() {
+        if (thread != null && thread.isAlive()) thread.interrupt();
+        thread =
+                run(
+                        new Runnable() {
 
-            Process init;
-            Process daemon;
-            Process config;
+                            Process init;
+                            Process daemon;
+                            Process config;
 
-            public void stop() {
-                if(daemon.isAlive()) {
-                    daemon.destroy();
-                    print("Daemon stopped");
-                    eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STOPPED));
+                            public void stop() {
+                                if (daemon.isAlive()) {
+                                    daemon.destroy();
+                                    print("Daemon stopped");
+                                    eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STOPPED));
                 }
-            }
+                            }
 
-            @Override
-            public void run() {
+                            @Override
+                            public void run() {
 
-                Runtime.getRuntime().addShutdownHook(
-                        new Thread(() -> stop())
-                );
+                                Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
 
                 new File(getStorePath(), "repo.lock").delete();
 
                 try {
 
-                    Runtime.getRuntime().addShutdownHook(
-                            new Thread(() -> stop())
-                    );
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
 
                     new File(getStorePath(), "repo.lock").delete();
 
-                    // if nodes with public IPv4 address (servers, VPSes, etc.), disables host and content discovery in local networks.
-                    String profileParam = useServerProfile?"--profile=server":"";
+                    // if nodes with public IPv4 address (servers, VPSes, etc.), disables host and
+                    // content discovery in local networks.
+                    String profileParam = useServerProfile ? "--profile=server" : "";
                     init = process("init", "-e", profileParam);
                     gobble(init);
                     eventman.call(new DaemonEvent(DaemonEventType.INIT_STARTED));
                     init.waitFor();
                     eventman.call(new DaemonEvent(DaemonEventType.INIT_DONE));
 
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 swarmKey = new File(getIpfsStorePath(), "swarm.key");
                 if (!swarmKey.exists()) {
-                    print("move swarm key file from " + getStorePath() + " to " + getIpfsStorePath() + " ...");
+                    print(
+                            "move swarm key file from "
+                                    + getStorePath()
+                                    + " to "
+                                    + getIpfsStorePath()
+                                    + " ...");
                     try {
-                        FileUtils.copyFileToDirectory(new File(getStorePath(), "swarm.key"), swarmKey.getParentFile() , false);
+                        FileUtils.copyFileToDirectory(
+                                new File(getStorePath(), "swarm.key"), swarmKey.getParentFile(), false);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-                //Config
+                                // Config
                 File configFile = new File(getIpfsStorePath(), "config");
                 JsonNode configRootNode = null;
                 ObjectMapper objMapper = new ObjectMapper();
@@ -196,15 +202,21 @@ public class Daemon{
                     configRootNode = objMapper.readValue(configFile, ObjectNode.class);
                     JsonNode bootstrapNode = configRootNode.path("Bootstrap");
                     if (!bootstrapNode.isNull()) {
-                        List<String> defaultBootstrapNodes = Constants.isTestnet() || Constants.isDevnet() ? Conch.getStringListProperty("sharder.storage.ipfs.bootstrap.defaultTestnetNodes")
-                                : Conch.getStringListProperty("sharder.storage.ipfs.bootstrap.defaultNodes");
-                        ((ObjectNode) configRootNode).putPOJO("Bootstrap", defaultBootstrapNodes.toArray());
+                        List<String> defaultBootstrapNodes =
+                                Constants.isTestnetOrDevnet()
+                                        ? Conch.getStringListProperty(
+                                        "sharder.storage.ipfs.bootstrap.defaultTestnetNodes")
+                                        : Conch.getStringListProperty(
+                                        "sharder.storage.ipfs.bootstrap.defaultNodes");
+                        ((ObjectNode) configRootNode)
+                                .putPOJO("Bootstrap", defaultBootstrapNodes.toArray());
                     }
                     JsonNode addressNode = configRootNode.path("Addresses");
                     JsonNode apiNode = addressNode.path("API");
                     // 127.0.0.1 means can be accessed locally
                     // 0.0.0.0 means anyone can accessed
-                    // API: call api; Gateway: get and view the file by ssid; Swarm : connect to other node
+                    // API: call api; Gateway: get and view the file by ssid; Swarm : connect to other
+                    // node
                     if (!apiNode.isNull()) {
                         ((ObjectNode) addressNode).put("API", "/ip4/127.0.0.1/tcp/" + apiPort);
                     }
@@ -215,10 +227,12 @@ public class Daemon{
                     JsonNode swarmNode = addressNode.path("Swarm");
 
                     if (!swarmNode.isNull()) {
-                        ((ObjectNode) addressNode).putPOJO("Swarm", new String[]{
-                                "/ip4/0.0.0.0/tcp/" + swarmPort,
-                                "/ip6/::/tcp/" + swarmPort
-                        });
+                        ((ObjectNode) addressNode)
+                                .putPOJO(
+                                        "Swarm",
+                                        new String[]{
+                                                "/ip4/0.0.0.0/tcp/" + swarmPort, "/ip6/::/tcp/" + swarmPort
+                                        });
                     }
 
                     objMapper.writeValue(configFile, configRootNode);
@@ -226,34 +240,31 @@ public class Daemon{
                     e.printStackTrace();
                 }
 
-
                 try {
                     // enable-gc will auto delete unpin profile in storage network
-                    daemon = process("daemon",enableGc?"--enable-gc":"","--enable-pubsub-experiment");
+                    daemon =
+                            process(
+                                    "daemon", enableGc ? "--enable-gc" : "", "--enable-pubsub-experiment");
                     gobble(daemon);
                     eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STARTED));
                     daemon.waitFor();
 
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
 
                     stop();
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-        });
+                            }
+                        });
     }
 
     public void getOS() {
-        if(SystemUtils.IS_OS_WINDOWS)
-            os = OS.WINDOWS;
-        if(SystemUtils.IS_OS_LINUX)
-            os = OS.LINUX;
-        if(SystemUtils.IS_OS_MAC)
-            os = OS.MAC;
-        if(SystemUtils.IS_OS_FREE_BSD)
-            os = OS.FREEBSD;
+        if (SystemUtils.IS_OS_WINDOWS) os = OS.WINDOWS;
+        if (SystemUtils.IS_OS_LINUX) os = OS.LINUX;
+        if (SystemUtils.IS_OS_MAC) os = OS.MAC;
+        if (SystemUtils.IS_OS_FREE_BSD) os = OS.FREEBSD;
     }
 
     public boolean is64bits() {
@@ -265,80 +276,89 @@ public class Daemon{
         return arch.contains("arm") || arch.contains("aarch");
     }
 
-    public void binaries() throws IOException  {
-        switch(os) {
-            case WINDOWS:{
+    public void binaries() throws IOException {
+        switch (os) {
+            case WINDOWS: {
                 bin = new File(binpath, "bin.exe");
                 break;
             }
-            case MAC: case LINUX: case FREEBSD: {
+            case MAC:
+            case LINUX:
+            case FREEBSD: {
                 bin = new File(binpath, "bin");
                 break;
             }
         }
-        if(!bin.exists()) getClient();
-        if(!bin.canExecute()) {
+        if (!bin.exists()) getClient();
+        if (!bin.canExecute()) {
             bin.setExecutable(true);
         }
     }
 
-    public void getFileFromTarGz(String path, File arch, File destination) throws IOException{
+    public void getFileFromTarGz(String path, File arch, File destination) throws IOException {
         GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(arch));
-        try(TarArchiveInputStream tis = new TarArchiveInputStream(gzis)){
+        try (TarArchiveInputStream tis = new TarArchiveInputStream(gzis)) {
             ArchiveEntry te;
-            while((te = tis.getNextEntry()) != null) {
-                if(!te.getName().equals(path)) continue;
-                FileUtils.copyInputStreamToFile(tis, destination); break;
+            while ((te = tis.getNextEntry()) != null) {
+                if (!te.getName().equals(path)) continue;
+                FileUtils.copyInputStreamToFile(tis, destination);
+                break;
             }
         }
     }
 
-    public void getFileFromZip(String path, File zip, File destination) throws IOException{
-        try(ZipInputStream zis = new ZipInputStream(new FileInputStream(zip))){
+    public void getFileFromZip(String path, File zip, File destination) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zip))) {
             ZipEntry ze;
-            while((ze = zis.getNextEntry()) != null) {
-                if(!ze.getName().equals(path)) continue;
-                FileUtils.copyInputStreamToFile(zis, destination); break;
+            while ((ze = zis.getNextEntry()) != null) {
+                if (!ze.getName().equals(path)) continue;
+                FileUtils.copyInputStreamToFile(zis, destination);
+                break;
             }
         }
     }
 
-    public void getClient() throws IOException{
+    public void getClient() throws IOException {
         File archive;
         String path;
         String fileName;
-        switch(os) {
-            case WINDOWS:{
+        switch (os) {
+            case WINDOWS: {
                 fileName = "windows" + "-" + "amd64" + ".zip";
                 break;
             }
-            case MAC:{
-                fileName = "darwin" + "-" + (is64bits()?"amd64":"386") + ".tar.gz";
+            case MAC: {
+                fileName = "darwin" + "-" + (is64bits() ? "amd64" : "386") + ".tar.gz";
                 break;
             }
-            case LINUX:{
-                fileName = "linux" + "-" + (isArm()?"arm":(is64bits()?"amd64":"386")) + ".tar.gz";
+            case LINUX: {
+                fileName = "linux" + "-" + (isArm() ? "arm" : (is64bits() ? "amd64" : "386")) + ".tar.gz";
                 break;
             }
-            case FREEBSD:{
-                fileName = "freebsd" + "-"  + (isArm()?"arm":(is64bits()?"amd64":"386")) + ".tar.gz";
+            case FREEBSD: {
+                fileName =
+                        "freebsd" + "-" + (isArm() ? "arm" : (is64bits() ? "amd64" : "386")) + ".tar.gz";
                 break;
             }
-            default: return;
+            default:
+                return;
         }
 
-        switch(os) {
-            case WINDOWS:{
+        switch (os) {
+            case WINDOWS: {
                 archive = new File(binpath, "bin.zip");
                 path = "go-ipfs/ipfs.exe";
                 break;
             }
-            case MAC: case LINUX: case FREEBSD:{
+            case MAC:
+            case LINUX:
+            case FREEBSD: {
                 archive = new File(binpath, "bin.zip");
                 path = "go-ipfs/ipfs";
                 break;
             }
-            default: return;
+            default:
+                return;
         }
 
         print("Copying bin from " + fileName + " ...");
@@ -359,18 +379,20 @@ public class Daemon{
     }
 
     public Thread run(boolean gobble, String... args) {
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Thread t =
+                new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
                 try {
                     Process p = process(args);
-                    if(gobble) gobble(p);
+                    if (gobble) gobble(p);
                     p.waitFor();
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
-        });
+                            }
+                        });
 
         t.start();
         return t;
@@ -384,7 +406,7 @@ public class Daemon{
         this.printer = printer;
     }
 
-    public static Consumer<String> defaultPrinter(){
+    public static Consumer<String> defaultPrinter() {
         return new Consumer<String>() {
             @Override
             public void accept(String msg) {
@@ -401,7 +423,7 @@ public class Daemon{
         this.gobbler = gobbler;
     }
 
-    public static Consumer<Process> defaultGobbler(){
+    public static Consumer<Process> defaultGobbler() {
         return new Consumer<Process>() {
             @Override
             public void accept(Process p) {
@@ -410,40 +432,46 @@ public class Daemon{
                 errorGobbler.start();
                 outputGobbler.start();
             }
-
         };
     }
 
-    public Process process(String... args) throws IOException{
+    public Process process(String... args) throws IOException {
         String[] cmd = ArrayUtils.insert(0, args, getBin().getPath());
-        return Runtime.getRuntime().exec(cmd, new String[] {"IPFS_PATH="+ipfsStorePath.getAbsolutePath()});
+        return Runtime.getRuntime()
+                .exec(cmd, new String[]{"IPFS_PATH=" + ipfsStorePath.getAbsolutePath()});
     }
 
     public void attach() {
         this.attached = false;
-        while(!attached) {
+        while (!attached) {
             try {
                 ipfs = new IPFS("/ip4/127.0.0.1/tcp/" + apiPort);
-//                ipfs.refs.local();
-                attached  = true;
-            } catch (Exception e) {}
+                //                ipfs.refs.local();
+                attached = true;
+            } catch (Exception e) {
+            }
         }
         eventman.call(new DaemonEvent(DaemonEventType.ATTACHED));
         print("Successfully attached");
     }
 
     /**
-     * If you can't inst the Daemon in the Mac OS, you can call this method manually. We'll fix this environment problem later. xy-2018.10.18
+     * If you can't inst the Daemon in the Mac OS, you can call this method manually. We'll fix this
+     * environment problem later. xy-2018.10.18
      *
-     * This method will init the ipfs server and generate the related files into specified repo
+     * <p>This method will init the ipfs server and generate the related files into specified repo
      */
-    public static void initIPFS4Mac(){
+    public static void initIPFS4Mac() {
 
-        File ipfsRepo = new File(Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs"));
+        File ipfsRepo =
+                new File(Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs"));
         File ipfsCmd = new File("storage/ipfs/bin");
 
         try {
-            Runtime.getRuntime().exec(new String[]{ipfsCmd.getPath(),"init","-e"}, new String[] {"IPFS_PATH=" + ipfsRepo.getAbsolutePath()});
+            Runtime.getRuntime()
+                    .exec(
+                            new String[]{ipfsCmd.getPath(), "init", "-e"},
+                            new String[]{"IPFS_PATH=" + ipfsRepo.getAbsolutePath()});
         } catch (IOException e) {
             e.printStackTrace();
         }

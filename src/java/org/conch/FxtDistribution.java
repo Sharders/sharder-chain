@@ -42,13 +42,13 @@ public final class FxtDistribution implements Listener<Block> {
     public static final int DISTRIBUTION_STEP = 60; // take snapshots every 60 blocks
 
     //FIXME[xy] check and modify following hard code
-    public static final long FXT_ASSET_ID = Long.parseUnsignedLong(Constants.isTestnet() ? "861080501219231688" : "12422608354438203866");
-    public static final long FXT_ISSUER_ID = Convert.parseAccountId(Constants.isTestnet() ? "SSA-F8FG-RDWZ-GRW7-4GSK9" : "SSA-FQ28-G9SQ-BG8M-6V6QH");
+    public static final long FXT_ASSET_ID = Long.parseUnsignedLong(Constants.isTestnetOrDevnet() ? "861080501219231688" : "12422608354438203866");
+    public static final long FXT_ISSUER_ID = Convert.parseAccountId(Constants.isTestnetOrDevnet() ? "SSA-F8FG-RDWZ-GRW7-4GSK9" : "SSA-FQ28-G9SQ-BG8M-6V6QH");
 
     private static final BigInteger BALANCE_DIVIDER = BigInteger.valueOf(10000L * (DISTRIBUTION_END - DISTRIBUTION_START) / DISTRIBUTION_STEP);
     private static final String logAccount = Conch.getStringProperty("sharder.logFxtBalance");
     private static final long logAccountId = Convert.parseAccountId(logAccount);
-    private static final String fxtJsonFile = Constants.isTestnet() ? "fxt-testnet.json" : "fxt.json";
+    private static final String fxtJsonFile = Constants.isTestnetOrDevnet() ? "fxt-testnet.json" : "fxt.json";
     private static final boolean hasSnapshot = ClassLoader.getSystemResource(fxtJsonFile) != null;
 
     private static final DerivedDbTable accountFXTTable = new DerivedDbTable("account_fxt") {

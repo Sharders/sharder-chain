@@ -43,7 +43,10 @@ public final class PeerLoad {
     public PeerLoad(String host, int port, int load) {
         this.state = Peer.State.CONNECTED;
         this.host = host;
-        this.port = (Constants.isTestnet() || Constants.isDevnet()) ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
+        this.port =
+                (Constants.isTestnetOrDevnet())
+                        ? API.TESTNET_API_PORT
+                        : Conch.getIntProperty("sharder.apiServerPort");
         this.uri = host == null ? null : "http://" + host + ":" + this.port;
         this.load = load;
         this.lastUpdate = System.currentTimeMillis();
@@ -57,13 +60,13 @@ public final class PeerLoad {
         return lastUpdate;
     }
 
-    public int loadUp(int load){
+    public int loadUp(int load) {
         this.load = this.load == -1 ? load : this.load + load;
         lastUpdate = System.currentTimeMillis();
         return this.load;
     }
 
-    public int loadDown(int load){
+    public int loadDown(int load) {
         this.load = this.load == -1 ? 0 : this.load - load;
         lastUpdate = System.currentTimeMillis();
         return this.load;
@@ -111,11 +114,11 @@ public final class PeerLoad {
 
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
-        json.put("host",host);
-        json.put("port",port);
-        json.put("uri",uri);
-        json.put("load",load);
-        json.put("lastUpdate",lastUpdate);
+        json.put("host", host);
+        json.put("port", port);
+        json.put("uri", uri);
+        json.put("load", load);
+        json.put("lastUpdate", lastUpdate);
         return json;
     }
 }
