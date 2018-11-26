@@ -24,6 +24,7 @@ package org.conch;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
+import org.conch.mint.pool.PoolRule;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -3771,7 +3772,7 @@ public interface Attachment extends Appendix {
         SharderPoolCreate(JSONObject attachmentData) {
             super(attachmentData);
             this.period = ((Long) attachmentData.get("period")).intValue();
-            this.rule = Rule.jsonObjectToMap((JSONObject)attachmentData.get("rule"));
+            this.rule = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("rule"));
         }
 
         public SharderPoolCreate(int period, Map<String, Object> rule) {

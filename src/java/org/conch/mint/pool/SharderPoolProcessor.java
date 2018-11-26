@@ -1,4 +1,4 @@
-package org.conch.pool;
+package org.conch.mint.pool;
 
 import org.conch.*;
 import org.conch.util.Logger;
@@ -45,7 +45,7 @@ public class SharderPoolProcessor implements Serializable {
         this.poolId = id;
         this.startBlockNo = startBlockNo;
         this.endBlockNo = endBlockNo;
-        this.level = Rule.getLevel(creatorId);
+        this.level = PoolRule.getLevel(creatorId);
     }
 
     public static void createSharderPool(
@@ -164,7 +164,6 @@ public class SharderPoolProcessor implements Serializable {
         forgePool.historicalIncome += incom;
     }
 
-
     private static final String LOCAL_STORAGE_FORDER = Db.getDir() + File.separator + "local";
     private static final String LOCAL_STOAGE_SHARDER_POOLS = "SharderPools";
     private static final String LOCAL_STOAGE_DESTROYED_POOLS = "DestroyedPools";
@@ -172,7 +171,8 @@ public class SharderPoolProcessor implements Serializable {
     static {
         File file = new File(getLocalStoragePath(LOCAL_STOAGE_SHARDER_POOLS));
         if (file.exists()) {
-            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) getObjFromFile(LOCAL_STOAGE_SHARDER_POOLS);
+            sharderPools =
+                    (ConcurrentMap<Long, SharderPoolProcessor>) getObjFromFile(LOCAL_STOAGE_SHARDER_POOLS);
         } else {
             // TODO delete by user ,pop off get block from network
             sharderPools = new ConcurrentHashMap<>();
@@ -181,7 +181,8 @@ public class SharderPoolProcessor implements Serializable {
         file = new File(getLocalStoragePath(LOCAL_STOAGE_DESTROYED_POOLS));
         if (file.exists()) {
             destroyedPools =
-                    (ConcurrentMap<Long, List<SharderPoolProcessor>>) getObjFromFile(LOCAL_STOAGE_DESTROYED_POOLS);
+                    (ConcurrentMap<Long, List<SharderPoolProcessor>>)
+                            getObjFromFile(LOCAL_STOAGE_DESTROYED_POOLS);
         } else {
             // TODO delete by user
             destroyedPools = new ConcurrentHashMap<>();
@@ -259,7 +260,7 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static void init() {
-        Rule.init();
+        PoolRule.init();
     }
 
     private static String getLocalStoragePath(String fileName) {
@@ -271,7 +272,8 @@ public class SharderPoolProcessor implements Serializable {
             File localStorageFolder = new File(LOCAL_STORAGE_FORDER);
             if (!localStorageFolder.exists()) localStorageFolder.mkdir();
 
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getLocalStoragePath(fileName)));
+            ObjectOutputStream oos =
+                    new ObjectOutputStream(new FileOutputStream(getLocalStoragePath(fileName)));
             oos.writeObject(o);
             oos.close();
         } catch (Exception e) {
@@ -281,7 +283,8 @@ public class SharderPoolProcessor implements Serializable {
 
     private static Object getObjFromFile(String fileName) {
         try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
+            ObjectInputStream ois =
+                    new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
             Object object = ois.readObject();
             return object;
         } catch (Exception e) {

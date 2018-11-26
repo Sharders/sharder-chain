@@ -1,7 +1,11 @@
 package org.conch.http;
 
-import org.conch.*;
-import org.conch.pool.SharderPoolProcessor;
+import org.conch.Account;
+import org.conch.Attachment;
+import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.mint.pool.PoolRule;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -34,7 +38,7 @@ public abstract class SharderPoolTx {
             } catch (Exception e) {
                 Logger.logErrorMessage("cant obtain rule when create forge pool");
             }
-            Map<String, Object> rule = Rule.jsonObjectToMap(rules);
+            Map<String, Object> rule = PoolRule.jsonObjectToMap(rules);
             Attachment attachment = new Attachment.SharderPoolCreate(period, rule);
             return createTransaction(req, account, 0, 0, attachment);
         }
@@ -158,7 +162,7 @@ public abstract class SharderPoolTx {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            return Rule.getTemplate(creatorId);
+            return PoolRule.getTemplate(creatorId);
         }
 
         @Override

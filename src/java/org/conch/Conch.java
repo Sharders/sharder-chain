@@ -32,9 +32,9 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
-import org.conch.pool.SharderPoolProcessor;
 import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -704,7 +704,7 @@ public final class Conch {
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
-            // TODO support windows command
+            // TODO[Enh] support windows command
             Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);

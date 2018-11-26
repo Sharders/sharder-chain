@@ -72,7 +72,7 @@ public final class Constants {
         }
     }
 
-    public static final String NetworkDef = Conch.getStringProperty("sharder.network");
+    private static final String NetworkDef = Conch.getStringProperty("sharder.network");
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
@@ -200,9 +200,7 @@ public final class Constants {
     public static final int MAX_STORED_DATA_CHANNEL_LENGTH = 100;
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
-
-
-    /**conch**/
+    
     public static final int ALIAS_SYSTEM_BLOCK = 0;
     public static final int TRANSPARENT_FORGING_BLOCK = 0;
     public static final int ARBITRARY_MESSAGES_BLOCK = 0;

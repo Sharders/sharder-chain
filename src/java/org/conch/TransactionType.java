@@ -26,7 +26,8 @@ import org.apache.tika.mime.MediaType;
 import org.conch.Account.ControlType;
 import org.conch.Attachment.AbstractAttachment;
 import org.conch.cpos.core.ConchGenesis;
-import org.conch.pool.SharderPoolProcessor;
+import org.conch.mint.pool.PoolRule;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -506,7 +507,7 @@ public abstract class TransactionType {
                 senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
                 senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
             }else {
-                Map<Long,Long> rewardList = Rule.getRewardMap(senderAccount.getId(),coinBase.getGeneratorId(),transaction.getAmountNQT(),consignors);
+                Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for(long id : rewardList.keySet()){
                     Account account = Account.getAccount(id);
                     account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
@@ -566,7 +567,7 @@ public abstract class TransactionType {
                     senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
                     senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
                 }else {
-                    Map<Long,Long> rewardList = Rule.getRewardMap(senderAccount.getId(),coinBase.getGeneratorId(),transaction.getAmountNQT(),consignors);
+                    Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                     for(long id : rewardList.keySet()){
                         Account account = Account.getAccount(id);
                         account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
@@ -3411,7 +3412,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Creator already owned one forge pool " + poolId);
                 }
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
-                if(!Rule.validateRule(transaction.getSenderId(),Rule.mapToJsonObject(create.getRule()))){
+                if (!PoolRule.validateRule(transaction.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
                     throw new ConchException.NotValidException("forge pool is invalid," + transaction.getSenderId());
                 }
                 //TODO unconfirmed transaction already has create forge pool
@@ -3424,7 +3425,7 @@ public abstract class TransactionType {
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
                 SharderPoolProcessor.createSharderPool(senderAccount.getId(), transaction.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
                         curHeight + Constants.SHARDER_POOL_DELAY + create.getPeriod(),
-                        Rule.getRuleInstance(senderAccount.getId(),Rule.mapToJsonObject(create.getRule())));
+                        PoolRule.getRuleInstance(senderAccount.getId(), PoolRule.mapToJsonObject(create.getRule())));
             }
 
             @Override
@@ -3563,7 +3564,7 @@ public abstract class TransactionType {
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
                     throw new ConchException.NotValidException("Sharder pool will be destroyed at " + endHeight + " before transaction apply at " + curHeight);
                 }
-                if (!Rule.validateConsignor(SharderPoolProcessor.getSharderPool(join.getPoolId()).getCreatorId(), join, forgePool.getRule())) {
+                if (!PoolRule.validateConsignor(SharderPoolProcessor.getSharderPool(join.getPoolId()).getCreatorId(), join, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
 
@@ -3642,7 +3643,7 @@ public abstract class TransactionType {
                 if (curHeight + Constants.SHARDER_POOL_DELAY > forgePool.getEndBlockNo()) {
                     throw new ConchException.NotValidException("Forge pool will be destroyed at " + forgePool.getEndBlockNo() + " before transaction apply at " + curHeight);
                 }
-                if (!Rule.validateConsignor(SharderPoolProcessor.getSharderPool(poolId).getCreatorId(), quit, forgePool.getRule())) {
+                if (!PoolRule.validateConsignor(SharderPoolProcessor.getSharderPool(poolId).getCreatorId(), quit, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
             }

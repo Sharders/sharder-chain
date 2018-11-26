@@ -22,7 +22,7 @@
 package org.conch;
 
 import org.conch.crypto.Crypto;
-import org.conch.pool.SharderPoolProcessor;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.util.*;
 
 import java.math.BigInteger;
