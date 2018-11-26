@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Constants;
 import org.conch.Conch;
+import org.conch.Constants;
 import org.conch.http.biz.BizParameterRequestWrapper;
 import org.conch.http.biz.BizServlet;
 import org.conch.peer.Peers;
@@ -34,7 +34,10 @@ import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.*;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -120,8 +123,8 @@ public final class API {
 
         boolean enableAPIServer = Conch.getBooleanProperty("sharder.enableAPIServer");
         if (enableAPIServer) {
-            final int port = (Constants.isTestnet() || Constants.isDevnet()) ? TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
-            final int sslPort = (Constants.isTestnet() || Constants.isDevnet()) ? TESTNET_API_SSLPORT : Conch.getIntProperty("sharder.apiServerSSLPort");
+            final int port = (Constants.isTestnetOrDevnet()) ? TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
+            final int sslPort = (Constants.isTestnetOrDevnet()) ? TESTNET_API_SSLPORT : Conch.getIntProperty("sharder.apiServerSSLPort");
             final String host = Conch.getStringProperty("sharder.apiServerHost");
             disableAdminPassword = Conch.getBooleanProperty("sharder.disableAdminPassword") || ("127.0.0.1".equals(host) && adminPassword.isEmpty());
 

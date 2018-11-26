@@ -22,7 +22,6 @@
 package org.conch.env;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.conch.*;
 import org.conch.http.API;
 import org.conch.peer.Peers;
@@ -73,7 +72,7 @@ public class DesktopSystemTray {
     }
 
     private static String getNetwork(){
-        return Constants.isDevnet() ? getItemDisplay("DevNet") : (Constants.isTestnet() ? getItemDisplay("TestNet") : getItemDisplay("MainNet"));
+        return getItemDisplay(Constants.getNetwork().getName());
     }
 
 
@@ -106,9 +105,9 @@ public class DesktopSystemTray {
         itemNameMap.put("Environment",new ItemName("Environment","环境信息"));
         itemNameMap.put("NumberOP",new ItemName("Number of peers","节点数"));
         itemNameMap.put("Unavailable",new ItemName("Unavailable","不可用"));
-        itemNameMap.put("DevNet",new ItemName("DevNet","开发网络"));
-        itemNameMap.put("TestNet",new ItemName("TestNet","测试网络"));
-        itemNameMap.put("MainNet",new ItemName("MainNet","正式网络"));
+        itemNameMap.put("DevNet", new ItemName("Devnet", "开发网络"));
+        itemNameMap.put("TestNet", new ItemName("Testnet", "测试网络"));
+        itemNameMap.put("MainNet", new ItemName("Mainnet", "正式网络"));
         itemNameMap.put("AvailableP",new ItemName("Available processors","矿工"));
         itemNameMap.put("MaxM",new ItemName("Max memory","最大内存"));
         itemNameMap.put("TotalM",new ItemName("Total memory","占用内存"));

@@ -152,7 +152,7 @@ public final class PhasingParams {
 
         voteWeighting.validate();
 
-        if (Constants.isTestnet() && Conch.getBlockchain().getHeight() < Constants.FXT_BLOCK) {
+        if (Constants.isTestnetOrDevnet() && Conch.getBlockchain().getHeight() < Constants.FXT_BLOCK) {
             return;
         }
 

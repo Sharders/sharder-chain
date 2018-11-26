@@ -21,8 +21,8 @@
 
 package org.conch.tools;
 
-import org.conch.Constants;
 import org.conch.Conch;
+import org.conch.Constants;
 import org.conch.util.Logger;
 
 import java.io.File;
@@ -32,23 +32,22 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 
 /**
- * Compact and reorganize the NRS database.  The NRS application must not be
- * running.
+ * Compact and reorganize the NRS database. The NRS application must not be running.
  *
- * To run the database compact tool on Linux or Mac:
+ * <p>To run the database compact tool on Linux or Mac:
  *
- *   java -cp "classes:lib/*:conf" org.conch.tools.CompactDatabase
+ * <p>java -cp "classes:lib/*:conf" org.conch.tools.CompactDatabase
  *
- * To run the database compact tool on Windows:
+ * <p>To run the database compact tool on Windows:
  *
- *   java -cp "classes;lib/*;conf" -Dsharder.runtime.mode=desktop org.conch.tools.CompactDatabase
+ * <p>java -cp "classes;lib/*;conf" -Dsharder.runtime.mode=desktop org.conch.tools.CompactDatabase
  */
 public class CompactDatabase {
 
     /**
      * Compact the NRS database
      *
-     * @param   args                Command line arguments
+     * @param args Command line arguments
      */
     public static void main(String[] args) {
         //
@@ -74,7 +73,7 @@ public class CompactDatabase {
         //
         // Get the database URL
         //
-        String dbPrefix = Constants.isTestnet() || Constants.isDevnet() ? "sharder.testDb" : "sharder.db";
+        String dbPrefix = Constants.isTestnetOrDevnet() ? "sharder.testDb" : "sharder.db";
         String dbType = Conch.getStringProperty(dbPrefix + "Type");
         if (!"h2".equals(dbType)) {
             Logger.logErrorMessage("Database type must be 'h2'");
@@ -98,7 +97,7 @@ public class CompactDatabase {
         //
         int pos = dbUrl.indexOf(':');
         if (pos >= 0) {
-            pos = dbUrl.indexOf(':', pos+1);
+            pos = dbUrl.indexOf(':', pos + 1);
         }
         if (pos < 0) {
             Logger.logErrorMessage("Malformed database URL: " + dbUrl);
@@ -115,8 +114,7 @@ public class CompactDatabase {
         //
         // Remove the optional 'file' operand
         //
-        if (dbDir.startsWith("file:"))
-            dbDir = dbDir.substring(5);
+        if (dbDir.startsWith("file:")) dbDir = dbDir.substring(5);
         //
         // Remove the database prefix from the end of the database path.  The path
         // separator can be either '/' or '\' (Windows will accept either separator
@@ -162,7 +160,7 @@ public class CompactDatabase {
                 }
             }
             try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-                    Statement s = conn.createStatement()) {
+                 Statement s = conn.createStatement()) {
                 s.execute("SCRIPT TO '" + sqlFile.getPath() + "' COMPRESSION GZIP CHARSET 'UTF-8'");
             }
             //
@@ -170,12 +168,12 @@ public class CompactDatabase {
             //
             Logger.logInfoMessage("Creating the new database");
             if (!dbFile.renameTo(oldFile)) {
-                throw new IOException(String.format("Unable to rename '%s' to '%s'",
-                                                    dbFile.getPath(), oldFile.getPath()));
+                throw new IOException(
+                        String.format("Unable to rename '%s' to '%s'", dbFile.getPath(), oldFile.getPath()));
             }
             phase = 1;
             try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-                    Statement s = conn.createStatement()) {
+                 Statement s = conn.createStatement()) {
                 s.execute("RUNSCRIPT FROM '" + sqlFile.getPath() + "' COMPRESSION GZIP CHARSET 'UTF-8'");
                 s.execute("ANALYZE");
             }
@@ -217,8 +215,9 @@ public class CompactDatabase {
                         }
                     }
                     if (!oldFile.renameTo(dbFile)) {
-                        Logger.logErrorMessage(String.format("Unable to rename '%s' to '%s'",
-                                                             oldFile.getPath(), dbFile.getPath()));
+                        Logger.logErrorMessage(
+                                String.format(
+                                        "Unable to rename '%s' to '%s'", oldFile.getPath(), dbFile.getPath()));
                     }
                     break;
                 case 2:
