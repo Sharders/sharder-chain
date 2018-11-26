@@ -11,11 +11,15 @@ sharder_test_db
 *.bat
 jre
 
+/html/www/
+
 conf/.lock
 conf/localstorage
 
 DestroyForgePool
 ForgePools
+SharderPools
+DestroyedPools
 
 # storage/ipfs/bin
 storage/

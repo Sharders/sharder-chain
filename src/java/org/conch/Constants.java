@@ -21,6 +21,9 @@
 
 package org.conch;
 
+import org.apache.commons.lang3.StringUtils;
+import org.conch.env.RuntimeEnvironment;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -72,7 +75,7 @@ public final class Constants {
         }
     }
 
-    private static final String NetworkDef = Conch.getStringProperty("sharder.network");
+    private static String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
@@ -321,5 +324,18 @@ public final class Constants {
 
     public static Network getNetwork(){
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
+    }
+
+    /**
+     * Read network definition from environment firstly.
+     * Then read the definition from properties file.
+     *
+     * @return network definition
+     */
+    private static final String loadNetworkDefinition() {
+        String networkInEnv = System.getProperty(RuntimeEnvironment.NETWORK_ARG);
+        if (StringUtils.isNotBlank(networkInEnv)) return networkInEnv;
+
+        return Conch.getStringProperty("sharder.network");
     }
 }

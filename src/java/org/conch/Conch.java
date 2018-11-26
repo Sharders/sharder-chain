@@ -446,9 +446,6 @@ public final class Conch {
         private static volatile boolean initialized = false;
 
         static {
-            //[NAT] Run NAT client command
-
-
             try {
                 long startTime = System.currentTimeMillis();
                 Logger.init();
@@ -501,7 +498,6 @@ public final class Conch {
                 Users.init();
                 SharderPoolProcessor.init();
                 DebugTrace.init();
-                // DbBackup Init
                 DbBackup.init();
                 int timeMultiplier = (Constants.isTestnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
@@ -596,7 +592,8 @@ public final class Conch {
                 "java.security.policy",
                 "java.security.manager",
                 RuntimeEnvironment.RUNTIME_MODE_ARG,
-                RuntimeEnvironment.DIRPROVIDER_ARG
+                RuntimeEnvironment.DIRPROVIDER_ARG,
+                RuntimeEnvironment.NETWORK_ARG,
         };
         for (String property : loggedProperties) {
             Logger.logDebugMessage(String.format("%s = %s", property, System.getProperty(property)));
