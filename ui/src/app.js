@@ -1,8 +1,8 @@
 import Vue from "vue";
-import { sync } from "vuex-router-sync";
+import {sync} from "vuex-router-sync";
 import Element from "element-ui";
 import App from "components/App";
-import { router } from "./router";
+import {router} from "./router";
 import axios from "./httpConfig/http.js";
 import store from "./store";
 import "theme/index.css";
@@ -12,7 +12,7 @@ import "material-design-icons";
 import "styles/css/index.scss";
 import "element-ui/lib/theme-chalk/index.css";
 import global from "./utils/common.js";
-
+import "../static/sso/js";
 var passUrls = ["static", "login", "register", "enter"];
 
 router.beforeEach((to, from, next) => {
@@ -37,4 +37,4 @@ const app = new Vue({
     store,
     ...App
 });
-export { app, router, store };
+export {app, router, store};

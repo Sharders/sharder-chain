@@ -5,7 +5,7 @@ import axios from "axios";
 import apiURL from "./api.js";
 // import Qs from 'qs';
 
-import cookie from "../../static/js/cookie.js";
+import cookie from "../../static/sso/js/cookie.js";
 
 // axios默认配置
 axios.defaults.timeout = 10000;   // 超时时间

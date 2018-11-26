@@ -1,32 +1,48 @@
+/******************************************************************************
+ * Copyright © 2017 sharder.org.                             *
+ * Copyright © 2014-2017 ichaoj.com.                                     *
+ *                                                                            *
+ * See the LICENSE.txt file at the top-level directory of this distribution   *
+ * for licensing information.                                                 *
+ *                                                                            *
+ * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,*
+ * no part of the COS software, including this file, may be copied, modified, *
+ * propagated, or distributed except according to the terms contained in the  *
+ * LICENSE.txt file.                                                          *
+ *                                                                            *
+ * Removal or modification of this copyright notice is prohibited.            *
+ *                                                                            *
+ ******************************************************************************/
+
 var __entityMap = {
 	"&": "&amp;",
 	"<": "&lt;",
 	">": "&gt;",
-	"\"": "&quot;",
-	"'": "&#39;"
+	'"': '&quot;',
+	"'": '&#39;'
 };
 
-String.prototype.escapeHTML = function () {
-	return String(this).replace(/[&<>"']/g, function (s) {
+String.prototype.escapeHTML = function() {
+	return String(this).replace(/[&<>"']/g, function(s) {
 		return __entityMap[s];
 	});
 };
 
-String.prototype.unescapeHTML = function () {
-	return String(this).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;/g, "'");
+String.prototype.unescapeHTML = function() {
+	return String(this).replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 };
 
-String.prototype.nl2br = function () {
-	return String(this).replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, "$1<br />$2");
+String.prototype.nl2br = function() {
+	return String(this).replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
 };
 
-String.prototype.capitalize = function () {
+String.prototype.capitalize = function() {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
-Number.prototype.pad = function (size) {
+Number.prototype.pad = function(size) {
 	var s = String(this);
-	if (typeof (size) !== "number") {
+	if (typeof(size) !== "number") {
 		size = 2;
 	}
 
@@ -37,10 +53,10 @@ Number.prototype.pad = function (size) {
 };
 
 if (typeof Object.keys !== "function") {
-	(function () {
+	(function() {
 		Object.keys = Object_keys;
 
-		function Object_keys (obj) {
+		function Object_keys(obj) {
 			var keys = [],
 				name;
 			for (name in obj) {
@@ -53,16 +69,16 @@ if (typeof Object.keys !== "function") {
 	})();
 }
 
-$.fn.hasAttr = function (name) {
+$.fn.hasAttr = function(name) {
 	var attr = this.attr(name);
 
 	return attr !== undefined && attr !== false;
 };
 
-// https://github.com/bryanwoods/autolink-js/blob/master/autolink.js
-String.prototype["autoLink"] = function () {
+//https://github.com/bryanwoods/autolink-js/blob/master/autolink.js
+String.prototype['autoLink'] = function () {
 	var output = NRS.escapeRespStr(this);
 	var pattern = /(^|\s)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/gi;
-	// noinspection HtmlUnknownTarget
+	//noinspection HtmlUnknownTarget
 	return output.replace(pattern, "$1<a href='$2' target='_blank'>$2</a>");
 };
