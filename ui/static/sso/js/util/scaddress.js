@@ -1,4 +1,4 @@
-function Nxtaddress () {
+function Scaddress () {
 	var codeword = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	var syndrome = [0, 0, 0, 0, 0];
 
@@ -419,4 +419,4 @@ function Nxtaddress () {
 // if (isNode) {
 //     module.exports = Nxtaddress;
 // }
-module.exports = Nxtaddress;
+module.exports = Scaddress;
