@@ -8,12 +8,12 @@
                 </p>
                 <div class="w pt60">
                     <div class="account_address">
-                        <span>{{address}}</span>
-                        <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="address"
+                        <span>{{accountInfo.accountRS}}</span>
+                        <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="accountInfo.accountRS"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span class="csp" @click="openAccountInfoDialog">账户详情</span>
                     </div>
-                    <p class="account_asset">资产：1,234,567,890 SS</p>
+                    <p class="account_asset">资产：{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -46,7 +46,7 @@
                                     <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
                                 </svg>
                             </span>
-                            <span>HUB设置</span>
+                            <span v-if="!$store.state.isPassphrase">HUB设置</span>
                         </button>
                     </div>
                 </div>
@@ -57,19 +57,29 @@
                     <span>收支明细</span>
                 </p>
                 <div class="w">
-                    <div class="whf">
+                    <div class="whf" id="transaction_amount_bar">
                         此处为数据图表
                     </div>
-                    <div class="whf">
+                    <div class="whf" id="yield_curve">
                         此处为数据曲线
                     </div>
                 </div>
             </div>
             <div class="block_list">
-                <p  class="block_title">
+                <p  class="block_title fl">
                     <img src="../../assets/transaction.svg"/>
                     <span>交易记录</span>
                 </p>
+                <div class="transaction_type">
+                    <el-select v-model="selectType" placeholder="全部">
+                        <el-option
+                            v-for="item in transactionType"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                </div>
                 <div class="list_table w br4">
                     <div class="list_content data_loading">
                         <table class="table table_striped" id="blocks_table">
@@ -86,18 +96,18 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>2018/10/18 17:26:25</td>
-                                <td class="linker">1234</td>
-                                <td>普通支付</td>
-                                <td>+10000000 SS</td>
-                                <td>1 SS</td>
+                            <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=0 && index <= 9">
+                                <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
+                                <td class="linker">{{transaction.height}}</td>
+                                <td>{{transaction.type}}</td>
+                                <td>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                 <td class=" image_text w300">
-                                    <span class="linker" @click="accountInfoDialog = true">SSA-9WKZ-DV7P-M6MN-5MH8B</span>
+                                    <span class="linker" @click="accountInfoDialog = true" v-if="transaction.type === 9">Coinbase</span>
                                     <img src="../../assets/right_arrow.svg"/>
-                                    <span class="linker" >您</span>
+                                    <span class="linker" @click="accountInfoDialog = true">您</span> <!--transaction.senderRS-->
                                 </td>
-                                <td>12323</td>
+                                <td>{{transaction.confirmations}}</td>
                                 <td class="linker" @click="openAccountInfoDialog">查看详情</td>
                             </tr>
                             </tbody>
@@ -110,7 +120,7 @@
             </div>
         </div>
         <!--view send message dialog-->
-        <div class="modal" id="send_message_modal" v-show="sendMessage">
+        <div class="modal" id="send_message_modal" v-show="sendMessageDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -154,7 +164,7 @@
             </div>
         </div>
         <!--view tranfer account dialog-->
-        <div class="modal" id="tranfer_accounts_modal" v-show="tranferAccounts">
+        <div class="modal" id="tranfer_accounts_modal" v-show="tranferAccountsDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -258,7 +268,7 @@
             </div>
         </div>
         <!--view account transaction dialog-->
-        <div class="modal_info" id="trading_info" v-show="tradingInfo">
+        <div class="modal_info" id="trading_info" v-show="tradingInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
@@ -310,7 +320,7 @@
 
         </div>
         <!--view account transaction dialog-->
-        <div class="modal_info" id="account_info" v-show="accountInfo">
+        <div class="modal_info" id="account_info" v-show="accountInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
@@ -322,12 +332,12 @@
                     <tbody>
                     <tr>
                         <th>账户地址:</th>
-                        <td>SSA-9W2N-D8F2-M9DN-2JD4F</td></tr>
+                        <td>{{accountInfo.accountRS}}</td></tr>
                     <tr>
                         <th>账户名：</th>
                         <td>
                             <div class="accountName" v-if="isShowName">
-                                <span>未设置</span><img src="../../assets/rewrite.svg" @click="isShowName = false"/>
+                                <span>{{accountInfo.name}}</span><img src="../../assets/rewrite.svg" @click="isShowName = false"/>
                             </div>
                             <div class="rewriteName" v-else>
                                 <el-input v-model="messageForm.receiver"></el-input>
@@ -335,21 +345,13 @@
                             </div>
                         </td></tr>
                     <tr>
-                        <th>账户余额：</th><td>1,000,000 SS</td></tr>
+                        <th>账户余额：</th><td>{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</td></tr>
                     <tr>
-                        <th>可用余额：</th><td>1,000,000 SS</td></tr>
+                        <th>可用余额：</th><td>{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS</td></tr>
                     <tr>
-                        <th>挖矿余额：</th><td>0 SS</td></tr>
+                        <th>挖矿余额：</th><td>{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}} SS</td></tr>
                     <tr>
-                        <th>公钥</th><td>1,000,000 SS</td></tr>
-                    <tr>
-                        <th class="th80">秘钥二维码</th>
-                        <td>
-                            <div  class="QRcode">
-                                <img src="../../assets/QRcode.svg"/>
-                            </div>
-                        </td>
-                    </tr>
+                        <th>公钥</th><td>{{accountInfo.publicKey}}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -359,18 +361,18 @@
     </div>
 </template>
 <script>
+    import echarts from "echarts";
     export default {
         name: "Network",
-        components: {},
+        components: {echarts},
         data () {
             return {
-                address: "SSA-9WKZ0DV7P-M6MN-5MH8B",
                 //dialog
-                sendMessage: false,
-                tranferAccounts: false,
+                sendMessageDialog: false,
+                tranferAccountsDialog: false,
                 hubSettingDialog:false,
-                tradingInfo:false,
-                accountInfo:false,
+                tradingInfoDialog:false,
+                accountInfoDialog:false,
 
                 ncryptedDisabled:true,
                 punchthroughDisabled:true,
@@ -406,21 +408,133 @@
                     modifyMnemonicWord:'',
                     newPwd:'',
                     confirmPwd:''
-                }
+                },
+                accountInfo:{
+                    accountRS:'SSA-J2TM-GKMD-KTER-27GF7',
+                    publicKey:'',
+                    accountId:'',
+                    forgedBalanceNQT:0,      //挖矿余额
+                    effectiveBalanceSS:0,   //可用余额
+                    guaranteedBalanceNQT:0,  //保证余额
+                    balanceNQT:0,            //账户余额
+                    name:'',
+                    description:'',
+                },
+                selectType:'',
+                transactionType:[{
+                    value:'',
+                    label:'全部'
+                },{
+                    value:0,
+                    label:'转账'
+                },{
+                    value:6,
+                    label:'存储'
+                },{
+                    value:9,
+                    label:'出块奖励'
+                }],
+
+                accountTransactionList:[]
             };
         },
         created:function(){
             const _this = this;
+            this.$http.get('/sharder?requestType=getAccount',{
+                params:{
+                    account:_this.accountInfo.accountRS,
+                    includeLessors:true,
+                    includeAssets:true,
+                    includeEffectiveBalance:true,
+                    includeCurrencies:true,
 
+                }
+            }).then(function (res) {
+                _this.accountInfo = res.data;
+                console.log(_this.accountInfo);
+            }).catch(function (err) {
+                console.log(err);
+            });
+
+            _this.getAccountTransactionList();
         },
         methods: {
+            drawBarchart: function () {
+                const barchart = echarts.init(document.getElementById("transaction_amount_bar"));
+
+                const option = {
+                    grid: {
+                        left: '5%',
+                        right: '2%',
+                        top: '10%',
+                        bottom: '15%',
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['待合并', '待合并', '待合并', '待合并', '待合并']
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        data: [34, 12, 60, 10, 90],
+                        type: 'bar'
+                    }]
+                };
+                if (option && typeof option === "object") {
+                    barchart.setOption(option, true);
+                }
+            },
+            drawYield:function(){
+                const yieldCurve = echarts.init(document.getElementById("yield_curve"));
+
+                const option = {
+                    grid: {
+                        left: '5%',
+                        right: '2%',
+                        top: '10%',
+                        bottom: '15%',
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        data: [820, 932, 901, 934, 1290, 1330, 1320],
+                        type: 'line',
+                        smooth: true
+                    }]
+                };
+                if (option && typeof option === "object") {
+                    yieldCurve.setOption(option, true);
+                }
+            },
+            getAccountTransactionList:function(){
+                const _this = this;
+                this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                    params:{
+                        account:_this.accountInfo.accountRS,
+                        type:_this.selectType
+                    }
+                }).then(function (res) {
+                    _this.accountTransactionList = res.data.transactions;
+                    console.log(_this.accountTransactionList);
+                }).catch(function (err) {
+                    console.log(err);
+                });
+            },
+
             openSendMessageDialog: function () {
                 this.$store.state.mask = true;
-                this.sendMessage = true;
+                this.sendMessageDialog = true;
             },
             openTransferDialog:function(){
                 this.$store.state.mask = true;
-                this.tranferAccounts = true;
+                this.tranferAccountsDialog = true;
             },
             openHubSettingDialog:function(){
                 this.$store.state.mask = true;
@@ -428,19 +542,19 @@
             },
             openTradingInfoDialog:function(){
                 this.$store.state.mask = true;
-                this.tradingInfo = true;
+                this.tradingInfoDialog = true;
             },
             openAccountInfoDialog:function(){
                 this.$store.state.mask = true;
-                this.accountInfo = true;
+                this.accountInfoDialog = true;
             },
             closeDialog: function () {
                 this.$store.state.mask = false;
-                this.sendMessage = false;
-                this.tranferAccounts = false;
+                this.sendMessageDialog = false;
+                this.tranferAccountsDialog = false;
                 this.hubSettingDialog = false;
-                this.tradingInfo = false;
-                this.accountInfo = false;
+                this.tradingInfoDialog = false;
+                this.accountInfoDialog = false;
             },
             copySuccess: function () {
                 const _this = this;
@@ -502,10 +616,26 @@
                 },
                 deep: true
             }
-        }
+        },
+        mounted () {
+            this.drawBarchart();
+            this.drawYield();
+        },
     };
 </script>
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
     @import './style.scss';
+</style>
+<style scoped  lang="scss" type="text/scss">
+    .el-select-dropdown{
+        .el-select-dropdown__item.selected{
+            background-color: #493eda!important;
+            color: #fff!important;
+        }
+        .el-select-dropdown__item.selected.hover{
+            background-color: #493eda!important;
+            color: #fff!important;
+        }
+    }
 </style>

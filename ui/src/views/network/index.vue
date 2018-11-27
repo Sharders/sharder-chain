@@ -148,19 +148,19 @@
                 </div>
             </div>
         </div>
-        <accountinfo :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight" :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></accountinfo>
+        <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight" :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
     </div>
 </template>
 
 <script>
     import echarts from "echarts";
     import world from "echarts-worldmap";
-    import accountinfo from "../dialog/accountinfo";
+    import dialogCommon from "../dialog/dialog_common";
 
 
     export default {
         name: "Network",
-        components: { echarts, world, accountinfo},
+        components: { echarts, world, dialogCommon},
 
         data () {
             return {

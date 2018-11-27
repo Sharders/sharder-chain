@@ -297,7 +297,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -366,7 +365,6 @@
                 if(accountRS !== null){
                     _this.accountRS = accountRS;
                 }
-                console.log("12321321",_this.accountRS);
                 _this.accountInfoDialog = true;
             },
             openBlockInfo:function(blockId){
@@ -386,7 +384,6 @@
             },
             closeDialog: function () {
                 const _this = this;
-                // _this.accountInfoOpen = false;
                 _this.$store.state.mask = false;
                 _this.accountInfoDialog = false;
                 _this.accountTransactionDialog = false;
@@ -418,7 +415,6 @@
                 }
             },
             accountInfoDialog:function (val) {
-                console.log("accountInfoDialog",val);
                 if(val){
                     const _this = this;
                     this.$http.get('/sharder?requestType=getBlockchainTransactions',{
@@ -468,7 +464,6 @@
                 }
             },
             accountInfoOpen:function (val) {
-                console.log("accountInfoOpen",val);
                 const _this = this;
                 _this.accountInfoDialog = val;
                 if(val){

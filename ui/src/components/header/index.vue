@@ -34,9 +34,13 @@
                 </div>
                 <div class="navbar_right">
                     <div class="navbar_status">
-                        <span>SSA-9WKZ-DV7P-M6MN-SMH8B | 观察模式</span>
+                        <span class="isLogin" v-if="$store.state.isPassphrase">SSA-J2TM-GKMD-KTER-27GF7 | 私钥模式</span>
+                        <span v-else>SSA-J2TM-GKMD-KTER-27GF7 | 观察模式</span>
                     </div>
                     <div class="navbar_pilotLamp">
+                        <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light" v-if="">
+                            <div class="pilotLamp_circle"></div>
+                        </el-tooltip>
                         <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light">
                             <div class="pilotLamp_circle"></div>
                         </el-tooltip>
@@ -45,7 +49,15 @@
                         <span class="csp" @click="exit"><a>退出</a></span>
                     </div>
                     <div class="navbar_lang">
-                        <button>语言&nbsp;<span class="triangle "></span></button>
+                        <!--<button>语言&nbsp;<span class="triangle "></span></button>-->
+                        <el-select v-model="selectLan" placeholder="语言">
+                            <el-option
+                                v-for="item in language"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                            </el-option>
+                        </el-select>
                     </div>
                 </div>
             </nav>
@@ -64,9 +76,30 @@
                 isRouter: true,
                 placeholder: "搜索",
                 activeSearch: false,
+
                 search_val: "",
+                selectLan:'语言',
+                language:[{
+                    value:'zh-cn',
+                    label:'中文简体'
+                },{
+                    value:'zh-tw',
+                    label:'中文繁体'
+                },{
+                    value:'en',
+                    label:'Engligh'
+                },{
+                    value:'ja',
+                    label:'日本語'
+                },{
+                    value:'de',
+                    label:'Deutsch'
+                }]
 
             };
+        },
+        created(){
+
         },
         methods: {
             activeItem: function (val) {
@@ -109,4 +142,16 @@
     /* You can import all your SCSS variables using webpack alias*/
     /*@import '~scss_vars';*/
     @import './style.scss';
+</style>
+<style scoped  lang="scss" type="text/scss">
+    .el-select-dropdown{
+        .el-select-dropdown__item.selected{
+            background-color: #493eda!important;
+            color: #fff!important;
+        }
+        .el-select-dropdown__item.selected.hover{
+            background-color: #493eda!important;
+            color: #fff!important;
+        }
+    }
 </style>
