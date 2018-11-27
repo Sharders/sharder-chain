@@ -13,9 +13,10 @@
     global.converters = require("./util/converters");
     global.CryptoJS = require("./util/sha256");
     global.curve25519 = require("./util/curve25519");
-    global.SSO = require("./util/sso.encryption");
+    global.encryption = require("./util/sso.encryption");
     global.Login = require("./util/sso.login");
     global.NxtAddress = require("./util/scaddress");
     global.extensions = require("./util/extensions");
     global.util = require("./util/sso.util");
+    global.SSO = global.client;
 })();
