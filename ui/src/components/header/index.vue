@@ -42,7 +42,7 @@
                         </el-tooltip>
                     </div>
                     <div class="navbar_exit">
-                        <span><a>退出</a></span>
+                        <span class="csp" @click="exit"><a>退出</a></span>
                     </div>
                     <div class="navbar_lang">
                         <button>语言&nbsp;<span class="triangle "></span></button>
@@ -51,6 +51,7 @@
             </nav>
         </div>
     </header>
+
 </template>
 
 <script>
@@ -63,7 +64,8 @@
                 isRouter: true,
                 placeholder: "搜索",
                 activeSearch: false,
-                search_val: ""
+                search_val: "",
+
             };
         },
         methods: {
@@ -93,6 +95,13 @@
                 let reg = /^*$/;
                 console.log(reg.test(val));
             }*/
+
+            exit:function () {
+               const _this = this;
+               _this.$store.state.isLogin = false;
+               _this.$router.push("/login");
+            },
+
         }
     };
 </script>

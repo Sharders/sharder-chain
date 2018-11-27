@@ -11,7 +11,7 @@
                         <span>{{address}}</span>
                         <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="address"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
-                        <span>账户详情</span>
+                        <span class="csp" @click="openAccountInfoDialog">账户详情</span>
                     </div>
                     <p class="account_asset">资产：1,234,567,890 SS</p>
                     <div class="account_tool">
@@ -92,13 +92,13 @@
                                 <td>普通支付</td>
                                 <td>+10000000 SS</td>
                                 <td>1 SS</td>
-                                <td class="linker image_text w300">
-                                    <span @click="openAccountInfoDialog">SSA-9WKZ-DV7P-M6MN-5MH8B</span>
+                                <td class=" image_text w300">
+                                    <span class="linker" @click="accountInfoDialog = true">SSA-9WKZ-DV7P-M6MN-5MH8B</span>
                                     <img src="../../assets/right_arrow.svg"/>
-                                    <span @click="openAccountInfoDialog">您</span>
+                                    <span class="linker" >您</span>
                                 </td>
                                 <td>12323</td>
-                                <td class="linker" @click="openTradingInfoDialog">查看详情</td>
+                                <td class="linker" @click="openAccountInfoDialog">查看详情</td>
                             </tr>
                             </tbody>
                         </table>
@@ -408,6 +408,10 @@
                     confirmPwd:''
                 }
             };
+        },
+        created:function(){
+            const _this = this;
+
         },
         methods: {
             openSendMessageDialog: function () {

@@ -7,7 +7,40 @@ function setEpochBeginning (t) {
         _this.epochBeginning = parseInt(res.data.epochBeginning);
     });
 };
+function myFormatTime(value,type){
+    const _this = this;
+    let dataTime="";
+    let data = new Date();
+    let date = parseInt(value+'000')+_this.epochBeginning;
+    data.setTime(date);
+    let year   =  data.getFullYear();
+    let month  =  _this.addZero(data.getMonth() + 1);
+    let day    =  _this.addZero(data.getDate());
+    let hour   =  _this.addZero(data.getHours());
+    let minute =  _this.addZero(data.getMinutes());
+    let second =  _this.addZero(data.getSeconds());
+    if(type === "YMD"){
+        dataTime =  year + "-"+ month + "-" + day;
+    }else if(type === "YMDHMS"){
+        dataTime = year + "-"+month + "-" + day + " " +hour+ ":"+minute+":" +second;
+    }else if(type === "HMS"){
+        dataTime = hour+":" + minute+":" + second;
+    }else if(type === "YM"){
+        dataTime = year + "-" + month;
+
+    }
+    return dataTime;//将格式化后的字符串输出到前端显示
+};
+function addZero(val) {
+    if (val < 10) {
+        return "0" + val;
+    } else {
+        return val;
+    }
+};
 export default {
     epochBeginning,
-    setEpochBeginning
+    setEpochBeginning,
+    myFormatTime,
+    addZero
 };

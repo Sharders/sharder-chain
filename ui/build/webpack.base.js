@@ -35,7 +35,8 @@ module.exports = {
       components: path.join(__dirname, "../src/components"),
       views: path.join(__dirname, "../src/views"),
       router: path.join(__dirname, "../src/router"),
-      theme: path.join(__dirname, "../theme"), // get Element-UI icons
+        'vue$': 'vue/dist/vue.esm.js',
+        theme: path.join(__dirname, "../theme"), // get Element-UI icons
       scss_vars: path.resolve(__dirname, "../src/styles/css/vars.scss"), //  get scss vars
       styles: path.join(__dirname, "../src/styles") // get scss files
 
