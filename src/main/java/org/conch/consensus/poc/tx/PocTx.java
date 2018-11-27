@@ -32,7 +32,7 @@ import org.json.simple.JSONObject;
 import java.nio.ByteBuffer;
 
 public abstract class PocTx extends TransactionType {
-    
+
     private static final byte SUBTYPE_POC_NODE_CONFIGURATION = 0; // 节点配置
     private static final byte SUBTYPE_POC_WEIGHT = 1; // 权重
     private static final byte SUBTYPE_POC_ONLINE_RATE = 2; // 在线率
@@ -42,15 +42,15 @@ public abstract class PocTx extends TransactionType {
     public static TransactionType findTxType(byte subtype) {
         switch (subtype) {
             case SUBTYPE_POC_NODE_CONFIGURATION:
-                ;
+                return POC_NODE_CONFIGURATION;
             case SUBTYPE_POC_WEIGHT:
-                ;
+                return POC_WEIGHT;
             case SUBTYPE_POC_ONLINE_RATE:
-                ;
+                return POC_ONLINE_RATE;
             case SUBTYPE_POC_BLOCKING_MISS:
-                ;
+                return POC_BLOCKING_MISS;
             case SUBTYPE_POC_BIFURACTION_OF_CONVERGENCE:
-                ;
+                return POC_BIFURACTION_OF_CONVERGENCE;
             default:
                 return null;
         }
@@ -67,7 +67,7 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public AccountLedger.LedgerEvent getLedgerEvent() {
-            return null;
+            return AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION;
         }
 
         @Override
@@ -82,11 +82,13 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
 
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
 
         }
 
@@ -104,26 +106,28 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public AccountLedger.LedgerEvent getLedgerEvent() {
-            return null;
+            return AccountLedger.LedgerEvent.POC_WEIGHT;
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return new Attachment.PocNodeConfiguration(buffer, transactionVersion);
+            return new Attachment.PocWeight(buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return new Attachment.PocNodeConfiguration(attachmentData);
+            return new Attachment.PocWeight(attachmentData);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
 
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
 
         }
 
@@ -141,26 +145,28 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public AccountLedger.LedgerEvent getLedgerEvent() {
-            return null;
+            return AccountLedger.LedgerEvent.POC_ONLINE_RATE;
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return null;
+            return new Attachment.PocOnlineRate(buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return null;
+            return new Attachment.PocOnlineRate(attachmentData);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
 
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
 
         }
 
@@ -178,26 +184,28 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public AccountLedger.LedgerEvent getLedgerEvent() {
-            return null;
+            return AccountLedger.LedgerEvent.POC_BLOCKING_MISS;
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return null;
+            return new Attachment.PocBlockingMiss(buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return null;
+            return new Attachment.PocBlockingMiss(attachmentData);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
 
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
 
         }
 
@@ -215,26 +223,28 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public AccountLedger.LedgerEvent getLedgerEvent() {
-            return null;
+            return AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE;
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return null;
+            return new Attachment.PocBifuractionOfConvergence(buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return null;
+            return new Attachment.PocBifuractionOfConvergence(attachmentData);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
 
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
 
         }
 
