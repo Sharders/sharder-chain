@@ -2,7 +2,7 @@
     global.isNode = true;
     global.client = {};
     client.accountInfo = {};
-
+    global.SSO = global.client;
 
     require("./util/sso.server");
     require("./util/sso.constants");
@@ -18,5 +18,4 @@
     global.NxtAddress = require("./util/scaddress");
     global.extensions = require("./util/extensions");
     global.util = require("./util/sso.util");
-    global.SSO = global.client;
 })();
