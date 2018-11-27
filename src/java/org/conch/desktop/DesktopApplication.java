@@ -35,6 +35,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import netscape.javascript.JSObject;
 import org.conch.*;
+import org.conch.chain.Block;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.http.API;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionProcessor;

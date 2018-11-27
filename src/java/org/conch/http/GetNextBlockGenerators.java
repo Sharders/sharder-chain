@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Constants;
 import org.conch.Hub;
 import org.conch.Conch;

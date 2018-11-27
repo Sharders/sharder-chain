@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.Appendix;
 import org.conch.Attachment;
-import org.conch.Blockchain;
+import org.conch.chain.Blockchain;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.TaggedData;

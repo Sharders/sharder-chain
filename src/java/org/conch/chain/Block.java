@@ -19,7 +19,7 @@
  *
  */
 
-package org.conch;
+package org.conch.chain;
 
 import org.conch.tx.Transaction;
 import org.json.simple.JSONObject;

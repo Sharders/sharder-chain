@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.chain.Block;
+import org.conch.chain.BlockchainImpl;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.VersionedEntityDbTable;

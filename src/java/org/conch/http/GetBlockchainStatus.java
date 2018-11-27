@@ -22,8 +22,8 @@
 package org.conch.http;
 
 import org.conch.AccountLedger;
-import org.conch.Block;
-import org.conch.BlockchainProcessor;
+import org.conch.chain.Block;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.Constants;
 import org.conch.Conch;
 import org.conch.peer.Peer;

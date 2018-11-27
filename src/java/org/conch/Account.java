@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.conch.chain.BlockchainProcessor;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;

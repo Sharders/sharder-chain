@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.*;
 import org.conch.AccountLedger.LedgerEntry;
+import org.conch.chain.Block;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;

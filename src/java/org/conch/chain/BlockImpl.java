@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.chain;
 
+import org.conch.*;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
@@ -64,7 +65,7 @@ public final class BlockImpl implements Block {
     private volatile byte[] bytes = null;
 
 
-    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+    public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, String secretPhrase) {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 generatorPublicKey, generationSignature, null, previousBlockHash, transactions);
@@ -72,7 +73,7 @@ public final class BlockImpl implements Block {
         bytes = null;
     }
 
-    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+    public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions) {
         this.version = version;
         this.timestamp = timestamp;
@@ -91,7 +92,7 @@ public final class BlockImpl implements Block {
     }
 
     //just for genesis block
-    BlockImpl(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+    public BlockImpl(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
         this(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
        generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
@@ -99,7 +100,7 @@ public final class BlockImpl implements Block {
     }
 
 
-    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
+    public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
               byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id,
               List<TransactionImpl> blockTransactions) {
@@ -276,7 +277,7 @@ public final class BlockImpl implements Block {
         return json;
     }
 
-    static BlockImpl parseBlock(JSONObject blockData) throws ConchException.NotValidException {
+    public static BlockImpl parseBlock(JSONObject blockData) throws ConchException.NotValidException {
         try {
             int version = ((Long) blockData.get("version")).intValue();
             int timestamp = ((Long) blockData.get("timestamp")).intValue();
@@ -310,7 +311,7 @@ public final class BlockImpl implements Block {
         return Arrays.copyOf(bytes(), bytes.length);
     }
 
-    byte[] bytes() {
+    public byte[] bytes() {
         if (bytes == null) {
             ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + (blockSignature != null ? 64 : 0));
             buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -340,7 +341,7 @@ public final class BlockImpl implements Block {
         return bytes;
     }
 
-    boolean verifyBlockSignature() {
+    public boolean verifyBlockSignature() {
         return checkSignature() && Account.setOrVerify(getGeneratorId(), getGeneratorPublicKey());
     }
 
@@ -354,7 +355,7 @@ public final class BlockImpl implements Block {
         return hasValidSignature;
     }
 
-    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
+    public boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
         try {
 
@@ -406,7 +407,7 @@ public final class BlockImpl implements Block {
         Arrays.sort(badBlocks);
     }
 
-    void apply() {
+    public void apply() {
         Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
         generatorAccount.apply(getGeneratorPublicKey());
         long totalBackFees = 0;
@@ -436,7 +437,7 @@ public final class BlockImpl implements Block {
         generatorAccount.addToForgedBalanceNQT(totalFeeNQT - totalBackFees);
     }
 
-    void setPrevious(BlockImpl block) {
+    public void setPrevious(BlockImpl block) {
         if (block != null) {
             if (block.getId() != getPreviousBlockId()) {
                 // shouldn't happen as previous id is already verified, but just in case
@@ -454,7 +455,7 @@ public final class BlockImpl implements Block {
         }
     }
 
-    void loadTransactions() {
+    public void loadTransactions() {
         for (TransactionImpl transaction : getTransactions()) {
             transaction.bytes();
             transaction.getAppendages();

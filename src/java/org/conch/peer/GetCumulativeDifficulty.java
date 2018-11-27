@@ -21,7 +21,7 @@
 
 package org.conch.peer;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Conch;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

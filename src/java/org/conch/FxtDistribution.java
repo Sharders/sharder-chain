@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.chain.Block;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.db.DerivedDbTable;
 import org.conch.tx.TransactionDb;
 import org.conch.util.Convert;

@@ -1421,7 +1421,7 @@ public interface Appendix {
             Logger.logDebugMessage("Transaction " + transaction.getStringId() + " has been released");
         }
 
-        void reject(TransactionImpl transaction) {
+        public void reject(TransactionImpl transaction) {
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             transaction.getType().undoAttachmentUnconfirmed(transaction, senderAccount);
             senderAccount.addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.REJECT_PHASED_TRANSACTION, transaction.getId(),
@@ -1431,7 +1431,7 @@ public interface Appendix {
             Logger.logDebugMessage("Transaction " + transaction.getStringId() + " has been rejected");
         }
 
-        void countVotes(TransactionImpl transaction) {
+        public void countVotes(TransactionImpl transaction) {
             if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && PhasingPoll.getResult(transaction.getId()) != null) {
                 return;
             }
@@ -1450,7 +1450,7 @@ public interface Appendix {
             }
         }
 
-        void tryCountVotes(TransactionImpl transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+        public void tryCountVotes(TransactionImpl transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
             PhasingPoll poll = PhasingPoll.getPoll(transaction.getId());
             long result = poll.countVotes();
             if (result >= poll.getQuorum()) {

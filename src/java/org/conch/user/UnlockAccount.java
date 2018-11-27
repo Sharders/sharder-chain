@@ -22,7 +22,7 @@
 package org.conch.user;
 
 import org.conch.Account;
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Conch;
 import org.conch.tx.Transaction;
 import org.conch.db.DbIterator;

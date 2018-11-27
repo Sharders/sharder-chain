@@ -21,7 +21,7 @@
 
 package org.conch.http.biz.handler;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.http.*;

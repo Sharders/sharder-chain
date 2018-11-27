@@ -23,7 +23,7 @@ package org.conch.http.biz.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.http.*;

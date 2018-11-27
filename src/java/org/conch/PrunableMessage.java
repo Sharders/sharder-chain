@@ -262,11 +262,11 @@ public final class PrunableMessage {
         return data;
     }
 
-    static void add(TransactionImpl transaction, Appendix.PrunablePlainMessage appendix) {
+    public static void add(TransactionImpl transaction, Appendix.PrunablePlainMessage appendix) {
         add(transaction, appendix, Conch.getBlockchain().getLastBlockTimestamp(), Conch.getBlockchain().getHeight());
     }
 
-    static void add(TransactionImpl transaction, Appendix.PrunablePlainMessage appendix, int blockTimestamp, int height) {
+    public static void add(TransactionImpl transaction, Appendix.PrunablePlainMessage appendix, int blockTimestamp, int height) {
         if (appendix.getMessage() != null) {
             PrunableMessage prunableMessage = prunableMessageTable.get(transaction.getDbKey());
             if (prunableMessage == null) {
@@ -281,11 +281,11 @@ public final class PrunableMessage {
         }
     }
 
-    static void add(TransactionImpl transaction, Appendix.PrunableEncryptedMessage appendix) {
+    public static void add(TransactionImpl transaction, Appendix.PrunableEncryptedMessage appendix) {
         add(transaction, appendix, Conch.getBlockchain().getLastBlockTimestamp(), Conch.getBlockchain().getHeight());
     }
 
-    static void add(TransactionImpl transaction, Appendix.PrunableEncryptedMessage appendix, int blockTimestamp, int height) {
+    public static void add(TransactionImpl transaction, Appendix.PrunableEncryptedMessage appendix, int blockTimestamp, int height) {
         if (appendix.getEncryptedData() != null) {
                 PrunableMessage prunableMessage = prunableMessageTable.get(transaction.getDbKey());
             if (prunableMessage == null) {
@@ -300,7 +300,7 @@ public final class PrunableMessage {
         }
     }
 
-    static boolean isPruned(long transactionId, boolean hasPrunablePlainMessage, boolean hasPrunableEncryptedMessage) {
+    public static boolean isPruned(long transactionId, boolean hasPrunablePlainMessage, boolean hasPrunableEncryptedMessage) {
         if (!hasPrunablePlainMessage && !hasPrunableEncryptedMessage) {
             return false;
         }

@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Conch;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;

@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Conch;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

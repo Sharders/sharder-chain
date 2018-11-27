@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.chain.BlockDb;
+import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.db.DbVersion;
 import org.conch.db.FullTextTrigger;
 import org.conch.util.Convert;

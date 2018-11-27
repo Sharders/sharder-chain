@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.chain;
 
+import org.conch.ConchException;
 import org.conch.db.DerivedDbTable;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
@@ -30,7 +31,7 @@ import org.json.simple.JSONObject;
 
 import java.util.List;
 
-public interface BlockchainProcessor extends Observable<Block,BlockchainProcessor.Event> {
+public interface BlockchainProcessor extends Observable<Block, BlockchainProcessor.Event> {
 
     enum Event {
         BLOCK_PUSHED, BLOCK_POPPED, BLOCK_GENERATED, BLOCK_SCANNED,
@@ -77,12 +78,12 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
         private final BlockImpl block;
 
-        BlockNotAcceptedException(String message, BlockImpl block) {
+        public BlockNotAcceptedException(String message, BlockImpl block) {
             super(message);
             this.block = block;
         }
 
-        BlockNotAcceptedException(Throwable cause, BlockImpl block) {
+        public BlockNotAcceptedException(Throwable cause, BlockImpl block) {
             super(cause);
             this.block = block;
         }
@@ -98,12 +99,12 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
         private final TransactionImpl transaction;
 
-        TransactionNotAcceptedException(String message, TransactionImpl transaction) {
+        public TransactionNotAcceptedException(String message, TransactionImpl transaction) {
             super(message, transaction.getBlock());
             this.transaction = transaction;
         }
 
-        TransactionNotAcceptedException(Throwable cause, TransactionImpl transaction) {
+        public TransactionNotAcceptedException(Throwable cause, TransactionImpl transaction) {
             super(cause, transaction.getBlock());
             this.transaction = transaction;
         }
@@ -120,7 +121,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
     class BlockOutOfOrderException extends BlockNotAcceptedException {
 
-        BlockOutOfOrderException(String message, BlockImpl block) {
+        public BlockOutOfOrderException(String message, BlockImpl block) {
             super(message, block);
         }
 

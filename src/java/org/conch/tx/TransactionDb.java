@@ -22,6 +22,8 @@
 package org.conch.tx;
 
 import org.conch.*;
+import org.conch.chain.BlockDb;
+import org.conch.chain.BlockImpl;
 import org.conch.db.DbUtils;
 import org.conch.util.Convert;
 

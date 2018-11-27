@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.conch.chain.BlockchainProcessor;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;

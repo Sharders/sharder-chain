@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.chain;
 
+import org.conch.*;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.tx.Transaction;

@@ -22,6 +22,10 @@
 package org.conch.tx;
 
 import org.conch.*;
+import org.conch.chain.Block;
+import org.conch.chain.BlockDb;
+import org.conch.chain.BlockImpl;
+import org.conch.chain.BlockchainImpl;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;

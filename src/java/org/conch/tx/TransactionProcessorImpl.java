@@ -22,6 +22,9 @@
 package org.conch.tx;
 
 import org.conch.*;
+import org.conch.chain.BlockDb;
+import org.conch.chain.BlockchainImpl;
+import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;

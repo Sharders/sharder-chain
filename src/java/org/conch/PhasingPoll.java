@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.conch.chain.BlockchainImpl;
 import org.conch.crypto.HashFunction;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
@@ -248,7 +249,7 @@ public final class PhasingPoll extends AbstractPoll {
         return phasingPollTable.get(phasingPollDbKeyFactory.newKey(id));
     }
 
-    static DbIterator<TransactionImpl> getFinishingTransactions(int height) {
+    public static DbIterator<TransactionImpl> getFinishingTransactions(int height) {
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -505,7 +506,7 @@ public final class PhasingPoll extends AbstractPoll {
         return cumulativeWeight;
     }
 
-    boolean allowEarlyFinish() {
+    public boolean allowEarlyFinish() {
         return voteWeighting.isBalanceIndependent() && (whitelist.length > 0 || voteWeighting.getVotingModel() != VoteWeighting.VotingModel.ACCOUNT);
     }
 

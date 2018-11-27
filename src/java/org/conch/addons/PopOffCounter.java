@@ -21,7 +21,7 @@
 
 package org.conch.addons;
 
-import org.conch.BlockchainProcessor;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.http.APIServlet;

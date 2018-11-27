@@ -21,7 +21,7 @@
 
 package org.conch.peer;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Constants;
 import org.conch.Conch;
 import org.conch.util.Convert;

@@ -22,6 +22,8 @@
 package org.conch.http;
 
 import org.conch.*;
+import org.conch.chain.Block;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.db.TransactionalDb;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;

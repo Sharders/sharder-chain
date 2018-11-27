@@ -21,7 +21,7 @@
 
 package org.conch.user;
 
-import org.conch.Block;
+import org.conch.chain.Block;
 import org.conch.Constants;
 import org.conch.Conch;
 import org.conch.tx.Transaction;

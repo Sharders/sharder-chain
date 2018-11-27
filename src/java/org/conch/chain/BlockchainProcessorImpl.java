@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.chain;
 
+import org.conch.*;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.cpos.core.RewardIssuer;
 import org.conch.crypto.Crypto;
@@ -1210,7 +1211,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     @Override
-    public boolean addListener(Listener<Block> listener, BlockchainProcessor.Event eventType) {
+    public boolean addListener(Listener<Block> listener, Event eventType) {
         return blockListeners.addListener(listener, eventType);
     }
 
@@ -1258,7 +1259,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    List<DerivedDbTable> getDerivedTables() {
+    public List<DerivedDbTable> getDerivedTables() {
         return derivedTables;
     }
 
@@ -1472,7 +1473,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return null;
     }
 
-    void shutdown() {
+    public void shutdown() {
         ThreadPool.shutdownExecutor("networkService", networkService, 5);
     }
 
@@ -1968,7 +1969,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     }
                 } catch (RuntimeException e) {
                     Logger.logErrorMessage(e.toString(), e);
-                    throw new BlockchainProcessor.TransactionNotAcceptedException(e, transaction);
+                    throw new TransactionNotAcceptedException(e, transaction);
                 }
             }
             if (block.getHeight() > Constants.SHUFFLING_BLOCK) {
@@ -2196,7 +2197,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    SortedSet<UnconfirmedTransaction> selectUnconfirmedTransactions(
+    public SortedSet<UnconfirmedTransaction> selectUnconfirmedTransactions(
             Map<TransactionType, Map<String, Integer>> duplicates,
             Block previousBlock,
             int blockTimestamp) {
@@ -2463,7 +2464,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    boolean hasAllReferencedTransactions(TransactionImpl transaction, int timestamp, int count) {
+    public boolean hasAllReferencedTransactions(TransactionImpl transaction, int timestamp, int count) {
         if (transaction.referencedTransactionFullHash() == null) {
             return timestamp - transaction.getTimestamp() < Constants.MAX_REFERENCED_TRANSACTION_TIMESPAN
                     && count < 10;
@@ -2475,7 +2476,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 && hasAllReferencedTransactions(referencedTransaction, timestamp, count + 1);
     }
 
-    void scheduleScan(int height, boolean validate) {
+    public void scheduleScan(int height, boolean validate) {
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt =
                      con.prepareStatement("UPDATE scan SET rescan = TRUE, height = ?, validate = ?")) {

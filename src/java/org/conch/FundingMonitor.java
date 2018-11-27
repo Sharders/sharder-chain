@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.chain.Block;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbIterator;
 import org.conch.tx.Transaction;

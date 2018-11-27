@@ -21,6 +21,9 @@
 
 package org.conch;
 
+import org.conch.chain.Block;
+import org.conch.chain.Blockchain;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
 import org.conch.util.Convert;
@@ -186,7 +189,7 @@ public class AccountLedger {
         return listeners.removeListener(listener, eventType);
     }
 
-    static boolean mustLogEntry(long accountId, boolean isUnconfirmed) {
+    public static boolean mustLogEntry(long accountId, boolean isUnconfirmed) {
         //
         // Must be tracking this account
         //
@@ -227,7 +230,7 @@ public class AccountLedger {
      *
      * @param   ledgerEntry                 Ledger entry
      */
-    static void logEntry(LedgerEntry ledgerEntry) {
+    public static void logEntry(LedgerEntry ledgerEntry) {
         //
         // Must be in a database transaction
         //
@@ -259,7 +262,7 @@ public class AccountLedger {
     /**
      * Commit pending ledger entries
      */
-    static void commitEntries() {
+    public static void commitEntries() {
         for (LedgerEntry ledgerEntry : pendingEntries) {
             accountLedgerTable.insert(ledgerEntry);
             listeners.notify(ledgerEntry, Event.ADD_ENTRY);
@@ -270,7 +273,7 @@ public class AccountLedger {
     /**
      * Clear pending ledger entries
      */
-    static void clearEntries() {
+    public static void clearEntries() {
         pendingEntries.clear();
     }
 

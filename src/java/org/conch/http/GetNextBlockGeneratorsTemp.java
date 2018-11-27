@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Block;
-import org.conch.Blockchain;
+import org.conch.chain.Block;
+import org.conch.chain.Blockchain;
 import org.conch.mint.Generator;
 import org.conch.Conch;
 import org.conch.ConchException;

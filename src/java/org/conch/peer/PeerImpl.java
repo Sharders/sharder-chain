@@ -22,7 +22,7 @@
 package org.conch.peer;
 
 import org.conch.Account;
-import org.conch.BlockchainProcessor;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.Constants;
 import org.conch.Conch;
 import org.conch.ConchException;
