@@ -375,81 +375,81 @@ var NRS = (function (NRS, $, undefined) {
                 NRS.sendRequest("getAccountPublicKey", {
                     "account": NRS.account
                 }, function (response) {
-                    if (response && response.publicKey && response.publicKey != NRS.generatePublicKey(id) && isPassphraseLogin) {
-                        $.growl($.t("error_account_taken"), {
-                            "type": "danger",
-                            "offset": 10
-                        });
-                        NRS.spinner.stop();
-                        return;
-                    }
+                    // if (response && response.publicKey && response.publicKey != NRS.generatePublicKey(id) && isPassphraseLogin) {
+                    //     $.growl($.t("error_account_taken"), {
+                    //         "type": "danger",
+                    //         "offset": 10
+                    //     });
+                    //     NRS.spinner.stop();
+                    //     return;
+                    // }
+                    //
+                    // var rememberMe = $("#remember_me");
+                    // if (rememberMe.is(":checked") && isPassphraseLogin) {
+                    //     NRS.rememberPassword = true;
+                    //     NRS.setPassword(id);
+                    //     $(".secret_phrase, .show_secret_phrase").hide();
+                    //     $(".hide_secret_phrase").show();
+                    // } else {
+                    //     NRS.rememberPassword = false;
+                    //     NRS.setPassword("");
+                    //     $(".secret_phrase, .show_secret_phrase").show();
+                    //     $(".hide_secret_phrase").hide();
+                    // }
+                    // NRS.disablePluginsDuringSession = $("#disable_all_plugins").is(":checked");
+                    // $("#sidebar_account_id").html(String(NRS.accountRS).escapeHTML());
+                    // $("#sidebar_account_link").html(NRS.getAccountLink(NRS, "account", NRS.accountRS, "details", false, "btn btn-default btn-xs"));
+                    // if (NRS.lastBlockHeight == 0 && NRS.state.numberOfBlocks) {
+                    //     NRS.checkBlockHeight(NRS.state.numberOfBlocks - 1);
+                    // }
+                    // if (NRS.lastBlockHeight == 0 && NRS.lastProxyBlockHeight) {
+                    //     NRS.checkBlockHeight(NRS.lastProxyBlockHeight);
+                    // }
+                    // $("#sidebar_block_link").html(NRS.getBlockLink(NRS.lastBlockHeight));
 
-                    var rememberMe = $("#remember_me");
-                    if (rememberMe.is(":checked") && isPassphraseLogin) {
-                        NRS.rememberPassword = true;
-                        NRS.setPassword(id);
-                        $(".secret_phrase, .show_secret_phrase").hide();
-                        $(".hide_secret_phrase").show();
-                    } else {
-                        NRS.rememberPassword = false;
-                        NRS.setPassword("");
-                        $(".secret_phrase, .show_secret_phrase").show();
-                        $(".hide_secret_phrase").hide();
-                    }
-                    NRS.disablePluginsDuringSession = $("#disable_all_plugins").is(":checked");
-                    $("#sidebar_account_id").html(String(NRS.accountRS).escapeHTML());
-                    $("#sidebar_account_link").html(NRS.getAccountLink(NRS, "account", NRS.accountRS, "details", false, "btn btn-default btn-xs"));
-                    if (NRS.lastBlockHeight == 0 && NRS.state.numberOfBlocks) {
-                        NRS.checkBlockHeight(NRS.state.numberOfBlocks - 1);
-                    }
-                    if (NRS.lastBlockHeight == 0 && NRS.lastProxyBlockHeight) {
-                        NRS.checkBlockHeight(NRS.lastProxyBlockHeight);
-                    }
-                    $("#sidebar_block_link").html(NRS.getBlockLink(NRS.lastBlockHeight));
-
-                    var passwordNotice = "";
-
-                    if (id.length < 35 && isPassphraseLogin) {
-                        passwordNotice = $.t("error_passphrase_length_secure");
-                    } else if (isPassphraseLogin && id.length < 50 && (!id.match(/[A-Z]/) || !id.match(/[0-9]/))) {
-                        passwordNotice = $.t("error_passphrase_strength_secure");
-                    }
-
-                    if (passwordNotice) {
-                        $.growl("<strong>" + $.t("warning") + "</strong>: " + passwordNotice, {
-                            "type": "danger"
-                        });
-                    }
+                    // var passwordNotice = "";
+                    //
+                    // if (id.length < 35 && isPassphraseLogin) {
+                    //     passwordNotice = $.t("error_passphrase_length_secure");
+                    // } else if (isPassphraseLogin && id.length < 50 && (!id.match(/[A-Z]/) || !id.match(/[0-9]/))) {
+                    //     passwordNotice = $.t("error_passphrase_strength_secure");
+                    // }
+                    //
+                    // if (passwordNotice) {
+                    //     $.growl("<strong>" + $.t("warning") + "</strong>: " + passwordNotice, {
+                    //         "type": "danger"
+                    //     });
+                    // }
                     NRS.getAccountInfo(true, function () {
                         if (NRS.accountInfo.currentLeasingHeightFrom) {
                             NRS.isLeased = (NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom && NRS.lastBlockHeight <= NRS.accountInfo.currentLeasingHeightTo);
                         } else {
                             NRS.isLeased = false;
                         }
-                        NRS.updateForgingTooltip($.t("forging_unknown_tooltip"));
-                        NRS.updateForgingStatus(isPassphraseLogin ? id : null);
+                        // NRS.updateForgingTooltip($.t("forging_unknown_tooltip"));
+                        // NRS.updateForgingStatus(isPassphraseLogin ? id : null);
                         if (NRS.isForgingSafe() && isPassphraseLogin) {
                             var forgingIndicator = $("#forging_indicator");
                             NRS.sendRequest("startForging", {
                                 "secretPhrase": id
                             }, function (response) {
-                                if ("deadline" in response) {
-                                    forgingIndicator.addClass("forging");
-                                    forgingIndicator.find("span").html($.t("forging")).attr("data-i18n", "forging");
-                                    NRS.forgingStatus = NRS.constants.FORGING;
-                                    NRS.updateForgingTooltip(NRS.getForgingTooltip);
-                                } else {
-                                    forgingIndicator.removeClass("forging");
-                                    forgingIndicator.find("span").html($.t("not_forging")).attr("data-i18n", "not_forging");
-                                    NRS.forgingStatus = NRS.constants.NOT_FORGING;
-                                    NRS.updateForgingTooltip(response.errorDescription);
-                                }
+                                // if ("deadline" in response) {
+                                //     forgingIndicator.addClass("forging");
+                                //     forgingIndicator.find("span").html($.t("forging")).attr("data-i18n", "forging");
+                                //     NRS.forgingStatus = NRS.constants.FORGING;
+                                //     NRS.updateForgingTooltip(NRS.getForgingTooltip);
+                                // } else {
+                                //     forgingIndicator.removeClass("forging");
+                                //     forgingIndicator.find("span").html($.t("not_forging")).attr("data-i18n", "not_forging");
+                                //     NRS.forgingStatus = NRS.constants.NOT_FORGING;
+                                //     NRS.updateForgingTooltip(response.errorDescription);
+                                // }
                                 forgingIndicator.show();
                             });
                         }
                     }, isAccountSwitch);
-                    NRS.initSidebarMenu();
-                    NRS.unlock();
+                    // NRS.initSidebarMenu();
+                    // NRS.unlock();
 
                     if (NRS.isOutdated) {
                         $.growl($.t("nrs_update_available"), {
@@ -460,7 +460,8 @@ var NRS = (function (NRS, $, undefined) {
                     if (!NRS.downloadingBlockchain) {
                         NRS.checkIfOnAFork();
                     }
-                    NRS.logConsole("User Agent: " + String(navigator.userAgent));
+                    // NRS.logConsole("User Agent: " + String(navigator.userAgent));
+                    console.warn("User Agent: " + String(navigator.userAgent));
                     if (navigator.userAgent.indexOf("Safari") != -1 &&
                         navigator.userAgent.indexOf("Chrome") == -1 &&
                         navigator.userAgent.indexOf("JavaFX") == -1) {
@@ -491,7 +492,7 @@ var NRS = (function (NRS, $, undefined) {
                         rememberAccount(NRS.accountRS);
                     }
 
-                    $("[data-i18n]").i18n();
+                    // $("[data-i18n]").i18n();
 
                     /* Add accounts to dropdown for quick switching */
                     var accountIdDropdown = $("#account_id_dropdown");

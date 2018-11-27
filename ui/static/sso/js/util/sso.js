@@ -656,7 +656,7 @@ var Sso = (function (NRS, $, undefined) {
                             NRS.incoming.updateDashboardBlocks(NRS.lastProxyBlockHeight - prevHeight);
                             NRS.updateDashboardLastBlock(proxyBlocksResponse.blocks[0]);
                             NRS.handleBlockchainStatus(response, callback);
-                            NRS.updateDashboardMessage();
+                            // NRS.updateDashboardMessage();
                         }
                     }, {isAsync: false});
                     if (!NRS.isMobileApp()) {
@@ -1041,7 +1041,8 @@ var Sso = (function (NRS, $, undefined) {
         NRS.database = null;
         NRS.databaseSupport = false;
         initUserDB();
-        NRS.logConsole("local storage initialized");
+        // NRS.logConsole("local storage initialized");
+        console.warn("local storage initialized");
     };
 
     NRS.createLegacyDatabase = function () {
@@ -1187,9 +1188,11 @@ var Sso = (function (NRS, $, undefined) {
                     NRS.initLocalStorage();
                 }
             });
-            NRS.logConsole("Opening database " + NRS.database);
+            // NRS.logConsole("Opening database " + NRS.database);
+            console.info("Opening database " + NRS.database);
         } catch (e) {
-            NRS.logConsole("Exception opening database " + e.message);
+            // NRS.logConsole("Exception opening database " + e.message);
+            console.info("Exception opening database " + e.message);
             NRS.initLocalStorage();
         }
     };
@@ -1234,9 +1237,10 @@ var Sso = (function (NRS, $, undefined) {
             var previousAccountInfo = NRS.accountInfo;
             NRS.accountInfo = response;
             if (response.errorCode) {
-                NRS.logConsole("Get account info error (" + response.errorCode + ") " + response.errorDescription);
+                // NRS.logConsole("Get account info error (" + response.errorCode + ") " + response.errorDescription);
+                console.info("Get account info error (" + response.errorCode + ") " + response.errorDescription);
                 $("#account_balance, #account_balance_sidebar, #account_currencies_balance, #account_nr_currencies, #account_purchase_count, #account_pending_sale_count, #account_completed_sale_count, #account_message_count, #account_alias_count").html("0");
-                NRS.updateDashboardMessage();
+                // NRS.updateDashboardMessage();
             } else {
                 if (NRS.accountRS && NRS.accountInfo.accountRS != NRS.accountRS) {
                     $.growl("Generated Reed Solomon address different from the one in the blockchain!", {
@@ -1244,7 +1248,7 @@ var Sso = (function (NRS, $, undefined) {
                     });
                     NRS.accountRS = NRS.accountInfo.accountRS;
                 }
-                NRS.updateDashboardMessage();
+                // NRS.updateDashboardMessage();
                 $("#account_balance, #account_balance_sidebar").html(NRS.formatStyledAmount(response.unconfirmedBalanceNQT));
                 $("#account_forged_balance").html(NRS.formatStyledAmount(response.forgedBalanceNQT));
 
