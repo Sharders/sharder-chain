@@ -24,7 +24,7 @@ package org.conch.user;
 import org.conch.Block;
 import org.conch.Constants;
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.db.DbIterator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;

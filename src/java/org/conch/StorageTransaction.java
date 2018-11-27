@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.conch.tx.Transaction;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;

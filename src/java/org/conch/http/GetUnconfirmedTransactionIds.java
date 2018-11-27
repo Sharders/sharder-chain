@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.db.DbIterator;
 import org.conch.db.FilteringIterator;
 import org.conch.util.Convert;

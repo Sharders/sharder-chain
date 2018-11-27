@@ -29,6 +29,7 @@ import org.conch.db.VersionedEntityDbTable;
 import org.conch.db.VersionedPersistentDbTable;
 import org.conch.db.VersionedPrunableDbTable;
 import org.conch.db.VersionedValuesDbTable;
+import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 import org.conch.util.Search;
 

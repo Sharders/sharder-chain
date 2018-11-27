@@ -27,6 +27,7 @@ import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.DbUtils;
 import org.conch.db.PrunableDbTable;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 
 import java.sql.Connection;

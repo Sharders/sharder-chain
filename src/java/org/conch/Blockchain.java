@@ -22,8 +22,8 @@
 package org.conch;
 
 import org.conch.db.DbIterator;
+import org.conch.tx.Transaction;
 import org.conch.util.Filter;
-import org.conch.db.DbIterator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

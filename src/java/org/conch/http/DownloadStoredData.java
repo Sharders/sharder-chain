@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.*;
-import org.conch.db.TransactionalDb;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 

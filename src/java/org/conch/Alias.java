@@ -26,6 +26,7 @@ import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.DbUtils;
 import org.conch.db.VersionedEntityDbTable;
+import org.conch.tx.Transaction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

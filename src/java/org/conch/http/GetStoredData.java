@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.util.JSON;
 import org.json.simple.JSONStreamAware;
 

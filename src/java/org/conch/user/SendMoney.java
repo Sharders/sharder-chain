@@ -26,7 +26,7 @@ import org.conch.Attachment;
 import org.conch.Constants;
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

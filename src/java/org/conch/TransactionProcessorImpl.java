@@ -27,6 +27,8 @@ import org.conch.db.DbKey;
 import org.conch.db.EntityDbTable;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionProcessor;
 import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -50,7 +52,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
     private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
 
-    static TransactionProcessorImpl getInstance() {
+    public static TransactionProcessorImpl getInstance() {
         return instance;
     }
 

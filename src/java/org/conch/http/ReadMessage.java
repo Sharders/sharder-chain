@@ -25,7 +25,7 @@ import org.conch.Account;
 import org.conch.Appendix;
 import org.conch.Conch;
 import org.conch.PrunableMessage;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;

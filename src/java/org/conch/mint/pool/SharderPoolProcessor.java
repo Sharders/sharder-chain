@@ -1,6 +1,7 @@
 package org.conch.mint.pool;
 
 import org.conch.*;
+import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 

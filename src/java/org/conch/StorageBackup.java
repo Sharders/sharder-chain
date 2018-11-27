@@ -25,6 +25,7 @@ import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.PersistentDbTable;
+import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 
 import java.sql.Connection;
@@ -105,7 +106,7 @@ public class StorageBackup {
     private final long backupTransaction;
     private int height;
 
-    public StorageBackup(Transaction upload,Transaction backup, String target) {
+    public StorageBackup(Transaction upload, Transaction backup, String target) {
         this.dbKey = storageKeyFactory.newKey(backup.getId());
         this.storerId = backup.getSenderId();
         this.storeTarget = target;

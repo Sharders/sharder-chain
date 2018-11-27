@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.db.DbIterator;
 import org.conch.http.*;
 import org.json.simple.JSONArray;

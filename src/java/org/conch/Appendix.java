@@ -23,6 +23,8 @@ package org.conch;
 
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionProcessor;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -159,7 +161,7 @@ public interface Appendix {
 
         abstract void validate(Transaction transaction) throws ConchException.ValidationException;
 
-        void validateAtFinish(Transaction transaction) throws ConchException.ValidationException {
+        public void validateAtFinish(Transaction transaction) throws ConchException.ValidationException {
             if (!isPhased(transaction)) {
                 return;
             }
@@ -1388,7 +1390,7 @@ public interface Appendix {
         }
 
         @Override
-        void validateAtFinish(Transaction transaction) throws ConchException.ValidationException {
+        public void validateAtFinish(Transaction transaction) throws ConchException.ValidationException {
             params.checkApprovable();
         }
 

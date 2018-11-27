@@ -25,6 +25,7 @@ import org.conch.*;
 import org.conch.db.DbUtils;
 import org.conch.http.APIServlet;
 import org.conch.http.APITag;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;

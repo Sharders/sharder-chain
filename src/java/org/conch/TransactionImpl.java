@@ -24,6 +24,7 @@ package org.conch;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.conch.util.Logger;
@@ -1076,7 +1077,7 @@ final public class TransactionImpl implements Transaction {
         }
     }
 
-    void undoUnconfirmed() {
+    public void undoUnconfirmed() {
         Account senderAccount = Account.getAccount(getSenderId());
         type.undoUnconfirmed(this, senderAccount);
     }

@@ -22,9 +22,8 @@
 package org.conch.http;
 
 import org.conch.PhasingPoll;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.VoteWeighting;
-import org.conch.db.DbIterator;
 import org.conch.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

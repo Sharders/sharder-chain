@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.*;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
+import org.conch.tx.Transaction;
 import org.conch.util.*;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;

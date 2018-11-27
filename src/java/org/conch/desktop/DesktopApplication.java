@@ -36,6 +36,8 @@ import javafx.stage.StageStyle;
 import netscape.javascript.JSObject;
 import org.conch.*;
 import org.conch.http.API;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionProcessor;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.TrustAllSSLProvider;

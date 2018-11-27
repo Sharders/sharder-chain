@@ -25,6 +25,7 @@ import org.conch.*;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.HashFunction;
 import org.conch.http.API;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.TrustAllSSLProvider;

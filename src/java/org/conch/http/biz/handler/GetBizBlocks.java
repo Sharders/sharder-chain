@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.conch.Block;
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.db.DbIterator;
 import org.conch.http.*;
 import org.conch.util.Convert;

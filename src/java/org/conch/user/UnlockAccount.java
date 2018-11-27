@@ -24,7 +24,7 @@ package org.conch.user;
 import org.conch.Account;
 import org.conch.Block;
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

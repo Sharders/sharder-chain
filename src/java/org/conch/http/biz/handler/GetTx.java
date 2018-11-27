@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.conch.Account;
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.http.APIServlet;
 import org.conch.http.APITag;
 import org.conch.http.JSONData;

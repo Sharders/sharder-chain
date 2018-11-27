@@ -23,6 +23,7 @@ package org.conch;
 
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.conch.util.ReadWriteUpdateLock;
@@ -34,7 +35,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class BlockchainImpl implements Blockchain {
+public final class BlockchainImpl implements Blockchain {
 
     private static final BlockchainImpl instance = new BlockchainImpl();
 

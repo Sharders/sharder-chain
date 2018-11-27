@@ -80,7 +80,7 @@ public class BizCoreProcess {
         // shouldn't try to get publicKey from senderAccount as it may have not been set yet
         byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
         Transaction biz_transaction = new Transaction();
-        org.conch.Transaction.Builder builder = Conch.newTransactionBuilder(publicKey, amountNQT, feeNQT,
+        org.conch.tx.Transaction.Builder builder = Conch.newTransactionBuilder(publicKey, amountNQT, feeNQT,
                 deadline, attachment).referencedTransactionFullHash(referencedTransactionFullHash);
         if (attachment.getTransactionType().canHaveRecipient()) {
             builder.recipientId(recipientId);
@@ -96,7 +96,7 @@ public class BizCoreProcess {
             builder.ecBlockId(ecBlockId);
             builder.ecBlockHeight(ecBlockHeight);
         }
-        org.conch.Transaction transaction = builder.build(secretPhrase);
+        org.conch.tx.Transaction transaction = builder.build(secretPhrase);
         try {
             if (Math.addExact(amountNQT, transaction.getFeeNQT()) > senderAccount.getUnconfirmedBalanceNQT()) {
                 throw new BizParameterException("Not enough funds");

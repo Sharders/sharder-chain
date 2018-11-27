@@ -24,7 +24,7 @@ package org.conch.peer;
 import org.conch.Blockchain;
 import org.conch.Constants;
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

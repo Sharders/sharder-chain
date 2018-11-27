@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.tx.Transaction;
+
 import java.io.IOException;
 
 public interface StorageProcessor {

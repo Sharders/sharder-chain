@@ -26,7 +26,7 @@ import org.conch.Attachment;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.TaggedData;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.TransactionType;
 import org.json.simple.JSONStreamAware;
 

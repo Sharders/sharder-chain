@@ -25,6 +25,7 @@ import org.conch.cpos.core.ConchGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.*;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;
@@ -1467,7 +1468,7 @@ public final class Account {
         propertyListeners.notify(accountProperty, Event.DELETE_PROPERTY);
     }
 
-    static boolean setOrVerify(long accountId, byte[] key) {
+    public static boolean setOrVerify(long accountId, byte[] key) {
         DbKey dbKey = publicKeyDbKeyFactory.newKey(accountId);
         PublicKey publicKey = publicKeyTable.get(dbKey);
         if (publicKey == null) {

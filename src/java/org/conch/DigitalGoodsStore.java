@@ -28,6 +28,7 @@ import org.conch.db.DbKey;
 import org.conch.db.DbUtils;
 import org.conch.db.VersionedEntityDbTable;
 import org.conch.db.VersionedValuesDbTable;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;

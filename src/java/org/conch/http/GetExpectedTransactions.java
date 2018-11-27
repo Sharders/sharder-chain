@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;

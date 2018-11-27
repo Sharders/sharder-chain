@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
+import org.conch.*;
 import org.conch.util.Filter;
 import org.json.simple.JSONObject;
 

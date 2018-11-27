@@ -22,7 +22,7 @@
 package org.conch.tools;
 
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.crypto.Crypto;
 import org.conch.util.Convert;
 import org.conch.util.Logger;

@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-final class BlockDb {
+public final class BlockDb {
 
     /** Block cache */
     static final int BLOCK_CACHE_SIZE = 10;

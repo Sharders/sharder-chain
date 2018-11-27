@@ -31,6 +31,8 @@ import org.conch.db.FullTextTrigger;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionProcessor;
 import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

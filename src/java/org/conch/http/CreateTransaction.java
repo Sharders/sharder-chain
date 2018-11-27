@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.*;
 import org.conch.crypto.Crypto;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

@@ -24,6 +24,7 @@ package org.conch;
 import org.conch.peer.Peers;
 import org.conch.storage.Ssid;
 import org.conch.storage.ipfs.IpfsService;
+import org.conch.tx.Transaction;
 import org.conch.util.*;
 
 import java.io.IOException;

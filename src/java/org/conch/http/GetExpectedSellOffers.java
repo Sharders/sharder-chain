@@ -24,7 +24,7 @@ package org.conch.http;
 import org.conch.Attachment;
 import org.conch.MonetarySystem;
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

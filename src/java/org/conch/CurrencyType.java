@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.conch.crypto.HashFunction;
+import org.conch.tx.Transaction;
 
 import java.util.EnumSet;
 import java.util.Set;

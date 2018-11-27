@@ -22,7 +22,7 @@
 package org.conch.peer;
 
 import org.conch.Conch;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.util.JSON;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

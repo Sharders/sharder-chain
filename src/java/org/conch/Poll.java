@@ -27,6 +27,7 @@ import org.conch.db.DbKey;
 import org.conch.db.DbUtils;
 import org.conch.db.EntityDbTable;
 import org.conch.db.ValuesDbTable;
+import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 
 import java.sql.Connection;

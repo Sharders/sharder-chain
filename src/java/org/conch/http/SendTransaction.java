@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.ConchException;
-import org.conch.Transaction;
+import org.conch.tx.Transaction;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
 import org.conch.Appendix;

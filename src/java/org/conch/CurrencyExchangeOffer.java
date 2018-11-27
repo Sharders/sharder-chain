@@ -23,6 +23,7 @@ package org.conch;
 
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
+import org.conch.tx.Transaction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

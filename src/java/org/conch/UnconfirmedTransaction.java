@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.conch.db.DbKey;
+import org.conch.tx.Transaction;
 import org.conch.util.Filter;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -33,7 +34,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
-class UnconfirmedTransaction implements Transaction {
+public class UnconfirmedTransaction implements Transaction {
 
     private final TransactionImpl transaction;
     private final long arrivalTimestamp;
