@@ -11,7 +11,9 @@ sharder_test_db
 *.bat
 jre
 
-/html/www/
+!/html/www/
+/html/www/*
+!html/www/img/
 
 conf/.lock
 conf/localstorage

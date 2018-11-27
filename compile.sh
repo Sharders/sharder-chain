@@ -19,8 +19,8 @@ mkdir -p classes
 mkdir -p addons/classes/
 
 echo "compiling sharder core & conch core..."
-find src/java/org/conch/ -name "*.java" > sources.tmp
-find src/java/org/sharder/ -name "*.java" >> sources.tmp
+find src/main/java/org/conch/ -name "*.java" > sources.tmp
+find src/main/java/org/sharder/ -name "*.java" >> sources.tmp
 javac -encoding utf8 -sourcepath "${SP}" -classpath "${CP}" -d classes/ @sources.tmp || exit 1
 echo "class files compiled successfully"
 rm -f sources.tmp
