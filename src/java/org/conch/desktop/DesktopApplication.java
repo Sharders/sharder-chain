@@ -63,7 +63,7 @@ public class DesktopApplication extends Application {
     private static volatile boolean isLaunched;
     private static volatile Stage stage;
     private static volatile WebEngine webEngine;
-    private JSObject nrs;
+    private JSObject sso;
 
     public static void launch() {
         if (!isLaunched) {
@@ -134,7 +134,7 @@ public class DesktopApplication extends Application {
                     webEngine.executeScript("console.log = function(msg) { java.log(msg); };");
 //                    stage.setTitle("Sharder Client - " + webEngine.getLocation());
                     stage.setTitle("Sharder Client");
-                    nrs = (JSObject) webEngine.executeScript("SSO");
+                    sso = (JSObject) webEngine.executeScript("SSO");
                     updateClientState("Desktop Client started");
                     BlockchainProcessor blockchainProcessor = Conch.getBlockchainProcessor();
                     blockchainProcessor.addListener((block) ->
@@ -214,7 +214,7 @@ public class DesktopApplication extends Application {
     }
 
     private void updateClientState(String msg) {
-        Platform.runLater(() -> webEngine.executeScript("NRS.getState(null, '" + msg + "')"));
+        Platform.runLater(() -> webEngine.executeScript("SSO.getState(null, '" + msg + "')"));
     }
 
     private static String getUrl() {
@@ -372,7 +372,7 @@ public class DesktopApplication extends Application {
         } else {
             Logger.logInfoMessage(msg, e);
         }
-        nrs.call("growl", msg);
+        sso.call("growl", msg);
     }
 
 }
