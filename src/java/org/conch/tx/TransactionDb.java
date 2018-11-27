@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
+import org.conch.*;
 import org.conch.db.DbUtils;
 import org.conch.util.Convert;
 
@@ -35,13 +36,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-final class TransactionDb {
+public final class TransactionDb {
 
-    static TransactionImpl findTransaction(long transactionId) {
+    public static TransactionImpl findTransaction(long transactionId) {
         return findTransaction(transactionId, Integer.MAX_VALUE);
     }
 
-    static TransactionImpl findTransaction(long transactionId, int height) {
+    public static TransactionImpl findTransaction(long transactionId, int height) {
         // Check the block cache
         synchronized (BlockDb.blockCache) {
             TransactionImpl transaction = BlockDb.transactionCache.get(transactionId);
@@ -66,11 +67,11 @@ final class TransactionDb {
         }
     }
 
-    static TransactionImpl findTransactionByFullHash(byte[] fullHash) {
+    public static TransactionImpl findTransactionByFullHash(byte[] fullHash) {
         return findTransactionByFullHash(fullHash, Integer.MAX_VALUE);
     }
 
-    static TransactionImpl findTransactionByFullHash(byte[] fullHash, int height) {
+    public static TransactionImpl findTransactionByFullHash(byte[] fullHash, int height) {
         long transactionId = Convert.fullHashToId(fullHash);
         // Check the cache
         synchronized(BlockDb.blockCache) {
@@ -98,11 +99,11 @@ final class TransactionDb {
         }
     }
 
-    static boolean hasTransaction(long transactionId) {
+    public static boolean hasTransaction(long transactionId) {
         return hasTransaction(transactionId, Integer.MAX_VALUE);
     }
 
-    static boolean hasTransaction(long transactionId, int height) {
+    public static boolean hasTransaction(long transactionId, int height) {
         // Check the block cache
         synchronized(BlockDb.blockCache) {
             TransactionImpl transaction = BlockDb.transactionCache.get(transactionId);
@@ -122,11 +123,11 @@ final class TransactionDb {
         }
     }
 
-    static boolean hasTransactionByFullHash(byte[] fullHash) {
+    public static boolean hasTransactionByFullHash(byte[] fullHash) {
         return Arrays.equals(fullHash, getFullHash(Convert.fullHashToId(fullHash)));
     }
 
-    static boolean hasTransactionByFullHash(byte[] fullHash, int height) {
+    public static boolean hasTransactionByFullHash(byte[] fullHash, int height) {
         long transactionId = Convert.fullHashToId(fullHash);
         // Check the block cache
         synchronized(BlockDb.blockCache) {
@@ -148,7 +149,7 @@ final class TransactionDb {
         }
     }
 
-    static byte[] getFullHash(long transactionId) {
+    public static byte[] getFullHash(long transactionId) {
         // Check the block cache
         synchronized(BlockDb.blockCache) {
             TransactionImpl transaction = BlockDb.transactionCache.get(transactionId);
@@ -168,7 +169,7 @@ final class TransactionDb {
         }
     }
 
-    static TransactionImpl loadTransaction(Connection con, ResultSet rs) throws ConchException.NotValidException {
+    public static TransactionImpl loadTransaction(Connection con, ResultSet rs) throws ConchException.NotValidException {
         try {
 
             byte type = rs.getByte("type");
@@ -247,7 +248,7 @@ final class TransactionDb {
         }
     }
 
-    static List<TransactionImpl> findBlockTransactions(long blockId) {
+    public static List<TransactionImpl> findBlockTransactions(long blockId) {
         // Check the block cache
         synchronized(BlockDb.blockCache) {
             BlockImpl block = BlockDb.blockCache.get(blockId);
@@ -263,7 +264,7 @@ final class TransactionDb {
         }
     }
 
-    static List<TransactionImpl> findBlockTransactions(Connection con, long blockId) {
+    public static List<TransactionImpl> findBlockTransactions(Connection con, long blockId) {
         try (PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE block_id = ? ORDER BY transaction_index")) {
             pstmt.setLong(1, blockId);
             pstmt.setFetchSize(50);
@@ -282,7 +283,7 @@ final class TransactionDb {
         }
     }
 
-    static List<PrunableTransaction> findPrunableTransactions(Connection con, int minTimestamp, int maxTimestamp) {
+    public static List<PrunableTransaction> findPrunableTransactions(Connection con, int minTimestamp, int maxTimestamp) {
         List<PrunableTransaction> result = new ArrayList<>();
         try (PreparedStatement pstmt = con.prepareStatement("SELECT id, type, subtype, "
                 + "has_prunable_attachment AS prunable_attachment, "
@@ -310,7 +311,7 @@ final class TransactionDb {
         return result;
     }
 
-    static void saveTransactions(Connection con, List<TransactionImpl> transactions) {
+    public  static void saveTransactions(Connection con, List<TransactionImpl> transactions) {
         try {
             short index = 0;
             for (TransactionImpl transaction : transactions) {
@@ -379,7 +380,7 @@ final class TransactionDb {
         }
     }
 
-    static class PrunableTransaction {
+    public static class PrunableTransaction {
         private final long id;
         private final TransactionType transactionType;
         private final boolean prunableAttachment;

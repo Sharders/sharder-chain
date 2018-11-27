@@ -19,12 +19,12 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
+import org.conch.*;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
-import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.conch.util.Logger;
@@ -367,7 +367,7 @@ final public class TransactionImpl implements Transaction {
         return feeNQT;
     }
 
-    long[] getBackFees() {
+    public long[] getBackFees() {
         return type.getBackFees(this);
     }
 
@@ -417,14 +417,14 @@ final public class TransactionImpl implements Transaction {
         return block;
     }
 
-    void setBlock(BlockImpl block) {
+    public void setBlock(BlockImpl block) {
         this.block = block;
         this.blockId = block.getId();
         this.height = block.getHeight();
         this.blockTimestamp = block.getTimestamp();
     }
 
-    void unsetBlock() {
+    public void unsetBlock() {
         this.block = null;
         this.blockId = 0;
         this.blockTimestamp = -1;
@@ -441,7 +441,7 @@ final public class TransactionImpl implements Transaction {
         return index;
     }
 
-    void setIndex(int index) {
+    public void setIndex(int index) {
         this.index = (short)index;
     }
 
@@ -544,7 +544,7 @@ final public class TransactionImpl implements Transaction {
         return senderId;
     }
 
-    DbKey getDbKey() {
+    public DbKey getDbKey() {
         if (dbKey == null) {
             dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
         }
@@ -607,7 +607,7 @@ final public class TransactionImpl implements Transaction {
         return Arrays.copyOf(bytes(), bytes.length);
     }
 
-    byte[] bytes() {
+    public byte[] bytes() {
         if (bytes == null) {
             try {
                 ByteBuffer buffer = ByteBuffer.allocate(getSize());
@@ -811,7 +811,7 @@ final public class TransactionImpl implements Transaction {
         return prunableJSON;
     }
 
-    static TransactionImpl parseTransaction(JSONObject transactionData) throws ConchException.NotValidException {
+    public static TransactionImpl parseTransaction(JSONObject transactionData) throws ConchException.NotValidException {
         TransactionImpl transaction = newTransactionBuilder(transactionData).build();
         if (transaction.getSignature() != null && !transaction.checkSignature()) {
             throw new ConchException.NotValidException("Invalid transaction signature for transaction " + transaction.getJSONObject().toJSONString());
@@ -819,7 +819,7 @@ final public class TransactionImpl implements Transaction {
         return transaction;
     }
 
-    static TransactionImpl.BuilderImpl newTransactionBuilder(JSONObject transactionData) throws ConchException.NotValidException {
+    public static TransactionImpl.BuilderImpl newTransactionBuilder(JSONObject transactionData) throws ConchException.NotValidException {
         try {
             byte type = ((Long) transactionData.get("type")).byteValue();
             byte subtype = ((Long) transactionData.get("subtype")).byteValue();
@@ -1082,7 +1082,7 @@ final public class TransactionImpl implements Transaction {
         type.undoUnconfirmed(this, senderAccount);
     }
 
-    boolean attachmentIsDuplicate(Map<TransactionType, Map<String, Integer>> duplicates, boolean atAcceptanceHeight) {
+    public boolean attachmentIsDuplicate(Map<TransactionType, Map<String, Integer>> duplicates, boolean atAcceptanceHeight) {
         if (!attachmentIsPhased() && !atAcceptanceHeight) {
             // can happen for phased transactions having non-phasable attachment
             return false;
@@ -1104,7 +1104,7 @@ final public class TransactionImpl implements Transaction {
         return type.isDuplicate(this, duplicates);
     }
 
-    boolean isUnconfirmedDuplicate(Map<TransactionType, Map<String, Integer>> duplicates) {
+    public boolean isUnconfirmedDuplicate(Map<TransactionType, Map<String, Integer>> duplicates) {
         return type.isUnconfirmedDuplicate(this, duplicates);
     }
 

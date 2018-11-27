@@ -28,6 +28,7 @@ import org.conch.db.DbKey;
 import org.conch.db.DbUtils;
 import org.conch.db.VersionedEntityDbTable;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 
@@ -53,7 +54,7 @@ public final class AccountRestrictions {
             return phasingControlTable.getAll(from, to);
         }
 
-        static void set(Account senderAccount, Attachment.SetPhasingOnly attachment) {
+        public static void set(Account senderAccount, Attachment.SetPhasingOnly attachment) {
             PhasingParams phasingParams = attachment.getPhasingParams();
             if (phasingParams.getVoteWeighting().getVotingModel() == VotingModel.NONE) {
                 //no voting - remove the control
@@ -202,7 +203,7 @@ public final class AccountRestrictions {
     static void init() {
     }
 
-    static void checkTransaction(Transaction transaction, boolean validatingAtFinish) throws ConchException.NotCurrentlyValidException {
+    public static void checkTransaction(Transaction transaction, boolean validatingAtFinish) throws ConchException.NotCurrentlyValidException {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
         if (senderAccount == null) {
             throw new ConchException.NotCurrentlyValidException("Account " + Long.toUnsignedString(transaction.getSenderId()) + " does not exist yet");
@@ -213,7 +214,7 @@ public final class AccountRestrictions {
         }
     }
 
-    static boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+    public static boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
         Account senderAccount = Account.getAccount(transaction.getSenderId());
         if (!senderAccount.getControls().contains(Account.ControlType.PHASING_ONLY)) {
             return false;

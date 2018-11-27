@@ -161,7 +161,7 @@ public final class Alias {
         return offerTable.get(offerDbKeyFactory.newKey(alias.getId()));
     }
 
-    static void deleteAlias(final String aliasName) {
+    public static void deleteAlias(final String aliasName) {
         final Alias alias = getAlias(aliasName);
         final Offer offer = Alias.getOffer(alias);
         if (offer != null) {
@@ -170,7 +170,7 @@ public final class Alias {
         aliasTable.delete(alias);
     }
 
-    static void addOrUpdateAlias(Transaction transaction, Attachment.MessagingAliasAssignment attachment) {
+    public static void addOrUpdateAlias(Transaction transaction, Attachment.MessagingAliasAssignment attachment) {
         Alias alias = getAlias(attachment.getAliasName());
         if (alias == null) {
             alias = new Alias(transaction, attachment);
@@ -182,7 +182,7 @@ public final class Alias {
         aliasTable.insert(alias);
     }
 
-    static void sellAlias(Transaction transaction, Attachment.MessagingAliasSell attachment) {
+    public static void sellAlias(Transaction transaction, Attachment.MessagingAliasSell attachment) {
         final String aliasName = attachment.getAliasName();
         final long priceNQT = attachment.getPriceNQT();
         final long buyerId = transaction.getRecipientId();
@@ -202,7 +202,7 @@ public final class Alias {
 
     }
 
-    static void changeOwner(long newOwnerId, String aliasName) {
+    public static void changeOwner(long newOwnerId, String aliasName) {
         Alias alias = getAlias(aliasName);
         alias.accountId = newOwnerId;
         alias.timestamp = Conch.getBlockchain().getLastBlockTimestamp();

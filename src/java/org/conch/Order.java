@@ -255,13 +255,13 @@ public abstract class Order {
             }
         }
 
-        static void addOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
+        public static void addOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
             Ask order = new Ask(transaction, attachment);
             askOrderTable.insert(order);
             matchOrders(attachment.getAssetId());
         }
 
-        static void removeOrder(long orderId) {
+        public static void removeOrder(long orderId) {
             askOrderTable.delete(getAskOrder(orderId));
         }
 
@@ -384,13 +384,13 @@ public abstract class Order {
             }
         }
 
-        static void addOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
+        public static void addOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
             Bid order = new Bid(transaction, attachment);
             bidOrderTable.insert(order);
             matchOrders(attachment.getAssetId());
         }
 
-        static void removeOrder(long orderId) {
+        public static void removeOrder(long orderId) {
             bidOrderTable.delete(getBidOrder(orderId));
         }
 

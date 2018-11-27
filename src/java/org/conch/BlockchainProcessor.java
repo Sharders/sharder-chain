@@ -24,6 +24,7 @@ package org.conch;
 import org.conch.db.DerivedDbTable;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
 import org.conch.util.Observable;
 import org.json.simple.JSONObject;
 

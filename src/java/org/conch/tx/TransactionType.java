@@ -19,16 +19,16 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
+import org.conch.*;
 import org.conch.Account.ControlType;
 import org.conch.Attachment.AbstractAttachment;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
-import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -49,11 +49,11 @@ public abstract class TransactionType {
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
     static final byte TYPE_MONETARY_SYSTEM = 5;
     static final byte TYPE_DATA = 6;
-    static final byte TYPE_SHUFFLING = 7;
+    protected static final byte TYPE_SHUFFLING = 7;
     static final byte TYPE_SHARDER_POOL = 8;
     static final byte TYPE_COIN_BASE = 9;
     static final byte TYPE_CONTRACT = 10;
-    static final byte TYPE_STORAGE = 11;
+    public static final byte TYPE_STORAGE = 11;
     static final byte TYPE_POC = 12;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
@@ -263,7 +263,7 @@ public abstract class TransactionType {
     }
 
 
-    TransactionType() {}
+    protected TransactionType() {}
 
     public abstract byte getType();
 
@@ -271,14 +271,14 @@ public abstract class TransactionType {
 
     public abstract AccountLedger.LedgerEvent getLedgerEvent();
 
-    abstract Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException;
+    public abstract AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException;
 
-    abstract Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException;
+    public abstract Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException;
 
-    abstract void validateAttachment(Transaction transaction) throws ConchException.ValidationException;
+    public abstract void validateAttachment(Transaction transaction) throws ConchException.ValidationException;
 
     // return false if double spending
-    final boolean applyUnconfirmed(TransactionImpl transaction, Account senderAccount) {
+    public final boolean applyUnconfirmed(TransactionImpl transaction, Account senderAccount) {
         long amountNQT = transaction.getAmountNQT();
         long feeNQT = transaction.getFeeNQT();
         if(transaction.getType().getType() != TYPE_COIN_BASE){
@@ -301,9 +301,9 @@ public abstract class TransactionType {
         return true;
     }
 
-    abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
+    public abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
-    final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
+    public final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
         if(transaction.getType().getType() != TYPE_COIN_BASE){
             long amount = transaction.getAmountNQT();
             long transactionId = transaction.getId();
@@ -319,9 +319,9 @@ public abstract class TransactionType {
         applyAttachment(transaction, senderAccount, recipientAccount);
     }
 
-    abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
+    public abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
 
-    final void undoUnconfirmed(TransactionImpl transaction, Account senderAccount) {
+    public final void undoUnconfirmed(TransactionImpl transaction, Account senderAccount) {
         undoAttachmentUnconfirmed(transaction, senderAccount);
         if(transaction.getType().getType() == TYPE_COIN_BASE){
             return;
@@ -335,7 +335,7 @@ public abstract class TransactionType {
         }
     }
 
-    abstract void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
+    public abstract void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
     public boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
         return false;
@@ -346,15 +346,15 @@ public abstract class TransactionType {
         return false;
     }
 
-    boolean isUnconfirmedDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+    public boolean isUnconfirmedDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
         return false;
     }
 
-    static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Map<String, Integer>> duplicates, boolean exclusive) {
+    public static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Map<String, Integer>> duplicates, boolean exclusive) {
         return isDuplicate(uniqueType, key, duplicates, exclusive ? 0 : Integer.MAX_VALUE);
     }
 
-    static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Map<String, Integer>> duplicates, int maxCount) {
+    public static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Map<String, Integer>> duplicates, int maxCount) {
         Map<String,Integer> typeDuplicates = duplicates.get(uniqueType);
         if (typeDuplicates == null) {
             typeDuplicates = new HashMap<>();
@@ -375,7 +375,7 @@ public abstract class TransactionType {
         return true;
     }
 
-    boolean isPruned(long transactionId) {
+    public boolean isPruned(long transactionId) {
         return false;
     }
 
@@ -391,23 +391,23 @@ public abstract class TransactionType {
         return true;
     }
 
-    Fee getBaselineFee(Transaction transaction) {
+    public Fee getBaselineFee(Transaction transaction) {
         return Fee.DEFAULT_FEE;
     }
 
-    Fee getNextFee(Transaction transaction) {
+    public Fee getNextFee(Transaction transaction) {
         return getBaselineFee(transaction);
     }
 
-    int getBaselineFeeHeight() {
+    public int getBaselineFeeHeight() {
         return Constants.SHUFFLING_BLOCK;
     }
 
-    int getNextFeeHeight() {
+    public int getNextFeeHeight() {
         return Integer.MAX_VALUE;
     }
 
-    long[] getBackFees(Transaction transaction) {
+    public long[] getBackFees(Transaction transaction) {
         return Convert.EMPTY_LONG;
     }
 
@@ -429,12 +429,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (recipientAccount == null) {
                 Account.getAccount(ConchGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
                         transaction.getId(), transaction.getAmountNQT());
@@ -442,7 +442,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         @Override
@@ -473,17 +473,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return Attachment.ORDINARY_PAYMENT;
             }
 
             @Override
-            Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return Attachment.ORDINARY_PAYMENT;
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
                     throw new ConchException.NotValidException("Invalid ordinary payment");
                 }
@@ -504,12 +504,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         @Override
@@ -557,12 +557,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.CoinBase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.CoinBase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.CoinBase(buffer,transactionVersion);
             }
 
             @Override
-            Attachment.CoinBase parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.CoinBase parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.CoinBase(attachmentData);
             }
 
@@ -572,7 +572,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
                 Map<Long,Long> consignors = coinBase.getConsignors();
                 long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
@@ -583,7 +583,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
                 Map<Long,Long> consignors = coinBase.getConsignors();
                 if(consignors.size() == 0){
@@ -613,12 +613,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         public final static TransactionType ARBITRARY_MESSAGE = new Messaging() {
@@ -639,21 +639,21 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return Attachment.ARBITRARY_MESSAGE;
             }
 
             @Override
-            Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return Attachment.ARBITRARY_MESSAGE;
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment attachment = transaction.getAttachment();
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
@@ -706,22 +706,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return ALIAS_FEE;
             }
 
             @Override
-            Attachment.MessagingAliasAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasAssignment(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasAssignment(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
                 Alias.addOrUpdateAlias(transaction, attachment);
             }
@@ -740,7 +740,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
                 if (attachment.getAliasName().length() == 0
                         || attachment.getAliasName().length() > Constants.MAX_ALIAS_LENGTH
@@ -788,17 +788,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.MessagingAliasSell parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasSell parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasSell(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasSell(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) transaction.getAttachment();
                 Alias.sellAlias(transaction, attachment);
             }
@@ -811,7 +811,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Invalid sell alias transaction: " +
                             transaction.getJSONObject());
@@ -879,17 +879,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.MessagingAliasBuy parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasBuy parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasBuy(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasBuy(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 final Attachment.MessagingAliasBuy attachment =
                         (Attachment.MessagingAliasBuy) transaction.getAttachment();
                 final String aliasName = attachment.getAliasName();
@@ -904,7 +904,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 final Attachment.MessagingAliasBuy attachment =
                         (Attachment.MessagingAliasBuy) transaction.getAttachment();
                 final String aliasName = attachment.getAliasName();
@@ -961,17 +961,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.MessagingAliasDelete parseAttachment(final ByteBuffer buffer, final byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasDelete parseAttachment(final ByteBuffer buffer, final byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasDelete(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAliasDelete parseAttachment(final JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAliasDelete parseAttachment(final JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAliasDelete(attachmentData);
             }
 
             @Override
-            void applyAttachment(final Transaction transaction, final Account senderAccount, final Account recipientAccount) {
+            public void applyAttachment(final Transaction transaction, final Account senderAccount, final Account recipientAccount) {
                 final Attachment.MessagingAliasDelete attachment =
                         (Attachment.MessagingAliasDelete) transaction.getAttachment();
                 Alias.deleteAlias(attachment.getAliasName());
@@ -985,7 +985,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(final Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(final Transaction transaction) throws ConchException.ValidationException {
                 final Attachment.MessagingAliasDelete attachment =
                         (Attachment.MessagingAliasDelete) transaction.getAttachment();
                 final String aliasName = attachment.getAliasName();
@@ -1053,28 +1053,28 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return POLL_FEE;
             }
 
             @Override
-            Attachment.MessagingPollCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingPollCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingPollCreation(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingPollCreation parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingPollCreation parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingPollCreation(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) transaction.getAttachment();
                 Poll.addPoll(transaction, attachment);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
                 Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) transaction.getAttachment();
 
@@ -1160,23 +1160,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.MessagingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingVoteCasting(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingVoteCasting parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingVoteCasting parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingVoteCasting(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingVoteCasting attachment = (Attachment.MessagingVoteCasting) transaction.getAttachment();
                 Vote.addVote(transaction, attachment);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
                 Attachment.MessagingVoteCasting attachment = (Attachment.MessagingVoteCasting) transaction.getAttachment();
                 if (attachment.getPollId() == 0 || attachment.getPollVote() == null
@@ -1259,17 +1259,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return PHASING_VOTE_FEE;
             }
 
             @Override
-            Attachment.MessagingPhasingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingPhasingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingPhasingVoteCasting(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingPhasingVoteCasting parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingPhasingVoteCasting parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingPhasingVoteCasting(attachmentData);
             }
 
@@ -1279,7 +1279,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
                 Attachment.MessagingPhasingVoteCasting attachment = (Attachment.MessagingPhasingVoteCasting) transaction.getAttachment();
                 byte[] revealedSecret = attachment.getRevealedSecret();
@@ -1342,7 +1342,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingPhasingVoteCasting attachment = (Attachment.MessagingPhasingVoteCasting) transaction.getAttachment();
                 List<byte[]> hashes = attachment.getTransactionFullHashes();
                 for (byte[] hash : hashes) {
@@ -1375,23 +1375,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.MessagingHubAnnouncement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingHubAnnouncement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingHubAnnouncement(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingHubAnnouncement parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingHubAnnouncement parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingHubAnnouncement(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
                 Hub.addOrUpdateHub(transaction, attachment);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 if (Conch.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
                     throw new ConchException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Conch.getBlockchain().getHeight());
                 }
@@ -1447,22 +1447,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return ACCOUNT_INFO_FEE;
             }
 
             @Override
-            Attachment.MessagingAccountInfo parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAccountInfo parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAccountInfo(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAccountInfo(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.MessagingAccountInfo attachment = (Attachment.MessagingAccountInfo)transaction.getAttachment();
                 if (attachment.getName().length() > Constants.MAX_ACCOUNT_NAME_LENGTH
                         || attachment.getDescription().length() > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH) {
@@ -1471,7 +1471,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingAccountInfo attachment = (Attachment.MessagingAccountInfo) transaction.getAttachment();
                 senderAccount.setAccountInfo(attachment.getName(), attachment.getDescription());
             }
@@ -1520,22 +1520,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return ACCOUNT_PROPERTY_FEE;
             }
 
             @Override
-            Attachment.MessagingAccountProperty parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAccountProperty parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAccountProperty(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAccountProperty parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAccountProperty parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAccountProperty(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.MessagingAccountProperty attachment = (Attachment.MessagingAccountProperty)transaction.getAttachment();
                 if (attachment.getProperty().length() > Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH
                         || attachment.getProperty().length() == 0
@@ -1551,7 +1551,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingAccountProperty attachment = (Attachment.MessagingAccountProperty) transaction.getAttachment();
                 recipientAccount.setProperty(transaction, senderAccount, attachment.getProperty(), attachment.getValue());
             }
@@ -1586,17 +1586,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.MessagingAccountPropertyDelete parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.MessagingAccountPropertyDelete parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.MessagingAccountPropertyDelete(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.MessagingAccountPropertyDelete parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.MessagingAccountPropertyDelete parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.MessagingAccountPropertyDelete(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.MessagingAccountPropertyDelete attachment = (Attachment.MessagingAccountPropertyDelete)transaction.getAttachment();
                 Account.AccountProperty accountProperty = Account.getProperty(attachment.getPropertyId());
                 if (accountProperty == null) {
@@ -1619,7 +1619,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.MessagingAccountPropertyDelete attachment = (Attachment.MessagingAccountPropertyDelete) transaction.getAttachment();
                 senderAccount.deleteProperty(attachment.getPropertyId());
             }
@@ -1675,12 +1675,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return ASSET_ISSUANCE_FEE;
             }
 
             @Override
-            long[] getBackFees(Transaction transaction) {
+            public long[] getBackFees(Transaction transaction) {
                 if (isSingletonIssuance(transaction)) {
                     return Convert.EMPTY_LONG;
                 }
@@ -1689,22 +1689,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAssetIssuance(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAssetIssuance(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 return true;
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) transaction.getAttachment();
                 long assetId = transaction.getId();
                 Asset.addAsset(transaction, attachment);
@@ -1712,11 +1712,11 @@ public abstract class TransactionType {
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance)transaction.getAttachment();
                 if (attachment.getName().length() < Constants.MIN_ASSET_NAME_LENGTH
                         || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
@@ -1778,17 +1778,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAssetTransfer(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAssetTransfer(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
                 long unconfirmedAssetBalance = senderAccount.getUnconfirmedAssetBalanceQNT(attachment.getAssetId());
                 if (unconfirmedAssetBalance >= 0 && unconfirmedAssetBalance >= attachment.getQuantityQNT()) {
@@ -1800,7 +1800,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
                 senderAccount.addToAssetBalanceQNT(getLedgerEvent(), transaction.getId(), attachment.getAssetId(),
                         -attachment.getQuantityQNT());
@@ -1814,14 +1814,14 @@ public abstract class TransactionType {
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
                 senderAccount.addToUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
                         attachment.getAssetId(), attachment.getQuantityQNT());
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer)transaction.getAttachment();
                 if (transaction.getAmountNQT() != 0
                         || attachment.getComment() != null && attachment.getComment().length() > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
@@ -1876,17 +1876,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsAssetDelete parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAssetDelete parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAssetDelete(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsAssetDelete parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAssetDelete parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAssetDelete(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
                 long unconfirmedAssetBalance = senderAccount.getUnconfirmedAssetBalanceQNT(attachment.getAssetId());
                 if (unconfirmedAssetBalance >= 0 && unconfirmedAssetBalance >= attachment.getQuantityQNT()) {
@@ -1898,7 +1898,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
                 senderAccount.addToAssetBalanceQNT(getLedgerEvent(), transaction.getId(), attachment.getAssetId(),
                         -attachment.getQuantityQNT());
@@ -1906,14 +1906,14 @@ public abstract class TransactionType {
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
                 senderAccount.addToUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
                         attachment.getAssetId(), attachment.getQuantityQNT());
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
                 if (attachment.getAssetId() == 0) {
                     throw new ConchException.NotValidException("Invalid asset identifier: " + attachment.getJSONObject());
@@ -1943,7 +1943,7 @@ public abstract class TransactionType {
         abstract static class ColoredCoinsOrderPlacement extends ColoredCoins {
 
             @Override
-            final void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public final void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsOrderPlacement attachment = (Attachment.ColoredCoinsOrderPlacement)transaction.getAttachment();
                 if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
                         || attachment.getAssetId() == 0) {
@@ -1989,17 +1989,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsAskOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAskOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAskOrderPlacement(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAskOrderPlacement(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsAskOrderPlacement attachment = (Attachment.ColoredCoinsAskOrderPlacement) transaction.getAttachment();
                 long unconfirmedAssetBalance = senderAccount.getUnconfirmedAssetBalanceQNT(attachment.getAssetId());
                 if (unconfirmedAssetBalance >= 0 && unconfirmedAssetBalance >= attachment.getQuantityQNT()) {
@@ -2011,13 +2011,13 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsAskOrderPlacement attachment = (Attachment.ColoredCoinsAskOrderPlacement) transaction.getAttachment();
                 Order.Ask.addOrder(transaction, attachment);
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsAskOrderPlacement attachment = (Attachment.ColoredCoinsAskOrderPlacement) transaction.getAttachment();
                 senderAccount.addToUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
                         attachment.getAssetId(), attachment.getQuantityQNT());
@@ -2043,17 +2043,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsBidOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsBidOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsBidOrderPlacement(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsBidOrderPlacement(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
                 if (senderAccount.getUnconfirmedBalanceNQT() >= Math.multiplyExact(attachment.getQuantityQNT(), attachment.getPriceNQT())) {
                     senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
@@ -2064,13 +2064,13 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
                 Order.Bid.addOrder(transaction, attachment);
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
                         Math.multiplyExact(attachment.getQuantityQNT(), attachment.getPriceNQT()));
@@ -2081,16 +2081,16 @@ public abstract class TransactionType {
         abstract static class ColoredCoinsOrderCancellation extends ColoredCoins {
 
             @Override
-            final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 return true;
             }
 
             @Override
-            final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             }
 
             @Override
-            boolean isUnconfirmedDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+            public boolean isUnconfirmedDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
                 Attachment.ColoredCoinsOrderCancellation attachment = (Attachment.ColoredCoinsOrderCancellation) transaction.getAttachment();
                 return TransactionType.isDuplicate(ColoredCoins.ASK_ORDER_CANCELLATION, Long.toUnsignedString(attachment.getOrderId()), duplicates, true);
             }
@@ -2125,17 +2125,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsAskOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAskOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAskOrderCancellation(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsAskOrderCancellation(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
                 Order order = Order.Ask.getAskOrder(attachment.getOrderId());
                 Order.Ask.removeOrder(attachment.getOrderId());
@@ -2146,7 +2146,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
                 Order ask = Order.Ask.getAskOrder(attachment.getOrderId());
                 if (ask == null) {
@@ -2178,17 +2178,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsBidOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsBidOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsBidOrderCancellation(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.ColoredCoinsBidOrderCancellation(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
                 Order order = Order.Bid.getBidOrder(attachment.getOrderId());
                 Order.Bid.removeOrder(attachment.getOrderId());
@@ -2199,7 +2199,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
                 Order bid = Order.Bid.getBidOrder(attachment.getOrderId());
                 if (bid == null) {
@@ -2231,17 +2231,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.ColoredCoinsDividendPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
+            public Attachment.ColoredCoinsDividendPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
                 return new Attachment.ColoredCoinsDividendPayment(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.ColoredCoinsDividendPayment parseAttachment(JSONObject attachmentData) {
+            public Attachment.ColoredCoinsDividendPayment parseAttachment(JSONObject attachmentData) {
                 return new Attachment.ColoredCoinsDividendPayment(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
                 long assetId = attachment.getAssetId();
                 Asset asset = Asset.getAsset(assetId, attachment.getHeight());
@@ -2258,13 +2258,13 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
                 senderAccount.payDividends(transaction.getId(), attachment);
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
                 long assetId = attachment.getAssetId();
                 Asset asset = Asset.getAsset(assetId, attachment.getHeight());
@@ -2277,7 +2277,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
                 if (attachment.getHeight() > Conch.getBlockchain().getHeight()) {
                     throw new ConchException.NotCurrentlyValidException("Invalid dividend payment height: " + attachment.getHeight()
@@ -2343,16 +2343,16 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         @Override
-        final void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+        public final void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             if (transaction.getAmountNQT() != 0) {
                 throw new ConchException.NotValidException("Invalid digital goods transaction");
             }
@@ -2388,28 +2388,28 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return DGS_LISTING_FEE;
             }
 
             @Override
-            Attachment.DigitalGoodsListing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsListing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsListing(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsListing(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsListing attachment = (Attachment.DigitalGoodsListing) transaction.getAttachment();
                 DigitalGoodsStore.listGoods(transaction, attachment);
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsListing attachment = (Attachment.DigitalGoodsListing) transaction.getAttachment();
                 if (attachment.getName().length() == 0
                         || attachment.getName().length() > Constants.MAX_DGS_LISTING_NAME_LENGTH
@@ -2474,23 +2474,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.DigitalGoodsDelisting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsDelisting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsDelisting(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsDelisting(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) transaction.getAttachment();
                 DigitalGoodsStore.delistGoods(attachment.getGoodsId());
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) transaction.getAttachment();
                 DigitalGoodsStore.Goods goods = DigitalGoodsStore.Goods.getGoods(attachment.getGoodsId());
                 if (goods != null && transaction.getSenderId() != goods.getSellerId()) {
@@ -2538,23 +2538,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.DigitalGoodsPriceChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsPriceChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsPriceChange(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsPriceChange(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsPriceChange attachment = (Attachment.DigitalGoodsPriceChange) transaction.getAttachment();
                 DigitalGoodsStore.changePrice(attachment.getGoodsId(), attachment.getPriceNQT());
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsPriceChange attachment = (Attachment.DigitalGoodsPriceChange) transaction.getAttachment();
                 DigitalGoodsStore.Goods goods = DigitalGoodsStore.Goods.getGoods(attachment.getGoodsId());
                 if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
@@ -2604,23 +2604,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.DigitalGoodsQuantityChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsQuantityChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsQuantityChange(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsQuantityChange(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsQuantityChange attachment = (Attachment.DigitalGoodsQuantityChange) transaction.getAttachment();
                 DigitalGoodsStore.changeQuantity(attachment.getGoodsId(), attachment.getDeltaQuantity());
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsQuantityChange attachment = (Attachment.DigitalGoodsQuantityChange) transaction.getAttachment();
                 DigitalGoodsStore.Goods goods = DigitalGoodsStore.Goods.getGoods(attachment.getGoodsId());
                 if (attachment.getDeltaQuantity() < -Constants.MAX_DGS_LISTING_QUANTITY
@@ -2671,17 +2671,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.DigitalGoodsPurchase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsPurchase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsPurchase(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsPurchase(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
                 if (senderAccount.getUnconfirmedBalanceNQT() >= Math.multiplyExact((long) attachment.getQuantity(), attachment.getPriceNQT())) {
                     senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
@@ -2692,20 +2692,20 @@ public abstract class TransactionType {
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
                         Math.multiplyExact((long) attachment.getQuantity(), attachment.getPriceNQT()));
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
                 DigitalGoodsStore.purchase(transaction, attachment);
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
                 DigitalGoodsStore.Goods goods = DigitalGoodsStore.Goods.getGoods(attachment.getGoodsId());
                 if (attachment.getQuantity() <= 0 || attachment.getQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
@@ -2776,17 +2776,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Fee getBaselineFee(Transaction transaction) {
+            public Fee getBaselineFee(Transaction transaction) {
                 return DGS_DELIVERY_FEE;
             }
 
             @Override
-            Attachment.DigitalGoodsDelivery parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsDelivery parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsDelivery(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 if (attachmentData.get("goodsData") == null) {
                     return new Attachment.UnencryptedDigitalGoodsDelivery(attachmentData);
                 }
@@ -2794,13 +2794,13 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery)transaction.getAttachment();
                 DigitalGoodsStore.deliver(transaction, attachment);
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) transaction.getAttachment();
                 DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.Purchase.getPendingPurchase(attachment.getPurchaseId());
                 if (attachment.getGoodsDataLength() > Constants.MAX_DGS_GOODS_LENGTH) {
@@ -2860,23 +2860,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.DigitalGoodsFeedback parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsFeedback parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsFeedback(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsFeedback(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback)transaction.getAttachment();
                 DigitalGoodsStore.feedback(attachment.getPurchaseId(), transaction.getEncryptedMessage(), transaction.getMessage());
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback) transaction.getAttachment();
                 DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.Purchase.getPurchase(attachment.getPurchaseId());
                 if (purchase != null &&
@@ -2928,17 +2928,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.DigitalGoodsRefund parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsRefund parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsRefund(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.DigitalGoodsRefund(attachmentData);
             }
 
             @Override
-            boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
                 if (senderAccount.getUnconfirmedBalanceNQT() >= attachment.getRefundNQT()) {
                     senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -attachment.getRefundNQT());
@@ -2948,20 +2948,20 @@ public abstract class TransactionType {
             }
 
             @Override
-            void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), attachment.getRefundNQT());
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
                 DigitalGoodsStore.refund(getLedgerEvent(), transaction.getId(), transaction.getSenderId(),
                         attachment.getPurchaseId(), attachment.getRefundNQT(), transaction.getEncryptedMessage());
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void doValidateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
                 DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.Purchase.getPurchase(attachment.getPurchaseId());
                 if (attachment.getRefundNQT() < 0 || attachment.getRefundNQT() > Constants.MAX_BALANCE_NQT
@@ -3009,12 +3009,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         public static final TransactionType EFFECTIVE_BALANCE_LEASING = new AccountControl() {
@@ -3035,23 +3035,23 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.AccountControlEffectiveBalanceLeasing(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.AccountControlEffectiveBalanceLeasing(attachmentData);
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing) transaction.getAttachment();
                 Account.getAccount(transaction.getSenderId()).leaseEffectiveBalance(transaction.getRecipientId(), attachment.getPeriod());
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing)transaction.getAttachment();
                 if (transaction.getSenderId() == transaction.getRecipientId()) {
                     throw new ConchException.NotValidException("Account cannot lease balance to itself");
@@ -3097,17 +3097,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
                 return new Attachment.SetPhasingOnly(buffer, transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) {
                 return new Attachment.SetPhasingOnly(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.SetPhasingOnly attachment = (Attachment.SetPhasingOnly)transaction.getAttachment();
                 VoteWeighting.VotingModel votingModel = attachment.getPhasingParams().getVoteWeighting().getVotingModel();
                 attachment.getPhasingParams().validate();
@@ -3144,7 +3144,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.SetPhasingOnly attachment = (Attachment.SetPhasingOnly)transaction.getAttachment();
                 AccountRestrictions.PhasingOnly.set(senderAccount, attachment);
             }
@@ -3186,17 +3186,17 @@ public abstract class TransactionType {
         }
 
         @Override
-        final Fee getBaselineFee(Transaction transaction) {
+        public final Fee getBaselineFee(Transaction transaction) {
             return TAGGED_DATA_FEE;
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         @Override
@@ -3227,17 +3227,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.TaggedDataUpload parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.TaggedDataUpload parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.TaggedDataUpload(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.TaggedDataUpload parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.TaggedDataUpload parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.TaggedDataUpload(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.TaggedDataUpload attachment = (Attachment.TaggedDataUpload) transaction.getAttachment();
                 if (attachment.getData() == null && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                     throw new ConchException.NotCurrentlyValidException("Data has been pruned prematurely");
@@ -3268,7 +3268,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.TaggedDataUpload attachment = (Attachment.TaggedDataUpload) transaction.getAttachment();
                 TaggedData.add((TransactionImpl)transaction, attachment);
             }
@@ -3279,7 +3279,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            boolean isPruned(long transactionId) {
+            public boolean isPruned(long transactionId) {
                 return TaggedData.isPruned(transactionId);
             }
 
@@ -3298,17 +3298,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            Attachment.TaggedDataExtend parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public Attachment.TaggedDataExtend parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.TaggedDataExtend(buffer, transactionVersion);
             }
 
             @Override
-            Attachment.TaggedDataExtend parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public Attachment.TaggedDataExtend parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.TaggedDataExtend(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.TaggedDataExtend attachment = (Attachment.TaggedDataExtend) transaction.getAttachment();
                 if ((attachment.jsonIsPruned() || attachment.getData() == null) && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                     throw new ConchException.NotCurrentlyValidException("Data has been pruned prematurely");
@@ -3335,7 +3335,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.TaggedDataExtend attachment = (Attachment.TaggedDataExtend) transaction.getAttachment();
                 TaggedData.extend(transaction, attachment);
             }
@@ -3346,7 +3346,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            boolean isPruned(long transactionId) {
+            public boolean isPruned(long transactionId) {
                 return false;
             }
 
@@ -3363,7 +3363,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             if(attachmentApplyUnconfirmed(transaction,senderAccount)){
                 return true;
             }
@@ -3371,7 +3371,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             attachmentUndoUnconfirmed(transaction, senderAccount);
         }
 
@@ -3412,12 +3412,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolCreate(buffer, transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolCreate(attachmentData);
             }
 
@@ -3427,7 +3427,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO node certify
                 // forge pool total No.
                 long poolId = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
@@ -3443,7 +3443,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
                 SharderPoolProcessor.createSharderPool(senderAccount.getId(), transaction.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
@@ -3479,12 +3479,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolDestroy(buffer, transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolDestroy(attachmentData);
             }
 
@@ -3494,7 +3494,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO unconfirmed transaction already has this kind of transaction
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(destroy.getPoolId());
@@ -3517,7 +3517,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(destroy.getPoolId());
@@ -3562,17 +3562,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolJoin(buffer, transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolJoin(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO unconfirmed transaction already has this kind of transaction double spend
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
@@ -3598,7 +3598,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int height = Conch.getBlockchain().getLastBlock().getHeight() + Constants.SHARDER_POOL_DELAY;
                 Attachment.SharderPoolJoin forgePoolJoin = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 long amountNQT = forgePoolJoin.getAmount();
@@ -3640,17 +3640,17 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolQuit(buffer, transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.SharderPoolQuit(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO unconfirmed transaction already has this kind of transaction
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
@@ -3672,7 +3672,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = sharderPoolQuit.getPoolId();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
@@ -3706,22 +3706,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.PocNodeConfiguration(buffer,transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.PocNodeConfiguration(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 
             }
 
@@ -3743,22 +3743,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return new Attachment.PocNodeConfiguration(buffer, transactionVersion);
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return new Attachment.PocNodeConfiguration(attachmentData);
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 
             }
 
@@ -3780,22 +3780,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return null;
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return null;
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 
             }
 
@@ -3817,22 +3817,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return null;
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return null;
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 
             }
 
@@ -3854,22 +3854,22 @@ public abstract class TransactionType {
             }
 
             @Override
-            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
                 return null;
             }
 
             @Override
-            AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
                 return null;
             }
 
             @Override
-            void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
 
             }
 
             @Override
-            void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 
             }
 
@@ -3885,12 +3885,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
             return true;
         }
 
         @Override
-        final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
 
         @Override

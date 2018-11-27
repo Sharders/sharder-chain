@@ -1127,7 +1127,7 @@ public final class Account {
         return accountInfoTable.get(accountDbKeyFactory.newKey(this));
     }
 
-    void setAccountInfo(String name, String description) {
+    public void setAccountInfo(String name, String description) {
         name = Convert.emptyToNull(name.trim());
         description = Convert.emptyToNull(description.trim());
         AccountInfo accountInfo = getAccountInfo();
@@ -1398,7 +1398,7 @@ public final class Account {
         return controls;
     }
 
-    void leaseEffectiveBalance(long lesseeId, int period) {
+    public void leaseEffectiveBalance(long lesseeId, int period) {
         int height = Conch.getBlockchain().getHeight();
         AccountLease accountLease = accountLeaseTable.get(accountDbKeyFactory.newKey(this));
         if (accountLease == null) {
@@ -1422,7 +1422,7 @@ public final class Account {
         leaseListeners.notify(accountLease, Event.LEASE_SCHEDULED);
     }
 
-    void addControl(ControlType control) {
+    public void addControl(ControlType control) {
         if (controls.contains(control)) {
             return;
         }
@@ -1432,7 +1432,7 @@ public final class Account {
         accountTable.insert(this);
     }
 
-    void removeControl(ControlType control) {
+    public void removeControl(ControlType control) {
         if (!controls.contains(control)) {
             return;
         }
@@ -1442,7 +1442,7 @@ public final class Account {
         save();
     }
 
-    void setProperty(Transaction transaction, Account setterAccount, String property, String value) {
+    public void setProperty(Transaction transaction, Account setterAccount, String property, String value) {
         value = Convert.emptyToNull(value);
         AccountProperty accountProperty = getProperty(this.id, property, setterAccount.id);
         if (accountProperty == null) {
@@ -1455,7 +1455,7 @@ public final class Account {
         propertyListeners.notify(accountProperty, Event.SET_PROPERTY);
     }
 
-    void deleteProperty(long propertyId) {
+    public void deleteProperty(long propertyId) {
         AccountProperty accountProperty = accountPropertyTable.get(accountPropertyDbKeyFactory.newKey(propertyId));
         if (accountProperty == null) {
             return;
@@ -1504,7 +1504,7 @@ public final class Account {
         this.publicKey = publicKey;
     }
 
-    void addToAssetBalanceQNT(AccountLedger.LedgerEvent event, long eventId, long assetId, long quantityQNT) {
+    public void addToAssetBalanceQNT(AccountLedger.LedgerEvent event, long eventId, long assetId, long quantityQNT) {
         if (quantityQNT == 0) {
             return;
         }
@@ -1526,7 +1526,7 @@ public final class Account {
         }
     }
 
-    void addToUnconfirmedAssetBalanceQNT(AccountLedger.LedgerEvent event, long eventId, long assetId, long quantityQNT) {
+    public void addToUnconfirmedAssetBalanceQNT(AccountLedger.LedgerEvent event, long eventId, long assetId, long quantityQNT) {
         if (quantityQNT == 0) {
             return;
         }
@@ -1549,7 +1549,7 @@ public final class Account {
         }
     }
 
-    void addToAssetAndUnconfirmedAssetBalanceQNT(AccountLedger.LedgerEvent event, long eventId, long assetId, long quantityQNT) {
+    public void addToAssetAndUnconfirmedAssetBalanceQNT(AccountLedger.LedgerEvent event, long eventId, long assetId, long quantityQNT) {
         if (quantityQNT == 0) {
             return;
         }
@@ -1585,7 +1585,7 @@ public final class Account {
         }
     }
 
-    void addToCurrencyUnits(AccountLedger.LedgerEvent event, long eventId, long currencyId, long units) {
+    public void addToCurrencyUnits(AccountLedger.LedgerEvent event, long eventId, long currencyId, long units) {
         if (units == 0) {
             return;
         }
@@ -1607,7 +1607,7 @@ public final class Account {
         }
     }
 
-    void addToUnconfirmedCurrencyUnits(AccountLedger.LedgerEvent event, long eventId, long currencyId, long units) {
+    public void addToUnconfirmedCurrencyUnits(AccountLedger.LedgerEvent event, long eventId, long currencyId, long units) {
         if (units == 0) {
             return;
         }
@@ -1629,7 +1629,7 @@ public final class Account {
         }
     }
 
-    void addToCurrencyAndUnconfirmedCurrencyUnits(AccountLedger.LedgerEvent event, long eventId, long currencyId, long units) {
+    public void addToCurrencyAndUnconfirmedCurrencyUnits(AccountLedger.LedgerEvent event, long eventId, long currencyId, long units) {
         if (units == 0) {
             return;
         }
@@ -1694,7 +1694,7 @@ public final class Account {
     }
 
     //add frozen balance
-    void frozenNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void frozenNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
@@ -1707,11 +1707,11 @@ public final class Account {
         save();
     }
 
-    void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceNQT(event, eventId, amountNQT, 0);
     }
 
-    void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+    public void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
@@ -1733,11 +1733,11 @@ public final class Account {
         }
     }
 
-    void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
     }
 
-    void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+    public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
@@ -1758,11 +1758,11 @@ public final class Account {
         }
     }
 
-    void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceAndUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
     }
 
-    void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+    public void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
@@ -1796,7 +1796,7 @@ public final class Account {
         }
     }
 
-    void addToForgedBalanceNQT(long amountNQT) {
+    public void addToForgedBalanceNQT(long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
@@ -1846,7 +1846,7 @@ public final class Account {
         }
     }
 
-    void payDividends(final long transactionId, Attachment.ColoredCoinsDividendPayment attachment) {
+    public void payDividends(final long transactionId, Attachment.ColoredCoinsDividendPayment attachment) {
         long totalDividend = 0;
         List<AccountAsset> accountAssets = new ArrayList<>();
         try (DbIterator<AccountAsset> iterator = getAssetAccounts(attachment.getAssetId(), attachment.getHeight(), 0, -1)) {

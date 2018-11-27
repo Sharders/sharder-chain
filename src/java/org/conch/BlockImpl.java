@@ -22,6 +22,8 @@
 package org.conch;
 
 import org.conch.crypto.Crypto;
+import org.conch.tx.TransactionDb;
+import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -36,7 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-final class BlockImpl implements Block {
+public final class BlockImpl implements Block {
 
     private final int version;
     private final int timestamp;

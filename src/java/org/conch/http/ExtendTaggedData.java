@@ -27,7 +27,7 @@ import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.TaggedData;
 import org.conch.tx.Transaction;
-import org.conch.TransactionType;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

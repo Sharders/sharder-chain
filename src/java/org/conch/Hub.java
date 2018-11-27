@@ -65,7 +65,7 @@ public class Hub {
 
     private static final VersionedEntityDbTable<Hub> hubTable = null;
 
-    static void addOrUpdateHub(Transaction transaction, Attachment.MessagingHubAnnouncement attachment) {
+    public static void addOrUpdateHub(Transaction transaction, Attachment.MessagingHubAnnouncement attachment) {
         hubTable.insert(new Hub(transaction, attachment));
     }
 

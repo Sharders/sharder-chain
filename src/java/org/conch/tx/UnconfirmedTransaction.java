@@ -19,10 +19,10 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
+import org.conch.*;
 import org.conch.db.DbKey;
-import org.conch.tx.Transaction;
 import org.conch.util.Filter;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;

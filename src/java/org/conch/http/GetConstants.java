@@ -25,6 +25,7 @@ import org.conch.*;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.crypto.HashFunction;
 import org.conch.peer.Peer;
+import org.conch.tx.TransactionType;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;

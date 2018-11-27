@@ -160,7 +160,7 @@ public final class Poll extends AbstractPoll {
         return pollTable.getCount();
     }
 
-    static void addPoll(Transaction transaction, Attachment.MessagingPollCreation attachment) {
+    public static void addPoll(Transaction transaction, Attachment.MessagingPollCreation attachment) {
         Poll poll = new Poll(transaction, attachment);
         pollTable.insert(poll);
     }

@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.conch.db.DerivedDbTable;
+import org.conch.tx.TransactionDb;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.conch.util.Listener;

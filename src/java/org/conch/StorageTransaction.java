@@ -22,6 +22,8 @@
 package org.conch;
 
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -32,7 +34,7 @@ public abstract class StorageTransaction extends TransactionType {
     private static final byte SUBTYPE_STORAGE_BACKUP = 1;
     private static final byte SUBTYPE_STORAGE_EXTEND = 2;
 
-    static TransactionType findTransactionType(byte subtype) {
+    public static TransactionType findTransactionType(byte subtype) {
         switch (subtype) {
             case SUBTYPE_STORAGE_STORE:
                 return STORAGE_UPLOAD;
@@ -51,7 +53,7 @@ public abstract class StorageTransaction extends TransactionType {
         }
     };
 
-    private StorageTransaction() {
+    public  StorageTransaction() {
     }
 
     @Override
@@ -60,17 +62,17 @@ public abstract class StorageTransaction extends TransactionType {
     }
 
     @Override
-    final Fee getBaselineFee(Transaction transaction) {
+    public final Fee getBaselineFee(Transaction transaction) {
         return STORAGE_FEE;
     }
 
     @Override
-    final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+    public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         return true;
     }
 
     @Override
-    final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+    public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
     }
 
     @Override
@@ -101,17 +103,17 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
-        Attachment.DataStorageUpload parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+        public Attachment.DataStorageUpload parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             return new Attachment.DataStorageUpload(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DataStorageUpload parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+        public Attachment.DataStorageUpload parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
             return new Attachment.DataStorageUpload(attachmentData);
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+        public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             // TODO storage add full validate conditions
             Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
             if (attachment.getName().length() == 0 || attachment.getName().length() > Constants.MAX_TAGGED_DATA_NAME_LENGTH) {
@@ -123,7 +125,7 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
-        void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.DataStorageUpload attachment = (Attachment.DataStorageUpload) transaction.getAttachment();
             if (Storer.getStorer() != null) {
                 StorageProcessorImpl.addTask(transaction.getId(), attachment.getReplicated_number());
@@ -139,7 +141,7 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
-        boolean isPruned(long transactionId) {
+        public boolean isPruned(long transactionId) {
             return TaggedData.isPruned(transactionId);
         }
 
@@ -158,17 +160,17 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
-        Attachment.DataStorageBackup parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+        public Attachment.DataStorageBackup parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             return new Attachment.DataStorageBackup(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DataStorageBackup parseAttachment(JSONObject attachmentData) {
+        public Attachment.DataStorageBackup parseAttachment(JSONObject attachmentData) {
             return new Attachment.DataStorageBackup(attachmentData);
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+        public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             // TODO storage add full validate conditions
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
 //            if (!TransactionDb.hasTransaction(attachment.getUploadTransaction())) {
@@ -191,7 +193,7 @@ public abstract class StorageTransaction extends TransactionType {
         }
 
         @Override
-        void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             // If sender is storer self, save the file into local disk by ssid
             Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
             Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());

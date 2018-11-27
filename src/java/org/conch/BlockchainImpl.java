@@ -24,6 +24,9 @@ package org.conch;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionDb;
+import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.conch.util.ReadWriteUpdateLock;
@@ -39,7 +42,7 @@ public final class BlockchainImpl implements Blockchain {
 
     private static final BlockchainImpl instance = new BlockchainImpl();
 
-    static BlockchainImpl getInstance() {
+    public static BlockchainImpl getInstance() {
         return instance;
     }
 

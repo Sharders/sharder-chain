@@ -241,7 +241,7 @@ public final class Constants {
     public static final int[] MIN_VERSION = new int[] {0, 0, 1};
     public static final int[] MIN_PROXY_VERSION = new int[] {0, 0, 1};
 
-    static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnetOrDevnet() ? 50 : 100) * ONE_SS;
+    public static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnetOrDevnet() ? 50 : 100) * ONE_SS;
     public static final long SHUFFLING_DEPOSIT_NQT = (isTestnetOrDevnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
@@ -274,7 +274,7 @@ public final class Constants {
     private Constants() {} // never
 
     //Fee
-    static final ArrayList<Long> configFee = new ArrayList<>();
+    public static final ArrayList<Long> configFee = new ArrayList<>();
 
     static {
         configFee.add((long)Conch.getIntProperty("sharder.fee.payment"));

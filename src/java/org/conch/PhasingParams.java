@@ -113,7 +113,7 @@ public final class PhasingParams {
         }
     }
 
-    void validate() throws ConchException.ValidationException {
+    public void validate() throws ConchException.ValidationException {
         if (whitelist.length > Constants.MAX_PHASING_WHITELIST_SIZE) {
             throw new ConchException.NotValidException("Whitelist is too big");
         }
@@ -200,7 +200,7 @@ public final class PhasingParams {
 
     }
 
-    void checkApprovable() throws ConchException.NotCurrentlyValidException {
+    public void checkApprovable() throws ConchException.NotCurrentlyValidException {
         if (voteWeighting.getVotingModel() == VoteWeighting.VotingModel.CURRENCY
                 && Currency.getCurrency(voteWeighting.getHoldingId()) == null) {
             throw new ConchException.NotCurrentlyValidException("Currency " + Long.toUnsignedString(voteWeighting.getHoldingId()) + " not found");

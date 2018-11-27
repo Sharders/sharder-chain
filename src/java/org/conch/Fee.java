@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.tx.TransactionImpl;
+
 public interface Fee {
 
     long getFee(TransactionImpl transaction, Appendix appendage);

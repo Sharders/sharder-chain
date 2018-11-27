@@ -30,6 +30,8 @@ import org.conch.db.VersionedPersistentDbTable;
 import org.conch.db.VersionedPrunableDbTable;
 import org.conch.db.VersionedValuesDbTable;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionDb;
+import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 import org.conch.util.Search;
 
@@ -489,7 +491,7 @@ public class TaggedData {
         return blockTimestamp;
     }
 
-    static void add(TransactionImpl transaction, Attachment.TaggedDataUpload attachment) {
+    public static void add(TransactionImpl transaction, Attachment.TaggedDataUpload attachment) {
         if (Conch.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME && attachment.getData() != null) {
             TaggedData taggedData = taggedDataTable.get(transaction.getDbKey());
             if (taggedData == null) {
@@ -502,7 +504,7 @@ public class TaggedData {
         timestampTable.insert(timestamp);
     }
 
-    static void extend(Transaction transaction, Attachment.TaggedDataExtend attachment) {
+    public static void extend(Transaction transaction, Attachment.TaggedDataExtend attachment) {
         long taggedDataId = attachment.getTaggedDataId();
         DbKey dbKey = taggedDataKeyFactory.newKey(taggedDataId);
         Timestamp timestamp = timestampTable.get(dbKey);
@@ -531,7 +533,7 @@ public class TaggedData {
         }
     }
 
-    static void restore(Transaction transaction, Attachment.TaggedDataUpload attachment, int blockTimestamp, int height) {
+    public static void restore(Transaction transaction, Attachment.TaggedDataUpload attachment, int blockTimestamp, int height) {
         TaggedData taggedData = new TaggedData(transaction, attachment, blockTimestamp, height);
         taggedDataTable.insert(taggedData);
         Tag.add(taggedData, height);
@@ -550,7 +552,7 @@ public class TaggedData {
         }
     }
 
-    static boolean isPruned(long transactionId) {
+    public static boolean isPruned(long transactionId) {
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT 1 FROM tagged_data WHERE id = ?")) {
             pstmt.setLong(1, transactionId);

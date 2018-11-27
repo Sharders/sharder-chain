@@ -22,6 +22,8 @@
 package org.conch;
 
 import org.conch.db.DbUtils;
+import org.conch.tx.TransactionDb;
+import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 
 import java.math.BigInteger;
@@ -42,9 +44,9 @@ public final class BlockDb {
 
     /** Block cache */
     static final int BLOCK_CACHE_SIZE = 10;
-    static final Map<Long, BlockImpl> blockCache = new HashMap<>();
-    static final SortedMap<Integer, BlockImpl> heightMap = new TreeMap<>();
-    static final Map<Long, TransactionImpl> transactionCache = new HashMap<>();
+    public static final Map<Long, BlockImpl> blockCache = new HashMap<>();
+    public static final SortedMap<Integer, BlockImpl> heightMap = new TreeMap<>();
+    public static final Map<Long, TransactionImpl> transactionCache = new HashMap<>();
     static final Blockchain blockchain = Conch.getBlockchain();
     static {
         Conch.getBlockchainProcessor().addListener((block) -> {
@@ -123,7 +125,7 @@ public final class BlockDb {
         }
     }
 
-    static long findBlockIdAtHeight(int height) {
+    public static long findBlockIdAtHeight(int height) {
         // Check the cache
         synchronized(blockCache) {
             BlockImpl block = heightMap.get(height);

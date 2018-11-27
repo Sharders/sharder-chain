@@ -19,16 +19,15 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
+import org.conch.*;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.EntityDbTable;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
-import org.conch.tx.Transaction;
-import org.conch.tx.TransactionProcessor;
 import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -40,7 +39,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class TransactionProcessorImpl implements TransactionProcessor {
+public final class TransactionProcessorImpl implements TransactionProcessor {
 
     private static final boolean enableTransactionRebroadcasting = Conch.getBooleanProperty("sharder.enableTransactionRebroadcasting");
     private static final boolean testUnconfirmedTransactions = Conch.getBooleanProperty("sharder.testUnconfirmedTransactions");
@@ -262,7 +261,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 }
                 try {
                     processPeerTransactions(transactionsData);
-                } catch (ConchException.ValidationException|RuntimeException e) {
+                } catch (ConchException.ValidationException |RuntimeException e) {
                     peer.blacklist(e);
                 }
             } catch (Exception e) {
@@ -318,7 +317,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         return transactionListeners.removeListener(listener, eventType);
     }
 
-    void notifyListeners(List<? extends Transaction> transactions, Event eventType) {
+    public void notifyListeners(List<? extends Transaction> transactions, Event eventType) {
         transactionListeners.notify(transactions, eventType);
     }
 

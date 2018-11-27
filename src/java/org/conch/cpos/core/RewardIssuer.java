@@ -3,7 +3,7 @@ package org.conch.cpos.core;
 import org.conch.Attachment;
 import org.conch.Constants;
 import org.conch.ConchException;
-import org.conch.TransactionImpl;
+import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 
 import java.util.Calendar;

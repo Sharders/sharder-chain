@@ -23,6 +23,7 @@ package org.conch;
 
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -40,7 +41,7 @@ public abstract class MonetarySystem extends TransactionType {
     private static final byte SUBTYPE_MONETARY_SYSTEM_CURRENCY_MINTING = 7;
     private static final byte SUBTYPE_MONETARY_SYSTEM_CURRENCY_DELETION = 8;
 
-    static TransactionType findTransactionType(byte subtype) {
+    public static TransactionType findTransactionType(byte subtype) {
         switch (subtype) {
             case MonetarySystem.SUBTYPE_MONETARY_SYSTEM_CURRENCY_ISSUANCE:
                 return MonetarySystem.CURRENCY_ISSUANCE;
@@ -756,7 +757,7 @@ public abstract class MonetarySystem extends TransactionType {
         }
 
         @Override
-        boolean isUnconfirmedDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+        public boolean isUnconfirmedDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
             Attachment.MonetarySystemCurrencyMinting attachment = (Attachment.MonetarySystemCurrencyMinting) transaction.getAttachment();
             return isDuplicate(CURRENCY_MINTING, attachment.getCurrencyId() + ":" + transaction.getSenderId(), duplicates, true);
         }

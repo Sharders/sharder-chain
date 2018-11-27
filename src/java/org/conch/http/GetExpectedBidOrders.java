@@ -25,7 +25,7 @@ import org.conch.Attachment;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.tx.Transaction;
-import org.conch.TransactionType;
+import org.conch.tx.TransactionType;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

@@ -23,8 +23,7 @@ package org.conch;
 
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
-import org.conch.tx.Transaction;
-import org.conch.tx.TransactionProcessor;
+import org.conch.tx.*;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -92,7 +91,7 @@ public interface Appendix {
             this.version = 1;
         }
 
-        abstract String getAppendixName();
+        public abstract String getAppendixName();
 
         @Override
         public final int getSize() {
@@ -106,7 +105,7 @@ public interface Appendix {
 
         abstract int getMySize();
 
-        int getMyFullSize() {
+        public int getMyFullSize() {
             return getMySize();
         }
 
@@ -135,7 +134,7 @@ public interface Appendix {
             return version;
         }
 
-        boolean verifyVersion(byte transactionVersion) {
+        public boolean verifyVersion(byte transactionVersion) {
             return transactionVersion == 0 ? version == 0 : version == 1;
         }
 
@@ -159,7 +158,7 @@ public interface Appendix {
             return getBaselineFee(transaction);
         }
 
-        abstract void validate(Transaction transaction) throws ConchException.ValidationException;
+        public abstract void validate(Transaction transaction) throws ConchException.ValidationException;
 
         public void validateAtFinish(Transaction transaction) throws ConchException.ValidationException {
             if (!isPhased(transaction)) {
@@ -168,15 +167,15 @@ public interface Appendix {
             validate(transaction);
         }
 
-        abstract void apply(Transaction transaction, Account senderAccount, Account recipientAccount);
+        public abstract void apply(Transaction transaction, Account senderAccount, Account recipientAccount);
 
-        final void loadPrunable(Transaction transaction) {
+        public final void loadPrunable(Transaction transaction) {
             loadPrunable(transaction, false);
         }
 
-        void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {}
+        public void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {}
 
-        abstract boolean isPhasable();
+        public abstract boolean isPhasable();
 
         @Override
         public final boolean isPhased(Transaction transaction) {
@@ -193,7 +192,7 @@ public interface Appendix {
 
         private static final String appendixName = "Message";
 
-        static Message parse(JSONObject attachmentData) {
+        public static Message parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -210,7 +209,7 @@ public interface Appendix {
         private final byte[] message;
         private final boolean isText;
 
-        Message(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+        public Message(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
             int messageLength = buffer.getInt();
             this.isText = messageLength < 0; // ugly hack
@@ -227,7 +226,7 @@ public interface Appendix {
             }
         }
 
-        Message(JSONObject attachmentData) {
+        public Message(JSONObject attachmentData) {
             super(attachmentData);
             String messageString = (String)attachmentData.get("message");
             this.isText = Boolean.TRUE.equals(attachmentData.get("messageIsText"));
@@ -252,7 +251,7 @@ public interface Appendix {
         }
 
         @Override
-        String getAppendixName() {
+        public String getAppendixName() {
             return appendixName;
         }
 
@@ -279,14 +278,14 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && message.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Invalid arbitrary message length: " + message.length);
             }
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
 
         public byte[] getMessage() {
             return message;
@@ -297,7 +296,7 @@ public interface Appendix {
         }
 
         @Override
-        boolean isPhasable() {
+        public boolean isPhasable() {
             return false;
         }
 
@@ -314,7 +313,7 @@ public interface Appendix {
             }
         };
 
-        static PrunablePlainMessage parse(JSONObject attachmentData) {
+        public static PrunablePlainMessage parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -326,7 +325,7 @@ public interface Appendix {
         private final boolean isText;
         private volatile PrunableMessage prunableMessage;
 
-        PrunablePlainMessage(ByteBuffer buffer, byte transactionVersion) {
+        public PrunablePlainMessage(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.hash = new byte[32];
             buffer.get(this.hash);
@@ -368,7 +367,7 @@ public interface Appendix {
         }
 
         @Override
-        String getAppendixName() {
+        public String getAppendixName() {
             return appendixName;
         }
 
@@ -383,7 +382,7 @@ public interface Appendix {
         }
 
         @Override
-        int getMyFullSize() {
+        public int getMyFullSize() {
             return getMessage() == null ? 0 : getMessage().length;
         }
 
@@ -405,7 +404,7 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             if (transaction.getMessage() != null) {
                 throw new ConchException.NotValidException("Cannot have both message and prunable message attachments");
             }
@@ -419,7 +418,7 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (Conch.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME) {
                 PrunableMessage.add((TransactionImpl)transaction, this);
             }
@@ -451,7 +450,7 @@ public interface Appendix {
         }
 
         @Override
-        final void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {
+        public final void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {
             if (!hasPrunableData() && shouldLoadPrunable(transaction, includeExpiredPrunable)) {
                 PrunableMessage prunableMessage = PrunableMessage.getPrunableMessage(transaction.getId());
                 if (prunableMessage != null && prunableMessage.getMessage() != null) {
@@ -461,7 +460,7 @@ public interface Appendix {
         }
 
         @Override
-        boolean isPhasable() {
+        public boolean isPhasable() {
             return false;
         }
 
@@ -543,7 +542,7 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && getEncryptedDataLength() > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Max encrypted message length exceeded");
             }
@@ -559,12 +558,12 @@ public interface Appendix {
         }
 
         @Override
-        final boolean verifyVersion(byte transactionVersion) {
+        public final boolean verifyVersion(byte transactionVersion) {
             return transactionVersion == 0 ? getVersion() == 0 : (getVersion() == 1 || getVersion() == 2);
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
 
         public final EncryptedData getEncryptedData() {
             return encryptedData;
@@ -587,7 +586,7 @@ public interface Appendix {
         }
 
         @Override
-        final boolean isPhasable() {
+        public final boolean isPhasable() {
             return false;
         }
 
@@ -604,7 +603,7 @@ public interface Appendix {
             }
         };
 
-        static PrunableEncryptedMessage parse(JSONObject attachmentData) {
+        public static PrunableEncryptedMessage parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -621,7 +620,7 @@ public interface Appendix {
         private final boolean isCompressed;
         private volatile PrunableMessage prunableMessage;
 
-        PrunableEncryptedMessage(ByteBuffer buffer, byte transactionVersion) {
+        public PrunableEncryptedMessage(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.hash = new byte[32];
             buffer.get(this.hash);
@@ -667,7 +666,7 @@ public interface Appendix {
         }
 
         @Override
-        final int getMyFullSize() {
+        public final int getMyFullSize() {
             return getEncryptedDataLength();
         }
 
@@ -697,12 +696,12 @@ public interface Appendix {
         }
 
         @Override
-        final String getAppendixName() {
+        public final String getAppendixName() {
             return appendixName;
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             if (transaction.getEncryptedMessage() != null) {
                 throw new ConchException.NotValidException("Cannot have both encrypted and prunable encrypted message attachments");
             }
@@ -726,7 +725,7 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (Conch.getEpochTime() - transaction.getTimestamp() < Constants.MAX_PRUNABLE_LIFETIME) {
                 PrunableMessage.add((TransactionImpl)transaction, this);
             }
@@ -775,7 +774,7 @@ public interface Appendix {
         }
 
         @Override
-        void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {
+        public void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {
             if (!hasPrunableData() && shouldLoadPrunable(transaction, includeExpiredPrunable)) {
                 PrunableMessage prunableMessage = PrunableMessage.getPrunableMessage(transaction.getId());
                 if (prunableMessage != null && prunableMessage.getEncryptedData() != null) {
@@ -785,7 +784,7 @@ public interface Appendix {
         }
 
         @Override
-        final boolean isPhasable() {
+        public final boolean isPhasable() {
             return false;
         }
 
@@ -843,7 +842,7 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             if (getEncryptedData() == null) {
                 int dataLength = getEncryptedDataLength();
                 if (dataLength > Constants.MAX_PRUNABLE_ENCRYPTED_MESSAGE_LENGTH) {
@@ -856,7 +855,7 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (getEncryptedData() == null) {
                 throw new ConchException.NotYetEncryptedException("Prunable encrypted message not yet encrypted");
             }
@@ -864,7 +863,7 @@ public interface Appendix {
         }
 
         @Override
-        void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {}
+        public void loadPrunable(Transaction transaction, boolean includeExpiredPrunable) {}
 
         @Override
         public void encrypt(String secretPhrase) {
@@ -886,7 +885,7 @@ public interface Appendix {
 
         private static final String appendixName = "EncryptedMessage";
 
-        static EncryptedMessage parse(JSONObject attachmentData) {
+        public static EncryptedMessage parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -896,11 +895,11 @@ public interface Appendix {
             return new EncryptedMessage(attachmentData);
         }
 
-        EncryptedMessage(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+        public EncryptedMessage(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
         }
 
-        EncryptedMessage(JSONObject attachmentData) {
+        public EncryptedMessage(JSONObject attachmentData) {
             super(attachmentData, (JSONObject)attachmentData.get("encryptedMessage"));
         }
 
@@ -909,7 +908,7 @@ public interface Appendix {
         }
 
         @Override
-        final String getAppendixName() {
+        public final String getAppendixName() {
             return appendixName;
         }
 
@@ -921,7 +920,7 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             super.validate(transaction);
             if (transaction.getRecipientId() == 0) {
                 throw new ConchException.NotValidException("Encrypted messages cannot be attached to transactions with no recipient");
@@ -981,7 +980,7 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (getEncryptedData() == null) {
                 throw new ConchException.NotYetEncryptedException("Message not yet encrypted");
             }
@@ -1008,7 +1007,7 @@ public interface Appendix {
 
         private static final String appendixName = "EncryptToSelfMessage";
 
-        static EncryptToSelfMessage parse(JSONObject attachmentData) {
+        public static EncryptToSelfMessage parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -1018,11 +1017,11 @@ public interface Appendix {
             return new EncryptToSelfMessage(attachmentData);
         }
 
-        EncryptToSelfMessage(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+        public EncryptToSelfMessage(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
         }
 
-        EncryptToSelfMessage(JSONObject attachmentData) {
+        public EncryptToSelfMessage(JSONObject attachmentData) {
             super(attachmentData, (JSONObject)attachmentData.get("encryptToSelfMessage"));
         }
 
@@ -1031,7 +1030,7 @@ public interface Appendix {
         }
 
         @Override
-        final String getAppendixName() {
+        public final String getAppendixName() {
             return appendixName;
         }
 
@@ -1091,7 +1090,7 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (getEncryptedData() == null) {
                 throw new ConchException.NotYetEncryptedException("Message not yet encrypted");
             }
@@ -1118,7 +1117,7 @@ public interface Appendix {
 
         private static final String appendixName = "PublicKeyAnnouncement";
 
-        static PublicKeyAnnouncement parse(JSONObject attachmentData) {
+        public static PublicKeyAnnouncement parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -1127,13 +1126,13 @@ public interface Appendix {
 
         private final byte[] publicKey;
 
-        PublicKeyAnnouncement(ByteBuffer buffer, byte transactionVersion) {
+        public PublicKeyAnnouncement(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.publicKey = new byte[32];
             buffer.get(this.publicKey);
         }
 
-        PublicKeyAnnouncement(JSONObject attachmentData) {
+        public PublicKeyAnnouncement(JSONObject attachmentData) {
             super(attachmentData);
             this.publicKey = Convert.parseHexString((String)attachmentData.get("recipientPublicKey"));
         }
@@ -1143,7 +1142,7 @@ public interface Appendix {
         }
 
         @Override
-        String getAppendixName() {
+        public String getAppendixName() {
             return appendixName;
         }
 
@@ -1163,7 +1162,7 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             if (transaction.getRecipientId() == 0) {
                 throw new ConchException.NotValidException("PublicKeyAnnouncement cannot be attached to transactions with no recipient");
             }
@@ -1181,14 +1180,14 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (Account.setOrVerify(recipientAccount.getId(), publicKey)) {
                 recipientAccount.apply(this.publicKey);
             }
         }
 
         @Override
-        boolean isPhasable() {
+        public boolean isPhasable() {
             return false;
         }
 
@@ -1217,7 +1216,7 @@ public interface Appendix {
             return fee;
         };
 
-        static Phasing parse(JSONObject attachmentData) {
+        public static Phasing parse(JSONObject attachmentData) {
             if (!hasAppendix(appendixName, attachmentData)) {
                 return null;
             }
@@ -1230,7 +1229,7 @@ public interface Appendix {
         private final byte[] hashedSecret;
         private final byte algorithm;
 
-        Phasing(ByteBuffer buffer, byte transactionVersion) {
+        public Phasing(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             finishHeight = buffer.getInt();
             params = new PhasingParams(buffer);
@@ -1255,7 +1254,7 @@ public interface Appendix {
             algorithm = buffer.get();
         }
 
-        Phasing(JSONObject attachmentData) {
+        public Phasing(JSONObject attachmentData) {
             super(attachmentData);
             finishHeight = ((Long) attachmentData.get("phasingFinishHeight")).intValue();
             params = new PhasingParams(attachmentData);
@@ -1287,7 +1286,7 @@ public interface Appendix {
         }
 
         @Override
-        String getAppendixName() {
+        public String getAppendixName() {
             return appendixName;
         }
 
@@ -1327,7 +1326,7 @@ public interface Appendix {
         }
 
         @Override
-        void validate(Transaction transaction) throws ConchException.ValidationException {
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
             params.validate();
             int currentHeight = Conch.getBlockchain().getHeight();
             if (params.getVoteWeighting().getVotingModel() == VoteWeighting.VotingModel.TRANSACTION) {
@@ -1395,12 +1394,12 @@ public interface Appendix {
         }
 
         @Override
-        void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             PhasingPoll.addPoll(transaction, this);
         }
 
         @Override
-        boolean isPhasable() {
+        public boolean isPhasable() {
             return false;
         }
 

@@ -31,6 +31,7 @@ import org.conch.peer.Peer;
 import org.conch.storage.Ssid;
 import org.conch.storage.ipfs.IpfsService;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
