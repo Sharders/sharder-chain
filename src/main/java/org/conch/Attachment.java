@@ -4454,19 +4454,50 @@ public interface Attachment extends Appendix {
     }
 
     final class PocBifuractionOfConvergence extends AbstractAttachment {
+
+        private String device;
+        private int speed;
+
+        public String getDevice() {
+            return device;
+        }
+
+        public int getSpeed() {
+            return speed;
+        }
+
+        public PocBifuractionOfConvergence(String device, int speed) {
+            this.device = device;
+            this.speed = speed;
+        }
+
+        public PocBifuractionOfConvergence(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.speed = buffer.getInt();
+        }
+
+        public PocBifuractionOfConvergence(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.speed = (int) attachmentData.get("speed");
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 2 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(speed);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
-
+            json.put("device", device);
+            json.put("speed", speed);
         }
 
         @Override
