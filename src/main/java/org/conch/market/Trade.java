@@ -22,9 +22,8 @@
 package org.conch.market;
 
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.Db;
 import org.conch.chain.Block;
+import org.conch.common.Constants;
 import org.conch.db.*;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;

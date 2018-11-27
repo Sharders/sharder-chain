@@ -22,11 +22,11 @@
 package org.conch.account;
 
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.Db;
 import org.conch.chain.Block;
 import org.conch.chain.Blockchain;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
+import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
 import org.conch.util.Convert;

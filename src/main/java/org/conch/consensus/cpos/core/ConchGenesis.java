@@ -1,4 +1,4 @@
-package org.conch.cpos.core;
+package org.conch.consensus.cpos.core;
 
 import org.conch.account.Account;
 import org.conch.util.Logger;

@@ -22,8 +22,6 @@
 package org.conch.shuffle;
 
 import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.Constants;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.asset.Asset;
@@ -31,6 +29,8 @@ import org.conch.asset.HoldingType;
 import org.conch.asset.MonetaryTx;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.CurrencyType;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 import org.conch.tx.*;
 import org.conch.util.Convert;

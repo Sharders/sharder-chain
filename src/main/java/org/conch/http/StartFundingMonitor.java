@@ -21,12 +21,12 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
 import org.conch.account.Account;
 import org.conch.account.FundingMonitor;
 import org.conch.asset.Asset;
 import org.conch.asset.HoldingType;
 import org.conch.asset.token.Currency;
+import org.conch.common.ConchException;
 import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

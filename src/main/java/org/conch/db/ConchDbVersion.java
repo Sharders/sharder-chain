@@ -19,19 +19,19 @@
  *
  */
 
-package org.conch;
+package org.conch.db;
 
+import org.conch.account.FxtDistribution;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessorImpl;
-import org.conch.db.DbVersion;
-import org.conch.db.FullTextTrigger;
+import org.conch.common.Constants;
 import org.conch.util.Convert;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-class ConchDbVersion extends DbVersion {
+public class ConchDbVersion extends DbVersion {
 
     protected void update(int nextUpdate) {
         switch (nextUpdate) {

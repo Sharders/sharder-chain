@@ -19,15 +19,16 @@
  *
  */
 
-package org.conch;
+package org.conch.mint;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainImpl;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
+import org.conch.common.Constants;
+import org.conch.db.*;
+import org.conch.db.*;
 import org.conch.db.VersionedEntityDbTable;
-import org.conch.mint.Generator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 
@@ -117,7 +118,7 @@ public class Hub {
 
     }
 
-    static void init() {}
+    public static void init() {}
 
 
     private final long accountId;

@@ -19,12 +19,13 @@
  *
  */
 
-package org.conch;
+package org.conch.account;
 
-import org.conch.account.Account;
+import org.conch.Conch;
 import org.conch.asset.Asset;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.db.DerivedDbTable;
 import org.conch.tx.TransactionDb;
 import org.conch.util.Convert;
@@ -38,6 +39,8 @@ import java.io.*;
 import java.math.BigInteger;
 import java.sql.*;
 import java.util.*;
+
+import static org.conch.db.Db.db;
 
 public final class FxtDistribution implements Listener<Block> {
 
@@ -85,7 +88,7 @@ public final class FxtDistribution implements Listener<Block> {
         }
     };
 
-    static void init() {}
+    public static void init() {}
 
     static {
         Conch.getBlockchainProcessor().addListener(new FxtDistribution(), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
@@ -110,9 +113,9 @@ public final class FxtDistribution implements Listener<Block> {
                 } catch (IOException e) {
                     throw new RuntimeException(e.getMessage(), e);
                 }
-                boolean wasInTransaction = Db.db.isInTransaction();
+                boolean wasInTransaction = db.isInTransaction();
                 if (!wasInTransaction) {
-                    Db.db.beginTransaction();
+                    db.beginTransaction();
                 }
                 try {
                     long initialQuantity = Asset.getAsset(FXT_ASSET_ID).getInitialQuantityQNT();
@@ -130,20 +133,20 @@ public final class FxtDistribution implements Listener<Block> {
                                 FXT_ASSET_ID, quantity);
                         totalDistributed += quantity;
                         if (++count % 1000 == 0) {
-                            Db.db.commitTransaction();
+                            db.commitTransaction();
                         }
                     }
                     long excessFxtQuantity = initialQuantity - totalDistributed;
                     Asset.deleteAsset(TransactionDb.findTransaction(FXT_ASSET_ID), FXT_ASSET_ID, excessFxtQuantity);
                     Logger.logDebugMessage("Deleted " + excessFxtQuantity + " excess QNT");
                     Logger.logDebugMessage("Distributed " + totalDistributed + " QNT to " + count + " accounts");
-                    Db.db.commitTransaction();
+                    db.commitTransaction();
                 } catch (Exception e) {
-                    Db.db.rollbackTransaction();
+                    db.rollbackTransaction();
                     throw new RuntimeException(e.toString(), e);
                 } finally {
                     if (!wasInTransaction) {
-                        Db.db.endTransaction();
+                        db.endTransaction();
                     }
                 }
             }
@@ -156,7 +159,7 @@ public final class FxtDistribution implements Listener<Block> {
         Map<Long, BigInteger> accountBalanceTotals = new HashMap<>();
         for (int height = currentHeight - DISTRIBUTION_FREQUENCY + DISTRIBUTION_STEP; height <= currentHeight; height += DISTRIBUTION_STEP) {
             Logger.logDebugMessage("Calculating balances at height " + height);
-            try (Connection con = Db.db.getConnection();
+            try (Connection con = db.getConnection();
                  PreparedStatement pstmtCreate = con.prepareStatement("CREATE TEMP TABLE account_tmp NOT PERSISTENT AS SELECT id, MAX(height) as height FROM account "
                          + "WHERE height <= ? GROUP BY id")) {
                 pstmtCreate.setInt(1, height);
@@ -186,12 +189,12 @@ public final class FxtDistribution implements Listener<Block> {
             }
         }
         Logger.logDebugMessage("Updating balances for " + accountBalanceTotals.size() + " accounts");
-        boolean wasInTransaction = Db.db.isInTransaction();
+        boolean wasInTransaction = db.isInTransaction();
         if (!wasInTransaction) {
-            Db.db.beginTransaction();
+            db.beginTransaction();
         }
-        Db.db.clearCache();
-        try (Connection con = Db.db.getConnection();
+        db.clearCache();
+        try (Connection con = db.getConnection();
              PreparedStatement pstmtSelect = con.prepareStatement("SELECT balance FROM account_fxt WHERE id = ? ORDER BY height DESC LIMIT 1");
              PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_fxt (id, balance, height) values (?, ?, ?)")) {
             int count = 0;
@@ -215,11 +218,11 @@ public final class FxtDistribution implements Listener<Block> {
                 pstmtInsert.setInt(3, currentHeight);
                 pstmtInsert.executeUpdate();
                 if (++count % 1000 == 0) {
-                    Db.db.commitTransaction();
+                    db.commitTransaction();
                 }
             }
             accountBalanceTotals.clear();
-            Db.db.commitTransaction();
+            db.commitTransaction();
             if (currentHeight == DISTRIBUTION_END) {
                 Logger.logDebugMessage("Running FXT distribution at height " + currentHeight);
                 long totalDistributed = 0;
@@ -247,7 +250,7 @@ public final class FxtDistribution implements Listener<Block> {
                             snapshotMap.put(Long.toUnsignedString(accountId), quantity);
                             totalDistributed += quantity;
                             if (++count % 1000 == 0) {
-                                Db.db.commitTransaction();
+                                db.commitTransaction();
                             }
                         }
                     } finally {
@@ -274,14 +277,14 @@ public final class FxtDistribution implements Listener<Block> {
                     JSON.encodeObject(snapshotMap, sb);
                     writer.write(sb.toString());
                 }
-                Db.db.commitTransaction();
+                db.commitTransaction();
             }
         } catch (Exception e) {
-            Db.db.rollbackTransaction();
+            db.rollbackTransaction();
             throw new RuntimeException(e.toString(), e);
         } finally {
             if (!wasInTransaction) {
-                Db.db.endTransaction();
+                db.endTransaction();
             }
         }
     }

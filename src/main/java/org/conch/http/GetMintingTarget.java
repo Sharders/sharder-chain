@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
 import org.conch.asset.token.Currency;
+import org.conch.common.ConchException;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.CurrencyMinting;
 import org.conch.util.Convert;

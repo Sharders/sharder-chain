@@ -1,4 +1,4 @@
-package org.conch.poc;
+package org.conch.consensus.poc;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>

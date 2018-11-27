@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
 import org.conch.account.Alias;
+import org.conch.common.ConchException;
 import org.conch.db.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

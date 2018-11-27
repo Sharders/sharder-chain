@@ -22,7 +22,7 @@
 package org.conch.user;
 
 import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

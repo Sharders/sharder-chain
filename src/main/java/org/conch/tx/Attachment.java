@@ -23,15 +23,15 @@ package org.conch.tx;
 
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.Constants;
 import org.conch.account.Account;
 import org.conch.asset.HoldingType;
 import org.conch.asset.MonetaryTx;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.consensus.poc.tx.PocTx;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.mint.pool.PoolRule;
-import org.conch.poc.tx.PocTx;
 import org.conch.shuffle.ShufflingParticipant;
 import org.conch.shuffle.ShufflingTransaction;
 import org.conch.storage.TaggedData;

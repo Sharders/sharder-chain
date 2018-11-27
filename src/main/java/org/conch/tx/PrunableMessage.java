@@ -19,18 +19,13 @@
  *
  */
 
-package org.conch;
+package org.conch.tx;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
-import org.conch.db.DbUtils;
-import org.conch.db.PrunableDbTable;
-import org.conch.tx.Appendix;
-import org.conch.tx.Transaction;
-import org.conch.tx.TransactionImpl;
+import org.conch.db.*;
 import org.conch.util.Convert;
 
 import java.sql.Connection;
@@ -120,7 +115,7 @@ public final class PrunableMessage {
         }
     }
 
-    static void init() {}
+    public static void init() {}
 
     private final long id;
     private final DbKey dbKey;

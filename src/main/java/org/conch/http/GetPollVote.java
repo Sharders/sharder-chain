@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.util.JSON;
 import org.conch.vote.Poll;
 import org.conch.vote.Vote;

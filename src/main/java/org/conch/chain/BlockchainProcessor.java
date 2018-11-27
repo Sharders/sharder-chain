@@ -21,7 +21,7 @@
 
 package org.conch.chain;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.db.DerivedDbTable;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;

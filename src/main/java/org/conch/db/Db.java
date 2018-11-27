@@ -19,10 +19,10 @@
  *
  */
 
-package org.conch;
+package org.conch.db;
 
-import org.conch.db.BasicDb;
-import org.conch.db.TransactionalDb;
+import org.conch.Conch;
+import org.conch.common.Constants;
 
 public final class Db {
 
@@ -41,11 +41,11 @@ public final class Db {
             .maxMemoryRows(Conch.getIntProperty("sharder.dbMaxMemoryRows"))
     );
 
-    static void init() {
+    public static void init() {
         db.init(new ConchDbVersion());
     }
 
-    static void shutdown() {
+    public static void shutdown() {
         db.shutdown();
     }
 

@@ -21,7 +21,7 @@
 
 package org.conch.tx;
 
-import org.conch.Constants;
+import org.conch.common.Constants;
 
 public interface Fee {
 

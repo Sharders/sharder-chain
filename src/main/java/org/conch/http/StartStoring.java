@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Constants;
 import org.conch.account.Account;
+import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 import org.conch.storage.Storer;
 import org.json.simple.JSONObject;

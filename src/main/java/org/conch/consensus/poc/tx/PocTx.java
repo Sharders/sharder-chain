@@ -19,11 +19,11 @@
  *
  */
 
-package org.conch.poc.tx;
+package org.conch.consensus.poc.tx;
 
-import org.conch.ConchException;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
+import org.conch.common.ConchException;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;

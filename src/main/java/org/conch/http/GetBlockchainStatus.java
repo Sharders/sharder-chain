@@ -22,10 +22,10 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.Constants;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.json.simple.JSONArray;

@@ -19,9 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.account;
 
-import org.conch.account.Account;
+import org.conch.Conch;
 import org.conch.asset.HoldingType;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.CurrencyFounder;
@@ -29,7 +29,8 @@ import org.conch.asset.token.CurrencyType;
 import org.conch.chain.Block;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.cpos.core.ConchGenesis;
+import org.conch.common.Constants;
+import org.conch.consensus.cpos.core.ConchGenesis;
 import org.conch.db.DbIterator;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Exchange;
@@ -55,7 +56,7 @@ public final class DebugTrace {
     static final String SEPARATOR = Conch.getStringProperty("sharder.debugTraceSeparator", "\t");
     static final boolean LOG_UNCONFIRMED = Conch.getBooleanProperty("sharder.debugLogUnconfirmed");
 
-    static void init() {
+    public static void init() {
         List<String> accountIdStrings = Conch.getStringListProperty("sharder.debugTraceAccounts");
         String logName = Conch.getStringProperty("sharder.debugTraceLog");
         if (accountIdStrings.isEmpty() || logName == null) {

@@ -22,7 +22,6 @@
 package org.conch.asset.token;
 
 import org.conch.Conch;
-import org.conch.Db;
 import org.conch.db.*;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;

@@ -21,18 +21,15 @@
 
 package org.conch.tx;
 
-import org.conch.*;
+import org.conch.Conch;
 import org.conch.chain.Block;
-import org.conch.db.DbKey;
+import org.conch.common.ConchException;
+import org.conch.db.*;
 import org.conch.util.Filter;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.List;
 
 public class UnconfirmedTransaction implements Transaction {

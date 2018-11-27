@@ -22,7 +22,6 @@
 package org.conch.market;
 
 import org.conch.Conch;
-import org.conch.Db;
 import org.conch.asset.token.CurrencyExchangeOffer;
 import org.conch.chain.Block;
 import org.conch.db.*;

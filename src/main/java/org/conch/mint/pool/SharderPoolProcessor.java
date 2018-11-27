@@ -1,12 +1,12 @@
 package org.conch.mint.pool;
 
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.Db;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
+import org.conch.db.Db;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Logger;

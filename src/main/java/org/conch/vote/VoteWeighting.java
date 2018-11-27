@@ -21,10 +21,10 @@
 
 package org.conch.vote;
 
-import org.conch.ConchException;
 import org.conch.account.Account;
 import org.conch.asset.Asset;
 import org.conch.asset.token.Currency;
+import org.conch.common.ConchException;
 
 public final class VoteWeighting {
 

@@ -21,9 +21,9 @@
 
 package org.conch.asset.token;
 
-import org.conch.ConchException;
-import org.conch.Constants;
 import org.conch.asset.MonetaryTx;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.crypto.HashFunction;
 import org.conch.mint.CurrencyMinting;
 import org.conch.shuffle.ShufflingTransaction;

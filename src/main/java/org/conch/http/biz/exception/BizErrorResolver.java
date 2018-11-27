@@ -23,7 +23,7 @@ package org.conch.http.biz.exception;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.googlecode.jsonrpc4j.ErrorResolver;
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 
 import java.lang.reflect.Method;
 import java.util.List;

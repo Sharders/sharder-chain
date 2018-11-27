@@ -19,9 +19,10 @@
  *
  */
 
-package org.conch;
+package org.conch.common;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conch.Conch;
 import org.conch.env.RuntimeEnvironment;
 
 import java.util.ArrayList;

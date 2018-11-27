@@ -22,14 +22,13 @@
 package org.conch.shuffle;
 
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.Db;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.asset.HoldingType;
 import org.conch.chain.Block;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.crypto.AnonymouslyEncryptedData;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;

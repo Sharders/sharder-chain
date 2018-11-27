@@ -22,7 +22,6 @@
 package org.conch.vote;
 
 import org.conch.Conch;
-import org.conch.Db;
 import org.conch.chain.BlockchainImpl;
 import org.conch.crypto.HashFunction;
 import org.conch.db.*;

@@ -21,7 +21,7 @@
 
 package org.conch.tx;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
 import org.conch.util.Observable;
 import org.json.simple.JSONArray;

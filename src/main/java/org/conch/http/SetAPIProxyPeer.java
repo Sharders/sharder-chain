@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
@@ -29,10 +29,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.API_PROXY_NO_OPEN_API_PEERS;
-import static org.conch.http.JSONResponses.PEER_NOT_CONNECTED;
-import static org.conch.http.JSONResponses.PEER_NOT_OPEN_API;
-import static org.conch.http.JSONResponses.UNKNOWN_PEER;
+import static org.conch.http.JSONResponses.*;
 
 public class SetAPIProxyPeer extends APIServlet.APIRequestHandler {
 

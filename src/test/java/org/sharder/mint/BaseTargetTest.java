@@ -21,7 +21,7 @@
 
 package org.sharder.mint;
 
-import org.conch.Constants;
+import org.conch.common.Constants;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 

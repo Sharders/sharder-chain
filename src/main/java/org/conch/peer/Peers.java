@@ -23,10 +23,10 @@ package org.conch.peer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.Db;
 import org.conch.account.Account;
 import org.conch.chain.Block;
+import org.conch.common.Constants;
+import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
 import org.conch.tx.Transaction;

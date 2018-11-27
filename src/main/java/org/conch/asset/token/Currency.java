@@ -22,12 +22,12 @@
 package org.conch.asset.token;
 
 import org.conch.Conch;
-import org.conch.Constants;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;

@@ -22,7 +22,7 @@
 package org.conch.shuffle;
 
 import org.conch.Conch;
-import org.conch.Constants;
+import org.conch.common.Constants;
 import org.conch.db.*;
 import org.conch.util.Convert;
 import org.conch.util.Listener;

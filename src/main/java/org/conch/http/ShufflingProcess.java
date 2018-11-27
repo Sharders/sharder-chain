@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
 import org.conch.account.Account;
+import org.conch.common.ConchException;
 import org.conch.shuffle.Shuffling;
 import org.conch.shuffle.ShufflingParticipant;
 import org.conch.tx.Attachment;

@@ -1,8 +1,9 @@
 package org.conch.db;
+
 import org.conch.Conch;
-import org.conch.Db;
 import org.conch.util.Logger;
 import org.h2.tools.Shell;
+
 import java.sql.SQLException;
 
 public class DbRollback{

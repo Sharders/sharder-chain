@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.Constants;
+import org.conch.common.Constants;
 import org.conch.http.biz.BizParameterRequestWrapper;
 import org.conch.http.biz.BizServlet;
 import org.conch.peer.Peers;

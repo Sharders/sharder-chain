@@ -22,8 +22,6 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.Constants;
-import org.conch.PrunableMessage;
 import org.conch.account.Account;
 import org.conch.account.AccountRestrictions;
 import org.conch.account.Alias;
@@ -32,11 +30,13 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.CurrencyBuyOffer;
 import org.conch.asset.token.CurrencyTransfer;
+import org.conch.common.Constants;
 import org.conch.market.*;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
 import org.conch.shuffle.Shuffling;
 import org.conch.storage.TaggedData;
+import org.conch.tx.PrunableMessage;
 import org.conch.util.UPnP;
 import org.conch.vote.Poll;
 import org.conch.vote.Vote;

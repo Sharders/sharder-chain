@@ -22,15 +22,15 @@
 package org.conch.asset;
 
 import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.Constants;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.CurrencyExchangeOffer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.asset.token.CurrencyType;
-import org.conch.cpos.core.ConchGenesis;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.consensus.cpos.core.ConchGenesis;
 import org.conch.market.ExchangeRequest;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.CurrencyMinting;

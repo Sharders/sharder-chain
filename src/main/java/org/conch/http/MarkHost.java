@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Constants;
+import org.conch.common.Constants;
 import org.conch.peer.Hallmark;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
@@ -29,12 +29,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_DATE;
-import static org.conch.http.JSONResponses.INCORRECT_HOST;
-import static org.conch.http.JSONResponses.INCORRECT_WEIGHT;
-import static org.conch.http.JSONResponses.MISSING_DATE;
-import static org.conch.http.JSONResponses.MISSING_HOST;
-import static org.conch.http.JSONResponses.MISSING_WEIGHT;
+import static org.conch.http.JSONResponses.*;
 
 
 public final class MarkHost extends APIServlet.APIRequestHandler {

@@ -46,7 +46,7 @@ public class DesktopMode implements RuntimeMode {
 
     @Override
     public void launchDesktopApplication() {
-        Logger.logInfoMessage("Launching desktop wallet");
+        Logger.logInfoMessage("Launching desktop client");
         try {
             desktopApplication = Class.forName("org.conch.desktop.DesktopApplication");
             desktopApplication.getMethod("launch").invoke(null);

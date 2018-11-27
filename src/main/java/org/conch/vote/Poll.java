@@ -22,8 +22,8 @@
 package org.conch.vote;
 
 import org.conch.Conch;
-import org.conch.Constants;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.db.*;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;

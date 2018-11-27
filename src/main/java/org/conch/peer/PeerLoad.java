@@ -22,7 +22,7 @@
 package org.conch.peer;
 
 import org.conch.Conch;
-import org.conch.Constants;
+import org.conch.common.Constants;
 import org.conch.http.API;
 import org.json.simple.JSONObject;
 

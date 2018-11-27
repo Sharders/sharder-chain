@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.db.DbIterator;
+import org.conch.db.*;
 import org.conch.util.Convert;
 import org.conch.vote.Poll;
 import org.json.simple.JSONArray;
@@ -29,6 +29,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 public final class SearchPolls extends APIServlet.APIRequestHandler {
 

@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.vote.Poll;
 import org.json.simple.JSONStreamAware;
 

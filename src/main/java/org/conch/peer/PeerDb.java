@@ -21,7 +21,7 @@
 
 package org.conch.peer;
 
-import org.conch.Db;
+import org.conch.db.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

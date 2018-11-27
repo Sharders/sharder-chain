@@ -25,8 +25,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.conch.Constants;
 import org.conch.account.Account;
+import org.conch.common.Constants;
 import org.conch.util.Convert;
 
 /**

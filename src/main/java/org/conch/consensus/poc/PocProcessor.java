@@ -19,11 +19,7 @@
  *
  */
 
-package org.conch.poc;
-
-import org.conch.tx.Transaction;
-
-import java.io.IOException;
+package org.conch.consensus.poc;
 
 public interface PocProcessor {
     

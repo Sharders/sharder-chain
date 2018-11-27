@@ -19,7 +19,7 @@
  *
  */
 
-package org.conch;
+package org.conch.common;
 
 import java.io.IOException;
 

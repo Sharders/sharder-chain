@@ -22,11 +22,11 @@
 package org.conch.market;
 
 import org.conch.Conch;
-import org.conch.Constants;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.*;
 import org.conch.tx.Appendix;

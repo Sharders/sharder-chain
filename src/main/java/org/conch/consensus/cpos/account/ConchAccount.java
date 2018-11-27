@@ -1,4 +1,4 @@
-package org.conch.cpos.account;
+package org.conch.consensus.cpos.account;
 
 /**
  * @author xy@ichaoj.com

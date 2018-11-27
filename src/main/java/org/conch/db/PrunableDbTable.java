@@ -21,8 +21,8 @@
 
 package org.conch.db;
 
-import org.conch.Constants;
 import org.conch.Conch;
+import org.conch.common.Constants;
 import org.conch.util.Logger;
 
 import java.sql.Connection;

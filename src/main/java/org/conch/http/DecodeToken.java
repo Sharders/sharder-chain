@@ -21,15 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.Token;
-import org.conch.Token;
+import org.conch.common.Token;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-
-import static org.conch.http.JSONResponses.INCORRECT_WEBSITE;
-import static org.conch.http.JSONResponses.MISSING_TOKEN;
-import static org.conch.http.JSONResponses.MISSING_WEBSITE;
 
 public final class DecodeToken extends APIServlet.APIRequestHandler {
 
