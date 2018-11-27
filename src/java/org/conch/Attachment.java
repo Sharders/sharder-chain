@@ -4161,4 +4161,249 @@ public interface Attachment extends Appendix {
             return storerId;
         }
     }
+
+    final class PocNodeConfiguration extends AbstractAttachment {
+
+        private final String device;
+        private final Map<String,Object> configuration;
+
+        public String getDevice() {
+            return device;
+        }
+
+        public Map<String, Object> getConfiguration() {
+            return configuration;
+        }
+
+        public PocNodeConfiguration(String device, Map<String, Object> configuration) {
+            this.device = device;
+            this.configuration = configuration;
+        }
+
+        PocNodeConfiguration(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            Map<String,Object> map = null;
+            try{
+                ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.remaining());
+                byteBuffer.put(buffer);
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
+                map = (Map<String,Object>) ois.readObject();
+                ois.close();
+            }catch (Exception e){
+                Logger.logErrorMessage("poc node configuration transaction can't load configuration from byte", e);
+            }
+            this.configuration = map;
+        }
+
+        PocNodeConfiguration(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.configuration = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("configuration"));
+        }
+
+        @Override
+        int getMySize() {
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(configuration);
+                os.close();
+                return device.getBytes().length + bo.toByteArray().length;
+            }catch (Exception e){
+                Logger.logDebugMessage("configuration can't turn to byte in poc node configuration", e);
+            }
+            return device.getBytes().length + (int)ObjectSizeCalculator.getObjectSize(configuration);
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.put(device.getBytes());
+            try{
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream os = new ObjectOutputStream(bo);
+                os.writeObject(configuration);
+                os.close();
+                buffer.put(ByteBuffer.wrap(bo.toByteArray()));
+            }catch (Exception e){
+                Logger.logDebugMessage("configuration can't turn to byte in poc node configuration", e);
+            }
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("device", device);
+            attachment.put("configuration", configuration);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.Poc.POC_NODE_CONFIGURATION;
+        }
+    }
+
+    final class PocWeight extends AbstractAttachment {
+
+        private final String device; // 设备
+        private final int nodeWeight; // 节点类型 加权后的值
+        private final int serverWeight; // 开启服务 加权后的值
+        private final int configWeight; //硬件配置 加权后的值
+        private final int networkWeight; // 网络配置 加权后的值
+        private final int tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
+        private final int ssHoldWeight; // SS持有量 加权后的值
+
+        public int getNodeWeight() {
+            return nodeWeight;
+        }
+
+        public int getServerWeight() {
+            return serverWeight;
+        }
+
+        public int getConfigWeight() {
+            return configWeight;
+        }
+
+        public int getNetworkWeight() {
+            return networkWeight;
+        }
+
+        public int getTpWeight() {
+            return tpWeight;
+        }
+
+        public int getSsHoldWeight() {
+            return ssHoldWeight;
+        }
+
+        public PocWeight(String device, int nodeWeight, int serverWeight, int configWeight, int networkWeight, int tpWeight, int ssHoldWeight) {
+            this.device = device;
+            this.nodeWeight = nodeWeight;
+            this.serverWeight = serverWeight;
+            this.configWeight = configWeight;
+            this.networkWeight = networkWeight;
+            this.tpWeight = tpWeight;
+            this.ssHoldWeight = ssHoldWeight;
+        }
+
+        public PocWeight(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.nodeWeight = buffer.getInt();
+            this.serverWeight = buffer.getInt();
+            this.configWeight = buffer.getInt();
+            this.networkWeight = buffer.getInt();
+            this.tpWeight = buffer.getInt();
+            this.ssHoldWeight = buffer.getInt();
+        }
+
+        public PocWeight(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.nodeWeight = ((Long) attachmentData.get("nodeWeight")).intValue();
+            this.serverWeight = ((Long) attachmentData.get("serverWeight")).intValue();
+            this.configWeight = ((Long) attachmentData.get("configWeight")).intValue();
+            this.networkWeight = ((Long) attachmentData.get("networkWeight")).intValue();
+            this.tpWeight = ((Long) attachmentData.get("tpWeight")).intValue();
+            this.ssHoldWeight = ((Long) attachmentData.get("ssHoldWeight")).intValue();
+        }
+
+        @Override
+        int getMySize() {
+            return 12 + device.getBytes().length;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+            buffer.put(device.getBytes());
+            buffer.putInt(nodeWeight);
+            buffer.putInt(serverWeight);
+            buffer.putInt(configWeight);
+            buffer.putInt(networkWeight);
+            buffer.putInt(tpWeight);
+            buffer.putInt(ssHoldWeight);
+        }
+
+        @Override
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("device", device);
+            attachment.put("nodeWeight", nodeWeight);
+            attachment.put("serverWeight", serverWeight);
+            attachment.put("configWeight", configWeight);
+            attachment.put("networkWeight", networkWeight);
+            attachment.put("tpWeight", tpWeight);
+            attachment.put("ssHoldWeight", ssHoldWeight);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.Poc.POC_WEIGHT;
+        }
+    }
+
+    final class PocOnlineRate extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.Poc.POC_ONLINE_RATE;
+        }
+    }
+
+    final class PocBlockingMiss extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.Poc.POC_BLOCKING_MISS;
+        }
+    }
+
+    final class PocBifuractionOfConvergence extends AbstractAttachment {
+        @Override
+        int getMySize() {
+            return 0;
+        }
+
+        @Override
+        void putMyBytes(ByteBuffer buffer) {
+
+        }
+
+        @Override
+        void putMyJSON(JSONObject json) {
+
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.Poc.POC_BIFURACTION_OF_CONVERGENCE;
+        }
+    }
 }
