@@ -249,15 +249,15 @@ public abstract class TransactionType {
             case TYPE_POC:
                 switch (subtype) {
                     case SUBTYPE_POC_NODE_CONFIGURATION:
-                        ;
+                        return Poc.POC_NODE_CONFIGURATION;
                     case SUBTYPE_POC_WEIGHT:
-                        ;
+                        return Poc.POC_WEIGHT;
                     case SUBTYPE_POC_ONLINE_RATE:
-                        ;
+                        return Poc.POC_ONLINE_RATE;
                     case SUBTYPE_POC_BLOCKING_MISS:
-                        ;
+                        return Poc.POC_BLOCKING_MISS;
                     case SUBTYPE_POC_BIFURACTION_OF_CONVERGENCE:
-                        ;
+                        return Poc.POC_BIFURACTION_OF_CONVERGENCE;
                     default:
                         return null;
                 }
