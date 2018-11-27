@@ -39,7 +39,6 @@ import org.conch.storage.StorageManager;
 import org.conch.user.Users;
 import org.conch.util.*;
 import org.json.simple.JSONObject;
-import org.sharder.util.Https;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;

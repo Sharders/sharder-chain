@@ -22,29 +22,25 @@
 package org.conch.peer;
 
 import org.conch.BlockchainProcessor;
-import org.conch.Constants;
 import org.conch.Conch;
+import org.conch.Constants;
 import org.conch.util.CountingInputReader;
 import org.conch.util.CountingOutputWriter;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.servlet.*;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
-import org.sharder.util.Https;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequestWrapper;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
