@@ -19,7 +19,7 @@
  *
  */
 
-package java.org.sharder.mint;
+package org.sharder.mint;
 
 import org.conch.Constants;
 import org.conch.util.Convert;
