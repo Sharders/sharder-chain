@@ -3721,11 +3721,13 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
 
             }
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
 
             }
 
@@ -3758,11 +3760,13 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
 
             }
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
 
             }
 
@@ -3795,11 +3799,13 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
 
             }
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
 
             }
 
@@ -3817,7 +3823,7 @@ public abstract class TransactionType {
 
             @Override
             public AccountLedger.LedgerEvent getLedgerEvent() {
-                return AccountLedger.LedgerEvent.POC_BLOCKING_MISS
+                return AccountLedger.LedgerEvent.POC_BLOCKING_MISS;
             }
 
             @Override
@@ -3832,11 +3838,13 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
 
             }
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
 
             }
 
@@ -3869,11 +3877,13 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
 
             }
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
 
             }
 
