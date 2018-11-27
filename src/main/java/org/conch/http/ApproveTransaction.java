@@ -22,21 +22,19 @@
 package org.conch.http;
 
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
 import org.conch.ConchException;
-import org.conch.PhasingPoll;
+import org.conch.Constants;
+import org.conch.account.Account;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
+import org.conch.vote.PhasingPoll;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.conch.http.JSONResponses.MISSING_TRANSACTION_FULL_HASH;
-import static org.conch.http.JSONResponses.TOO_MANY_PHASING_VOTES;
-import static org.conch.http.JSONResponses.UNKNOWN_TRANSACTION_FULL_HASH;
+import static org.conch.http.JSONResponses.*;
 
 public class ApproveTransaction extends CreateTransaction {
     static final ApproveTransaction instance = new ApproveTransaction();

@@ -21,12 +21,12 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.DigitalGoodsStore;
 import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.account.Account;
 import org.conch.crypto.EncryptedData;
+import org.conch.market.DigitalGoodsStore;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 

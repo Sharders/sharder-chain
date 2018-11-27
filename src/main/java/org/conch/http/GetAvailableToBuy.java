@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.CurrencyExchangeOffer;
+import org.conch.asset.token.CurrencyExchangeOffer;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

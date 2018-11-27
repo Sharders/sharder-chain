@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.util.Convert;
 

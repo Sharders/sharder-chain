@@ -21,11 +21,11 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Alias;
-import org.conch.Attachment;
-import org.conch.Constants;
 import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.account.Account;
+import org.conch.account.Alias;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 

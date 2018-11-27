@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.CurrencyFounder;
 import org.conch.ConchException;
+import org.conch.asset.token.CurrencyFounder;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.json.simple.JSONArray;

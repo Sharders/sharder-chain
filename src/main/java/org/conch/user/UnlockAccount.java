@@ -21,22 +21,18 @@
 
 package org.conch.user;
 
-import org.conch.Account;
-import org.conch.chain.Block;
 import org.conch.Conch;
-import org.conch.tx.Transaction;
+import org.conch.account.Account;
+import org.conch.chain.Block;
 import org.conch.db.DbIterator;
+import org.conch.tx.Transaction;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public final class UnlockAccount extends UserServlet.UserRequestHandler {
 

@@ -21,10 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.mint.Generator;
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
+import org.conch.mint.Generator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

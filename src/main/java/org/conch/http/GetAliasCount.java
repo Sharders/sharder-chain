@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Alias;
 import org.conch.ConchException;
+import org.conch.account.Alias;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

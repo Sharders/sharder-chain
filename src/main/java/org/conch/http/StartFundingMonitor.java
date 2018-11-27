@@ -21,21 +21,19 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Asset;
-import org.conch.Currency;
-import org.conch.FundingMonitor;
-import org.conch.HoldingType;
 import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.account.FundingMonitor;
+import org.conch.asset.Asset;
+import org.conch.asset.HoldingType;
+import org.conch.asset.token.Currency;
 import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.MONITOR_ALREADY_STARTED;
-import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
-import static org.conch.http.JSONResponses.incorrect;
+import static org.conch.http.JSONResponses.*;
 
 /**
  * Start a funding monitor

@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Appendix;
 import org.conch.Conch;
 import org.conch.ConchException;
+import org.conch.tx.Appendix;
 import org.conch.tx.Transaction;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
@@ -32,9 +32,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
-import static org.conch.http.JSONResponses.EITHER_MESSAGE_ENCRYPTED_MESSAGE;
-import static org.conch.http.JSONResponses.MISSING_MESSAGE_ENCRYPTED_MESSAGE;
-import static org.conch.http.JSONResponses.UNKNOWN_TRANSACTION;
+import static org.conch.http.JSONResponses.*;
 
 public final class VerifyPrunableMessage extends APIServlet.APIRequestHandler {
 

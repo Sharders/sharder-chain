@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.DigitalGoodsStore;
 import org.conch.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.market.DigitalGoodsStore;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

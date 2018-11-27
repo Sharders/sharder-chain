@@ -21,8 +21,8 @@
 
 package org.conch.peer;
 
-import org.conch.Account;
 import org.conch.Constants;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.util.Convert;
 

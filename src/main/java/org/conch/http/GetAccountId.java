@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Account;
+import org.conch.account.Account;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

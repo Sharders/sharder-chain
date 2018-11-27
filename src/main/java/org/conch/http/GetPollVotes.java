@@ -23,10 +23,10 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Poll;
+import org.conch.db.DbIterator;
+import org.conch.vote.Poll;
 import org.conch.vote.Vote;
 import org.conch.vote.VoteWeighting;
-import org.conch.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

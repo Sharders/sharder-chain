@@ -21,11 +21,11 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
 import org.conch.ConchException;
-import org.conch.Shuffling;
-import org.conch.ShufflingParticipant;
+import org.conch.account.Account;
+import org.conch.shuffle.Shuffling;
+import org.conch.shuffle.ShufflingParticipant;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;

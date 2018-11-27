@@ -21,9 +21,9 @@
 
 package org.conch.addons;
 
-import org.conch.Account;
-import org.conch.chain.BlockchainProcessor;
 import org.conch.Conch;
+import org.conch.account.Account;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 

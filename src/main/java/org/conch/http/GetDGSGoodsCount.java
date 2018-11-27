@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.DigitalGoodsStore;
 import org.conch.ConchException;
+import org.conch.market.DigitalGoodsStore;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

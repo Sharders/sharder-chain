@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.account.Account;
+import org.conch.asset.Asset;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.db.DerivedDbTable;

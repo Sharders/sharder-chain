@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.TaggedData;
+import org.conch.storage.TaggedData;
 import org.conch.util.JSON;
 import org.json.simple.JSONStreamAware;
 

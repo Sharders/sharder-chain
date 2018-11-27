@@ -23,7 +23,14 @@ package org.conch;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.conch.account.*;
 import org.conch.addons.AddOns;
+import org.conch.asset.Asset;
+import org.conch.asset.AssetDelete;
+import org.conch.asset.AssetDividend;
+import org.conch.asset.AssetTransfer;
+import org.conch.asset.token.Currency;
+import org.conch.asset.token.*;
 import org.conch.chain.Blockchain;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
@@ -36,20 +43,24 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
+import org.conch.market.*;
+import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
+import org.conch.shuffle.Shuffling;
+import org.conch.shuffle.ShufflingParticipant;
 import org.conch.storage.StorageBackup;
 import org.conch.storage.StorageManager;
+import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTxProcessorImpl;
-import org.conch.tx.Transaction;
-import org.conch.tx.TransactionImpl;
-import org.conch.tx.TransactionProcessor;
-import org.conch.tx.TransactionProcessorImpl;
+import org.conch.tx.*;
 import org.conch.user.Users;
 import org.conch.util.*;
+import org.conch.vote.PhasingPoll;
 import org.conch.vote.PhasingVote;
+import org.conch.vote.Poll;
 import org.conch.vote.Vote;
 import org.json.simple.JSONObject;
 
@@ -475,16 +486,19 @@ public final class Conch {
                 AccountRestrictions.init();
                 AccountLedger.init();
                 Alias.init();
-                Asset.init();
+         
                 DigitalGoodsStore.init();
                 Hub.init();
                 Order.init();
                 Poll.init();
                 PhasingPoll.init();
                 Trade.init();
+                
+                Asset.init();
                 AssetTransfer.init();
                 AssetDelete.init();
                 AssetDividend.init();
+                
                 Vote.init();
                 PhasingVote.init();
                 Currency.init();
@@ -497,6 +511,7 @@ public final class Conch {
                 ExchangeRequest.init();
                 Shuffling.init();
                 ShufflingParticipant.init();
+                
                 PrunableMessage.init();
                 TaggedData.init();
                 StorageTxProcessorImpl.init();

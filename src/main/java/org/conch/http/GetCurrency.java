@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Currency;
 import org.conch.ConchException;
+import org.conch.asset.token.Currency;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 

@@ -21,22 +21,23 @@
 
 package org.conch.http.biz;
 
-import org.conch.*;
+import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.http.ParameterException;
 import org.conch.http.biz.exception.BizParameterException;
 import org.conch.storage.ipfs.IpfsService;
+import org.conch.tx.Appendix;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.conch.util.Search;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.HashMap;
 
 import static org.conch.http.JSONResponses.*;
-import static org.conch.http.JSONResponses.INCORRECT_DATA;
-import static org.conch.http.JSONResponses.INCORRECT_TAGGED_DATA_FILENAME;
 
 public class BizParameterParser  {
 

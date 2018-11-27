@@ -21,12 +21,14 @@
 
 package org.conch;
 
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.DbUtils;
 import org.conch.db.PrunableDbTable;
+import org.conch.tx.Appendix;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;

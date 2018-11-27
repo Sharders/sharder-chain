@@ -21,10 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Currency;
-import org.conch.db.DbIterator;
-import org.conch.util.Convert;
-import org.conch.Currency;
+import org.conch.asset.token.Currency;
 import org.conch.db.DbIterator;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;

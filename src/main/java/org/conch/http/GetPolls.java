@@ -24,9 +24,9 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.Poll;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.vote.Poll;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

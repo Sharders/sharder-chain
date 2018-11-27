@@ -22,20 +22,19 @@
 package org.conch.http.biz.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.conch.Account;
-import org.conch.Attachment;
 import org.conch.ConchException;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.http.*;
 import org.conch.http.biz.domain.ErrorDescription;
 import org.conch.tools.PassPhraseGenerator;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.io.IOException;
 
 import static org.conch.http.JSONResponses.BIZ_MISSING_CREATOR_PASSPHRSE;
@@ -56,7 +55,7 @@ public final class CreateClientAccount extends CreateTransaction {
         String newAccountPassPhrase = PassPhraseGenerator.makeMnemonicWords();
         byte[] publicKey = Crypto.getPublicKey(newAccountPassPhrase);
         long accountId = Account.getId(publicKey);
-        long recipientId = org.conch.Account.getId(publicKey);
+        long recipientId = Account.getId(publicKey);
 
         // Send a message to the new account to active it
         Account account = ParameterParser.getSenderAccount(req);

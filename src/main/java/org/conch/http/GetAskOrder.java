@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.ConchException;
-import org.conch.Order;
+import org.conch.market.Order;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

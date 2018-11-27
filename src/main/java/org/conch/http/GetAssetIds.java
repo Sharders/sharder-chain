@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Asset;
+import org.conch.asset.Asset;
 import org.conch.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

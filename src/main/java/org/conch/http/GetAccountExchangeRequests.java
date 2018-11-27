@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.ExchangeRequest;
 import org.conch.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.market.ExchangeRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

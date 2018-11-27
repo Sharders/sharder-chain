@@ -21,20 +21,16 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
 import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.account.Account;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_ASSET_DESCRIPTION;
-import static org.conch.http.JSONResponses.INCORRECT_ASSET_NAME;
-import static org.conch.http.JSONResponses.INCORRECT_ASSET_NAME_LENGTH;
-import static org.conch.http.JSONResponses.INCORRECT_DECIMALS;
-import static org.conch.http.JSONResponses.MISSING_NAME;
+import static org.conch.http.JSONResponses.*;
 
 public final class IssueAsset extends CreateTransaction {
 

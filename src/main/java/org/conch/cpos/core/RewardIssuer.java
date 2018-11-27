@@ -1,8 +1,8 @@
 package org.conch.cpos.core;
 
-import org.conch.Attachment;
-import org.conch.Constants;
 import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.tx.Attachment;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 

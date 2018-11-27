@@ -21,10 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Shuffler;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
-import org.conch.Shuffler;
+import org.conch.shuffle.Shuffler;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

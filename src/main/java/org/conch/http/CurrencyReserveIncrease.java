@@ -21,12 +21,12 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.Currency;
 import org.conch.ConchException;
-import org.conch.CurrencyType;
+import org.conch.Constants;
+import org.conch.account.Account;
+import org.conch.asset.token.Currency;
+import org.conch.asset.token.CurrencyType;
+import org.conch.tx.Attachment;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

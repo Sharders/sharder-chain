@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Account;
 import org.conch.ConchException;
+import org.conch.account.Account;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

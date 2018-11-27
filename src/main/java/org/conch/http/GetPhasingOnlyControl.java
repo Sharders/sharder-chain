@@ -21,9 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.AccountRestrictions.PhasingOnly;
+import org.conch.account.AccountRestrictions;
 import org.conch.util.JSON;
-import org.conch.AccountRestrictions;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

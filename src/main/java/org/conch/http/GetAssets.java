@@ -21,8 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Asset;
-import org.conch.Asset;
+import org.conch.asset.Asset;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

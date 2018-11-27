@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.AssetDelete;
 import org.conch.ConchException;
+import org.conch.asset.AssetDelete;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.json.simple.JSONArray;

@@ -21,10 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Currency;
 import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.asset.token.Currency;
+import org.conch.tx.Attachment;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +46,7 @@ import javax.servlet.http.HttpServletRequest;
  * If the hash code is smaller than the target the currency units are generated into the sender account.<br>
  * It is recommended to calculate the hash value offline before submitting the transaction.<br>
  * Use the {@link GetMintingTarget} transaction to retrieve the current hash target and then calculate the hash offline
- * by following the procedure used in {@link org.conch.CurrencyMint#mintCurrency}<br>
+ * by following the procedure used in {@link org.conch.mint.CurrencyMint#mintCurrency}<br>
  */
 public final class CurrencyMint extends CreateTransaction {
 

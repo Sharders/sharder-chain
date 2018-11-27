@@ -21,12 +21,12 @@
 
 package org.conch.http;
 
-import org.conch.Appendix;
-import org.conch.Attachment;
-import org.conch.chain.Blockchain;
 import org.conch.Conch;
 import org.conch.ConchException;
-import org.conch.TaggedData;
+import org.conch.chain.Blockchain;
+import org.conch.storage.TaggedData;
+import org.conch.tx.Appendix;
+import org.conch.tx.Attachment;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

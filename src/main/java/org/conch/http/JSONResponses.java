@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.Constants;
-import org.conch.HoldingType;
+import org.conch.asset.HoldingType;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;

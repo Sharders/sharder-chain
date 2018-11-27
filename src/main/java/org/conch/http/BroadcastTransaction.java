@@ -23,9 +23,9 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.ConchException;
+import org.conch.tx.Appendix;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
-import org.conch.Appendix;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

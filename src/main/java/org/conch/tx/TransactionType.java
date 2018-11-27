@@ -23,18 +23,32 @@ package org.conch.tx;
 
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
-import org.conch.*;
-import org.conch.Account.ControlType;
-import org.conch.Attachment.AbstractAttachment;
+import org.conch.Conch;
+import org.conch.ConchException;
+import org.conch.Constants;
+import org.conch.Hub;
+import org.conch.account.Account;
+import org.conch.account.Account.ControlType;
+import org.conch.account.AccountLedger;
+import org.conch.account.AccountRestrictions;
+import org.conch.account.Alias;
+import org.conch.asset.Asset;
+import org.conch.asset.AssetDividend;
+import org.conch.asset.AssetTransfer;
+import org.conch.asset.MonetaryTx;
 import org.conch.cpos.core.ConchGenesis;
+import org.conch.market.DigitalGoodsStore;
+import org.conch.market.Order;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.poc.tx.PocTx;
+import org.conch.shuffle.ShufflingTransaction;
+import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTx;
+import org.conch.tx.Attachment.AbstractAttachment;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
-import org.conch.vote.PhasingVote;
-import org.conch.vote.Vote;
-import org.conch.vote.VoteWeighting;
+import org.conch.vote.*;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -58,7 +72,7 @@ public abstract class TransactionType {
     static final byte TYPE_COIN_BASE = 9;
     static final byte TYPE_CONTRACT = 10;
     public static final byte TYPE_STORAGE = 11;
-    static final byte TYPE_POC = 12;
+    public static final byte TYPE_POC = 12;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -109,11 +123,6 @@ public abstract class TransactionType {
 
     private static final byte SUBTYPE_CONTRACT_ORDINARY = 0;
 
-    private static final byte SUBTYPE_POC_NODE_CONFIGURATION = 0; // 节点配置
-    private static final byte SUBTYPE_POC_WEIGHT = 1; // 权重
-    private static final byte SUBTYPE_POC_ONLINE_RATE = 2; // 在线率
-    private static final byte SUBTYPE_POC_BLOCKING_MISS = 3; // 出块丢失
-    private static final byte SUBTYPE_POC_BIFURACTION_OF_CONVERGENCE = 4; // 分叉收敛
 
     public static TransactionType findTransactionType(byte type, byte subtype) {
         switch (type) {
@@ -205,7 +214,7 @@ public abstract class TransactionType {
                         return null;
                 }
             case TYPE_MONETARY_SYSTEM:
-                return MonetarySystem.findTransactionType(subtype);
+                return MonetaryTx.findTransactionType(subtype);
             case TYPE_DATA:
                 switch (subtype) {
                     case SUBTYPE_DATA_TAGGED_DATA_UPLOAD:
@@ -245,22 +254,9 @@ public abstract class TransactionType {
                         return null;
                 }
             case TYPE_STORAGE:
-                return StorageTx.findTransactionType(subtype);
+                return StorageTx.findTxType(subtype);
             case TYPE_POC:
-                switch (subtype) {
-                    case SUBTYPE_POC_NODE_CONFIGURATION:
-                        ;
-                    case SUBTYPE_POC_WEIGHT:
-                        ;
-                    case SUBTYPE_POC_ONLINE_RATE:
-                        ;
-                    case SUBTYPE_POC_BLOCKING_MISS:
-                        ;
-                    case SUBTYPE_POC_BIFURACTION_OF_CONVERGENCE:
-                        ;
-                    default:
-                        return null;
-                }
+                return PocTx.findTxType(subtype);
             default:
                 return null;
         }
@@ -3694,217 +3690,5 @@ public abstract class TransactionType {
     }
 
     public static abstract class Poc extends TransactionType {
-
-        private Poc() {
-        }
-
-        public static final TransactionType POC_NODE_CONFIGURATION = new Poc() {
-            @Override
-            public byte getSubtype() {
-                return TransactionType.SUBTYPE_POC_NODE_CONFIGURATION;
-            }
-
-            @Override
-            public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return new Attachment.PocNodeConfiguration(buffer,transactionVersion);
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-                return new Attachment.PocNodeConfiguration(attachmentData);
-            }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-
-            }
-
-            @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-
-            }
-
-            @Override
-            public String getName() {
-                return "nodeConfiguration";
-            }
-        };
-
-        public static final TransactionType POC_WEIGHT = new Poc() {
-            @Override
-            public byte getSubtype() {
-                return TransactionType.SUBTYPE_POC_WEIGHT;
-            }
-
-            @Override
-            public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return new Attachment.PocNodeConfiguration(buffer, transactionVersion);
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-                return new Attachment.PocNodeConfiguration(attachmentData);
-            }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-
-            }
-
-            @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-
-            }
-
-            @Override
-            public String getName() {
-                return "weight";
-            }
-        };
-
-        public static final TransactionType POC_ONLINE_RATE = new Poc() {
-            @Override
-            public byte getSubtype() {
-                return TransactionType.SUBTYPE_POC_ONLINE_RATE;
-            }
-
-            @Override
-            public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-                return null;
-            }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-
-            }
-
-            @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-
-            }
-
-            @Override
-            public String getName() {
-                return "onlineRate";
-            }
-        };
-
-        public static final TransactionType POC_BLOCKING_MISS = new Poc() {
-            @Override
-            public byte getSubtype() {
-                return TransactionType.SUBTYPE_POC_BLOCKING_MISS;
-            }
-
-            @Override
-            public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-                return null;
-            }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-
-            }
-
-            @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-
-            }
-
-            @Override
-            public String getName() {
-                return "blockingMiss";
-            }
-        };
-
-        public static final TransactionType POC_BIFURACTION_OF_CONVERGENCE = new Poc() {
-            @Override
-            public byte getSubtype() {
-                return TransactionType.SUBTYPE_POC_BIFURACTION_OF_CONVERGENCE;
-            }
-
-            @Override
-            public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return null;
-            }
-
-            @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-                return null;
-            }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-
-            }
-
-            @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-
-            }
-
-            @Override
-            public String getName() {
-                return "bifuractionOfConvergence";
-            }
-        };
-
-        @Override
-        final public byte getType() {
-            return TransactionType.TYPE_POC;
-        }
-
-        @Override
-        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        }
-
-        @Override
-        final public boolean canHaveRecipient() {
-            return false;
-        }
-
-        @Override
-        final public boolean isPhasingSafe() {
-            return true;
-        }
     }
 }

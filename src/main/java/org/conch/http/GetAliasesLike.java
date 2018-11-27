@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Alias;
 import org.conch.ConchException;
+import org.conch.account.Alias;
 import org.conch.db.DbIterator;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;

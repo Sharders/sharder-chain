@@ -21,8 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.Shuffling;
 import org.conch.db.DbIterator;
+import org.conch.shuffle.Shuffling;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

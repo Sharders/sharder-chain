@@ -21,11 +21,24 @@
 
 package org.conch;
 
+import org.conch.account.Account;
+import org.conch.asset.HoldingType;
+import org.conch.asset.token.Currency;
+import org.conch.asset.token.CurrencyFounder;
+import org.conch.asset.token.CurrencyType;
 import org.conch.chain.Block;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.db.DbIterator;
+import org.conch.market.DigitalGoodsStore;
+import org.conch.market.Exchange;
+import org.conch.market.Order;
+import org.conch.market.Trade;
+import org.conch.mint.CurrencyMint;
+import org.conch.shuffle.Shuffling;
+import org.conch.shuffle.ShufflingParticipant;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionProcessor;
@@ -66,9 +79,9 @@ public final class DebugTrace {
         final DebugTrace debugTrace = new DebugTrace(accountIds, logName);
         Trade.addListener(debugTrace::trace, Trade.Event.TRADE);
         Exchange.addListener(debugTrace::trace, Exchange.Event.EXCHANGE);
-        Currency.addListener(debugTrace::crowdfunding, Currency.Event.BEFORE_DISTRIBUTE_CROWDFUNDING);
-        Currency.addListener(debugTrace::undoCrowdfunding, Currency.Event.BEFORE_UNDO_CROWDFUNDING);
-        Currency.addListener(debugTrace::delete, Currency.Event.BEFORE_DELETE);
+        org.conch.asset.token.Currency.addListener(debugTrace::crowdfunding, org.conch.asset.token.Currency.Event.BEFORE_DISTRIBUTE_CROWDFUNDING);
+        org.conch.asset.token.Currency.addListener(debugTrace::undoCrowdfunding, org.conch.asset.token.Currency.Event.BEFORE_UNDO_CROWDFUNDING);
+        org.conch.asset.token.Currency.addListener(debugTrace::delete, org.conch.asset.token.Currency.Event.BEFORE_DELETE);
         CurrencyMint.addListener(debugTrace::currencyMint, CurrencyMint.Event.CURRENCY_MINT);
         Account.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
         if (LOG_UNCONFIRMED) {
@@ -298,7 +311,7 @@ public final class DebugTrace {
         return map;
     }
 
-    private void crowdfunding(Currency currency) {
+    private void crowdfunding(org.conch.asset.token.Currency currency) {
         long totalAmountPerUnit = 0;
         long foundersTotal = 0;
         final long remainingSupply = currency.getReserveSupply() - currency.getInitialSupply();
@@ -329,7 +342,7 @@ public final class DebugTrace {
         log(map);
     }
 
-    private void undoCrowdfunding(Currency currency) {
+    private void undoCrowdfunding(org.conch.asset.token.Currency currency) {
         try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE)) {
             for (CurrencyFounder founder : founders) {
                 Map<String,String> founderMap = getValues(founder.getAccountId(), false);
@@ -346,7 +359,7 @@ public final class DebugTrace {
         log(map);
     }
 
-    private void delete(Currency currency) {
+    private void delete(org.conch.asset.token.Currency currency) {
         long accountId = 0;
         long units = 0;
         if (!currency.isActive()) {
@@ -700,14 +713,14 @@ public final class DebugTrace {
         } else if (attachment instanceof Attachment.MonetarySystemReserveClaim) {
             Attachment.MonetarySystemReserveClaim claim = (Attachment.MonetarySystemReserveClaim) attachment;
             map.put("currency", Long.toUnsignedString(claim.getCurrencyId()));
-            Currency currency = Currency.getCurrency(claim.getCurrencyId());
+            org.conch.asset.token.Currency currency = org.conch.asset.token.Currency.getCurrency(claim.getCurrencyId());
             map.put("currency units", String.valueOf(-claim.getUnits()));
             map.put("currency cost", String.valueOf(Math.multiplyExact(claim.getUnits(), currency.getCurrentReservePerUnitNQT())));
             map.put("event", "currency claim");
         } else if (attachment instanceof Attachment.MonetarySystemReserveIncrease) {
             Attachment.MonetarySystemReserveIncrease reserveIncrease = (Attachment.MonetarySystemReserveIncrease) attachment;
             map.put("currency", Long.toUnsignedString(reserveIncrease.getCurrencyId()));
-            Currency currency = Currency.getCurrency(reserveIncrease.getCurrencyId());
+            org.conch.asset.token.Currency currency = Currency.getCurrency(reserveIncrease.getCurrencyId());
             map.put("currency cost", String.valueOf(-Math.multiplyExact(reserveIncrease.getAmountPerUnitNQT(), currency.getReserveSupply())));
             map.put("event", "currency reserve");
         } else if (attachment instanceof Attachment.ColoredCoinsDividendPayment) {

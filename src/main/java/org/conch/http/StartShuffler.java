@@ -22,8 +22,8 @@
 package org.conch.http;
 
 import org.conch.ConchException;
-import org.conch.Shuffler;
-import org.conch.Shuffling;
+import org.conch.shuffle.Shuffler;
+import org.conch.shuffle.Shuffling;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

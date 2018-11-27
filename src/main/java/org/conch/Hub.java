@@ -21,12 +21,14 @@
 
 package org.conch;
 
+import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainImpl;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.VersionedEntityDbTable;
 import org.conch.mint.Generator;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 
 import java.math.BigInteger;

@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Attachment;
 import org.conch.Conch;
 import org.conch.ConchException;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Filter;

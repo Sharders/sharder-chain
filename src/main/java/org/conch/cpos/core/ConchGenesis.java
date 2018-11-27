@@ -1,6 +1,6 @@
 package org.conch.cpos.core;
 
-import org.conch.Account;
+import org.conch.account.Account;
 import org.conch.util.Logger;
 
 /**
