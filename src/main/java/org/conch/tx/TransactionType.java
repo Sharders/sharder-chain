@@ -3706,7 +3706,7 @@ public abstract class TransactionType {
 
             @Override
             public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
+                return AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION;
             }
 
             @Override
@@ -3743,7 +3743,7 @@ public abstract class TransactionType {
 
             @Override
             public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
+                return AccountLedger.LedgerEvent.POC_WEIGHT;
             }
 
             @Override
@@ -3780,7 +3780,7 @@ public abstract class TransactionType {
 
             @Override
             public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
+                return AccountLedger.LedgerEvent.POC_ONLINE_RATE;
             }
 
             @Override
@@ -3817,7 +3817,7 @@ public abstract class TransactionType {
 
             @Override
             public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
+                return AccountLedger.LedgerEvent.POC_BLOCKING_MISS
             }
 
             @Override
@@ -3854,7 +3854,7 @@ public abstract class TransactionType {
 
             @Override
             public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
+                return AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE;
             }
 
             @Override
