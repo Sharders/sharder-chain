@@ -35,8 +35,8 @@
         },
         methods: {
             login: function () {
-                // console.log(SSO);
-                // Login.login(this.type,this.account,this);
+                Login.login(this.type,this.account,this);
+                console.log(SSO);
 // many blend glass feet fragile drawn hey ready horse throat tide space
 // SSA-TPLD-BHYH-DF2B-GAU6P
                 // console.log(this.type)

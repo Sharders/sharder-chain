@@ -21,7 +21,11 @@
 
 package org.conch.consensus.poc;
 
+import org.conch.account.Account;
+
+import java.math.BigInteger;
+
 public interface PocProcessor {
-    
-    long calPocScore();
+
+    BigInteger calPocScore(Account account,int height);
 }

@@ -1332,11 +1332,12 @@ var NRS = (function (NRS, $, undefined) {
 			nameKey = nameKey.substring(1);
 		}
 
-		if ($.i18n.exists(nameKey)) {
-			return $.t(nameKey).escapeHTML();
-		} else {
-			return nameKey.replace(/_/g, " ").escapeHTML();
-		}
+		// if ($.i18n.exists(nameKey)) {
+		// 	return $.t(nameKey).escapeHTML();
+		// } else {
+		// 	return nameKey.replace(/_/g, " ").escapeHTML();
+		// }
+        return nameKey.replace(/_/g, " ").escapeHTML();
 	};
 
     NRS.isControlKey = function (charCode) {

@@ -342,7 +342,7 @@ var NRS = (function (NRS, $, undefined) {
         // NRS.logConsole("Send request " + requestType + " to url " + url);
         console.info("Send request " + requestType + " to url " + url);
         $.ajax({
-            url: url,
+            url:url,
             crossDomain: true,
             dataType: "json",
             type: type,
@@ -395,7 +395,7 @@ var NRS = (function (NRS, $, undefined) {
                 }
             } else {
                 if (response.errorCode || response.errorDescription || response.errorMessage || response.error) {
-                    response.errorDescription = NRS.translateServerError(response);
+                    // response.errorDescription = NRS.translateServerError(response);
                     delete response.fullHash;
                     if (!response.errorCode) {
                         response.errorCode = -1;
