@@ -4401,19 +4401,50 @@ public interface Attachment extends Appendix {
     }
 
     final class PocBlockingMiss extends AbstractAttachment {
+
+        private String device;
+        private int missCount;
+
+        public String getDevice() {
+            return device;
+        }
+
+        public int getMissCount() {
+            return missCount;
+        }
+
+        public PocBlockingMiss(String device, int missCount) {
+            this.device = device;
+            this.missCount = missCount;
+        }
+
+        public PocBlockingMiss(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.missCount = buffer.getInt();
+        }
+
+        public PocBlockingMiss(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.missCount = (int) attachmentData.get("missCount");
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 2 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(missCount);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
-
+            json.put("device", device);
+            json.put("missCount", missCount);
         }
 
         @Override
