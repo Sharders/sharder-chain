@@ -40,13 +40,13 @@ public class UnconfirmedTransaction implements Transaction {
     private final long arrivalTimestamp;
     private final long feePerByte;
 
-    UnconfirmedTransaction(TransactionImpl transaction, long arrivalTimestamp) {
+    public UnconfirmedTransaction(TransactionImpl transaction, long arrivalTimestamp) {
         this.transaction = transaction;
         this.arrivalTimestamp = arrivalTimestamp;
         this.feePerByte = transaction.getFeeNQT() / transaction.getFullSize();
     }
 
-    UnconfirmedTransaction(ResultSet rs) throws SQLException {
+    public UnconfirmedTransaction(ResultSet rs) throws SQLException {
         try {
             byte[] transactionBytes = rs.getBytes("transaction_bytes");
             JSONObject prunableAttachments = null;
@@ -64,7 +64,7 @@ public class UnconfirmedTransaction implements Transaction {
         }
     }
 
-    void save(Connection con) throws SQLException {
+    public void save(Connection con) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO unconfirmed_transaction (id, transaction_height, "
                 + "fee_per_byte, expiration, transaction_bytes, prunable_json, arrival_timestamp, height) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
@@ -86,15 +86,15 @@ public class UnconfirmedTransaction implements Transaction {
         }
     }
 
-    TransactionImpl getTransaction() {
+    public TransactionImpl getTransaction() {
         return transaction;
     }
 
-    long getArrivalTimestamp() {
+    public long getArrivalTimestamp() {
         return arrivalTimestamp;
     }
 
-    long getFeePerByte() {
+    public long getFeePerByte() {
         return feePerByte;
     }
 
@@ -113,7 +113,7 @@ public class UnconfirmedTransaction implements Transaction {
         return transaction.getId();
     }
 
-    DbKey getDbKey() {
+    public DbKey getDbKey() {
         return transaction.getDbKey();
     }
 

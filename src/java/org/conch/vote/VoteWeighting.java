@@ -19,7 +19,12 @@
  *
  */
 
-package org.conch;
+package org.conch.vote;
+
+import org.conch.Account;
+import org.conch.Asset;
+import org.conch.ConchException;
+import org.conch.Currency;
 
 public final class VoteWeighting {
 

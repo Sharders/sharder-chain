@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Generator;
+import org.conch.mint.Generator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

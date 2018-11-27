@@ -28,9 +28,13 @@ import org.conch.db.DbIterator;
 import org.conch.db.DerivedDbTable;
 import org.conch.db.FilteringIterator;
 import org.conch.db.FullTextTrigger;
+import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.storage.StorageBackup;
+import org.conch.storage.tx.StorageTx;
+import org.conch.storage.tx.StorageTxProcessorImpl;
 import org.conch.tx.*;
 import org.conch.util.*;
 import org.json.simple.JSONArray;
@@ -44,7 +48,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-final class BlockchainProcessorImpl implements BlockchainProcessor {
+public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private static final byte[] CHECKSUM_TRANSPARENT_FORGING =
             new byte[]{
@@ -154,7 +158,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
-    static BlockchainProcessorImpl getInstance() {
+    public static BlockchainProcessorImpl getInstance() {
         return instance;
     }
 
@@ -1867,10 +1871,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
 
             // backup number validate
-            if (transaction.getType() == StorageTransaction.STORAGE_UPLOAD) {
+            if (transaction.getType() == StorageTx.STORAGE_UPLOAD) {
                 uploadTransactions.put(transaction.getId(), transaction);
             }
-            if (transaction.getType() == StorageTransaction.STORAGE_BACKUP) {
+            if (transaction.getType() == StorageTx.STORAGE_BACKUP) {
                 if (!hasUploadTransaction(uploadTransactions, transaction)) {
                     throw new TransactionNotAcceptedException(
                             "Current backup transaction is in the front of upload transaction ", transaction);
@@ -1895,7 +1899,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }
             calculatedTotalAmount += transaction.getAmountNQT();
-            if (!StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+            if (!StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                 calculatedTotalFee += transaction.getFeeNQT();
             } else {
                 calculatedTotalFee += transaction.getMinimumFeeNQT(blockchain.getHeight());
@@ -2060,7 +2064,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     .thenComparingInt(Transaction::getIndex)
                     .thenComparingLong(Transaction::getId);
 
-    List<BlockImpl> popOffTo(Block commonBlock) {
+    public List<BlockImpl> popOffTo(Block commonBlock) {
         blockchain.writeLock();
         try {
             if (!Db.db.isInTransaction()) {
@@ -2241,11 +2245,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 // storage confirm transaction order and backup transaction number
                 if (unconfirmedTransaction.getTransaction().getType()
-                        == StorageTransaction.STORAGE_UPLOAD) {
+                        == StorageTx.STORAGE_UPLOAD) {
                     uploadTransactions.put(unconfirmedTransaction.getId(), unconfirmedTransaction);
                 }
                 if (unconfirmedTransaction.getTransaction().getType()
-                        == StorageTransaction.STORAGE_BACKUP) {
+                        == StorageTx.STORAGE_BACKUP) {
                     if (!hasUploadTransaction(uploadTransactions, unconfirmedTransaction)
                             || hasBackuped(backupNum, unconfirmedTransaction.getTransaction())
                             || isBackupNumberExceed(uploadTransactions, backupNum, unconfirmedTransaction)) {
@@ -2331,7 +2335,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     .thenComparingInt(UnconfirmedTransaction::getHeight)
                     .thenComparingLong(UnconfirmedTransaction::getId);
 
-    void generateBlock(String secretPhrase, int blockTimestamp) throws BlockNotAcceptedException {
+    public void generateBlock(String secretPhrase, int blockTimestamp) throws BlockNotAcceptedException {
 
         Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
         if (blockchain.getHeight() >= Constants.PHASING_BLOCK) {
@@ -2399,7 +2403,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             blockTransactions.add(transaction);
             digest.update(transaction.bytes());
             totalAmountNQT += transaction.getAmountNQT();
-            if (!StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+            if (!StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                 totalFeeNQT += transaction.getFeeNQT();
             } else {
                 totalFeeNQT += transaction.getMinimumFeeNQT(blockchain.getHeight());

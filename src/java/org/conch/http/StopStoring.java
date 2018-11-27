@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Storer;
+import org.conch.storage.Storer;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

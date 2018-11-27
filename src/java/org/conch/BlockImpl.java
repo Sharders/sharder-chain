@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.conch.crypto.Crypto;
+import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;

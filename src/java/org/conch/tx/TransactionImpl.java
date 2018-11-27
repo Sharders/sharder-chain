@@ -376,7 +376,7 @@ final public class TransactionImpl implements Transaction {
         return Convert.toHexString(referencedTransactionFullHash);
     }
 
-    byte[] referencedTransactionFullHash() {
+    public byte[] referencedTransactionFullHash() {
         return referencedTransactionFullHash;
     }
 
@@ -385,7 +385,7 @@ final public class TransactionImpl implements Transaction {
         return height;
     }
 
-    void setHeight(int height) {
+    public void setHeight(int height) {
         this.height = height;
     }
 
@@ -529,7 +529,7 @@ final public class TransactionImpl implements Transaction {
         return Convert.toHexString(fullHash());
     }
 
-    byte[] fullHash() {
+    public byte[] fullHash() {
         if (fullHash == null) {
             getId();
         }
@@ -571,7 +571,7 @@ final public class TransactionImpl implements Transaction {
         return phasing;
     }
 
-    boolean attachmentIsPhased() {
+    public boolean attachmentIsPhased() {
         return attachment.isPhased(this);
     }
 
@@ -587,7 +587,7 @@ final public class TransactionImpl implements Transaction {
         return prunablePlainMessage;
     }
 
-    boolean hasPrunablePlainMessage() {
+    public boolean hasPrunablePlainMessage() {
         return prunablePlainMessage != null;
     }
 
@@ -599,7 +599,7 @@ final public class TransactionImpl implements Transaction {
         return prunableEncryptedMessage;
     }
 
-    boolean hasPrunableEncryptedMessage() {
+    public boolean hasPrunableEncryptedMessage() {
         return prunableEncryptedMessage != null;
     }
 
@@ -655,7 +655,7 @@ final public class TransactionImpl implements Transaction {
         return bytes;
     }
 
-    static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes) throws ConchException.NotValidException {
+    public static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes) throws ConchException.NotValidException {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -733,7 +733,7 @@ final public class TransactionImpl implements Transaction {
         }
     }
 
-    static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes, JSONObject prunableAttachments) throws ConchException.NotValidException {
+    public static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes, JSONObject prunableAttachments) throws ConchException.NotValidException {
         BuilderImpl builder = newTransactionBuilder(bytes);
         if (prunableAttachments != null) {
             Attachment.ShufflingProcessing shufflingProcessing = Attachment.ShufflingProcessing.parse(prunableAttachments);
@@ -1046,12 +1046,12 @@ final public class TransactionImpl implements Transaction {
     }
 
     // returns false iff double spending
-    boolean applyUnconfirmed() {
+    public boolean applyUnconfirmed() {
         Account senderAccount = Account.getAccount(getSenderId());
         return senderAccount != null && type.applyUnconfirmed(this, senderAccount);
     }
 
-    void apply() {
+    public void apply() {
         Account senderAccount = Account.getAccount(getSenderId());
         senderAccount.apply(getSenderPublicKey());
         Account recipientAccount = null;

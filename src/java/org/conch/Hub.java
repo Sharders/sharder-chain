@@ -24,6 +24,7 @@ package org.conch;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.VersionedEntityDbTable;
+import org.conch.mint.Generator;
 import org.conch.tx.Transaction;
 
 import java.math.BigInteger;

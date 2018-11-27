@@ -29,6 +29,8 @@ import org.conch.db.EntityDbTable;
 import org.conch.db.ValuesDbTable;
 import org.conch.tx.Transaction;
 import org.conch.util.Logger;
+import org.conch.vote.Vote;
+import org.conch.vote.VoteWeighting;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

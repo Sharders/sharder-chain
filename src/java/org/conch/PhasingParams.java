@@ -22,6 +22,7 @@
 package org.conch;
 
 import org.conch.util.Convert;
+import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

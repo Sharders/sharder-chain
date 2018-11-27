@@ -29,8 +29,12 @@ import org.conch.Attachment.AbstractAttachment;
 import org.conch.cpos.core.ConchGenesis;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.storage.tx.StorageTx;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
+import org.conch.vote.PhasingVote;
+import org.conch.vote.Vote;
+import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -47,7 +51,7 @@ public abstract class TransactionType {
     private static final byte TYPE_COLORED_COINS = 2;
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
-    static final byte TYPE_MONETARY_SYSTEM = 5;
+    public static final byte TYPE_MONETARY_SYSTEM = 5;
     static final byte TYPE_DATA = 6;
     protected static final byte TYPE_SHUFFLING = 7;
     static final byte TYPE_SHARDER_POOL = 8;
@@ -241,7 +245,7 @@ public abstract class TransactionType {
                         return null;
                 }
             case TYPE_STORAGE:
-                return StorageTransaction.findTransactionType(subtype);
+                return StorageTx.findTransactionType(subtype);
             case TYPE_POC:
                 switch (subtype) {
                     case SUBTYPE_POC_NODE_CONFIGURATION:

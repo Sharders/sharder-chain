@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.ConchException;
-import org.conch.PhasingVote;
+import org.conch.vote.PhasingVote;
 import org.conch.util.JSON;
 import org.json.simple.JSONStreamAware;
 

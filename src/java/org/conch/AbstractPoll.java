@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import org.conch.vote.VoteWeighting;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

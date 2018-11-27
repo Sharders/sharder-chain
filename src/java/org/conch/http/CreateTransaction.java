@@ -23,6 +23,8 @@ package org.conch.http;
 
 import org.conch.*;
 import org.conch.crypto.Crypto;
+import org.conch.storage.Storer;
+import org.conch.storage.tx.StorageTxProcessorImpl;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
@@ -266,12 +268,12 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             if (broadcast) {
                 Conch.getTransactionProcessor().broadcast(transaction);
                 // storage :check this node whether has the storage role to get a replication of data
-                if (StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+                if (StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                     if (Constants.isStorageClient && Storer.getStorer() != null) {
-                        Transaction backupTransaction = StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
+                        Transaction backupTransaction = StorageTxProcessorImpl.getInstance().createBackupTransaction(transaction);
                         if (backupTransaction != null){
                             Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) transaction.getAttachment();
-                            StorageProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
+                            StorageTxProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
                             Conch.getTransactionProcessor().broadcast(backupTransaction);
                         }
                     }

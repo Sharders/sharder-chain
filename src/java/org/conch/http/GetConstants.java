@@ -28,6 +28,7 @@ import org.conch.peer.Peer;
 import org.conch.tx.TransactionType;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
+import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

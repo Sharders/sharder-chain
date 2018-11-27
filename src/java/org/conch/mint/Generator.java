@@ -19,8 +19,9 @@
  *
  */
 
-package org.conch;
+package org.conch.mint;
 
+import org.conch.*;
 import org.conch.crypto.Crypto;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.TransactionProcessorImpl;
@@ -139,7 +140,7 @@ public final class Generator implements Comparable<Generator> {
         }
     }
 
-    static void init() {}
+    public static void init() {}
 
     public static boolean addListener(Listener<Generator> listener, Event eventType) {
         return listeners.addListener(listener, eventType);
@@ -231,11 +232,11 @@ public final class Generator implements Comparable<Generator> {
         }
     }
 
-    static void setDelay(int delay) {
+    public static void setDelay(int delay) {
         Generator.delayTime = delay;
     }
 
-    static boolean verifyHit(BigInteger hit, BigInteger effectiveBalance, Block previousBlock, int timestamp) {
+    public static boolean verifyHit(BigInteger hit, BigInteger effectiveBalance, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
             return false;
@@ -251,11 +252,11 @@ public final class Generator implements Comparable<Generator> {
                 || Constants.isOffline);
     }
 
-    static boolean allowsFakeForging(byte[] publicKey) {
+    public static boolean allowsFakeForging(byte[] publicKey) {
         return Constants.isTestnetOrDevnet() && publicKey != null && Arrays.equals(publicKey, fakeForgingPublicKey);
     }
 
-    static BigInteger getHit(byte[] publicKey, Block block) {
+    public static BigInteger getHit(byte[] publicKey, Block block) {
         if (allowsFakeForging(publicKey)) return BigInteger.ZERO;
         if (block.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK) throw new IllegalArgumentException("Not supported below Transparent Forging Block");
 
@@ -270,7 +271,7 @@ public final class Generator implements Comparable<Generator> {
 //                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue();
 //    }
 
-    static long getHitTime(long accountId, BigInteger effectiveBalance, BigInteger hit, Block block) {
+    public static long getHitTime(long accountId, BigInteger effectiveBalance, BigInteger hit, Block block) {
 //        if(ConchGenesis.isFoundAccount(accountId))
 //            return block.getTimestamp()
 //                    + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).multiply(BigInteger.valueOf(3L)).longValue();

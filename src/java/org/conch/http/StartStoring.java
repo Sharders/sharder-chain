@@ -22,9 +22,8 @@
 package org.conch.http;
 
 import org.conch.Account;
-import org.conch.Conch;
 import org.conch.Constants;
-import org.conch.Storer;
+import org.conch.storage.Storer;
 import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

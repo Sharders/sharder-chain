@@ -22,6 +22,7 @@
 package org.conch.user;
 
 import org.conch.*;
+import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.Transaction;

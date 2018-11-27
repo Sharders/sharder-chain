@@ -28,6 +28,8 @@ import org.conch.db.DbKey;
 import org.conch.db.EntityDbTable;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.storage.Storer;
+import org.conch.storage.tx.StorageTxProcessorImpl;
 import org.conch.util.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -387,7 +389,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         return transactions;
     }
 
-    Collection<UnconfirmedTransaction> getWaitingTransactions() {
+    public Collection<UnconfirmedTransaction> getWaitingTransactions() {
         return Collections.unmodifiableCollection(waitingTransactions);
     }
 
@@ -534,7 +536,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         }
     }
 
-    void removeUnconfirmedTransaction(TransactionImpl transaction) {
+    public void removeUnconfirmedTransaction(TransactionImpl transaction) {
         if (!Db.db.isInTransaction()) {
             try {
                 Db.db.beginTransaction();
@@ -582,7 +584,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         }
     }
 
-    void processWaitingTransactions() {
+    public void processWaitingTransactions() {
         BlockchainImpl.getInstance().writeLock();
         try {
             if (waitingTransactions.size() > 0) {
@@ -648,10 +650,10 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
                 // TODO storage add storage tx handle and send a new backup tx
                 if (Constants.isStorageClient && Storer.getStorer() != null) {
-                    if(StorageProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
-                        Transaction backupTransaction =  StorageProcessorImpl.getInstance().createBackupTransaction(transaction);
+                    if(StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+                        Transaction backupTransaction =  StorageTxProcessorImpl.getInstance().createBackupTransaction(transaction);
                         Attachment.DataStorageUpload dataStorageUpload = (Attachment.DataStorageUpload) transaction.getAttachment();
-                        StorageProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
+                        StorageTxProcessorImpl.recordTask(transaction.getId(),dataStorageUpload.getReplicated_number());
                         broadcast(backupTransaction);
                     }
                 }

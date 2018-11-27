@@ -19,8 +19,12 @@
  *
  */
 
-package org.conch;
+package org.conch.vote;
 
+import org.conch.Attachment;
+import org.conch.Conch;
+import org.conch.Db;
+import org.conch.Poll;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
@@ -92,7 +96,7 @@ public final class Vote {
         return vote;
     }
 
-    static void init() {}
+    public static void init() {}
 
 
     private final long id;

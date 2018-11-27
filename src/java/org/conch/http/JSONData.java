@@ -26,6 +26,7 @@ import org.conch.AccountLedger.LedgerEntry;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
+import org.conch.mint.Generator;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
 import org.conch.storage.Ssid;
@@ -34,6 +35,9 @@ import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
+import org.conch.vote.PhasingVote;
+import org.conch.vote.Vote;
+import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

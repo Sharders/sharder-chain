@@ -22,7 +22,7 @@
 package org.conch;
 
 import org.conch.Account.ControlType;
-import org.conch.VoteWeighting.VotingModel;
+import org.conch.vote.VoteWeighting.VotingModel;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
 import org.conch.db.DbUtils;

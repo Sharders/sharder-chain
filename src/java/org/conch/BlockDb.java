@@ -69,7 +69,7 @@ public final class BlockDb {
         }, BlockchainProcessor.Event.BLOCK_PUSHED);
     }
 
-    static private void clearBlockCache() {
+    private static void clearBlockCache() {
         synchronized (blockCache) {
             blockCache.clear();
             heightMap.clear();
@@ -77,7 +77,7 @@ public final class BlockDb {
         }
     }
 
-    static BlockImpl findBlock(long blockId) {
+    public static BlockImpl findBlock(long blockId) {
         // Check the block cache
         synchronized (blockCache) {
             BlockImpl block = blockCache.get(blockId);
@@ -101,11 +101,11 @@ public final class BlockDb {
         }
     }
 
-    static boolean hasBlock(long blockId) {
+    public static boolean hasBlock(long blockId) {
         return hasBlock(blockId, Integer.MAX_VALUE);
     }
 
-    static boolean hasBlock(long blockId, int height) {
+    public static boolean hasBlock(long blockId, int height) {
         // Check the block cache
         synchronized(blockCache) {
             BlockImpl block = blockCache.get(blockId);
@@ -148,7 +148,7 @@ public final class BlockDb {
         }
     }
 
-    static BlockImpl findBlockAtHeight(int height) {
+    public static BlockImpl findBlockAtHeight(int height) {
         // Check the cache
         synchronized(blockCache) {
             BlockImpl block = heightMap.get(height);
@@ -174,7 +174,7 @@ public final class BlockDb {
         }
     }
 
-    static BlockImpl findLastBlock() {
+    public static BlockImpl findLastBlock() {
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY timestamp DESC LIMIT 1")) {
             BlockImpl block = null;
@@ -189,7 +189,7 @@ public final class BlockDb {
         }
     }
 
-    static BlockImpl findLastBlock(int timestamp) {
+    public static BlockImpl findLastBlock(int timestamp) {
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1")) {
             pstmt.setInt(1, timestamp);
@@ -205,7 +205,7 @@ public final class BlockDb {
         }
     }
 
-    static Set<Long> getBlockGenerators(int startHeight) {
+    public static Set<Long> getBlockGenerators(int startHeight) {
         Set<Long> generators = new HashSet<>();
         try (Connection con = Db.db.getConnection();
                 PreparedStatement pstmt = con.prepareStatement(
@@ -224,11 +224,11 @@ public final class BlockDb {
         return generators;
     }
 
-    static BlockImpl loadBlock(Connection con, ResultSet rs) {
+    public static BlockImpl loadBlock(Connection con, ResultSet rs) {
         return loadBlock(con, rs, false);
     }
 
-    static BlockImpl loadBlock(Connection con, ResultSet rs, boolean loadTransactions) {
+    public static BlockImpl loadBlock(Connection con, ResultSet rs, boolean loadTransactions) {
         try {
             int version = rs.getInt("version");
             int timestamp = rs.getInt("timestamp");
@@ -254,7 +254,7 @@ public final class BlockDb {
         }
     }
 
-    static void saveBlock(Connection con, BlockImpl block) {
+    public static void saveBlock(Connection con, BlockImpl block) {
         try {
             try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
                     + "total_amount, total_fee, payload_length, previous_block_hash, cumulative_difficulty, "
@@ -298,7 +298,7 @@ public final class BlockDb {
         }
     }
 
-    static void deleteBlocksFromHeight(int height) {
+    public static void deleteBlocksFromHeight(int height) {
         long blockId;
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block WHERE height = ?")) {
@@ -317,7 +317,7 @@ public final class BlockDb {
     }
 
     // relying on cascade triggers in the database to delete the transactions and public keys for all deleted blocks
-    static BlockImpl deleteBlocksFrom(long blockId) {
+    public static BlockImpl deleteBlocksFrom(long blockId) {
         if (!Db.db.isInTransaction()) {
             BlockImpl lastBlock;
             try {
@@ -365,7 +365,7 @@ public final class BlockDb {
         }
     }
 
-    static void deleteAll() {
+    public static void deleteAll() {
         if (!Db.db.isInTransaction()) {
             try {
                 Db.db.beginTransaction();

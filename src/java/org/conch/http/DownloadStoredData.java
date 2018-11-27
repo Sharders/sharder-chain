@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import org.conch.*;
+import org.conch.storage.tx.StorageTxProcessorImpl;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -70,7 +71,7 @@ public final class DownloadStoredData extends APIServlet.APIRequestHandler {
         //Retrieve the data by ssid
         byte[] data;
         try {
-            data = StorageProcessorImpl.getInstance().getData(transactionId);
+            data = StorageTxProcessorImpl.getInstance().getData(transactionId);
         } catch (IOException e) {
             return JSONResponses.error("stored data not found");
         }

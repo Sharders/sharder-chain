@@ -22,7 +22,7 @@
 package org.conch.http;
 
 import org.conch.Account;
-import org.conch.Generator;
+import org.conch.mint.Generator;
 import org.conch.Conch;
 import org.conch.crypto.Crypto;
 import org.json.simple.JSONArray;

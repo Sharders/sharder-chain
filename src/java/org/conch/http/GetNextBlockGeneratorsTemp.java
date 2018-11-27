@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.Block;
 import org.conch.Blockchain;
-import org.conch.Generator;
+import org.conch.mint.Generator;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.json.simple.JSONArray;

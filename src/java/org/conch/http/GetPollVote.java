@@ -24,8 +24,8 @@ package org.conch.http;
 import org.conch.Conch;
 import org.conch.ConchException;
 import org.conch.Poll;
-import org.conch.Vote;
-import org.conch.VoteWeighting;
+import org.conch.vote.Vote;
+import org.conch.vote.VoteWeighting;
 import org.conch.util.JSON;
 import org.json.simple.JSONStreamAware;
 

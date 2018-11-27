@@ -21,10 +21,9 @@
 
 package org.conch.user;
 
-import org.conch.Generator;
+import org.conch.mint.Generator;
 import org.conch.crypto.Crypto;
 import org.conch.util.JSON;
-import org.conch.util.Logger;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

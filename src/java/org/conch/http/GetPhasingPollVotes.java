@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.ConchException;
 import org.conch.PhasingPoll;
-import org.conch.PhasingVote;
+import org.conch.vote.PhasingVote;
 import org.conch.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

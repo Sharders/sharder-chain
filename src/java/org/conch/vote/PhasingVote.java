@@ -19,8 +19,10 @@
  *
  */
 
-package org.conch;
+package org.conch.vote;
 
+import org.conch.Account;
+import org.conch.Conch;
 import org.conch.db.DbClause;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
@@ -75,7 +77,7 @@ public class PhasingVote {
         }
     }
 
-    static void init() {
+    public static void init() {
     }
 
     private final long phasedTransactionId;

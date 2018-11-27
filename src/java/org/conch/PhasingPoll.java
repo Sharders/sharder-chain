@@ -32,6 +32,8 @@ import org.conch.tx.Transaction;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
+import org.conch.vote.PhasingVote;
+import org.conch.vote.VoteWeighting;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

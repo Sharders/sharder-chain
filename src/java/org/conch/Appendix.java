@@ -26,6 +26,7 @@ import org.conch.crypto.EncryptedData;
 import org.conch.tx.*;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
+import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

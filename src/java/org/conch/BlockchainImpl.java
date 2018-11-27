@@ -71,11 +71,11 @@ public final class BlockchainImpl implements Blockchain {
         lock.updateLock().unlock();
     }
 
-    void writeLock() {
+    public void writeLock() {
         lock.writeLock().lock();
     }
 
-    void writeUnlock() {
+    public void writeUnlock() {
         lock.writeLock().unlock();
     }
 
@@ -84,7 +84,7 @@ public final class BlockchainImpl implements Blockchain {
         return lastBlock.get();
     }
 
-    void setLastBlock(BlockImpl block) {
+    public void setLastBlock(BlockImpl block) {
         lastBlock.set(block);
     }
 

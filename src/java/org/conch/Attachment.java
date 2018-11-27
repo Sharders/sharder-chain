@@ -25,12 +25,14 @@ import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.mint.pool.PoolRule;
+import org.conch.storage.tx.StorageTx;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
+import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -4080,7 +4082,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return StorageTransaction.STORAGE_UPLOAD;
+            return StorageTx.STORAGE_UPLOAD;
         }
 
         public String getName() {
@@ -4154,7 +4156,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public TransactionType getTransactionType() {
-            return StorageTransaction.STORAGE_BACKUP;
+            return StorageTx.STORAGE_BACKUP;
         }
 
         public long getUploadTransaction() {
