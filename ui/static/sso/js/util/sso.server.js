@@ -10,7 +10,8 @@ var NRS = (function (NRS, $, undefined) {
             options = {};
         }
         if (requestType == undefined) {
-            NRS.logConsole("Undefined request type");
+            // NRS.logConsole("Undefined request type");
+            console.warn("Undefined request type");
             return;
         }
         // if (!NRS.isRequestTypeEnabled(requestType)) {
@@ -338,8 +339,8 @@ var NRS = (function (NRS, $, undefined) {
             contentType = "application/x-www-form-urlencoded; charset=UTF-8";
             processData = true;
         }
-        NRS.logConsole("Send request " + requestType + " to url " + url);
-
+        // NRS.logConsole("Send request " + requestType + " to url " + url);
+        console.info("Send request " + requestType + " to url " + url);
         $.ajax({
             url: url,
             crossDomain: true,
@@ -448,7 +449,9 @@ var NRS = (function (NRS, $, undefined) {
                 }
             }
         }).fail(function (xhr, textStatus, error) {
-            NRS.logConsole("Node " + (options.remoteNode ? options.remoteNode.getUrl() : NRS.getRemoteNodeUrl()) + " received an error for request type " + requestType +
+            // NRS.logConsole("Node " + (options.remoteNode ? options.remoteNode.getUrl() : NRS.getRemoteNodeUrl()) + " received an error for request type " + requestType +
+            //     " status " + textStatus + " error " + error);
+            console.warn("Node " + (options.remoteNode ? options.remoteNode.getUrl() : NRS.getRemoteNodeUrl()) + " received an error for request type " + requestType +
                 " status " + textStatus + " error " + error);
             if (NRS.console) {
                 NRS.addToConsole(this.url, this.type, this.data, error, true);

@@ -314,7 +314,7 @@ var NRS = (function (NRS, $, undefined) {
                 // NRS.connectionError(response.errorDescription);
                 // NRS.spinner.stop();
                 // NRS.logConsole("getBlockchainStatus returned error");
-                vue.this.$message.error(response.errorDescription);
+                vue.$message.error(response.errorDescription);
                 return;
             }
             // NRS.logConsole("getBlockchainStatus response received");

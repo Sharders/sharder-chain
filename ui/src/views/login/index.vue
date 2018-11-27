@@ -35,13 +35,14 @@
         },
         methods: {
             login: function () {
-                // console.log(Login)
-                // Login.login(this.type,this.account,this)
-
+                // console.log(SSO);
+                // Login.login(this.type,this.account,this);
+// many blend glass feet fragile drawn hey ready horse throat tide space
+// SSA-TPLD-BHYH-DF2B-GAU6P
                 // console.log(this.type)
                 // console.info(this.account)
                 // let account = this.account;
-                // let secretPhrase = SSO.getAccountId(account);
+                // let secretPhrase = SSO.getAccountId(this.account);
                 // let nxtAddress = new NxtAddress();
                 // let accountRS = "";
                 // if (nxtAddress.set(secretPhrase)) {
