@@ -24,6 +24,6 @@ SharderPools
 DestroyedPools
 
 # storage/ipfs/bin
-storage/
+# storage/
 .ipfs
 bin.exe
