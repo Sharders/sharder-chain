@@ -21,24 +21,31 @@
 
 package org.conch.http;
 
-import org.conch.*;
-import org.conch.AccountLedger.LedgerEntry;
+import org.conch.Conch;
+import org.conch.account.*;
+import org.conch.account.AccountLedger.LedgerEntry;
+import org.conch.asset.*;
+import org.conch.asset.token.*;
 import org.conch.chain.Block;
+import org.conch.common.Constants;
+import org.conch.common.Token;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
-import org.conch.db.DbIterator;
+import org.conch.db.*;
+import org.conch.market.*;
 import org.conch.mint.Generator;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
+import org.conch.shuffle.Shuffler;
+import org.conch.shuffle.Shuffling;
+import org.conch.shuffle.ShufflingParticipant;
 import org.conch.storage.Ssid;
+import org.conch.storage.TaggedData;
 import org.conch.storage.ipfs.IpfsService;
-import org.conch.tx.Transaction;
-import org.conch.tx.TransactionType;
+import org.conch.tx.*;
 import org.conch.util.Convert;
 import org.conch.util.Filter;
-import org.conch.vote.PhasingVote;
-import org.conch.vote.Vote;
-import org.conch.vote.VoteWeighting;
+import org.conch.vote.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -883,7 +890,7 @@ public final class JSONData {
     static JSONObject exchangeRequest(ExchangeRequest exchangeRequest, boolean includeCurrencyInfo) {
         JSONObject json = new JSONObject();
         json.put("transaction", Long.toUnsignedString(exchangeRequest.getId()));
-        json.put("subtype", exchangeRequest.isBuy() ? MonetarySystem.EXCHANGE_BUY.getSubtype() : MonetarySystem.EXCHANGE_SELL.getSubtype());
+        json.put("subtype", exchangeRequest.isBuy() ? MonetaryTx.EXCHANGE_BUY.getSubtype() : MonetaryTx.EXCHANGE_SELL.getSubtype());
         json.put("timestamp", exchangeRequest.getTimestamp());
         json.put("units", String.valueOf(exchangeRequest.getUnits()));
         json.put("rateNQT", String.valueOf(exchangeRequest.getRate()));

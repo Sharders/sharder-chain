@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.http.APIServlet.APIRequestHandler;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;

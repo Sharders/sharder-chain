@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Currency;
+import org.conch.asset.token.Currency;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

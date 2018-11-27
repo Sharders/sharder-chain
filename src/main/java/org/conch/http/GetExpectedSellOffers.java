@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Attachment;
-import org.conch.MonetarySystem;
 import org.conch.Conch;
+import org.conch.asset.MonetaryTx;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
@@ -57,7 +57,7 @@ public final class GetExpectedSellOffers extends APIServlet.APIRequestHandler {
         boolean sortByRate = "true".equalsIgnoreCase(req.getParameter("sortByRate"));
 
         Filter<Transaction> filter = transaction -> {
-            if (transaction.getType() != MonetarySystem.PUBLISH_EXCHANGE_OFFER) {
+            if (transaction.getType() != MonetaryTx.PUBLISH_EXCHANGE_OFFER) {
                 return false;
             }
             if (accountId != 0 && transaction.getSenderId() != accountId) {

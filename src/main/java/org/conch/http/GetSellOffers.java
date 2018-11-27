@@ -21,10 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.CurrencySellOffer;
-import org.conch.db.DbIterator;
-import org.conch.db.DbUtils;
-import org.conch.CurrencySellOffer;
+import org.conch.asset.token.CurrencySellOffer;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.json.simple.JSONArray;

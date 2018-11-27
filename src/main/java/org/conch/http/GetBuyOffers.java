@@ -21,17 +21,15 @@
 
 package org.conch.http;
 
-import org.conch.CurrencyBuyOffer;
-import org.conch.db.DbIterator;
-import org.conch.db.DbUtils;
-import org.conch.CurrencyBuyOffer;
-import org.conch.db.DbIterator;
-import org.conch.db.DbUtils;
+import org.conch.asset.token.CurrencyBuyOffer;
+import org.conch.db.*;
+import org.conch.db.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 public final class GetBuyOffers extends APIServlet.APIRequestHandler {
 

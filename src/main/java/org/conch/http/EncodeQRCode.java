@@ -28,7 +28,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;

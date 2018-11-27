@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
-import org.conch.PhasingPoll;
+import org.conch.common.ConchException;
 import org.conch.tx.Transaction;
+import org.conch.vote.PhasingPoll;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

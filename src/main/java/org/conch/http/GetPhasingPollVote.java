@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.ConchException;
-import org.conch.vote.PhasingVote;
+import org.conch.common.ConchException;
 import org.conch.util.JSON;
+import org.conch.vote.PhasingVote;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

@@ -21,9 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.Currency;
-import org.conch.*;
-import org.conch.ConchException;
+import org.conch.asset.token.Currency;
+import org.conch.common.ConchException;
+import org.conch.mint.CurrencyMint;
+import org.conch.mint.CurrencyMinting;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -58,7 +59,7 @@ public final class GetMintingTarget extends APIServlet.APIRequestHandler {
         BigInteger numericTarget = CurrencyMinting.getNumericTarget(currency, units);
         json.put("difficulty", String.valueOf(BigInteger.ZERO.equals(numericTarget) ? -1 : BigInteger.valueOf(2).pow(256).subtract(BigInteger.ONE).divide(numericTarget)));
         json.put("targetBytes", Convert.toHexString(CurrencyMinting.getTarget(numericTarget)));
-        json.put("counter", org.conch.CurrencyMint.getCounter(currency.getId(), ParameterParser.getAccountId(req, true)));
+        json.put("counter", CurrencyMint.getCounter(currency.getId(), ParameterParser.getAccountId(req, true)));
         return json;
     }
 

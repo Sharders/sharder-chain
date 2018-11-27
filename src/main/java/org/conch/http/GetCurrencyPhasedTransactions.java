@@ -21,10 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.PhasingPoll;
+import org.conch.db.*;
 import org.conch.tx.Transaction;
+import org.conch.vote.PhasingPoll;
 import org.conch.vote.VoteWeighting;
-import org.conch.db.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

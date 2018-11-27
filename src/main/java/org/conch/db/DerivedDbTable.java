@@ -21,7 +21,6 @@
 
 package org.conch.db;
 
-import org.conch.Db;
 import org.conch.Conch;
 
 import java.sql.Connection;

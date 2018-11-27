@@ -21,21 +21,17 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.DigitalGoodsStore;
 import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.common.ConchException;
+import org.conch.market.DigitalGoodsStore;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
-import static org.conch.http.JSONResponses.INCORRECT_PURCHASE_PRICE;
-import static org.conch.http.JSONResponses.INCORRECT_PURCHASE_QUANTITY;
-import static org.conch.http.JSONResponses.MISSING_DELIVERY_DEADLINE_TIMESTAMP;
-import static org.conch.http.JSONResponses.UNKNOWN_GOODS;
+import static org.conch.http.JSONResponses.*;
 
 public final class DGSPurchase extends CreateTransaction {
 

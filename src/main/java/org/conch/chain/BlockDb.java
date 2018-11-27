@@ -21,25 +21,15 @@
 
 package org.conch.chain;
 
-import org.conch.*;
-import org.conch.db.DbUtils;
+import org.conch.Conch;
+import org.conch.db.*;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.sql.*;
+import java.util.*;
 
 public final class BlockDb {
 

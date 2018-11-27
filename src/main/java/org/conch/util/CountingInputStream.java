@@ -21,7 +21,7 @@
 
 package org.conch.util;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 
 import java.io.FilterInputStream;
 import java.io.IOException;

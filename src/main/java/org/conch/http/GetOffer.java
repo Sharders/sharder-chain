@@ -21,9 +21,8 @@
 
 package org.conch.http;
 
-import org.conch.CurrencyBuyOffer;
-import org.conch.CurrencySellOffer;
-import org.conch.CurrencySellOffer;
+import org.conch.asset.token.CurrencyBuyOffer;
+import org.conch.asset.token.CurrencySellOffer;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

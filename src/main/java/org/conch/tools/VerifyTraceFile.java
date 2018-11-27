@@ -21,8 +21,8 @@
 
 package org.conch.tools;
 
-import org.conch.Constants;
-import org.conch.cpos.core.ConchGenesis;
+import org.conch.common.Constants;
+import org.conch.consensus.cpos.core.ConchGenesis;
 import org.conch.util.Convert;
 
 import java.io.BufferedReader;

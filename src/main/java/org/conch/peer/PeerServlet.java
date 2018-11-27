@@ -21,9 +21,9 @@
 
 package org.conch.peer;
 
-import org.conch.chain.BlockchainProcessor;
 import org.conch.Conch;
-import org.conch.Constants;
+import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.util.CountingInputReader;
 import org.conch.util.CountingOutputWriter;
 import org.conch.util.JSON;

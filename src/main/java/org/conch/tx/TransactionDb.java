@@ -21,19 +21,16 @@
 
 package org.conch.tx;
 
-import org.conch.*;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockImpl;
-import org.conch.db.DbUtils;
+import org.conch.common.ConchException;
+import org.conch.db.*;
+import org.conch.db.*;
 import org.conch.util.Convert;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

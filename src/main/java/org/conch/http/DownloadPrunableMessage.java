@@ -22,8 +22,8 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.PrunableMessage;
+import org.conch.common.ConchException;
+import org.conch.tx.PrunableMessage;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONStreamAware;

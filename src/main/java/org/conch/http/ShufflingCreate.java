@@ -21,11 +21,11 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.HoldingType;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.asset.HoldingType;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.tx.Attachment;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

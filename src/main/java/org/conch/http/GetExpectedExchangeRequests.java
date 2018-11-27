@@ -21,10 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.Attachment;
-import org.conch.MonetarySystem;
 import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.asset.MonetaryTx;
+import org.conch.common.ConchException;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Filter;
 import org.json.simple.JSONArray;
@@ -50,7 +50,7 @@ public final class GetExpectedExchangeRequests extends APIServlet.APIRequestHand
         boolean includeCurrencyInfo = "true".equalsIgnoreCase(req.getParameter("includeCurrencyInfo"));
 
         Filter<Transaction> filter = transaction -> {
-            if (transaction.getType() != MonetarySystem.EXCHANGE_BUY && transaction.getType() != MonetarySystem.EXCHANGE_SELL) {
+            if (transaction.getType() != MonetaryTx.EXCHANGE_BUY && transaction.getType() != MonetaryTx.EXCHANGE_SELL) {
                 return false;
             }
             if (accountId != 0 && transaction.getSenderId() != accountId) {

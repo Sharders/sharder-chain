@@ -21,10 +21,13 @@
 
 package org.conch.mint;
 
-import org.conch.*;
+import org.conch.Conch;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.HashFunction;
 import org.conch.http.API;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Logger;

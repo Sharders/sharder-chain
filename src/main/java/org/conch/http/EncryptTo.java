@@ -21,17 +21,15 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.common.ConchException;
 import org.conch.crypto.EncryptedData;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_MESSAGE_TO_ENCRYPT;
-import static org.conch.http.JSONResponses.INCORRECT_RECIPIENT;
-import static org.conch.http.JSONResponses.MISSING_MESSAGE_TO_ENCRYPT;
+import static org.conch.http.JSONResponses.*;
 
 public final class EncryptTo extends APIServlet.APIRequestHandler {
 

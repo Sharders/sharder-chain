@@ -21,11 +21,11 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Appendix;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.tx.Appendix;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.conch.util.Search;
@@ -34,10 +34,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_DGS_LISTING_DESCRIPTION;
-import static org.conch.http.JSONResponses.INCORRECT_DGS_LISTING_NAME;
-import static org.conch.http.JSONResponses.INCORRECT_DGS_LISTING_TAGS;
-import static org.conch.http.JSONResponses.MISSING_NAME;
+import static org.conch.http.JSONResponses.*;
 
 public final class DGSListing extends CreateTransaction {
 

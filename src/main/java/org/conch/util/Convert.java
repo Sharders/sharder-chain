@@ -21,8 +21,8 @@
 
 package org.conch.util;
 
-import org.conch.Constants;
-import org.conch.ConchException;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 
 import java.io.ByteArrayInputStream;
@@ -31,13 +31,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 

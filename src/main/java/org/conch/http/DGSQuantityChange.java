@@ -21,19 +21,17 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.DigitalGoodsStore;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.market.DigitalGoodsStore;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.INCORRECT_DELTA_QUANTITY;
-import static org.conch.http.JSONResponses.MISSING_DELTA_QUANTITY;
-import static org.conch.http.JSONResponses.UNKNOWN_GOODS;
+import static org.conch.http.JSONResponses.*;
 
 public final class DGSQuantityChange extends CreateTransaction {
 

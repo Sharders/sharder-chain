@@ -21,11 +21,11 @@
 
 package org.conch.http.biz.service;
 
-import org.conch.Attachment;
 import org.conch.crypto.Crypto;
 import org.conch.http.biz.BizCoreProcess;
 import org.conch.http.biz.domain.Account;
 import org.conch.tools.PassPhraseGenerator;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 
 import java.util.HashMap;
@@ -41,8 +41,8 @@ public class AccountServiceImpl implements AccountService {
         senderPublicKey = Crypto.getPublicKey(secretPhrase);
         publicKey = Crypto.getPublicKey(newAccountPassPhrase);
 
-        long recipientId = org.conch.Account.getId(publicKey);
-        org.conch.Account senderAccount = org.conch.Account.getAccount(senderPublicKey);
+        long recipientId = org.conch.account.Account.getId(publicKey);
+        org.conch.account.Account senderAccount = org.conch.account.Account.getAccount(senderPublicKey);
         // Send a message to active account
         HashMap<String, String> params = new HashMap<>();
         params.put("recipientPublicKey", Crypto.getPublicKey(newAccountPassPhrase).toString());

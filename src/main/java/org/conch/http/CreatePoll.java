@@ -21,12 +21,12 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Attachment.MessagingPollCreation.PollBuilder;
-import org.conch.Constants;
 import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.tx.Attachment;
+import org.conch.tx.Attachment.MessagingPollCreation.PollBuilder;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
@@ -34,12 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.conch.http.JSONResponses.INCORRECT_POLL_DESCRIPTION_LENGTH;
-import static org.conch.http.JSONResponses.INCORRECT_POLL_NAME_LENGTH;
-import static org.conch.http.JSONResponses.INCORRECT_POLL_OPTION_LENGTH;
-import static org.conch.http.JSONResponses.INCORRECT_ZEROOPTIONS;
-import static org.conch.http.JSONResponses.MISSING_DESCRIPTION;
-import static org.conch.http.JSONResponses.MISSING_NAME;
+import static org.conch.http.JSONResponses.*;
 
 public final class CreatePoll extends CreateTransaction {
 

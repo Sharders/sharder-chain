@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
-import org.conch.Attachment;
 import org.conch.Conch;
-import org.conch.ConchException;
+import org.conch.common.ConchException;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -31,9 +31,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
-import static org.conch.http.JSONResponses.HASHES_MISMATCH;
-import static org.conch.http.JSONResponses.INCORRECT_TRANSACTION;
-import static org.conch.http.JSONResponses.UNKNOWN_TRANSACTION;
+import static org.conch.http.JSONResponses.*;
 
 public final class VerifyTaggedData extends APIServlet.APIRequestHandler {
 

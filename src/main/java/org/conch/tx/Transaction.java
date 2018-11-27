@@ -21,8 +21,8 @@
 
 package org.conch.tx;
 
-import org.conch.*;
 import org.conch.chain.Block;
+import org.conch.common.ConchException;
 import org.conch.util.Filter;
 import org.json.simple.JSONObject;
 

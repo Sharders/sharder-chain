@@ -21,9 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Token;
-import org.conch.util.Convert;
-import org.conch.Token;
+import org.conch.common.Token;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

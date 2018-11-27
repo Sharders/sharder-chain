@@ -21,13 +21,13 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Appendix;
 import org.conch.Conch;
-import org.conch.PrunableMessage;
-import org.conch.tx.Transaction;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
+import org.conch.tx.Appendix;
+import org.conch.tx.PrunableMessage;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;

@@ -21,12 +21,10 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.FundingMonitor;
-import org.conch.HoldingType;
+import org.conch.account.Account;
+import org.conch.account.FundingMonitor;
+import org.conch.asset.HoldingType;
 import org.conch.crypto.Crypto;
-import org.conch.FundingMonitor;
-import org.conch.HoldingType;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

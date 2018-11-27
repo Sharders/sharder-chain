@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Alias;
+import org.conch.account.Alias;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

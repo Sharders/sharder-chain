@@ -1,6 +1,6 @@
 package org.conch.mint.pool;
 
-import org.conch.Attachment;
+import org.conch.tx.Attachment;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;

@@ -21,7 +21,7 @@
 
 package org.conch.crypto;
 
-import org.conch.ConchException;
+import org.conch.common.ConchException;
 import org.conch.util.Convert;
 
 import java.nio.ByteBuffer;

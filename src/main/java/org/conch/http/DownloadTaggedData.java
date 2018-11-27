@@ -22,8 +22,8 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.ConchException;
-import org.conch.TaggedData;
+import org.conch.common.ConchException;
+import org.conch.storage.TaggedData;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

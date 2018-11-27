@@ -22,7 +22,7 @@
 package org.conch.tools;
 
 import org.conch.Conch;
-import org.conch.Constants;
+import org.conch.common.Constants;
 import org.conch.util.Logger;
 
 import java.io.File;

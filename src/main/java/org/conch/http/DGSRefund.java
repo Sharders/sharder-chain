@@ -21,20 +21,17 @@
 
 package org.conch.http;
 
-import org.conch.Account;
-import org.conch.Attachment;
-import org.conch.Constants;
-import org.conch.DigitalGoodsStore;
-import org.conch.ConchException;
+import org.conch.account.Account;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.market.DigitalGoodsStore;
+import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.conch.http.JSONResponses.DUPLICATE_REFUND;
-import static org.conch.http.JSONResponses.GOODS_NOT_DELIVERED;
-import static org.conch.http.JSONResponses.INCORRECT_DGS_REFUND;
-import static org.conch.http.JSONResponses.INCORRECT_PURCHASE;
+import static org.conch.http.JSONResponses.*;
 
 public final class DGSRefund extends CreateTransaction {
 
