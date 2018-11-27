@@ -26,8 +26,8 @@ import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainImpl;
 import org.conch.common.Constants;
-import org.conch.db.*;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
+import org.conch.db.DbKey;
 import org.conch.db.VersionedEntityDbTable;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -100,7 +100,7 @@ public class Hub {
                         if (account != null) {
                             long effectiveBalance = account.getEffectiveBalanceSS(block.getHeight());
                             if (effectiveBalance >= Constants.MIN_HUB_EFFECTIVE_BALANCE) {
-                                currentHits.add(new Hit(hub, Generator.getHitTime(hub.getAccountId(),BigInteger.valueOf(effectiveBalance),
+                                currentHits.add(new Hit(hub, Generator.getHitTime(BigInteger.valueOf(effectiveBalance),
                                         Generator.getHit(Account.getPublicKey(hub.getAccountId()), block), block)));
                             }
                         }
