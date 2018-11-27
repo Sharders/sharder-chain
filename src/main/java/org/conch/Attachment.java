@@ -4348,19 +4348,50 @@ public interface Attachment extends Appendix {
     }
 
     final class PocOnlineRate extends AbstractAttachment {
+
+        private final String device; // 设备
+        private final int networkRate; // 网络评级
+
+        public String getDevice() {
+            return device;
+        }
+
+        public int getNetworkRate() {
+            return networkRate;
+        }
+
+        public PocOnlineRate(String device, int networkRate) {
+            this.device = device;
+            this.networkRate = networkRate;
+        }
+
+        public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.networkRate = buffer.getInt();
+        }
+
+        public PocOnlineRate(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.networkRate = (int) attachmentData.get("networkRate");
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 2 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(networkRate);
         }
 
         @Override
-        void putMyJSON(JSONObject json) {
-
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("device", device);
+            attachment.put("networkRate", networkRate);
         }
 
         @Override

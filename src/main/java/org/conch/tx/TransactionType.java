@@ -3785,12 +3785,12 @@ public abstract class TransactionType {
 
             @Override
             public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return null;
+                return new Attachment.PocOnlineRate(buffer, transactionVersion);
             }
 
             @Override
             public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-                return null;
+                return new Attachment.PocOnlineRate(attachmentData);
             }
 
             @Override
