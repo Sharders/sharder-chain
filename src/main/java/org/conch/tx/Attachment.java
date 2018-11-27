@@ -4257,38 +4257,38 @@ public interface Attachment extends Appendix {
     final class PocWeight extends AbstractAttachment {
 
         private final String device; // 设备
-        private final int nodeWeight; // 节点类型 加权后的值
-        private final int serverWeight; // 开启服务 加权后的值
-        private final int configWeight; //硬件配置 加权后的值
-        private final int networkWeight; // 网络配置 加权后的值
-        private final int tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
-        private final int ssHoldWeight; // SS持有量 加权后的值
+        private final float nodeWeight; // 节点类型 加权后的值
+        private final float serverWeight; // 开启服务 加权后的值
+        private final float configWeight; //硬件配置 加权后的值
+        private final float networkWeight; // 网络配置 加权后的值
+        private final float tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
+        private final float ssHoldWeight; // SS持有量 加权后的值
 
-        public int getNodeWeight() {
+        public float getNodeWeight() {
             return nodeWeight;
         }
 
-        public int getServerWeight() {
+        public float getServerWeight() {
             return serverWeight;
         }
 
-        public int getConfigWeight() {
+        public float getConfigWeight() {
             return configWeight;
         }
 
-        public int getNetworkWeight() {
+        public float getNetworkWeight() {
             return networkWeight;
         }
 
-        public int getTpWeight() {
+        public float getTpWeight() {
             return tpWeight;
         }
 
-        public int getSsHoldWeight() {
+        public float getSsHoldWeight() {
             return ssHoldWeight;
         }
 
-        public PocWeight(String device, int nodeWeight, int serverWeight, int configWeight, int networkWeight, int tpWeight, int ssHoldWeight) {
+        public PocWeight(String device, float nodeWeight, float serverWeight, float configWeight, float networkWeight, float tpWeight, float ssHoldWeight) {
             this.device = device;
             this.nodeWeight = nodeWeight;
             this.serverWeight = serverWeight;
@@ -4301,39 +4301,39 @@ public interface Attachment extends Appendix {
         public PocWeight(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.device = buffer.toString();
-            this.nodeWeight = buffer.getInt();
-            this.serverWeight = buffer.getInt();
-            this.configWeight = buffer.getInt();
-            this.networkWeight = buffer.getInt();
-            this.tpWeight = buffer.getInt();
-            this.ssHoldWeight = buffer.getInt();
+            this.nodeWeight = buffer.getFloat();
+            this.serverWeight = buffer.getFloat();
+            this.configWeight = buffer.getFloat();
+            this.networkWeight = buffer.getFloat();
+            this.tpWeight = buffer.getFloat();
+            this.ssHoldWeight = buffer.getFloat();
         }
 
         public PocWeight(JSONObject attachmentData) {
             super(attachmentData);
             this.device = (String) attachmentData.get("device");
-            this.nodeWeight = ((Long) attachmentData.get("nodeWeight")).intValue();
-            this.serverWeight = ((Long) attachmentData.get("serverWeight")).intValue();
-            this.configWeight = ((Long) attachmentData.get("configWeight")).intValue();
-            this.networkWeight = ((Long) attachmentData.get("networkWeight")).intValue();
-            this.tpWeight = ((Long) attachmentData.get("tpWeight")).intValue();
-            this.ssHoldWeight = ((Long) attachmentData.get("ssHoldWeight")).intValue();
+            this.nodeWeight = (float) attachmentData.get("nodeWeight");
+            this.serverWeight = (float) attachmentData.get("serverWeight");
+            this.configWeight = (float) attachmentData.get("configWeight");
+            this.networkWeight = (float) attachmentData.get("networkWeight");
+            this.tpWeight = (float) attachmentData.get("tpWeight");
+            this.ssHoldWeight = (float) attachmentData.get("ssHoldWeight");
         }
 
         @Override
         int getMySize() {
-            return 12 + device.getBytes().length;
+            return 24 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
             buffer.put(device.getBytes());
-            buffer.putInt(nodeWeight);
-            buffer.putInt(serverWeight);
-            buffer.putInt(configWeight);
-            buffer.putInt(networkWeight);
-            buffer.putInt(tpWeight);
-            buffer.putInt(ssHoldWeight);
+            buffer.putFloat(nodeWeight);
+            buffer.putFloat(serverWeight);
+            buffer.putFloat(configWeight);
+            buffer.putFloat(networkWeight);
+            buffer.putFloat(tpWeight);
+            buffer.putFloat(ssHoldWeight);
         }
 
         @Override
@@ -4354,19 +4354,50 @@ public interface Attachment extends Appendix {
     }
 
     final class PocOnlineRate extends AbstractAttachment {
+
+        private final String device; // 设备
+        private final int networkRate; // 网络评级
+
+        public String getDevice() {
+            return device;
+        }
+
+        public int getNetworkRate() {
+            return networkRate;
+        }
+
+        public PocOnlineRate(String device, int networkRate) {
+            this.device = device;
+            this.networkRate = networkRate;
+        }
+
+        public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.networkRate = buffer.getInt();
+        }
+
+        public PocOnlineRate(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.networkRate = (int) attachmentData.get("networkRate");
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 2 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(networkRate);
         }
 
         @Override
-        void putMyJSON(JSONObject json) {
-
+        void putMyJSON(JSONObject attachment) {
+            attachment.put("device", device);
+            attachment.put("networkRate", networkRate);
         }
 
         @Override
@@ -4376,19 +4407,50 @@ public interface Attachment extends Appendix {
     }
 
     final class PocBlockingMiss extends AbstractAttachment {
+
+        private String device;
+        private int missCount;
+
+        public String getDevice() {
+            return device;
+        }
+
+        public int getMissCount() {
+            return missCount;
+        }
+
+        public PocBlockingMiss(String device, int missCount) {
+            this.device = device;
+            this.missCount = missCount;
+        }
+
+        public PocBlockingMiss(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.missCount = buffer.getInt();
+        }
+
+        public PocBlockingMiss(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.missCount = (int) attachmentData.get("missCount");
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 2 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(missCount);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
-
+            json.put("device", device);
+            json.put("missCount", missCount);
         }
 
         @Override
@@ -4398,19 +4460,50 @@ public interface Attachment extends Appendix {
     }
 
     final class PocBifuractionOfConvergence extends AbstractAttachment {
+
+        private String device;
+        private int speed;
+
+        public String getDevice() {
+            return device;
+        }
+
+        public int getSpeed() {
+            return speed;
+        }
+
+        public PocBifuractionOfConvergence(String device, int speed) {
+            this.device = device;
+            this.speed = speed;
+        }
+
+        public PocBifuractionOfConvergence(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.device = buffer.toString();
+            this.speed = buffer.getInt();
+        }
+
+        public PocBifuractionOfConvergence(JSONObject attachmentData) {
+            super(attachmentData);
+            this.device = (String) attachmentData.get("device");
+            this.speed = (int) attachmentData.get("speed");
+        }
+
         @Override
         int getMySize() {
-            return 0;
+            return 2 + device.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-
+            buffer.put(device.getBytes());
+            buffer.putInt(speed);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
-
+            json.put("device", device);
+            json.put("speed", speed);
         }
 
         @Override
