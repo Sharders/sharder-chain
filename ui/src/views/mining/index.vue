@@ -248,7 +248,7 @@
                         </p>
                         <p>
                             <span class="strong">当前账户</span>:
-                            <span>SSA-9WKZ-DV7P-M6MN-5MH8B</span>
+                            <span>{{accountInfo.accountRS}}</span>
                         </p>
                         <p>
                             <span class="strong">矿池容量</span>:
@@ -284,7 +284,7 @@
                         </div>
                         <div class="pool-bth">
                             <button class="cancel" @click="isVisible('isCreatePool')">取消</button>
-                            <button class="immediately-create">立即创建</button>
+                            <button class="immediately-create" @click="createPool()">立即创建</button>
                         </div>
                     </div>
                 </div>
@@ -426,9 +426,32 @@
                         assets: 1000000
                     }
                 ],
+                accountInfo: SSO.accountInfo,
             }
         },
         methods: {
+            createPool() {
+                let _this = this;
+                // if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
+                //     _this.isVisible('isCreatePool');
+                //     _this.$message.info("权限不足");
+                //     return;
+                // }
+
+                _this.$global.fetch("POST", {
+                    secretPhrase: "",
+                    publicKey: SSO.publicKey,
+                }, "createPool").then(res => {
+
+                    console.info(res);
+                    _this.isVisible('isCreatePool');
+                }).catch(error => {
+
+                    console.info(error);
+                    _this.isVisible('isCreatePool');
+                });
+
+            },
             poolAttribute(mining) {
                 this.$router.push({name: "mining-attribute", params: mining});
             },
