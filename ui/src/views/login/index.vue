@@ -1,15 +1,15 @@
 <template>
     <div class="content_login">
-
-        <el-col :span="24" class="switch">
-            <button class="common_btn_contrary" id="secretKeyLogin" @click="loginChange(1)">密钥登录</button>
-            <button class="common_btn" id="accountLogin" @click="loginChange(0)">账户登录</button>
-        </el-col>
+        <el-radio-group v-model="tabTitle" class="title">
+            <el-radio-button label="key" class="btn">密钥登录</el-radio-button>
+            <el-radio-button label="account" class="btn">账户登录</el-radio-button>
+        </el-radio-group>
 
         <el-col :span="24" class="login_operation">
-            <input class="account_input" type="password" v-model="account" placeholder="请输入账户密钥"/>
-            <masked-input class="secret_key_input" v-model="account" mask="AAA-****-****-****-*****"
-                          placeholder="Sharder账户"/>
+            <input v-if="tabTitle === 'key'" class="account_input" type="password" v-model="secretPhrase"
+                   placeholder="请输入账户密钥"/>
+            <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
+                          mask="AAA-****-****-****-*****" placeholder="Sharder账户"/>
             <el-button class="common_btn" @click="login">登录</el-button>
         </el-col>
 
@@ -29,17 +29,32 @@
         name: "index",
         data() {
             return {
-                account: "",
-                type: 0
+                tabTitle: "key",
+                secretPhrase: "many blend glass feet fragile drawn hey ready horse throat tide space",
+                account: "SSA-TPLD-BHYH-DF2B-GAU6P",
+                type: 1
             };
         },
         methods: {
+            getAccount() {
+                if (this.tabTitle === "key") {
+                    this.type = 1;
+                    return this.secretPhrase ? this.secretPhrase : "";
+                }
+                if (this.tabTitle === "account") {
+                    this.type = 0;
+                    return this.account ? this.account : "";
+                }
+            },
             login: function () {
                 let _this = this;
-                Login.login(_this.type, _this.account, _this, function () {
-// many blend glass feet fragile drawn hey ready horse throat tide space
-// SSA-TPLD-BHYH-DF2B-GAU6P
-                    // console.log(SSO);
+                let val = _this.getAccount();
+                if (val === "") {
+                    _this.$message.info("请输入账号或私钥");
+                    return;
+                }
+                Login.login(_this.type, val, _this, function () {
+                    console.log(SSO);
                     // console.log("account", SSO.account);
                     // console.log("accountInfo", SSO.accountInfo);
                     // console.log("accountRS", SSO.accountRS);
@@ -57,25 +72,6 @@
                 //     this.$store.state.isPassphrase = false;
                 //     this.$store.state.passphrase = "";
                 // }
-            },
-            loginChange: function (type) {
-                this.type = type;
-                this.account = "";
-                if (type === 0) {
-                    $("#secretKeyLogin").addClass("common_btn");
-                    $("#secretKeyLogin").removeClass("common_btn_contrary");
-                    $("#accountLogin").addClass("common_btn_contrary");
-                    $("#accountLogin").removeClass("common_btn");
-                    $(".secret_key_input").show();
-                    $(".account_input").hide();
-                } else {
-                    $("#accountLogin").addClass("common_btn");
-                    $("#accountLogin").removeClass("common_btn_contrary");
-                    $("#secretKeyLogin").addClass("common_btn_contrary");
-                    $("#secretKeyLogin").removeClass("common_btn");
-                    $(".account_input").show();
-                    $(".secret_key_input").hide();
-                }
             },
             register: function () {
                 this.$router.push("/register");
