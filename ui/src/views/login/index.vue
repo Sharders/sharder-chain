@@ -35,48 +35,28 @@
         },
         methods: {
             login: function () {
-                Login.login(this.type,this.account,this);
-                console.log(SSO);
+                let _this = this;
+                Login.login(_this.type, _this.account, _this, function () {
 // many blend glass feet fragile drawn hey ready horse throat tide space
 // SSA-TPLD-BHYH-DF2B-GAU6P
-                // console.log(this.type)
-                // console.info(this.account)
-                // let account = this.account;
-                // let secretPhrase = SSO.getAccountId(this.account);
-                // let nxtAddress = new NxtAddress();
-                // let accountRS = "";
-                // if (nxtAddress.set(secretPhrase)) {
-                //     accountRS = nxtAddress.toString();
+                    // console.log(SSO);
+                    // console.log("account", SSO.account);
+                    // console.log("accountInfo", SSO.accountInfo);
+                    // console.log("accountRS", SSO.accountRS);
+                    // console.log("publicKey", SSO.publicKey);
+                    // console.log("settings", SSO.settings);
+                    _this.$store.state.isLogin = true;
+                    _this.$router.push("/account");
+                    _this.$global.setEpochBeginning(_this);
+                });
+
+                // if (this.type && $.trim(this.account)) {
+                //     this.$store.state.isPassphrase = true;
+                //     this.$store.state.passphrase = this.account;
+                // } else {
+                //     this.$store.state.isPassphrase = false;
+                //     this.$store.state.passphrase = "";
                 // }
-                // console.log(accountRS);
-                // let accountRequest;
-                // let requestVariable;
-                // if (this.type) {
-                //     accountRequest = "getAccountId";
-                //     requestVariable = {secretPhrase: account};
-                // }else {
-                //     accountRequest = "getAccount";
-                //     requestVariable = {account: account};
-                // };
-                // this.$http.post(this.url + "getBlockchainStatus").then(res => {
-                //     console.log(res)
-                //     if (res.errorCode) {
-                //         this.$message.error(res.errorDescription);
-                //         return;
-                //     }
-                //     // global.state = res;
-                // })
-                if (this.type && $.trim(this.account)) {
-                    this.$store.state.isPassphrase = true;
-                    this.$store.state.passphrase = this.account;
-                } else {
-                    this.$store.state.isPassphrase = false;
-                    this.$store.state.passphrase = "";
-                }
-                ;
-                this.$store.state.isLogin = true;
-                this.$router.push("/account");
-                this.$global.setEpochBeginning(this);
             },
             loginChange: function (type) {
                 this.type = type;
