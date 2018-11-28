@@ -83,7 +83,25 @@
     };
 </script>
 
+<style>
+    .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner {
+        background-color: #513ac8;
+        border-color: #513ac8;
+    }
 
+    .content_login .title .el-radio-button__inner:hover {
+        color: #513ac8;
+    }
+
+    .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
+        color: #fff;
+    }
+
+    .content_login .title {
+        display: block !important;
+        text-align: left;
+    }
+</style>
 <style lang="scss">
     @import './style.scss';
     @import '../../styles/css/common.scss';
