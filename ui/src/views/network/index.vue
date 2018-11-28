@@ -135,7 +135,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination">
+                    <div class="list_pagination" v-if="totalSize > pageSize">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"

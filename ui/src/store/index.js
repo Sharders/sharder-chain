@@ -8,7 +8,8 @@ const store = new Vuex.Store({
         mask: false,
         isLogin: false,
         isPassphrase: false,
-        passphrase: ""
+        passphrase: "",
+        account:""  //账户ID
 
     },
     mutations: { // 类似 vue 的 methods

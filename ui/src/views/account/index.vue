@@ -96,25 +96,46 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=0 && index <= 9">
+                            <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
                                 <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
                                 <td class="linker">{{transaction.height}}</td>
-                                <td>{{transaction.type}}</td>
-                                <td>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                <td v-if="transaction.type === 0">普通支付</td>
+                                <td v-if="transaction.type === 1">任意信息</td>
+                                <td v-if="transaction.type === 6">存储服务</td>
+                                <td v-if="transaction.type === 9">出块奖励</td>
+                                <td v-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
                                 <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                 <td class=" image_text w300">
-                                    <span class="linker" @click="accountInfoDialog = true" v-if="transaction.type === 9">Coinbase</span>
+                                    <span class="linker" v-if="transaction.type === 9">Coinbase</span>
+                                    <span class="linker" @click="accountInfoDialog = true"
+                                          v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                    <span class="linker" @click="accountInfoDialog = true"
+                                          v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
                                     <img src="../../assets/right_arrow.svg"/>
-                                    <span class="linker" @click="accountInfoDialog = true">您</span> <!--transaction.senderRS-->
+                                    <span class="linker" @click="accountInfoDialog = true" v-if="transaction.type === 9">您</span>
+                                    <span class="linker" @click="accountInfoDialog = true"
+                                          v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                    <span class="linker" @click="accountInfoDialog = true"
+                                          v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
                                 </td>
                                 <td>{{transaction.confirmations}}</td>
-                                <td class="linker" @click="openAccountInfoDialog">查看详情</td>
+                                <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">查看详情</td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination">
-                        <div id="pagination_blocks" class="pagination"></div>
+                    <div class="list_pagination" v-if="totalSize > pageSize">
+                        <div class="list_pagination">
+                            <el-pagination
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page.sync="currentPage"
+                                :page-size="pageSize"
+                                layout="total, prev, pager, next, jumper"
+                                :total="totalSize">
+                            </el-pagination>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -268,58 +289,6 @@
             </div>
         </div>
         <!--view account transaction dialog-->
-        <div class="modal_info" id="trading_info" v-show="tradingInfoDialog">
-            <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
-                <h4 class="modal-title">
-                    <span >交易详情</span>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <table class="table">
-                    <tbody>
-                    <tr><th>签名</th>
-                        <td>4342343j4hj343b3i4hgb3hb43jkbi34gh3b43j4n32i4gh32i4b324b33
-                        334j3h4nj3k4b3jk4b3kj4b34kj3b4jk3b43kj4b3k4b3k4jb3k4j3b4kj3b4
-                        4343jk4b3kj4b3kj4b3kj4b3k4b3k4b343</td></tr>
-                    <tr>
-                        <th>交易</th><td>0</td></tr>
-                    <tr>
-                        <th>类型</th><td>0</td></tr>
-                    <tr>
-                        <th>哈希签名</th><td>234k3n43lk4n3ln4jk32nh4jikbh4k3j2b4kj324bn32kj4b232bk23b3b3kj</td></tr>
-                    <tr>
-                        <th>发送者</th><td>SSA-9W2N-D8F2-M9DN-2JD4F</td></tr>
-                    <tr>
-                        <th>数额</th><td>1,000,000 SS</td></tr>
-                    <tr>
-                        <th>接收者</th><td>您</td></tr>
-                    <tr>
-                        <th>区块时间戳</th><td>67943707 | 2018/10/11 17:21:24</td></tr>
-                    <tr>
-                        <th>时间戳</th><td>67943707 | 2018/10/11 17:21:24</td></tr>
-                    <tr>
-                        <th>发送者公钥</th><td></td></tr>
-                    <tr>
-                        <th>手续费</th><td>1 SS</td></tr>
-                    <tr>
-                        <th>确认</th><td>12345</td></tr>
-                    <tr>
-                        <th>类型完整哈希：</th><td>234k3n43lk4n3ln4jk32nh4jikbh4k3j2b4kj324bn32kj4b232bk23b3b3kj</td></tr>
-                    <tr>
-                        <th>版本：</th><td>1</td></tr>
-                    <tr>
-                        <th>发送者</th><td>21321312122121213</td></tr>
-                    <tr>
-                        <th>接收者</th><td>您</td></tr>
-                    <tr>
-                        <th>区块高度</th><td>12345</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-        <!--view account transaction dialog-->
         <div class="modal_info" id="account_info" v-show="accountInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
@@ -337,7 +306,9 @@
                         <th>账户名：</th>
                         <td>
                             <div class="accountName" v-if="isShowName">
-                                <span>{{accountInfo.name}}</span><img src="../../assets/rewrite.svg" @click="isShowName = false"/>
+                                <span v-if="accountInfo.name">{{accountInfo.name}}</span>
+                                <span v-else style="color:#999;font-weight: normal">未设置</span>
+                                <img src="../../assets/rewrite.svg" @click="isShowName = false"/>
                             </div>
                             <div class="rewriteName" v-else>
                                 <el-input v-model="messageForm.receiver"></el-input>
@@ -358,13 +329,18 @@
 
         </div>
 
+        <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading" @isClose="tradingInfoDialog = false"></dialogCommon>
+
+
     </div>
 </template>
 <script>
     import echarts from "echarts";
+    import dialogCommon from "../dialog/dialog_common";
+
     export default {
         name: "Network",
-        components: {echarts},
+        components: {echarts,dialogCommon},
         data () {
             return {
                 //dialog
@@ -379,7 +355,7 @@
                 isShowName:true,
 
                 messageForm: {
-                    receiver: "1",
+                    receiver: "",
                     message: "2",
                     isEncrypted: false,
                     file: "",
@@ -410,7 +386,7 @@
                     confirmPwd:''
                 },
                 accountInfo:{
-                    accountRS:'SSA-J2TM-GKMD-KTER-27GF7',
+                    accountRS:'SSA-9WKZ-DV7P-M6MN-5MH8B',
                     publicKey:'',
                     accountId:'',
                     forgedBalanceNQT:0,      //挖矿余额
@@ -426,16 +402,26 @@
                     label:'全部'
                 },{
                     value:0,
-                    label:'转账'
+                    label:'普通支付'
+                },{
+                    value:1,
+                    label:'任意信息'
                 },{
                     value:6,
-                    label:'存储'
+                    label:'存储服务'
                 },{
                     value:9,
                     label:'出块奖励'
                 }],
 
-                accountTransactionList:[]
+                trading:'',
+                accountTransactionList:[],
+                //分页信息
+                currentPage:1,
+                totalSize:0,
+                pageSize:10,
+
+
             };
         },
         created:function(){
@@ -455,8 +441,12 @@
             }).catch(function (err) {
                 console.log(err);
             });
-
-            _this.getAccountTransactionList();
+                let i =0;
+            // for(let i=0;_this.newCount>0&&_this.totalSize%100===0&&i<1000;i++){
+                _this.getAccountTransactionList();
+                // console.log("totalSize",_this.totalSize);
+                // console.log("newCount",_this.newCount);
+            // }
         },
         methods: {
             drawBarchart: function () {
@@ -468,6 +458,9 @@
                         right: '2%',
                         top: '10%',
                         bottom: '15%',
+                    },
+                    tooltip: {
+                        trigger: 'axis'
                     },
                     xAxis: {
                         type: 'category',
@@ -495,6 +488,9 @@
                         top: '10%',
                         bottom: '15%',
                     },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
@@ -513,16 +509,24 @@
                     yieldCurve.setOption(option, true);
                 }
             },
+            handleSizeChange(val) {
+            },
+            handleCurrentChange(val) {
+            },
             getAccountTransactionList:function(){
                 const _this = this;
+                // console.log("第"+i+"次");
                 this.$http.get('/sharder?requestType=getBlockchainTransactions',{
                     params:{
                         account:_this.accountInfo.accountRS,
-                        type:_this.selectType
+                        type:_this.selectType,
                     }
                 }).then(function (res) {
-                    _this.accountTransactionList = res.data.transactions;
+                    _this.accountTransactionList =res.data.transactions;
                     console.log(_this.accountTransactionList);
+                    _this.totalSize = _this.accountTransactionList.length;
+                    // _this.newCount = res.data.transactions.length;
+
                 }).catch(function (err) {
                     console.log(err);
                 });
@@ -540,9 +544,11 @@
                 this.$store.state.mask = true;
                 this.hubSettingDialog = true;
             },
-            openTradingInfoDialog:function(){
-                this.$store.state.mask = true;
+            openTradingInfoDialog:function(trading){
+                this.trading = trading;
                 this.tradingInfoDialog = true;
+                // this.$store.state.mask = true;
+                // this.tradingInfoDialog = true;
             },
             openAccountInfoDialog:function(){
                 this.$store.state.mask = true;
@@ -615,6 +621,10 @@
                     }
                 },
                 deep: true
+            },
+            selectType:function () {
+                const _this = this;
+                _this.getAccountTransactionList();
             }
         },
         mounted () {

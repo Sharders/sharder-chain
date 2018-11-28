@@ -113,7 +113,9 @@
                         </tr>
                         <tr>
                             <th>发送者</th>
-                            <td>{{transactionInfo.senderRS}}</td>
+                            <td v-if="transactionInfo.type === 9"></td>
+                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}</td>
+                            <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
                         </tr>
                         <tr>
                             <th>数额</th>
@@ -121,7 +123,10 @@
                         </tr>
                         <tr>
                             <th>接收者</th>
-                            <td>您</td>
+                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
+                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
+                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
                         </tr>
                         <tr>
                             <th>区块时间戳</th>
@@ -155,11 +160,16 @@
                         </tr>
                         <tr>
                             <th>发送者</th>
-                            <td>{{transactionInfo.sender}}</td>
+                            <td v-if="transactionInfo.type === 9"></td>
+                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}</td>
+                            <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
                         </tr>
                         <tr>
                             <th>接收者</th>
-                            <td>您</td>
+                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
+                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
+                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
                         </tr>
                         <tr>
                             <th>区块高度</th>
@@ -297,6 +307,113 @@
                 </div>
             </div>
         </div>
+        <!--view account transaction dialog-->
+        <div class="modal_info" id="trading_info" v-show="tradingInfoDialog">
+            <div class="modal-header">
+                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <h4 class="modal-title">
+                    <span >交易详情</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th>签名</th>
+                        <td>{{transactionInfo.signature}}</td>
+                    </tr>
+                    <tr>
+                        <th>交易序列号</th>
+                        <td>{{transactionInfo.transactionIndex}}</td>
+                    </tr>
+                    <tr>
+                        <th>类型</th>
+                        <td v-if="transactionInfo.type === 0">
+                            <span>普通支付</span>
+                        </td>
+                        <td v-else-if="transactionInfo.type === 1">
+                            <span>任意信息</span>
+                        </td>
+                        <td v-else-if="transactionInfo.type === 6">
+                            <span>数据存储</span>
+                        </td>
+                        <td v-else-if="transactionInfo.type === 9">
+                            <span>CoinBase</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>哈希签名</th>
+                        <td>{{transactionInfo.signatureHash}}</td>
+                    </tr>
+                    <tr>
+                        <th>发送者</th>
+                        <td v-if="transactionInfo.type === 9"></td>
+                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}</td>
+                        <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
+                    </tr>
+                    <tr>
+                        <th>数额</th>
+                        <td>{{transactionInfo.amountNQT/10000000}}</td>
+                    </tr>
+                    <tr>
+                        <th>接收者</th>
+                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
+                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
+                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                    </tr>
+                    <tr>
+                        <th>区块时间戳</th>
+                        <td>{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                    </tr>
+                    <tr>
+                        <th>时间戳</th>
+                        <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
+                    </tr>
+                    <tr>
+                        <th>发送者公钥</th>
+                        <td>{{transactionInfo.senderPublicKey}}</td>
+                    </tr>
+                    <tr>
+                        <th>手续费</th>
+                        <td>{{transactionInfo.feeNQT/10000000}}</td>
+                    </tr>
+                    <tr>
+                        <th>确认</th>
+                        <td>{{transactionInfo.confirmations}}</td>
+                    </tr>
+                    <tr>
+                        <th>类型完整哈希：</th>
+                        <td>{{transactionInfo.fullHash}}</td>
+                    </tr>
+                    <tr>
+                        <th>版本：</th>
+                        <td>{{transactionInfo.version}}</td>
+                    </tr>
+                    <tr>
+                        <th>发送者</th>
+                        <td v-if="transactionInfo.type === 9"></td>
+                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}</td>
+                        <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
+                    </tr>
+                    <tr>
+                        <th>接收者</th>
+                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
+                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
+                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                    </tr>
+                    <tr>
+                        <th>区块高度</th>
+                        <td>{{transactionInfo.height}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 </template>
 
@@ -307,7 +424,9 @@
         props: {
             accountInfoOpen: Boolean,
             blockInfoOpen: Boolean,
+            tradingInfoOpen:Boolean,
             generatorRS:'',
+            trading:'',
             height:{
             },
         },
@@ -325,6 +444,8 @@
 
                 blockInfoDialog: this.blockInfoOpen,
                 blockInfo:[],
+
+                tradingInfoDialog:this.tradingInfoOpen,
             }
         },
         methods:{
@@ -388,6 +509,7 @@
                 _this.accountInfoDialog = false;
                 _this.accountTransactionDialog = false;
                 _this.blockInfoDialog = false;
+                _this.tradingInfoDialog = false;
 
                 _this.accountTransactionInfo = [];
                 _this.accountInfo = [];
@@ -455,12 +577,29 @@
                     this.$store.state.mask = true;
                 }
             },
+            tradingInfoDialog:function(val){
+                if(val){
+                    const _this = this;
+                    this.$http.get('/sharder?requestType=getTransaction',{
+                        params:{
+                            transaction:_this.trading
+                        }
+                    }).then(function (res) {
+                        _this.transactionInfo = res.data;
+                    }).catch(function (err) {
+                        
+                    });
+                    this.$store.state.mask = true;
+                }
+            },
             blockInfoOpen:function (val) {
                 const _this = this;
                 _this.blockInfoDialog = val;
                 if(val){
                     _this.accountInfoDialog = false;
                     _this.accountTransactionDialog = false;
+                    _this.tradingInfoDialog = false;
+
                 }
             },
             accountInfoOpen:function (val) {
@@ -469,7 +608,17 @@
                 if(val){
                     _this.blockInfoDialog = false;
                     _this.accountTransactionDialog = false;
+                    _this.tradingInfoDialog = false;
                     _this.accountRS = _this.generatorRS;
+                }
+            },
+            tradingInfoOpen: function (val) {
+                const _this = this;
+                _this.tradingInfoDialog = val;
+                if(val){
+                    _this.blockInfoDialog = false;
+                    _this.accountTransactionDialog = false;
+                    _this.accountInfoDialog = false;
                 }
             }
         }
