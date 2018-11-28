@@ -21,11 +21,14 @@
 
 package org.conch.consensus.poc.tx;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
+import org.conch.chain.BlockchainImpl;
 import org.conch.common.ConchException;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
 
@@ -61,6 +64,16 @@ public abstract class PocTx extends TransactionType {
 
     public static final TransactionType POC_NODE_CONFIGURATION = new PocTx() {
         @Override
+        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+
+        }
+
+        @Override
         public byte getSubtype() {
             return SUBTYPE_POC_NODE_CONFIGURATION;
         }
@@ -83,13 +96,27 @@ public abstract class PocTx extends TransactionType {
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
-
+            if (pocNodeConfiguration == null) {
+                throw new ConchException.NotValidException("Invalid pocNodeConfiguration: null");
+            }
+            if (pocNodeConfiguration.getNodeId() == null) {
+                throw new ConchException.NotValidException("Invalid nodeId: null");
+            }
+            if (StringUtils.isBlank(pocNodeConfiguration.getDevice())) {
+                throw new ConchException.NotValidException("Invalid device: null or empty");
+            }
+            if (pocNodeConfiguration.getConfiguration() == null || pocNodeConfiguration.getConfiguration().isEmpty()) {
+                throw new ConchException.NotValidException("Invalid configuration: null or empty");
+            }
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
-
+            // TODO to add task 2 PocProcessorImpl
+            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
+            Account account = Account.getAccount(transaction.getSenderId());
+            account.frozenNQT(AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION, transaction.getId(), pocFee);
         }
 
         @Override
@@ -99,6 +126,16 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_WEIGHT = new PocTx() {
+        @Override
+        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+
+        }
+
         @Override
         public byte getSubtype() {
             return SUBTYPE_POC_WEIGHT;
@@ -122,13 +159,42 @@ public abstract class PocTx extends TransactionType {
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
-
+            if (pocWeight == null) {
+                throw new ConchException.NotValidException("Invalid pocWeight: null");
+            }
+            if (pocWeight.getConfigWeight() == null) {
+                throw new ConchException.NotValidException("Invalid configWeight: null");
+            }
+            if (pocWeight.getNetworkWeight() == null) {
+                throw new ConchException.NotValidException("Invalid networkWeight: null");
+            }
+            if (pocWeight.getNodeId() == null) {
+                throw new ConchException.NotValidException("Invalid nodeId: null");
+            }
+            if (pocWeight.getNodeWeight() == null) {
+                throw new ConchException.NotValidException("Invalid nodeWeight: null");
+            }
+            if (pocWeight.getServerWeight() == null) {
+                throw new ConchException.NotValidException("Invalid serverWeight: null");
+            }
+            if (pocWeight.getSsHoldWeight() == null) {
+                throw new ConchException.NotValidException("Invalid ssHoldWeight: null");
+            }
+            if (pocWeight.getTpWeight() == null) {
+                throw new ConchException.NotValidException("Invalid tpWeight: null");
+            }
+            if (StringUtils.isBlank(pocWeight.getDevice())) {
+                throw new ConchException.NotValidException("Invalid device: null or empty");
+            }
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
-
+            // TODO to add task 2 PocProcessorImpl
+            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
+            Account account = Account.getAccount(transaction.getSenderId());
+            account.frozenNQT(AccountLedger.LedgerEvent.POC_WEIGHT, transaction.getId(), pocFee);
         }
 
         @Override
@@ -138,6 +204,16 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_ONLINE_RATE = new PocTx() {
+        @Override
+        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+
+        }
+
         @Override
         public byte getSubtype() {
             return SUBTYPE_POC_ONLINE_RATE;
@@ -161,13 +237,24 @@ public abstract class PocTx extends TransactionType {
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
-
+            if (pocOnlineRate == null) {
+                throw new ConchException.NotValidException("Invalid pocOnlineRate: null");
+            }
+            if (pocOnlineRate.getNodeId() == null) {
+                throw new ConchException.NotValidException("Invalid nodeId: null");
+            }
+            if (StringUtils.isBlank(pocOnlineRate.getDevice())) {
+                throw new ConchException.NotValidException("Invalid device: null or empty");
+            }
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
-
+            // TODO to add task 2 PocProcessorImpl
+            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
+            Account account = Account.getAccount(transaction.getSenderId());
+            account.frozenNQT(AccountLedger.LedgerEvent.POC_ONLINE_RATE, transaction.getId(), pocFee);
         }
 
         @Override
@@ -177,6 +264,16 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_BLOCKING_MISS = new PocTx() {
+        @Override
+        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+
+        }
+
         @Override
         public byte getSubtype() {
             return SUBTYPE_POC_BLOCKING_MISS;
@@ -200,13 +297,24 @@ public abstract class PocTx extends TransactionType {
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
-
+            if (pocBlockingMiss == null) {
+                throw new ConchException.NotValidException("Invalid pocBlockingMiss: null");
+            }
+            if (StringUtils.isBlank(pocBlockingMiss.getDevice())) {
+                throw new ConchException.NotValidException("Invalid device: null or empty");
+            }
+            if (pocBlockingMiss.getNodeId() == null) {
+                throw new ConchException.NotValidException("Invalid nodeId: null");
+            }
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
-
+            // TODO to add task 2 PocProcessorImpl
+            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
+            Account account = Account.getAccount(transaction.getSenderId());
+            account.frozenNQT(AccountLedger.LedgerEvent.POC_BLOCKING_MISS, transaction.getId(), pocFee);
         }
 
         @Override
@@ -216,6 +324,16 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_BIFURACTION_OF_CONVERGENCE = new PocTx() {
+        @Override
+        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+
+        }
+
         @Override
         public byte getSubtype() {
             return SUBTYPE_POC_BIFURACTION_OF_CONVERGENCE;
@@ -239,13 +357,24 @@ public abstract class PocTx extends TransactionType {
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
-
+            if (pocBifuractionOfConvergence == null) {
+                throw new ConchException.NotValidException("Invalid pocBifuractionConvergence: null");
+            }
+            if (StringUtils.isBlank(pocBifuractionOfConvergence.getDevice())) {
+                throw new ConchException.NotValidException("Invalid device: null or empty");
+            }
+            if (pocBifuractionOfConvergence.getNodeId() == null) {
+                throw new ConchException.NotValidException("Invalid nodeId: null");
+            }
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
-
+            // TODO to add task 2 PocProcessorImpl
+            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
+            Account account = Account.getAccount(transaction.getSenderId());
+            account.frozenNQT(AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE, transaction.getId(), pocFee);
         }
 
         @Override
@@ -254,6 +383,9 @@ public abstract class PocTx extends TransactionType {
         }
     };
 
+    public abstract boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount);
+    public abstract void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount);
+
     @Override
     final public byte getType() {
         return TransactionType.TYPE_POC;
@@ -261,11 +393,12 @@ public abstract class PocTx extends TransactionType {
 
     @Override
     public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        return true;
+        return attachmentApplyUnconfirmed(transaction, senderAccount);
     }
 
     @Override
     public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        attachmentUndoUnconfirmed(transaction, senderAccount);
     }
 
     @Override

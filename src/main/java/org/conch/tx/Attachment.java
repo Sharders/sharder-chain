@@ -4278,6 +4278,10 @@ public interface Attachment extends Appendix {
             return nodeId;
         }
 
+        public String getDevice() {
+            return device;
+        }
+
         public BigInteger getNodeWeight() {
             return nodeWeight;
         }
