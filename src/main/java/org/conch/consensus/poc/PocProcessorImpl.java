@@ -12,19 +12,19 @@ public class PocProcessorImpl implements PocProcessor {
     public static PocProcessorImpl instance = getOrCreate();
 
     private PocProcessorImpl(){}
-    
+
     private static synchronized PocProcessorImpl getOrCreate(){
         if(instance != null) return instance;
-        
+
         return new PocProcessorImpl();
     }
-    
+
     @Override
     public BigInteger calPocScore(Account account,int height) {
-        
+
         return BigInteger.ZERO;
     }
-    
-    
-    
+
+
+
 }
