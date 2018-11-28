@@ -425,6 +425,9 @@
             accountInfoOpen: Boolean,
             blockInfoOpen: Boolean,
             tradingInfoOpen:Boolean,
+
+            isSearch:Boolean,
+            searchValue:'',
             generatorRS:'',
             trading:'',
             height:{
@@ -441,7 +444,7 @@
                 transactionInfo:[],
                 transaction:'',
                 accountRS:this.generatorRS,
-
+                searchVal:'',
                 blockInfoDialog: this.blockInfoOpen,
                 blockInfo:[],
 
@@ -449,59 +452,224 @@
             }
         },
         methods:{
+            httpGetAccountInfo(accountID){
+                const _this = this;
+                return new Promise((resolve, reject) => {
+
+                    _this.$http.get('/sharder?requestType=getAccount',{
+                        params: {
+                            account:accountID
+                        }
+                    }).then(function (res) {
+                        if(!res.data.errorDescription){
+                            _this.accountInfo = res.data;
+                            _this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                                params: {
+                                    account:accountID
+                                }
+                            }).then(function (res) {
+                                _this.accountTransactionInfo = res.data.transactions;
+                            }).catch(function (err) {
+                                console.error("error",err);
+                            });
+                            resolve("success");
+                        }else{
+                            resolve(res.data.errorDescription);
+                        }
+                    }).catch(function (err) {
+                        resolve(err);
+                    });
+                })
+            },
+            httpGetBlockInfo(height,BlockID){
+                const _this = this;
+                return new Promise((resolve, reject) =>{
+                    _this.$http.get('/sharder?requestType=getBlock',{
+                        params: {
+                            height:height,
+                            block:BlockID,
+                            includeTransactions:true,
+                        }
+                    }).then(function (res) {
+                        if(!res.data.errorDescription){
+                            _this.blockInfo = res.data;
+
+                            console.log(_this.blockInfo);
+                            resolve("success");
+                        }else{
+                            resolve(res.data.errorDescription);
+                        }
+                    }).catch(function (err) {
+                        resolve(err);
+                    });
+                });
+            },
+            httpGetTradingInfo(tradingID){
+                const _this = this;
+                return new Promise((resolve, reject) => {
+                    this.$http.get('/sharder?requestType=getTransaction',{
+                        params:{
+                            transaction:tradingID
+                        }
+                    }).then(function (res) {
+                        if(!res.data.errorDescription){
+                            _this.transactionInfo = res.data;
+                            resolve("success");
+                        }else{
+                            resolve(res.data.errorDescription);
+                        }
+                    }).catch(function (err) {
+                        resolve(err);
+                    });
+                })
+            },
             checkAccountInfo(account){
                 const _this = this;
-                this.$http.get('/sharder?requestType=getBlockchainTransactions',{
-                    params: {
-                        account:account
+                _this.httpGetAccountInfo(account).then(res =>{
+                    if(res !== "success"){
+                        _this.$emit('isClose', false);
+                        _this.$message({
+                            showClose: true,
+                            message: res,
+                            type: "error"
+                        });
                     }
-                }).then(function (res) {
-                    _this.accountTransactionInfo = res.data.transactions;
-                    console.log(_this.accountTransactionInfo);
-                }).catch(function (err) {
-                    console.error("error",err);
                 });
-                this.$http.get('/sharder?requestType=getAccount',{
-                    params: {
-                        account:account
-                    }
-                }).then(function (res) {
-                    _this.accountInfo = res.data;
-                }).catch(function (err) {
-                    console.error("error",err);
-                });
+                //
+                // this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                //     params: {
+                //         account:account
+                //     }
+                // }).then(function (res) {
+                //     _this.accountTransactionInfo = res.data.transactions;
+                // }).catch(function (err) {
+                //     console.error("error",err);
+                // });
+                // this.$http.get('/sharder?requestType=getAccount',{
+                //     params: {
+                //         account:account
+                //     }
+                // }).then(function (res) {
+                //     _this.accountInfo = res.data;
+                // }).catch(function (err) {
+                //     console.error("error",err);
+                // });
             },
             openTransactionDialog(transaction){
                 const _this = this;
-                _this.transaction = transaction;
-                _this.accountInfoDialog = false;
-                _this.blockInfoDialog = false;
-                _this.accountTransactionDialog = true;
-
+                _this.httpGetTradingInfo(transaction).then(res =>{
+                    if(res !== "success"){
+                        _this.$emit('isClose', false);
+                        _this.$message({
+                            showClose: true,
+                            message: res,
+                            type: "error"
+                        });
+                    }else{
+                        _this.$store.state.mask = true;
+                        _this.accountInfoDialog = false;
+                        _this.blockInfoDialog = false;
+                        _this.accountTransactionDialog = true;
+                    }
+                });
+                // _this.transaction = transaction;
+                // _this.accountInfoDialog = false;
+                // _this.blockInfoDialog = false;
+                // _this.accountTransactionDialog = true;
             },
             openAccountInfo:function(accountRS){
                 const _this = this;
-                _this.accountTransactionDialog = false;
-                _this.blockInfoDialog = false;
-                if(accountRS !== null){
-                    _this.accountRS = accountRS;
+                if(accountRS){
+                    _this.httpGetAccountInfo(accountRS).then(res =>{
+                        if(res !== "success"){
+                            _this.$emit('isClose', false);
+                            _this.$message({
+                                showClose: true,
+                                message: res,
+                                type: "error"
+                            });
+                        }else{
+                            _this.$store.state.mask = true;
+                            _this.accountTransactionDialog = false;
+                            _this.blockInfoDialog = false;
+                            _this.accountInfoDialog = true;
+                        }
+                    });
+                }else{
+                    _this.httpGetAccountInfo(_this.accountRS).then(res =>{
+                        if(res !== "success"){
+                            _this.$emit('isClose', false);
+                            _this.$message({
+                                showClose: true,
+                                message: res,
+                                type: "error"
+                            });
+                        }else{
+                            _this.$store.state.mask = true;
+                            _this.accountTransactionDialog = false;
+                            _this.blockInfoDialog = false;
+                            _this.accountInfoDialog = true;
+                        }
+                    });
                 }
-                _this.accountInfoDialog = true;
+                /*if(_this.resultInfo !== 'success'){
+                    _this.$message({
+                        showClose: true,
+                        message: _this.resultInfo,
+                        type: "error"
+                    });
+                }else{
+                    _this.accountTransactionDialog = false;
+                    _this.blockInfoDialog = false;
+                    _this.accountInfoDialog = true;
+                }*/
+                // _this.accountTransactionDialog = false;
+                // _this.blockInfoDialog = false;
+                // if(accountRS !== null){
+                //     _this.accountRS = accountRS;
+                // }
+                // _this.accountInfoDialog = true;
             },
             openBlockInfo:function(blockId){
                 const _this = this;
-                _this.accountTransactionDialog = false;
-                _this.accountInfoDialog = false;
-                this.$http.get('/sharder?requestType=getBlock',{
-                    params: {
-                        includeTransactions:true,
-                        block:blockId
+                _this.httpGetBlockInfo('',blockId).then(res =>{
+                    if(res !== "success"){
+                        _this.$emit('isClose', false);
+                        _this.$message({
+                            showClose: true,
+                            message: res,
+                            type: "error"
+                        });
+                    }else{
+                        _this.$store.state.mask = true;
+                        _this.accountTransactionDialog = false;
+                        _this.accountInfoDialog = false;
+                        _this.tabTitle = "account";
                     }
-                }).then(function (res) {
-                    _this.blockInfo = res.data;
-                }).catch(function (err) {
-                    console.error("error",err);
                 });
+                /*if(_this.resultInfo !== 'success'){
+                    _this.$message({
+                        showClose: true,
+                        message: _this.resultInfo,
+                        type: "error"
+                    });
+                }else{
+                    _this.accountTransactionDialog = false;
+                    _this.accountInfoDialog = false;
+                    _this.tabTitle = "account";
+                }*/
+                // _this.accountTransactionDialog = false;
+                // _this.accountInfoDialog = false;
+                // this.$http.get('/sharder?requestType=getBlock',{
+                //     params: {
+                //         includeTransactions:true,
+                //         block:blockId
+                //     }
+                // }).then(function (res) {
+                //     _this.blockInfo = res.data;
+                // }).catch(function (err) {
+                //     console.error("error",err);
+                // });
             },
             closeDialog: function () {
                 const _this = this;
@@ -519,112 +687,507 @@
                 _this.$emit('isClose', false);
 
 
-            },
+            }
         },
         watch:{
-            accountTransactionDialog:function(val){
-                if(val){
-                    const _this = this;
-                    this.$http.get('/sharder?requestType=getTransaction',{
-                        params:{
-                            transaction:_this.transaction
-                        }
-                    }).then(function (res) {
-                        _this.transactionInfo = res.data;
-                    }).catch(function (err) {
-                    });
-                    this.$store.state.mask = true;
-                }
-            },
-            accountInfoDialog:function (val) {
-                if(val){
-                    const _this = this;
-                    this.$http.get('/sharder?requestType=getBlockchainTransactions',{
-                        params: {
-                            account:_this.accountRS
-                        }
-                    }).then(function (res) {
-                        _this.accountTransactionInfo = res.data.transactions;
-                    }).catch(function (err) {
-                        console.error("error",err);
-                    });
-                    this.$http.get('/sharder?requestType=getAccount',{
-                        params: {
-                            account:_this.accountRS
-                        }
-                    }).then(function (res) {
-                        _this.accountInfo = res.data;
-                    }).catch(function (err) {
-                        console.error("error",err);
-                    });
-
-                    this.$store.state.mask = true;
-                }
-            },
-            blockInfoDialog: function (val) {
-                if(val){
-                    const _this = this;
-                    this.$http.get('/sharder?requestType=getBlock',{
-                        params: {
-                            height:_this.height,
-                            includeTransactions:true,
-                        }
-                    }).then(function (res) {
-                        _this.blockInfo = res.data;
-                    }).catch(function (err) {
-                        console.error("error",err);
-                    });
-                    this.$store.state.mask = true;
-                }
-            },
-            tradingInfoDialog:function(val){
-                if(val){
-                    const _this = this;
-                    this.$http.get('/sharder?requestType=getTransaction',{
-                        params:{
-                            transaction:_this.trading
-                        }
-                    }).then(function (res) {
-                        _this.transactionInfo = res.data;
-                    }).catch(function (err) {
-                        
-                    });
-                    this.$store.state.mask = true;
-                }
-            },
+            // accountTransactionDialog:function(val){
+            //     if(val){
+            //         const _this = this;
+            //         this.$http.get('/sharder?requestType=getTransaction',{
+            //             params:{
+            //                 transaction:_this.transaction
+            //             }
+            //         }).then(function (res) {
+            //             _this.transactionInfo = res.data;
+            //         }).catch(function (err) {
+            //         });
+            //         this.$store.state.mask = true;
+            //     }
+            // },
+            // accountInfoDialog:function (val) {
+            //     if(val){
+            //         const _this = this;
+            //         this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+            //             params: {
+            //                 account:_this.accountRS
+            //             }
+            //         }).then(function (res) {
+            //             _this.accountTransactionInfo = res.data.transactions;
+            //         }).catch(function (err) {
+            //             console.error("error",err);
+            //         });
+            //         this.$http.get('/sharder?requestType=getAccount',{
+            //             params: {
+            //                 account:_this.accountRS
+            //             }
+            //         }).then(function (res) {
+            //             _this.accountInfo = res.data;
+            //         }).catch(function (err) {
+            //             console.error("error",err);
+            //         });
+            //
+            //         this.$store.state.mask = true;
+            //     }
+            // },
+            // blockInfoDialog: function (val) {
+            //     if(val){
+            //         const _this = this;
+            //         this.$http.get('/sharder?requestType=getBlock',{
+            //             params: {
+            //                 height:_this.height,
+            //                 includeTransactions:true,
+            //             }
+            //         }).then(function (res) {
+            //             _this.blockInfo = res.data;
+            //         }).catch(function (err) {
+            //             console.error("error",err);
+            //         });
+            //         this.$store.state.mask = true;
+            //     }
+            // },
+            // tradingInfoDialog:function(val){
+            //     if(val){
+            //         const _this = this;
+            //         this.$http.get('/sharder?requestType=getTransaction',{
+            //             params:{
+            //                 transaction:_this.trading
+            //             }
+            //         }).then(function (res) {
+            //             _this.transactionInfo = res.data;
+            //         }).catch(function (err) {
+            //
+            //         });
+            //         this.$store.state.mask = true;
+            //     }
+            // },
             blockInfoOpen:function (val) {
                 const _this = this;
-                _this.blockInfoDialog = val;
-                if(val){
-                    _this.accountInfoDialog = false;
-                    _this.accountTransactionDialog = false;
-                    _this.tradingInfoDialog = false;
-
+                if(val) {
+                    _this.httpGetBlockInfo(_this.height, '').then(res => {
+                        if (res !== "success") {
+                            _this.$emit('isClose', false);
+                            _this.$message({
+                                showClose: true,
+                                message: res,
+                                type: "error"
+                            });
+                        } else {
+                            _this.$store.state.mask = true;
+                            _this.blockInfoDialog = true;
+                            _this.accountInfoDialog = false;
+                            _this.accountTransactionDialog = false;
+                            _this.tradingInfoDialog = false;
+                        }
+                    });
                 }
+                  /*  if(_this.resultInfo !== 'success'){
+                        _this.$message({
+                            showClose: true,
+                            message: _this.resultInfo,
+                            type: "error"
+                        });
+                    }else{
+                        _this.blockInfoDialog = true;
+                        _this.accountInfoDialog = false;
+                        _this.accountTransactionDialog = false;
+                        _this.tradingInfoDialog = false;
+                    }
+                }*/
+                // _this.blockInfoDialog = val;
+                // if(val){
+                //     _this.accountInfoDialog = false;
+                //     _this.accountTransactionDialog = false;
+                //     _this.tradingInfoDialog = false;
+                // }
             },
             accountInfoOpen:function (val) {
+                console.log(12321321);
                 const _this = this;
-                _this.accountInfoDialog = val;
-                if(val){
-                    _this.blockInfoDialog = false;
-                    _this.accountTransactionDialog = false;
-                    _this.tradingInfoDialog = false;
-                    _this.accountRS = _this.generatorRS;
+                if(val) {
+                    _this.httpGetAccountInfo(_this.generatorRS).then(res => {
+                        if (res !== "success") {
+                            _this.$emit('isClose', false);
+                            _this.$message({
+                                showClose: true,
+                                message: res,
+                                type: "error"
+                            });
+                        } else {
+                            _this.$store.state.mask = true;
+                            _this.accountInfoDialog = true;
+                            _this.blockInfoDialog = false;
+                            _this.accountTransactionDialog = false;
+                            _this.tradingInfoDialog = false;
+                            _this.accountRS = _this.generatorRS;
+                        }
+                    });
                 }
+                //     if(_this.resultInfo !== 'success'){
+                //         _this.$message({
+                //             showClose: true,
+                //             message: _this.resultInfo,
+                //             type: "error"
+                //         });
+                //     }else{
+                //         _this.accountInfoDialog = true;
+                //         _this.blockInfoDialog = false;
+                //         _this.accountTransactionDialog = false;
+                //         _this.tradingInfoDialog = false;
+                //         _this.accountRS = _this.generatorRS;
+                //     }
+                // }
+                // _this.accountInfoDialog = val;
+                // if(val){
+                //     _this.blockInfoDialog = false;
+                //     _this.accountTransactionDialog = false;
+                //     _this.tradingInfoDialog = false;
+                //     _this.accountRS = _this.generatorRS;
+                // }
             },
             tradingInfoOpen: function (val) {
                 const _this = this;
-                _this.tradingInfoDialog = val;
+                if(val) {
+                    _this.httpGetTradingInfo(_this.trading).then(res => {
+                        if (res !== "success") {
+                            _this.$emit('isClose', false);
+                            _this.$message({
+                                showClose: true,
+                                message: res,
+                                type: "error"
+                            });
+                        } else {
+                            _this.$store.state.mask = true;
+                            _this.tradingInfoDialog = true;
+                            _this.blockInfoDialog = false;
+                            _this.accountTransactionDialog = false;
+                            _this.accountInfoDialog = false;
+                        }
+                    });
+                }
+                //     if(_this.resultInfo !== 'success'){
+                //         _this.$message({
+                //             showClose: true,
+                //             message: _this.resultInfo,
+                //             type: "error"
+                //         });
+                //     }else{
+                //         _this.tradingInfoDialog = true;
+                //         _this.blockInfoDialog = false;
+                //         _this.accountTransactionDialog = false;
+                //         _this.accountInfoDialog = false;
+                //     }
+                // }
+                // _this.tradingInfoDialog = val;
+                // if(val){
+                //     _this.blockInfoDialog = false;
+                //     _this.accountTransactionDialog = false;
+                //     _this.accountInfoDialog = false;
+                // }
+            },
+            isSearch: function (val) {
+                const _this = this;
+                _this.searchVal = _this.searchValue;
                 if(val){
-                    _this.blockInfoDialog = false;
-                    _this.accountTransactionDialog = false;
-                    _this.accountInfoDialog = false;
+                    // _this.httpGetAccountInfo(_this.searchValue);
+                    _this.httpGetAccountInfo(_this.searchVal).then(function (res) {
+                        console.log("httpGetAccountInfo",res);
+                        if(res === 'success'){
+                            _this.$store.state.mask = true;
+                            _this.accountInfoDialog = true;
+                            _this.blockInfoDialog = false;
+                            _this.accountTransactionDialog = false;
+                            _this.tradingInfoDialog = false;
+                            _this.accountRS = _this.searchVal;
+                        }else{
+                            _this.httpGetBlockInfo('',_this.searchVal).then(function (res) {
+                                console.log("httpGetBlockInfo",res);
+                                if(res === 'success') {
+                                    _this.$store.state.mask = true;
+                                    _this.blockInfoDialog = true;
+                                    _this.accountInfoDialog = false;
+                                    _this.accountTransactionDialog = false;
+                                    _this.tradingInfoDialog = false;
+                                }else{
+                                    _this.httpGetTradingInfo(_this.searchVal).then(function (res) {
+                                        console.log("httpGetTradingInfo",res);
+                                        if(res === 'success') {
+                                            _this.$store.state.mask = true;
+                                            _this.tradingInfoDialog = true;
+                                            _this.blockInfoDialog = false;
+                                            _this.accountTransactionDialog = false;
+                                            _this.accountInfoDialog = false;
+                                        }else{
+                                            _this.$message({
+                                                showClose: true,
+                                                message: "未找到任何信息，请再次查询。",
+                                                type: "error"
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }).catch(err =>{
+                        console.log(err);
+                    });
+                    _this.$emit('isClose', false);
+
+                    // if(_this.resultInfo === 'success'){
+                    //     _this.accountInfoDialog = true;
+                    //     _this.blockInfoDialog = false;
+                    //     _this.accountTransactionDialog = false;
+                    //     _this.tradingInfoDialog = false;
+                    //     _this.accountRS = _this.searchValue;
+                    // }else{
+                    //     _this.httpGetBlockInfo('',_this.searchValue);
+                    //     console.log("httpGetBlockInfo",_this.resultInfo);
+                    //     if(_this.resultInfo === 'success'){
+                    //         _this.blockInfoDialog = true;
+                    //         _this.accountInfoDialog = false;
+                    //         _this.accountTransactionDialog = false;
+                    //         _this.tradingInfoDialog = false;
+                    //     }else{
+                    //         _this.httpGetTradingInfo(_this.searchValue);
+                    //         console.log("httpGetTradingInfo",_this.resultInfo);
+                    //         if(_this.resultInfo === 'success'){
+                    //             _this.tradingInfoDialog = true;
+                    //             _this.blockInfoDialog = false;
+                    //             _this.accountTransactionDialog = false;
+                    //             _this.accountInfoDialog = false;
+                    //         }else{
+                    //             _this.$message({
+                    //                 showClose: true,
+                    //                 message: "未找到任何信息，请再次查询。",
+                    //                 type: "error"
+                    //             });
+                    //         }
+                    //     }
+                    // }
                 }
             }
         }
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+    #block_info{
+        .modal-body{
+            margin: 30px 20px 40px!important;
+            .title{
+                .el-radio-button__orig-radio:checked + .el-radio-button__inner,
+                .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
+                    background-color: #493eda;
+                }
+                .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
+                    color: #fff;
+                }
+                .el-radio-button__inner:hover {
+                    color: #493eda;
+                }
+            }
 
+            .account_list{
+                .table{
+                    border: none !important;
+                    word-break:break-all;
+                    margin-top: 33px;
+                    td{
+                        border: none !important;
+                        text-align: center;
+                        line-height: 40px;
+                        font-size: 12px;
+                        padding: 0;
+                        img{
+                            width:12px;
+                            vertical-align: middle;
+                        }
+                        span{
+                            vertical-align: middle;
+                        }
+                    }
+                    th{
+                        border: none !important;
+                    }
+                    .linker{
+                        color:#493eda;
+                        cursor: pointer;
+                        a{
+                            margin: 0 6px;
+                        }
+                    }
+                }
+            }
+            .blockInfo{
+                .table{
+                    word-break:break-all;
+                    margin-top: 20px;
+                    th{
+                        width: 160px;
+                    }
+                    td{
+                        width: 1100px;
+                        padding:0 60px;
+                        line-height: 40px;
+                    }
+                }
+            }
+        }
+    }
+
+    #account_info{
+        .modal-header{
+            padding: 0 20px 0 40px;
+        }
+        .modal-body{
+            margin:0;
+            .account_preInfo{
+                background: #f4f7fd;
+                width: 100%;
+                padding-left: 41px;
+                height: 60px;
+                span{
+                    line-height: 60px;
+                    font-size: 16px;
+                    color:#333;
+                }
+            }
+            .account_allInfo{
+                margin: 20px;
+                .el-radio-button__orig-radio:checked + .el-radio-button__inner,
+                .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
+                    background-color: #493eda;
+                }
+                .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
+                    color: #fff;
+                }
+                .el-radio-button__inner:hover {
+                    color: #493eda;
+                }
+                .account_list{
+                    max-height: 510px;
+                    .table{
+                        border: none !important;
+                        word-break:break-all;
+                        margin-top: 33px;
+                        tr{
+                            height:40px;
+                            &:nth-child(even){
+                                background: #f4f7fc;
+                            }
+                        }
+                        td{
+                            border: none !important;
+                            width: 190px;
+                            text-align: center;
+                            line-height: 40px;
+                            font-size: 12px;
+                            padding: 0;
+                            &:nth-child(5){
+                                width: 205px;
+                            }
+                            img{
+                                width:12px;
+                                vertical-align: middle;
+                            }
+                            span{
+                                vertical-align: middle;
+                            }
+                        }
+                        th{
+                            border: none !important;
+                            width: 190px;
+                            padding: 0;
+                            text-align: center;
+                            font-weight: bold;
+                            &:nth-child(5){
+                                width: 205px;
+                            }
+
+                        }
+                        .linker{
+                            color:#493eda;
+                            cursor: pointer;
+                            a{
+                                margin: 0 6px;
+                            }
+                        }
+                        .gutter{
+                            width: 16px;
+                            padding: 0;
+                        }
+                    }
+                    .table_body{
+                        overflow: auto;
+                        max-height: 450px;
+                        .table{
+                            margin-top: 0;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    #account_transaction{
+        top: 20px;
+        .modal-header{
+            padding: 0 40px;
+            border-bottom: none;
+        }
+        .modal-body{
+            margin:0;
+            .account_preInfo{
+                background: #f4f7fd;
+                width: 100%;
+                padding-left: 41px;
+                height: 60px;
+                span{
+                    line-height: 60px;
+                    font-size: 16px;
+                    color:#333;
+                }
+            }
+            .account_transactionInfo{
+                margin: 0 30px 20px;
+                p{
+                    line-height: 80px;
+                    font-size: 17px;
+                    font-weight: bold;
+                    margin-left: 11px;
+                    color: #000;
+                }
+                button{
+                    margin: 20px 0;
+                    padding: 0 20px;
+                    height: 40px;
+                }
+                .table{
+                    word-break:break-all;
+                    //margin-top: 20px;
+                    th{
+                        width:160px;
+                    }
+                    td{
+                        width:1140px;
+                        padding:0 60px;
+                        line-height: 40px;
+                    }
+                }
+            }
+        }
+    }
+
+    #trading_info{
+        top: 80px;
+        .table{
+            td{
+                width: 980px;
+                padding: 0 60px;
+            }
+            th{
+                width:160px;
+            }
+        }
+    }
 </style>

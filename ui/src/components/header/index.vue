@@ -29,7 +29,7 @@
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
                                :placeholder="placeholder" type="text" name="search" v-model="search_val"
                                @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
-                        <img src="../../assets/search.svg"/>
+                        <img src="../../assets/search.svg" @click="search_keydown"/>
                     </div>
                 </div>
                 <div class="navbar_right">
@@ -62,13 +62,16 @@
                 </div>
             </nav>
         </div>
+        <dialogCommon :searchValue="search_val" :isSearch="isSearch" @isClose="isClose"></dialogCommon>
     </header>
 
 </template>
 
 <script>
+    import dialogCommon from "../../views/dialog/dialog_common";
     export default {
         name: "Header",
+        components: {dialogCommon},
         props: ["openSidebar", "title"],
         data () {
             return {
@@ -78,6 +81,7 @@
                 activeSearch: false,
 
                 search_val: "",
+                isSearch:false,
                 selectLan:'语言',
                 language:[{
                     value:'zh-cn',
@@ -121,8 +125,17 @@
             },
             search_keydown: function () {
                 const _this = this;
-                console.log("你输入的值是" + _this.search_val);
-                _this.search_val = "";
+                // console.log("你输入的值是" + _this.search_val);
+                if(_this.search_val !== ""){
+                    _this.isSearch = true;
+                }else{
+                    _this.$message({
+                        showClose: true,
+                        message: "搜索框不能为空",
+                        type: "error"
+                    });
+                }
+                // _this.search_val = "";
             },
            /* validatePath: function (val,path) {
                 let reg = /^*$/;
@@ -134,7 +147,11 @@
                _this.$store.state.isLogin = false;
                _this.$router.push("/login");
             },
-
+            isClose:function () {
+                const _this = this;
+                // _this.search_val = "";
+                _this.isSearch = false;
+            }
         }
     };
 </script>

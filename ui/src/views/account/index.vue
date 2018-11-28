@@ -11,7 +11,7 @@
                         <span>{{accountInfo.accountRS}}</span>
                         <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="accountInfo.accountRS"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
-                        <span class="csp" @click="openAccountInfoDialog">账户详情</span>
+                        <span class="csp" @click="openUserInfoDialog">账户详情</span>
                     </div>
                     <p class="account_asset">资产：{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</p>
                     <div class="account_tool">
@@ -116,15 +116,15 @@
                                 <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                 <td class=" image_text w300">
                                     <span class="linker" v-if="transaction.type === 9">Coinbase</span>
-                                    <span class="linker" @click="accountInfoDialog = true"
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                           v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">您</span>
-                                    <span class="linker" @click="accountInfoDialog = true"
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                           v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
                                     <img src="../../assets/right_arrow.svg"/>
-                                    <span class="linker" @click="accountInfoDialog = true" v-if="transaction.type === 9">您</span>
-                                    <span class="linker" @click="accountInfoDialog = true"
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">您</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                           v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
-                                    <span class="linker" @click="accountInfoDialog = true"
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                           v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
                                 </td>
                                 <td>{{transaction.confirmations}}</td>
@@ -299,7 +299,7 @@
             </div>
         </div>
         <!--view account transaction dialog-->
-        <div class="modal_info" id="account_info" v-show="accountInfoDialog">
+        <div class="modal_info" id="account_info" v-show="userInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
@@ -349,7 +349,7 @@
 
         </div>
 
-        <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading" @isClose="tradingInfoDialog = false"></dialogCommon>
+        <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading" :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS" @isClose="isClose"></dialogCommon>
 
 
     </div>
@@ -368,7 +368,9 @@
                 tranferAccountsDialog: false,
                 hubSettingDialog: false,
                 tradingInfoDialog: false,
+                userInfoDialog:false,
                 accountInfoDialog: false,
+
 
                 ncryptedDisabled: true,
                 punchthroughDisabled: true,
@@ -570,8 +572,15 @@
                 // this.$store.state.mask = true;
                 // this.tradingInfoDialog = true;
             },
-            openAccountInfoDialog: function () {
+            openUserInfoDialog:function(){
+                this.userInfoDialog = true;
                 this.$store.state.mask = true;
+            },
+            openAccountInfoDialog: function (account) {
+                // this.$store.state.mask = true;
+                // this.accountInfoDialog = true;
+                this.generatorRS = account;
+                console.log(account);
                 this.accountInfoDialog = true;
             },
             closeDialog: function () {
@@ -581,6 +590,7 @@
                 this.hubSettingDialog = false;
                 this.tradingInfoDialog = false;
                 this.accountInfoDialog = false;
+                this.userInfoDialog = false;
             },
             copySuccess: function () {
                 const _this = this;
@@ -610,6 +620,11 @@
                     message: _this.file,
                     type: "success"
                 });
+            },
+            isClose:function () {
+                const _this = this;
+                _this.tradingInfoDialog = false;
+                _this.accountInfoDialog = false;
             }
         },
         watch: {
