@@ -432,11 +432,11 @@
         methods: {
             createPool() {
                 let _this = this;
-                // if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
-                //     _this.isVisible('isCreatePool');
-                //     _this.$message.info("权限不足");
-                //     return;
-                // }
+                if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
+                    _this.isVisible('isCreatePool');
+                    _this.$message.info("权限不足");
+                    return;
+                }
 
                 _this.$global.fetch("POST", {
                     secretPhrase: "",
@@ -484,12 +484,21 @@
             let _this = this;
         },
         created: function () {
+            let _this = this;
             //先判断是否为手机端和授权状态
-            if (this.account()) {
+            if (_this.account()) {
                 return;
             }
 
-            console.info(this);
+            console.info(_this);
+            // _this.$global.fetch("POST", {
+            //     // secretPhrase:"",
+            //     // publicKey:SSO.publicKey,
+            // }, "getPoolInfo").then(res => {
+            //     console.info(res);
+            // }).catch(error => {
+            //     console.info(error);
+            // });
 
         }
     }
