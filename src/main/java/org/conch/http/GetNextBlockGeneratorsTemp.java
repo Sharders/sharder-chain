@@ -94,7 +94,7 @@ public final class GetNextBlockGeneratorsTemp extends APIServlet.APIRequestHandl
                 JSONObject resp = new JSONObject();
                 JSONData.putAccount(resp, "account", generator.getAccountId());
                 resp.put("effectiveBalanceSS", generator.getEffectiveBalance());
-                resp.put("conchScore", generator.getConchScore());
+                resp.put("pocScore", generator.getPocScore());
                 resp.put("hitTime", generator.getHitTime());
                 resp.put("deadline", (int)generator.getHitTime() - lastBlock.getTimestamp());
                 generators.add(resp);

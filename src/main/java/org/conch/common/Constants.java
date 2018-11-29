@@ -93,7 +93,7 @@ public final class Constants {
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
-    public static final int BLOCK_GAP = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap");
+    public static final int BLOCK_GAP = getBlockGap();
 
 //    public static final long INITIAL_BASE_TARGET = 6000;
 //    public static final int MIN_BLOCKTIME_LIMIT = 17;
@@ -330,7 +330,14 @@ public final class Constants {
     public static Network getNetwork(){
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
-
+    
+    private static int getBlockGap(){
+        int gap = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap"));
+        if(gap < 1) gap = 1;
+        return gap;
+    }
+    
+    
     /**
      * Read network definition from environment firstly.
      * Then read the definition from properties file.

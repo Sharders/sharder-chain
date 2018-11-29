@@ -29,33 +29,49 @@
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
                                :placeholder="placeholder" type="text" name="search" v-model="search_val"
                                @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
-                        <img src="../../assets/search.svg"/>
+                        <img src="../../assets/search.svg" @click="search_keydown"/>
                     </div>
                 </div>
                 <div class="navbar_right">
                     <div class="navbar_status">
-                        <span>SSA-9WKZ-DV7P-M6MN-SMH8B | 观察模式</span>
+                        <span class="isLogin" v-if="$store.state.isPassphrase">SSA-J2TM-GKMD-KTER-27GF7 | 私钥模式</span>
+                        <span v-else>SSA-J2TM-GKMD-KTER-27GF7 | 观察模式</span>
                     </div>
                     <div class="navbar_pilotLamp">
+                        <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light" v-if="">
+                            <div class="pilotLamp_circle"></div>
+                        </el-tooltip>
                         <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light">
                             <div class="pilotLamp_circle"></div>
                         </el-tooltip>
                     </div>
                     <div class="navbar_exit">
-                        <span><a>退出</a></span>
+                        <span class="csp" @click="exit"><a>退出</a></span>
                     </div>
                     <div class="navbar_lang">
-                        <button>语言&nbsp;<span class="triangle "></span></button>
+                        <!--<button>语言&nbsp;<span class="triangle "></span></button>-->
+                        <el-select v-model="selectLan" placeholder="语言">
+                            <el-option
+                                v-for="item in language"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                            </el-option>
+                        </el-select>
                     </div>
                 </div>
             </nav>
         </div>
+        <dialogCommon :searchValue="search_val" :isSearch="isSearch" @isClose="isClose"></dialogCommon>
     </header>
+
 </template>
 
 <script>
+    import dialogCommon from "../../views/dialog/dialog_common";
     export default {
         name: "Header",
+        components: {dialogCommon},
         props: ["openSidebar", "title"],
         data () {
             return {
@@ -63,8 +79,31 @@
                 isRouter: true,
                 placeholder: "搜索",
                 activeSearch: false,
-                search_val: ""
+
+                search_val: "",
+                isSearch:false,
+                selectLan:'语言',
+                language:[{
+                    value:'zh-cn',
+                    label:'中文简体'
+                },{
+                    value:'zh-tw',
+                    label:'中文繁体'
+                },{
+                    value:'en',
+                    label:'Engligh'
+                },{
+                    value:'ja',
+                    label:'日本語'
+                },{
+                    value:'de',
+                    label:'Deutsch'
+                }]
+
             };
+        },
+        created(){
+
         },
         methods: {
             activeItem: function (val) {
@@ -86,13 +125,33 @@
             },
             search_keydown: function () {
                 const _this = this;
-                console.log("你输入的值是" + _this.search_val);
-                _this.search_val = "";
+                // console.log("你输入的值是" + _this.search_val);
+                if(_this.search_val !== ""){
+                    _this.isSearch = true;
+                }else{
+                    _this.$message({
+                        showClose: true,
+                        message: "搜索框不能为空",
+                        type: "error"
+                    });
+                }
+                // _this.search_val = "";
             },
            /* validatePath: function (val,path) {
                 let reg = /^*$/;
                 console.log(reg.test(val));
             }*/
+
+            exit:function () {
+               const _this = this;
+               _this.$store.state.isLogin = false;
+               _this.$router.push("/login");
+            },
+            isClose:function () {
+                const _this = this;
+                // _this.search_val = "";
+                _this.isSearch = false;
+            }
         }
     };
 </script>
@@ -100,4 +159,16 @@
     /* You can import all your SCSS variables using webpack alias*/
     /*@import '~scss_vars';*/
     @import './style.scss';
+</style>
+<style scoped  lang="scss" type="text/scss">
+    .el-select-dropdown{
+        .el-select-dropdown__item.selected{
+            background-color: #493eda!important;
+            color: #fff!important;
+        }
+        .el-select-dropdown__item.selected.hover{
+            background-color: #493eda!important;
+            color: #fff!important;
+        }
+    }
 </style>

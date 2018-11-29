@@ -293,6 +293,8 @@ public enum APIEnum {
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
     GET_INFO("getInfo",GetInfo.instance),
+    //sharder_authorization_login
+    AUTHORIZATION_LOGIN("authorizationLogin",AuthorizationLogin.instance),
     // sharder pool
     CREATE_SHARDER_POOL("createPool", SharderPoolTx.CreatePoolTx.instance),
     DESTROY_SHARDER_POOL("destroyPool", SharderPoolTx.DestoryPoolTx.instance),

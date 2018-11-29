@@ -25,6 +25,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.TransactionProcessorImpl;
@@ -37,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-public final class Generator implements Comparable<Generator> {
+public class Generator implements Comparable<Generator> {
 
     public enum Event {
         GENERATION_DEADLINE, START_FORGING, STOP_FORGING
@@ -65,8 +66,6 @@ public final class Generator implements Comparable<Generator> {
             try {
                 try {
                     BlockchainImpl.getInstance().updateLock();
-
-//                    ConchGenesis.enableOfficalNode();//add offical node
 
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
@@ -97,7 +96,8 @@ public final class Generator implements Comparable<Generator> {
                             List<Generator> forgers = new ArrayList<>();
                             for (Generator generator : generators.values()) {
                                 generator.setLastBlock(lastBlock);
-                                if (generator.effectiveBalance.signum() > 0) {
+//                                if (generator.effectiveBalance.signum() > 0) {
+                                if (generator.pocScore.signum() > 0) {
                                     forgers.add(generator);
                                 }
                             }
@@ -239,12 +239,12 @@ public final class Generator implements Comparable<Generator> {
         Generator.delayTime = delay;
     }
 
-    public static boolean verifyHit(BigInteger hit, BigInteger effectiveBalance, Block previousBlock, int timestamp) {
+    public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
             return false;
         }
-        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
+        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(pocScore);
         BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - (Constants.BLOCK_GAP - 1) * 60 -1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
         return hit.compareTo(target) < 0
@@ -274,23 +274,26 @@ public final class Generator implements Comparable<Generator> {
 //                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue();
 //    }
 
-    public static long getHitTime(long accountId, BigInteger effectiveBalance, BigInteger hit, Block block) {
-//        if(ConchGenesis.isFoundAccount(accountId))
-//            return block.getTimestamp()
-//                    + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).multiply(BigInteger.valueOf(3L)).longValue();
+    public static long getHitTime(BigInteger pocScore, BigInteger hit, Block block) {
         return block.getTimestamp()
-                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue() + (Constants.BLOCK_GAP - 1) * 60;
+                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + (Constants.BLOCK_GAP - 1) * 60;
     }
 
 
-    private final long accountId;
-    private final String secretPhrase;
-    private final byte[] publicKey;
-    private volatile long hitTime;
-    private volatile BigInteger hit;
-    private volatile BigInteger effectiveBalance;
+    protected long accountId;
+    protected byte[] publicKey;
+    protected volatile long hitTime;
+    protected volatile BigInteger hit;
+    protected volatile BigInteger effectiveBalance;
+    protected volatile BigInteger pocScore;
+
+    private String secretPhrase;
     private volatile long deadline;
 
+    protected Generator() {
+        
+    }
+    
     private Generator(String secretPhrase) {
         this.secretPhrase = secretPhrase;
         this.publicKey = Crypto.getPublicKey(secretPhrase);
@@ -322,9 +325,11 @@ public final class Generator implements Comparable<Generator> {
         return hitTime;
     }
 
+    
     @Override
     public int compareTo(Generator g) {
-        int i = this.hit.multiply(g.effectiveBalance).compareTo(g.hit.multiply(this.effectiveBalance));
+//        int i = this.hit.multiply(g.effectiveBalance).compareTo(g.hit.multiply(this.effectiveBalance));
+        int i = this.hit.multiply(g.pocScore).compareTo(g.hit.multiply(this.pocScore));
         if (i != 0) {
             return i;
         }
@@ -333,7 +338,22 @@ public final class Generator implements Comparable<Generator> {
 
     @Override
     public String toString() {
-        return "Forger " + Long.toUnsignedString(accountId) + " deadline " + getDeadline() + " hit " + hitTime;
+        return "Miner " + Long.toUnsignedString(accountId) + " deadline " + getDeadline() + " hit " + hitTime;
+    }
+
+
+    protected void calEffectiveBalance(Account account , int height) {
+        if (account == null) {
+            effectiveBalance = BigInteger.ZERO;
+        }else{
+            long id = SharderPoolProcessor.ownOnePool(account.getId());
+            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
+                        .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
+            }else {
+                effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
+            }
+        }
     }
 
     /**
@@ -344,24 +364,24 @@ public final class Generator implements Comparable<Generator> {
     private void setLastBlock(Block lastBlock) {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
-        if (account == null) {
-            effectiveBalance = BigInteger.ZERO;
-        } else {
-            long id = SharderPoolProcessor.ownOnePool(account.getId());
-            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
-                        .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
-            }else {
-                effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
-            }
-        }
-        if (effectiveBalance.signum() == 0) {
+        
+        calEffectiveBalance(account,height);
+        
+        pocScore = PocProcessorImpl.instance.calPocScore(account,height);
+//        if (effectiveBalance.signum() == 0) {
+//            hitTime = 0;
+//            hit = BigInteger.ZERO;
+//            return;
+//        }
+        
+        if (pocScore.signum() == 0) {
             hitTime = 0;
             hit = BigInteger.ZERO;
             return;
         }
+        
         hit = getHit(publicKey, lastBlock);
-        hitTime = getHitTime(accountId, effectiveBalance, hit, lastBlock);
+        hitTime = getHitTime(pocScore, hit, lastBlock);
         deadline = Math.max(hitTime - lastBlock.getTimestamp(), 0);
         listeners.notify(this, Event.GENERATION_DEADLINE);
     }
@@ -461,35 +481,31 @@ public final class Generator implements Comparable<Generator> {
         }
         return generatorList;
     }
+    
 
     /**
      * Active generator
      */
-    public static class ActiveGenerator implements Comparable<ActiveGenerator> {
-        private final long accountId;
-        private long hitTime;
-        private long effectiveBalanceSS;
-        private long conchScore;
-        private byte[] publicKey;
+    public static class ActiveGenerator extends Generator {
+//        private final long accountId;
+//        private long hitTime;
+//        private long effectiveBalanceSS;
+//        private BigInteger pocScore;
+//        private byte[] publicKey;
 
         public ActiveGenerator(long accountId) {
             this.accountId = accountId;
             this.hitTime = Long.MAX_VALUE;
         }
-
-        public long getAccountId() {
-            return accountId;
-        }
+        
 
         public long getEffectiveBalance() {
-            return effectiveBalanceSS;
+            return effectiveBalance.longValue();
         }
 
-        public long getHitTime() {
-            return hitTime;
-        }
+  
 
-        public long getConchScore() { return conchScore; }
+        public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {
             if (publicKey == null) {
@@ -505,15 +521,26 @@ public final class Generator implements Comparable<Generator> {
                 hitTime = Long.MAX_VALUE;
                 return;
             }
-            effectiveBalanceSS = Math.max(account.getEffectiveBalanceSS(height), 0);
-            conchScore = effectiveBalanceSS; // FIXME[xy] use the new logic to cal conch score
-            if (effectiveBalanceSS == 0) {
+            calEffectiveBalance(account,height);
+////            effectiveBalance = Math.max(account.getEffectiveBalanceSS(height), BigInteger.ZERO);
+//            long id = SharderPoolProcessor.ownOnePool(account.getId());
+//            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+//                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
+//                        .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
+//            }else {
+//                effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
+//            }
+            pocScore = PocProcessorImpl.instance.calPocScore(account,height); 
+//            if (effectiveBalance.signum() == 0) {
+//                hitTime = Long.MAX_VALUE;
+//                return;
+//            }
+            if (pocScore.signum() == 0) {
                 hitTime = Long.MAX_VALUE;
                 return;
             }
-            BigInteger effectiveBalance = BigInteger.valueOf(effectiveBalanceSS);
             BigInteger hit = Generator.getHit(publicKey, lastBlock);
-            hitTime = Generator.getHitTime(accountId, effectiveBalance, hit, lastBlock);
+            hitTime = Generator.getHitTime(pocScore, hit, lastBlock);
         }
 
         @Override
@@ -526,7 +553,6 @@ public final class Generator implements Comparable<Generator> {
             return (obj != null && (obj instanceof ActiveGenerator) && accountId == ((ActiveGenerator)obj).accountId);
         }
 
-        @Override
         public int compareTo(ActiveGenerator obj) {
             return (hitTime < obj.hitTime ? -1 : (hitTime > obj.hitTime ? 1 : 0));
         }

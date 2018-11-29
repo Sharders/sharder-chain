@@ -76,7 +76,7 @@
 
                         </table>
                     </div>
-                    <div class="list_pagination">
+                    <div class="list_pagination" v-if="totalSize > pageSize">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -99,12 +99,12 @@
                         <h4 class="modal-title">加入黑名单</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>是否将节点"114.115.210.116"添加到黑名单？</p>
+                        <p>是否将节点"{{blacklistPeer}}"添加到黑名单？</p>
                         <p>管理密码</p>
-                        <input type="password"/>
+                        <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn">添加</button>
+                        <button type="button" class="btn" @click="addBlacklist(blacklistPeer)">添加</button>
                     </div>
                 </div>
             </div>
@@ -116,15 +116,15 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">管理密码</h4>
+                        <h4 class="modal-title">连接节点</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>节点名称：114.115.210.116</p>
+                        <p>节点名称：{{connectPeer}}</p>
                         <p>管理密码</p>
-                        <input type="password"/>
+                        <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn">连接</button>
+                        <button type="button" class="btn" @click="addConnectPeer(connectPeer)">连接</button>
                     </div>
                 </div>
             </div>
@@ -149,7 +149,7 @@
                         </tr>
                         <tr>
                             <th>服务</th>
-                            <td>{{peerInfo.services}}</td>
+                            <td><span  v-for="service in peerInfo.services">{{service}}&nbsp;</span></td>
                             <th>Outbound Web Socket</th>
                             <td>{{peerInfo.outboundWebSocket}}</td>
                         </tr>
@@ -157,37 +157,38 @@
                             <th>版本</th>
                             <td>{{peerInfo.application}} {{peerInfo.version}}</td>
                             <th>peer_load</th>
-                            <td>{{peerInfo.peerLoad}}</td>
+                            <td v-if="peerInfo.peerLoad">{{peerInfo.peerLoad.load}}</td>
+                            <td v-else></td>
                         </tr>
                         <tr>
                             <th>平台</th>
                             <td>{{peerInfo.platform}}</td>
                             <th>Last Connection Attempt</th>
-                            <td>{{peerInfo.platform}}</td>
+                            <td>{{$global.myFormatTime(peerInfo.lastConnectAttempt,'YMDHMS')}}</td>
                         </tr>
                         <tr>
                             <th>最后更新</th>
-                            <td>{{myFormatTime(peerInfo.lastUpdated,'YMDHMS')}}</td>
+                            <td>{{$global.myFormatTime(peerInfo.lastUpdated,'YMDHMS')}}</td>
                             <th>状态</th>
                             <td>{{peerInfo.state === 1 ? 'CONNECTED' : 'UNCONNECTED'}}</td>
                         </tr>
                         <tr>
                             <th>黑名单</th>
-                            <td>false</td>
+                            <td>{{peerInfo.blacklisted}}</td>
                             <th>共享地址</th>
-                            <td>true</td>
+                            <td>{{peerInfo.shareAddress}}</td>
                         </tr>
                         <tr>
                             <th>公布的地址</th>
-                            <td>114.115.210.116</td>
+                            <td>{{peerInfo.announcedAddress}}</td>
                             <th>已下载</th>
-                            <td>388 KB</td>
+                            <td>{{peerInfo.downloadedVolume | formatByte}}</td>
                         </tr>
                         <tr>
                             <th>Api Port</th>
-                            <td>8215</td>
+                            <td>{{peerInfo.apiPort}}</td>
                             <th>已上传</th>
-                            <td>988 KB</td>
+                            <td>{{peerInfo.uploadedVolume | formatByte}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -224,7 +225,12 @@
                 totalSize:0,
                 pageSize:10,
                 //节点详情
-                peerInfo:[]
+                peerInfo:[],
+                //黑名单
+                blacklistPeer:'',
+                //连接节点
+                connectPeer:'',
+                adminPassword:''
             };
         },
         created:function(){
@@ -514,7 +520,10 @@
 
 
 
-            openBlackDialog: function () {
+            openBlackDialog: function (address) {
+                const _this = this;
+                this.closeDialog();
+                _this.blacklistPeer = address;
                 this.$store.state.mask = true;
                 this.blacklistDialog = true;
             },
@@ -523,8 +532,15 @@
                 this.blacklistDialog = false;
                 this.connectPeerDialog = false;
                 this.peerInfoDialog = false;
+                this.blacklist = '';
+                this.connectPeer = '';
+                this.adminPassword = '';
+
             },
-            openConnectPeer: function () {
+            openConnectPeer: function (address) {
+                const _this = this;
+                this.closeDialog();
+                _this.connectPeer = address;
                 this.$store.state.mask = true;
                 this.connectPeerDialog = true;
             },
@@ -539,7 +555,7 @@
                     _this.peerInfo = res.data;
                 }).catch(function (err) {
                     console.log(err);
-                })
+                });
 
                 this.$store.state.mask = true;
                 this.peerInfoDialog = true;
@@ -556,46 +572,62 @@
                     }
                 });
             },
-            myFormatTime: function(value,type){
+            addBlacklist:function(address){
                 const _this = this;
-                let dataTime="";
-                let data = new Date();
-                let date = parseInt(value+'000')+_this.$global.epochBeginning;
-                data.setTime(date);
-                let year   =  data.getFullYear();
-                let month  =  _this.addZero(data.getMonth() + 1);
-                let day    =  _this.addZero(data.getDate());
-                let hour   =  _this.addZero(data.getHours());
-                let minute =  _this.addZero(data.getMinutes());
-                let second =  _this.addZero(data.getSeconds());
-                if(type === "YMD"){
-                    dataTime =  year + "-"+ month + "-" + day;
-                }else if(type === "YMDHMS"){
-                    dataTime = year + "-"+month + "-" + day + " " +hour+ ":"+minute+":" +second;
-                }else if(type === "HMS"){
-                    dataTime = hour+":" + minute+":" + second;
-                }else if(type === "YM"){
-                    dataTime = year + "-" + month;
-
-                }
-                return dataTime;//将格式化后的字符串输出到前端显示
+                this.$http.get('sharder?requestType=blacklistPeer',{
+                    params:{
+                        peer:address,
+                        adminPassword:_this.adminPassword
+                    }
+                }).then(function (res) {
+                    if(res.data){
+                        _this.$message({
+                            showClose: true,
+                            message: "已将'"+address+"'加入黑名单",
+                            type: "success"
+                        });
+                    }else{
+                        _this.$message({
+                            showClose: true,
+                            message: "加入黑名单失败",
+                            type: "error"
+                        });
+                    }
+                    _this.closeDialog();
+                }).catch(function (err) {
+                    console.log(err);
+                });
             },
-            addZero: function (val) {
-                if (val < 10) {
-                    return "0" + val;
-                } else {
-                    return val;
-                }
+            addConnectPeer:function(address){
+                const _this = this;
+                this.$http.get('sharder?requestType=addPeer',{
+                    params:{
+                        peer:address,
+                        adminPassword:_this.adminPassword
+                    }
+                }).then(function (res) {
+                    if(res.data){
+                        _this.$message({
+                            showClose: true,
+                            message: "已与'"+address+"'连接成功",
+                            type: "success"
+                        });
+                    }else{
+                        _this.$message({
+                            showClose: true,
+                            message: "连接失败",
+                            type: "error"
+                        });
+                    }
+                    _this.closeDialog();
+                }).catch(function (err) {
+                    console.log(err);
+                });
             },
             handleSizeChange(val) {
             },
             handleCurrentChange(val) {
             },
-        },
-        watch: {
-            blacklistDialog: function (val) {
-                console.log("变了," + val);
-            }
         },
         filters:{
             formatByte:function (val) {

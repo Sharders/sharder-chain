@@ -125,17 +125,17 @@
                             <tbody>
                                 <tr v-for="(block,index) in blocklist">
                                     <td><span>{{block.height}}</span></td>
-                                    <td><span>{{myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
+                                    <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
                                     <td><span>{{block.totalAmount}}</span></td>
                                     <td><span>{{block.totalFee}}</span></td>
                                     <td><span>{{block.numberOfTransactions}}</span></td>
                                     <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}</td>
-                                    <td class="linker" @click="openBlockInfo(block.height,block.totalAmount,'')">查看详情</td>
+                                    <td class="linker" @click="openBlockInfo(block.height)">查看详情</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination">
+                    <div class="list_pagination" v-if="totalSize > pageSize">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -148,330 +148,34 @@
                 </div>
             </div>
         </div>
-
-        <!--view block info-->
-        <div class="modal_info" id="block_info" v-show="blockInfoDialog">
-            <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
-                <h4 class="modal-title">
-                    <span >区块：{{blockInfo.block}} 信息</span>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <el-radio-group v-model="tabTitle" class="title">
-                    <el-radio-button label="account" class="btn">所有交易</el-radio-button>
-                    <el-radio-button label="blockInfo" class="btn">区块详情</el-radio-button>
-                </el-radio-group>
-
-                <div v-if="tabTitle === 'account'" class="account_list">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <th>时间</th>
-                                <th>类型</th>
-                                <th>数量</th>
-                                <th>手续费</th>
-                                <th>发送者</th>
-                                <th>接受者</th>
-                            </tr>
-                            <tr v-for="(transaction,index) in blockInfo.transactions">
-                                <td>{{myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
-
-                                </td>
-                                <td v-if="transaction.type === 0">
-                                    <img src="../../assets/pay.svg"/>
-                                    <span>普通支付</span>
-                                </td>
-                                <td v-else-if="transaction.type === 1">
-                                    <img src="../../assets/infomation.svg"/>
-                                    <span>任意信息</span>
-                                </td>
-                                <td v-else-if="transaction.type === 6">
-                                    <img src="../../assets/infomation.svg"/>
-                                    <span>数据存储</span>
-                                </td>
-                                <td v-else-if="transaction.type === 9">
-                                    <img src="../../assets/coinBase.svg"/>
-                                    <span>CoinBase</span>
-                                </td>
-                                <td>{{transaction.amountNQT/100000000}}</td>
-                                <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
-                                <td v-else></td>
-                                <td v-if="transaction.type === 9">CoinBase</td>
-                                <td class="linker" v-else>{{transaction.senderRS}}</td>
-                                <td class="linker" v-if="transaction.type === 9">{{transaction.senderRS}}</td>
-                                <td class="linker" v-else>{{transaction.recipientRS}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div v-else-if="tabTitle === 'blockInfo'" class="blockInfo">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <th>上一个区块哈希</th>
-                                <td>{{blockInfo.previousBlockHash}}</td>
-                            </tr>
-                            <tr>
-                                <th>载荷长度</th>
-                                <td>{{blockInfo.payloadLength}}</td>
-                            </tr>
-                            <tr>
-                                <th>总数</th>
-                                <td>{{totalAmount}} SS</td>
-                            </tr>
-                            <tr>
-                                <th>矿工签名</th>
-                                <td>{{blockInfo.generationSignature}}</td>
-                            </tr>
-                            <tr>
-                                <th>矿工公钥</th>
-                                <td>{{blockInfo.generatorPublicKey}}</td>
-                            </tr>
-                            <tr>
-                                <th>交易数量</th>
-                                <td>{{blockInfo.numberOfTransactions}}</td>
-                            </tr>
-                            <tr>
-                                <th>区块签名</th>
-                                <td>{{blockInfo.blockSignature}}</td>
-                            </tr>
-                            <tr>
-                                <th>版本：</th>
-                                <td>{{blockInfo.version}}</td>
-                            </tr>
-                            <tr>
-                                <th>总手续费</th>
-                                <td>{{blockInfo.totalFeeNQT/100000000}} SS</td>
-                            </tr>
-                            <tr>
-                                <th>挖矿难度</th>
-                                <td>{{blockInfo.cumulativeDifficulty}}</td>
-                            </tr>
-                            <tr>
-                                <th>区块高度</th>
-                                <td>{{blockInfo.height}}</td>
-                            </tr>
-                            <tr>
-                                <th>时间戳</th>
-                                <td>{{blockInfo.timestamp}}</td>
-                            </tr>
-                            <tr>
-                                <th>矿工</th>
-                                <td class="linker">{{blockInfo.generatorRS}}</td>
-                            </tr>
-                            <tr>
-                                <th>上一个区块</th>
-                                <td class="linker" @click="openBlockInfo('',totalAmount,blockInfo.previousBlock)">{{blockInfo.previousBlock}}</td>
-                            </tr>
-                            <tr>
-                                <th>下一个区块</th>
-                                <td class="linker" v-if="blockInfo.nextBlock" @click="openBlockInfo('',totalAmount,blockInfo.nextBlock)">{{blockInfo.nextBlock}}</td>
-                                <td v-else></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <!--view account info-->
-        <div class="modal_info" id="account_info" v-show="accountInfoDialog">
-            <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
-                <h4 class="modal-title">
-                    <span >账户：{{accountInfo.accountRS}} 信息</span>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <div class="account_preInfo">
-                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：&nbsp;</span><span>无</span>
-                </div>
-                <div class="account_allInfo">
-                    <el-radio-group v-model="tabTitle" class="title">
-                        <el-radio-button label="account" class="btn">所有交易</el-radio-button>
-                    </el-radio-group>
-
-                    <div v-if="tabTitle === 'account'" class="account_list">
-                        <table class="table">
-                            <tr>
-                                <th>交易时间</th>
-                                <th>交易类型</th>
-                                <th>数量</th>
-                                <th>手续费</th>
-                                <th>账户</th>
-                                <th>操作</th>
-                                <th class="gutter"></th>
-                            </tr>
-                        </table>
-                        <div class="table_body">
-                            <table class="table">
-                                <tbody>
-                                    <tr v-for="transaction in accountTransactionInfo">
-                                        <td>{{myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
-                                        <td v-if="transaction.type === 0">
-                                            <img src="../../assets/pay.svg"/>
-                                            <span>普通支付</span>
-                                        </td>
-                                        <td v-else-if="transaction.type === 1">
-                                            <img src="../../assets/infomation.svg"/>
-                                            <span>任意信息</span>
-                                        </td>
-                                        <td v-else-if="transaction.type === 6">
-                                            <img src="../../assets/infomation.svg"/>
-                                            <span>数据存储</span>
-                                        </td>
-                                        <td v-else-if="transaction.type === 9">
-                                            <img src="../../assets/coinBase.svg"/>
-                                            <span>CoinBase</span>
-                                        </td>
-                                        <td>{{transaction.amountNQT/100000000}}</td>
-                                        <td>{{transaction.feeNQT/100000000}}</td>
-                                        <td class="linker" @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}</td>
-                                        <td class="linker" @click="openAccountTransaction(transaction.transaction)">查看详情</td>
-                                    </tr>
-                                    <!--<tr>
-                                        <td>2018/10/18 8:29:16</td>
-                                        <td>
-                                            <img src="../../assets/pay.svg"/>
-                                            <span>普通支付</span>
-                                        </td>
-                                        <td>100,000</td>
-                                        <td>1</td>
-                                        <td class="linker" >SSA-DEUD-WXFN-AZ8H-BPKX</td>
-                                        <td class="linker" >查看详情</td>
-                                    </tr>-->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!--view account transaction info-->
-        <div class="modal_info" id="account_transaction" v-show="accountTransactionDialog">
-            <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
-                <h4 class="modal-title">
-                    <span >账户：{{accountInfo.accountRS}} 信息</span>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <div class="account_preInfo">
-                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：&nbsp;</span><span>无</span>
-                </div>
-                <div class="account_transactionInfo">
-                    <p class="fl">交易详情</p>
-                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">返回账户信息</button>
-                    <div class="cb"></div>
-                    <table class="table">
-                        <tbody>
-                        <tr>
-                            <th>签名</th>
-                            <td>{{transactionInfo.signature}}</td>
-                        </tr>
-                        <tr>
-                            <th>交易序列号</th>
-                            <td>{{transactionInfo.transactionIndex}}</td>
-                        </tr>
-                        <tr>
-                            <th>类型</th>
-                            <td v-if="transactionInfo.type === 0">
-                                <span>普通支付</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 1">
-                                <span>任意信息</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 6">
-                                <span>数据存储</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 9">
-                                <span>CoinBase</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>哈希签名</th>
-                            <td>{{transactionInfo.signatureHash}}</td>
-                        </tr>
-                        <tr>
-                            <th>发送者</th>
-                            <td>{{transactionInfo.senderRS}}</td>
-                        </tr>
-                        <tr>
-                            <th>数额</th>
-                            <td>{{transactionInfo.amountNQT/10000000}}</td>
-                        </tr>
-                        <tr>
-                            <th>接收者</th>
-                            <td>您</td>
-                        </tr>
-                        <tr>
-                            <th>区块时间戳</th>
-                            <td>{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
-                        </tr>
-                        <tr>
-                            <th>时间戳</th>
-                            <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
-                        </tr>
-                        <tr>
-                            <th>发送者公钥</th>
-                            <td>{{transactionInfo.senderPublicKey}}</td>
-                        </tr>
-                        <tr>
-                            <th>手续费</th>
-                            <td>{{transactionInfo.feeNQT/10000000}}</td>
-                        </tr>
-                        <tr>
-                            <th>确认</th>
-                            <td>{{transactionInfo.confirmations}}</td>
-                        </tr>
-                        <tr>
-                            <th>类型完整哈希：</th>
-                            <td>{{transactionInfo.fullHash}}</td>
-                        </tr>
-                        <tr>
-                            <th>版本：</th>
-                            <td>{{transactionInfo.version}}</td>
-                        </tr>
-                        <tr>
-                            <th>发送者</th>
-                            <td>{{transactionInfo.sender}}</td>
-                        </tr>
-                        <tr>
-                            <th>接收者</th>
-                            <td>您</td>
-                        </tr>
-                        <tr>
-                            <th>区块高度</th>
-                            <td>{{transactionInfo.height}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
+        <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight" :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
     </div>
 </template>
 
 <script>
     import echarts from "echarts";
     import world from "echarts-worldmap";
+    import dialogCommon from "../dialog/dialog_common";
+
+
     export default {
         name: "Network",
-        components: { echarts, world },
+        components: { echarts, world, dialogCommon},
+
         data () {
             return {
                 tabTitle: "account",
-                //dialog开关
+                //blockinfoDialog
                 blockInfoDialog: false,
-                accountInfoDialog: false,
-                accountTransactionDialog: false,
+                blockInfoHeight:-1,
+                //accountinfoDialog
+                accountInfoDialog:false,
+                generatorRS:'',
+                //transactionDialog
+                transactionId:'',
+                transactionDialog:false,
+                accountInfo:[],
+
                 //list列表
                 blocklist:[],
                 //网络总览
@@ -489,14 +193,6 @@
                 currentPage:1,
                 totalSize:0,
                 pageSize:10,
-                //区块信息dialog
-                blockInfo:[],
-                totalAmount:0,
-                //旷工信息dialog
-                accountInfo:[],
-                accountTransactionInfo:[],
-                transactionInfo:[]
-
             };
         },
         created:function(){
@@ -508,10 +204,11 @@
                 }
             }).then(function(res){
                 _this.blocklist = res.data;
+                console.log(_this.blocklist);
                 _this.calcAverageAmount(res);
                 _this.newestHeight = res.data[0].height;
                 _this.totalSize = res.data[0].height;
-                _this.newestTime = _this.myFormatTime(res.data[0].timestamp,'YMDHMS');
+                _this.newestTime = _this.$global.myFormatTime(res.data[0].timestamp,'YMDHMS');
 
             }).catch(function (err) {
                 console.error("error",err);
@@ -804,108 +501,7 @@
 
                 myChart.setOption(option);
             },
-            openBlockInfo: function (height, totalAmount,block) {
-                this.closeDialog();
-                const _this = this;
-                _this.totalAmount = totalAmount;
-                this.$http.get('/sharder?requestType=getBlock',{
-                    params: {
-                        height:height,
-                        includeTransactions:true,
-                        block:block
-                    }
-                }).then(function (res) {
-                    _this.blockInfo = res.data;
-                }).catch(function (err) {
-                    console.error("error",err);
-                });
 
-                this.$store.state.mask = true;
-                this.blockInfoDialog = true;
-            },
-            openAccountInfo: function (generatorRS) {
-                this.closeDialog();
-
-                const _this = this;
-                this.$http.get('/sharder?requestType=getBlockchainTransactions',{
-                    params: {
-                        account:generatorRS
-                    }
-                }).then(function (res) {
-                    _this.accountTransactionInfo = res.data.transactions;
-                }).catch(function (err) {
-                    console.error("error",err);
-                });
-                this.$http.get('/sharder?requestType=getAccount',{
-                    params: {
-                        account:generatorRS
-                    }
-                }).then(function (res) {
-                    _this.accountInfo = res.data;
-                }).catch(function (err) {
-                    console.error("error",err);
-                });
-
-                this.$store.state.mask = true;
-                this.accountInfoDialog = true;
-            },
-            openAccountTransaction: function (transaction) {
-                this.closeDialog();
-
-                const _this = this;
-                this.$http.get('/sharder?requestType=getTransaction',{
-                    params:{
-                        transaction:transaction
-                    }
-                }).then(function (res) {
-                    _this.transactionInfo = res.data;
-                }).catch(function (err) {
-                })
-
-                this.$store.state.mask = true;
-                this.accountTransactionDialog = true;
-            },
-            closeDialog: function () {
-                this.$store.state.mask = false;
-                this.blockInfoDialog = false;
-                this.accountInfoDialog = false;
-                this.accountTransactionDialog = false;
-
-                this.initDialog();
-
-
-            },
-            myFormatTime: function(value,type){
-                const _this = this;
-                let dataTime="";
-                let data = new Date();
-                let date = parseInt(value+'000')+_this.$global.epochBeginning;
-                data.setTime(date);
-                let year   =  data.getFullYear();
-                let month  =  _this.addZero(data.getMonth() + 1);
-                let day    =  _this.addZero(data.getDate());
-                let hour   =  _this.addZero(data.getHours());
-                let minute =  _this.addZero(data.getMinutes());
-                let second =  _this.addZero(data.getSeconds());
-                if(type === "YMD"){
-                    dataTime =  year + "-"+ month + "-" + day;
-                }else if(type === "YMDHMS"){
-                    dataTime = year + "-"+month + "-" + day + " " +hour+ ":"+minute+":" +second;
-                }else if(type === "HMS"){
-                    dataTime = hour+":" + minute+":" + second;
-                }else if(type === "YM"){
-                    dataTime = year + "-" + month;
-
-                }
-                return dataTime;//将格式化后的字符串输出到前端显示
-            },
-            addZero: function (val) {
-                if (val < 10) {
-                    return "0" + val;
-                } else {
-                    return val;
-                }
-            },
             getBlockList(currentPage){
                 const _this = this;
                 this.$http.get('/sharder?requestType=getBizBlocks',{
@@ -929,23 +525,38 @@
                 });
                 _this.averageAmount = num/10;
             },
-            initDialog(){
+            openBlockInfo(height){
                 const _this = this;
-                _this.tabTitle = "account";
-                _this.blockInfo = [];
-                _this.totalAmount = 0;
+                _this.blockInfoHeight = height;
+                _this.blockInfoDialog = true;
+            },
+            openAccountInfo(generatorRS){
+                const _this = this;
+                _this.generatorRS = generatorRS;
+                _this.accountInfoDialog = true;
 
+                _this.transactionDialog = false;
+            },
+            openTransaction(transactionId,accountInfo){
+                const _this = this;
+                _this.transactionId = transactionId;
+                _this.accountInfo = accountInfo;
+                _this.transactionDialog = true;
+
+                console.log(accountInfo);
+                _this.accountInfoDialog = false;
+            },
+            isClose(){
+                const _this = this;
+                _this.accountInfoDialog = false;
+                _this.blockInfoDialog = false;
+                _this.blockInfoHeight = -1;
+                _this.generatorRS = '';
             }
-
         },
         mounted () {
             this.drawPeers();
         },
-        filters: {
-            formatCurrency(){
-
-            }
-        }
     };
 </script>
 <style lang="scss" type="text/scss">
