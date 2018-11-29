@@ -4198,8 +4198,11 @@ public interface Attachment extends Appendix {
     }
 
     final class PocNodeConfiguration extends AbstractAttachment {
+        //TODO nodeId -> IP:PORT
+        //
         private final Long nodeId;
         private final String device;
+        //TODO use SystemInfo
         private final Map<String,Object> configuration;
 
         public Long getNodeId() {
