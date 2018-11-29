@@ -10,7 +10,7 @@ import cookie from "../../static/sso/js/cookie.js";
 // axios默认配置
 axios.defaults.timeout = 10000;   // 超时时间
 axios.defaults.baseURL = apiURL;  // 默认地址
-
+axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 /**
  * 整理数据
  */

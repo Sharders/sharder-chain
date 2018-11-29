@@ -39,6 +39,7 @@
             getAccount() {
                 if (this.tabTitle === "key") {
                     this.type = 1;
+                    SSO.secretPhrase = this.secretPhrase;
                     return this.secretPhrase ? this.secretPhrase : "";
                 }
                 if (this.tabTitle === "account") {
