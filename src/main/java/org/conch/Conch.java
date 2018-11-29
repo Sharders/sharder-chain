@@ -59,7 +59,7 @@ import org.conch.storage.StorageBackup;
 import org.conch.storage.StorageManager;
 import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTxProcessorImpl;
-import org.conch.systemInfo.GetSystemInfo;
+import org.conch.systemInfo.GetNodeHardware;
 import org.conch.systemInfo.SystemInfo;
 import org.conch.tx.*;
 import org.conch.user.Users;
@@ -68,7 +68,6 @@ import org.conch.vote.PhasingPoll;
 import org.conch.vote.PhasingVote;
 import org.conch.vote.Poll;
 import org.conch.vote.Vote;
-import org.hyperic.sigar.SigarException;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -119,9 +118,9 @@ public final class Conch {
         //提交系统配置信息
         SystemInfo systemInfo = new SystemInfo();
         try {
-            GetSystemInfo.cpu(systemInfo);
-            GetSystemInfo.memory(systemInfo);
-            GetSystemInfo.file(systemInfo);
+            GetNodeHardware.cpu(systemInfo);
+            GetNodeHardware.memory(systemInfo);
+            GetNodeHardware.file(systemInfo);
             System.out.println(systemInfo.toString());
             SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
 //            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));

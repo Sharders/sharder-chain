@@ -3,12 +3,12 @@ package org.conch.systemInfo;
 import org.hyperic.sigar.*;
 
 /**
- * @ClassName GetSystemInfo
+ * @ClassName GetNodeHardware
  * @Description
  * @Author 栗子
  * @Version 1.0
  **/
-public class GetSystemInfo {
+public class GetNodeHardware {
 
     public static SystemInfo cpu(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
