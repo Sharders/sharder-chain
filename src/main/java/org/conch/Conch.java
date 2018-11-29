@@ -59,6 +59,8 @@ import org.conch.storage.StorageBackup;
 import org.conch.storage.StorageManager;
 import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTxProcessorImpl;
+import org.conch.systemInfo.GetSystemInfo;
+import org.conch.systemInfo.SystemInfo;
 import org.conch.tx.*;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -66,6 +68,7 @@ import org.conch.vote.PhasingPoll;
 import org.conch.vote.PhasingVote;
 import org.conch.vote.Poll;
 import org.conch.vote.Vote;
+import org.hyperic.sigar.SigarException;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -89,6 +92,7 @@ public final class Conch {
 
     private static volatile Time time = new Time.EpochTime();
 
+    public static final String SYSTEM_INFO_REPORT_URL = "http://192.168.31.5:8080/bounties/SC/report";
 
     public static final String CONCH_DEFAULT_PROPERTIES = "sharder-default.properties";
     public static final String CONCH_PROPERTIES = "sharder.properties";
@@ -111,6 +115,24 @@ public final class Conch {
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(defaultProperties, CONCH_DEFAULT_PROPERTIES, true);
+
+        //提交系统配置信息
+        SystemInfo systemInfo = new SystemInfo();
+        try {
+            GetSystemInfo.cpu(systemInfo);
+            GetSystemInfo.memory(systemInfo);
+            GetSystemInfo.file(systemInfo);
+            System.out.println(systemInfo.toString());
+            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
+//            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));
+            System.out.println("------------------------系统信息-------------------------");
+            System.out.println(systemInfo.getCore());
+            System.out.println(systemInfo.getAverageMHz());
+            System.out.println(systemInfo.getHardDiskSize());
+            System.out.println(systemInfo.getMemoryTotal());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -490,19 +512,19 @@ public final class Conch {
                 AccountRestrictions.init();
                 AccountLedger.init();
                 Alias.init();
-         
+
                 DigitalGoodsStore.init();
                 Hub.init();
                 Order.init();
                 Poll.init();
                 PhasingPoll.init();
                 Trade.init();
-                
+
                 Asset.init();
                 AssetTransfer.init();
                 AssetDelete.init();
                 AssetDividend.init();
-                
+
                 Vote.init();
                 PhasingVote.init();
                 Currency.init();
@@ -515,7 +537,7 @@ public final class Conch {
                 ExchangeRequest.init();
                 Shuffling.init();
                 ShufflingParticipant.init();
-                
+
                 PrunableMessage.init();
                 TaggedData.init();
                 StorageTxProcessorImpl.init();
