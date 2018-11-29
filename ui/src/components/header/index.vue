@@ -34,8 +34,8 @@
                 </div>
                 <div class="navbar_right">
                     <div class="navbar_status">
-                        <span class="isLogin" v-if="$store.state.isPassphrase">SSA-J2TM-GKMD-KTER-27GF7 | 私钥模式</span>
-                        <span v-else>SSA-J2TM-GKMD-KTER-27GF7 | 观察模式</span>
+                        <span v-if="typeof(secretPhrase) === 'undefined'">{{accountRS}} | 观察模式</span>
+                        <span class="isLogin" v-else>{{accountRS}} | 私钥模式</span>
                     </div>
                     <div class="navbar_pilotLamp">
                         <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light" v-if="">
@@ -80,6 +80,9 @@
                 placeholder: "搜索",
                 activeSearch: false,
 
+                secretPhrase:SSO.secretPhrase,
+                accountRS:SSO.accountRS,
+
                 search_val: "",
                 isSearch:false,
                 selectLan:'语言',
@@ -103,7 +106,7 @@
             };
         },
         created(){
-
+            console.log("secretPhrase",this.secretPhrase);
         },
         methods: {
             activeItem: function (val) {
@@ -150,7 +153,7 @@
             isClose:function () {
                 const _this = this;
                 // _this.search_val = "";
-                _this.isSearch = false;
+                _this.isSearch = false;0
             }
         }
     };

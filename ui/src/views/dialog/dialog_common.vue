@@ -430,8 +430,7 @@
             searchValue:'',
             generatorRS:'',
             trading:'',
-            height:{
-            },
+            height:'',
         },
         data(){
             return{
