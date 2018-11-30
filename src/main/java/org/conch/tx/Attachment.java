@@ -4199,7 +4199,7 @@ public interface Attachment extends Appendix {
 
         private final String ip;
         private final String port;
-        private final SystemInfo systemInfo;
+        private SystemInfo systemInfo;
 
         public String getIp() {
             return ip;

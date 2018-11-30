@@ -90,16 +90,7 @@ public abstract class PocTx extends TransactionType {
             if (pocNodeConfiguration == null) {
                 throw new ConchException.NotValidException("Invalid pocNodeConfiguration: null");
             }
-            if (pocNodeConfiguration.getNodeId() == null) {
-                throw new ConchException.NotValidException("Invalid nodeId: null");
-            }
-            //TODO check the node whether exist in the node list get from api.sharder.io
-            if (StringUtils.isBlank(pocNodeConfiguration.getDevice())) {
-                throw new ConchException.NotValidException("Invalid device: null or empty");
-            }
-            if (pocNodeConfiguration.getConfiguration() == null || pocNodeConfiguration.getConfiguration().isEmpty()) {
-                throw new ConchException.NotValidException("Invalid configuration: null or empty");
-            }
+
         }
 
         @Override
