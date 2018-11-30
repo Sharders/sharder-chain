@@ -57,8 +57,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class Users {
 
-  private static final int TESTNET_UI_PORT = 2875;
-
   private static final ConcurrentMap<String, User> users = new ConcurrentHashMap<>();
   private static final Collection<User> allUsers =
       Collections.unmodifiableCollection(users.values());
@@ -87,10 +85,7 @@ public final class Users {
 
     boolean enableUIServer = Conch.getBooleanProperty("sharder.enableUIServer");
     if (enableUIServer) {
-      final int port =
-          Constants.isTestnetOrDevnet()
-              ? TESTNET_UI_PORT
-              : Conch.getIntProperty("sharder.uiServerPort");
+      final int port = Conch.getUiPort();
       final String host = Conch.getStringProperty("sharder.uiServerHost");
       userServer = new Server();
       ServerConnector connector;

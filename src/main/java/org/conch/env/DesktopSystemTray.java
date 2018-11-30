@@ -25,7 +25,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
-import org.conch.db.*;
+import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
@@ -262,7 +262,7 @@ public class DesktopSystemTray {
         addDataRow(statusPanel, getItemDisplay("Network"), getNetwork());
         addDataRow(statusPanel, getItemDisplay("WorkingO"), "" + Constants.isOffline);
         addDataRow(statusPanel, getItemDisplay("Wallet"), String.valueOf(API.getWelcomePageUri()));
-        addDataRow(statusPanel, getItemDisplay("PeerP"), String.valueOf(Peers.getDefaultPeerPort()));
+        addDataRow(statusPanel, getItemDisplay("PeerP"), String.valueOf(Conch.getPeerPort()));
         addDataRow(statusPanel, getItemDisplay("ProgramF"), String.valueOf(Paths.get(".").toAbsolutePath().getParent()));
         addDataRow(statusPanel, getItemDisplay("UserF"), String.valueOf(Paths.get(Conch.getUserHomeDir()).toAbsolutePath()));
         addDataRow(statusPanel, getItemDisplay("DatabaseU"), Db.db == null ? getItemDisplay("Unavailable") : Db.db.getUrl());

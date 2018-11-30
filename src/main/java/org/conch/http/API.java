@@ -123,8 +123,8 @@ public final class API {
 
         boolean enableAPIServer = Conch.getBooleanProperty("sharder.enableAPIServer");
         if (enableAPIServer) {
-            final int port = (Constants.isTestnetOrDevnet()) ? TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
-            final int sslPort = (Constants.isTestnetOrDevnet()) ? TESTNET_API_SSLPORT : Conch.getIntProperty("sharder.apiServerSSLPort");
+            final int port = Conch.getApiPort();
+            final int sslPort = Conch.getApiSSLPort();
             final String host = Conch.getStringProperty("sharder.apiServerHost");
             disableAdminPassword = Conch.getBooleanProperty("sharder.disableAdminPassword") || ("127.0.0.1".equals(host) && adminPassword.isEmpty());
 
