@@ -107,13 +107,47 @@
         },
         created(){
             console.log("secretPhrase",this.secretPhrase);
+       },
+        mounted(){
+            const _this = this;
+            let getData = setInterval(function () {
+                _this.$global.setBlockchainState(_this).then(res=>{
+                    if(_this.$global.isOpenConsole){
+                        _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
+                    }
+                });
+                _this.$global.setgetForging(_this).then(res=>{
+                    if(_this.$global.isOpenConsole){
+                        _this.$global.addToConsole("/sharder?requestType=getForging",'GET',res);
+                    }
+                });
+                _this.$global.setPeers(_this).then(res=>{
+                    if(_this.$global.isOpenConsole){
+                        _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
+                    }
+                });
+            },5000);
         },
         methods: {
             activeItem: function (val) {
                 const _this = this;
                 _this.activeIndex = val;
             },
-            goConsole: function () {},
+            goConsole: function () {
+                const _this = this;
+                _this.$global.newConsole = window.open("", "console", "width=750,height=400,menubar=no,scrollbars=yes,status=no,toolbar=no,resizable=yes");
+                $(_this.$global.newConsole.document.head).html("<title>CONSOLE</title><style type='text/css'>body { background:black; color:white; font-family:courier-new,courier;font-size:14px; } pre { font-size:14px; } #console { padding-top:15px; }</style>");
+                $(_this.$global.newConsole.document.body).html("<div style='position:fixed;top:0;left:0;right:0;padding:5px;background:#efefef;color:black;'>打开控制台。日志记录开始......<div style='float:right;text-decoration:underline;color:blue;font-weight:bold;cursor:pointer;' onclick='document.getElementById(\"console\").innerHTML=\"\"'>clear</div></div><div id='console'></div>");
+
+                let loop = setInterval(function() {
+                    if(_this.$global.newConsole.closed) {
+                        clearInterval(loop);
+                        _this.$global.isOpenConsole = false;
+                        console.log("console关闭");
+                    }
+                }, 1000);
+                this.$global.isOpenConsole = true;
+            },
             search_focus: function () {
                 const _this = this;
                 _this.activeSearch = true;
@@ -128,7 +162,6 @@
             },
             search_keydown: function () {
                 const _this = this;
-                // console.log("你输入的值是" + _this.search_val);
                 if(_this.search_val !== ""){
                     _this.isSearch = true;
                 }else{
@@ -138,12 +171,7 @@
                         type: "error"
                     });
                 }
-                // _this.search_val = "";
             },
-           /* validatePath: function (val,path) {
-                let reg = /^*$/;
-                console.log(reg.test(val));
-            }*/
 
             exit:function () {
                const _this = this;
@@ -153,7 +181,7 @@
             isClose:function () {
                 const _this = this;
                 // _this.search_val = "";
-                _this.isSearch = false;0
+                _this.isSearch = false;
             }
         }
     };

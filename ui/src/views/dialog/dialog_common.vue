@@ -469,7 +469,7 @@
                             }).then(function (res) {
                                 _this.accountTransactionInfo = res.data.transactions;
                             }).catch(function (err) {
-                                console.error("error",err);
+                                resolve(err);
                             });
                             resolve("success");
                         }else{
