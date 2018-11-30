@@ -9,7 +9,7 @@
             <input v-if="tabTitle === 'key'" class="account_input" type="password" v-model="secretPhrase"
                    placeholder="请输入账户密钥"/>
             <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
-                          mask="AAA-****-****-****-*****" placeholder="Sharder账户"/>
+                          mask="AAA-****-****-****-*****" placeholder="Sharder账户" />
             <el-button class="common_btn" @click="login">登录</el-button>
         </el-col>
 

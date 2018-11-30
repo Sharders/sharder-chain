@@ -3,6 +3,10 @@
  */
 export default {
     epochBeginning: -1,
+    newConsole:null,
+    isOpenConsole:false,
+    blockchainState:[],
+    peers:[],
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -18,6 +22,50 @@ export default {
                 }
             })
         })
+    },
+    setBlockchainState(t) {
+        const _this = this;
+        return new Promise(function (resolve, reject) {
+            t.$http.get('/sharder?requestType=getBlockchainStatus',{
+                params:{
+                    random:parseInt(new Date().getTime().toString())
+                }
+            }).then(res => {
+                _this.blockchainState = res.data;
+                resolve(res.data);
+            });
+        });
+    },
+    setUnconfirmedTransactions(t,account){
+        const _this = this;
+        return new Promise(function (resolve, reject) {
+            t.$http.get('/sharder?requestType=getUnconfirmedTransactions',{
+                params:{
+                    random:parseInt(new Date().getTime().toString()),
+                    account:account
+                }
+            }).then(res => {
+                resolve(res.data);
+            });
+        });
+    },
+    setPeers(t){
+        const _this = this;
+        return new Promise(function (resolve, reject) {
+            t.$http.get('/sharder?requestType=getPeers',{
+                params: {
+                    includePeerInfo:true,
+                    random:parseInt(new Date().getTime().toString())
+                }
+            }).then(res => {
+                _this.peers = res.data;
+                resolve(res.data);
+                // console.log(res.data);
+                // if (_this.isOpenConsole) {
+                //     console.log(res.data);
+                // }
+            });
+        });
     },
     setEpochBeginning(t) {
         const _this = this;
@@ -67,5 +115,86 @@ export default {
             }
         }
         return result;
+    },
+
+
+    addToConsole(url, type, data, response, error) {
+        const _this = this;
+        if(!_this.isOpenConsole || !_this.newConsole){
+            return;
+        }
+        if(!_this.newConsole.document || !_this.newConsole.document.body){
+            _this.isOpenConsole = false;
+            _this.newConsole = null;
+            return;
+        }
+
+        url = url.replace(/&random=[\.\d]+/, "",url);
+        _this.addToConsoleBody(url+ "("+type+")"+new Date().toString(), "url");
+
+        if (data) {
+            if (typeof data === "string") {
+                let d = _this.queryStringToObject(data);
+                _this.addToConsoleBody(JSON.stringify(d, null, "\t"), "post");
+            } else {
+                _this.addToConsoleBody(JSON.stringify(data, null, "\t"), "post");
+            }
+        }
+
+        if (error) {
+            _this.addToConsoleBody(response, "error");
+        } else {
+            if(typeof response === 'undefined'){
+                return;
+            }else{
+                _this.addToConsoleBody(JSON.stringify(response, null, "\t"), (response.errorCode ? "error" : ""));
+            }
+        }
+    },
+
+    addToConsoleBody(text,type){
+        const _this = this;
+        let color = "";
+        switch (type) {
+            case "url":
+                color = "#29FD2F";
+                break;
+            case "post":
+                color = "lightgray";
+                break;
+            case "error":
+                color = "red";
+                break;
+        }
+        _this.logConsole(text, true);
+        $(_this.newConsole.document.body).find("#console").append("<pre" + (color ? " style='color:" + color + "'" : "") + ">" + text.escapeHTML() + "</pre>");
+
+    },
+    logConsole(msg, isDateIncluded, isDisplayTimeExact){
+
+    },
+    queryStringToObject(qs){
+        qs = qs.split("&");
+
+        if (!qs) {
+            return {};
+        }
+
+        let obj = {};
+
+        for (let i = 0; i < qs.length; ++i) {
+            let p = qs[i].split('=');
+
+            if (p.length !== 2) {
+                continue;
+            }
+
+            obj[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        if ("secretPhrase" in obj) {
+            obj.secretPhrase = "***";
+        }
+
+        return obj;
     },
 };

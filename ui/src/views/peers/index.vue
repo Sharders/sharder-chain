@@ -235,19 +235,11 @@
         },
         created:function(){
             const _this = this;
-            this.$http.get('/sharder?requestType=getPeers',{
-                params: {
-                    includePeerInfo:true
-                }
-            }).then(function(res){
-                _this.peersList = res.data.peers;
-                _this.totalSize = res.data.peers.length;
-                console.log(_this.peersList);
-                _this.getPeersInfo(_this.peersList);
-                console.log(res);
-            }).catch(function (err){
-                console.log(err);
-            });
+
+            _this.peersList = _this.$global.peers.peers;
+            _this.totalSize = _this.$global.peers.peers.length;
+            console.log("this.$global.peers",this.$global.peers);
+            _this.getPeersInfo(_this.peersList);
         },
         methods: {
             drawPeers: function () {
@@ -513,13 +505,9 @@
 
                 myChart.setOption(option);
             },
-
             turn2network: function () {
                 this.$router.push("/network");
             },
-
-
-
             openBlackDialog: function (address) {
                 const _this = this;
                 this.closeDialog();

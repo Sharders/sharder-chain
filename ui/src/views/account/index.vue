@@ -37,7 +37,7 @@
                             </span>
                             <span>发送消息</span>
                         </button>
-                        <button class="common_btn imgBtn" @click="openHubSettingDialog">
+                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined'" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -54,7 +54,7 @@
                                     <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
                                 </svg>
                             </span>
-                            <span v-if="!$store.state.isPassphrase">HUB设置</span>
+                            <span>HUB设置</span>
                         </button>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                             <tbody>
                             <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
                                 <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
-                                <td class="linker">{{transaction.height}}</td>
+                                <td class="linker" @click="openBlockInfoDialog(transaction.height)">{{transaction.height}}</td>
                                 <td v-if="transaction.type === 0">普通支付</td>
                                 <td v-if="transaction.type === 1">任意信息</td>
                                 <td v-if="transaction.type === 6">存储服务</td>
@@ -158,8 +158,9 @@
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接收者">
-                                <el-input v-model="messageForm.receiver"></el-input>
+                            <el-form-item label="接收者" class="item_receiver">
+                                <masked-input mask="AAA-****-****-****-*****"/>
+                                <img src="../../assets/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item label="信息">
                                 <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
@@ -178,7 +179,7 @@
                                 <input id="file" ref="file" type="file" @change="fileChange"/>
                             </el-form-item>
                             <el-form-item label="手续费">
-                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
+                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
                                 </el-slider>
                             </el-form-item>
                             <el-form-item label="秘钥">
@@ -187,7 +188,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn">发送信息</button>
+                        <button type="button" class="btn" >发送信息</button>
                     </div>
                 </div>
             </div>
@@ -202,15 +203,16 @@
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接收者">
-                                <el-input v-model="transfer.receiver"></el-input>
+                            <el-form-item label="接收者" class="item_receiver">
+                                <masked-input mask="AAA-****-****-****-*****" v-model="messageForm.receiver"/>
+                                <img src="../../assets/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item label="数额">
                                 <el-input v-model="transfer.number"></el-input>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="手续费">
-                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false">
+                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
                                 </el-slider>
                             </el-form-item>
                             <el-form-item label="">
@@ -232,7 +234,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn">发送</button>
+                        <button type="button" class="btn" @click="sendMessage">发送</button>
                     </div>
                 </div>
             </div>
@@ -349,7 +351,9 @@
 
         </div>
 
-        <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading" :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS" @isClose="isClose"></dialogCommon>
+        <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading"
+                      :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
+                      :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
 
     </div>
@@ -360,13 +364,15 @@
 
     export default {
         name: "Network",
-        components: {echarts,dialogCommon},
+        components: {echarts,dialogCommon,
+            "masked-input": require("vue-masked-input").default},
         data () {
             return {
                 //dialog
                 sendMessageDialog: false,
                 tranferAccountsDialog: false,
                 hubSettingDialog: false,
+
                 tradingInfoDialog: false,
                 userInfoDialog:false,
                 accountInfoDialog: false,
@@ -376,16 +382,24 @@
                 punchthroughDisabled: true,
                 isShowName: true,
 
+                generatorRS:'',
+                secretPhrase:SSO.secretPhrase,
+
+                blockInfoDialog:false,
+                height:'',
+
+                publicKey:SSO.publicKey,
+
                 messageForm: {
                     receiver: "",
-                    message: "2",
+                    message: "",
                     isEncrypted: false,
                     file: "",
                     fee: 0,
                     password: ""
                 },
                 transfer: {
-                    receiver: "1",
+                    receiver: "",
                     number: 0,
                     fee: 0,
                     hasMessage: false,
@@ -408,9 +422,9 @@
                     confirmPwd: ''
                 },
                 accountInfo:{
-                    accountRS:'SSA-9WKZ-DV7P-M6MN-5MH8B',
-                    publicKey:'',
-                    accountId:'',
+                    accountRS: SSO.accountRS,
+                    publicKey: SSO.publicKey,
+                    accountId: SSO.account,
                     forgedBalanceNQT:0,      //挖矿余额
                     effectiveBalanceSS:0,   //可用余额
                     guaranteedBalanceNQT:0,  //保证余额
@@ -448,27 +462,8 @@
         },
         created: function () {
             const _this = this;
-            this.$http.get('/sharder?requestType=getAccount', {
-                params: {
-                    account: _this.accountInfo.accountRS,
-                    includeLessors: true,
-                    includeAssets: true,
-                    includeEffectiveBalance: true,
-                    includeCurrencies: true,
-
-                }
-            }).then(function (res) {
-                _this.accountInfo = res.data;
-                console.log(_this.accountInfo);
-            }).catch(function (err) {
-                console.log(err);
-            });
-                let i =0;
-            // for(let i=0;_this.newCount>0&&_this.totalSize%100===0&&i<1000;i++){
-                _this.getAccountTransactionList();
-                // console.log("totalSize",_this.totalSize);
-                // console.log("newCount",_this.newCount);
-            // }
+            _this.getAccount();
+            _this.getAccountTransactionList();
         },
         methods: {
             drawBarchart: function () {
@@ -535,6 +530,72 @@
             },
             handleCurrentChange(val) {
             },
+            getAccount(){
+                const _this = this;
+                return new Promise((resolve, reject) => {
+                    this.$http.get('/sharder?requestType=getAccount', {
+                        params: {
+                            account: _this.accountInfo.accountRS,
+                            includeLessors: true,
+                            includeAssets: true,
+                            includeEffectiveBalance: true,
+                            includeCurrencies: true,
+
+                        }
+                    }).then(function (res) {
+                        _this.accountInfo = res.data;
+                        resolve(res.data);
+                        console.log(_this.accountInfo);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                });
+            },
+            sendMessage:function(){
+                const _this = this;
+                console.log(_this.messageForm);
+                if(_this.messageForm.receiver === ''){
+                    _this.$message.warning('接收者不能为空');
+                    return;
+                }
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                if(!_this.messageForm.receiver.toUpperCase().match(pattern)){
+                    _this.$message.warning('接收者ID格式错误！');
+                    return;
+                }
+                if(_this.messageForm.fee === 0){
+                    _this.$message.warning('接收者ID格式错误！');
+                }
+                _this.http.get('/sharder?requestType=getAccont',{
+                    params:{
+                        account:_this.messageForm.receiver
+                    }
+                }).then(res =>{
+                    _this.getAccount().then(res=>{
+                        if(res.balanceNQT < _this.messageForm.fee){
+                            _this.$message.warning('账户余额不足,请先充值后再试！');
+                        }else{
+                            if(!res.data.errorDescription){
+                                if(_this.messageForm.isEncrypted){
+                                    _this.$http.post('/sharder?requestType=sendMessage',{
+                                        recipient:_this.messageForm.receiver,
+                                        recipientPublicKey:res.data.publicKey,
+                                        messageToEncrypt :_this.messageForm.message,
+                                        feeNQT:_this.messageForm * 100000000,
+
+                                    }).then(res =>{
+
+                                    }).catch(err =>{
+
+                                    });
+                                }
+                            }
+                        }
+                    });
+
+                })
+
+            },
             getAccountTransactionList:function(){
                 const _this = this;
                 // console.log("第"+i+"次");
@@ -583,6 +644,10 @@
                 console.log(account);
                 this.accountInfoDialog = true;
             },
+            openBlockInfoDialog:function(height){
+                this.height = height;
+                this.blockInfoDialog = true;
+            },
             closeDialog: function () {
                 this.$store.state.mask = false;
                 this.sendMessageDialog = false;
@@ -625,6 +690,7 @@
                 const _this = this;
                 _this.tradingInfoDialog = false;
                 _this.accountInfoDialog = false;
+                _this.blockInfoDialog = false;
             }
         },
         watch: {
@@ -657,6 +723,15 @@
                 },
                 deep: true
             },
+            // messageForm:{
+            //     handler(val,oldVal){
+            //         const _this = this;
+            //         if(_this.message.receiver !== ''){
+            //
+            //         }
+            //     },
+            //     deep:true
+            // },
             selectType:function () {
                 const _this = this;
                 _this.getAccountTransactionList();
@@ -681,6 +756,17 @@
         .el-select-dropdown__item.selected.hover {
             background-color: #493eda !important;
             color: #fff !important;
+        }
+    }
+    .item_receiver{
+        input{
+            padding-left: 15px;
+        }
+        img{
+            width: 20px;
+            position: absolute;
+            right: 15px;
+            top: 40px;
         }
     }
 </style>

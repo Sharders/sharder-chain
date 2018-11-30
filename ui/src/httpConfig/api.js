@@ -1,4 +1,5 @@
 const SERVER_API = "https://test.sharder.io";
+// const SERVER_API = "https://biz.sharder.io";
 const SERVER_API_DEV = "http://localhost:8215";
 
 function getUrl() {

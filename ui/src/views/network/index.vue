@@ -209,7 +209,6 @@
                 _this.newestHeight = res.data[0].height;
                 _this.totalSize = res.data[0].height;
                 _this.newestTime = _this.$global.myFormatTime(res.data[0].timestamp,'YMDHMS');
-
             }).catch(function (err) {
                 console.error("error",err);
             });
