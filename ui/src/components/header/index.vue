@@ -6,7 +6,7 @@
                     <img src="../../assets/logo.svg"/>
                     <div>
                         <span>Sharder</span>
-                        <span>COS 版本：0.1.0-Alpha</span>
+                        <span>COS 版本：{{blockchainState.fullVersion}}</span>
                     </div>
                 </a>
             </div>
@@ -38,10 +38,17 @@
                         <span class="isLogin" v-else>{{accountRS}} | 私钥模式</span>
                     </div>
                     <div class="navbar_pilotLamp">
-                        <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light" v-if="">
-                            <div class="pilotLamp_circle"></div>
+
+                        <el-tooltip class="item " content="无法确定挖矿状态，请指定管理员密码" @click="startForging(false)" placement="bottom" effect="light" v-if="typeof(secretPhrase) === 'undefined'">
+                            <div class="pilotLamp_circle unknownForging"></div>
                         </el-tooltip>
-                        <el-tooltip class="item" content="挖矿中" placement="bottom" effect="light">
+                        <el-tooltip class="item" content="您不能挖矿，因为您的帐户还没有公钥。请完成一次交易或则使用密钥重新登录。" placement="bottom" effect="light" v-else-if="accountInfo.errorDescription === 'Unknown account'">
+                            <div class="pilotLamp_circle notForging"></div>
+                        </el-tooltip>
+                        <el-tooltip class="item" content="未挖矿" placement="bottom" effect="light" @click="startForging(true)" v-else-if="forging.errorCode === 5">
+                            <div class="pilotLamp_circle notForging"></div>
+                        </el-tooltip>
+                        <el-tooltip class="item" content="已启动" placement="bottom" effect="light" v-else-if="!forging.errorDescription">
                             <div class="pilotLamp_circle"></div>
                         </el-tooltip>
                     </div>
@@ -63,6 +70,24 @@
             </nav>
         </div>
         <dialogCommon :searchValue="search_val" :isSearch="isSearch" @isClose="isClose"></dialogCommon>
+
+        <div class="modal" id="start_forging_modal" v-show="startForgingDialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">开启挖矿</h4>
+                    </div>
+                    <div class="modal-body modal-peer">
+                        <p>管理密码</p>
+                        <input v-model="adminPassword" type="password"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn" @click="startForging(false,adminPassword)">开启</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
 
 </template>
@@ -75,14 +100,17 @@
         props: ["openSidebar", "title"],
         data () {
             return {
+                startForgingDialog:false,
                 activeIndex: "/account",
                 isRouter: true,
                 placeholder: "搜索",
                 activeSearch: false,
-
+                blockchainState:this.$global.blockchainState,
                 secretPhrase:SSO.secretPhrase,
+                adminPassword:'',
                 accountRS:SSO.accountRS,
-
+                accountInfo:[],
+                forging:[],
                 search_val: "",
                 isSearch:false,
                 selectLan:'语言',
@@ -106,19 +134,44 @@
             };
         },
         created(){
-            console.log("secretPhrase",this.secretPhrase);
-       },
-        mounted(){
             const _this = this;
-            let getData = setInterval(function () {
+            this.getData();
+            // this.$http.get("/sharder?requestType=getAccount",{
+            //     params: {
+            //         includeEffectiveBalance:true,
+            //         account:SSO.account
+            //     }
+            // }).then(res=>{
+            //     _this.accountInfo = res.data;
+            //     console.log("accountInfo",_this.accountInfo);
+            // }).catch(err=>{
+            //     _this.$message.error(err);
+            //     console.error(err);
+            // });
+            this.$http.post("/sharder?requestType=getForging").then(res=>{
+                _this.forging = res.data;
+                console.log("forging",_this.forging);
+            }).catch(err=>{
+                _this.$message.error(err);
+                console.error(err);
+            });
+        },
+        mounted(){
+            setInterval(this.getData(),30000);
+        },
+        methods: {
+            getData:function(){
+                const _this = this;
                 _this.$global.setBlockchainState(_this).then(res=>{
+                    _this.blockchainState = res;
                     if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
                     }
                 });
-                _this.$global.setgetForging(_this).then(res=>{
+                _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
+                    console.log("setUnconfirmedTransactions",res);
                     if(_this.$global.isOpenConsole){
-                        _this.$global.addToConsole("/sharder?requestType=getForging",'GET',res);
+                        _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
                     }
                 });
                 _this.$global.setPeers(_this).then(res=>{
@@ -126,9 +179,41 @@
                         _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
                     }
                 });
-            },5000);
-        },
-        methods: {
+            },
+            startForging:function(b,pwd){
+                const _this = this;
+                if(b){
+                    _this.$http.post("/sharder?requestType=startForging").then(res=>{
+                        if(!res.data.errorDescription){
+                            console.log("开启挖矿",res.data);
+                        }else{
+                            _this.$message.error(res.data.errorDescription);
+                            console.error(res.data.errorDescription);
+                        }
+                    }).catch(err=>{
+                        _this.$message.error(err);
+                        console.error(err);
+                    });
+                }else if(b === false&&pwd === ''){
+                    _this.startForgingDialog = true;
+                    _this.$store.state.mask = true;
+                }else{
+                    _this.$http.post("/sharder?requestType=startForging",{
+                        secretPhrase:pwd
+                    }).then(res=>{
+                        if(!res.data.errorDescription){
+                            console.log("开启挖矿",res.data);
+                        }else{
+                            _this.$message.error(res.data.errorDescription);
+                            console.error(res.data.errorDescription);
+                        }
+                    }).catch(err=>{
+                        _this.$message.error(err);
+                        console.error(err);
+                    });
+                    closeDialog();
+                }
+            },
             activeItem: function (val) {
                 const _this = this;
                 _this.activeIndex = val;
@@ -143,7 +228,6 @@
                     if(_this.$global.newConsole.closed) {
                         clearInterval(loop);
                         _this.$global.isOpenConsole = false;
-                        console.log("console关闭");
                     }
                 }, 1000);
                 this.$global.isOpenConsole = true;
@@ -172,7 +256,11 @@
                     });
                 }
             },
+            closeDialog:function(){
+                this.startForgingDialog = false;
+                this.$store.state.mask = false;
 
+            },
             exit:function () {
                const _this = this;
                _this.$store.state.isLogin = false;
@@ -182,6 +270,11 @@
                 const _this = this;
                 // _this.search_val = "";
                 _this.isSearch = false;
+            }
+        },
+        watch:{
+            blockchainState:function (res) {
+                console.log(res);
             }
         }
     };

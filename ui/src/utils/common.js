@@ -33,24 +33,19 @@ export default {
             }).then(res => {
                 _this.blockchainState = res.data;
                 resolve(res.data);
-                // if (_this.isOpenConsole) {
-                //     console.log(res.data);
-                // }
             });
         });
     },
-    setgetForging(t){
+    setUnconfirmedTransactions(t,account){
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getForging',{
+            t.$http.get('/sharder?requestType=getUnconfirmedTransactions',{
                 params:{
-                    random:parseInt(new Date().getTime().toString())
+                    random:parseInt(new Date().getTime().toString()),
+                    account:account
                 }
             }).then(res => {
                 resolve(res.data);
-                // if (_this.isOpenConsole) {
-                //     console.log(res.data);
-                // }
             });
         });
     },
