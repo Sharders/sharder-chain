@@ -7,6 +7,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
@@ -37,7 +38,25 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         /**
          * 获得用户
          */
-        ACCOUNT("account");
+        ACCOUNT("account"),
+        /**
+         * 账户列表
+         */
+        ACCOUNT_LIST("accountList"),
+        /**
+         * 获得账户列表
+         */
+        GET_ACCOUNT_LIST("getAccountList"),
+        /**
+         * 绑定账户
+         */
+        BINDING_ACCOUNT("bindingAccount"),
+
+        /**
+         * 获得绑定账户
+         */
+        GET_BINDING_ACCOUNT("getBindingAccount");
+
         private String value;
 
         Shell(String value) {
@@ -56,6 +75,18 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
         String shell = request.getParameter("shell");
+        if (Shell.BINDING_ACCOUNT.getValue().equalsIgnoreCase(shell)) {
+            return bindingAccount(request);
+        }
+        if (Shell.GET_BINDING_ACCOUNT.getValue().equalsIgnoreCase(shell)) {
+            return getBindingAccount(request);
+        }
+        if (Shell.ACCOUNT_LIST.getValue().equalsIgnoreCase(shell)) {
+            return accountList(request);
+        }
+        if (Shell.GET_ACCOUNT_LIST.getValue().equalsIgnoreCase(shell)) {
+            return getAccountList(request);
+        }
         if (Shell.AUTH.getValue().equalsIgnoreCase(shell)) {
             return generateAuthorization(request);
         }
@@ -67,6 +98,129 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         }
         return null;
     }
+
+    private JSONObject getBindingAccount(HttpServletRequest request) {
+        JSONObject json = new JSONObject();
+        String token = request.getParameter("token");
+        if (token == null) {
+            json.put("memo", "token cannot be null");
+            json.put("success", false);
+            return json;
+        }
+        HashMap<String, Object> map = new HashMap<>();
+        try {
+            map = (HashMap<String, Object>) hashMap.get(token);
+            if (System.currentTimeMillis() - (long) map.get("time") > AUTH_TIME) {
+                throw new RuntimeException("token invalid");
+            }
+            hashMap.remove(token);
+        } catch (Exception e) {
+            json.put("memo", "token overdue");
+            json.put("success", false);
+            return json;
+        }
+        json.put("data", map);
+        json.put("success", true);
+        return json;
+    }
+
+    private JSONObject bindingAccount(HttpServletRequest request) {
+        JSONObject json = new JSONObject();
+        String token = request.getParameter("token");
+        String account = request.getParameter("account");
+        if (token == null || account == null) {
+            json.put("memo", "token and account cannot be null");
+            json.put("success", false);
+            return json;
+        }
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("account", account);
+        map.put("time", System.currentTimeMillis());
+        hashMapAdd(token, map);
+        json.put("success", true);
+        return json;
+    }
+
+    /**
+     * 账户列表
+     *
+     * @return
+     */
+    private JSONObject accountList(HttpServletRequest request) {
+        JSONObject json = new JSONObject();
+        String token = "";
+        try {
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            HashMap<String, Object> map = new HashMap<>();
+            for (String key : parameterMap.keySet()) {
+                if (key.contains("accountList") && key.contains("[addr]")) {
+                    map.put(key, parameterMap.get(key));
+                }
+                if (key.contains("accountList") && key.contains("[TSS]")) {
+                    map.put(key, parameterMap.get(key));
+                }
+            }
+            token = generateToken(AUTH_CODE_NUM);
+            map.put("time", System.currentTimeMillis());
+            hashMapAdd(token, map);
+        } catch (Exception e) {
+            json.put("success", false);
+            json.put("memo", "data error");
+            return json;
+        }
+        json.put("token", token);
+        json.put("success", true);
+        return json;
+    }
+
+    /**
+     * 获得账户列表
+     *
+     * @return
+     */
+    private JSONObject getAccountList(HttpServletRequest request) {
+        JSONObject json = new JSONObject();
+        String token = request.getParameter("token");
+        if (token == null) {
+            json.put("memo", "token cannot be null");
+            json.put("success", false);
+            return json;
+        }
+        if (validationAccountToken(token, json).containsKey("error")) {
+            json.put("memo", "token overdue");
+            json.put("success", false);
+            return json;
+        }
+        json.put("success", true);
+        return json;
+    }
+
+    private JSONObject validationAccountToken(String token, JSONObject json) {
+        if (!hashMap.containsKey(token)) {
+            json.put("error", true);
+            return json;
+        }
+        HashMap<String, Object> map = new HashMap<>();
+        try {
+            map = (HashMap<String, Object>) hashMap.get(token);
+            if (System.currentTimeMillis() - (long) map.get("time") > AUTH_TIME) {
+                throw new RuntimeException("token invalid");
+            }
+            for (String key : map.keySet()) {
+                if (!"time".equals(key)) {
+                    String[] str = (String[]) map.get(key);
+                    map.put(key, str[0]);
+                }
+            }
+            hashMap.remove(token);
+            json.put("data", map);
+        } catch (Exception e) {
+            json.put("error", true);
+            return json;
+        }
+        return json;
+    }
+
 
     /**
      * 生成请求请求授权数据
@@ -176,10 +330,10 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         }
         try {
             HashMap<String, Long> user = (HashMap<String, Long>) hashMap.get(validation);
-            hashMap.remove(validation);
             if (!user.containsKey(account) || System.currentTimeMillis() - user.get(account) > AUTH_TIME) {
                 throw new RuntimeException("validation overdue");
             }
+            hashMap.remove(validation);
         } catch (Exception e) {
             json.put("memo", "validation overdue");
             json.put("error", true);
@@ -243,10 +397,10 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         }
         try {
             HashMap map = (HashMap<String, Object>) hashMap.get(token);
-            hashMap.remove(token);
             if (System.currentTimeMillis() - (long) map.get("time") > AUTH_TIME) {
                 throw new RuntimeException("token invalid");
             }
+            hashMap.remove(token);
             json.put("data", map);
         } catch (Exception e) {
             json.put("memo", "token invalid");
