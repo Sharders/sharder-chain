@@ -19,8 +19,8 @@ import java.util.concurrent.ConcurrentMap;
  * @package org.conch.consensus.poc
  * @author Wolf Tian
  * @email twenbin@sharder.org
- * @company Chongqing Morning Whale Technology Co,.LTD
- * @website http://www.ichaoj.com/
+ * @company Sharder Foundation
+ * @website https://www.sharder.org/
  * @creatAt 2018-Nov-28 11:52 Wed
  * @tel 18716387615
  * @comment

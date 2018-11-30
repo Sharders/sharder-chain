@@ -36,16 +36,14 @@ import org.conch.shuffle.ShufflingParticipant;
 import org.conch.shuffle.ShufflingTransaction;
 import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTx;
+import org.conch.systemInfo.SystemInfo;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.vote.VoteWeighting;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -4198,89 +4196,102 @@ public interface Attachment extends Appendix {
     }
 
     final class PocNodeConfiguration extends AbstractAttachment {
-        //TODO nodeId -> IP:PORT
-        //
-        private final Long nodeId;
-        private final String device;
-        //TODO use SystemInfo
-        private final Map<String,Object> configuration;
 
-        public Long getNodeId() {
-            return nodeId;
+        private final String ip;
+        private final String port;
+        private final SystemInfo systemInfo;
+
+        public String getIp() {
+            return ip;
         }
 
-        public String getDevice() {
-            return device;
+        public String getPort() {
+            return port;
         }
 
-        public Map<String, Object> getConfiguration() {
-            return configuration;
+        public SystemInfo getSystemInfo() {
+            return systemInfo;
         }
 
-        public PocNodeConfiguration(Long nodeId, String device, Map<String, Object> configuration) {
-            this.nodeId = nodeId;
-            this.device = device;
-            this.configuration = configuration;
+        public PocNodeConfiguration(String ip, String port, SystemInfo systemInfo) {
+            this.ip = ip;
+            this.port = port;
+            this.systemInfo = systemInfo;
         }
 
         public PocNodeConfiguration(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.nodeId = buffer.getLong();
-            this.device = buffer.toString();
-            Map<String,Object> map = null;
-            try{
-                ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.remaining());
-                byteBuffer.put(buffer);
-                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
-                map = (Map<String,Object>) ois.readObject();
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
+
+            ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
+            try {
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                Object obj = ois.readObject();
+                if (obj instanceof SystemInfo) {
+                    this.systemInfo = (SystemInfo) obj;
+                } else {
+                    this.systemInfo = null;
+                }
+                bais.close();
                 ois.close();
-            }catch (Exception e){
-                Logger.logErrorMessage("poc node configuration transaction can't load configuration from byte", e);
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
             }
-            this.configuration = map;
         }
 
         public PocNodeConfiguration(JSONObject attachmentData) {
             super(attachmentData);
-            this.nodeId = (Long) attachmentData.get("nodeId");
-            this.device = (String) attachmentData.get("device");
-            this.configuration = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("configuration"));
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
+            this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
         }
 
         @Override
         int getMySize() {
-            try{
-                ByteArrayOutputStream bo = new ByteArrayOutputStream();
-                ObjectOutputStream os = new ObjectOutputStream(bo);
-                os.writeObject(configuration);
-                os.close();
-                return device.getBytes().length + bo.toByteArray().length;
-            }catch (Exception e){
-                Logger.logDebugMessage("configuration can't turn to byte in poc node configuration", e);
+
+            int sysSize = 0;
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(baos);
+                oos.writeObject(systemInfo);
+                oos.flush();
+                sysSize = baos.toByteArray().length;
+                baos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            return 8 + device.getBytes().length + (int)ObjectSizeCalculator.getObjectSize(configuration);
+
+            return ip.getBytes().length + port.getBytes().length + sysSize;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(nodeId);
-            buffer.put(device.getBytes());
-            try{
-                ByteArrayOutputStream bo = new ByteArrayOutputStream();
-                ObjectOutputStream os = new ObjectOutputStream(bo);
-                os.writeObject(configuration);
-                os.close();
-                buffer.put(ByteBuffer.wrap(bo.toByteArray()));
-            }catch (Exception e){
-                Logger.logDebugMessage("configuration can't turn to byte in poc node configuration", e);
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(baos);
+                oos.writeObject(systemInfo);
+                oos.flush();
+                buffer.put(baos.toByteArray());
+                baos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
         @Override
         void putMyJSON(JSONObject attachment) {
-            attachment.put("nodeId", nodeId);
-            attachment.put("device", device);
-            attachment.put("configuration", configuration);
+            attachment.put("ip", ip);
+            attachment.put("port", port);
+            attachment.put("systemInfo", systemInfo);
         }
 
         @Override

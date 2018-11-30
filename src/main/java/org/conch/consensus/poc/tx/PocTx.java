@@ -63,15 +63,6 @@ public abstract class PocTx extends TransactionType {
     private PocTx() {}
 
     public static final TransactionType POC_NODE_CONFIGURATION = new PocTx() {
-        @Override
-        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
-        }
 
         @Override
         public byte getSubtype() {
@@ -115,6 +106,8 @@ public abstract class PocTx extends TransactionType {
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
+
+            // TODO err, should be an X transaction ===> wolf
             long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
             account.frozenNQT(AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION, transaction.getId(), pocFee);
@@ -127,15 +120,6 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_WEIGHT = new PocTx() {
-        @Override
-        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
-        }
 
         @Override
         public byte getSubtype() {
@@ -193,6 +177,8 @@ public abstract class PocTx extends TransactionType {
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
+
+            // TODO err, should be an X transaction ===> wolf
             long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
             account.frozenNQT(AccountLedger.LedgerEvent.POC_WEIGHT, transaction.getId(), pocFee);
@@ -205,15 +191,6 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_ONLINE_RATE = new PocTx() {
-        @Override
-        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
-        }
 
         @Override
         public byte getSubtype() {
@@ -253,6 +230,8 @@ public abstract class PocTx extends TransactionType {
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
+
+            // TODO err, should be an X transaction ===> wolf
             long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
             account.frozenNQT(AccountLedger.LedgerEvent.POC_ONLINE_RATE, transaction.getId(), pocFee);
@@ -265,15 +244,6 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_BLOCKING_MISS = new PocTx() {
-        @Override
-        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
-        }
 
         @Override
         public byte getSubtype() {
@@ -313,6 +283,8 @@ public abstract class PocTx extends TransactionType {
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
+
+            // TODO err, should be an X transaction ===> wolf
             long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
             account.frozenNQT(AccountLedger.LedgerEvent.POC_BLOCKING_MISS, transaction.getId(), pocFee);
@@ -325,15 +297,6 @@ public abstract class PocTx extends TransactionType {
     };
 
     public static final TransactionType POC_BIFURACTION_OF_CONVERGENCE = new PocTx() {
-        @Override
-        public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-            return true;
-        }
-
-        @Override
-        public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
-        }
 
         @Override
         public byte getSubtype() {
@@ -373,6 +336,8 @@ public abstract class PocTx extends TransactionType {
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
+
+            // TODO err, should be an X transaction ===> wolf
             long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
             account.frozenNQT(AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE, transaction.getId(), pocFee);
@@ -384,9 +349,6 @@ public abstract class PocTx extends TransactionType {
         }
     };
 
-    public abstract boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount);
-    public abstract void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount);
-
     @Override
     final public byte getType() {
         return TransactionType.TYPE_POC;
@@ -394,12 +356,11 @@ public abstract class PocTx extends TransactionType {
 
     @Override
     public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        return attachmentApplyUnconfirmed(transaction, senderAccount);
+        return true;
     }
 
     @Override
     public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        attachmentUndoUnconfirmed(transaction, senderAccount);
     }
 
     @Override
