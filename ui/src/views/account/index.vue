@@ -242,8 +242,8 @@
         <!--view tranfer account dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
-                <button class="common_btn">重置Hub</button>
-                <button class="common_btn" @click="restartHub">重启Hub</button>
+                <button class="common_btn" @click="openAdminDialog('reset')">重置Hub</button>
+                <button class="common_btn" @click="openAdminDialog('restart')">重启Hub</button>
                 <h4 class="modal-title">
                     <span>Hub设置</span>
                 </h4>
@@ -254,7 +254,7 @@
                     <span>当前版本：</span>
                     <span>{{blockchainState.version}}</span>
                     <span v-if="isUpdate">发现新版本:{{latesetVersion}}</span>
-                    <span v-if="isUpdate" @click="updateHubVersion">点击更新</span>
+                    <span v-if="isUpdate" @click="openAdminDialog('update')">点击更新</span>
                 </div>
                 <el-form label-position="left" label-width="160px">
                     <el-form-item label="启动内网穿透服务:">
@@ -264,18 +264,18 @@
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
                     <el-form-item label="Sharder官网密码:">
-                        <el-input v-model="hubsetting.sharderPwd" :disabled="punchthroughDisabled"></el-input>
+                        <el-input v-model="hubsetting.sharderPwd" ></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务地址:">
+                    <el-form-item label="穿透服务地址:" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="punchthroughDisabled"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务端口:">
+                    <el-form-item label="穿透服务端口:" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="punchthroughDisabled"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务客户端秘钥:">
+                    <el-form-item label="穿透服务客户端秘钥:"  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="punchthroughDisabled"></el-input>
                     </el-form-item>
-                    <el-form-item label="公网地址:">
+                    <el-form-item label="公网地址:" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.publicAddress" :disabled="punchthroughDisabled"></el-input>
                     </el-form-item>
                     <el-form-item label="关联SS地址:">
@@ -284,14 +284,14 @@
                     <el-form-item label="是否开启挖矿:">
                         <el-checkbox v-model="hubsetting.isOpenMining">锻造以启用</el-checkbox>
                     </el-form-item>
-                    <el-form-item label="改绑助记词:">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    <el-form-item label="改绑助记词:" v-if="hubsetting.isOpenMining">
+                        <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item label="新密码:">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                        <el-input v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
                     <el-form-item label="确认新密码:">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                        <el-input v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
@@ -355,16 +355,19 @@
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
+        <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
+
 
     </div>
 </template>
 <script>
     import echarts from "echarts";
     import dialogCommon from "../dialog/dialog_common";
+    import adminPwd from "../dialog/adminPwd";
 
     export default {
         name: "Network",
-        components: {echarts,dialogCommon,
+        components: {echarts,dialogCommon,adminPwd,
             "masked-input": require("vue-masked-input").default},
         data () {
             return {
@@ -376,7 +379,7 @@
                 tradingInfoDialog: false,
                 userInfoDialog:false,
                 accountInfoDialog: false,
-
+                adminPasswordDialog:false,
 
                 ncryptedDisabled: true,
                 punchthroughDisabled: true,
@@ -408,10 +411,10 @@
                     password: ""
                 },
                 hubsetting: {
-                    openPunchthrough: false,
+                    openPunchthrough: true,
                     sharderAccount: '',
                     sharderPwd: '',
-                    address: '',
+                    address:'',
                     port: '',
                     clientSecretkey: '',
                     publicAddress: '',
@@ -459,18 +462,36 @@
                 pageSize:10,
 
                 latesetVersion:'',
-                isUpdate:false
+                isUpdate:false,
+
+                adminPasswordTitle:''
 
             };
         },
-        created: function () {
+        created(){
             const _this = this;
             _this.getAccount();
             _this.getAccountTransactionList();
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res;
             });
+            _this.$http.get('/sharder?requestType=getUserConfig',{
+                params:{
+                    random:new Date().getTime().toString()
+                }
+            }).then(res=>{
+                _this.hubsetting.address = res.data["sharder.NATServiceAddress"];
+                _this.hubsetting.port = res.data["sharder.NATServicePort"];
+                _this.hubsetting.clientSecretkey = res.data["sharder.NATClientKey"];
+                _this.hubsetting.publicAddress = res.data["sharder.myAddress"];
+                _this.hubsetting.SS_Address = res.data["sharder.HubBindAddress"];
 
+                console.log("hubsetting",_this.hubsetting);
+
+                console.log("userConfig", _this.userConfig);
+            }).catch(err=>{
+                console.log(err);
+            });
             _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res=>{
                 _this.latesetVersion = res.data.version;
 
@@ -549,12 +570,12 @@
             },
             handleCurrentChange(val) {
             },
-            updateHubVersion(){
+            updateHubVersion(adminPwd){
                 const _this = this;
                 this.$http.post('/sharder?requestType=upgradeClient', {
                     version: _this.latesetVersion,
                     restart:true,
-                    adminPassword:_this.secretPhrase
+                    adminPassword:adminPwd
                 }).then(res=>{
                     if(res.data.upgraded){
                         _this.$message.success('更新成功');
@@ -565,10 +586,21 @@
                     _this.$message.error(err);
                 });
             },
-            restartHub(){
+            restartHub(adminPwd){
+
                 const _this = this;
                 this.$http.post('/sharder?requestType=restart', {
-                    adminPassword:_this.secretPhrase
+                    adminPassword:adminPwd
+                }).then(res=>{
+                    _this.$message.success('请稍后再次打开页面');
+                }).catch(err=>{
+                });
+            },
+            resettingHub(adminPwd){
+                const _this = this;
+                this.$http.post('/sharder?requestType=reConfig', {
+                    adminPassword:adminPwd,
+                    restart:true
                 }).then(res=>{
                     _this.$message.success('请稍后再次打开页面');
                 }).catch(err=>{
@@ -666,8 +698,11 @@
                 this.tranferAccountsDialog = true;
             },
             openHubSettingDialog: function () {
-                this.$store.state.mask = true;
-                this.hubSettingDialog = true;
+                const _this = this;
+                _this.$store.state.mask = true;
+                _this.hubSettingDialog = true;
+                console.log(_this.hubsetting);
+
             },
             openTradingInfoDialog:function(trading){
                 this.trading = trading;
@@ -689,6 +724,23 @@
             openBlockInfoDialog:function(height){
                 this.height = height;
                 this.blockInfoDialog = true;
+            },
+            openAdminDialog:function(title){
+                const _this = this;
+                this.hubSettingDialog = false;
+                _this.adminPasswordTitle = title;
+                _this.adminPasswordDialog =true;
+            },
+            getAdminPassword:function(adminPwd){
+                const _this = this;
+                _this.adminPassword = adminPwd;
+                if(_this.adminPasswordTitle === 'reset'){
+                    _this.resettingHub(adminPwd);
+                }else if(_this.adminPasswordTitle === 'restart'){
+                    _this.restartHub(adminPwd);
+                }else if(_this.adminPasswordTitle === 'update'){
+                    _this.updateHubVersion(adminPwd);
+                }
             },
             closeDialog: function () {
                 this.$store.state.mask = false;
@@ -733,6 +785,7 @@
                 _this.tradingInfoDialog = false;
                 _this.accountInfoDialog = false;
                 _this.blockInfoDialog = false;
+                _this.adminPasswordDialog = false;
             },
             versionCompare(current, latest){
                 let currentPre = parseFloat(current);
@@ -765,7 +818,7 @@
                 },
                 deep: true
             },
-            hubsetting: {
+            /*hubsetting: {
                 handler(val, oldVal) {
                     const _this = this;
                     if (_this.hubsetting.openPunchthrough) {
@@ -781,7 +834,7 @@
                     }
                 },
                 deep: true
-            },
+            },*/
             // messageForm:{
             //     handler(val,oldVal){
             //         const _this = this;

@@ -548,6 +548,7 @@
             isClose(){
                 const _this = this;
                 _this.accountInfoDialog = false;
+                _this.adminPasswordDialog = false;
                 _this.blockInfoDialog = false;
                 _this.blockInfoHeight = -1;
                 _this.generatorRS = '';
