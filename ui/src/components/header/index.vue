@@ -39,14 +39,14 @@
                     </div>
                     <div class="navbar_pilotLamp">
 
-                        <el-tooltip class="item " content="无法确定挖矿状态，请指定管理员密码" @click="startForging(false)" placement="bottom" effect="light" v-if="typeof(secretPhrase) === 'undefined'">
-                            <div class="pilotLamp_circle unknownForging"></div>
+                        <el-tooltip class="item csp" content="无法确定挖矿状态，请指定管理员密码" placement="bottom" effect="light" v-if="typeof(secretPhrase) === 'undefined'">
+                            <div class="pilotLamp_circle unknownForging"  @click="startForging(false,'')"></div>
                         </el-tooltip>
                         <el-tooltip class="item" content="您不能挖矿，因为您的帐户还没有公钥。请完成一次交易或则使用密钥重新登录。" placement="bottom" effect="light" v-else-if="accountInfo.errorDescription === 'Unknown account'">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
-                        <el-tooltip class="item" content="未挖矿" placement="bottom" effect="light" @click="startForging(true)" v-else-if="forging.errorCode === 5">
-                            <div class="pilotLamp_circle notForging"></div>
+                        <el-tooltip class="item csp" content="未挖矿" placement="bottom" effect="light" v-else-if="forging.errorCode === 5">
+                            <div class="pilotLamp_circle notForging"  @click="startForging(true,'')"></div>
                         </el-tooltip>
                         <el-tooltip class="item" content="已启动" placement="bottom" effect="light" v-else-if="!forging.errorDescription">
                             <div class="pilotLamp_circle"></div>

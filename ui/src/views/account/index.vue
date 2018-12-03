@@ -243,7 +243,7 @@
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
                 <button class="common_btn">重置Hub</button>
-                <button class="common_btn">重启Hub</button>
+                <button class="common_btn" @click="restartHub">重启Hub</button>
                 <h4 class="modal-title">
                     <span>Hub设置</span>
                 </h4>
@@ -252,9 +252,9 @@
             <div class="modal-body">
                 <div class="version_info">
                     <span>当前版本：</span>
-                    <span>0.1.0</span>
-                    <span>发现新版本</span>
-                    <span>点击更新</span>
+                    <span>{{blockchainState.version}}</span>
+                    <span v-if="isUpdate">发现新版本:{{latesetVersion}}</span>
+                    <span v-if="isUpdate" @click="updateHubVersion">点击更新</span>
                 </div>
                 <el-form label-position="left" label-width="160px">
                     <el-form-item label="启动内网穿透服务:">
@@ -421,6 +421,7 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
+                blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     accountRS: SSO.accountRS,
                     publicKey: SSO.publicKey,
@@ -457,6 +458,8 @@
                 totalSize:0,
                 pageSize:10,
 
+                latesetVersion:'',
+                isUpdate:false
 
             };
         },
@@ -464,6 +467,22 @@
             const _this = this;
             _this.getAccount();
             _this.getAccountTransactionList();
+            _this.$global.setBlockchainState(_this).then(res=>{
+                _this.blockchainState = res;
+            });
+
+            _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res=>{
+                _this.latesetVersion = res.data.version;
+
+                let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
+
+                console.log("current version:",_this.blockchainState.version);
+                console.log("lateset version:",_this.latesetVersion);
+                console.log("bool:",bool);
+                _this.isUpdate = bool;
+            }).catch(err=>{
+                console.log(err);
+            });
         },
         methods: {
             drawBarchart: function () {
@@ -530,6 +549,31 @@
             },
             handleCurrentChange(val) {
             },
+            updateHubVersion(){
+                const _this = this;
+                this.$http.post('/sharder?requestType=upgradeClient', {
+                    version: _this.latesetVersion,
+                    restart:true,
+                    adminPassword:_this.secretPhrase
+                }).then(res=>{
+                    if(res.data.upgraded){
+                        _this.$message.success('更新成功');
+                    }else{
+                        _this.$message.error(res.data.error);
+                    }
+                }).catch(err=>{
+                    _this.$message.error(err);
+                });
+            },
+            restartHub(){
+                const _this = this;
+                this.$http.post('/sharder?requestType=restart', {
+                    adminPassword:_this.secretPhrase
+                }).then(res=>{
+                    _this.$message.success('请稍后再次打开页面');
+                }).catch(err=>{
+                });
+            },
             getAccount(){
                 const _this = this;
                 return new Promise((resolve, reject) => {
@@ -592,9 +636,7 @@
                             }
                         }
                     });
-
                 })
-
             },
             getAccountTransactionList:function(){
                 const _this = this;
@@ -691,6 +733,23 @@
                 _this.tradingInfoDialog = false;
                 _this.accountInfoDialog = false;
                 _this.blockInfoDialog = false;
+            },
+            versionCompare(current, latest){
+                let currentPre = parseFloat(current);
+                let latestPre = parseFloat(latest);
+                let currentNext =  current.replace(currentPre + ".","");
+                let latestpreNext =  latest.replace(latestPre + ".","");
+                if(currentPre > latestPre){
+                    return false;
+                }else if(currentPre < latestPre){
+                    return true;
+                }else{
+                    if(currentNext >= latestpreNext){
+                        return false;
+                    }else{
+                        return true;
+                    }
+                }
             }
         },
         watch: {
