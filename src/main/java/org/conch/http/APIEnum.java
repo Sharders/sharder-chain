@@ -308,7 +308,13 @@ public enum APIEnum {
     STOP_STORING("stopStoring", StopStoring.instance),
     STORE_DATA("storeData", StoreData.instance),
     GET_STORED_DATA("getStoredData", GetStoredData.instance), // get off-chain file content
-    DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance);// download off-chain file
+    DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance), // download off-chain file
+    // poc
+    POC_NODE_CONFIGURATION ("pocNodeConfiguration", SharderPocTx.NodeConfigurationTx.instance),
+    POC_WEIGHT ("pocWeight", SharderPocTx.WeightTx.instance),
+    POC_ONLINE_RATE("pocOnlineRate", SharderPocTx.OnlineRateTx.instance),
+    POC_BLOCKING_MISS("pocBlockingMiss", SharderPocTx.BlockingMissTx.instance),
+    POC_BIFURACTION_CONVERGENCE("pocBifuractionConvergence", SharderPocTx.BifuractionConvergenceTx.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 
