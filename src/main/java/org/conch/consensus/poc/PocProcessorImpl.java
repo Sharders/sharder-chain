@@ -89,6 +89,12 @@ public class PocProcessorImpl implements PocProcessor {
 
     private static Map<Long, Attachment.PocNodeConfiguration> accountConfigMap = new HashMap<>();
 
+    private static Map<Long, Attachment.PocOnlineRate> accountOnlineMap = new HashMap<>();
+
+    private static Map<Long, Attachment.PocBlockingMiss> accountBlockingMissMap = new HashMap<>();
+
+    private static Map<Long, Attachment.PocBifuractionOfConvergence> accountBocMap = new HashMap<>();
+
     private static Map<Long, BigInteger> accountScoreMap = new HashMap<>();
 
     public static PocProcessorImpl instance = getOrCreate();
@@ -112,7 +118,11 @@ public class PocProcessorImpl implements PocProcessor {
         BigInteger ssHold = BigInteger.valueOf(accountBalanceMap.get(account.getId()));
         Attachment.PocNodeConfiguration pocNodeConfiguration = accountConfigMap.get(account.getId());
         BigInteger ssScore = ssHold.multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
-//        scoreMap.put(account.getId(), new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort())); // TODO
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(ssScore));
+        } else {
+            accountScoreMap.put(account.getId(), ssScore);
+        }
         return BigInteger.ZERO;
     }
 
@@ -126,12 +136,20 @@ public class PocProcessorImpl implements PocProcessor {
     private static void scoreMapping(Block block){
         int height = block.getHeight();
         for (Transaction transaction: block.getTransactions()) {
+            Account account = Account.getAccount(transaction.getSenderId());
+            if (transaction.getAttachment() instanceof Attachment.PocOnlineRate) {
+                accountOnlineMap.put(account.getId(), (Attachment.PocOnlineRate) transaction.getAttachment());
+            }
+            if (transaction.getAttachment() instanceof Attachment.PocBlockingMiss) {
+                accountBlockingMissMap.put(account.getId(), (Attachment.PocBlockingMiss) transaction.getAttachment());
+            }
+            if (transaction.getAttachment() instanceof Attachment.PocBifuractionOfConvergence) {
+                accountBocMap.put(account.getId(), (Attachment.PocBifuractionOfConvergence) transaction.getAttachment());
+            }
             if (transaction.getAttachment() instanceof Attachment.PocNodeConfiguration) {
-                Account account = Account.getAccount(transaction.getSenderId());
                 Attachment.PocNodeConfiguration configuration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
                 accountBalanceMap.put(account.getId(), account.getBalanceNQT());
                 accountConfigMap.put(account.getId(), configuration);
-
                 PocProcessorImpl.getOrCreate().calPocScore(account, height);
             }
         }
