@@ -127,18 +127,5 @@ public class PocTemplate implements Serializable {
 
     }
 
-    private TypeState type;
-    private Boolean serveOpen;
-    private OnLineState onLineTime;
-    private DeviceConfig.DeviceState deviceState;
-    private NetState netState;
-    private TPPState tppState;
-    private BMState bmState;
-    private RBCState rbcState;
-    private BigInteger ssHold;
 
-    BigInteger turnScore (int score) {
-        BigInteger tScore = new BigInteger(score + "");
-        return tScore.multiply(new BigInteger("50000000"));
-    }
 }
