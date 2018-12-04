@@ -39,11 +39,17 @@
                     </div>
                     <div class="navbar_pilotLamp">
 
-                        <el-tooltip class="item csp" content="无法确定挖矿状态，请指定管理员密码" placement="bottom" effect="light" v-if="typeof(secretPhrase) === 'undefined'">
+                        <el-tooltip class="item" content="您不能挖矿，因为您的帐户还没有公钥。请完成一次交易或则使用密钥重新登录。" placement="bottom" effect="light" v-if="accountInfo.errorDescription === 'Unknown account'">
+                            <div class="pilotLamp_circle notForging"></div>
+                        </el-tooltip>
+                        <el-tooltip class="item" content="您的有效余额不足，不能挖矿。需要满足:有效余额经过10个区块确认并且至少达到1000SS。" placement="bottom" effect="light" v-else-if="accountInfo.effectiveBalanceSS === 0">
+                            <div class="pilotLamp_circle notForging"></div>
+                        </el-tooltip>
+                        <el-tooltip class="item csp" content="无法确定挖矿状态，请指定管理员密码" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) === 'undefined' && userConfig.SS_Address !== accountRS">
                             <div class="pilotLamp_circle unknownForging"  @click="startForging(false,'')"></div>
                         </el-tooltip>
-                        <el-tooltip class="item" content="您不能挖矿，因为您的帐户还没有公钥。请完成一次交易或则使用密钥重新登录。" placement="bottom" effect="light" v-else-if="accountInfo.errorDescription === 'Unknown account'">
-                            <div class="pilotLamp_circle notForging"></div>
+                        <el-tooltip class="item csp" content="不能拥有多个账户在同一节点挖矿,请使用关联账户重新登陆" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) !== 'undefined' && userConfig.SS_Address !== accountRS">
+                            <div class="pilotLamp_circle unknownForging"></div>
                         </el-tooltip>
                         <el-tooltip class="item csp" content="未挖矿" placement="bottom" effect="light" v-else-if="forging.errorCode === 5">
                             <div class="pilotLamp_circle notForging"  @click="startForging(true,'')"></div>
@@ -51,6 +57,7 @@
                         <el-tooltip class="item" content="已启动" placement="bottom" effect="light" v-else-if="!forging.errorDescription">
                             <div class="pilotLamp_circle"></div>
                         </el-tooltip>
+
                     </div>
                     <div class="navbar_exit">
                         <span class="csp" @click="exit"><a>退出</a></span>
@@ -111,6 +118,7 @@
                 accountRS:SSO.accountRS,
                 accountInfo:[],
                 forging:[],
+                userConfig:[],
                 search_val: "",
                 isSearch:false,
                 selectLan:'语言',
@@ -136,18 +144,23 @@
         created(){
             const _this = this;
             this.getData();
-            // this.$http.get("/sharder?requestType=getAccount",{
-            //     params: {
-            //         includeEffectiveBalance:true,
-            //         account:SSO.account
-            //     }
-            // }).then(res=>{
-            //     _this.accountInfo = res.data;
-            //     console.log("accountInfo",_this.accountInfo);
-            // }).catch(err=>{
-            //     _this.$message.error(err);
-            //     console.error(err);
-            // });
+            this.$http.get("/sharder?requestType=getAccount",{
+                params: {
+                    includeEffectiveBalance:true,
+                    account:SSO.account
+                }
+            }).then(res=>{
+                _this.accountInfo = res.data;
+                console.log("accountInfo",_this.accountInfo);
+            }).catch(err=>{
+                _this.$message.error(err);
+                console.error(err);
+            });
+            _this.$global.getUserConfig(_this).then(res=>{
+                _this.userConfig = res;
+            });
+
+
             this.$http.post("/sharder?requestType=getForging").then(res=>{
                 _this.forging = res.data;
                 console.log("forging",_this.forging);
@@ -155,6 +168,9 @@
                 _this.$message.error(err);
                 console.error(err);
             });
+
+            // console.log("accountInfo",accountInfo);
+
         },
         mounted(){
             setInterval(this.getData(),30000);
