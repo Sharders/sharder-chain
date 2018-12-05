@@ -401,7 +401,7 @@
                     isEncrypted: false,
                     hasPublicKey:false,
                     publicKey:"",
-                    file: "",
+                    file: [],
                     fee: 0,
                     password: ""
                 },
@@ -719,10 +719,37 @@
                     _this.$message.warning('接收者ID格式错误！');
                     return;
                 }
-                /*if(_this.messageForm.fee === 0){
-                    _this.$message.warning('接收者ID格式错误！');
-                }*/
-                _this.http.get('/sharder?requestType=getAccont',{
+                if(_this.messageForm.hasPublicKey){
+                    if(_this.messageForm.publicKey === ""){
+                        _this.$message.warning('必须输入接收者公钥。');
+                        return;
+                    }
+                }
+
+                if(typeof _this.secretPhrase === 'undefined'){
+                    if(_this.messageForm.password === ''){
+                        _this.$message.warning('必须输入私钥。');
+                        return;
+                    }
+                }else{
+                    _this.messageForm.password = _this.secretPhrase;
+                }
+
+                if(!_this.messageForm.isEncrypted){
+                    if(_this.messageForm.file === []){
+                        _this.sendNormalMessage();
+                    }else{
+
+                    }
+                }else{
+                    if(_this.messageForm.file === []){
+
+                    }else{
+
+                    }
+                }
+
+                /*_this.http.get('/sharder?requestType=getAccont',{
                     params:{
                         account:_this.messageForm.receiver
                     }
@@ -748,7 +775,32 @@
                             }
                         }
                     });
-                })
+                })*/
+            },
+            sendNormalMessage:function(){
+                const _this = this;
+                let params = new URLSearchParams();
+
+                params.append("recipient",_this.messageForm.receiver);
+                params.append("recipientPublickkey",_this.messageForm.publicKey);
+                params.append("meesage",_this.messageForm.message);
+                params.append("secretPhrase",_this.messageForm.password);
+                params.append("deadline",1440);
+                params.append("phased",false);
+                params.append("phasingHashedSecretAlgorithm",2);
+                params.append("messagelsText",false);
+                params.append("feeNQT",_this.messageForm.fee*100000000)
+
+                _this.$http.post('/sharder?requestType=sendMessage',params).then(res=>{
+                    if(typeof res.data.errorDescription !== 'undefined'){
+                        _this.$message.error(res.data.errorDescription);
+                    }else{
+                        _this.$message.success("发送成功！");
+                        _this.closeDialog();
+                    }
+                }).catch(err=>{
+                    _this.$message.error(err);
+                });
             },
             getAccountTransactionList:function(){
                 const _this = this;
@@ -958,9 +1010,13 @@
                             _this.$message.warning("接收者帐户是未知帐户，意味着它没有转入或转出的交易记录。您可以通过提供接收者的公钥来增加安全性。");
                         }else if(res.errorDescription === "Incorrect \"account\""){
                             _this.messageForm.errorCode = true;
+                            _this.messageForm.hasPublicKey = false;
                             _this.$message.warning("接收者的帐户格式不正确，请调整。");
                         }else if(typeof res.errorDescription === "undefined"){
                             _this.messageForm.errorCode = false;
+                            _this.messageForm.hasPublicKey = false;
+                            _this.messageForm.publicKey = res.publicKey;
+
                         }
                     });
                 }
