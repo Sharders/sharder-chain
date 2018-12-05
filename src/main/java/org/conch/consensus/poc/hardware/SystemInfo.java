@@ -8,13 +8,13 @@ package org.conch.consensus.poc.hardware;
  **/
 public class SystemInfo {
 
-    private int core;
+    private int core; // 几核
 
-    private int averageMHz;
+    private int averageMHz; // 平均兆赫
 
-    private int memoryTotal;
+    private int memoryTotal; // 内存大小 （单位G）
 
-    private int HardDiskSize;
+    private int HardDiskSize; // 硬盘大小 （单位G）
 
     public int getCore() {
         return core;

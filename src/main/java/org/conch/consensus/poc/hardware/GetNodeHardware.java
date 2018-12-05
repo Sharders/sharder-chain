@@ -57,7 +57,7 @@ public class GetNodeHardware {
                     break;
             }
         }
-        int hdTotal = (int)((double)ypTotal / (1024L * 1024L));
+        int hdTotal = (int)((double)ypTotal / 1024L);
         systemInfo.setHardDiskSize(hdTotal);
         return systemInfo;
     }
