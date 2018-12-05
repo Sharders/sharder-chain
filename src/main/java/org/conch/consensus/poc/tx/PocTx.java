@@ -143,9 +143,6 @@ public abstract class PocTx extends TransactionType {
             if (pocWeight.getNetworkWeight() == null) {
                 throw new ConchException.NotValidException("Invalid networkWeight: null");
             }
-            if (pocWeight.getNodeId() == null) {
-                throw new ConchException.NotValidException("Invalid nodeId: null");
-            }
             if (pocWeight.getNodeWeight() == null) {
                 throw new ConchException.NotValidException("Invalid nodeWeight: null");
             }
@@ -157,9 +154,6 @@ public abstract class PocTx extends TransactionType {
             }
             if (pocWeight.getTpWeight() == null) {
                 throw new ConchException.NotValidException("Invalid tpWeight: null");
-            }
-            if (StringUtils.isBlank(pocWeight.getDevice())) {
-                throw new ConchException.NotValidException("Invalid device: null or empty");
             }
         }
 
@@ -208,12 +202,7 @@ public abstract class PocTx extends TransactionType {
             if (pocOnlineRate == null) {
                 throw new ConchException.NotValidException("Invalid pocOnlineRate: null");
             }
-            if (pocOnlineRate.getNodeId() == null) {
-                throw new ConchException.NotValidException("Invalid nodeId: null");
-            }
-            if (StringUtils.isBlank(pocOnlineRate.getDevice())) {
-                throw new ConchException.NotValidException("Invalid device: null or empty");
-            }
+
         }
 
         @Override
@@ -260,12 +249,6 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
             if (pocBlockingMiss == null) {
                 throw new ConchException.NotValidException("Invalid pocBlockingMiss: null");
-            }
-            if (StringUtils.isBlank(pocBlockingMiss.getDevice())) {
-                throw new ConchException.NotValidException("Invalid device: null or empty");
-            }
-            if (pocBlockingMiss.getNodeId() == null) {
-                throw new ConchException.NotValidException("Invalid nodeId: null");
             }
         }
 
@@ -314,12 +297,7 @@ public abstract class PocTx extends TransactionType {
             if (pocBifuractionOfConvergence == null) {
                 throw new ConchException.NotValidException("Invalid pocBifuractionConvergence: null");
             }
-            if (StringUtils.isBlank(pocBifuractionOfConvergence.getDevice())) {
-                throw new ConchException.NotValidException("Invalid device: null or empty");
-            }
-            if (pocBifuractionOfConvergence.getNodeId() == null) {
-                throw new ConchException.NotValidException("Invalid nodeId: null");
-            }
+
         }
 
         @Override
