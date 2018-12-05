@@ -26,6 +26,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
@@ -810,6 +811,7 @@ public final class Peers {
 
     public static void init() {
         Init.init();
+        GetNodeHardware.readAndPush();
     }
 
     public static void shutdown() {

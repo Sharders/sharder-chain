@@ -60,8 +60,6 @@ import org.conch.storage.StorageBackup;
 import org.conch.storage.StorageManager;
 import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTxProcessorImpl;
-import org.conch.systemInfo.GetNodeHardware;
-import org.conch.systemInfo.SystemInfo;
 import org.conch.tx.*;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -92,8 +90,6 @@ public final class Conch {
     public static final String APPLICATION = "COS";
 
     private static volatile Time time = new Time.EpochTime();
-
-    public static final String SYSTEM_INFO_REPORT_URL = "http://192.168.31.5:8080/bounties/SC/report";
 
     public static final String CONCH_DEFAULT_PROPERTIES = "sharder-default.properties";
     public static final String CONCH_PROPERTIES = "sharder.properties";
@@ -216,23 +212,6 @@ public final class Conch {
 
         PresetParam.print();
         
-        //提交系统配置信息
-        SystemInfo systemInfo = new SystemInfo();
-        try {
-            GetNodeHardware.cpu(systemInfo);
-            GetNodeHardware.memory(systemInfo);
-            GetNodeHardware.file(systemInfo);
-            System.out.println(systemInfo.toString());
-            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
-//            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));
-            System.out.println("------------------------系统信息-------------------------");
-            System.out.println(systemInfo.getCore());
-            System.out.println(systemInfo.getAverageMHz());
-            System.out.println(systemInfo.getHardDiskSize());
-            System.out.println(systemInfo.getMemoryTotal());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 

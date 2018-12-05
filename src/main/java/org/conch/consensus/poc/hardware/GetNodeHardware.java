@@ -1,5 +1,6 @@
-package org.conch.systemInfo;
+package org.conch.consensus.poc.hardware;
 
+import org.conch.util.SendHttpRequest;
 import org.hyperic.sigar.*;
 
 /**
@@ -59,5 +60,26 @@ public class GetNodeHardware {
         int hdTotal = (int)((double)ypTotal / (1024L * 1024L));
         systemInfo.setHardDiskSize(hdTotal);
         return systemInfo;
+    }
+
+    public static final String SYSTEM_INFO_REPORT_URL = "http://192.168.31.5:8080/bounties/SC/report";
+    public static void readAndPush(){
+        //提交系统配置信息
+        SystemInfo systemInfo = new SystemInfo();
+        try {
+            cpu(systemInfo);
+            memory(systemInfo);
+            file(systemInfo);
+            System.out.println(systemInfo.toString());
+            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
+//            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));
+            System.out.println("------------------------系统信息-------------------------");
+            System.out.println(systemInfo.getCore());
+            System.out.println(systemInfo.getAverageMHz());
+            System.out.println(systemInfo.getHardDiskSize());
+            System.out.println(systemInfo.getMemoryTotal());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,4 +1,4 @@
-package org.conch.systemInfo;
+package org.conch.consensus.poc.hardware;
 
 /**
  * @ClassName SystemInfo
