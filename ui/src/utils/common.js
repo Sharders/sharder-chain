@@ -70,14 +70,20 @@ export default {
     },
     setEpochBeginning(t) {
         const _this = this;
-        t.$http.get("/sharder?requestType=getConstants").then(function (res) {
-            _this.epochBeginning = parseInt(res.data.epochBeginning);
+        return new Promise(function (resolve, reject) {
+            t.$http.get("/sharder?requestType=getConstants").then(function (res) {
+                _this.epochBeginning = parseInt(res.data.epochBeginning);
+                resolve(res.data.epochBeginning);
+            });
         });
     },
     myFormatTime(value, type) {
         const _this = this;
         let dataTime = "";
         let data = new Date();
+        if(typeof value === 'undefined')
+            value = "0";
+
         let date = parseInt(value + '000') + _this.epochBeginning;
         data.setTime(date);
         let year = data.getFullYear();

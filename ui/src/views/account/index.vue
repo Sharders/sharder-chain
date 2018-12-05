@@ -162,12 +162,13 @@
                                 <masked-input id="receiver" mask="AAA-****-****-****-*****" v-model="messageForm.receiver" />
                                 <img src="../../assets/account_directory.svg"/>
                             </el-form-item>
-                            <el-form-item label="秘钥" v-if="messageForm.hasPublicKey">
+                            <el-form-item label="接收者公钥" v-if="messageForm.hasPublicKey">
                                 <el-input v-model="messageForm.publicKey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item label="信息">
                                 <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
                                 <el-input
+                                    :disabled="messageForm.isFile"
                                     type="textarea"
                                     :autosize="{ minRows: 2, maxRows: 10}"
                                     resize="none"
@@ -176,16 +177,19 @@
                                 </el-input>
                             </el-form-item>
                             <el-form-item label="文件">
-                                <el-input placeholder="请选择文件" class="input-with-select" v-model="messageForm.file">
-                                    <el-button slot="append">浏览</el-button>
+                                <el-input placeholder="请选择文件" class="input-with-select" v-model="messageForm.file" :readonly="true">
+                                    <el-button slot="append" v-if="messageForm.file === ''">浏览</el-button>
+                                    <el-button slot="append" @click="delFile" v-else>删除</el-button>
                                 </el-input>
-                                <input id="file" ref="file" type="file" @change="fileChange"/>
+                                <input id="file" ref="file" type="file" @change="fileChange" v-if="messageForm.file === ''"/>
                             </el-form-item>
                             <el-form-item label="手续费">
-                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
-                                </el-slider>
+                                <!--<el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
+                                </el-slider>-->
+                                <el-input v-model="messageForm.fee" min="0" max="100000"></el-input>
+                                <label class="input_suffix">SS</label>
                             </el-form-item>
-                            <el-form-item label="秘钥" v-if="typeof secretPhrase === 'undefined'">
+                            <el-form-item label="私钥" v-if="typeof secretPhrase === 'undefined'">
                                 <el-input v-model="messageForm.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
@@ -211,12 +215,14 @@
                                 <img src="../../assets/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item label="数额">
-                                <el-input v-model="transfer.number"></el-input>
+                                <el-input v-model="transfer.number" type="number"></el-input>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="手续费">
-                                <el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
-                                </el-slider>
+                                <!--<el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
+                                </el-slider>-->
+                                <el-input v-model="transfer.fee"  min="0" max="100000"></el-input>
+                                <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="">
                                 <el-checkbox v-model="transfer.hasMessage">添加一条信息</el-checkbox>
@@ -400,15 +406,16 @@
                     message: "",
                     isEncrypted: false,
                     hasPublicKey:false,
+                    isFile:false,
                     publicKey:"",
-                    file: [],
-                    fee: 0,
+                    file:"",
+                    fee: 1,
                     password: ""
                 },
                 transfer: {
                     receiver: "",
                     number: 0,
-                    fee: 0,
+                    fee: 1,
                     hasMessage: false,
                     message: "",
                     isEncrypted: false,
@@ -474,7 +481,6 @@
             };
         },
         created(){
-            console.log("----------------------------------",$('#receiver'));
             const _this = this;
             _this.getAccount(_this.accountInfo.accountRS);
             _this.getAccountTransactionList();
@@ -736,13 +742,13 @@
                 }
 
                 if(!_this.messageForm.isEncrypted){
-                    if(_this.messageForm.file === []){
-                        // _this.sendNormalMessage();
+                    if(_this.messageForm.file === ""){
+                        _this.sendNormalMessage();
                     }else{
 
                     }
                 }else{
-                    if(_this.messageForm.file === []){
+                    if(_this.messageForm.file === ""){
 
                     }else{
 
@@ -777,7 +783,7 @@
                     });
                 })*/
             },
-            /*sendNormalMessage:function(){
+            sendNormalMessage:function(){
                 const _this = this;
                 let params = new URLSearchParams();
 
@@ -801,7 +807,7 @@
                 }).catch(err=>{
                     _this.$message.error(err);
                 });
-            },*/
+            },
             getAccountTransactionList:function(){
                 const _this = this;
                 // console.log("第"+i+"次");
@@ -911,17 +917,18 @@
 
                 });
             },
-
+            delFile:function(){
+                const _this = this;
+                $('#file').val("");
+                _this.messageForm.file = "";
+                _this.messageForm.isFile = false;
+            },
             fileChange: function (e) {
                 const _this = this;
-                _this.file = e.target.files[0].name;
-                console.log("file", _this.file);
-
-                _this.$message({
-                    showClose: true,
-                    message: _this.file,
-                    type: "success"
-                });
+                _this.messageForm.file = e.target.files[0].name;
+                console.log("file",$("#file"));
+                _this.messageForm.isFile = true;
+                _this.messageForm.message = "";
             },
             isClose:function () {
                 const _this = this;
@@ -972,11 +979,14 @@
                 deep: true
             },
             messageForm:{
-                handler(val,oldVal){
+                handler(val,oldVal) {
                     const _this = this;
-                    if(_this.messageForm.receiver !== ''){
-                        console.log("receiver",_this.messageForm.receiver);
+                    // console.log("messageForm", _this.messageForm);
+                    const pattern = /[1-9]?\d|100000/;
+                    if(!_this.messageForm.fee.match(pattern)){
+                        _this.messageForm.fee = 1;
                     }
+
                 },
                 deep:true
             },
@@ -991,7 +1001,6 @@
             this.drawYield();
             $('#receiver').on("blur",function() {
                 let receiver = _this.messageForm.receiver;
-                console.log(receiver);
                 if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if(!receiver.toUpperCase().match(pattern)){
@@ -1002,6 +1011,7 @@
                         _this.$message.warning("这是您的账户");
                         _this.messageForm.errorCode = true;
                     }
+
                     _this.getAccount(receiver).then(res=>{
                         console.log(res);
                         if(res.errorDescription === "Unknown account") {
@@ -1052,4 +1062,52 @@
             top: 40px;
         }
     }
+
+/*    .upload-demo{
+        border: 1px solid #ddd;
+        display: flex;
+        position: relative;
+        margin-left: 0;
+        margin-top: 30px;
+        height: 31px;
+        border-radius: 4px;
+        .el-upload--text{
+            .el-button--primary{
+                background-color: #493eda;
+            }
+            .el-button{
+                position: absolute;
+                right: -1px;
+                height: 30px;
+                border-radius: 0 4px 4px 0;
+                border: none;
+            }
+        }
+        .el-upload__tip{
+            margin-top: 0;
+            line-height: 30px;
+            padding-left: 20px;
+        }
+        .el-upload-list{
+            li.el-upload-list__item.is-ready {
+                margin-top: 0;
+                line-height: 30px;
+                &:first-child{
+                    margin: 0;
+                }
+                padding-left: 20px;
+                height: 30px;
+                .el-upload-list__item-name{
+                    height: 30px;
+                    line-height: 30px;
+                    &:hover{
+                        color: #493eda!important;
+                    }
+                    .el-icon-document{
+
+                    }
+                }
+            }
+        }
+    }*/
 </style>

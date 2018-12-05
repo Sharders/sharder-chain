@@ -61,9 +61,13 @@
                     // console.log("accountRS", SSO.accountRS);
                     // console.log("publicKey", SSO.publicKey);
                     // console.log("settings", SSO.settings);
-                    _this.$store.state.isLogin = true;
-                    _this.$router.push("/account");
-                    _this.$global.setEpochBeginning(_this);
+                    _this.$global.setEpochBeginning(_this).then(res=>{
+                        console.log("初试时间："+res);
+                        _this.$store.state.isLogin = true;
+                        _this.$router.push("/account");
+                    });
+
+
                 });
 
                 // if (this.type && $.trim(this.account)) {
