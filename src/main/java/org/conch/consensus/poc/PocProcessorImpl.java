@@ -81,8 +81,8 @@ public class PocProcessorImpl implements PocProcessor {
     public static final BigInteger BLOCKING_MISS_HIGH_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE);
 
     // POC分叉收敛惩罚分
-    public static final BigInteger BIFURCATION_CONVERGENCE_SLOW_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
-    public static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-6L).multiply(POINT_SYSTEM_CONVERSION_RATE);
+    public static final BigInteger BIFURCATION_CONVERGENCE_SLOW_SCORE = BigInteger.valueOf(-6L).multiply(POINT_SYSTEM_CONVERSION_RATE);
+    public static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
     public static final BigInteger BIFURCATION_CONVERGENCE_HARD_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
 
     private static Map<Long, Long> accountBalanceMap = new HashMap<>();
@@ -96,6 +96,8 @@ public class PocProcessorImpl implements PocProcessor {
     private static Map<Long, Attachment.PocBifuractionOfConvergence> accountBocMap = new HashMap<>();
 
     private static Map<Long, BigInteger> accountScoreMap = new HashMap<>();
+
+    private static Map<Long, Attachment.PocWeight> pocWeightMap = new HashMap<>();
 
     public static PocProcessorImpl instance = getOrCreate();
 
@@ -111,19 +113,176 @@ public class PocProcessorImpl implements PocProcessor {
         Conch.getBlockchainProcessor().addListener(PocProcessorImpl::scoreMapping, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
 
-    Map<Long, Attachment.PocWeight> scoreMap = new HashMap<>();
-
     @Override
     public BigInteger calPocScore(Account account,int height) {
-        BigInteger ssHold = BigInteger.valueOf(accountBalanceMap.get(account.getId()));
+
         Attachment.PocNodeConfiguration pocNodeConfiguration = accountConfigMap.get(account.getId());
+
+        // 节点类型得分
+        BigInteger nodeTypeScore = BigInteger.ZERO;
+        if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
+            nodeTypeScore = NODE_TYPE_FOUNDATION_SCORE;
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 2) {
+            nodeTypeScore = NODE_TYPE_COMMUNITY_SCORE;
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 3) {
+            nodeTypeScore = NODE_TYPE_HUB_SCORE;
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 4) {
+            nodeTypeScore = NODE_TYPE_BOX_SCORE;
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
+            nodeTypeScore = NODE_TYPE_COMMON_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(nodeTypeScore));
+        } else {
+            accountScoreMap.put(account.getId(), nodeTypeScore);
+        }
+
+        // SS持有得分
+        BigInteger ssHold = BigInteger.valueOf(accountBalanceMap.get(account.getId()));
         BigInteger ssScore = ssHold.multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
         if (accountScoreMap.containsKey(account.getId())) {
             accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(ssScore));
         } else {
             accountScoreMap.put(account.getId(), ssScore);
         }
-        return BigInteger.ZERO;
+
+        // 打开服务得分
+        BigInteger serverScore = BigInteger.ZERO;
+        if (pocNodeConfiguration.getDeviceInfo().isServerOpen()) {
+            serverScore = SERVER_OPEN_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(serverScore));
+        } else {
+            accountScoreMap.put(account.getId(), serverScore);
+        }
+
+        // 硬件配置得分
+        BigInteger hardwareScore = BigInteger.ZERO;
+        if (pocNodeConfiguration.getSystemInfo().getCore() >= 8 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3600 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 16 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
+            hardwareScore = HARDWARE_CONFIGURATION_HIGH_SCORE;
+        } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 4 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3100 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 8 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 1000) {
+            hardwareScore = HARDWARE_CONFIGURATION_MEDIUM_SCORE;
+        } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 2 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 2400 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 4 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 100) {
+            hardwareScore = HARDWARE_CONFIGURATION_LOW_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(hardwareScore));
+        } else {
+            accountScoreMap.put(account.getId(), hardwareScore);
+        }
+
+        // 网络配置得分
+        BigInteger networkScore = BigInteger.ZERO;
+        if (pocNodeConfiguration.getDeviceInfo().getHadPublicIp()) {
+            if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 10) {
+                networkScore = NETWORK_CONFIGURATION_HIGH_SCORE;
+            } else if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 5) {
+                networkScore = NETWORK_CONFIGURATION_MEDIUM_SCORE;
+            } else if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 1) {
+                networkScore = NETWORK_CONFIGURATION_LOW_SCORE;
+            }
+        } else {
+            networkScore = NETWORK_CONFIGURATION_POOR_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(networkScore));
+        } else {
+            accountScoreMap.put(account.getId(), networkScore);
+        }
+
+        // 交易处理性能得分
+        BigInteger tradeScore = BigInteger.ZERO;
+        if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 1000) {
+            tradeScore = TRADE_HANDLE_HIGH_SCORE;
+        } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 500) {
+            tradeScore = TRADE_HANDLE_MEDIUM_SCORE;
+        } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 300) {
+            tradeScore = TRADE_HANDLE_LOW_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(tradeScore));
+        } else {
+            accountScoreMap.put(account.getId(), tradeScore);
+        }
+
+        // 在线率奖惩得分
+        Attachment.PocOnlineRate pocOnlineRate = accountOnlineMap.get(account.getId());
+        BigInteger onlineRateScore = BigInteger.ZERO;
+        if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
+            if (pocOnlineRate.getNetworkRate() >= 9900 && pocOnlineRate.getNetworkRate() < 9999) { // 99% ~ 99.99%
+                onlineRateScore = FOUNDATION_ONLINE_RATE_GREATER99_LESS9999_SCORE;
+            } else if (pocOnlineRate.getNetworkRate() >= 9700 && pocOnlineRate.getNetworkRate() < 9900) { // 97% ~ 99%
+                onlineRateScore = FOUNDATION_ONLINE_RATE_GREATER97_LESS99_SCORE;
+            } else if (pocOnlineRate.getNetworkRate() < 9700) { // < 97%
+                onlineRateScore = FOUNDATION_ONLINE_RATE_LESS97_SCORE;
+            }
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 2) {
+            if (pocOnlineRate.getNetworkRate() >= 9700 && pocOnlineRate.getNetworkRate() < 9900) { // 97% ~ 99%
+                onlineRateScore = COMMUNITY_ONLINE_RATE_GREATER97_LESS99_SCORE;
+            } else if (pocOnlineRate.getNetworkRate() >= 9000 && pocOnlineRate.getNetworkRate() < 9700) { // 90% ~ 97%
+                onlineRateScore = COMMUNITY_ONLINE_RATE_GREATER90_LESS97_SCORE;
+            } else if (pocOnlineRate.getNetworkRate() < 9000) { // < 90%
+                onlineRateScore = COMMUNITY_ONLINE_RATE_LESS90_SCORE;
+            }
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 3 || pocNodeConfiguration.getDeviceInfo().getType() == 4) {
+            if (pocOnlineRate.getNetworkRate() >= 9900) { // > 99%
+                onlineRateScore = HUB_BOX_ONLINE_RATE_GREATER99_SCORE;
+            } else if (pocOnlineRate.getNetworkRate() >= 9700) { // > 97%
+                onlineRateScore = HUB_BOX_ONLINE_RATE_GREATER97_SCORE;
+            } else if (pocOnlineRate.getNetworkRate() < 9000) { // < 90%
+                onlineRateScore = HUB_BOX_ONLINE_RATE_LESS90_SCORE;
+            }
+        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
+            if (pocOnlineRate.getNetworkRate() >= 9700) { // > 97%
+                onlineRateScore = COMMON_ONLINE_RATE_GREATER97_SCORE;
+            }
+            if (pocOnlineRate.getNetworkRate() >= 9000) { // > 90%
+                onlineRateScore = COMMON_ONLINE_RATE_GREATER90_SCORE;
+            }
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(onlineRateScore));
+        } else {
+            accountScoreMap.put(account.getId(), onlineRateScore);
+        }
+
+        // 出块错过惩罚分
+        BigInteger blockingMissScore = BigInteger.ZERO;
+        Attachment.PocBlockingMiss pocBlockingMiss = accountBlockingMissMap.get(account.getId());
+        if (pocBlockingMiss.getMissLevel() == 1) {
+            blockingMissScore = BLOCKING_MISS_LOW_SCORE;
+        } else if (pocBlockingMiss.getMissLevel() == 2) {
+            blockingMissScore = BLOCKING_MISS_MEDIUM_SCORE;
+        } else if (pocBlockingMiss.getMissLevel() == 3) {
+            blockingMissScore = BLOCKING_MISS_HIGH_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(blockingMissScore));
+        } else {
+            accountScoreMap.put(account.getId(), blockingMissScore);
+        }
+
+        // 分叉收敛惩罚分
+        BigInteger bifuractionConvergenceScore = BigInteger.ZERO;
+        Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = accountBocMap.get(account.getId());
+        if (pocBifuractionOfConvergence.getSpeed() == 1) {
+            bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_HARD_SCORE;
+        } else if (pocBifuractionOfConvergence.getSpeed() == 2) {
+            bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_SLOW_SCORE;
+        } else if (pocBifuractionOfConvergence.getSpeed() == 3) {
+            bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_MEDIUM_SCORE;
+        }
+        if (accountScoreMap.containsKey(account.getId())) {
+            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(bifuractionConvergenceScore));
+        } else {
+            accountScoreMap.put(account.getId(), bifuractionConvergenceScore);
+        }
+
+        Attachment.PocWeight pocWeight = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
+        pocWeightMap.put(account.getId(), pocWeight);
+
+        return accountScoreMap.get(account.getId());
     }
 
     // Listener process

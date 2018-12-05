@@ -16,7 +16,7 @@ public class DeviceInfo implements Serializable {
 
     private static final long serialVersionUID = 6673192742052098044L;
 
-    private int type; // 节点类型
+    private int type; // 节点类型 (1-基金会节点; 2-社区节点; 3-Hub节点; 4-Box节点; 5-普通节点)
     private boolean serverOpen; // 服务是否开启
     private int tradePerformance; // 交易处理性能
     private Boolean hadPublicIp; // 是否有公网IP
