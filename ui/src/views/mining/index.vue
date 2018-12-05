@@ -467,38 +467,29 @@
             },
             account() {
                 let _this = this;
-                let platform = navigator.userAgent;
-                console.info(platform);
-                if (platform.indexOf("iPhone") !== -1 || platform.indexOf("Android") !== -1) {
-                    console.info("移动");
-                    let token = localStorage.getItem("MOBILE_ACCOUNT");
-                    if (token === null) {
-                        _this.$router.push({name: 'binding-account'});
-                        return false;
-                    }
-                }
-                return true;
+                _this.$global.fetch("POST", {
+                    shell: "account",
+                    token: window.token,
+                }, "authorizationLogin").then(value => {
+                    console.info(value);
+                    if (!value.success) return;
+                    Login.login(0, value.data.account, _this, function () {
+                        _this.$store.state.isLogin = true;
+                    });
+                });
             },
         },
         mounted: function () {
             let _this = this;
+
         },
         created: function () {
             let _this = this;
-            //先判断是否为手机端和授权状态
-            if (_this.account()) {
-                return;
+            if (!_this.$store.state.isLogin) {
+                window.token = window.location.search.substring(1 + "token".length);
+                console.info(token);
+                _this.account();
             }
-
-            console.info(_this);
-            // _this.$global.fetch("POST", {
-            //     // secretPhrase:"",
-            //     // publicKey:SSO.publicKey,
-            // }, "getPoolInfo").then(res => {
-            //     console.info(res);
-            // }).catch(error => {
-            //     console.info(error);
-            // });
 
         }
     }

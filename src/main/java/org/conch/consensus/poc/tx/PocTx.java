@@ -59,7 +59,6 @@ public abstract class PocTx extends TransactionType {
         }
     }
 
-
     private PocTx() {}
 
     public static final TransactionType POC_NODE_CONFIGURATION = new PocTx() {

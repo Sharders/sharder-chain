@@ -96,16 +96,7 @@
             return {
                 isAccount: false,
                 isBinding: false,
-                accountList: [
-                    {
-                        addr: "SSA-WHXU-6UB3-DB75-78GAT",
-                        TSS: 23450,
-                    },
-                    {
-                        addr: "SSA-WHXU-6UB3-DB75-78GAA",
-                        TSS: 23450,
-                    },
-                ],
+                accountList: [],
                 radio: '',
                 binding: "padding",
             }
@@ -125,27 +116,61 @@
                 _this.isBindingAccount('isAccount');
                 _this.isBindingAccount('isBinding');
 
-                //后台账户鉴权
-                setTimeout(function () {
-                    _this.binding = "success";
-
+                _this.$global.fetch("POST", {
+                    shell: "bindingAccount",
+                    token: window.token,
+                    account: _this.radio.addr,
+                }, "authorizationLogin").then(value => {
+                    // console.info(value.data);
+                    if (!value.success) return;
                     setTimeout(function () {
-                        _this.isBindingAccount('isBinding');
+                        _this.binding = "success";
+                        setTimeout(function () {
+                            _this.isBindingAccount('isBinding');
+                        }, 1000);
                     }, 1000);
-
-                }, 3000);
+                });
 
             },
-        }, watch: {
-            binding: function (val) {
-                let _this = this;
-                if (val = "success") {
-                    localStorage.setItem("MOBILE_ACCOUNT", JSON.stringify(_this.radio));
-                    setTimeout(function () {
-                        _this.$router.back();
-                    }, 1000);
+        },
+        mounted() {
+            let _this = this;
+            _this.$global.fetch("POST", {
+                shell: "getAccountList",
+                token: window.token,
+            }, "authorizationLogin").then(value => {
+                // console.info(value.data);
+                if (!value.success) return;
+
+                let keys = Object.keys(value.data);
+                let accountList = [];
+                for (let o of keys) {
+                    if (o.indexOf("[addr]") !== 1) {
+                        let a = o.substring("accountList[".length, o.lastIndexOf("][addr]"));
+                        if (/^[0-9]+$/.test(a)) {
+                            if (!accountList[a]) {
+                                accountList[a] = {};
+                            }
+                            accountList[a]["addr"] = value.data[o];
+                        }
+                    }
+                    if (o.indexOf("[TSS]") !== 1) {
+                        let a = o.substring("accountList[".length, o.lastIndexOf("][TSS]"));
+                        if (/^[0-9]+$/.test(a)) {
+                            if (!accountList[a]) {
+                                accountList[a] = {};
+                            }
+                            accountList[a]["TSS"] = value.data[o];
+                        }
+                    }
                 }
-            }
+                _this.accountList = accountList;
+            });
+        },
+        created() {
+            window.token = window.location.search.substring(1 + "token".length);
+            console.info(token);
+
         }
     }
 </script>
@@ -155,6 +180,22 @@
     }
 </style>
 <style scoped>
+    .img-close {
+        position: absolute;
+        float: right;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        right: 10px;
+        top: 10px;
+        cursor: pointer;
+        background: url("../../assets/error.svg") no-repeat center;
+    }
+
+    .img-close:hover {
+        opacity: 0.8;
+    }
+
     .binding-account .introduce {
         position: fixed;
         top: 0;

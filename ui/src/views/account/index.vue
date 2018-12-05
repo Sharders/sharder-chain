@@ -159,8 +159,11 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item label="接收者" class="item_receiver">
-                                <masked-input mask="AAA-****-****-****-*****"/>
+                                <masked-input id="receiver" mask="AAA-****-****-****-*****" v-model="messageForm.receiver" />
                                 <img src="../../assets/account_directory.svg"/>
+                            </el-form-item>
+                            <el-form-item label="秘钥" v-if="messageForm.hasPublicKey">
+                                <el-input v-model="messageForm.publicKey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item label="信息">
                                 <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
@@ -182,13 +185,13 @@
                                 <el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
                                 </el-slider>
                             </el-form-item>
-                            <el-form-item label="秘钥">
+                            <el-form-item label="秘钥" v-if="typeof secretPhrase === 'undefined'">
                                 <el-input v-model="messageForm.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" >发送信息</button>
+                        <button type="button" class="btn" @click="sendMessage">发送信息</button>
                     </div>
                 </div>
             </div>
@@ -234,7 +237,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendMessage">发送</button>
+                        <button type="button" class="btn" @click="">发送</button>
                     </div>
                 </div>
             </div>
@@ -242,8 +245,8 @@
         <!--view tranfer account dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
-                <button class="common_btn">重置Hub</button>
-                <button class="common_btn">重启Hub</button>
+                <button class="common_btn" @click="openAdminDialog('reset')">重置Hub</button>
+                <button class="common_btn" @click="openAdminDialog('restart')">重启Hub</button>
                 <h4 class="modal-title">
                     <span>Hub设置</span>
                 </h4>
@@ -252,9 +255,9 @@
             <div class="modal-body">
                 <div class="version_info">
                     <span>当前版本：</span>
-                    <span>0.1.0</span>
-                    <span>发现新版本</span>
-                    <span>点击更新</span>
+                    <span>{{blockchainState.version}}</span>
+                    <span v-if="isUpdate">发现新版本:{{latesetVersion}}</span>
+                    <span v-if="isUpdate" @click="openAdminDialog('update')">点击更新</span>
                 </div>
                 <el-form label-position="left" label-width="160px">
                     <el-form-item label="启动内网穿透服务:">
@@ -263,39 +266,39 @@
                     <el-form-item label="Sharder官网账户:">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
-                    <el-form-item label="Sharder官网密码:">
-                        <el-input v-model="hubsetting.sharderPwd" :disabled="punchthroughDisabled"></el-input>
+                    <el-form-item label="Sharder官网密码:" >
+                        <el-input v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务地址:">
-                        <el-input v-model="hubsetting.address" :disabled="punchthroughDisabled"></el-input>
+                    <el-form-item label="穿透服务地址:" v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务端口:">
-                        <el-input v-model="hubsetting.port" :disabled="punchthroughDisabled"></el-input>
+                    <el-form-item label="穿透服务端口:" v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务客户端秘钥:">
-                        <el-input v-model="hubsetting.clientSecretkey" :disabled="punchthroughDisabled"></el-input>
+                    <el-form-item label="穿透服务客户端秘钥:"  v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="公网地址:">
-                        <el-input v-model="hubsetting.publicAddress" :disabled="punchthroughDisabled"></el-input>
+                    <el-form-item label="公网地址:" v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.publicAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item label="关联SS地址:">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
                     </el-form-item>
                     <el-form-item label="是否开启挖矿:">
-                        <el-checkbox v-model="hubsetting.isOpenMining">锻造以启用</el-checkbox>
+                        <el-checkbox v-model="hubsetting.isOpenMining">锻造已启用</el-checkbox>
                     </el-form-item>
-                    <el-form-item label="改绑助记词:">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    <el-form-item label="改绑助记词:" v-if="hubsetting.isOpenMining">
+                        <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item label="新密码:">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                        <el-input v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
                     <el-form-item label="确认新密码:">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                        <el-input v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn">确认</button>
+                    <button class="common_btn" @click="openAdminDialog('reConfig')">确认</button>
                     <button class="common_btn" @click="closeDialog()">取消</button>
                 </div>
             </div>
@@ -355,16 +358,19 @@
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
+        <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
+
 
     </div>
 </template>
 <script>
     import echarts from "echarts";
     import dialogCommon from "../dialog/dialog_common";
+    import adminPwd from "../dialog/adminPwd";
 
     export default {
         name: "Network",
-        components: {echarts,dialogCommon,
+        components: {echarts,dialogCommon,adminPwd,
             "masked-input": require("vue-masked-input").default},
         data () {
             return {
@@ -376,10 +382,9 @@
                 tradingInfoDialog: false,
                 userInfoDialog:false,
                 accountInfoDialog: false,
-
+                adminPasswordDialog:false,
 
                 ncryptedDisabled: true,
-                punchthroughDisabled: true,
                 isShowName: true,
 
                 generatorRS:'',
@@ -389,11 +394,13 @@
                 height:'',
 
                 publicKey:SSO.publicKey,
-
                 messageForm: {
-                    receiver: "",
+                    errorCode:false,
+                    receiver: "SSA",
                     message: "",
                     isEncrypted: false,
+                    hasPublicKey:false,
+                    publicKey:"",
                     file: "",
                     fee: 0,
                     password: ""
@@ -408,10 +415,10 @@
                     password: ""
                 },
                 hubsetting: {
-                    openPunchthrough: false,
+                    openPunchthrough: true,
                     sharderAccount: '',
                     sharderPwd: '',
-                    address: '',
+                    address:'',
                     port: '',
                     clientSecretkey: '',
                     publicAddress: '',
@@ -421,6 +428,7 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
+                blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     accountRS: SSO.accountRS,
                     publicKey: SSO.publicKey,
@@ -457,13 +465,41 @@
                 totalSize:0,
                 pageSize:10,
 
+                latesetVersion:'',
+                isUpdate:false,
+
+                adminPasswordTitle:'',
+                params:[],
 
             };
         },
-        created: function () {
+        created(){
+            console.log("----------------------------------",$('#receiver'));
             const _this = this;
-            _this.getAccount();
+            _this.getAccount(_this.accountInfo.accountRS);
             _this.getAccountTransactionList();
+            _this.$global.setBlockchainState(_this).then(res=>{
+                _this.blockchainState = res;
+            });
+            _this.$global.getUserConfig(_this).then(res=>{
+                _this.hubsetting.address = res["sharder.NATServiceAddress"];
+                _this.hubsetting.port = res["sharder.NATServicePort"];
+                _this.hubsetting.clientSecretkey = res["sharder.NATClientKey"];
+                _this.hubsetting.publicAddress = res["sharder.myAddress"];
+                _this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
+            });
+            _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res=>{
+                _this.latesetVersion = res.data.version;
+
+                let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
+
+                console.log("current version:",_this.blockchainState.version);
+                console.log("lateset version:",_this.latesetVersion);
+                console.log("bool:",bool);
+                _this.isUpdate = bool;
+            }).catch(err=>{
+                console.log(err);
+            });
         },
         methods: {
             drawBarchart: function () {
@@ -526,16 +562,136 @@
                     yieldCurve.setOption(option, true);
                 }
             },
-            handleSizeChange(val) {
+            handleSizeChange(val) {},
+            handleCurrentChange(val) {},
+            updateHubVersion(adminPwd){
+                const _this = this;
+                this.$http.post('/sharder?requestType=upgradeClient', {
+                    version: _this.latesetVersion,
+                    restart: true,
+                    adminPassword: adminPwd
+                }).then(res => {
+                    if (res.data.upgraded) {
+                        _this.$message.success('更新成功');
+                    } else {
+                        _this.$message.error(res.data.error);
+                    }
+                }).catch(err => {
+                    _this.$message.error(err);
+                });
             },
-            handleCurrentChange(val) {
+            restartHub(adminPwd){
+                const _this = this;
+                this.$http.post('/sharder?requestType=restart', {
+                    adminPassword: adminPwd
+                }).then(res => {
+                    _this.$message.success('请稍后再次打开页面');
+                }).catch(err => {
+                    _this.$message.error(err);
+
+                });
             },
-            getAccount(){
+            resettingHub(adminPwd){
+                const _this = this;
+                this.$http.post('/sharder?requestType=recovery', {
+                    adminPassword: adminPwd,
+                    restart: true
+                }).then(res => {
+                    _this.$message.success('请稍后再次打开页面');
+                }).catch(err => {
+                    _this.$message.error(err);
+                });
+            },
+            updateHubSetting(adminPwd, params){
+                const _this = this;
+                params.append("adminPassword",adminPwd);
+                this.$http.post('/sharder?requestType=reConfig', params).then(res => {
+                    _this.$message.success('请稍后再次打开页面');
+                }).catch(err => {
+                    _this.$message.error(err);
+                });
+            },
+            verifyHubSettingInfo(){
+                const _this = this;
+                let params = new URLSearchParams();
+
+                if(_this.hubsetting.openPunchthrough){
+                    params.append("sharder.useNATService",true);
+                    if(_this.hubsetting.address === '' ||
+                        _this.hubsetting.port === '' ||
+                        _this.hubsetting.clientSecretkey === ''){
+                        if(_this.hubsetting.sharderPwd === '')
+                            _this.$message.error("请输入Sharder账号获取HUB配置信息");
+                        else
+                            _this.$message.error("请联系管理员获取Hub设置");
+                        return false;
+                    }else{
+                        params.append("sharder.NATServiceAddress",_this.hubsetting.address);
+                        params.append("sharder.NATServicePort",_this.hubsetting.port);
+                        params.append("sharder.NATClientKey",_this.hubsetting.clientSecretkey);
+                        params.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                    }
+                }else{
+                    params.append("sharder.useNATService",false);
+                }
+
+                if(_this.hubsetting.isOpenMining){
+                    params.append("sharder.HubBind",true);
+                    if(_this.hubsetting.SS_Address !== ''){
+                        const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                        if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
+                            _this.$message.warning('关联SS地址格式错误！');
+                            return false;
+                        }else{
+                            params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
+                            params.append("reBind",true);
+                        }
+                    }
+                    if(_this.hubsetting.modifyMnemonicWord !== '')
+                        params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
+                }else{
+                    params.append("sharder.HubBind",false);
+                    params.append("reBind",false);
+                }
+                params.append("restart",false);
+
+                if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
+                    if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
+                        _this.$message.warning("密码不一致！");
+                        return false;
+                    }else{
+                        params.append("newAdminPassword",_this.hubsetting.newPwd);
+                    }
+                }
+                return params;
+            },
+            checkSharder(){
+                const _this = this;
+                if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
+                    _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',{
+                        username:_this.hubsetting.sharderAccount,
+                        password:_this.hubsetting.sharderPwd
+                    }).then(res=>{
+                        if(res.data.status === 'seccess'){
+                            _this.hubsetting.address = res.data.data.natServiceAddress;
+                            _this.hubsetting.port = res.data.data.natServicePort;
+                            _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
+                            _this.hubsetting.publicAddress = res.data.data.hubAddress;
+                            _this.hubsetting.SS_Address = '';
+                        }else if(res.data.errorType === 'unifiedUserIsNull'){
+                            _this.$message.error(res.data.errorMessage);
+                        }else if(res.data.errorType === 'hubDirectoryIsNull'){
+                            _this.$message.error('暂无配置，请联系管理员');
+                        }
+                    })
+                }
+            },
+            getAccount(account){
                 const _this = this;
                 return new Promise((resolve, reject) => {
                     this.$http.get('/sharder?requestType=getAccount', {
                         params: {
-                            account: _this.accountInfo.accountRS,
+                            account: account,
                             includeLessors: true,
                             includeAssets: true,
                             includeEffectiveBalance: true,
@@ -563,15 +719,15 @@
                     _this.$message.warning('接收者ID格式错误！');
                     return;
                 }
-                if(_this.messageForm.fee === 0){
+                /*if(_this.messageForm.fee === 0){
                     _this.$message.warning('接收者ID格式错误！');
-                }
+                }*/
                 _this.http.get('/sharder?requestType=getAccont',{
                     params:{
                         account:_this.messageForm.receiver
                     }
                 }).then(res =>{
-                    _this.getAccount().then(res=>{
+                    _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                         if(res.balanceNQT < _this.messageForm.fee){
                             _this.$message.warning('账户余额不足,请先充值后再试！');
                         }else{
@@ -592,9 +748,7 @@
                             }
                         }
                     });
-
                 })
-
             },
             getAccountTransactionList:function(){
                 const _this = this;
@@ -614,7 +768,6 @@
                     console.log(err);
                 });
             },
-
             openSendMessageDialog: function () {
                 this.$store.state.mask = true;
                 this.sendMessageDialog = true;
@@ -624,8 +777,11 @@
                 this.tranferAccountsDialog = true;
             },
             openHubSettingDialog: function () {
-                this.$store.state.mask = true;
-                this.hubSettingDialog = true;
+                const _this = this;
+                _this.$store.state.mask = true;
+                _this.hubSettingDialog = true;
+                console.log(_this.hubsetting);
+
             },
             openTradingInfoDialog:function(trading){
                 this.trading = trading;
@@ -647,6 +803,35 @@
             openBlockInfoDialog:function(height){
                 this.height = height;
                 this.blockInfoDialog = true;
+            },
+            openAdminDialog:function(title){
+                const _this = this;
+                _this.adminPasswordTitle = title;
+
+                if(title === 'reConfig'){
+                    let info = _this.verifyHubSettingInfo();
+                    if(info === false){
+                        return;
+                    }else{
+                        _this.params = info;
+                    }
+                }
+                _this.hubSettingDialog = false;
+                _this.adminPasswordDialog =true;
+            },
+            getAdminPassword:function(adminPwd){
+                const _this = this;
+                _this.adminPassword = adminPwd;
+                _this.adminPasswordDialog =false;
+                if(_this.adminPasswordTitle === 'reset'){
+                    _this.resettingHub(adminPwd);
+                }else if(_this.adminPasswordTitle === 'restart'){
+                    _this.restartHub(adminPwd);
+                }else if(_this.adminPasswordTitle === 'update'){
+                    _this.updateHubVersion(adminPwd);
+                }else if(_this.adminPasswordTitle === 'reConfig'){
+                    _this.updateHubSetting(adminPwd,_this.params);
+                }
             },
             closeDialog: function () {
                 this.$store.state.mask = false;
@@ -691,6 +876,24 @@
                 _this.tradingInfoDialog = false;
                 _this.accountInfoDialog = false;
                 _this.blockInfoDialog = false;
+                _this.adminPasswordDialog = false;
+            },
+            versionCompare(current, latest){
+                let currentPre = parseFloat(current);
+                let latestPre = parseFloat(latest);
+                let currentNext =  current.replace(currentPre + ".","");
+                let latestpreNext =  latest.replace(latestPre + ".","");
+                if(currentPre > latestPre){
+                    return false;
+                }else if(currentPre < latestPre){
+                    return true;
+                }else{
+                    if(currentNext >= latestpreNext){
+                        return false;
+                    }else{
+                        return true;
+                    }
+                }
             }
         },
         watch: {
@@ -710,38 +913,62 @@
                 handler(val, oldVal) {
                     const _this = this;
                     if (_this.hubsetting.openPunchthrough) {
-                        _this.punchthroughDisabled = false;
-                    } else {
-                        _this.punchthroughDisabled = true;
-                        _this.hubsetting.sharderPwd = '';
-                        _this.hubsetting.address = '';
-                        _this.hubsetting.port = '';
-                        _this.hubsetting.clientSecretkey = '';
-                        _this.hubsetting.publicAddress = '';
-
+                        _this.checkSharder();
                     }
+
                 },
                 deep: true
             },
-            // messageForm:{
-            //     handler(val,oldVal){
-            //         const _this = this;
-            //         if(_this.message.receiver !== ''){
-            //
-            //         }
-            //     },
-            //     deep:true
-            // },
+            messageForm:{
+                handler(val,oldVal){
+                    const _this = this;
+                    if(_this.messageForm.receiver !== ''){
+                        console.log("receiver",_this.messageForm.receiver);
+                    }
+                },
+                deep:true
+            },
             selectType:function () {
                 const _this = this;
                 _this.getAccountTransactionList();
             }
         },
         mounted() {
+            const _this = this;
             this.drawBarchart();
             this.drawYield();
+            $('#receiver').on("blur",function() {
+                let receiver = _this.messageForm.receiver;
+                console.log(receiver);
+                if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
+                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                    if(!receiver.toUpperCase().match(pattern)){
+                        _this.$message.warning('接收者ID格式错误！');
+                        return;
+                    }
+                    if(receiver === _this.accountInfo.accountRS){
+                        _this.$message.warning("这是您的账户");
+                        _this.messageForm.errorCode = true;
+                    }
+                    _this.getAccount(receiver).then(res=>{
+                        console.log(res);
+                        if(res.errorDescription === "Unknown account") {
+                            _this.messageForm.hasPublicKey = true;
+                            _this.messageForm.errorCode = true;
+                            _this.$message.warning("接收者帐户是未知帐户，意味着它没有转入或转出的交易记录。您可以通过提供接收者的公钥来增加安全性。");
+                        }else if(res.errorDescription === "Incorrect \"account\""){
+                            _this.messageForm.errorCode = true;
+                            _this.$message.warning("接收者的帐户格式不正确，请调整。");
+                        }else if(typeof res.errorDescription === "undefined"){
+                            _this.messageForm.errorCode = false;
+                        }
+                    });
+                }
+            });
         },
     };
+
+
 </script>
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/

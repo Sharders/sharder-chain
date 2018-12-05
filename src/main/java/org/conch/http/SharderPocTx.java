@@ -1,0 +1,89 @@
+package org.conch.http;
+
+import org.conch.common.ConchException;
+import org.json.simple.JSONStreamAware;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**********************************************************************************
+ * @package org.conch.http
+ * @author Wolf Tian
+ * @email twenbin@sharder.org
+ * @company Sharder Foundation
+ * @website https://www.sharder.org/
+ * @creatAt 2018-Dec-03 15:03 Mon
+ * @tel 18716387615
+ * @comment
+ **********************************************************************************/
+public abstract class SharderPocTx {
+
+    public static final class NodeConfigurationTx extends CreateTransaction {
+
+        static final NodeConfigurationTx instance = new NodeConfigurationTx();
+
+        NodeConfigurationTx() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            return null;
+        }
+    }
+
+    public static final class WeightTx extends CreateTransaction {
+
+        static final WeightTx instance = new WeightTx();
+
+        WeightTx() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            return null;
+        }
+    }
+
+    public static final class OnlineRateTx extends CreateTransaction{
+
+        static final OnlineRateTx instance = new OnlineRateTx();
+
+        OnlineRateTx() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            return null;
+        }
+    }
+
+    public static final class BlockingMissTx extends CreateTransaction{
+
+        static final BlockingMissTx instance = new BlockingMissTx();
+
+        BlockingMissTx() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            return null;
+        }
+    }
+
+    public static final class BifuractionConvergenceTx extends CreateTransaction {
+
+        static final BifuractionConvergenceTx instance = new BifuractionConvergenceTx();
+
+        BifuractionConvergenceTx() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            return null;
+        }
+    }
+}

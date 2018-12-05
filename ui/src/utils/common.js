@@ -7,6 +7,7 @@ export default {
     isOpenConsole:false,
     blockchainState:[],
     peers:[],
+    userConfig:[],
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -116,8 +117,21 @@ export default {
         }
         return result;
     },
-
-
+    getUserConfig(t){
+        const _this = this;
+        return new Promise(function (resolve, reject) {
+            t.$http.get('/sharder?requestType=getUserConfig',{
+                params:{
+                    random:new Date().getTime().toString()
+                }
+            }).then(res=>{
+                _this.userConfig = res.data;
+                resolve(res.data);
+            }).catch(err=>{
+                console.log(err);
+            });
+        });
+    },
     addToConsole(url, type, data, response, error) {
         const _this = this;
         if(!_this.isOpenConsole || !_this.newConsole){
@@ -151,7 +165,6 @@ export default {
             }
         }
     },
-
     addToConsoleBody(text,type){
         const _this = this;
         let color = "";

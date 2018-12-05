@@ -4301,8 +4301,8 @@ public interface Attachment extends Appendix {
     }
 
     final class PocWeight extends AbstractAttachment {
-        private final Long nodeId;
-        private final String device; // 设备
+        private final String ip;
+        private final String port;
         private final BigInteger nodeWeight; // 节点类型 加权后的值
         private final BigInteger serverWeight; // 开启服务 加权后的值
         private final BigInteger configWeight; //硬件配置 加权后的值
@@ -4310,12 +4310,12 @@ public interface Attachment extends Appendix {
         private final BigInteger tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
         private final BigInteger ssHoldWeight; // SS持有量 加权后的值
 
-        public Long getNodeId() {
-            return nodeId;
+        public String getIp() {
+            return ip;
         }
 
-        public String getDevice() {
-            return device;
+        public String getPort() {
+            return port;
         }
 
         public BigInteger getNodeWeight() {
@@ -4342,9 +4342,9 @@ public interface Attachment extends Appendix {
             return ssHoldWeight;
         }
 
-        public PocWeight(Long nodeId, String device, BigInteger nodeWeight, BigInteger serverWeight, BigInteger configWeight, BigInteger networkWeight, BigInteger tpWeight, BigInteger ssHoldWeight) {
-            this.nodeId = nodeId;
-            this.device = device;
+        public PocWeight(String ip, String port, BigInteger nodeWeight, BigInteger serverWeight, BigInteger configWeight, BigInteger networkWeight, BigInteger tpWeight, BigInteger ssHoldWeight) {
+            this.ip = ip;
+            this.port = port;
             this.nodeWeight = nodeWeight;
             this.serverWeight = serverWeight;
             this.configWeight = configWeight;
@@ -4355,8 +4355,8 @@ public interface Attachment extends Appendix {
 
         public PocWeight(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.nodeId = buffer.getLong();
-            this.device = buffer.toString();
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
             this.nodeWeight = new BigInteger(buffer.array());
             this.serverWeight = new BigInteger(buffer.array());
             this.configWeight = new BigInteger(buffer.array());
@@ -4367,8 +4367,8 @@ public interface Attachment extends Appendix {
 
         public PocWeight(JSONObject attachmentData) {
             super(attachmentData);
-            this.nodeId = (Long) attachmentData.get("nodeId");
-            this.device = (String) attachmentData.get("device");
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
             this.nodeWeight = (BigInteger) attachmentData.get("nodeWeight");
             this.serverWeight = (BigInteger) attachmentData.get("serverWeight");
             this.configWeight = (BigInteger) attachmentData.get("configWeight");
@@ -4379,13 +4379,13 @@ public interface Attachment extends Appendix {
 
         @Override
         int getMySize() {
-            return 8 + nodeWeight.toByteArray().length + serverWeight.toByteArray().length + configWeight.toByteArray().length + networkWeight.toByteArray().length + tpWeight.toByteArray().length + ssHoldWeight.toByteArray().length + device.getBytes().length;
+            return ip.getBytes().length + port.getBytes().length + nodeWeight.toByteArray().length + serverWeight.toByteArray().length + configWeight.toByteArray().length + networkWeight.toByteArray().length + tpWeight.toByteArray().length + ssHoldWeight.toByteArray().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(nodeId);
-            buffer.put(device.getBytes());
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
             buffer.put(nodeWeight.toByteArray());
             buffer.put(serverWeight.toByteArray());
             buffer.put(configWeight.toByteArray());
@@ -4396,8 +4396,8 @@ public interface Attachment extends Appendix {
 
         @Override
         void putMyJSON(JSONObject attachment) {
-            attachment.put("nodeId", nodeId);
-            attachment.put("device", device);
+            attachment.put("ip", ip);
+            attachment.put("port", port);
             attachment.put("nodeWeight", nodeWeight);
             attachment.put("serverWeight", serverWeight);
             attachment.put("configWeight", configWeight);
@@ -4413,58 +4413,58 @@ public interface Attachment extends Appendix {
     }
 
     final class PocOnlineRate extends AbstractAttachment {
-        private final Long nodeId;
-        private final String device; // 设备
+        private final String ip;
+        private final String port;
         private final int networkRate; // 网络评级
 
-        public Long getNodeId() {
-            return nodeId;
+        public String getIp() {
+            return ip;
         }
 
-        public String getDevice() {
-            return device;
+        public String getPort() {
+            return port;
         }
 
         public int getNetworkRate() {
             return networkRate;
         }
 
-        public PocOnlineRate(Long nodeId, String device, int networkRate) {
-            this.nodeId = nodeId;
-            this.device = device;
+        public PocOnlineRate(String ip, String port, int networkRate) {
+            this.ip = ip;
+            this.port = port;
             this.networkRate = networkRate;
         }
 
         public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.nodeId = buffer.getLong();
-            this.device = buffer.toString();
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
             this.networkRate = buffer.getInt();
         }
 
         public PocOnlineRate(JSONObject attachmentData) {
             super(attachmentData);
-            this.nodeId = (Long) attachmentData.get("nodeId");
-            this.device = (String) attachmentData.get("device");
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
             this.networkRate = (int) attachmentData.get("networkRate");
         }
 
         @Override
         int getMySize() {
-            return 8 + 2 + device.getBytes().length;
+            return 2 + ip.getBytes().length + port.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(nodeId);
-            buffer.put(device.getBytes());
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
             buffer.putInt(networkRate);
         }
 
         @Override
         void putMyJSON(JSONObject attachment) {
-            attachment.put("nodeId", nodeId);
-            attachment.put("device", device);
+            attachment.put("ip", ip);
+            attachment.put("port", port);
             attachment.put("networkRate", networkRate);
         }
 
@@ -4475,58 +4475,58 @@ public interface Attachment extends Appendix {
     }
 
     final class PocBlockingMiss extends AbstractAttachment {
-        private final Long nodeId;
-        private final String device;
+        private final String ip;
+        private final String port;
         private final int missCount;
 
-        public Long getNodeId() {
-            return nodeId;
+        public String getIp() {
+            return ip;
         }
 
-        public String getDevice() {
-            return device;
+        public String getPort() {
+            return port;
         }
 
         public int getMissCount() {
             return missCount;
         }
 
-        public PocBlockingMiss(Long nodeId, String device, int missCount) {
-            this.nodeId = nodeId;
-            this.device = device;
+        public PocBlockingMiss(String ip, String port, int missCount) {
+            this.ip = ip;
+            this.port = port;
             this.missCount = missCount;
         }
 
         public PocBlockingMiss(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.nodeId = buffer.getLong();
-            this.device = buffer.toString();
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
             this.missCount = buffer.getInt();
         }
 
         public PocBlockingMiss(JSONObject attachmentData) {
             super(attachmentData);
-            this.nodeId = (Long) attachmentData.get("nodeId");
-            this.device = (String) attachmentData.get("device");
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
             this.missCount = (int) attachmentData.get("missCount");
         }
 
         @Override
         int getMySize() {
-            return 8 + 2 + device.getBytes().length;
+            return 2 + ip.getBytes().length + port.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(nodeId);
-            buffer.put(device.getBytes());
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
             buffer.putInt(missCount);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
-            json.put("nodeId", nodeId);
-            json.put("device", device);
+            json.put("ip", ip);
+            json.put("port", port);
             json.put("missCount", missCount);
         }
 
@@ -4537,58 +4537,58 @@ public interface Attachment extends Appendix {
     }
 
     final class PocBifuractionOfConvergence extends AbstractAttachment {
-        private final  Long nodeId;
-        private final String device;
+        private final String ip;
+        private final String port;
         private final int speed;
 
-        public Long getNodeId() {
-            return nodeId;
+        public String getIp() {
+            return ip;
         }
 
-        public String getDevice() {
-            return device;
+        public String getPort() {
+            return port;
         }
 
         public int getSpeed() {
             return speed;
         }
 
-        public PocBifuractionOfConvergence(Long nodeId, String device, int speed) {
-            this.nodeId = nodeId;
-            this.device = device;
+        public PocBifuractionOfConvergence(String ip, String port, int speed) {
+            this.ip = ip;
+            this.port = port;
             this.speed = speed;
         }
 
         public PocBifuractionOfConvergence(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.nodeId = buffer.getLong();
-            this.device = buffer.toString();
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
             this.speed = buffer.getInt();
         }
 
         public PocBifuractionOfConvergence(JSONObject attachmentData) {
             super(attachmentData);
-            this.nodeId = (Long) attachmentData.get("nodeId");
-            this.device = (String) attachmentData.get("device");
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
             this.speed = (int) attachmentData.get("speed");
         }
 
         @Override
         int getMySize() {
-            return 8 + 2 + device.getBytes().length;
+            return 2 + ip.getBytes().length + port.getBytes().length;
         }
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(nodeId);
-            buffer.put(device.getBytes());
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
             buffer.putInt(speed);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
-            json.put("nodeId", nodeId);
-            json.put("device", device);
+            json.put("ip", ip);
+            json.put("port", port);
             json.put("speed", speed);
         }
 

@@ -30,8 +30,8 @@
         data() {
             return {
                 tabTitle: "key",
-                secretPhrase: "many blend glass feet fragile drawn hey ready horse throat tide space",
-                account: "SSA-TPLD-BHYH-DF2B-GAU6P",
+                secretPhrase: "trail shape agree haunt distant attention perhaps skill admit deny week remind",
+                account: "SSA-ENRV-X8TW-UQND-AFA7W",
                 type: 1
             };
         },
