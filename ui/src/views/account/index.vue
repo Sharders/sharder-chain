@@ -737,7 +737,7 @@
 
                 if(!_this.messageForm.isEncrypted){
                     if(_this.messageForm.file === []){
-                        _this.sendNormalMessage();
+                        // _this.sendNormalMessage();
                     }else{
 
                     }
@@ -777,7 +777,7 @@
                     });
                 })*/
             },
-            sendNormalMessage:function(){
+            /*sendNormalMessage:function(){
                 const _this = this;
                 let params = new URLSearchParams();
 
@@ -785,11 +785,11 @@
                 params.append("recipientPublickkey",_this.messageForm.publicKey);
                 params.append("meesage",_this.messageForm.message);
                 params.append("secretPhrase",_this.messageForm.password);
-                params.append("deadline",1440);
+                params.append("deadline","1440");
                 params.append("phased",false);
-                params.append("phasingHashedSecretAlgorithm",2);
+                params.append("phasingHashedSecretAlgorithm","2");
                 params.append("messagelsText",false);
-                params.append("feeNQT",_this.messageForm.fee*100000000)
+                params.append("feeNQT",(_this.messageForm.fee*100000000).toString());
 
                 _this.$http.post('/sharder?requestType=sendMessage',params).then(res=>{
                     if(typeof res.data.errorDescription !== 'undefined'){
@@ -801,7 +801,7 @@
                 }).catch(err=>{
                     _this.$message.error(err);
                 });
-            },
+            },*/
             getAccountTransactionList:function(){
                 const _this = this;
                 // console.log("第"+i+"次");
