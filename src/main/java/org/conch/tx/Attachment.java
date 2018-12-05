@@ -28,6 +28,7 @@ import org.conch.asset.HoldingType;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.hardware.DeviceInfo;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTx;
 import org.conch.crypto.Crypto;
@@ -4200,6 +4201,7 @@ public interface Attachment extends Appendix {
         private final String ip;
         private final String port;
         private SystemInfo systemInfo;
+        private DeviceInfo deviceInfo;
 
         public String getIp() {
             return ip;
@@ -4213,10 +4215,15 @@ public interface Attachment extends Appendix {
             return systemInfo;
         }
 
-        public PocNodeConfiguration(String ip, String port, SystemInfo systemInfo) {
+        public DeviceInfo getDeviceInfo() {
+            return deviceInfo;
+        }
+
+        public PocNodeConfiguration(String ip, String port, SystemInfo systemInfo, DeviceInfo deviceInfo) {
             this.ip = ip;
             this.port = port;
             this.systemInfo = systemInfo;
+            this.deviceInfo = deviceInfo;
         }
 
         public PocNodeConfiguration(ByteBuffer buffer, byte transactionVersion) {
@@ -4233,6 +4240,11 @@ public interface Attachment extends Appendix {
                 } else {
                     this.systemInfo = null;
                 }
+                if (obj instanceof DeviceInfo) {
+                    this.deviceInfo = (DeviceInfo) obj;
+                } else {
+                    this.deviceInfo = null;
+                }
                 bais.close();
                 ois.close();
             } catch (IOException | ClassNotFoundException e) {
@@ -4245,6 +4257,7 @@ public interface Attachment extends Appendix {
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
+            this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
         }
 
         @Override
@@ -4265,7 +4278,22 @@ public interface Attachment extends Appendix {
                 e.printStackTrace();
             }
 
-            return ip.getBytes().length + port.getBytes().length + sysSize;
+            int deviceSize = 0;
+
+            ByteArrayOutputStream deviceBaos = new ByteArrayOutputStream();
+            ObjectOutputStream deviceOos;
+            try {
+                deviceOos = new ObjectOutputStream(deviceBaos);
+                deviceOos.writeObject(deviceInfo);
+                deviceOos.flush();
+                deviceSize = deviceBaos.toByteArray().length;
+                deviceBaos.close();
+                deviceOos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return ip.getBytes().length + port.getBytes().length + sysSize + deviceSize;
         }
 
         @Override
@@ -4285,6 +4313,19 @@ public interface Attachment extends Appendix {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            ByteArrayOutputStream deviceBaos = new ByteArrayOutputStream();
+            ObjectOutputStream deviceOos;
+            try {
+                deviceOos = new ObjectOutputStream(deviceBaos);
+                deviceOos.writeObject(deviceInfo);
+                deviceOos.flush();
+                buffer.put(deviceBaos.toByteArray());
+                deviceBaos.close();
+                deviceOos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -4292,6 +4333,7 @@ public interface Attachment extends Appendix {
             attachment.put("ip", ip);
             attachment.put("port", port);
             attachment.put("systemInfo", systemInfo);
+            attachment.put("deviceInfo", deviceInfo);
         }
 
         @Override
