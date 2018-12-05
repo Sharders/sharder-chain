@@ -983,7 +983,7 @@
                     const _this = this;
                     // console.log("messageForm", _this.messageForm);
                     const pattern = /[1-9]?\d|100000/;
-                    if(!_this.messageForm.fee.match(pattern)){
+                    if(!_this.messageForm.fee.toString().match(pattern)){
                         _this.messageForm.fee = 1;
                     }
 
