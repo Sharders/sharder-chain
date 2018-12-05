@@ -21,6 +21,7 @@
 
 package org.conch.peer;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
@@ -130,7 +131,7 @@ public final class Hallmark {
         this.hallmarkString = hallmarkString;
         URI uri = new URI("http://" + host);
         this.host = uri.getHost();
-        this.port = uri.getPort() == -1 ? Peers.getDefaultPeerPort() : uri.getPort();
+    this.port = uri.getPort() == -1 ? Conch.getPeerPort() : uri.getPort();
         this.publicKey = publicKey;
         this.accountId = Account.getId(publicKey);
         this.signature = signature;

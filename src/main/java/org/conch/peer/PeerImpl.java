@@ -325,7 +325,7 @@ final class PeerImpl implements Peer {
 
     @Override
     public int getPort() {
-        return port <= 0 ? Peers.getDefaultPeerPort() : port;
+        return port <= 0 ? Conch.getPeerPort() : port;
     }
 
     @Override
@@ -693,7 +693,7 @@ final class PeerImpl implements Peer {
                 }
 
                 if (announcedAddress == null) {
-                    if (hallmark == null || hallmark.getPort() == Peers.getDefaultPeerPort()) {
+                    if (hallmark == null || hallmark.getPort() == Conch.getPeerPort() ) {
                         Peers.setAnnouncedAddress(this, host);
                         Logger.logDebugMessage("Connected to peer without announced address, setting to " + host);
                     } else {
@@ -736,7 +736,7 @@ final class PeerImpl implements Peer {
         }
         try {
             URI uri = new URI("http://" + newAnnouncedAddress);
-            int announcedPort = uri.getPort() == -1 ? Peers.getDefaultPeerPort() : uri.getPort();
+            int announcedPort = uri.getPort() == -1 ? Conch.getPeerPort() : uri.getPort();
             if (hallmark != null && announcedPort != hallmark.getPort()) {
                 Logger.logDebugMessage("Announced port " + announcedPort + " does not match hallmark " + hallmark.getPort() + ", ignoring hallmark for " + host);
                 unsetHallmark();

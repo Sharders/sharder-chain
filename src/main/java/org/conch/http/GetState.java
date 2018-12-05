@@ -97,7 +97,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("maxMemory", Runtime.getRuntime().maxMemory());
         response.put("totalMemory", Runtime.getRuntime().totalMemory());
         response.put("freeMemory", Runtime.getRuntime().freeMemory());
-        response.put("peerPort", Peers.getDefaultPeerPort());
+        response.put("peerPort", Conch.getPeerPort());
         response.put("isOffline", Constants.isOffline);
         response.put("needsAdminPassword", !API.disableAdminPassword);
         InetAddress externalAddress = UPnP.getExternalAddress();

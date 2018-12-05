@@ -26,7 +26,6 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.HashFunction;
-import org.conch.http.API;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -219,7 +218,7 @@ public class MintWorker {
             HttpsURLConnection.setDefaultSSLSocketFactory(TrustAllSSLProvider.getSslSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier(TrustAllSSLProvider.getHostNameVerifier());
         }
-        int port = (Constants.isTestnetOrDevnet()) ? API.TESTNET_API_PORT : Conch.getIntProperty("sharder.apiServerPort");
+        int port = Conch.getApiPort();
         String urlParams = getUrlParams(params);
         URL url;
         try {

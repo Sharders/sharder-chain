@@ -23,6 +23,7 @@ package org.conch;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
 import org.conch.addons.AddOns;
 import org.conch.asset.Asset;
@@ -59,8 +60,6 @@ import org.conch.storage.StorageBackup;
 import org.conch.storage.StorageManager;
 import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTxProcessorImpl;
-import org.conch.systemInfo.GetNodeHardware;
-import org.conch.systemInfo.SystemInfo;
 import org.conch.tx.*;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -82,6 +81,7 @@ import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
@@ -91,19 +91,114 @@ public final class Conch {
 
     private static volatile Time time = new Time.EpochTime();
 
-    public static final String SYSTEM_INFO_REPORT_URL = "http://192.168.31.5:8080/bounties/SC/report";
-
     public static final String CONCH_DEFAULT_PROPERTIES = "sharder-default.properties";
     public static final String CONCH_PROPERTIES = "sharder.properties";
     public static final String CONFIG_DIR = "conf";
 
     private static final String myAddress;
-    private static final int TESTNET_PEER_PORT = 8218;
 
     private static final RuntimeMode runtimeMode;
     private static final DirProvider dirProvider;
 
     private static final Properties defaultProperties = new Properties();
+
+
+    /**
+     * Preset parameters
+     */
+    public static class PresetParam {
+        public static final int DEFAULT_PEER_PORT=3218;
+        public static final int DEFAULT_UI_SERVER_PORT=2875;
+        public static final int DEFAULT_API_PORT=8215;
+        public static final int DEFAULT_API_SSL_PORT=8217;
+        
+        public Constants.Network network;
+        public int peerPort;
+        public int uiServerPort;
+        public int apiPort;
+        public int apiSSLPort;
+
+        public PresetParam(Constants.Network network, int peerPort, int uiServerPort, int apiPort, int apiSSLPort) {
+            this.network = network;
+            this.peerPort = peerPort;
+            this.uiServerPort = uiServerPort;
+            this.apiPort = apiPort;
+            this.apiSSLPort = apiSSLPort;
+        }
+
+        private static Map<Constants.Network,PresetParam> presetMap = new ConcurrentHashMap<>();
+        static {
+            //preset params
+            presetMap.clear();
+            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET,9218,9875,9215,9217));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET,3218,2875,8215,8217));
+        }
+        
+        public static void print(){
+            if(presetMap == null || presetMap.size() == 0)  System.out.println("preset param map is null, nothing is preset!");
+
+            Set<Constants.Network> networkSet = presetMap.keySet();
+            System.out.println("preset param as following:");
+            for(Constants.Network network : networkSet){
+                System.out.println(presetMap.get(network).toString());
+            }
+        }
+        
+        public static int getPeerPort(Constants.Network network){
+            PresetParam presetParam = presetMap.get(network);
+            return presetParam == null ?  presetParam.peerPort : DEFAULT_PEER_PORT;
+        }
+        
+        public static int getUiPort(Constants.Network network){
+            PresetParam presetParam = presetMap.get(network);
+            return presetParam == null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
+        }
+        
+        public static int getApiPort(Constants.Network network){
+            PresetParam presetParam = presetMap.get(network);
+            return presetParam == null ?  presetParam.apiPort : DEFAULT_API_PORT;
+        }
+        
+        public static int getApiSSLPort(Constants.Network network){
+            PresetParam presetParam = presetMap.get(network);
+            return presetParam == null ?  presetParam.apiSSLPort : DEFAULT_API_SSL_PORT;
+        }
+        
+        @Override
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this);
+        }
+    }
+    
+    public static int getPeerPort(){
+        if(Constants.isDevnet()) return PresetParam.getPeerPort(Constants.Network.TESTNET);
+        if(Constants.isTestnet()) return PresetParam.getPeerPort(Constants.Network.DEVNET);
+        
+        return Conch.getIntProperty("sharder.peerServerPort");
+    }
+    
+    public static int getUiPort(){
+        if(Constants.isDevnet()) return PresetParam.getUiPort(Constants.Network.TESTNET);
+        if(Constants.isTestnet()) return PresetParam.getUiPort(Constants.Network.DEVNET);
+        
+        return Conch.getIntProperty("sharder.uiServerPort");
+    }
+    
+    public static int getApiPort(){
+        if(Constants.isDevnet()) return PresetParam.getApiPort(Constants.Network.TESTNET);
+        if(Constants.isTestnet()) return PresetParam.getApiPort(Constants.Network.DEVNET);
+        
+        return Conch.getIntProperty("sharder.apiServerPort");
+    }
+    
+    public static int getApiSSLPort(){
+        if(Constants.isDevnet()) return PresetParam.getApiSSLPort(Constants.Network.TESTNET);
+        if(Constants.isTestnet()) return PresetParam.getApiSSLPort(Constants.Network.DEVNET);
+        
+        return Conch.getIntProperty("sharder.apiServerSSLPort");
+    }
+
+
     static {
         redirectSystemStreams("out");
         redirectSystemStreams("err");
@@ -115,29 +210,10 @@ public final class Conch {
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(defaultProperties, CONCH_DEFAULT_PROPERTIES, true);
 
-        //提交系统配置信息
-        SystemInfo systemInfo = new SystemInfo();
-        try {
-            GetNodeHardware.cpu(systemInfo);
-            GetNodeHardware.memory(systemInfo);
-            GetNodeHardware.file(systemInfo);
-            System.out.println(systemInfo.toString());
-            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
-//            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));
-            System.out.println("------------------------系统信息-------------------------");
-            System.out.println(systemInfo.getCore());
-            System.out.println(systemInfo.getAverageMHz());
-            System.out.println(systemInfo.getHardDiskSize());
-            System.out.println(systemInfo.getMemoryTotal());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        PresetParam.print();
+        
     }
 
-
-    public static int getTestnetPeerPort(){
-        return TESTNET_PEER_PORT;
-    }
 
     public static String getMyAddress(){
         return myAddress;
@@ -179,8 +255,8 @@ public final class Conch {
         loadProperties(properties, CONCH_PROPERTIES, false);
 
         myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
-        if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet()) {
-            throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
+        if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
+            throw new RuntimeException("Port " + PresetParam.getPeerPort(Constants.Network.TESTNET) + " should only be used for testnet!!!");
         }
     }
 

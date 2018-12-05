@@ -22,8 +22,6 @@
 package org.conch.peer;
 
 import org.conch.Conch;
-import org.conch.common.Constants;
-import org.conch.http.API;
 import org.json.simple.JSONObject;
 
 /**
@@ -43,10 +41,7 @@ public final class PeerLoad {
     public PeerLoad(String host, int port, int load) {
         this.state = Peer.State.CONNECTED;
         this.host = host;
-        this.port =
-                (Constants.isTestnetOrDevnet())
-                        ? API.TESTNET_API_PORT
-                        : Conch.getIntProperty("sharder.apiServerPort");
+        this.port = Conch.getApiPort();
         this.uri = host == null ? null : "http://" + host + ":" + this.port;
         this.load = load;
         this.lastUpdate = System.currentTimeMillis();
