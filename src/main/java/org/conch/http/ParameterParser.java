@@ -31,6 +31,8 @@ import org.conch.asset.token.CurrencyBuyOffer;
 import org.conch.asset.token.CurrencySellOffer;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.hardware.DeviceInfo;
+import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.market.DigitalGoodsStore;
@@ -886,6 +888,28 @@ public final class ParameterParser {
     }
 
     private ParameterParser() {} // never
+
+    public static SystemInfo getSystemInfo(HttpServletRequest req) {
+        String systemInfoStr = Convert.emptyToNull(req.getParameter("systemInfo"));
+        try {
+            JSONObject json = (JSONObject) JSONValue.parseWithException(systemInfoStr);
+            return SystemInfo.newSystemInfo(json);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static DeviceInfo getDeviceInfo(HttpServletRequest req) {
+        String deviceInfoStr = Convert.emptyToNull(req.getParameter("deviceInfo"));
+        try {
+            JSONObject json = (JSONObject) JSONValue.parseWithException(deviceInfoStr);
+            return DeviceInfo.newDeviceInfo(json);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static class FileData {
         private final Part part;

@@ -1,5 +1,7 @@
 package org.conch.consensus.poc.hardware;
 
+import org.json.simple.JSONObject;
+
 import java.io.Serializable;
 
 /**********************************************************************************
@@ -19,8 +21,28 @@ public class DeviceInfo implements Serializable {
     private int type; // 节点类型 (1-基金会节点; 2-社区节点; 3-Hub节点; 4-Box节点; 5-普通节点)
     private boolean serverOpen; // 服务是否开启
     private int tradePerformance; // 交易处理性能
-    private Boolean hadPublicIp; // 是否有公网IP
+    private boolean hadPublicIp; // 是否有公网IP
     private int bandWidth; // 公网ip带宽（Mbps），如果没有公网ip，这个值就是0
+
+    public static DeviceInfo newDeviceInfo(JSONObject deviceInfoData) {
+        int type = (int) deviceInfoData.get("type");
+        boolean serverOpen = (boolean) deviceInfoData.get("serverOpen");
+        int tradePerformance = (int) deviceInfoData.get("tradePerformance");
+        boolean hadPublicIp = (boolean) deviceInfoData.get("hadPublicIp");
+        int bandWidth = (int) deviceInfoData.get("bandWidth");
+        return new DeviceInfo(type, serverOpen, tradePerformance, hadPublicIp, bandWidth);
+    }
+
+    public DeviceInfo() {
+    }
+
+    public DeviceInfo(int type, boolean serverOpen, int tradePerformance, boolean hadPublicIp, int bandWidth) {
+        this.type = type;
+        this.serverOpen = serverOpen;
+        this.tradePerformance = tradePerformance;
+        this.hadPublicIp = hadPublicIp;
+        this.bandWidth = bandWidth;
+    }
 
     public int getType() {
         return type;
@@ -46,11 +68,11 @@ public class DeviceInfo implements Serializable {
         this.tradePerformance = tradePerformance;
     }
 
-    public Boolean getHadPublicIp() {
+    public boolean getHadPublicIp() {
         return hadPublicIp;
     }
 
-    public void setHadPublicIp(Boolean hadPublicIp) {
+    public void setHadPublicIp(boolean hadPublicIp) {
         this.hadPublicIp = hadPublicIp;
     }
 

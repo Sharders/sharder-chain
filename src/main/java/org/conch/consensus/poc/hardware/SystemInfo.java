@@ -1,5 +1,7 @@
 package org.conch.consensus.poc.hardware;
 
+import org.json.simple.JSONObject;
+
 /**
  * @ClassName SystemInfo
  * @Description  系统信息对象
@@ -14,7 +16,17 @@ public class SystemInfo {
 
     private int memoryTotal; // 内存大小 （单位G）
 
-    private int HardDiskSize; // 硬盘大小 （单位G）
+    private int hardDiskSize; // 硬盘大小 （单位G）
+
+    public SystemInfo() {
+    }
+
+    public SystemInfo(int core, int averageMHz, int memoryTotal, int hardDiskSize) {
+        this.core = core;
+        this.averageMHz = averageMHz;
+        this.memoryTotal = memoryTotal;
+        this.hardDiskSize = hardDiskSize;
+    }
 
     public int getCore() {
         return core;
@@ -41,11 +53,19 @@ public class SystemInfo {
     }
 
     public int getHardDiskSize() {
-        return HardDiskSize;
+        return hardDiskSize;
     }
 
     public void setHardDiskSize(int hardDiskSize) {
-        HardDiskSize = hardDiskSize;
+        this.hardDiskSize = hardDiskSize;
+    }
+
+    public static SystemInfo newSystemInfo(JSONObject systemInfoData) {
+        int core = (int) systemInfoData.get("core");
+        int averageMHz = (int) systemInfoData.get("averageMHz");
+        int memoryTotal = (int) systemInfoData.get("memoryTotal");
+        int hardDiskSize = (int) systemInfoData.get("hardDiskSize");
+        return new SystemInfo(core, averageMHz, memoryTotal, hardDiskSize);
     }
 
     @Override
@@ -54,7 +74,7 @@ public class SystemInfo {
                 "core=" + core +
                 ", averageMHz=" + averageMHz +
                 ", memoryTotal=" + memoryTotal +
-                ", HardDiskSize=" + HardDiskSize +
+                ", hardDiskSize=" + hardDiskSize +
                 '}';
     }
 }
