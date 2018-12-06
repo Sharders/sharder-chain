@@ -1,5 +1,6 @@
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.json.simple.JSONStreamAware;
 
@@ -22,11 +23,13 @@ public abstract class SharderPocTx {
         static final NodeConfigurationTx instance = new NodeConfigurationTx();
 
         NodeConfigurationTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "systemInfo", "deviceInfo");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            Account account = ParameterParser.getSenderAccount(request);
+
             return null;
         }
     }
@@ -36,11 +39,13 @@ public abstract class SharderPocTx {
         static final WeightTx instance = new WeightTx();
 
         WeightTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "nodeWeight", "serverWeight", "configWeight", "networkWeight", "tpWeight", "ssHoldWeight", "blockingMissWeight", "bifuractionConvergenceWeight", "onlineRateWeight");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            Account account = ParameterParser.getSenderAccount(request);
+
             return null;
         }
     }
@@ -50,11 +55,13 @@ public abstract class SharderPocTx {
         static final OnlineRateTx instance = new OnlineRateTx();
 
         OnlineRateTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "networkRate");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            Account account = ParameterParser.getSenderAccount(request);
+
             return null;
         }
     }
@@ -64,11 +71,13 @@ public abstract class SharderPocTx {
         static final BlockingMissTx instance = new BlockingMissTx();
 
         BlockingMissTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "missLevel");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            Account account = ParameterParser.getSenderAccount(request);
+
             return null;
         }
     }
@@ -78,11 +87,13 @@ public abstract class SharderPocTx {
         static final BifuractionConvergenceTx instance = new BifuractionConvergenceTx();
 
         BifuractionConvergenceTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "speed");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            Account account = ParameterParser.getSenderAccount(request);
+            
             return null;
         }
     }
