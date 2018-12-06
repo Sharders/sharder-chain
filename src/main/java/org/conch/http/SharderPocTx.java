@@ -2,13 +2,11 @@ package org.conch.http;
 
 import org.conch.account.Account;
 import org.conch.common.ConchException;
-import org.conch.consensus.poc.hardware.DeviceInfo;
-import org.conch.consensus.poc.hardware.SystemInfo;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.tx.Attachment;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigInteger;
 
 /**********************************************************************************
  * @package org.conch.http
@@ -27,7 +25,7 @@ public abstract class SharderPocTx {
         static final NodeConfigurationTx instance = new NodeConfigurationTx();
 
         NodeConfigurationTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "systemInfo", "deviceInfo");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
@@ -35,9 +33,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            SystemInfo systemInfo = ParameterParser.getSystemInfo(request);
-            DeviceInfo deviceInfo = ParameterParser.getDeviceInfo(request);
-            Attachment attachment = new Attachment.PocNodeConfiguration(ip, port, systemInfo, deviceInfo);
+            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -47,7 +43,7 @@ public abstract class SharderPocTx {
         static final WeightTx instance = new WeightTx();
 
         WeightTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "nodeWeight", "serverWeight", "configWeight", "networkWeight", "tpWeight", "ssHoldWeight", "blockingMissWeight", "bifuractionConvergenceWeight", "onlineRateWeight");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
@@ -55,15 +51,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            BigInteger nodeWeight = BigInteger.valueOf(ParameterParser.getLong(request, "nodeWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger serverWeight = BigInteger.valueOf(ParameterParser.getLong(request, "serverWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger configWeight = BigInteger.valueOf(ParameterParser.getLong(request, "configWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger tpWeight = BigInteger.valueOf(ParameterParser.getLong(request, "tpWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger ssHoldWeight = BigInteger.valueOf(ParameterParser.getLong(request, "ssHoldWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger blockingMissWeight = BigInteger.valueOf(ParameterParser.getLong(request, "blockingMissWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger bifuractionConvergenceWeight = BigInteger.valueOf(ParameterParser.getLong(request, "bifuractionConvergenceWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            BigInteger onlineRateWeight = BigInteger.valueOf(ParameterParser.getLong(request, "onlineRateWeight", Long.MIN_VALUE, Long.MAX_VALUE, true));
-            Attachment attachment = new Attachment.PocWeight(ip, port, nodeWeight, serverWeight, configWeight, nodeWeight, tpWeight, ssHoldWeight, blockingMissWeight, bifuractionConvergenceWeight, onlineRateWeight);
+            Attachment attachment = PocProcessorImpl.getPocWeight(ip, port);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -73,7 +61,7 @@ public abstract class SharderPocTx {
         static final OnlineRateTx instance = new OnlineRateTx();
 
         OnlineRateTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "networkRate");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
@@ -81,8 +69,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            int networkRate = ParameterParser.getInt(request, "networkRate", 0, Integer.MAX_VALUE, true);
-            Attachment attachment = new Attachment.PocOnlineRate(ip, port, networkRate);
+            Attachment attachment = PocProcessorImpl.getPocOnlineRate(ip, port);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -92,7 +79,7 @@ public abstract class SharderPocTx {
         static final BlockingMissTx instance = new BlockingMissTx();
 
         BlockingMissTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "missLevel");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
@@ -100,8 +87,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            int missLevel = ParameterParser.getInt(request, "missLevel", 0, Integer.MAX_VALUE, true);
-            Attachment attachment = new Attachment.PocBlockingMiss(ip, port, missLevel);
+            Attachment attachment = PocProcessorImpl.getPocBlockingMiss(ip, port);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -111,7 +97,7 @@ public abstract class SharderPocTx {
         static final BifuractionConvergenceTx instance = new BifuractionConvergenceTx();
 
         BifuractionConvergenceTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port", "speed");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
@@ -119,8 +105,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            int speed = ParameterParser.getInt(request, "speed", 0, Integer.MAX_VALUE, true);
-            Attachment attachment = new Attachment.PocBifuractionOfConvergence(ip, port, speed);
+            Attachment attachment = PocProcessorImpl.getPocBOC(ip, port);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }

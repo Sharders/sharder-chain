@@ -21,7 +21,6 @@
 
 package org.conch.consensus.poc.tx;
 
-import org.apache.commons.lang3.StringUtils;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.BlockchainImpl;

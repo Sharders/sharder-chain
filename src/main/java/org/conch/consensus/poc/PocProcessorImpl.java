@@ -17,6 +17,8 @@ import java.util.Map;
  */
 public class PocProcessorImpl implements PocProcessor {
 
+    public static final String COLON = ":";
+
     // 分制转换率，将10分制 转为 500000000分制（SS总发行量 5亿）， 所以转换率是50000000
     private static final BigInteger POINT_SYSTEM_CONVERSION_RATE = BigInteger.valueOf(50000000L);
 
@@ -85,19 +87,21 @@ public class PocProcessorImpl implements PocProcessor {
     private static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
     private static final BigInteger BIFURCATION_CONVERGENCE_HARD_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
 
-    private static Map<Long, Long> accountBalanceMap = new HashMap<>();
+    private static final Map<Long, Long> accountBalanceMap = new HashMap<>();
 
-    private static Map<Long, Attachment.PocNodeConfiguration> accountConfigMap = new HashMap<>();
+    private static final Map<Integer, Map<Long, BigInteger>> accountScoreMap = new HashMap<>();
 
-    private static Map<Long, Attachment.PocOnlineRate> accountOnlineMap = new HashMap<>();
+    private static final Map<String, Attachment.PocNodeConfiguration> pocConfigMap = new HashMap<>();
 
-    private static Map<Long, Attachment.PocBlockingMiss> accountBlockingMissMap = new HashMap<>();
+    private static final Map<String, Attachment.PocWeight> pocWeightMap = new HashMap<>();
 
-    private static Map<Long, Attachment.PocBifuractionOfConvergence> accountBocMap = new HashMap<>();
+    private static final Map<String, Attachment.PocBlockingMiss> pocBlockingMissMap = new HashMap<>();
 
-    private static Map<Long, Attachment.PocWeight> pocWeightMap = new HashMap<>();
+    private static final Map<String, Attachment.PocBifuractionOfConvergence> pocBifuractionOfConvergenceMap = new HashMap<>();
 
-    private static Map<Integer, Map<Long, BigInteger>> accountScoreMap = new HashMap<>();
+    private static final Map<String, Attachment.PocOnlineRate> pocOnlineRateMap = new HashMap<>();
+
+    private static final Map<Long, String> accountNodeMap = new HashMap<>();
 
     public static PocProcessorImpl instance = getOrCreate();
 
@@ -114,9 +118,11 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     @Override
-    public BigInteger calPocScore(Account account,int height) {
+    public BigInteger calPocScore(Account account, int height) {
 
-        Attachment.PocNodeConfiguration pocNodeConfiguration = accountConfigMap.get(account.getId());
+        String node = accountNodeMap.get(account.getId());
+
+        Attachment.PocNodeConfiguration pocNodeConfiguration = pocConfigMap.get(node);
 
         // 节点类型得分
         BigInteger nodeTypeScore = BigInteger.ZERO;
@@ -177,7 +183,7 @@ public class PocProcessorImpl implements PocProcessor {
         }
 
         // 在线率奖惩得分
-        Attachment.PocOnlineRate pocOnlineRate = accountOnlineMap.get(account.getId());
+        Attachment.PocOnlineRate pocOnlineRate = pocOnlineRateMap.get(node);
         BigInteger onlineRateScore = BigInteger.ZERO;
         if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
             if (pocOnlineRate.getNetworkRate() >= 9900 && pocOnlineRate.getNetworkRate() < 9999) { // 99% ~ 99.99%
@@ -214,7 +220,7 @@ public class PocProcessorImpl implements PocProcessor {
 
         // 出块错过惩罚分
         BigInteger blockingMissScore = BigInteger.ZERO;
-        Attachment.PocBlockingMiss pocBlockingMiss = accountBlockingMissMap.get(account.getId());
+        Attachment.PocBlockingMiss pocBlockingMiss = pocBlockingMissMap.get(node);
         if (pocBlockingMiss.getMissLevel() == 1) {
             blockingMissScore = BLOCKING_MISS_LOW_SCORE;
         } else if (pocBlockingMiss.getMissLevel() == 2) {
@@ -225,7 +231,7 @@ public class PocProcessorImpl implements PocProcessor {
 
         // 分叉收敛惩罚分
         BigInteger bifuractionConvergenceScore = BigInteger.ZERO;
-        Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = accountBocMap.get(account.getId());
+        Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = pocBifuractionOfConvergenceMap.get(node);
         if (pocBifuractionOfConvergence.getSpeed() == 1) {
             bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_HARD_SCORE;
         } else if (pocBifuractionOfConvergence.getSpeed() == 2) {
@@ -235,7 +241,7 @@ public class PocProcessorImpl implements PocProcessor {
         }
 
         Attachment.PocWeight pocWeight = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
-        pocWeightMap.put(account.getId(), pocWeight);
+        pocWeightMap.put(node, pocWeight);
 
         BigInteger totalScore =  nodeTypeScore.add(serverScore).add(hardwareScore).add(networkScore).add(tradeScore).add(ssScore).add(blockingMissScore).add(bifuractionConvergenceScore).add(onlineRateScore);
         Map<Long, BigInteger> scoreMap = new HashMap<>();
@@ -248,6 +254,26 @@ public class PocProcessorImpl implements PocProcessor {
         return totalScore;
     }
 
+    public static Attachment.PocNodeConfiguration getPocConfiguration (String ip, String port) {
+        return pocConfigMap.getOrDefault(ip + COLON + port, null);
+    }
+
+    public static Attachment.PocWeight getPocWeight (String ip, String port) {
+        return pocWeightMap.getOrDefault(ip + COLON + port, null);
+    }
+
+    public static Attachment.PocBlockingMiss getPocBlockingMiss (String ip, String port) {
+        return pocBlockingMissMap.getOrDefault(ip + COLON + port, null);
+    }
+
+    public static Attachment.PocBifuractionOfConvergence getPocBOC (String ip, String port) {
+        return pocBifuractionOfConvergenceMap.getOrDefault(ip + COLON + port, null);
+    }
+
+    public static Attachment.PocOnlineRate getPocOnlineRate (String ip, String port) {
+        return pocOnlineRateMap.getOrDefault(ip + COLON + port, null);
+    }
+
     // Listener process
     private static Map pocTemplateMap;
     private static void templateMapping(Block block){
@@ -256,23 +282,32 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     private static void scoreMapping(Block block){
-        int height = block.getHeight();
         for (Transaction transaction: block.getTransactions()) {
             Account account = Account.getAccount(transaction.getSenderId());
             if (transaction.getAttachment() instanceof Attachment.PocOnlineRate) {
-                accountOnlineMap.put(account.getId(), (Attachment.PocOnlineRate) transaction.getAttachment());
+                Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
+                pocOnlineRateMap.put(pocOnlineRate.getIp() + COLON + pocOnlineRate.getPort(), pocOnlineRate);
             }
             if (transaction.getAttachment() instanceof Attachment.PocBlockingMiss) {
-                accountBlockingMissMap.put(account.getId(), (Attachment.PocBlockingMiss) transaction.getAttachment());
+                Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
+                pocBlockingMissMap.put(pocBlockingMiss.getIp() + COLON + pocBlockingMiss.getPort(), pocBlockingMiss);
             }
             if (transaction.getAttachment() instanceof Attachment.PocBifuractionOfConvergence) {
-                accountBocMap.put(account.getId(), (Attachment.PocBifuractionOfConvergence) transaction.getAttachment());
+                Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
+                pocBifuractionOfConvergenceMap.put(pocBifuractionOfConvergence.getIp() + COLON + pocBifuractionOfConvergence.getPort(), pocBifuractionOfConvergence);
             }
             if (transaction.getAttachment() instanceof Attachment.PocNodeConfiguration) {
-                Attachment.PocNodeConfiguration configuration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
+                Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
+                accountNodeMap.put(account.getId(), pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort());
+                pocConfigMap.put(pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort(), pocNodeConfiguration);
                 accountBalanceMap.put(account.getId(), account.getBalanceNQT());
-                accountConfigMap.put(account.getId(), configuration);
-                PocProcessorImpl.getOrCreate().calPocScore(account, height);
+            }
+        }
+
+        for (Transaction transaction: block.getTransactions()) {
+            if (transaction.getAttachment() instanceof Attachment.PocNodeConfiguration) {
+                Account account = Account.getAccount(transaction.getSenderId());
+                PocProcessorImpl.getOrCreate().calPocScore(account, block.getHeight());
             }
         }
 
@@ -280,6 +315,9 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     private static void nodeHardwareTxProcess(){
+
+        //
+
         //TODO read the PocConfigTx and update the hardware and performance info to node
 
         //TODO gee the lifecycle from api.sharder.io and check the above info whether is in the alive.

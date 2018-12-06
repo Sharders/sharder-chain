@@ -24,26 +24,6 @@ public class DeviceInfo implements Serializable {
     private boolean hadPublicIp; // 是否有公网IP
     private int bandWidth; // 公网ip带宽（Mbps），如果没有公网ip，这个值就是0
 
-    public static DeviceInfo newDeviceInfo(JSONObject deviceInfoData) {
-        int type = (int) deviceInfoData.get("type");
-        boolean serverOpen = (boolean) deviceInfoData.get("serverOpen");
-        int tradePerformance = (int) deviceInfoData.get("tradePerformance");
-        boolean hadPublicIp = (boolean) deviceInfoData.get("hadPublicIp");
-        int bandWidth = (int) deviceInfoData.get("bandWidth");
-        return new DeviceInfo(type, serverOpen, tradePerformance, hadPublicIp, bandWidth);
-    }
-
-    public DeviceInfo() {
-    }
-
-    public DeviceInfo(int type, boolean serverOpen, int tradePerformance, boolean hadPublicIp, int bandWidth) {
-        this.type = type;
-        this.serverOpen = serverOpen;
-        this.tradePerformance = tradePerformance;
-        this.hadPublicIp = hadPublicIp;
-        this.bandWidth = bandWidth;
-    }
-
     public int getType() {
         return type;
     }
