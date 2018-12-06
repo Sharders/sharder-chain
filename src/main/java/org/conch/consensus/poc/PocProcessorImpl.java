@@ -95,9 +95,9 @@ public class PocProcessorImpl implements PocProcessor {
 
     private static Map<Long, Attachment.PocBifuractionOfConvergence> accountBocMap = new HashMap<>();
 
-    private static Map<Long, BigInteger> accountScoreMap = new HashMap<>();
-
     private static Map<Long, Attachment.PocWeight> pocWeightMap = new HashMap<>();
+
+    private static Map<Integer, Map<Long, BigInteger>> accountScoreMap = new HashMap<>();
 
     public static PocProcessorImpl instance = getOrCreate();
 
@@ -131,30 +131,15 @@ public class PocProcessorImpl implements PocProcessor {
         } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
             nodeTypeScore = NODE_TYPE_COMMON_SCORE;
         }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(nodeTypeScore));
-        } else {
-            accountScoreMap.put(account.getId(), nodeTypeScore);
-        }
 
         // SS持有得分
         BigInteger ssHold = BigInteger.valueOf(accountBalanceMap.get(account.getId()));
         BigInteger ssScore = ssHold.multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(ssScore));
-        } else {
-            accountScoreMap.put(account.getId(), ssScore);
-        }
 
         // 打开服务得分
         BigInteger serverScore = BigInteger.ZERO;
         if (pocNodeConfiguration.getDeviceInfo().isServerOpen()) {
             serverScore = SERVER_OPEN_SCORE;
-        }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(serverScore));
-        } else {
-            accountScoreMap.put(account.getId(), serverScore);
         }
 
         // 硬件配置得分
@@ -165,11 +150,6 @@ public class PocProcessorImpl implements PocProcessor {
             hardwareScore = HARDWARE_CONFIGURATION_MEDIUM_SCORE;
         } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 2 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 2400 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 4 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 100) {
             hardwareScore = HARDWARE_CONFIGURATION_LOW_SCORE;
-        }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(hardwareScore));
-        } else {
-            accountScoreMap.put(account.getId(), hardwareScore);
         }
 
         // 网络配置得分
@@ -185,11 +165,6 @@ public class PocProcessorImpl implements PocProcessor {
         } else {
             networkScore = NETWORK_CONFIGURATION_POOR_SCORE;
         }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(networkScore));
-        } else {
-            accountScoreMap.put(account.getId(), networkScore);
-        }
 
         // 交易处理性能得分
         BigInteger tradeScore = BigInteger.ZERO;
@@ -199,11 +174,6 @@ public class PocProcessorImpl implements PocProcessor {
             tradeScore = TRADE_HANDLE_MEDIUM_SCORE;
         } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 300) {
             tradeScore = TRADE_HANDLE_LOW_SCORE;
-        }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(tradeScore));
-        } else {
-            accountScoreMap.put(account.getId(), tradeScore);
         }
 
         // 在线率奖惩得分
@@ -241,11 +211,6 @@ public class PocProcessorImpl implements PocProcessor {
                 onlineRateScore = COMMON_ONLINE_RATE_GREATER90_SCORE;
             }
         }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(onlineRateScore));
-        } else {
-            accountScoreMap.put(account.getId(), onlineRateScore);
-        }
 
         // 出块错过惩罚分
         BigInteger blockingMissScore = BigInteger.ZERO;
@@ -256,11 +221,6 @@ public class PocProcessorImpl implements PocProcessor {
             blockingMissScore = BLOCKING_MISS_MEDIUM_SCORE;
         } else if (pocBlockingMiss.getMissLevel() == 3) {
             blockingMissScore = BLOCKING_MISS_HIGH_SCORE;
-        }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(blockingMissScore));
-        } else {
-            accountScoreMap.put(account.getId(), blockingMissScore);
         }
 
         // 分叉收敛惩罚分
@@ -273,16 +233,19 @@ public class PocProcessorImpl implements PocProcessor {
         } else if (pocBifuractionOfConvergence.getSpeed() == 3) {
             bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_MEDIUM_SCORE;
         }
-        if (accountScoreMap.containsKey(account.getId())) {
-            accountScoreMap.put(account.getId(), accountScoreMap.get(account.getId()).add(bifuractionConvergenceScore));
-        } else {
-            accountScoreMap.put(account.getId(), bifuractionConvergenceScore);
-        }
 
         Attachment.PocWeight pocWeight = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
         pocWeightMap.put(account.getId(), pocWeight);
 
-        return accountScoreMap.get(account.getId());
+        BigInteger totalScore =  nodeTypeScore.add(serverScore).add(hardwareScore).add(networkScore).add(tradeScore).add(ssScore).add(blockingMissScore).add(bifuractionConvergenceScore).add(onlineRateScore);
+        Map<Long, BigInteger> scoreMap = new HashMap<>();
+        if (accountScoreMap.containsKey(height)) {
+            scoreMap = accountScoreMap.get(height);
+        }
+        scoreMap.put(account.getId(), totalScore);
+        accountScoreMap.put(height, scoreMap);
+
+        return totalScore;
     }
 
     // Listener process
@@ -312,12 +275,6 @@ public class PocProcessorImpl implements PocProcessor {
                 PocProcessorImpl.getOrCreate().calPocScore(account, height);
             }
         }
-
-
-
-        // read the ref PocTx and cal the score to generate accountScoreMap
-
-        // use pocTemplateMap and pocTx to cal score
 
         nodeHardwareTxProcess();
     }
