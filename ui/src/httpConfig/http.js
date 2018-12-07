@@ -15,9 +15,18 @@ axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded
  * 整理数据
  */
 axios.defaults.transformRequest = function (data) {
-// data = Qs.stringify(data);
-    data = JSON.stringify(data);
+
+    if(!(data instanceof FormData)){
+        data = JSON.stringify(data);
+    }
     return data;
+
+// data = Qs.stringify(data);
+/*
+    if(typeof data !== 'formData'){
+    }
+*/
+
 };
 
 // 路由请求拦截
@@ -25,7 +34,8 @@ axios.defaults.transformRequest = function (data) {
 axios.interceptors.request.use(
     config => {
         // config.data = JSON.stringify(config.data);
-        config.headers["Content-Type"] = "application/json;charset=UTF-8";
+        if(config.headers["Content-Type"] === null)
+            config.headers["Content-Type"] = "application/json;charset=UTF-8";
         // 判断是否存在ticket，如果存在的话，则每个http header都加上ticket
         if (cookie.get("token")) {
             // 用户每次操作，都将cookie设置成2小时

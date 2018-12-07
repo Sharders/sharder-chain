@@ -21,10 +21,12 @@
     require("./util/sso.notifications");
     require("./util/locale");
 
+    global.pako = require("./util/pako");
     global.BigInteger = require("jsbn").BigInteger;
     global.converters = require("./util/converters");
-    global.CryptoJS = require("./util/sha256");
+    global.CryptoJS = require("crypto-js");
     global.curve25519 = require("./util/curve25519");
+    global.curve25519_ = require("./util/curve25519_");
     global.encryption = require("./util/sso.encryption");
     global.Login = require("./util/sso.login");
     global.NxtAddress = require("./util/scaddress");

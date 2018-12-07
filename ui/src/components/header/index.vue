@@ -160,8 +160,15 @@
                 _this.userConfig = res;
             });
 
-
-            this.$http.post("/sharder?requestType=getForging").then(res=>{
+            let config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
+            let formData = new FormData();
+            formData.append("secretPhrase",_this.secretPhrase);
+            this.$http.post("/sharder?requestType=getForging",formData,config
+            ).then(res=>{
                 _this.forging = res.data;
                 console.log("forging",_this.forging);
             }).catch(err=>{
@@ -180,6 +187,7 @@
                 const _this = this;
                 _this.$global.setBlockchainState(_this).then(res=>{
                     _this.blockchainState = res;
+                    console.log(_this.$global.isOpenConsole);
                     if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
                     }

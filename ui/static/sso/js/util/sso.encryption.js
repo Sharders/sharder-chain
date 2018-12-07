@@ -36,7 +36,7 @@ var NRS = (function (NRS, $) {
 				"account": accountNumber
 			}, function (response) {
 				if (!response.publicKey) {
-					throw $.t("error_no_public_key");
+					throw "帐户没有公钥。";
 				} else {
 					publicKey = response.publicKey;
 				}
@@ -90,7 +90,7 @@ var NRS = (function (NRS, $) {
 						secretPhrase = _password;
 					} else {
 						throw {
-							"message": $.t("error_encryption_passphrase_required"),
+							"message": "需要输入您的密钥来加密此信息。",
 							"errorCode": 1
 						};
 					}
@@ -102,7 +102,7 @@ var NRS = (function (NRS, $) {
 			if (!options.publicKey) {
 				if (!options.account) {
 					throw {
-						"message": $.t("error_account_id_not_specified"),
+						"message": "未指定的帐户 ID。",
 						"errorCode": 2
 					};
 				}
@@ -114,12 +114,12 @@ var NRS = (function (NRS, $) {
 
 					if (!nxtAddress.set(options.account)) {
 						throw {
-							"message": $.t("error_invalid_account_id"),
+							"message": "无效的帐户ID。",
 							"errorCode": 3
 						};
 					} else {
 						throw {
-							"message": $.t("error_public_key_not_specified"),
+							"message":"未指定公钥。",
 							"errorCode": 4
 						};
 					}
@@ -144,7 +144,7 @@ var NRS = (function (NRS, $) {
 				throw err;
 			} else {
 				throw {
-					"message": $.t("error_message_encryption"),
+					"message": "该信息不能加密。",
 					"errorCode": 5
 				};
 			}

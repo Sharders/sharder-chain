@@ -177,19 +177,18 @@
                                 </el-input>
                             </el-form-item>
                             <el-form-item label="文件">
-                                <el-input placeholder="请选择文件" class="input-with-select" v-model="messageForm.file" :readonly="true">
-                                    <el-button slot="append" v-if="messageForm.file === ''">浏览</el-button>
+                                <el-input placeholder="请选择文件" class="input-with-select" v-model="messageForm.fileName" :readonly="true">
+                                    <el-button slot="append" v-if="file === null">浏览</el-button>
                                     <el-button slot="append" @click="delFile" v-else>删除</el-button>
                                 </el-input>
-                                <input id="file" ref="file" type="file" @change="fileChange" v-if="messageForm.file === ''"/>
+                                <input id="file" ref="file" type="file" @change="fileChange" v-if="file === null"/>
                             </el-form-item>
                             <el-form-item label="手续费">
-                                <!--<el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
-                                </el-slider>-->
-                                <el-input v-model="messageForm.fee" min="0" max="100000"></el-input>
+                                <el-button class="calculate_fee" @click="getMessageFee()">计算</el-button>
+                                <input class="el-input__inner"  v-model="messageForm.fee" type="number" min="0" max="100000"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
-                            <el-form-item label="私钥" v-if="typeof secretPhrase === 'undefined'">
+                            <el-form-item label="私钥">
                                 <el-input v-model="messageForm.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
@@ -211,17 +210,16 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item label="接收者" class="item_receiver">
-                                <masked-input mask="AAA-****-****-****-*****" v-model="messageForm.receiver"/>
+                                <masked-input mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
                                 <img src="../../assets/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item label="数额">
-                                <el-input v-model="transfer.number" type="number"></el-input>
+                                <input class="el-input__inner"  v-model="transfer.number" min="0" type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="手续费">
-                                <!--<el-slider v-model="messageForm.fee" show-input :show-tooltip="false" :max="100000">
-                                </el-slider>-->
-                                <el-input v-model="transfer.fee"  min="0" max="100000"></el-input>
+                                <el-button class="calculate_fee" @click="getTransferFee()">计算</el-button>
+                                <input class="el-input__inner"  v-model="transfer.fee"  min="0" max="100000" type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="">
@@ -408,10 +406,12 @@
                     hasPublicKey:false,
                     isFile:false,
                     publicKey:"",
-                    file:"",
-                    fee: 1,
-                    password: ""
+                    senderPublickey:SSO.publicKey,
+                    fileName:"",
+                    password: "",
+                    fee:1
                 },
+                file:null,
                 transfer: {
                     receiver: "",
                     number: 0,
@@ -482,7 +482,9 @@
         },
         created(){
             const _this = this;
-            _this.getAccount(_this.accountInfo.accountRS);
+            _this.getAccount(_this.accountInfo.accountRS).then(res=>{
+                _this.accountInfo = res;
+            });
             _this.getAccountTransactionList();
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res;
@@ -499,9 +501,6 @@
 
                 let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
 
-                console.log("current version:",_this.blockchainState.version);
-                console.log("lateset version:",_this.latesetVersion);
-                console.log("bool:",bool);
                 _this.isUpdate = bool;
             }).catch(err=>{
                 console.log(err);
@@ -705,7 +704,6 @@
 
                         }
                     }).then(function (res) {
-                        _this.accountInfo = res.data;
                         resolve(res.data);
                         console.log(_this.accountInfo);
                     }).catch(function (err) {
@@ -732,23 +730,19 @@
                     }
                 }
 
-                if(typeof _this.secretPhrase === 'undefined'){
-                    if(_this.messageForm.password === ''){
-                        _this.$message.warning('必须输入私钥。');
-                        return;
-                    }
-                }else{
-                    _this.messageForm.password = _this.secretPhrase;
+                if(_this.messageForm.password === ''){
+                    _this.$message.warning('必须输入私钥。');
+                    return;
                 }
 
                 if(!_this.messageForm.isEncrypted){
-                    if(_this.messageForm.file === ""){
+                    if(_this.file === null){
                         _this.sendNormalMessage();
                     }else{
 
                     }
                 }else{
-                    if(_this.messageForm.file === ""){
+                    if(_this.file === null){
 
                     }else{
 
@@ -783,6 +777,115 @@
                     });
                 })*/
             },
+            getMessageFee:function(){
+                const _this = this;
+                let options = {};
+                let encrypted = {};
+                let formData = new FormData();
+
+                _this.getAccount(SSO.account).then(res=>{
+                    if(res.errorDescription === "Unknown account"){
+                        _this.$message.warning("您有一个全新的帐户，请先给它充值。");
+                        return;
+                    }
+                });
+
+                if(_this.messageForm.isEncrypted){
+
+                    if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
+                        _this.messageForm.receiver === "___-____-____-____-_____"){
+                        _this.$message.warning("请输入接收者账户ID");
+                        return;
+                    }
+                    if(_this.messageForm.publicKey === ""){
+                        _this.$message.warning("请输入接收者账户公钥");
+                        return;
+                    }
+                    if(_this.messageForm.password === ""){
+                        _this.$message.warning("必须输入您的私钥来加密此信息");
+                        return;
+                    }
+                    options.account = _this.messageForm.receiver;
+                    options.publicKey = _this.messageForm.publicKey;
+                    if(_this.messageForm.isFile){
+                        formData.append("messageToEncryptIsText",'false');
+                        formData.append("encryptedMessageIsPrunable",'true');
+                        // formData.append("encryptionKeys",SSO.getEncryptionKeys(options, _this.messageForm.password));
+                        let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
+
+                        SSO.encryptFile(_this.file,encryptionkeys,function (encrypted) {
+                            formData.append("encryptedMessageFile",_this.file);
+                            formData.append("encryptedMessageNonce", converters.byteArrayToHexString(encrypted.nonce));
+                        });
+                    }else{
+                        encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
+                        formData.append("encrypt_message",'1');
+                        formData.append("encryptedMessageData", encrypted.message);
+                        formData.append("encryptedMessageNonce", encrypted.nonce);
+                        formData.append("messageToEncryptIsText", 'true');
+                    }
+                }else{
+                    if(_this.messageForm.isFile) {
+                        formData.append("messageFile",_this.file);
+                        formData.append("messageIsText", 'false');
+                        formData.append("messageIsPrunable", 'true');
+                    }else{
+                        if(_this.messageForm.message !== ""){
+                            formData.append("messageIsText", 'true');
+                            formData.append("message", _this.messageForm.message);
+                            if(_this.$global.stringToByte(_this.messageForm.message).length >= 28){    //28 MIN_PRUNABLE_MESSAGE_LENGTH
+                                formData.append("messageIsPrunable", 'true');
+                            }
+                        }
+
+                    }
+                }
+
+
+                if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
+                            _this.messageForm.receiver === "___-____-____-____-_____"){
+                    formData.append("recipient", "");
+                }else{
+                    formData.append("recipient",  _this.messageForm.receiver);
+                    formData.append("recipientPublicKey",  _this.messageForm.publicKey);
+
+                }
+
+                formData.append("phased", 'false');
+                formData.append("phasingLinkedFullHash", '');
+                formData.append("phasingHashedSecret", '');
+                formData.append("phasingHashedSecretAlgorithm", '2');
+                formData.append("calculateFee", 'true');
+                formData.append("broadcast", 'false');
+                formData.append("feeNQT", '0');
+                formData.append("publicKey", SSO.publicKey);
+                formData.append("deadline", '1440');
+                /*
+
+                calculateFee: true
+broadcast: false
+                * */
+                let config = {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                };
+                _this.$http.post('/sharder?requestType=sendMessage',formData, config).then(res=>{
+                    console.log(res.data);
+                    _this.messageForm.fee = res.data.transactionJSON.feeNQT / 100000000;
+                }).catch(err=>{
+                    console.log(err);
+                    _this.$message.error(err);
+                });
+
+                // SSO.sendRequest("sendMessage",formData,function (res) {
+                //     console.log(res);
+                // })
+
+            },
+            getTransferFee:function(){
+
+            },
             sendNormalMessage:function(){
                 const _this = this;
                 let params = new URLSearchParams();
@@ -792,9 +895,9 @@
                 params.append("meesage",_this.messageForm.message);
                 params.append("secretPhrase",_this.messageForm.password);
                 params.append("deadline","1440");
-                params.append("phased",false);
+                params.append("phased","false");
                 params.append("phasingHashedSecretAlgorithm","2");
-                params.append("messagelsText",false);
+                params.append("messagelsText","false");
                 params.append("feeNQT",(_this.messageForm.fee*100000000).toString());
 
                 _this.$http.post('/sharder?requestType=sendMessage',params).then(res=>{
@@ -808,6 +911,9 @@
                     _this.$message.error(err);
                 });
             },
+
+
+
             getAccountTransactionList:function(){
                 const _this = this;
                 // console.log("第"+i+"次");
@@ -920,13 +1026,21 @@
             delFile:function(){
                 const _this = this;
                 $('#file').val("");
-                _this.messageForm.file = "";
+                _this.messageForm.fileName = "";
+                _this.file = null;
                 _this.messageForm.isFile = false;
             },
             fileChange: function (e) {
                 const _this = this;
-                _this.messageForm.file = e.target.files[0].name;
-                console.log("file",$("#file"));
+                _this.messageForm.fileName = e.target.files[0].name;
+                _this.file = document.getElementById("file").files[0];
+
+                if(_this.file.size > 1024*1024*5){
+                    _this.delFile();
+                    _this.$message.error("文件最大支持5M");
+                    return;
+                }
+                console.log("file",_this.file);
                 _this.messageForm.isFile = true;
                 _this.messageForm.message = "";
             },
@@ -957,7 +1071,7 @@
         },
         watch: {
             transfer: {
-                handler(val, oldVal) {
+                handler:function(oldValue,newValue){
                     const _this = this;
                     if (_this.transfer.hasMessage) {
                         _this.ncryptedDisabled = false;
@@ -965,28 +1079,45 @@
                         _this.ncryptedDisabled = true;
                         _this.transfer.isEncrypted = false;
                     }
+
+                    const pattern = /^(?!00)(?:[0-9]{1,5}|100000)$/;
+
+                    if(_this.transfer.fee === ''){
+                        _this.transfer.fee = 1;
+                    }else if(!_this.transfer.fee.toString().match(pattern)){
+                        _this.transfer.fee = 1;
+                    }
+
+                    if(_this.transfer.number === ''){
+                        _this.transfer.number = 1;
+                    }else if(!_this.transfer.number < 0){
+                        _this.transfer.number = 1;
+                    }
+
                 },
                 deep: true
             },
             hubsetting: {
-                handler(val, oldVal) {
+                handler:function(oldValue,newValue){
                     const _this = this;
                     if (_this.hubsetting.openPunchthrough) {
                         _this.checkSharder();
                     }
-
                 },
                 deep: true
             },
             messageForm:{
-                handler(val,oldVal) {
+                handler:function(oldValue,newValue){
                     const _this = this;
-                    // console.log("messageForm", _this.messageForm);
-                    const pattern = /[1-9]?\d|100000/;
-                    if(!_this.messageForm.fee.toString().match(pattern)){
+                    console.log(_this.messageForm.fee);
+                    console.log(typeof _this.messageForm.fee);
+                    const pattern = /^(?!00)(?:[0-9]{1,5}|100000)$/;
+
+                    if(_this.messageForm.fee === ''){
+                        _this.messageForm.fee = 1;
+                    }else if(!_this.messageForm.fee.toString().match(pattern)){
                         _this.messageForm.fee = 1;
                     }
-
                 },
                 deep:true
             },
@@ -1063,51 +1194,14 @@
         }
     }
 
-/*    .upload-demo{
-        border: 1px solid #ddd;
-        display: flex;
-        position: relative;
-        margin-left: 0;
-        margin-top: 30px;
-        height: 31px;
+    .calculate_fee{
+        background-color: #493eda;
+        color: #fff;
         border-radius: 4px;
-        .el-upload--text{
-            .el-button--primary{
-                background-color: #493eda;
-            }
-            .el-button{
-                position: absolute;
-                right: -1px;
-                height: 30px;
-                border-radius: 0 4px 4px 0;
-                border: none;
-            }
-        }
-        .el-upload__tip{
-            margin-top: 0;
-            line-height: 30px;
-            padding-left: 20px;
-        }
-        .el-upload-list{
-            li.el-upload-list__item.is-ready {
-                margin-top: 0;
-                line-height: 30px;
-                &:first-child{
-                    margin: 0;
-                }
-                padding-left: 20px;
-                height: 30px;
-                .el-upload-list__item-name{
-                    height: 30px;
-                    line-height: 30px;
-                    &:hover{
-                        color: #493eda!important;
-                    }
-                    .el-icon-document{
-
-                    }
-                }
-            }
-        }
-    }*/
+        border: none;
+        width: 35px;
+        padding: 0;
+        font-size: 13px;
+        height: 20px;
+    }
 </style>
