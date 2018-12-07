@@ -1,7 +1,5 @@
 package org.conch.consensus.poc.hardware;
 
-import org.json.simple.JSONObject;
-
 /**
  * @ClassName SystemInfo
  * @Description  系统信息对象

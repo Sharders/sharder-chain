@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class PocProcessorImpl implements PocProcessor {
 
-    public static final String COLON = ":";
+    private static final String COLON = ":";
 
     // 分制转换率，将10分制 转为 500000000分制（SS总发行量 5亿）， 所以转换率是50000000
     private static final BigInteger POINT_SYSTEM_CONVERSION_RATE = BigInteger.valueOf(50000000L);

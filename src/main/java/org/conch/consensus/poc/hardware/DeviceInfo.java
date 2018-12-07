@@ -1,7 +1,5 @@
 package org.conch.consensus.poc.hardware;
 
-import org.json.simple.JSONObject;
-
 import java.io.Serializable;
 
 /**********************************************************************************

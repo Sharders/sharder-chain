@@ -23,11 +23,9 @@ package org.conch.consensus.poc.tx;
 
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
-import org.conch.chain.BlockchainImpl;
 import org.conch.common.ConchException;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
-import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
 
@@ -84,11 +82,12 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-            Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
-            if (pocNodeConfiguration == null) {
+            //TODO node certify
+
+            Attachment.PocNodeConfiguration configuration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
+            if (configuration == null) {
                 throw new ConchException.NotValidException("Invalid pocNodeConfiguration: null");
             }
-
         }
 
         @Override
@@ -96,10 +95,8 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
-            // TODO err, should be an X transaction ===> wolf
-            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
-            Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION, transaction.getId(), pocFee);
+            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION, transaction.getId(), -transaction.getAmountNQT());
+            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
 
         @Override
@@ -161,10 +158,8 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
-            // TODO err, should be an X transaction ===> wolf
-            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
-            Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.POC_WEIGHT, transaction.getId(), pocFee);
+            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_WEIGHT, transaction.getId(), -transaction.getAmountNQT());
+            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
 
         @Override
@@ -209,10 +204,8 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
-            // TODO err, should be an X transaction ===> wolf
-            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
-            Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.POC_ONLINE_RATE, transaction.getId(), pocFee);
+            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_ONLINE_RATE, transaction.getId(), -transaction.getAmountNQT());
+            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
 
         @Override
@@ -256,10 +249,8 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
-            // TODO err, should be an X transaction ===> wolf
-            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
-            Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.POC_BLOCKING_MISS, transaction.getId(), pocFee);
+            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_BLOCKING_MISS, transaction.getId(), -transaction.getAmountNQT());
+            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
 
         @Override
@@ -304,10 +295,8 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
-            // TODO err, should be an X transaction ===> wolf
-            long pocFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
-            Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE, transaction.getId(), pocFee);
+            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE, transaction.getId(), -transaction.getAmountNQT());
+            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
 
         @Override
