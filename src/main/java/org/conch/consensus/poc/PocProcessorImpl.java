@@ -87,30 +87,28 @@ public class PocProcessorImpl implements PocProcessor {
     private static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
     private static final BigInteger BIFURCATION_CONVERGENCE_HARD_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
 
-    private static final Map<Long, Long> accountBalanceMap = new HashMap<>();
+    private static final Map<Integer, Map<Long, BigInteger>> scoreMap = new HashMap<>();
 
-    private static final Map<Integer, Map<Long, BigInteger>> accountScoreMap = new HashMap<>();
+    private static final Map<Integer, Map<Long, Long>> balanceMap = new HashMap<>();
 
-    private static final Map<String, Attachment.PocNodeConfiguration> pocConfigMap = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocNodeConfiguration>> pocConfigMap = new HashMap<>();
 
-    private static final Map<String, Attachment.PocWeight> pocWeightMap = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocWeight>> pocWeightMap = new HashMap<>();
 
-    private static final Map<String, Attachment.PocBlockingMiss> pocBlockingMissMap = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocBlockingMiss>> pocBlockingMissMap = new HashMap<>();
 
-    private static final Map<String, Attachment.PocBifuractionOfConvergence> pocBifuractionOfConvergenceMap = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocBifuractionOfConvergence>> pocBifuractionOfConvergenceMap = new HashMap<>();
 
-    private static final Map<String, Attachment.PocOnlineRate> pocOnlineRateMap = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocOnlineRate>> pocOnlineRateMap = new HashMap<>();
 
-    private static final Map<Long, String> accountNodeMap = new HashMap<>();
+    private static final Map<Integer, Map<Long, String>> accountNodeMap = new HashMap<>();
 
     public static PocProcessorImpl instance = getOrCreate();
 
     private PocProcessorImpl(){}
 
     private static synchronized PocProcessorImpl getOrCreate(){
-        if(instance != null) return instance;
-
-        return new PocProcessorImpl();
+        return instance != null? instance: new PocProcessorImpl();
     }
 
     static{
@@ -120,158 +118,216 @@ public class PocProcessorImpl implements PocProcessor {
     @Override
     public BigInteger calPocScore(Account account, int height) {
 
-        String node = accountNodeMap.get(account.getId());
-
-        Attachment.PocNodeConfiguration pocNodeConfiguration = pocConfigMap.get(node);
+        // SS持有得分
+        BigInteger ssScore = BigInteger.ZERO;
 
         // 节点类型得分
         BigInteger nodeTypeScore = BigInteger.ZERO;
-        if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
-            nodeTypeScore = NODE_TYPE_FOUNDATION_SCORE;
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 2) {
-            nodeTypeScore = NODE_TYPE_COMMUNITY_SCORE;
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 3) {
-            nodeTypeScore = NODE_TYPE_HUB_SCORE;
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 4) {
-            nodeTypeScore = NODE_TYPE_BOX_SCORE;
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
-            nodeTypeScore = NODE_TYPE_COMMON_SCORE;
-        }
-
-        // SS持有得分
-        BigInteger ssHold = BigInteger.valueOf(accountBalanceMap.get(account.getId()));
-        BigInteger ssScore = ssHold.multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
 
         // 打开服务得分
         BigInteger serverScore = BigInteger.ZERO;
-        if (pocNodeConfiguration.getDeviceInfo().isServerOpen()) {
-            serverScore = SERVER_OPEN_SCORE;
-        }
 
         // 硬件配置得分
         BigInteger hardwareScore = BigInteger.ZERO;
-        if (pocNodeConfiguration.getSystemInfo().getCore() >= 8 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3600 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 16 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
-            hardwareScore = HARDWARE_CONFIGURATION_HIGH_SCORE;
-        } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 4 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3100 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 8 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 1000) {
-            hardwareScore = HARDWARE_CONFIGURATION_MEDIUM_SCORE;
-        } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 2 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 2400 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 4 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 100) {
-            hardwareScore = HARDWARE_CONFIGURATION_LOW_SCORE;
-        }
 
         // 网络配置得分
         BigInteger networkScore = BigInteger.ZERO;
-        if (pocNodeConfiguration.getDeviceInfo().getHadPublicIp()) {
-            if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 10) {
-                networkScore = NETWORK_CONFIGURATION_HIGH_SCORE;
-            } else if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 5) {
-                networkScore = NETWORK_CONFIGURATION_MEDIUM_SCORE;
-            } else if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 1) {
-                networkScore = NETWORK_CONFIGURATION_LOW_SCORE;
-            }
-        } else {
-            networkScore = NETWORK_CONFIGURATION_POOR_SCORE;
-        }
 
         // 交易处理性能得分
         BigInteger tradeScore = BigInteger.ZERO;
-        if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 1000) {
-            tradeScore = TRADE_HANDLE_HIGH_SCORE;
-        } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 500) {
-            tradeScore = TRADE_HANDLE_MEDIUM_SCORE;
-        } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 300) {
-            tradeScore = TRADE_HANDLE_LOW_SCORE;
-        }
 
         // 在线率奖惩得分
-        Attachment.PocOnlineRate pocOnlineRate = pocOnlineRateMap.get(node);
         BigInteger onlineRateScore = BigInteger.ZERO;
-        if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
-            if (pocOnlineRate.getNetworkRate() >= 9900 && pocOnlineRate.getNetworkRate() < 9999) { // 99% ~ 99.99%
-                onlineRateScore = FOUNDATION_ONLINE_RATE_GREATER99_LESS9999_SCORE;
-            } else if (pocOnlineRate.getNetworkRate() >= 9700 && pocOnlineRate.getNetworkRate() < 9900) { // 97% ~ 99%
-                onlineRateScore = FOUNDATION_ONLINE_RATE_GREATER97_LESS99_SCORE;
-            } else if (pocOnlineRate.getNetworkRate() < 9700) { // < 97%
-                onlineRateScore = FOUNDATION_ONLINE_RATE_LESS97_SCORE;
-            }
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 2) {
-            if (pocOnlineRate.getNetworkRate() >= 9700 && pocOnlineRate.getNetworkRate() < 9900) { // 97% ~ 99%
-                onlineRateScore = COMMUNITY_ONLINE_RATE_GREATER97_LESS99_SCORE;
-            } else if (pocOnlineRate.getNetworkRate() >= 9000 && pocOnlineRate.getNetworkRate() < 9700) { // 90% ~ 97%
-                onlineRateScore = COMMUNITY_ONLINE_RATE_GREATER90_LESS97_SCORE;
-            } else if (pocOnlineRate.getNetworkRate() < 9000) { // < 90%
-                onlineRateScore = COMMUNITY_ONLINE_RATE_LESS90_SCORE;
-            }
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 3 || pocNodeConfiguration.getDeviceInfo().getType() == 4) {
-            if (pocOnlineRate.getNetworkRate() >= 9900) { // > 99%
-                onlineRateScore = HUB_BOX_ONLINE_RATE_GREATER99_SCORE;
-            } else if (pocOnlineRate.getNetworkRate() >= 9700) { // > 97%
-                onlineRateScore = HUB_BOX_ONLINE_RATE_GREATER97_SCORE;
-            } else if (pocOnlineRate.getNetworkRate() < 9000) { // < 90%
-                onlineRateScore = HUB_BOX_ONLINE_RATE_LESS90_SCORE;
-            }
-        } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
-            if (pocOnlineRate.getNetworkRate() >= 9700) { // > 97%
-                onlineRateScore = COMMON_ONLINE_RATE_GREATER97_SCORE;
-            }
-            if (pocOnlineRate.getNetworkRate() >= 9000) { // > 90%
-                onlineRateScore = COMMON_ONLINE_RATE_GREATER90_SCORE;
-            }
-        }
 
         // 出块错过惩罚分
         BigInteger blockingMissScore = BigInteger.ZERO;
-        Attachment.PocBlockingMiss pocBlockingMiss = pocBlockingMissMap.get(node);
-        if (pocBlockingMiss.getMissLevel() == 1) {
-            blockingMissScore = BLOCKING_MISS_LOW_SCORE;
-        } else if (pocBlockingMiss.getMissLevel() == 2) {
-            blockingMissScore = BLOCKING_MISS_MEDIUM_SCORE;
-        } else if (pocBlockingMiss.getMissLevel() == 3) {
-            blockingMissScore = BLOCKING_MISS_HIGH_SCORE;
-        }
 
         // 分叉收敛惩罚分
         BigInteger bifuractionConvergenceScore = BigInteger.ZERO;
-        Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = pocBifuractionOfConvergenceMap.get(node);
-        if (pocBifuractionOfConvergence.getSpeed() == 1) {
-            bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_HARD_SCORE;
-        } else if (pocBifuractionOfConvergence.getSpeed() == 2) {
-            bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_SLOW_SCORE;
-        } else if (pocBifuractionOfConvergence.getSpeed() == 3) {
-            bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_MEDIUM_SCORE;
-        }
 
-        Attachment.PocWeight pocWeight = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
-        pocWeightMap.put(node, pocWeight);
+        if (accountNodeMap.containsKey(height) && accountNodeMap.get(height).containsKey(account.getId())) {
+            String node = accountNodeMap.get(height).get(account.getId());
+
+            if (balanceMap.containsKey(height) && balanceMap.get(height).containsKey(account.getId())) {
+                ssScore = BigInteger.valueOf(balanceMap.get(height).get(account.getId())).multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
+            }
+
+            if (pocConfigMap.containsKey(height) && pocConfigMap.get(height).containsKey(node)) {
+                Attachment.PocNodeConfiguration pocNodeConfiguration = pocConfigMap.get(height).get(node);
+
+                if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
+                    nodeTypeScore = NODE_TYPE_FOUNDATION_SCORE;
+                } else if (pocNodeConfiguration.getDeviceInfo().getType() == 2) {
+                    nodeTypeScore = NODE_TYPE_COMMUNITY_SCORE;
+                } else if (pocNodeConfiguration.getDeviceInfo().getType() == 3) {
+                    nodeTypeScore = NODE_TYPE_HUB_SCORE;
+                } else if (pocNodeConfiguration.getDeviceInfo().getType() == 4) {
+                    nodeTypeScore = NODE_TYPE_BOX_SCORE;
+                } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
+                    nodeTypeScore = NODE_TYPE_COMMON_SCORE;
+                }
+
+                if (pocNodeConfiguration.getDeviceInfo().isServerOpen()) {
+                    serverScore = SERVER_OPEN_SCORE;
+                }
+
+                if (pocNodeConfiguration.getSystemInfo().getCore() >= 8 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3600 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 16 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
+                    hardwareScore = HARDWARE_CONFIGURATION_HIGH_SCORE;
+                } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 4 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3100 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 8 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 1000) {
+                    hardwareScore = HARDWARE_CONFIGURATION_MEDIUM_SCORE;
+                } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 2 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 2400 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 4 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 100) {
+                    hardwareScore = HARDWARE_CONFIGURATION_LOW_SCORE;
+                }
+
+                if (pocNodeConfiguration.getDeviceInfo().getHadPublicIp()) {
+                    if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 10) {
+                        networkScore = NETWORK_CONFIGURATION_HIGH_SCORE;
+                    } else if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 5) {
+                        networkScore = NETWORK_CONFIGURATION_MEDIUM_SCORE;
+                    } else if (pocNodeConfiguration.getDeviceInfo().getBandWidth() >= 1) {
+                        networkScore = NETWORK_CONFIGURATION_LOW_SCORE;
+                    }
+                } else {
+                    networkScore = NETWORK_CONFIGURATION_POOR_SCORE;
+                }
+
+                if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 1000) {
+                    tradeScore = TRADE_HANDLE_HIGH_SCORE;
+                } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 500) {
+                    tradeScore = TRADE_HANDLE_MEDIUM_SCORE;
+                } else if (pocNodeConfiguration.getDeviceInfo().getTradePerformance() >= 300) {
+                    tradeScore = TRADE_HANDLE_LOW_SCORE;
+                }
+
+                if (pocOnlineRateMap.containsKey(height) && pocOnlineRateMap.get(height).containsKey(node)) {
+                    Attachment.PocOnlineRate pocOnlineRate = pocOnlineRateMap.get(height).get(node);
+                    if (pocNodeConfiguration.getDeviceInfo().getType() == 1) {
+                        if (pocOnlineRate.getNetworkRate() >= 9900 && pocOnlineRate.getNetworkRate() < 9999) { // 99% ~ 99.99%
+                            onlineRateScore = FOUNDATION_ONLINE_RATE_GREATER99_LESS9999_SCORE;
+                        } else if (pocOnlineRate.getNetworkRate() >= 9700 && pocOnlineRate.getNetworkRate() < 9900) { // 97% ~ 99%
+                            onlineRateScore = FOUNDATION_ONLINE_RATE_GREATER97_LESS99_SCORE;
+                        } else if (pocOnlineRate.getNetworkRate() < 9700) { // < 97%
+                            onlineRateScore = FOUNDATION_ONLINE_RATE_LESS97_SCORE;
+                        }
+                    } else if (pocNodeConfiguration.getDeviceInfo().getType() == 2) {
+                        if (pocOnlineRate.getNetworkRate() >= 9700 && pocOnlineRate.getNetworkRate() < 9900) { // 97% ~ 99%
+                            onlineRateScore = COMMUNITY_ONLINE_RATE_GREATER97_LESS99_SCORE;
+                        } else if (pocOnlineRate.getNetworkRate() >= 9000 && pocOnlineRate.getNetworkRate() < 9700) { // 90% ~ 97%
+                            onlineRateScore = COMMUNITY_ONLINE_RATE_GREATER90_LESS97_SCORE;
+                        } else if (pocOnlineRate.getNetworkRate() < 9000) { // < 90%
+                            onlineRateScore = COMMUNITY_ONLINE_RATE_LESS90_SCORE;
+                        }
+                    } else if (pocNodeConfiguration.getDeviceInfo().getType() == 3 || pocNodeConfiguration.getDeviceInfo().getType() == 4) {
+                        if (pocOnlineRate.getNetworkRate() >= 9900) { // > 99%
+                            onlineRateScore = HUB_BOX_ONLINE_RATE_GREATER99_SCORE;
+                        } else if (pocOnlineRate.getNetworkRate() >= 9700) { // > 97%
+                            onlineRateScore = HUB_BOX_ONLINE_RATE_GREATER97_SCORE;
+                        } else if (pocOnlineRate.getNetworkRate() < 9000) { // < 90%
+                            onlineRateScore = HUB_BOX_ONLINE_RATE_LESS90_SCORE;
+                        }
+                    } else if (pocNodeConfiguration.getDeviceInfo().getType() == 5) {
+                        if (pocOnlineRate.getNetworkRate() >= 9700) { // > 97%
+                            onlineRateScore = COMMON_ONLINE_RATE_GREATER97_SCORE;
+                        }
+                        if (pocOnlineRate.getNetworkRate() >= 9000) { // > 90%
+                            onlineRateScore = COMMON_ONLINE_RATE_GREATER90_SCORE;
+                        }
+                    }
+                }
+
+                if (pocBlockingMissMap.containsKey(height) && pocBlockingMissMap.get(height).containsKey(node)) {
+                    Attachment.PocBlockingMiss pocBlockingMiss =  pocBlockingMissMap.get(height).get(node);
+                    if (pocBlockingMiss.getMissLevel() == 1) {
+                        blockingMissScore = BLOCKING_MISS_LOW_SCORE;
+                    } else if (pocBlockingMiss.getMissLevel() == 2) {
+                        blockingMissScore = BLOCKING_MISS_MEDIUM_SCORE;
+                    } else if (pocBlockingMiss.getMissLevel() == 3) {
+                        blockingMissScore = BLOCKING_MISS_HIGH_SCORE;
+                    }
+                }
+
+                if (pocBifuractionOfConvergenceMap.containsKey(height) && pocBifuractionOfConvergenceMap.get(height).containsKey(node)) {
+                    Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence =  pocBifuractionOfConvergenceMap.get(height).get(node);
+                    if (pocBifuractionOfConvergence.getSpeed() == 1) {
+                        bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_HARD_SCORE;
+                    } else if (pocBifuractionOfConvergence.getSpeed() == 2) {
+                        bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_SLOW_SCORE;
+                    } else if (pocBifuractionOfConvergence.getSpeed() == 3) {
+                        bifuractionConvergenceScore = BIFURCATION_CONVERGENCE_MEDIUM_SCORE;
+                    }
+                }
+
+                Attachment.PocWeight pocW = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
+                Map<String, Attachment.PocWeight> pocWeight = new HashMap<>();
+                if (pocWeightMap.containsKey(height)) {
+                    pocWeight = pocWeightMap.get(height);
+                }
+                pocWeight.put(node, pocW);
+                pocWeightMap.put(height, pocWeight);
+
+            }
+
+        }
 
         BigInteger totalScore =  nodeTypeScore.add(serverScore).add(hardwareScore).add(networkScore).add(tradeScore).add(ssScore).add(blockingMissScore).add(bifuractionConvergenceScore).add(onlineRateScore);
-        Map<Long, BigInteger> scoreMap = new HashMap<>();
-        if (accountScoreMap.containsKey(height)) {
-            scoreMap = accountScoreMap.get(height);
+        Map<Long, BigInteger> score = new HashMap<>();
+        if (scoreMap.containsKey(height)) {
+            score = scoreMap.get(height);
         }
-        scoreMap.put(account.getId(), totalScore);
-        accountScoreMap.put(height, scoreMap);
+        score.put(account.getId(), totalScore);
+        scoreMap.put(height, score);
 
         return totalScore;
     }
 
-    public static Attachment.PocNodeConfiguration getPocConfiguration (String ip, String port) {
-        return pocConfigMap.getOrDefault(ip + COLON + port, null);
+    public static Attachment.PocNodeConfiguration getPocConfiguration (String ip, String port, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (pocConfigMap.containsKey(height) && pocConfigMap.get(height).containsKey(ip + COLON + port)) {
+            pocConfigMap.get(height).get(ip + COLON + port);
+        }
+        return null;
     }
 
-    public static Attachment.PocWeight getPocWeight (String ip, String port) {
-        return pocWeightMap.getOrDefault(ip + COLON + port, null);
+    public static Attachment.PocWeight getPocWeight (String ip, String port, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (pocWeightMap.containsKey(height) && pocWeightMap.get(height).containsKey(ip + COLON + port)) {
+            pocWeightMap.get(height).get(ip + COLON + port);
+        }
+        return null;
     }
 
-    public static Attachment.PocBlockingMiss getPocBlockingMiss (String ip, String port) {
-        return pocBlockingMissMap.getOrDefault(ip + COLON + port, null);
+    public static Attachment.PocBlockingMiss getPocBlockingMiss (String ip, String port, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (pocBlockingMissMap.containsKey(height) && pocBlockingMissMap.get(height).containsKey(ip + COLON + port)) {
+            pocBlockingMissMap.get(height).get(ip + COLON + port);
+        }
+        return null;
     }
 
-    public static Attachment.PocBifuractionOfConvergence getPocBOC (String ip, String port) {
-        return pocBifuractionOfConvergenceMap.getOrDefault(ip + COLON + port, null);
+    public static Attachment.PocBifuractionOfConvergence getPocBOC (String ip, String port, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (pocBifuractionOfConvergenceMap.containsKey(height) && pocBifuractionOfConvergenceMap.get(height).containsKey(ip + COLON + port)) {
+            pocBifuractionOfConvergenceMap.get(height).get(ip + COLON + port);
+        }
+        return null;
     }
 
-    public static Attachment.PocOnlineRate getPocOnlineRate (String ip, String port) {
-        return pocOnlineRateMap.getOrDefault(ip + COLON + port, null);
+    public static Attachment.PocOnlineRate getPocOnlineRate (String ip, String port, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (pocOnlineRateMap.containsKey(height) && pocOnlineRateMap.get(height).containsKey(ip + COLON + port)) {
+            pocOnlineRateMap.get(height).get(ip + COLON + port);
+        }
+        return null;
     }
 
     // Listener process
@@ -285,22 +341,55 @@ public class PocProcessorImpl implements PocProcessor {
         for (Transaction transaction: block.getTransactions()) {
             Account account = Account.getAccount(transaction.getSenderId());
             if (transaction.getAttachment() instanceof Attachment.PocOnlineRate) {
-                Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
-                pocOnlineRateMap.put(pocOnlineRate.getIp() + COLON + pocOnlineRate.getPort(), pocOnlineRate);
+                Attachment.PocOnlineRate pocOR = (Attachment.PocOnlineRate) transaction.getAttachment();
+                Map<String, Attachment.PocOnlineRate> pocOnlineRate = new HashMap<>();
+                if (pocOnlineRateMap.containsKey(block.getHeight())) {
+                    pocOnlineRate = pocOnlineRateMap.get(block.getHeight());
+                }
+                pocOnlineRate.put(pocOR.getIp() + COLON + pocOR.getPort(), pocOR);
+                pocOnlineRateMap.put(block.getHeight(), pocOnlineRate);
             }
             if (transaction.getAttachment() instanceof Attachment.PocBlockingMiss) {
-                Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
-                pocBlockingMissMap.put(pocBlockingMiss.getIp() + COLON + pocBlockingMiss.getPort(), pocBlockingMiss);
+                Attachment.PocBlockingMiss pocBM = (Attachment.PocBlockingMiss) transaction.getAttachment();
+                Map<String, Attachment.PocBlockingMiss> pocBlockingMiss = new HashMap<>();
+                if (pocBlockingMissMap.containsKey(block.getHeight())) {
+                    pocBlockingMiss = pocBlockingMissMap.get(block.getHeight());
+                }
+                pocBlockingMiss.put(pocBM.getIp() + COLON + pocBM.getPort(), pocBM);
+                pocBlockingMissMap.put(block.getHeight(), pocBlockingMiss);
             }
             if (transaction.getAttachment() instanceof Attachment.PocBifuractionOfConvergence) {
-                Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
-                pocBifuractionOfConvergenceMap.put(pocBifuractionOfConvergence.getIp() + COLON + pocBifuractionOfConvergence.getPort(), pocBifuractionOfConvergence);
+                Attachment.PocBifuractionOfConvergence pocBOC = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
+                Map<String, Attachment.PocBifuractionOfConvergence> pocBifuractionOfConvergence = new HashMap<>();
+                if (pocBifuractionOfConvergenceMap.containsKey(block.getHeight())) {
+                    pocBifuractionOfConvergence = pocBifuractionOfConvergenceMap.get(block.getHeight());
+                }
+                pocBifuractionOfConvergence.put(pocBOC.getIp() + COLON + pocBOC.getPort(), pocBOC);
+                pocBifuractionOfConvergenceMap.put(block.getHeight(), pocBifuractionOfConvergence);
             }
             if (transaction.getAttachment() instanceof Attachment.PocNodeConfiguration) {
                 Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
-                accountNodeMap.put(account.getId(), pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort());
-                pocConfigMap.put(pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort(), pocNodeConfiguration);
-                accountBalanceMap.put(account.getId(), account.getBalanceNQT());
+
+                Map<Long, String> accountNode = new HashMap<>();
+                if (accountNodeMap.containsKey(block.getHeight())) {
+                    accountNode = accountNodeMap.get(block.getHeight());
+                }
+                accountNode.put(account.getId(), pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort());
+                accountNodeMap.put(block.getHeight(), accountNode);
+
+                Map<String, Attachment.PocNodeConfiguration> pocConfig = new HashMap<>();
+                if (pocConfigMap.containsKey(block.getHeight())) {
+                    pocConfig = pocConfigMap.get(block.getHeight());
+                }
+                pocConfig.put(pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort(), pocNodeConfiguration);
+                pocConfigMap.put(block.getHeight(), pocConfig);
+
+                Map<Long, Long> balance = new HashMap<>();
+                if (balanceMap.containsKey(block.getHeight())) {
+                    balance = balanceMap.get(block.getHeight());
+                }
+                balance.put(account.getId(), account.getBalanceNQT());
+                balanceMap.put(block.getHeight(), balance);
             }
         }
 

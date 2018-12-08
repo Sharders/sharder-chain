@@ -33,7 +33,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port);
+            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port, -1);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -51,7 +51,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocWeight(ip, port);
+            Attachment attachment = PocProcessorImpl.getPocWeight(ip, port, -1);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -69,7 +69,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocOnlineRate(ip, port);
+            Attachment attachment = PocProcessorImpl.getPocOnlineRate(ip, port, -1);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -87,7 +87,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocBlockingMiss(ip, port);
+            Attachment attachment = PocProcessorImpl.getPocBlockingMiss(ip, port, -1);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -105,7 +105,7 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocBOC(ip, port);
+            Attachment attachment = PocProcessorImpl.getPocBOC(ip, port, -1);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
