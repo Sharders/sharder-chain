@@ -5,11 +5,10 @@
 classes
 out
 contrib
-logs
-sharder_db
-sharder_test_db
 *.bat
 jre
+
+package-lock.json
 
 !/html/www/
 /html/www/*
@@ -22,6 +21,10 @@ DestroyForgePool
 ForgePools
 SharderPools
 DestroyedPools
+
+logs
+sharder_db
+sharder_test_db
 
 # storage/ipfs/bin
 # storage/

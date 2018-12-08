@@ -1,6 +1,9 @@
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.tx.Attachment;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,12 +25,16 @@ public abstract class SharderPocTx {
         static final NodeConfigurationTx instance = new NodeConfigurationTx();
 
         NodeConfigurationTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            return null;
+            Account account = ParameterParser.getSenderAccount(request);
+            String ip = request.getParameter("ip");
+            String port = request.getParameter("port");
+            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port, -1);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 
@@ -36,12 +43,16 @@ public abstract class SharderPocTx {
         static final WeightTx instance = new WeightTx();
 
         WeightTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            return null;
+            Account account = ParameterParser.getSenderAccount(request);
+            String ip = request.getParameter("ip");
+            String port = request.getParameter("port");
+            Attachment attachment = PocProcessorImpl.getPocWeight(ip, port, -1);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 
@@ -50,12 +61,16 @@ public abstract class SharderPocTx {
         static final OnlineRateTx instance = new OnlineRateTx();
 
         OnlineRateTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            return null;
+            Account account = ParameterParser.getSenderAccount(request);
+            String ip = request.getParameter("ip");
+            String port = request.getParameter("port");
+            Attachment attachment = PocProcessorImpl.getPocOnlineRate(ip, port, -1);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 
@@ -64,12 +79,16 @@ public abstract class SharderPocTx {
         static final BlockingMissTx instance = new BlockingMissTx();
 
         BlockingMissTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            return null;
+            Account account = ParameterParser.getSenderAccount(request);
+            String ip = request.getParameter("ip");
+            String port = request.getParameter("port");
+            Attachment attachment = PocProcessorImpl.getPocBlockingMiss(ip, port, -1);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 
@@ -78,12 +97,16 @@ public abstract class SharderPocTx {
         static final BifuractionConvergenceTx instance = new BifuractionConvergenceTx();
 
         BifuractionConvergenceTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "", ""); // TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            return null;
+            Account account = ParameterParser.getSenderAccount(request);
+            String ip = request.getParameter("ip");
+            String port = request.getParameter("port");
+            Attachment attachment = PocProcessorImpl.getPocBOC(ip, port, -1);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 }

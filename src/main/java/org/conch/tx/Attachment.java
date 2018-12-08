@@ -28,6 +28,7 @@ import org.conch.asset.HoldingType;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.hardware.DeviceInfo;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTx;
 import org.conch.crypto.Crypto;
@@ -4200,6 +4201,7 @@ public interface Attachment extends Appendix {
         private final String ip;
         private final String port;
         private SystemInfo systemInfo;
+        private DeviceInfo deviceInfo;
 
         public String getIp() {
             return ip;
@@ -4213,10 +4215,15 @@ public interface Attachment extends Appendix {
             return systemInfo;
         }
 
-        public PocNodeConfiguration(String ip, String port, SystemInfo systemInfo) {
+        public DeviceInfo getDeviceInfo() {
+            return deviceInfo;
+        }
+
+        public PocNodeConfiguration(String ip, String port, SystemInfo systemInfo, DeviceInfo deviceInfo) {
             this.ip = ip;
             this.port = port;
             this.systemInfo = systemInfo;
+            this.deviceInfo = deviceInfo;
         }
 
         public PocNodeConfiguration(ByteBuffer buffer, byte transactionVersion) {
@@ -4233,6 +4240,11 @@ public interface Attachment extends Appendix {
                 } else {
                     this.systemInfo = null;
                 }
+                if (obj instanceof DeviceInfo) {
+                    this.deviceInfo = (DeviceInfo) obj;
+                } else {
+                    this.deviceInfo = null;
+                }
                 bais.close();
                 ois.close();
             } catch (IOException | ClassNotFoundException e) {
@@ -4245,6 +4257,7 @@ public interface Attachment extends Appendix {
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
+            this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
         }
 
         @Override
@@ -4265,7 +4278,22 @@ public interface Attachment extends Appendix {
                 e.printStackTrace();
             }
 
-            return ip.getBytes().length + port.getBytes().length + sysSize;
+            int deviceSize = 0;
+
+            ByteArrayOutputStream deviceBaos = new ByteArrayOutputStream();
+            ObjectOutputStream deviceOos;
+            try {
+                deviceOos = new ObjectOutputStream(deviceBaos);
+                deviceOos.writeObject(deviceInfo);
+                deviceOos.flush();
+                deviceSize = deviceBaos.toByteArray().length;
+                deviceBaos.close();
+                deviceOos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return ip.getBytes().length + port.getBytes().length + sysSize + deviceSize;
         }
 
         @Override
@@ -4285,6 +4313,19 @@ public interface Attachment extends Appendix {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            ByteArrayOutputStream deviceBaos = new ByteArrayOutputStream();
+            ObjectOutputStream deviceOos;
+            try {
+                deviceOos = new ObjectOutputStream(deviceBaos);
+                deviceOos.writeObject(deviceInfo);
+                deviceOos.flush();
+                buffer.put(deviceBaos.toByteArray());
+                deviceBaos.close();
+                deviceOos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -4292,6 +4333,7 @@ public interface Attachment extends Appendix {
             attachment.put("ip", ip);
             attachment.put("port", port);
             attachment.put("systemInfo", systemInfo);
+            attachment.put("deviceInfo", deviceInfo);
         }
 
         @Override
@@ -4309,6 +4351,9 @@ public interface Attachment extends Appendix {
         private final BigInteger networkWeight; // 网络配置 加权后的值
         private final BigInteger tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
         private final BigInteger ssHoldWeight; // SS持有量 加权后的值
+        private final BigInteger blockingMissWeight; // 出块丢失 加权后的值
+        private final BigInteger bifuractionConvergenceWeight; // 分叉收敛 加权后的值
+        private final BigInteger onlineRateWeight; // 在线率 加权后的值
 
         public String getIp() {
             return ip;
@@ -4342,7 +4387,19 @@ public interface Attachment extends Appendix {
             return ssHoldWeight;
         }
 
-        public PocWeight(String ip, String port, BigInteger nodeWeight, BigInteger serverWeight, BigInteger configWeight, BigInteger networkWeight, BigInteger tpWeight, BigInteger ssHoldWeight) {
+        public BigInteger getBlockingMissWeight() {
+            return blockingMissWeight;
+        }
+
+        public BigInteger getBifuractionConvergenceWeight() {
+            return bifuractionConvergenceWeight;
+        }
+
+        public BigInteger getOnlineRateWeight() {
+            return onlineRateWeight;
+        }
+
+        public PocWeight(String ip, String port, BigInteger nodeWeight, BigInteger serverWeight, BigInteger configWeight, BigInteger networkWeight, BigInteger tpWeight, BigInteger ssHoldWeight, BigInteger blockingMissWeight, BigInteger bifuractionConvergenceWeight, BigInteger onlineRateWeight) {
             this.ip = ip;
             this.port = port;
             this.nodeWeight = nodeWeight;
@@ -4351,6 +4408,9 @@ public interface Attachment extends Appendix {
             this.networkWeight = networkWeight;
             this.tpWeight = tpWeight;
             this.ssHoldWeight = ssHoldWeight;
+            this.blockingMissWeight = blockingMissWeight;
+            this.bifuractionConvergenceWeight = bifuractionConvergenceWeight;
+            this.onlineRateWeight = onlineRateWeight;
         }
 
         public PocWeight(ByteBuffer buffer, byte transactionVersion) {
@@ -4363,6 +4423,9 @@ public interface Attachment extends Appendix {
             this.networkWeight = new BigInteger(buffer.array());
             this.tpWeight = new BigInteger(buffer.array());
             this.ssHoldWeight = new BigInteger(buffer.array());
+            this.blockingMissWeight = new BigInteger(buffer.array());
+            this.bifuractionConvergenceWeight = new BigInteger(buffer.array());
+            this.onlineRateWeight = new BigInteger(buffer.array());
         }
 
         public PocWeight(JSONObject attachmentData) {
@@ -4375,11 +4438,14 @@ public interface Attachment extends Appendix {
             this.networkWeight = (BigInteger) attachmentData.get("networkWeight");
             this.tpWeight = (BigInteger) attachmentData.get("tpWeight");
             this.ssHoldWeight = (BigInteger) attachmentData.get("ssHoldWeight");
+            this.blockingMissWeight = (BigInteger) attachmentData.get("blockingMissWeight");
+            this.bifuractionConvergenceWeight = (BigInteger) attachmentData.get("bifuractionConvergenceWeight");
+            this.onlineRateWeight = (BigInteger) attachmentData.get("onlineRateWeight");
         }
 
         @Override
         int getMySize() {
-            return ip.getBytes().length + port.getBytes().length + nodeWeight.toByteArray().length + serverWeight.toByteArray().length + configWeight.toByteArray().length + networkWeight.toByteArray().length + tpWeight.toByteArray().length + ssHoldWeight.toByteArray().length;
+            return ip.getBytes().length + port.getBytes().length + nodeWeight.toByteArray().length + serverWeight.toByteArray().length + configWeight.toByteArray().length + networkWeight.toByteArray().length + tpWeight.toByteArray().length + ssHoldWeight.toByteArray().length + blockingMissWeight.toByteArray().length + bifuractionConvergenceWeight.toByteArray().length + onlineRateWeight.toByteArray().length;
         }
 
         @Override
@@ -4392,6 +4458,9 @@ public interface Attachment extends Appendix {
             buffer.put(networkWeight.toByteArray());
             buffer.put(tpWeight.toByteArray());
             buffer.put(ssHoldWeight.toByteArray());
+            buffer.put(blockingMissWeight.toByteArray());
+            buffer.put(bifuractionConvergenceWeight.toByteArray());
+            buffer.put(onlineRateWeight.toByteArray());
         }
 
         @Override
@@ -4404,6 +4473,9 @@ public interface Attachment extends Appendix {
             attachment.put("networkWeight", networkWeight);
             attachment.put("tpWeight", tpWeight);
             attachment.put("ssHoldWeight", ssHoldWeight);
+            attachment.put("blockingMissWeight", blockingMissWeight);
+            attachment.put("bifuractionConvergenceWeight", bifuractionConvergenceWeight);
+            attachment.put("onlineRateWeight", onlineRateWeight);
         }
 
         @Override
@@ -4415,7 +4487,7 @@ public interface Attachment extends Appendix {
     final class PocOnlineRate extends AbstractAttachment {
         private final String ip;
         private final String port;
-        private final int networkRate; // 网络评级
+        private final int networkRate; // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
 
         public String getIp() {
             return ip;
@@ -4477,7 +4549,7 @@ public interface Attachment extends Appendix {
     final class PocBlockingMiss extends AbstractAttachment {
         private final String ip;
         private final String port;
-        private final int missCount;
+        private final int missLevel; // 0-零丢失； 1-低；2-中；3-高
 
         public String getIp() {
             return ip;
@@ -4487,28 +4559,28 @@ public interface Attachment extends Appendix {
             return port;
         }
 
-        public int getMissCount() {
-            return missCount;
+        public int getMissLevel() {
+            return missLevel;
         }
 
-        public PocBlockingMiss(String ip, String port, int missCount) {
+        public PocBlockingMiss(String ip, String port, int missLevel) {
             this.ip = ip;
             this.port = port;
-            this.missCount = missCount;
+            this.missLevel = missLevel;
         }
 
         public PocBlockingMiss(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.ip = buffer.toString();
             this.port = buffer.toString();
-            this.missCount = buffer.getInt();
+            this.missLevel = buffer.getInt();
         }
 
         public PocBlockingMiss(JSONObject attachmentData) {
             super(attachmentData);
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
-            this.missCount = (int) attachmentData.get("missCount");
+            this.missLevel = (int) attachmentData.get("missLevel");
         }
 
         @Override
@@ -4520,14 +4592,14 @@ public interface Attachment extends Appendix {
         void putMyBytes(ByteBuffer buffer) {
             buffer.put(ip.getBytes());
             buffer.put(port.getBytes());
-            buffer.putInt(missCount);
+            buffer.putInt(missLevel);
         }
 
         @Override
         void putMyJSON(JSONObject json) {
             json.put("ip", ip);
             json.put("port", port);
-            json.put("missCount", missCount);
+            json.put("missCount", missLevel);
         }
 
         @Override
@@ -4539,7 +4611,7 @@ public interface Attachment extends Appendix {
     final class PocBifuractionOfConvergence extends AbstractAttachment {
         private final String ip;
         private final String port;
-        private final int speed;
+        private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快
 
         public String getIp() {
             return ip;

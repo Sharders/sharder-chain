@@ -31,6 +31,8 @@ import org.conch.asset.token.CurrencyBuyOffer;
 import org.conch.asset.token.CurrencySellOffer;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.hardware.DeviceInfo;
+import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.market.DigitalGoodsStore;

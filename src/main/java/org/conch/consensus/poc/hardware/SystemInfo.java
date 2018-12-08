@@ -8,13 +8,13 @@ package org.conch.consensus.poc.hardware;
  **/
 public class SystemInfo {
 
-    private int core;
+    private int core; // 几核
 
-    private int averageMHz;
+    private int averageMHz; // 平均兆赫
 
-    private int memoryTotal;
+    private int memoryTotal; // 内存大小 （单位G）
 
-    private int HardDiskSize;
+    private int hardDiskSize; // 硬盘大小 （单位G）
 
     public int getCore() {
         return core;
@@ -41,11 +41,11 @@ public class SystemInfo {
     }
 
     public int getHardDiskSize() {
-        return HardDiskSize;
+        return hardDiskSize;
     }
 
     public void setHardDiskSize(int hardDiskSize) {
-        HardDiskSize = hardDiskSize;
+        this.hardDiskSize = hardDiskSize;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class SystemInfo {
                 "core=" + core +
                 ", averageMHz=" + averageMHz +
                 ", memoryTotal=" + memoryTotal +
-                ", HardDiskSize=" + HardDiskSize +
+                ", hardDiskSize=" + hardDiskSize +
                 '}';
     }
 }
