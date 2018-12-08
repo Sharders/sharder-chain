@@ -13,7 +13,7 @@
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span class="csp" @click="openUserInfoDialog">账户详情</span>
                     </div>
-                    <p class="account_asset">资产：{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</p>
+                    <p class="account_asset">资产：{{$global.formatMoney(accountInfo.unconfirmedBalanceNQT/100000000)}} SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -104,32 +104,32 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
-                                <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
-                                <td class="linker" @click="openBlockInfoDialog(transaction.height)">{{transaction.height}}</td>
-                                <td v-if="transaction.type === 0">普通支付</td>
-                                <td v-if="transaction.type === 1">任意信息</td>
-                                <td v-if="transaction.type === 6">存储服务</td>
-                                <td v-if="transaction.type === 9">出块奖励</td>
-                                <td v-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
-                                <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
-                                <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
-                                <td class=" image_text w300">
-                                    <span class="linker" v-if="transaction.type === 9">Coinbase</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                          v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">您</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                          v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
-                                    <img src="../../assets/right_arrow.svg"/>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">您</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                          v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                          v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
-                                </td>
-                                <td>{{transaction.confirmations}}</td>
-                                <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">查看详情</td>
-                            </tr>
+                                <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
+                                    <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
+                                    <td class="linker" @click="openBlockInfoDialog(transaction.height)">{{transaction.height}}</td>
+                                    <td v-if="transaction.type === 0">普通支付</td>
+                                    <td v-if="transaction.type === 1">任意信息</td>
+                                    <td v-if="transaction.type === 6">存储服务</td>
+                                    <td v-if="transaction.type === 9">出块奖励</td>
+                                    <td v-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                    <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                    <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
+                                    <td class=" image_text w300">
+                                        <span class="linker" v-if="transaction.type === 9">Coinbase</span>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
+                                              v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
+                                              v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
+                                        <img src="../../assets/right_arrow.svg"/>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">您</span>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
+                                              v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
+                                              v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
+                                    </td>
+                                    <td>{{transaction.confirmations}}</td>
+                                    <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">查看详情</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -185,7 +185,7 @@
                             </el-form-item>
                             <el-form-item label="手续费">
                                 <el-button class="calculate_fee" @click="getMessageFee()">计算</el-button>
-                                <input class="el-input__inner"  v-model="messageForm.fee" type="number" min="0" max="100000"/>
+                                <input class="el-input__inner"  v-model="messageForm.fee" type="number" min="1" max="100000" :step="0.1"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="私钥">
@@ -210,29 +210,33 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item label="接收者" class="item_receiver">
-                                <masked-input mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
+                                <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
                                 <img src="../../assets/account_directory.svg"/>
                             </el-form-item>
+                            <el-form-item label="接收者公钥" v-if="transfer.hasPublicKey && transfer.hasMessage">
+                                <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
+                            </el-form-item>
                             <el-form-item label="数额">
-                                <input class="el-input__inner"  v-model="transfer.number" min="0" type="number"/>
+                                <input class="el-input__inner"  v-model="transfer.number" min="0" :max="1000000000" type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="手续费">
                                 <el-button class="calculate_fee" @click="getTransferFee()">计算</el-button>
-                                <input class="el-input__inner"  v-model="transfer.fee"  min="0" max="100000" type="number"/>
+                                <input class="el-input__inner"  v-model="transfer.fee"  min="1" max="100000" :step="0.1" type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="">
                                 <el-checkbox v-model="transfer.hasMessage">添加一条信息</el-checkbox>
                                 <el-checkbox ref="encrypted2" v-model="transfer.isEncrypted"
-                                             :disabled="ncryptedDisabled">加密信息
+                                             :disabled="!transfer.hasMessage">加密信息
                                 </el-checkbox>
                                 <el-input
                                     type="textarea"
                                     :autosize="{ minRows: 2, maxRows: 10}"
                                     resize="none"
                                     placeholder="请输入信息内容"
-                                    v-model="transfer.message">
+                                    v-model="transfer.message"
+                                    :disabled="!transfer.hasMessage">
                                 </el-input>
                             </el-form-item>
                             <el-form-item label="秘钥">
@@ -388,9 +392,7 @@
                 accountInfoDialog: false,
                 adminPasswordDialog:false,
 
-                ncryptedDisabled: true,
                 isShowName: true,
-
                 generatorRS:'',
                 secretPhrase:SSO.secretPhrase,
 
@@ -413,13 +415,16 @@
                 },
                 file:null,
                 transfer: {
-                    receiver: "",
+                    receiver: "SSA",
                     number: 0,
                     fee: 1,
                     hasMessage: false,
                     message: "",
                     isEncrypted: false,
-                    password: ""
+                    password: "",
+                    hasPublicKey:false,
+                    receiverPublickey:"",
+                    errorCode:false
                 },
                 hubsetting: {
                     openPunchthrough: true,
@@ -435,6 +440,7 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
+                unconfirmedTransactionsList:this.$global.unconfirmedTransactionsList.unconfirmedTransactions,
                 blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     accountRS: SSO.accountRS,
@@ -444,6 +450,7 @@
                     effectiveBalanceSS:0,   //可用余额
                     guaranteedBalanceNQT:0,  //保证余额
                     balanceNQT:0,            //账户余额
+                    unconfirmedBalanceNQT:0,
                     name:'',
                     description:'',
                 },
@@ -485,6 +492,7 @@
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                 _this.accountInfo = res;
             });
+
             _this.getAccountTransactionList();
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res;
@@ -509,7 +517,7 @@
         methods: {
             drawBarchart: function () {
                 const barchart = echarts.init(document.getElementById("transaction_amount_bar"));
-
+                const _this = this;
                 const option = {
                     grid: {
                         left: '5%',
@@ -522,7 +530,11 @@
                     },
                     xAxis: {
                         type: 'category',
-                        data: ['待合并', '待合并', '待合并', '待合并', '待合并']
+                      /*  data: [_this.accountTransactionList[length-1].type,
+                            _this.accountTransactionList[length-2].type,
+                            _this.accountTransactionList[length-3].type,
+                            _this.accountTransactionList[length-4].type,
+                            _this.accountTransactionList[length-5].type,]*/
                     },
                     yAxis: {
                         type: 'value'
@@ -711,72 +723,6 @@
                     });
                 });
             },
-            sendMessage:function(){
-                const _this = this;
-                console.log(_this.messageForm);
-                if(_this.messageForm.receiver === ''){
-                    _this.$message.warning('接收者不能为空');
-                    return;
-                }
-                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                if(!_this.messageForm.receiver.toUpperCase().match(pattern)){
-                    _this.$message.warning('接收者ID格式错误！');
-                    return;
-                }
-                if(_this.messageForm.hasPublicKey){
-                    if(_this.messageForm.publicKey === ""){
-                        _this.$message.warning('必须输入接收者公钥。');
-                        return;
-                    }
-                }
-
-                if(_this.messageForm.password === ''){
-                    _this.$message.warning('必须输入私钥。');
-                    return;
-                }
-
-                if(!_this.messageForm.isEncrypted){
-                    if(_this.file === null){
-                        _this.sendNormalMessage();
-                    }else{
-
-                    }
-                }else{
-                    if(_this.file === null){
-
-                    }else{
-
-                    }
-                }
-
-                /*_this.http.get('/sharder?requestType=getAccont',{
-                    params:{
-                        account:_this.messageForm.receiver
-                    }
-                }).then(res =>{
-                    _this.getAccount(_this.accountInfo.accountRS).then(res=>{
-                        if(res.balanceNQT < _this.messageForm.fee){
-                            _this.$message.warning('账户余额不足,请先充值后再试！');
-                        }else{
-                            if(!res.data.errorDescription){
-                                if(_this.messageForm.isEncrypted){
-                                    _this.$http.post('/sharder?requestType=sendMessage',{
-                                        recipient:_this.messageForm.receiver,
-                                        recipientPublicKey:res.data.publicKey,
-                                        messageToEncrypt :_this.messageForm.message,
-                                        feeNQT:_this.messageForm * 100000000,
-
-                                    }).then(res =>{
-
-                                    }).catch(err =>{
-
-                                    });
-                                }
-                            }
-                        }
-                    });
-                })*/
-            },
             getMessageFee:function(){
                 const _this = this;
                 let options = {};
@@ -789,6 +735,29 @@
                         return;
                     }
                 });
+
+                if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
+                    _this.messageForm.receiver === "___-____-____-____-_____"){
+                    formData.append("recipient", "");
+                }else{
+                    formData.append("recipient",  _this.messageForm.receiver);
+                    formData.append("recipientPublicKey",  _this.messageForm.publicKey);
+                    if(_this.messageForm.errorCode){
+                        return;
+                    }
+                }
+
+                formData.append("phased", 'false');
+                formData.append("phasingLinkedFullHash", '');
+                formData.append("phasingHashedSecret", '');
+                formData.append("phasingHashedSecretAlgorithm", '2');
+                formData.append("calculateFee", 'true');
+                formData.append("broadcast", 'false');
+                formData.append("feeNQT", '0');
+                formData.append("publicKey", SSO.publicKey);
+                formData.append("deadline", '1440');
+
+
 
                 if(_this.messageForm.isEncrypted){
 
@@ -810,12 +779,13 @@
                     if(_this.messageForm.isFile){
                         formData.append("messageToEncryptIsText",'false');
                         formData.append("encryptedMessageIsPrunable",'true');
-                        // formData.append("encryptionKeys",SSO.getEncryptionKeys(options, _this.messageForm.password));
                         let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
 
-                        SSO.encryptFile(_this.file,encryptionkeys,function (encrypted) {
-                            formData.append("encryptedMessageFile",_this.file);
-                            formData.append("encryptedMessageNonce", converters.byteArrayToHexString(encrypted.nonce));
+                        _this.encryptFileCallback(_this.file, encryptionkeys).then(res=>{
+                            formData.append("encryptedMessageFile", res.file);
+                            formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
+                            _this.sendMessage(formData);
+
                         });
                     }else{
                         encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
@@ -823,9 +793,13 @@
                         formData.append("encryptedMessageData", encrypted.message);
                         formData.append("encryptedMessageNonce", encrypted.nonce);
                         formData.append("messageToEncryptIsText", 'true');
+                        formData.append("encryptedMessageIsPrunable", 'true');
+                        _this.sendMessage(formData);
+
                     }
                 }else{
                     if(_this.messageForm.isFile) {
+                        console.log(_this.file);
                         formData.append("messageFile",_this.file);
                         formData.append("messageIsText", 'false');
                         formData.append("messageIsPrunable", 'true');
@@ -837,83 +811,330 @@
                                 formData.append("messageIsPrunable", 'true');
                             }
                         }
+                    }
+                    _this.sendMessage(formData);
+                }
+            },
+            getTransferFee:function(){
+                const _this = this;
+                let options = {};
+                let encrypted = {};
+                let formData = new FormData();
+
+                if(_this.transfer.errorCode){
+                    return;
+                }
+
+                if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
+                    _this.transfer.receiver === "___-____-____-____-_____"){
+                    _this.$message.warning('接收者不能为空');
+                    return;
+                }
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                if(!_this.transfer.receiver.toUpperCase().match(pattern)){
+                    _this.$message.warning('接收者ID格式错误！');
+                    return;
+                }
+
+                if(_this.transfer.number === 0){
+                    _this.$message.warning('请正确输入您要转账的值');
+                    return;
+                }
+                _this.getAccount(_this.accountInfo.accountRS).then(res=>{
+                    if(typeof res.errorDescription === 'undefined') {
+                        if(res.errorDescription === "Unknown account"){
+                            _this.$message.warning('您有一个全新的帐户，请先给它充值。');
+                            return;
+                        }
 
                     }
-                }
+                    _this.accountInfo = res;
+                    if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
+                        _this.$message.warning('您的余额不足');
+                        return;
+                    }
+
+                    if(typeof SSO.secretPhrase === "undefined" && _this.transfer.password === ""){
+                        _this.$message.warning('必须输入密钥。');
+                        return;
+                    }
+
+                    formData.append("recipient",_this.transfer.receiver);
+                    formData.append("deadline","1440");
+                    formData.append("phased", 'false');
+                    formData.append("phasingLinkedFullHash", '');
+                    formData.append("phasingHashedSecret", '');
+                    formData.append("phasingHashedSecretAlgorithm", '2');
+                    formData.append("publicKey",res.publicKey);
+                    formData.append("calculateFee","true");
+                    formData.append("broadcast","false");
+                    formData.append("feeNQT","0");
+                    formData.append("amountNQT",_this.transfer.number * 100000000);
+
+                    if(_this.transfer.hasMessage && _this.transfer.message !== ""){
+                        if(_this.transfer.isEncrypted){
+                            if(_this.transfer.password === ""){
+                                _this.$message.warning('需要输入您的密钥来加密此信息。');
+                                return;
+                            }
+                            if(_this.transfer.receiverPublickey === ""){
+                                _this.$message.warning('未指定公钥。');
+                                return;
+                            }
+
+                            options.account = _this.transfer.receiver;
+                            options.publicKey = _this.transfer.receiverPublickey;
+
+                            encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
+                            formData.append("encrypt_message",'1');
+                            formData.append("encryptedMessageData", encrypted.message);
+                            formData.append("encryptedMessageNonce", encrypted.nonce);
+                            formData.append("messageToEncryptIsText", 'true');
+                            formData.append("encryptedMessageIsPrunable", 'true');
+                            // _this.sendMessage(formData);
+
+                        }else{
+                            formData.append("message",_this.transfer.message);
+                            formData.append("messageIsText","true");
+                        }
+                    }
 
 
+                    _this.sendTransfer(formData);
+                });
+            },
+
+            encryptFileCallback:function(file,encryptionkeys){
+                return new Promise(function (resolve, reject) {
+                    SSO.encryptFile(file,encryptionkeys,function (encrypted) {
+                        resolve(encrypted);
+                    });
+                });
+
+            },
+            sendMessage:function(){
+                const _this = this;
+                let options = {};
+                let encrypted = {};
+                let formData = new FormData();
+                console.log(_this.messageForm);
                 if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
-                            _this.messageForm.receiver === "___-____-____-____-_____"){
-                    formData.append("recipient", "");
-                }else{
-                    formData.append("recipient",  _this.messageForm.receiver);
-                    formData.append("recipientPublicKey",  _this.messageForm.publicKey);
-
+                    _this.messageForm.receiver === "___-____-____-____-_____"){
+                    _this.$message.warning('接收者不能为空');
+                    return;
+                }
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                if(!_this.messageForm.receiver.toUpperCase().match(pattern)){
+                    _this.$message.warning('接收者ID格式错误！');
+                    return;
                 }
 
+                if(_this.messageForm.hasPublicKey){
+                    if(_this.messageForm.publicKey === ""){
+                        _this.$message.warning('必须输入接收者公钥。');
+                        return;
+                    }
+                }
+                if(_this.messageForm.errorCode){
+                    return;
+                }
+                if(_this.messageForm.password === ''){
+                    _this.$message.warning('必须输入私钥。');
+                    return;
+                }
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
                 formData.append("phasingHashedSecret", '');
                 formData.append("phasingHashedSecretAlgorithm", '2');
-                formData.append("calculateFee", 'true');
-                formData.append("broadcast", 'false');
-                formData.append("feeNQT", '0');
-                formData.append("publicKey", SSO.publicKey);
+                formData.append("feeNQT", _this.messageForm.fee * 100000000);
+                formData.append("secretPhrase", _this.messageForm.password);
                 formData.append("deadline", '1440');
-                /*
 
-                calculateFee: true
-broadcast: false
-                * */
-                let config = {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                };
-                _this.$http.post('/sharder?requestType=sendMessage',formData, config).then(res=>{
-                    console.log(res.data);
-                    _this.messageForm.fee = res.data.transactionJSON.feeNQT / 100000000;
-                }).catch(err=>{
-                    console.log(err);
-                    _this.$message.error(err);
-                });
-
-                // SSO.sendRequest("sendMessage",formData,function (res) {
-                //     console.log(res);
-                // })
-
-            },
-            getTransferFee:function(){
-
-            },
-            sendNormalMessage:function(){
-                const _this = this;
-                let params = new URLSearchParams();
-
-                params.append("recipient",_this.messageForm.receiver);
-                params.append("recipientPublickkey",_this.messageForm.publicKey);
-                params.append("meesage",_this.messageForm.message);
-                params.append("secretPhrase",_this.messageForm.password);
-                params.append("deadline","1440");
-                params.append("phased","false");
-                params.append("phasingHashedSecretAlgorithm","2");
-                params.append("messagelsText","false");
-                params.append("feeNQT",(_this.messageForm.fee*100000000).toString());
-
-                _this.$http.post('/sharder?requestType=sendMessage',params).then(res=>{
-                    if(typeof res.data.errorDescription !== 'undefined'){
-                        _this.$message.error(res.data.errorDescription);
+                if(!_this.messageForm.isEncrypted){
+                    if(_this.file === null){
+                        if(_this.messageForm.message !== ""){
+                            formData.append("messageIsText", 'true');
+                            formData.append("message", _this.messageForm.message);
+                            if(_this.$global.stringToByte(_this.messageForm.message).length >= 28){    //28 MIN_PRUNABLE_MESSAGE_LENGTH
+                                formData.append("messageIsPrunable", 'true');
+                            }
+                        }
                     }else{
-                        _this.$message.success("发送成功！");
-                        _this.closeDialog();
+                        formData.append("messageFile",_this.file);
+                        formData.append("messageIsText", 'false');
+                        formData.append("messageIsPrunable", 'true');
                     }
-                }).catch(err=>{
-                    _this.$message.error(err);
+                    _this.sendMessage(formData);
+                }else{
+                    options.account = _this.messageForm.receiver;
+                    options.publicKey = _this.messageForm.publicKey;
+
+                    if(_this.file === null){
+                        encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
+                        formData.append("encrypt_message",'1');
+                        formData.append("encryptedMessageData", encrypted.message);
+                        formData.append("encryptedMessageNonce", encrypted.nonce);
+                        formData.append("messageToEncryptIsText", 'true');
+                        formData.append("encryptedMessageIsPrunable", 'true');
+                        _this.sendMessage(formData);
+                    }else{
+                        formData.append("messageToEncryptIsText",'false');
+                        formData.append("encryptedMessageIsPrunable",'true');
+                        let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
+                        _this.encryptFileCallback(_this.file, encryptionkeys).then(res=>{
+                            formData.append("encryptedMessageFile", res.file);
+                            formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
+                            _this.sendMessage(formData);
+
+                        });
+                    }
+                }
+            },
+            sendMessage:function(formData){
+                const _this = this;
+                return new Promise(function (resolve, reject) {
+                    let config = {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    };
+                    _this.$http.post('/sharder?requestType=sendMessage',formData, config).then(res=>{
+
+                        if(typeof res.data.errorDescription === 'undefined'){
+                            if(res.data.broadcasted){
+                                _this.$message.success("您的消息已发送");
+                                resolve(res.data);
+                                _this.closeDialog();
+                            }else{
+                                console.log(res.data);
+                                _this.messageForm.fee = res.data.transactionJSON.feeNQT / 100000000;
+                                resolve(res.data);
+                            }
+                        }else{
+                            _this.$message.error(res.data.errorDescription);
+                            resolve(res.data);
+                        }
+                    }).catch(err=>{
+                        reject(err);
+                        console.log(err);
+                        _this.$message.error(err);
+                    });
                 });
+
             },
 
+            sendTransfer:function(){
+                const _this = this;
+                let options = {};
+                let encrypted = {};
+                let formData = new FormData();
 
+                if(_this.transfer.errorCode){
+                    return;
+                }
 
+                if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
+                    _this.transfer.receiver === "___-____-____-____-_____"){
+                    _this.$message.warning('接收者不能为空');
+                    return;
+                }
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                if(!_this.transfer.receiver.toUpperCase().match(pattern)){
+                    _this.$message.warning('接收者ID格式错误！');
+                    return;
+                }
+                if(_this.transfer.receiverPublickey ===""){
+                    _this.$message.warning('请输入输入接收者公钥');
+                    return;
+                }
+
+                if(_this.transfer.number === 0){
+                    _this.$message.warning('请正确输入您要转账的值');
+                    return;
+                }
+
+                _this.getAccount(_this.accountInfo.accountRS).then(res=>{
+                    if(typeof res.errorDescription === 'undefined') {
+                        if(res.errorDescription === "Unknown account"){
+                            _this.$message.warning('您有一个全新的帐户，请先给它充值。');
+                            return;
+                        }
+                    }
+                    _this.accountInfo = res;
+                    if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
+                        _this.$message.warning('您的余额不足');
+                        return;
+                    }
+
+                    if(_this.transfer.password === ""){
+                        _this.$message.warning('必须输入密钥。');
+                        return;
+                    }
+
+                    formData.append("recipient",_this.transfer.receiver);
+                    formData.append("deadline","1440");
+                    formData.append("phased", 'false');
+                    formData.append("phasingLinkedFullHash", '');
+                    formData.append("phasingHashedSecret", '');
+                    formData.append("phasingHashedSecretAlgorithm", '2');
+                    formData.append("publicKey","");
+                    formData.append("feeNQT",_this.transfer.fee * 100000000);
+                    formData.append("amountNQT",_this.transfer.number * 100000000);
+                    formData.append("secretPhrase",_this.transfer.password);
+
+                    if(_this.transfer.hasMessage && _this.transfer.message !== ""){
+                        if(_this.transfer.isEncrypted){
+
+                            options.account = _this.transfer.receiver;
+                            options.publicKey = _this.transfer.receiverPublickey;
+
+                            encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
+                            formData.append("encrypt_message",'1');
+                            formData.append("encryptedMessageData", encrypted.message);
+                            formData.append("encryptedMessageNonce", encrypted.nonce);
+                            formData.append("messageToEncryptIsText", 'true');
+                            formData.append("encryptedMessageIsPrunable", 'true');
+                            // _this.sendMessage(formData);
+
+                        }else{
+                            formData.append("message",_this.transfer.message);
+                            formData.append("messageIsText","true");
+                        }
+                    }
+                    _this.sendTransfer(formData);
+                });
+            },
+            sendTransfer:function(formData){
+                const _this = this;
+                return new Promise(function (resolve, reject) {
+                    let config = {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    };
+                    _this.$http.post('/sharder?requestType=sendMoney',formData, config).then(res=>{
+
+                        if(typeof res.data.errorDescription === 'undefined'){
+                            if(res.data.broadcasted){
+                                _this.$message.success("SS 已发送");
+                                resolve(res.data);
+                                _this.closeDialog();
+                            }else{
+                                console.log(res.data);
+                                _this.transfer.fee = res.data.transactionJSON.feeNQT / 100000000;
+                                resolve(res.data);
+                            }
+                        }else{
+                            _this.$message.error(res.data.errorDescription);
+                            resolve(res.data);
+                        }
+                    }).catch(err=>{
+                        reject(err);
+                        console.log(err);
+                        _this.$message.error(err);
+                    });
+                });
+            },
             getAccountTransactionList:function(){
                 const _this = this;
                 // console.log("第"+i+"次");
@@ -924,8 +1145,8 @@ broadcast: false
                     }
                 }).then(function (res) {
                     _this.accountTransactionList =res.data.transactions;
-                    console.log(_this.accountTransactionList);
-                    _this.totalSize = _this.accountTransactionList.length;
+                    console.log("_this.accountTransactionList",_this.accountTransactionList);
+                    _this.totalSize += _this.accountTransactionList.length;
                     // _this.newCount = res.data.transactions.length;
 
                 }).catch(function (err) {
@@ -1005,6 +1226,20 @@ broadcast: false
                 this.tradingInfoDialog = false;
                 this.accountInfoDialog = false;
                 this.userInfoDialog = false;
+
+                const _this = this;
+                _this.messageForm.errorCode = false;
+                _this.messageForm.receiver =  "SSA";
+                _this.messageForm.message =  "";
+                _this.messageForm.isEncrypted =  false;
+                _this.messageForm.hasPublicKey = false;
+                _this.messageForm.isFile = false;
+                _this.messageForm.publicKey = "";
+                _this.messageForm.senderPublickey = SSO.publicKey;
+                _this.messageForm.fileName = "";
+                _this.messageForm.password = "";
+                _this.messageForm.fee = 1;
+                _this.file = null;
             },
             copySuccess: function () {
                 const _this = this;
@@ -1073,14 +1308,12 @@ broadcast: false
             transfer: {
                 handler:function(oldValue,newValue){
                     const _this = this;
-                    if (_this.transfer.hasMessage) {
-                        _this.ncryptedDisabled = false;
-                    } else {
-                        _this.ncryptedDisabled = true;
+                    if(!_this.transfer.hasMessage){
+                        _this.transfer.message = "";
                         _this.transfer.isEncrypted = false;
                     }
 
-                    const pattern = /^(?!00)(?:[0-9]{1,5}|100000)$/;
+                    const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
 
                     if(_this.transfer.fee === ''){
                         _this.transfer.fee = 1;
@@ -1088,9 +1321,12 @@ broadcast: false
                         _this.transfer.fee = 1;
                     }
 
+                    const pattern2 = /(^[1-9]\d{0,8}$)|(^1000000000$)|(^0$)/;
+
+
                     if(_this.transfer.number === ''){
                         _this.transfer.number = 1;
-                    }else if(!_this.transfer.number < 0){
+                    }else if(!_this.transfer.number.toString().match(pattern2)){
                         _this.transfer.number = 1;
                     }
 
@@ -1111,7 +1347,9 @@ broadcast: false
                     const _this = this;
                     console.log(_this.messageForm.fee);
                     console.log(typeof _this.messageForm.fee);
-                    const pattern = /^(?!00)(?:[0-9]{1,5}|100000)$/;
+                    // const pattern = /^(?!00)(?:[0-9]{1,5}(\.\d)%|100000)$/;
+                    const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
+
 
                     if(_this.messageForm.fee === ''){
                         _this.messageForm.fee = 1;
@@ -1124,12 +1362,29 @@ broadcast: false
             selectType:function () {
                 const _this = this;
                 _this.getAccountTransactionList();
+            },
+            unconfirmedTransactionsList:function () {
+                const _this = this;
+                _this.totalSize = _this.accountTransactionList.length + _this.unconfirmedTransactionsList.length;
+
+                let list = [];
+                for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
+                    list.push(_this.unconfirmedTransactionsList[i]);
+                }
+                for(let i = 0;i<_this.accountTransactionList.length;i++){
+                    list.push(_this.accountTransactionList[i]);
+                }
+
+                _this.accountTransactionList = list;
             }
         },
         mounted() {
             const _this = this;
             this.drawBarchart();
             this.drawYield();
+
+
+
             $('#receiver').on("blur",function() {
                 let receiver = _this.messageForm.receiver;
                 if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
@@ -1145,13 +1400,14 @@ broadcast: false
 
                     _this.getAccount(receiver).then(res=>{
                         console.log(res);
-                        if(res.errorDescription === "Unknown account") {
+                        if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey === "") {
                             _this.messageForm.hasPublicKey = true;
                             _this.messageForm.errorCode = true;
                             _this.$message.warning("接收者帐户是未知帐户，意味着它没有转入或转出的交易记录。您可以通过提供接收者的公钥来增加安全性。");
                         }else if(res.errorDescription === "Incorrect \"account\""){
                             _this.messageForm.errorCode = true;
                             _this.messageForm.hasPublicKey = false;
+                            _this.messageForm.publicKey = "";
                             _this.$message.warning("接收者的帐户格式不正确，请调整。");
                         }else if(typeof res.errorDescription === "undefined"){
                             _this.messageForm.errorCode = false;
@@ -1162,6 +1418,37 @@ broadcast: false
                     });
                 }
             });
+            $('#tranfer_receiver').on("blur",function () {
+                let receiver = _this.transfer.receiver;
+                if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
+                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                    if(!receiver.toUpperCase().match(pattern)){
+                        _this.$message.warning('接收者ID格式错误！');
+                        return;
+                    }
+                    if(receiver === _this.accountInfo.accountRS){
+                        _this.$message.warning("这是您的账户");
+                        _this.transfer.errorCode = true;
+                    }
+
+                    _this.getAccount(receiver).then(res=>{
+                        console.log(res);
+                        if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey === "") {
+                            _this.transfer.hasPublicKey = true;
+                        }else if(res.errorDescription === "Incorrect \"account\""){
+                            _this.transfer.errorCode = true;
+                            _this.transfer.hasPublicKey = false;
+                            _this.transfer.publicKey = "";
+                            _this.$message.warning("接收者的帐户格式不正确，请调整。");
+                        }else if(typeof res.errorDescription === "undefined"){
+                            _this.transfer.errorCode = false;
+                            _this.transfer.hasPublicKey = false;
+                            _this.transfer.publicKey = res.publicKey;
+
+                        }
+                    });
+                }
+            })
         },
     };
 

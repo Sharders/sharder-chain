@@ -8,6 +8,8 @@ export default {
     blockchainState:[],
     peers:[],
     userConfig:[],
+    unconfirmedTransactionsList:[],
+
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -46,6 +48,7 @@ export default {
                     account:account
                 }
             }).then(res => {
+                _this.unconfirmedTransactionsList = res.data;
                 resolve(res.data);
             });
         });
