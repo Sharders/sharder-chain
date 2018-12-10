@@ -61,9 +61,10 @@ public class GetNodeHardware {
         if (hdTotal == 0){
             for (int i = 0; i <fsList.length; i++) {
                 FileSystem fs = fsList[i];
-                if (fs.getDirName() == "/"){
+                if (fs.getDirName().equals("/")) {
                     FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
                      hdTotal = (int)((double)usage.getTotal() / 1000L);
+                     break;
                 }
             }
         }
