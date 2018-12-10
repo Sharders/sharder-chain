@@ -21,6 +21,9 @@
 
 package org.conch.consensus.poc.tx;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -31,7 +34,9 @@ import org.conch.tx.TransactionType;
 import org.conch.util.Https;
 import org.json.simple.JSONObject;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public abstract class PocTx extends TransactionType {
 
@@ -89,11 +94,16 @@ public abstract class PocTx extends TransactionType {
             //TODO node certify
             String url = API_SERVER + "/SC/getCredibleNode.ss?networkType=" + Conch.getStringProperty("sharder.network");
             String result = Https.httpRequest(url,"GET", null);
-            // result 示例：
-            // [{"id":21,"downloadedVolume":"20653840","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"20872748","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72869017,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72822036,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":57,"downloadedVolume":"20724904","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"20941479","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72872622,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72872622,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":92,"downloadedVolume":"21526090","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"21678153","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72930417,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72926800,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":129,"downloadedVolume":"21773860","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"21893284","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72948477,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72944864,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":165,"downloadedVolume":"21780900","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"21897924","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72952099,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72952099,"state":1,"shareAddress":true,"networkType":"alpha"}]
-
+            // result 示例：// [{"id":21,"downloadedVolume":"20653840","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"20872748","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72869017,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72822036,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":57,"downloadedVolume":"20724904","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"20941479","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72872622,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72872622,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":92,"downloadedVolume":"21526090","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"21678153","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72930417,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72926800,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":129,"downloadedVolume":"21773860","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"21893284","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72948477,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72944864,"state":1,"shareAddress":true,"networkType":"alpha"},{"id":165,"downloadedVolume":"21780900","address":"47.107.183.179","inbound":true,"blockChainState":"UP_TO_DATE","weight":0,"uploadedVolume":"21897924","services":null,"servicesObject":"API,CORS,BAPI","version":"0.1.0","platform":"Foundation Node","inboundWebSocket":true,"lastUpdated":72952099,"blackListed":0,"announcedAddress":"47.107.183.179","apiPort":8215,"application":"COS","port":8218,"outBoundWebSocket":true,"peerLoad":null,"lastConnectAttempt":72952099,"state":1,"shareAddress":true,"networkType":"alpha"}]
+            if (StringUtils.isNoneBlank(result)) {
+                List<NodeInfo> nodeInfos = new Gson().fromJson(result,  new TypeToken<List<NodeInfo>>(){}.getType());
+                if (nodeInfos == null || nodeInfos.isEmpty()) {
+                    throw new ConchException.NotValidException("Invalid certify nodes: null or empty");
+                }
+            }
             // TODO 怎样判断是否是可信节点创建的交易？
             Account account = Account.getAccount(transaction.getSenderId());
+
             // TODO 需要某种关系将Account / Transaction 和 可信节点信息进行对应，否则没有办法check是否通过
             Attachment.PocNodeConfiguration configuration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
             if (configuration == null) {
@@ -340,4 +350,32 @@ public abstract class PocTx extends TransactionType {
         return true;
     }
 
+    public class NodeInfo implements Serializable {
+        private static final long serialVersionUID = 3165561011642807413L;
+
+        private Long id;
+        private String downloadedVolume;
+        private String address;
+        private Boolean inbound;
+        private String blockChainState;
+        private Integer weight;
+        private String uploadedVolume;
+        private Object services;
+        private String servicesObject;
+        private String version;
+        private String platform;
+        private Boolean inboundWebSocket;
+        private Integer lastUpdated;
+        private Integer blackListed;
+        private String announcedAddress;
+        private Integer apiPort;
+        private String application;
+        private Integer port;
+        private Boolean outBoundWebSocket;
+        private Object peerLoad;
+        private Integer lastConnectAttempt;
+        private Integer state;
+        private Boolean shareAddress;
+        private String networkType;
+    }
 }
