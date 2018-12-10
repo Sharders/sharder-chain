@@ -106,13 +106,18 @@
                             <tbody>
                                 <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
                                     <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
-                                    <td class="linker" @click="openBlockInfoDialog(transaction.height)">{{transaction.height}}</td>
+                                    <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}</td>
+                                    <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
                                     <td v-if="transaction.type === 0">普通支付</td>
-                                    <td v-if="transaction.type === 1">任意信息</td>
+                                    <td v-if="transaction.type === 1 && transaction.subtype === 0">任意信息</td>
+                                    <td v-if="transaction.type === 1 && transaction.subtype === 5">账户信息</td>
                                     <td v-if="transaction.type === 6">存储服务</td>
                                     <td v-if="transaction.type === 9">出块奖励</td>
-                                    <td v-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+
+                                    <td v-if="transaction.amountNQT === '0'">0 SS</td>
+                                    <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
                                     <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+
                                     <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                     <td class=" image_text w300">
                                         <span class="linker" v-if="transaction.type === 9">Coinbase</span>
@@ -124,10 +129,13 @@
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">您</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                               v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                        <span class="linker" v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                               v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
+
                                     </td>
-                                    <td>{{transaction.confirmations}}</td>
+                                    <td  v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
+                                    <td  v-else>-</td>
                                     <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">查看详情</td>
                                 </tr>
                             </tbody>
@@ -194,7 +202,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendMessage">发送信息</button>
+                        <button type="button" class="btn" @click="sendMessageInfo">发送信息</button>
                     </div>
                 </div>
             </div>
@@ -245,7 +253,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="">发送</button>
+                        <button type="button" class="btn" @click="sendTransferInfo">发送</button>
                     </div>
                 </div>
             </div>
@@ -440,7 +448,7 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
-                unconfirmedTransactionsList:this.$global.unconfirmedTransactionsList.unconfirmedTransactions,
+                unconfirmedTransactionsList:[],
                 blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     accountRS: SSO.accountRS,
@@ -465,6 +473,9 @@
                     value:1,
                     label:'任意信息'
                 },{
+                    value:1.5,
+                    label:'账户信息'
+                },{
                     value:6,
                     label:'存储服务'
                 },{
@@ -484,7 +495,6 @@
 
                 adminPasswordTitle:'',
                 params:[],
-
             };
         },
         created(){
@@ -515,12 +525,12 @@
             });
         },
         methods: {
-            drawBarchart: function () {
+            drawBarchart: function (barchat) {
                 const barchart = echarts.init(document.getElementById("transaction_amount_bar"));
                 const _this = this;
                 const option = {
                     grid: {
-                        left: '5%',
+                        left: '15%',
                         right: '2%',
                         top: '10%',
                         bottom: '15%',
@@ -530,17 +540,13 @@
                     },
                     xAxis: {
                         type: 'category',
-                      /*  data: [_this.accountTransactionList[length-1].type,
-                            _this.accountTransactionList[length-2].type,
-                            _this.accountTransactionList[length-3].type,
-                            _this.accountTransactionList[length-4].type,
-                            _this.accountTransactionList[length-5].type,]*/
+                        data:barchat.xAxis,
                     },
                     yAxis: {
                         type: 'value'
                     },
                     series: [{
-                        data: [34, 12, 60, 10, 90],
+                        data:barchat.series,
                         type: 'bar'
                     }]
                 };
@@ -548,12 +554,12 @@
                     barchart.setOption(option, true);
                 }
             },
-            drawYield: function () {
+            drawYield: function (yields) {
                 const yieldCurve = echarts.init(document.getElementById("yield_curve"));
-
+                const _this = this;
                 const option = {
                     grid: {
-                        left: '5%',
+                        left: '15%',
                         right: '2%',
                         top: '10%',
                         bottom: '15%',
@@ -564,13 +570,13 @@
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
-                        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                        data: yields.xAxis,
                     },
                     yAxis: {
                         type: 'value'
                     },
                     series: [{
-                        data: [820, 932, 901, 934, 1290, 1330, 1320],
+                        data: yields.series,
                         type: 'line',
                         smooth: true
                     }]
@@ -729,6 +735,7 @@
                 let encrypted = {};
                 let formData = new FormData();
 
+
                 _this.getAccount(SSO.account).then(res=>{
                     if(res.errorDescription === "Unknown account"){
                         _this.$message.warning("您有一个全新的帐户，请先给它充值。");
@@ -742,11 +749,14 @@
                 }else{
                     formData.append("recipient",  _this.messageForm.receiver);
                     formData.append("recipientPublicKey",  _this.messageForm.publicKey);
-                    if(_this.messageForm.errorCode){
-                        return;
-                    }
+
                 }
 
+
+                if(!_this.messageForm.errorCode){
+                    _this.$message.warning("请检查是否还有未填的信息");
+                    return;
+                }
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
                 formData.append("phasingHashedSecret", '');
@@ -821,7 +831,8 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(_this.transfer.errorCode){
+                if(!_this.transfer.errorCode){
+                    _this.$message.warning("请检查是否还有未填的信息");
                     return;
                 }
 
@@ -912,14 +923,16 @@
                 });
 
             },
-            sendMessage:function(){
+            sendMessageInfo:function(){
                 const _this = this;
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
                 console.log(_this.messageForm);
                 if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
-                    _this.messageForm.receiver === "___-____-____-____-_____"){
+                    _this.messageForm.receiver === "___-____-____-____-_____" ||
+                    _this.messageForm.receiver === "SSA" ||
+                    _this.messageForm.receiver === ""){
                     _this.$message.warning('接收者不能为空');
                     return;
                 }
@@ -935,13 +948,17 @@
                         return;
                     }
                 }
-                if(_this.messageForm.errorCode){
+                if(!_this.messageForm.errorCode){
+                    _this.$message.warning("请检查是否还有未填的信息");
                     return;
                 }
                 if(_this.messageForm.password === ''){
                     _this.$message.warning('必须输入私钥。');
                     return;
                 }
+
+                formData.append("recipient",_this.messageForm.receiver);
+                formData.append("recipientPublicKey",_this.messageForm.publicKey);
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
                 formData.append("phasingHashedSecret", '');
@@ -1005,6 +1022,9 @@
                                 _this.$message.success("您的消息已发送");
                                 resolve(res.data);
                                 _this.closeDialog();
+                                _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                });
                             }else{
                                 console.log(res.data);
                                 _this.messageForm.fee = res.data.transactionJSON.feeNQT / 100000000;
@@ -1023,18 +1043,21 @@
 
             },
 
-            sendTransfer:function(){
+            sendTransferInfo:function(){
                 const _this = this;
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(_this.transfer.errorCode){
+                if(!_this.transfer.errorCode){
+                    _this.$message.warning("请检查是否还有未填的信息");
                     return;
                 }
 
                 if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
-                    _this.transfer.receiver === "___-____-____-____-_____"){
+                    _this.transfer.receiver === "___-____-____-____-_____" ||
+                    _this.transfer.receiver === "SSA" ||
+                    _this.transfer.receiver === ""){
                     _this.$message.warning('接收者不能为空');
                     return;
                 }
@@ -1072,6 +1095,7 @@
                     }
 
                     formData.append("recipient",_this.transfer.receiver);
+                    formData.append("recipientPublicKey",_this.transfer.receiverPublickey);
                     formData.append("deadline","1440");
                     formData.append("phased", 'false');
                     formData.append("phasingLinkedFullHash", '');
@@ -1119,6 +1143,9 @@
                                 _this.$message.success("SS 已发送");
                                 resolve(res.data);
                                 _this.closeDialog();
+                                _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                });
                             }else{
                                 console.log(res.data);
                                 _this.transfer.fee = res.data.transactionJSON.feeNQT / 100000000;
@@ -1138,14 +1165,24 @@
             getAccountTransactionList:function(){
                 const _this = this;
                 // console.log("第"+i+"次");
-                this.$http.get('/sharder?requestType=getBlockchainTransactions',{
-                    params:{
-                        account:_this.accountInfo.accountRS,
-                        type:_this.selectType,
-                    }
-                }).then(function (res) {
+                let params = new URLSearchParams();
+
+                params.append("account",_this.accountInfo.accountRS);
+                if(_this.selectType === 1.5){
+                    params.append("type","1");
+                    params.append("subtype","5");
+                }else if(_this.selectType === 1){
+                    params.append("type","1");
+                    params.append("subtype","0");
+                }else{
+                    params.append("type",_this.selectType);
+                }
+
+
+                this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res) {
                     _this.accountTransactionList =res.data.transactions;
                     console.log("_this.accountTransactionList",_this.accountTransactionList);
+                    _this.getDrawData(_this.accountTransactionList);
                     _this.totalSize += _this.accountTransactionList.length;
                     // _this.newCount = res.data.transactions.length;
 
@@ -1302,6 +1339,52 @@
                         return true;
                     }
                 }
+            },
+            getDrawData(lists){
+                const _this = this;
+                let j=0;
+                let k=0;
+                let barchat = {
+                    xAxis:[],
+                    series:[]
+                };
+                let yields = {
+                    xAxis:[],
+                    series:[]
+                };
+                lists.forEach(function(value,index,array){
+                    if(j>=5||k>=7){
+                        return;
+                    }
+                    if(value.type === 9 || value.type === 0){
+                        if(value.type === 0 && j<5){
+                            j++;
+                            if(value.senderRS === SSO.accountRS){
+                                barchat.xAxis.push("支出");
+                            }else{
+                                barchat.xAxis.push("收入");
+                            }
+                            barchat.series.push(value.amountNQT/100000000);
+                        }
+                        if(k<7 && value.senderRS !== SSO.accountRS){
+                            k++;
+                            yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                            yields.series.push(value.amountNQT/100000000);
+                        }
+                    }
+
+                });
+
+                for(;j !== 5;j++){
+                    barchat.xAxis.push("");
+                    barchat.series.push(0);
+                }
+                for(;k !== 7;k++){
+                    yields.xAxis.push("");
+                    yields.series.push(0);
+                }
+                this.drawBarchart(barchat);
+                this.drawYield(yields);
             }
         },
         watch: {
@@ -1345,9 +1428,6 @@
             messageForm:{
                 handler:function(oldValue,newValue){
                     const _this = this;
-                    console.log(_this.messageForm.fee);
-                    console.log(typeof _this.messageForm.fee);
-                    // const pattern = /^(?!00)(?:[0-9]{1,5}(\.\d)%|100000)$/;
                     const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
 
 
@@ -1363,27 +1443,9 @@
                 const _this = this;
                 _this.getAccountTransactionList();
             },
-            unconfirmedTransactionsList:function () {
-                const _this = this;
-                _this.totalSize = _this.accountTransactionList.length + _this.unconfirmedTransactionsList.length;
-
-                let list = [];
-                for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
-                    list.push(_this.unconfirmedTransactionsList[i]);
-                }
-                for(let i = 0;i<_this.accountTransactionList.length;i++){
-                    list.push(_this.accountTransactionList[i]);
-                }
-
-                _this.accountTransactionList = list;
-            }
         },
         mounted() {
             const _this = this;
-            this.drawBarchart();
-            this.drawYield();
-
-
 
             $('#receiver').on("blur",function() {
                 let receiver = _this.messageForm.receiver;
@@ -1404,6 +1466,9 @@
                             _this.messageForm.hasPublicKey = true;
                             _this.messageForm.errorCode = true;
                             _this.$message.warning("接收者帐户是未知帐户，意味着它没有转入或转出的交易记录。您可以通过提供接收者的公钥来增加安全性。");
+                        }else if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey !== ""){
+                            _this.messageForm.hasPublicKey = true;
+                            _this.messageForm.errorCode = false;
                         }else if(res.errorDescription === "Incorrect \"account\""){
                             _this.messageForm.errorCode = true;
                             _this.messageForm.hasPublicKey = false;
@@ -1435,6 +1500,10 @@
                         console.log(res);
                         if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey === "") {
                             _this.transfer.hasPublicKey = true;
+                            _this.transfer.errorCode = true;
+                        }else if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey !== ""){
+                            _this.transfer.hasPublicKey = true;
+                            _this.transfer.errorCode = false;
                         }else if(res.errorDescription === "Incorrect \"account\""){
                             _this.transfer.errorCode = true;
                             _this.transfer.hasPublicKey = false;
@@ -1448,7 +1517,27 @@
                         }
                     });
                 }
-            })
+            });
+
+            setInterval(function () {
+                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
+                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
+
+                    _this.totalSize = _this.accountTransactionList.length + _this.unconfirmedTransactionsList.length;
+
+                    let list = [];
+                    for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
+                        list.push(_this.unconfirmedTransactionsList[i]);
+                    }
+                    for(let i = 0;i<_this.accountTransactionList.length;i++){
+                        list.push(_this.accountTransactionList[i]);
+                    }
+
+                    _this.accountTransactionList = list;
+                    _this.getDrawData(_this.accountTransactionList);
+                    console.log(_this.accountTransactionList);
+                }
+            },1000);
         },
     };
 

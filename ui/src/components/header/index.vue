@@ -100,6 +100,7 @@
 </template>
 
 <script>
+    import Store from "../../store";
     import dialogCommon from "../../views/dialog/dialog_common";
     export default {
         name: "Header",
@@ -193,7 +194,8 @@
                     }
                 });
                 _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
-                    console.log("setUnconfirmedTransactions",res);
+                    Store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                    console.log("接收unconfirmedTransactionsList",res.unconfirmedTransactions);
                     if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
                     }

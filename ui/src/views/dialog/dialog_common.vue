@@ -40,9 +40,13 @@
                                         <img src="../../assets/pay.svg"/>
                                         <span>普通支付</span>
                                     </td>
-                                    <td v-else-if="transactions.type === 1">
+                                    <td v-else-if="transactions.type === 1 && transactions.subtype === 0">
                                         <img src="../../assets/infomation.svg"/>
                                         <span>任意信息</span>
+                                    </td>
+                                    <td v-else-if="transactions.type === 1 && transactions.subtype === 5">
+                                        <img src="../../assets/infomation.svg"/>
+                                        <span>账户信息</span>
                                     </td>
                                     <td v-else-if="transactions.type === 6">
                                         <img src="../../assets/infomation.svg"/>
@@ -90,15 +94,19 @@
                         </tr>
                         <tr>
                             <th>交易序列号</th>
-                            <td>{{transactionInfo.transactionIndex}}</td>
+                            <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">{{transactionInfo.transactionIndex}}</td>
+                            <td v-else>-</td>
                         </tr>
                         <tr>
                             <th>类型</th>
                             <td v-if="transactionInfo.type === 0">
                                 <span>普通支付</span>
                             </td>
-                            <td v-else-if="transactionInfo.type === 1">
+                            <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 0">
                                 <span>任意信息</span>
+                            </td>
+                            <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 5">
+                                <span>账户信息</span>
                             </td>
                             <td v-else-if="transactionInfo.type === 6">
                                 <span>数据存储</span>
@@ -119,19 +127,21 @@
                         </tr>
                         <tr>
                             <th>数额</th>
-                            <td>{{transactionInfo.amountNQT/10000000}}</td>
+                            <td>{{transactionInfo.amountNQT/100000000}}</td>
                         </tr>
                         <tr>
                             <th>接收者</th>
                             <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
                             <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                            <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
                             <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                             <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
                         </tr>
                         <tr>
                             <th>区块时间戳</th>
-                            <td>{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
+                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
                                 &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                            <td v-else>-</td>
                         </tr>
                         <tr>
                             <th>时间戳</th>
@@ -144,11 +154,12 @@
                         </tr>
                         <tr>
                             <th>手续费</th>
-                            <td>{{transactionInfo.feeNQT/10000000}}</td>
+                            <td>{{transactionInfo.feeNQT/100000000}}</td>
                         </tr>
                         <tr>
                             <th>确认</th>
-                            <td>{{transactionInfo.confirmations}}</td>
+                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}</td>
+                            <td v-else>-</td>
                         </tr>
                         <tr>
                             <th>类型完整哈希：</th>
@@ -168,12 +179,14 @@
                             <th>接收者</th>
                             <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
                             <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                            <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
                             <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                             <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
                         </tr>
                         <tr>
                             <th>区块高度</th>
-                            <td>{{transactionInfo.height}}</td>
+                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.height}}</td>
+                            <td v-else>-</td>
                         </tr>
                         </tbody>
                     </table>
@@ -324,15 +337,19 @@
                     </tr>
                     <tr>
                         <th>交易序列号</th>
-                        <td>{{transactionInfo.transactionIndex}}</td>
+                        <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">{{transactionInfo.transactionIndex}}</td>
+                        <td v-else>-</td>
                     </tr>
                     <tr>
                         <th>类型</th>
                         <td v-if="transactionInfo.type === 0">
                             <span>普通支付</span>
                         </td>
-                        <td v-else-if="transactionInfo.type === 1">
+                        <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 0">
                             <span>任意信息</span>
+                        </td>
+                        <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 5">
+                            <span>账户信息</span>
                         </td>
                         <td v-else-if="transactionInfo.type === 6">
                             <span>数据存储</span>
@@ -353,19 +370,21 @@
                     </tr>
                     <tr>
                         <th>数额</th>
-                        <td>{{transactionInfo.amountNQT/10000000}}</td>
+                        <td>{{transactionInfo.amountNQT/100000000}}</td>
                     </tr>
                     <tr>
                         <th>接收者</th>
                         <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
                         <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                        <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
                         <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                         <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
                     </tr>
                     <tr>
                         <th>区块时间戳</th>
-                        <td>{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
+                        <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
                             &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                        <td v-else>-</td>
                     </tr>
                     <tr>
                         <th>时间戳</th>
@@ -378,11 +397,12 @@
                     </tr>
                     <tr>
                         <th>手续费</th>
-                        <td>{{transactionInfo.feeNQT/10000000}}</td>
+                        <td>{{transactionInfo.feeNQT/100000000}}</td>
                     </tr>
                     <tr>
                         <th>确认</th>
-                        <td>{{transactionInfo.confirmations}}</td>
+                        <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}</td>
+                        <td v-else>-</td>
                     </tr>
                     <tr>
                         <th>类型完整哈希：</th>
@@ -402,12 +422,14 @@
                         <th>接收者</th>
                         <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
                         <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
+                        <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
                         <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                         <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
                     </tr>
                     <tr>
                         <th>区块高度</th>
-                        <td>{{transactionInfo.height}}</td>
+                        <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.height}}</td>
+                        <td v-else>-</td>
                     </tr>
                     </tbody>
                 </table>
@@ -800,7 +822,6 @@
                 // }
             },
             accountInfoOpen:function (val) {
-                console.log(12321321);
                 const _this = this;
                 if(val) {
                     _this.httpGetAccountInfo(_this.generatorRS).then(res => {

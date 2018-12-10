@@ -1,6 +1,8 @@
 /**
  * 全局变量及方法
  */
+
+
 export default {
     epochBeginning: -1,
     newConsole:null,
@@ -8,7 +10,6 @@ export default {
     blockchainState:[],
     peers:[],
     userConfig:[],
-    unconfirmedTransactionsList:[],
 
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
@@ -48,7 +49,6 @@ export default {
                     account:account
                 }
             }).then(res => {
-                _this.unconfirmedTransactionsList = res.data;
                 resolve(res.data);
             });
         });
@@ -190,8 +190,6 @@ export default {
     },
     addToConsole(url, type, data, response, error) {
         const _this = this;
-        console.log("_this.isOpenConsole",_this.isOpenConsole);
-        console.log("_this.newConsole",_this.newConsole);
         if(!_this.isOpenConsole || !_this.newConsole){
             return;
         }
