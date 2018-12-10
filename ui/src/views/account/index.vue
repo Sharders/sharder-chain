@@ -141,7 +141,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination" v-if="totalSize > pageSize">
+                    <div class="list_pagination"> <!--v-if="totalSize > pageSize">-->
                         <div class="list_pagination">
                             <el-pagination
                                 @size-change="handleSizeChange"
@@ -343,8 +343,8 @@
                                 <img src="../../assets/rewrite.svg" @click="isShowName = false"/>
                             </div>
                             <div class="rewriteName" v-else>
-                                <el-input v-model="messageForm.receiver"></el-input>
-                                <button class="common_btn" @click="isShowName = true">确认</button>
+                                <el-input v-model="accountInfo.name"></el-input>
+                                <button class="common_btn" @click="openSecretPhraseDialog">确认</button>
                             </div>
                         </td>
                     </tr>
@@ -375,6 +375,7 @@
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
         <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
+        <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
 
 
     </div>
@@ -383,10 +384,11 @@
     import echarts from "echarts";
     import dialogCommon from "../dialog/dialog_common";
     import adminPwd from "../dialog/adminPwd";
+    import secretPhrase from "../dialog/secretPhrase";
 
     export default {
         name: "Network",
-        components: {echarts,dialogCommon,adminPwd,
+        components: {echarts,dialogCommon,adminPwd,secretPhrase,
             "masked-input": require("vue-masked-input").default},
         data () {
             return {
@@ -399,6 +401,7 @@
                 userInfoDialog:false,
                 accountInfoDialog: false,
                 adminPasswordDialog:false,
+                secretPhraseDialog:false,
 
                 isShowName: true,
                 generatorRS:'',
@@ -1256,6 +1259,11 @@
                 _this.hubSettingDialog = false;
                 _this.adminPasswordDialog =true;
             },
+            openSecretPhraseDialog:function(){
+                const _this = this;
+                _this.userInfoDialog = false;
+                _this.secretPhraseDialog =true;
+            },
             getAdminPassword:function(adminPwd){
                 const _this = this;
                 _this.adminPassword = adminPwd;
@@ -1269,6 +1277,11 @@
                 }else if(_this.adminPasswordTitle === 'reConfig'){
                     _this.updateHubSetting(adminPwd,_this.params);
                 }
+            },
+            getSecretPhrase:function(secretPhrase){
+                const _this = this;
+                _this.secretPhraseDialog =false;
+                _this.setName(secretPhrase);
             },
             closeDialog: function () {
                 this.$store.state.mask = false;
@@ -1292,6 +1305,10 @@
                 _this.messageForm.password = "";
                 _this.messageForm.fee = 1;
                 _this.file = null;
+
+                _this.isShowName = true;
+                _this.accountInfo.name = "";
+
             },
             copySuccess: function () {
                 const _this = this;
@@ -1300,6 +1317,32 @@
                     message: "已复制到剪切板",
                     type: "success"
                 });
+            },
+            setName:function(secretPhrase){
+                const _this = this;
+                let formData = new FormData();
+                formData.append("name",_this.accountInfo.name);
+                formData.append("secretPhrase",secretPhrase);
+                formData.append("deadline","1440");
+                formData.append("phased","false");
+                formData.append("phasingLinkedFullHash","");
+                formData.append("phasingHashedSecret","");
+                formData.append("phasingHashedSecretAlgorithm","2");
+                formData.append("feeNQT","0");
+
+                _this.$http.post('/sharder?requestType=setAccountInfo',formData).then(res=>{
+                    if(typeof res.data.errorDescription !== "undefined"){
+                        _this.$message.success("修改成功");
+                        _this.getAccount(SSO.accountRS).then(res=>{
+                            _this.accountInfo.name = res;
+                        });
+                    }else{
+                        _this.$message.error(res.data.errorDescription);
+                        _this.accountInfo.name = "";
+                    }
+                    _this.isShowName = true;
+                })
+
             },
             copyError: function () {
                 const _this = this;
@@ -1337,6 +1380,11 @@
                 _this.accountInfoDialog = false;
                 _this.blockInfoDialog = false;
                 _this.adminPasswordDialog = false;
+                _this.secretPhraseDialog = false;
+
+                _this.isShowName = true;
+                _this.accountInfo.name = "";
+
             },
             versionCompare(current, latest){
                 let currentPre = parseFloat(current);

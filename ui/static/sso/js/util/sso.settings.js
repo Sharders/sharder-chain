@@ -631,6 +631,8 @@ var NRS = (function(NRS, $) {
 		return NRS.settings.admin_password;
 	};
 
+
+
     NRS.initSettings = function() {
         $("#settings_box select, #welcome_panel select[name='language'], #settings_admin_password").on("change", function(e) {
             e.preventDefault();

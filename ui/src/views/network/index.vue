@@ -552,6 +552,7 @@
                 _this.blockInfoDialog = false;
                 _this.blockInfoHeight = -1;
                 _this.generatorRS = '';
+
             }
         },
         mounted () {
