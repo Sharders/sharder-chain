@@ -547,7 +547,8 @@
                     },
                     series: [{
                         data:barchat.series,
-                        type: 'bar'
+                        type: 'bar',
+                        color: '#493eda',
                     }]
                 };
                 if (option && typeof option === "object") {
@@ -578,6 +579,20 @@
                     series: [{
                         data: yields.series,
                         type: 'line',
+                        color: '#493eda',
+
+                        /*
+                        areaStyle: {normal: {
+                                color: new echarts.graphic.LinearGradient(
+                                    0, 0, 0, 1,
+                                    [
+                                        {offset: 0, color: '#493eda'},
+                                        {offset: 0.5, color: 'pink'},
+                                        {offset: 1, color: 'red'}
+                                    ]
+                                )
+                            }},
+                            */
                         smooth: true
                     }]
                 };
