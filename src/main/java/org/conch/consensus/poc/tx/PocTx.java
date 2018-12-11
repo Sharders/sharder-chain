@@ -117,6 +117,7 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
+            PocProcessorImpl.setPocConfiguration(senderAccount, transaction);
             senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_NODE_CONFIGURATION, transaction.getId(), -transaction.getAmountNQT());
             senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
@@ -180,6 +181,7 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocWeight pocWeight = (Attachment.PocWeight) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
+            PocProcessorImpl.setPocWeight(senderAccount, transaction);
             senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_WEIGHT, transaction.getId(), -transaction.getAmountNQT());
             senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
@@ -226,6 +228,7 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
+            PocProcessorImpl.setPocOnlineRate(senderAccount, transaction);
             senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_ONLINE_RATE, transaction.getId(), -transaction.getAmountNQT());
             senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
@@ -271,6 +274,7 @@ public abstract class PocTx extends TransactionType {
             Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
 
+            PocProcessorImpl.setPocBlockingMiss(senderAccount, transaction);
             senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_BLOCKING_MISS, transaction.getId(), -transaction.getAmountNQT());
             senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }
@@ -316,7 +320,7 @@ public abstract class PocTx extends TransactionType {
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
             // TODO to add task 2 PocProcessorImpl
-
+            PocProcessorImpl.setPocBOC(senderAccount, transaction);
             senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_BIFURACTION_OF_CONVERGENCE, transaction.getId(), -transaction.getAmountNQT());
             senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
         }

@@ -4,9 +4,12 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.db.Db;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
+import org.conch.util.Logger;
 
+import java.io.*;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,21 +90,31 @@ public class PocProcessorImpl implements PocProcessor {
     private static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
     private static final BigInteger BIFURCATION_CONVERGENCE_HARD_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
 
-    private static final Map<Integer, Map<Long, BigInteger>> SCORE_MAP = new HashMap<>();
+    private static final Map<Integer, Map<Long, BigInteger>> SCORE_MAP;
 
-    private static final Map<Integer, Map<Long, Long>> BALANCE_MAP = new HashMap<>();
+    private static final Map<Integer, Map<Long, Long>> BALANCE_MAP;
 
-    private static final Map<Integer, Map<String, Attachment.PocNodeConfiguration>> POC_CONFIG_MAP = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocNodeConfiguration>> POC_CONFIG_MAP;
 
-    private static final Map<Integer, Map<String, Attachment.PocWeight>> POC_WEIGHT_MAP = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocWeight>> POC_WEIGHT_MAP;
 
-    private static final Map<Integer, Map<String, Attachment.PocBlockingMiss>> POC_BLOCKING_MISS_MAP = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocBlockingMiss>> POC_BLOCKING_MISS_MAP;
 
-    private static final Map<Integer, Map<String, Attachment.PocBifuractionOfConvergence>> POC_BIFURACTION_OF_CONVERGENCE_MAP = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocBifuractionOfConvergence>> POC_BIFURACTION_OF_CONVERGENCE_MAP;
 
-    private static final Map<Integer, Map<String, Attachment.PocOnlineRate>> POC_ONLINE_RATE_MAP = new HashMap<>();
+    private static final Map<Integer, Map<String, Attachment.PocOnlineRate>> POC_ONLINE_RATE_MAP;
 
-    private static final Map<Integer, Map<Long, String>> ACCOUNT_NODE_MAP = new HashMap<>();
+    private static final Map<Integer, Map<Long, String>> ACCOUNT_NODE_MAP;
+
+    private static final String LOCAL_STORAGE_FORDER = Db.getDir() + File.separator + "local";
+    private static final String LOCAL_STOAGE_POC_SCORES = "PoCScores";
+    private static final String LOCAL_STOAGE_POC_BALANCES = "PoCBalances";
+    private static final String LOCAL_STOAGE_POC_CONFIGS = "PoCConfigs";
+    private static final String LOCAL_STOAGE_POC_WEIGHTS = "PoCWeights";
+    private static final String LOCAL_STOAGE_POC_BMS = "PoCBMs";
+    private static final String LOCAL_STOAGE_POC_BOCS = "PoCBOCs";
+    private static final String LOCAL_STOAGE_POC_ORS = "PoCORs";
+    private static final String LOCAL_STOAGE_POC_ACCOUNT_NODES = "PoCAccountNodes";
 
     public static PocProcessorImpl instance = getOrCreate();
 
@@ -112,6 +125,70 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     static{
+        File file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_SCORES));
+        if (file.exists()) {
+            SCORE_MAP = (Map<Integer, Map<Long, BigInteger>>) getObjFromFile(LOCAL_STOAGE_POC_SCORES);
+        } else {
+            // TODO delete by user, pop off get block from network
+            SCORE_MAP = new HashMap<>();
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_BALANCES));
+        if (file.exists()) {
+            BALANCE_MAP = (Map<Integer, Map<Long, Long>>) getObjFromFile(LOCAL_STOAGE_POC_BALANCES);
+        } else {
+            // TODO delete by user
+            BALANCE_MAP = new HashMap<>();
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_CONFIGS));
+        if (file.exists()) {
+            POC_CONFIG_MAP = (Map<Integer, Map<String, Attachment.PocNodeConfiguration>>) getObjFromFile(LOCAL_STOAGE_POC_CONFIGS);
+        } else {
+            // TODO delete by user
+            POC_CONFIG_MAP = new HashMap<>();
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_WEIGHTS));
+        if (file.exists()) {
+            POC_WEIGHT_MAP = (Map<Integer, Map<String, Attachment.PocWeight>>) getObjFromFile(LOCAL_STOAGE_POC_WEIGHTS);
+        } else {
+            // TODO delete by user
+            POC_WEIGHT_MAP = new HashMap<>();
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_BMS));
+        if (file.exists()) {
+            POC_BLOCKING_MISS_MAP = (Map<Integer, Map<String, Attachment.PocBlockingMiss>>) getObjFromFile(LOCAL_STOAGE_POC_BMS);
+        } else {
+            // TODO delete by user
+            POC_BLOCKING_MISS_MAP = new HashMap<>();
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_BOCS));
+        if (file.exists()) {
+            POC_BIFURACTION_OF_CONVERGENCE_MAP = (Map<Integer, Map<String, Attachment.PocBifuractionOfConvergence>>) getObjFromFile(LOCAL_STOAGE_POC_BOCS);
+        } else {
+            // TODO delete by user
+            POC_BIFURACTION_OF_CONVERGENCE_MAP = new HashMap<>();
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_ORS));
+        if (!file.exists()) {
+            // TODO delete by user
+            POC_ONLINE_RATE_MAP = new HashMap<>();
+        } else {
+            POC_ONLINE_RATE_MAP = (Map<Integer, Map<String, Attachment.PocOnlineRate>>) getObjFromFile(LOCAL_STOAGE_POC_ORS);
+        }
+
+        file = new File(getLocalStoragePath(LOCAL_STOAGE_POC_ACCOUNT_NODES));
+        if (file.exists()) {
+            ACCOUNT_NODE_MAP = (Map<Integer, Map<Long, String>>) getObjFromFile(LOCAL_STOAGE_POC_ACCOUNT_NODES);
+        } else {
+            // TODO delete by user
+            ACCOUNT_NODE_MAP = new HashMap<>();
+        }
+
         Conch.getBlockchainProcessor().addListener(PocProcessorImpl::scoreMapping, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
 
@@ -261,13 +338,8 @@ public class PocProcessorImpl implements PocProcessor {
                     }
                 }
 
-                Attachment.PocWeight pocW = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
-                Map<String, Attachment.PocWeight> pocWeight = new HashMap<>();
-                if (POC_WEIGHT_MAP.containsKey(height)) {
-                    pocWeight = POC_WEIGHT_MAP.get(height);
-                }
-                pocWeight.put(node, pocW);
-                POC_WEIGHT_MAP.put(height, pocWeight);
+                Attachment.PocWeight pocWeight = new Attachment.PocWeight(pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort(), nodeTypeScore, serverScore, hardwareScore, networkScore, tradeScore, ssScore, blockingMissScore, bifuractionConvergenceScore, onlineRateScore);
+                setPocWeight(account, pocWeight, height);
 
             }
 
@@ -294,6 +366,10 @@ public class PocProcessorImpl implements PocProcessor {
         int height = tx.getBlock().getHeight();
         Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) tx.getAttachment();
         String node = "";
+
+        setBalance(account, height);
+        setNode(account, height, pocNodeConfiguration.getIp(), pocNodeConfiguration.getPort());
+
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
         }
@@ -311,6 +387,7 @@ public class PocProcessorImpl implements PocProcessor {
         if (!pocConfigMap.containsKey(node)) {
             pocConfigMap.put(node, pocNodeConfiguration);
             POC_CONFIG_MAP.put(height, pocConfigMap);
+            saveObjToFile(POC_CONFIG_MAP, LOCAL_STOAGE_POC_CONFIGS);
         }
     }
 
@@ -328,6 +405,10 @@ public class PocProcessorImpl implements PocProcessor {
         int height = tx.getBlock().getHeight();
         Attachment.PocWeight pocWeight = (Attachment.PocWeight) tx.getAttachment();
         String node = "";
+
+        setBalance(account, height);
+        setNode(account, height, pocWeight.getIp(), pocWeight.getPort());
+
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
         }
@@ -345,6 +426,33 @@ public class PocProcessorImpl implements PocProcessor {
         if (!pocWeightMap.containsKey(node)) {
             pocWeightMap.put(node, pocWeight);
             POC_WEIGHT_MAP.put(height, pocWeightMap);
+            saveObjToFile(POC_WEIGHT_MAP, LOCAL_STOAGE_POC_WEIGHTS);
+        }
+    }
+
+    private static void setPocWeight(Account account, Attachment.PocWeight pocWeight, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        String node = "";
+        setBalance(account, height);
+        setNode(account, height, pocWeight.getIp(), pocWeight.getPort());
+
+        if (ACCOUNT_NODE_MAP.containsKey(height) && ACCOUNT_NODE_MAP.get(height).containsKey(account.getId())) {
+            node = ACCOUNT_NODE_MAP.get(height).get(account.getId());
+        } else {
+            node = pocWeight.getIp() + COLON + pocWeight.getPort();
+        }
+
+        Map<String, Attachment.PocWeight> pocWeightMap = new HashMap<>();
+        if (POC_WEIGHT_MAP.containsKey(height)) {
+            pocWeightMap = POC_WEIGHT_MAP.get(height);
+        }
+
+        if (!pocWeightMap.containsKey(node)) {
+            pocWeightMap.put(node, pocWeight);
+            POC_WEIGHT_MAP.put(height, pocWeightMap);
+            saveObjToFile(POC_WEIGHT_MAP, LOCAL_STOAGE_POC_WEIGHTS);
         }
     }
 
@@ -362,6 +470,10 @@ public class PocProcessorImpl implements PocProcessor {
         int height = tx.getBlock().getHeight();
         Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) tx.getAttachment();
         String node = "";
+
+        setBalance(account, height);
+        setNode(account, height, pocBlockingMiss.getIp(), pocBlockingMiss.getPort());
+
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
         }
@@ -379,6 +491,7 @@ public class PocProcessorImpl implements PocProcessor {
         if (!pocBlockingMissMap.containsKey(node)) {
             pocBlockingMissMap.put(node, pocBlockingMiss);
             POC_BLOCKING_MISS_MAP.put(height, pocBlockingMissMap);
+            saveObjToFile(POC_BLOCKING_MISS_MAP, LOCAL_STOAGE_POC_BMS);
         }
     }
 
@@ -396,6 +509,10 @@ public class PocProcessorImpl implements PocProcessor {
         int height = tx.getBlock().getHeight();
         Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) tx.getAttachment();
         String node = "";
+
+        setBalance(account, height);
+        setNode(account, height, pocBifuractionOfConvergence.getIp(), pocBifuractionOfConvergence.getPort());
+
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
         }
@@ -413,6 +530,7 @@ public class PocProcessorImpl implements PocProcessor {
         if (!pocBifuractionOfConvergenceMap.containsKey(node)) {
             pocBifuractionOfConvergenceMap.put(node, pocBifuractionOfConvergence);
             POC_BIFURACTION_OF_CONVERGENCE_MAP.put(height, pocBifuractionOfConvergenceMap);
+            saveObjToFile(POC_BIFURACTION_OF_CONVERGENCE_MAP, LOCAL_STOAGE_POC_BOCS);
         }
     }
 
@@ -430,6 +548,10 @@ public class PocProcessorImpl implements PocProcessor {
         int height = tx.getBlock().getHeight();
         Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) tx.getAttachment();
         String node = "";
+
+        setBalance(account, height);
+        setNode(account, height, pocOnlineRate.getIp(), pocOnlineRate.getPort());
+
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
         }
@@ -447,71 +569,92 @@ public class PocProcessorImpl implements PocProcessor {
         if (!pocOnlineRateMap.containsKey(node)) {
             pocOnlineRateMap.put(node, pocOnlineRate);
             POC_ONLINE_RATE_MAP.put(height, pocOnlineRateMap);
+            saveObjToFile(POC_ONLINE_RATE_MAP, LOCAL_STOAGE_POC_ORS);
         }
     }
 
-    public static void setPocScore (Account account, int height, BigInteger pocScore) {
+    private static void setPocScore(Account account, int height, BigInteger pocScore) {
         Map<Long, BigInteger> score = new HashMap<>();
         if (SCORE_MAP.containsKey(height)) {
             score = SCORE_MAP.get(height);
         }
         score.put(account.getId(), pocScore);
         SCORE_MAP.put(height, score);
+        saveObjToFile(SCORE_MAP, LOCAL_STOAGE_POC_SCORES);
+    }
+
+    private static void setBalance(Account account, int height) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+
+        Map<Long, Long> balance = new HashMap<>();
+        if (BALANCE_MAP.containsKey(height)) {
+            balance = BALANCE_MAP.get(height);
+        }
+        balance.put(account.getId(), account.getBalanceNQT());
+        BALANCE_MAP.put(height, balance);
+        saveObjToFile(BALANCE_MAP, LOCAL_STOAGE_POC_BALANCES);
+    }
+
+    private static void setNode(Account account, int height, String ip, String port) {
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+
+        Map<Long, String> accountNode = new HashMap<>();
+        if (ACCOUNT_NODE_MAP.containsKey(height)) {
+            accountNode = ACCOUNT_NODE_MAP.get(height);
+        }
+        accountNode.put(account.getId(), ip + COLON + port);
+        ACCOUNT_NODE_MAP.put(height, accountNode);
+        saveObjToFile(ACCOUNT_NODE_MAP, LOCAL_STOAGE_POC_ACCOUNT_NODES);
+    }
+
+    private static void saveObjToFile(Object o, String fileName) {
+        try {
+            File localStorageFolder = new File(LOCAL_STORAGE_FORDER);
+            if (!localStorageFolder.exists()) {
+                localStorageFolder.mkdir();
+            }
+
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getLocalStoragePath(fileName)));
+            oos.writeObject(o);
+            oos.close();
+        } catch (Exception e) {
+            Logger.logErrorMessage("save sharder pool to file failed, file " + fileName + e.toString());
+        }
+    }
+
+    private static String getLocalStoragePath(String fileName) {
+        return LOCAL_STORAGE_FORDER + File.separator + fileName;
+    }
+
+    private static Object getObjFromFile(String fileName) {
+        try {
+            ObjectInputStream ois =
+                    new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
+            return ois.readObject();
+        } catch (Exception e) {
+            Logger.logErrorMessage("failed to read sharder pool from file " + fileName + e.toString());
+            return null;
+        }
     }
 
     private static void scoreMapping(Block block){
         for (Transaction transaction: block.getTransactions()) {
             Account account = Account.getAccount(transaction.getSenderId());
             if (transaction.getAttachment() instanceof Attachment.PocOnlineRate) {
-                Attachment.PocOnlineRate pocOR = (Attachment.PocOnlineRate) transaction.getAttachment();
-                Map<String, Attachment.PocOnlineRate> pocOnlineRate = new HashMap<>();
-                if (POC_ONLINE_RATE_MAP.containsKey(block.getHeight())) {
-                    pocOnlineRate = POC_ONLINE_RATE_MAP.get(block.getHeight());
-                }
-                pocOnlineRate.put(pocOR.getIp() + COLON + pocOR.getPort(), pocOR);
-                POC_ONLINE_RATE_MAP.put(block.getHeight(), pocOnlineRate);
+                setPocOnlineRate(account, transaction);
             }
             if (transaction.getAttachment() instanceof Attachment.PocBlockingMiss) {
-                Attachment.PocBlockingMiss pocBM = (Attachment.PocBlockingMiss) transaction.getAttachment();
-                Map<String, Attachment.PocBlockingMiss> pocBlockingMiss = new HashMap<>();
-                if (POC_BLOCKING_MISS_MAP.containsKey(block.getHeight())) {
-                    pocBlockingMiss = POC_BLOCKING_MISS_MAP.get(block.getHeight());
-                }
-                pocBlockingMiss.put(pocBM.getIp() + COLON + pocBM.getPort(), pocBM);
-                POC_BLOCKING_MISS_MAP.put(block.getHeight(), pocBlockingMiss);
+                setPocBlockingMiss(account, transaction);
             }
             if (transaction.getAttachment() instanceof Attachment.PocBifuractionOfConvergence) {
-                Attachment.PocBifuractionOfConvergence pocBOC = (Attachment.PocBifuractionOfConvergence) transaction.getAttachment();
-                Map<String, Attachment.PocBifuractionOfConvergence> pocBifuractionOfConvergence = new HashMap<>();
-                if (POC_BIFURACTION_OF_CONVERGENCE_MAP.containsKey(block.getHeight())) {
-                    pocBifuractionOfConvergence = POC_BIFURACTION_OF_CONVERGENCE_MAP.get(block.getHeight());
-                }
-                pocBifuractionOfConvergence.put(pocBOC.getIp() + COLON + pocBOC.getPort(), pocBOC);
-                POC_BIFURACTION_OF_CONVERGENCE_MAP.put(block.getHeight(), pocBifuractionOfConvergence);
+                setPocBOC(account, transaction);
             }
             if (transaction.getAttachment() instanceof Attachment.PocNodeConfiguration) {
-                Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) transaction.getAttachment();
-
-                Map<Long, String> accountNode = new HashMap<>();
-                if (ACCOUNT_NODE_MAP.containsKey(block.getHeight())) {
-                    accountNode = ACCOUNT_NODE_MAP.get(block.getHeight());
-                }
-                accountNode.put(account.getId(), pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort());
-                ACCOUNT_NODE_MAP.put(block.getHeight(), accountNode);
-
-                Map<String, Attachment.PocNodeConfiguration> pocConfig = new HashMap<>();
-                if (POC_CONFIG_MAP.containsKey(block.getHeight())) {
-                    pocConfig = POC_CONFIG_MAP.get(block.getHeight());
-                }
-                pocConfig.put(pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort(), pocNodeConfiguration);
-                POC_CONFIG_MAP.put(block.getHeight(), pocConfig);
-
-                Map<Long, Long> balance = new HashMap<>();
-                if (BALANCE_MAP.containsKey(block.getHeight())) {
-                    balance = BALANCE_MAP.get(block.getHeight());
-                }
-                balance.put(account.getId(), account.getBalanceNQT());
-                BALANCE_MAP.put(block.getHeight(), balance);
+                setPocConfiguration(account, transaction);
             }
         }
 
