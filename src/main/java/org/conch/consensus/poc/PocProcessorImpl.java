@@ -273,15 +273,11 @@ public class PocProcessorImpl implements PocProcessor {
 
         }
 
-        BigInteger totalScore =  nodeTypeScore.add(serverScore).add(hardwareScore).add(networkScore).add(tradeScore).add(ssScore).add(blockingMissScore).add(bifuractionConvergenceScore).add(onlineRateScore);
-        Map<Long, BigInteger> score = new HashMap<>();
-        if (SCORE_MAP.containsKey(height)) {
-            score = SCORE_MAP.get(height);
-        }
-        score.put(account.getId(), totalScore);
-        SCORE_MAP.put(height, score);
+        BigInteger pocScore = nodeTypeScore.add(serverScore).add(hardwareScore).add(networkScore).add(tradeScore).add(ssScore).add(blockingMissScore).add(bifuractionConvergenceScore).add(onlineRateScore);
 
-        return totalScore;
+        setPocScore(account, height, pocScore);
+
+        return pocScore;
     }
 
     public static Attachment.PocNodeConfiguration getPocConfiguration (String ip, String port, int height) {
@@ -294,6 +290,30 @@ public class PocProcessorImpl implements PocProcessor {
         return null;
     }
 
+    public static void setPocConfiguration (Account account, Transaction tx) {
+        int height = tx.getBlock().getHeight();
+        Attachment.PocNodeConfiguration pocNodeConfiguration = (Attachment.PocNodeConfiguration) tx.getAttachment();
+        String node = "";
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (ACCOUNT_NODE_MAP.containsKey(height) && ACCOUNT_NODE_MAP.get(height).containsKey(account.getId())) {
+            node = ACCOUNT_NODE_MAP.get(height).get(account.getId());
+        } else {
+            node = pocNodeConfiguration.getIp() + COLON + pocNodeConfiguration.getPort();
+        }
+
+        Map<String, Attachment.PocNodeConfiguration> pocConfigMap = new HashMap<>();
+        if (POC_CONFIG_MAP.containsKey(height)) {
+            pocConfigMap = POC_CONFIG_MAP.get(height);
+        }
+
+        if (!pocConfigMap.containsKey(node)) {
+            pocConfigMap.put(node, pocNodeConfiguration);
+            POC_CONFIG_MAP.put(height, pocConfigMap);
+        }
+    }
+
     public static Attachment.PocWeight getPocWeight (String ip, String port, int height) {
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
@@ -302,6 +322,30 @@ public class PocProcessorImpl implements PocProcessor {
             POC_WEIGHT_MAP.get(height).get(ip + COLON + port);
         }
         return null;
+    }
+
+    public static void setPocWeight (Account account, Transaction tx) {
+        int height = tx.getBlock().getHeight();
+        Attachment.PocWeight pocWeight = (Attachment.PocWeight) tx.getAttachment();
+        String node = "";
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (ACCOUNT_NODE_MAP.containsKey(height) && ACCOUNT_NODE_MAP.get(height).containsKey(account.getId())) {
+            node = ACCOUNT_NODE_MAP.get(height).get(account.getId());
+        } else {
+            node = pocWeight.getIp() + COLON + pocWeight.getPort();
+        }
+
+        Map<String, Attachment.PocWeight> pocWeightMap = new HashMap<>();
+        if (POC_WEIGHT_MAP.containsKey(height)) {
+            pocWeightMap = POC_WEIGHT_MAP.get(height);
+        }
+
+        if (!pocWeightMap.containsKey(node)) {
+            pocWeightMap.put(node, pocWeight);
+            POC_WEIGHT_MAP.put(height, pocWeightMap);
+        }
     }
 
     public static Attachment.PocBlockingMiss getPocBlockingMiss (String ip, String port, int height) {
@@ -314,6 +358,30 @@ public class PocProcessorImpl implements PocProcessor {
         return null;
     }
 
+    public static void setPocBlockingMiss (Account account, Transaction tx) {
+        int height = tx.getBlock().getHeight();
+        Attachment.PocBlockingMiss pocBlockingMiss = (Attachment.PocBlockingMiss) tx.getAttachment();
+        String node = "";
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (ACCOUNT_NODE_MAP.containsKey(height) && ACCOUNT_NODE_MAP.get(height).containsKey(account.getId())) {
+            node = ACCOUNT_NODE_MAP.get(height).get(account.getId());
+        } else {
+            node = pocBlockingMiss.getIp() + COLON + pocBlockingMiss.getPort();
+        }
+
+        Map<String, Attachment.PocBlockingMiss> pocBlockingMissMap = new HashMap<>();
+        if (POC_BLOCKING_MISS_MAP.containsKey(height)) {
+            pocBlockingMissMap = POC_BLOCKING_MISS_MAP.get(height);
+        }
+
+        if (!pocBlockingMissMap.containsKey(node)) {
+            pocBlockingMissMap.put(node, pocBlockingMiss);
+            POC_BLOCKING_MISS_MAP.put(height, pocBlockingMissMap);
+        }
+    }
+
     public static Attachment.PocBifuractionOfConvergence getPocBOC (String ip, String port, int height) {
         if (height < 0) {
             height = Conch.getBlockchain().getHeight();
@@ -322,6 +390,30 @@ public class PocProcessorImpl implements PocProcessor {
             POC_BIFURACTION_OF_CONVERGENCE_MAP.get(height).get(ip + COLON + port);
         }
         return null;
+    }
+
+    public static void setPocBOC (Account account, Transaction tx) {
+        int height = tx.getBlock().getHeight();
+        Attachment.PocBifuractionOfConvergence pocBifuractionOfConvergence = (Attachment.PocBifuractionOfConvergence) tx.getAttachment();
+        String node = "";
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (ACCOUNT_NODE_MAP.containsKey(height) && ACCOUNT_NODE_MAP.get(height).containsKey(account.getId())) {
+            node = ACCOUNT_NODE_MAP.get(height).get(account.getId());
+        } else {
+            node = pocBifuractionOfConvergence.getIp() + COLON + pocBifuractionOfConvergence.getPort();
+        }
+
+        Map<String, Attachment.PocBifuractionOfConvergence> pocBifuractionOfConvergenceMap = new HashMap<>();
+        if (POC_BIFURACTION_OF_CONVERGENCE_MAP.containsKey(height)) {
+            pocBifuractionOfConvergenceMap = POC_BIFURACTION_OF_CONVERGENCE_MAP.get(height);
+        }
+
+        if (!pocBifuractionOfConvergenceMap.containsKey(node)) {
+            pocBifuractionOfConvergenceMap.put(node, pocBifuractionOfConvergence);
+            POC_BIFURACTION_OF_CONVERGENCE_MAP.put(height, pocBifuractionOfConvergenceMap);
+        }
     }
 
     public static Attachment.PocOnlineRate getPocOnlineRate (String ip, String port, int height) {
@@ -334,11 +426,37 @@ public class PocProcessorImpl implements PocProcessor {
         return null;
     }
 
-    // Listener process
-    private static Map pocTemplateMap;
-    private static void templateMapping(Block block){
-        block.getHeight();
-        // read the PocTemplate TX and parse them to PocTemplate object
+    public static void setPocOnlineRate (Account account, Transaction tx) {
+        int height = tx.getBlock().getHeight();
+        Attachment.PocOnlineRate pocOnlineRate = (Attachment.PocOnlineRate) tx.getAttachment();
+        String node = "";
+        if (height < 0) {
+            height = Conch.getBlockchain().getHeight();
+        }
+        if (ACCOUNT_NODE_MAP.containsKey(height) && ACCOUNT_NODE_MAP.get(height).containsKey(account.getId())) {
+            node = ACCOUNT_NODE_MAP.get(height).get(account.getId());
+        } else {
+            node = pocOnlineRate.getIp() + COLON + pocOnlineRate.getPort();
+        }
+
+        Map<String, Attachment.PocOnlineRate> pocOnlineRateMap = new HashMap<>();
+        if (POC_ONLINE_RATE_MAP.containsKey(height)) {
+            pocOnlineRateMap = POC_ONLINE_RATE_MAP.get(height);
+        }
+
+        if (!pocOnlineRateMap.containsKey(node)) {
+            pocOnlineRateMap.put(node, pocOnlineRate);
+            POC_ONLINE_RATE_MAP.put(height, pocOnlineRateMap);
+        }
+    }
+
+    public static void setPocScore (Account account, int height, BigInteger pocScore) {
+        Map<Long, BigInteger> score = new HashMap<>();
+        if (SCORE_MAP.containsKey(height)) {
+            score = SCORE_MAP.get(height);
+        }
+        score.put(account.getId(), pocScore);
+        SCORE_MAP.put(height, score);
     }
 
     private static void scoreMapping(Block block){
@@ -397,14 +515,14 @@ public class PocProcessorImpl implements PocProcessor {
             }
         }
 
-        for (Transaction transaction: block.getTransactions()) {
-            if (transaction.getAttachment() instanceof Attachment.PocNodeConfiguration) {
-                Account account = Account.getAccount(transaction.getSenderId());
-                PocProcessorImpl.getOrCreate().calPocScore(account, block.getHeight());
-            }
-        }
-
         nodeHardwareTxProcess();
+    }
+
+    // Listener process
+    private static Map pocTemplateMap;
+    private static void templateMapping(Block block){
+        block.getHeight();
+        // read the PocTemplate TX and parse them to PocTemplate object
     }
 
     private static void nodeHardwareTxProcess(){
