@@ -34,6 +34,7 @@ public abstract class SharderPocTx {
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
             Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port, -1);
+            assert attachment != null;
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -52,6 +53,7 @@ public abstract class SharderPocTx {
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
             Attachment attachment = PocProcessorImpl.getPocWeight(ip, port, -1);
+            assert attachment != null;
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -70,6 +72,7 @@ public abstract class SharderPocTx {
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
             Attachment attachment = PocProcessorImpl.getPocOnlineRate(ip, port, -1);
+            assert attachment != null;
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -88,6 +91,7 @@ public abstract class SharderPocTx {
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
             Attachment attachment = PocProcessorImpl.getPocBlockingMiss(ip, port, -1);
+            assert attachment != null;
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -106,6 +110,7 @@ public abstract class SharderPocTx {
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
             Attachment attachment = PocProcessorImpl.getPocBOC(ip, port, -1);
+            assert attachment != null;
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
