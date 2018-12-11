@@ -171,11 +171,11 @@ public class PocProcessorImpl implements PocProcessor {
                     serverScore = SERVER_OPEN_SCORE;
                 }
 
-                if (pocNodeConfiguration.getSystemInfo().getCore() >= 8 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3600 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 16 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
+                if (pocNodeConfiguration.getSystemInfo().getCore() >= 8 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3600 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 15 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
                     hardwareScore = HARDWARE_CONFIGURATION_HIGH_SCORE;
-                } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 4 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3100 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 8 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 1000) {
+                } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 4 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 3100 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 7 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 1000) {
                     hardwareScore = HARDWARE_CONFIGURATION_MEDIUM_SCORE;
-                } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 2 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 2400 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 4 * 1000 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 100) {
+                } else if (pocNodeConfiguration.getSystemInfo().getCore() >= 2 && pocNodeConfiguration.getSystemInfo().getAverageMHz() >= 2400 && pocNodeConfiguration.getSystemInfo().getMemoryTotal() >= 4 && pocNodeConfiguration.getSystemInfo().getHardDiskSize() >= 100) {
                     hardwareScore = HARDWARE_CONFIGURATION_LOW_SCORE;
                 }
 

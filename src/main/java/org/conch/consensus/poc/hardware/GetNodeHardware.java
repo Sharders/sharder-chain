@@ -27,7 +27,7 @@ public class GetNodeHardware {
     public static SystemInfo memory(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         Mem mem = sigar.getMem();
-        systemInfo.setMemoryTotal((int)(mem.getTotal() / 1000 / 1000));
+        systemInfo.setMemoryTotal((int)(mem.getTotal() / 1024 / 1024 / 1024));
         return systemInfo;
     }
 
@@ -58,6 +58,16 @@ public class GetNodeHardware {
             }
         }
         int hdTotal = (int)((double)ypTotal / 1000L);
+        if (hdTotal == 0){
+            for (int i = 0; i <fsList.length; i++) {
+                FileSystem fs = fsList[i];
+                if (fs.getDirName().equals("/")) {
+                    FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
+                     hdTotal = (int)((double)usage.getTotal() / 1000L);
+                     break;
+                }
+            }
+        }
         systemInfo.setHardDiskSize(hdTotal);
         return systemInfo;
     }
