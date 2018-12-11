@@ -13,6 +13,7 @@ import "styles/css/index.scss";
 import "element-ui/lib/theme-chalk/index.css";
 import global from "./utils/common.js";
 import "../static/sso/js";
+import i18n from "./i18n/i18n";
 
 let passUrls = ["static", "login", "register", "enter"];
 let whiteList = ["/mining", "/mining/binding-account"];
@@ -53,6 +54,7 @@ Vue.prototype.url = "http://localhost:8215/sharder?requestType=";
 const app = new Vue({
     router,
     store,
+    i18n,
     ...App
 });
 export {app, router, store};

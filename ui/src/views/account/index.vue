@@ -3,13 +3,13 @@
         <div>
             <div class="block_account mb20">
                 <p class="block_title">
-                    <img src="../../assets/account.svg"/>
+                    <img src="../../assets/img/account.svg"/>
                     <span>账户总览</span>
                 </p>
                 <div class="w pt60">
                     <div class="account_address">
                         <span>{{accountInfo.accountRS}}</span>
-                        <img class="csp" src="../../assets/copy.svg" v-clipboard:copy="accountInfo.accountRS"
+                        <img class="csp" src="../../assets/img/copy.svg" v-clipboard:copy="accountInfo.accountRS"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span class="csp" @click="openUserInfoDialog">账户详情</span>
                     </div>
@@ -37,7 +37,7 @@
                             </span>
                             <span>发送消息</span>
                         </button>
-                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined'" @click="openHubSettingDialog">
+                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -61,7 +61,7 @@
             </div>
             <div class="block_receiptDisbursement mb20">
                 <p class="block_title">
-                    <img src="../../assets/receipt&disbursementInfo.svg"/>
+                    <img src="../../assets/img/receipt&disbursementInfo.svg"/>
                     <span>收支明细</span>
                 </p>
                 <div class="w">
@@ -75,7 +75,7 @@
             </div>
             <div class="block_list">
                 <p class="block_title fl">
-                    <img src="../../assets/transaction.svg"/>
+                    <img src="../../assets/img/transaction.svg"/>
                     <span>交易记录</span>
                 </p>
                 <div class="transaction_type">
@@ -125,7 +125,7 @@
                                               v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">您</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                               v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
-                                        <img src="../../assets/right_arrow.svg"/>
+                                        <img src="../../assets/img/right_arrow.svg"/>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">您</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                               v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
@@ -168,7 +168,7 @@
                         <el-form>
                             <el-form-item label="接收者" class="item_receiver">
                                 <masked-input id="receiver" mask="AAA-****-****-****-*****" v-model="messageForm.receiver" />
-                                <img src="../../assets/account_directory.svg"/>
+                                <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item label="接收者公钥" v-if="messageForm.hasPublicKey">
                                 <el-input v-model="messageForm.publicKey" type="password"></el-input>
@@ -219,7 +219,7 @@
                         <el-form>
                             <el-form-item label="接收者" class="item_receiver">
                                 <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
-                                <img src="../../assets/account_directory.svg"/>
+                                <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item label="接收者公钥" v-if="transfer.hasPublicKey && transfer.hasMessage">
                                 <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
@@ -322,7 +322,7 @@
         <!--view account transaction dialog-->
         <div class="modal_info" id="account_info" v-show="userInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span>账户详情</span>
                 </h4>
@@ -340,7 +340,7 @@
                             <div class="accountName" v-if="isShowName">
                                 <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
                                 <span v-else style="color:#999;font-weight: normal">未设置</span>
-                                <img src="../../assets/rewrite.svg" @click="isShowName = false"/>
+                                <img src="../../assets/img/rewrite.svg" @click="isShowName = false"/>
                             </div>
                             <div class="rewriteName" v-else>
                                 <el-input v-model="temporaryName"></el-input>

@@ -36,6 +36,7 @@
         "tls": "0.0.1",
         "vue": "^2.3.0",
         "vue-clipboard2": "^0.2.1",
+        "vue-i18n": "^8.4.0",
         "vue-masked-input": "^0.5.2",
         "vue-router": "^2.5.2",
         "vuex": "^2.3.1",

@@ -3,7 +3,7 @@
         <div class="header_content">
             <div id="logo">
                 <a href="#" class="logo">
-                    <img src="../../assets/logo.svg"/>
+                    <img src="../../assets/img/logo.svg"/>
                     <div>
                         <span>Sharder</span>
                         <span>COS 版本：{{blockchainState.fullVersion}}</span>
@@ -29,7 +29,7 @@
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
                                :placeholder="placeholder" type="text" name="search" v-model="search_val"
                                @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
-                        <img src="../../assets/search.svg" @click="search_keydown"/>
+                        <img src="../../assets/img/search.svg" @click="search_keydown"/>
                     </div>
                 </div>
                 <div class="navbar_right">

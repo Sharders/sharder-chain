@@ -27,6 +27,11 @@ export default {
             })
         })
     },
+    /**
+     * 获取区块链信息
+     * @param t
+     * @returns {Promise<any>}
+     */
     setBlockchainState(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
@@ -40,6 +45,12 @@ export default {
             });
         });
     },
+    /**
+     * 获取未出快的交易
+     * @param t
+     * @param account
+     * @returns {Promise<any>}
+     */
     setUnconfirmedTransactions(t,account){
         const _this = this;
         return new Promise(function (resolve, reject) {
@@ -53,6 +64,11 @@ export default {
             });
         });
     },
+    /**
+     * 获取节点
+     * @param t
+     * @returns {Promise<any>}
+     */
     setPeers(t){
         const _this = this;
         return new Promise(function (resolve, reject) {
@@ -71,6 +87,11 @@ export default {
             });
         });
     },
+    /**
+     * 获取创世时间
+     * @param t
+     * @returns {Promise<any>}
+     */
     setEpochBeginning(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
@@ -80,6 +101,12 @@ export default {
             });
         });
     },
+    /**
+     * 获取在创世时间后的时间
+     * @param value
+     * @param type
+     * @returns {string}
+     */
     myFormatTime(value, type) {
         const _this = this;
         let dataTime = "";
@@ -107,6 +134,11 @@ export default {
         }
         return dataTime;//将格式化后的字符串输出到前端显示
     },
+    /**
+     *格式化时间 加0
+     * @param val
+     * @returns {*}
+     */
     addZero(val) {
         if (val < 10) {
             return "0" + val;
@@ -114,6 +146,11 @@ export default {
             return val;
         }
     },
+    /**
+     * 格式化金额
+     * @param num
+     * @returns {string}
+     */
     formatMoney(num) {
         let result = '', counter = 0;
         num = (num || 0).toString();
@@ -126,6 +163,11 @@ export default {
         }
         return result;
     },
+    /**
+     * 获取用户配置
+     * @param t
+     * @returns {Promise<any>}
+     */
     getUserConfig(t){
         const _this = this;
         return new Promise(function (resolve, reject) {
@@ -141,6 +183,11 @@ export default {
             });
         });
     },
+    /**
+     * string转为byte[]
+     * @param str
+     * @returns {Array}
+     */
     stringToByte(str) {
         let bytes = [];
         let len, c;
@@ -165,6 +212,11 @@ export default {
         }
         return bytes;
     },
+    /**
+     * byte[]转为string
+     * @param arr
+     * @returns {string}
+     */
     byteToString(arr) {
         if(typeof arr === 'string') {
             return arr;
@@ -188,6 +240,15 @@ export default {
         }
         return str;
     },
+
+    /**
+     * 将数据添加进打开的命令行窗口
+     * @param url
+     * @param type
+     * @param data
+     * @param response
+     * @param error
+     */
     addToConsole(url, type, data, response, error) {
         const _this = this;
         if(!_this.isOpenConsole || !_this.newConsole){
@@ -265,5 +326,55 @@ export default {
         }
 
         return obj;
+    },
+
+    setJsonLocalStorage:function (key,val) {
+        try {
+            localStorage.setItem(key,JSON.stringify(val));
+        }catch (e) {
+            console.warn("The browser does not support cookies.");
+            return null;
+        }
+
+    },
+    getJsonLocalStorage:function (key) {
+        try {
+            return JSON.parse(localStorage.getItem(key));
+        }catch (e) {
+            console.warn("The browser does not support cookies.");
+            return null;
+        }
+    },
+    setlocalStorage:function(key,val){
+        try {
+            localStorage.setItem(key,val);
+        }catch (e) {
+            console.warn("The browser does not support cookies.");
+            return null;
+        }
+    },
+    getLocalStorage:function (key) {
+        try {
+            return localStorage.getItem(key);
+        }catch (e) {
+            console.warn("The browser does not support cookies.");
+            return null;
+        }
+    },
+    setlang:function(_lang){
+        try {
+            localStorage.lang = _lang;
+        } catch (e) {
+            console.warn("The browser does not support cookies.");
+            return null;
+        }
+    },
+    lang:function(){
+        try {
+            return localStorage.lang;
+        } catch (e) {
+            console.warn("The browser does not support cookies.");
+            return null;
+        }
     },
 };

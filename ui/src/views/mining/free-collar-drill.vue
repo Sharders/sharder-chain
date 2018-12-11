@@ -149,7 +149,7 @@
         position: absolute;
         top: 0;
         right: 0;
-        background: url("../../assets/state.png") no-repeat;
+        background: url("../../assets/img/state.png") no-repeat;
         border-top-right-radius: 6px;
     }
 

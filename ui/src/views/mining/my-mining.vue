@@ -20,15 +20,15 @@
                             </div>
                             <div class="tag">
                                 <p>
-                                    <img src="../../assets/kuangchisouyi.png">
+                                    <img src="../../assets/img/kuangchisouyi.png">
                                     <span>矿池收益 : {{mining.earnings}} SS</span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/kuagnchifhenpei.png">
+                                    <img src="../../assets/img/kuagnchifhenpei.png">
                                     <span>收益分配 : {{mining.distribution}}%</span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/kuangchishenyu.png">
+                                    <img src="../../assets/img/kuangchishenyu.png">
                                     <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
                                 </p>
                             </div>
@@ -51,15 +51,15 @@
                             </div>
                             <div class="tag">
                                 <p>
-                                    <img src="../../assets/kuangchisouyi.png">
+                                    <img src="../../assets/img/kuangchisouyi.png">
                                     <span>矿池收益 : {{mining.earnings}} SS</span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/kuagnchifhenpei.png">
+                                    <img src="../../assets/img/kuagnchifhenpei.png">
                                     <span>收益分配 : {{mining.distribution}}%</span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/kuangchishenyu.png">
+                                    <img src="../../assets/img/kuangchishenyu.png">
                                     <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
                                 </p>
                             </div>

@@ -27,7 +27,7 @@
                 </div>
             </div>
             <div class="qr">
-                <img src="../../assets/account.svg" class="img-qr">
+                <img src="../../assets/img/account.svg" class="img-qr">
                 <p>扫码立即下载OX钱包</p>
             </div>
             <p class="about">

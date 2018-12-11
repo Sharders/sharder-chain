@@ -189,7 +189,7 @@
         right: 10px;
         top: 10px;
         cursor: pointer;
-        background: url("../../assets/error.svg") no-repeat center;
+        background: url("../../assets/img/error.svg") no-repeat center;
     }
 
     .img-close:hover {

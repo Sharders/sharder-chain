@@ -4,7 +4,7 @@
             <p @click="$router.back()" class="pool-back">&lt;&lt;返回上一页</p>
             <div class="pool-content">
                 <div class="attribute-info">
-                    <img src="../../assets/shouyi.png" id="shouyi">
+                    <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
                             矿池编号:{{mining.serialNumber}} | 挖矿几率 : {{mining.distribution}}%
@@ -19,7 +19,7 @@
                 </div>
                 <div class="my-info">
                     <h1>
-                        <img src="../../assets/wodexingxi.png" class="head-portrait">
+                        <img src="../../assets/img/wodexingxi.png" class="head-portrait">
                         <span>我的信息</span>
                     </h1>
                     <div class="my-attribute">
@@ -63,7 +63,7 @@
                 <span class="img-close" @click="miningMask('isAttribute')"></span>
                 <div class="attribute">
                     <h1>
-                        <img src="../../assets/pay.svg" class="attribute-img">
+                        <img src="../../assets/img/pay.svg" class="attribute-img">
                         <span>矿池详情</span>
                     </h1>
                     <div class="attribute-value">
@@ -175,7 +175,7 @@
 
     .pool-content .attribute-info {
         padding: 30px;
-        background: url("../../assets/kuangchi_bg.png") no-repeat center 140px;
+        background: url("../../assets/img/kuangchi_bg.png") no-repeat center 140px;
         background-color: #513acB;
         height: 300px;
         border-top-right-radius: 6px;

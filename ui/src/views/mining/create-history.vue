@@ -4,17 +4,17 @@
         <div class="history">
             <div class="history-content" v-for="history in historyList" @click="details(history)">
                 <p>
-                    <img src="../../assets/kuangchisouyi.png">
+                    <img src="../../assets/img/kuangchisouyi.png">
                     <span>创建时间</span>:
                     <span>{{history.createTime}}</span>
                 </p>
                 <p>
-                    <img src="../../assets/kuagnchifhenpei.png">
+                    <img src="../../assets/img/kuagnchifhenpei.png">
                     <span>挖矿时长</span>:
                     <span>{{history.miningTime}}块矿产(约12小时)</span>
                 </p>
                 <p>
-                    <img src="../../assets/kuangchishenyu.png">
+                    <img src="../../assets/img/kuangchishenyu.png">
                     <span>矿池收益</span>:
                     <span>{{history.earnings}}砖石</span>
                 </p>

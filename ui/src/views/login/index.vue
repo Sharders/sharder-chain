@@ -2,79 +2,79 @@
     <div>
         <div class="content_login" v-if="typeof userConfig['sharder.HubBindAddress'] !== 'undefined'">
             <el-radio-group v-model="tabTitle" class="title">
-                <el-radio-button label="key" class="btn">密钥登录</el-radio-button>
-                <el-radio-button label="account" class="btn">账户登录</el-radio-button>
+                <el-radio-button label="key" class="btn">{{$t('login.secret_login')}}</el-radio-button>
+                <el-radio-button label="account" class="btn">{{$t('login.account_login')}}</el-radio-button>
             </el-radio-group>
 
             <el-col :span="24" class="login_operation">
                 <input v-if="tabTitle === 'key'" class="account_input" type="password" v-model="secretPhrase"
-                       placeholder="请输入账户密钥"/>
+                       :placeholder="$t('login.login_placeholder')"/>
                 <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
-                              mask="AAA-****-****-****-*****" placeholder="Sharder账户" />
-                <el-button class="common_btn" @click="login">登录</el-button>
+                              mask="AAA-****-****-****-*****" :placeholder="$t('login.sharder_account')" />
+                <el-button class="common_btn" @click="login">{{$t('login.login')}}</el-button>
             </el-col>
 
             <el-col :span="24">
-                <img src="../../assets/create_account.png"/>
-                <a @click="register">没有账户? 创建账户</a>
+                <img src="../../assets/img/create_account.png"/>
+                <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>
         <div class="content_welcome" v-else>  <!--Hub初始化-->
             <el-col :span="24" class="welcome_info">
-                <p>欢迎来到豆匣链</p>
+                <p>{{$t('login.welcome_tip')}}</p>
             </el-col>
             <el-col :span="24" class="welcome_main">
-                <button class="init_hub_btn" @click="initHub">初始化Hub</button>
+                <button class="init_hub_btn" @click="initHub">{{$t('login.init_hub')}}</button>
             </el-col>
         </div>
 
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
                 <h4 class="modal-title">
-                    <span>初始化HUB</span>
+                    <span>{{$t('login.init_hub')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <el-form label-position="left" label-width="160px">
-                    <el-form-item label="启动内网穿透服务:">
+                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item label="Sharder官网账户:">
+                    <el-form-item :label="$t('hubsetting.sharder_account')">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
-                    <el-form-item label="Sharder官网密码:" >
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')">
                         <el-input v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务地址:" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务端口:" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务客户端秘钥:"  v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="公网地址:">
+                    <el-form-item :label="$t('hubsetting.public_ip_address')">
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
-                    <el-form-item label="关联SS地址:">
+                    <el-form-item :label="$t('hubsetting.token_address')">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
                     </el-form-item>
-                    <el-form-item label="是否开启挖矿:">
+                    <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
-                    <el-form-item label="绑定助记词:" v-if="hubsetting.isOpenMining">
+                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
                         <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
-                    <el-form-item label="初始化管理员密码:">
+                    <el-form-item :label="$t('hubsetting.set_password')">
                         <el-input v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
-                    <el-form-item label="确认管理员密码:">
+                    <el-form-item :label="$t('hubsetting.confirm_password')">
                         <el-input v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="verifyHubSetting">确认后重启</button>
+                    <button class="common_btn" @click="verifyHubSetting">{{$t('login.confirm_restart')}}</button>
                 </div>
             </div>
         </div>

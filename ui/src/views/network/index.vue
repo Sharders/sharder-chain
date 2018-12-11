@@ -3,7 +3,7 @@
         <div>
             <div class="block_network mb20">
                 <p class="block_title">
-                    <img src="../../assets/network.svg"/>
+                    <img src="../../assets/img/network.svg"/>
                     <span>网络总览</span>
                 </p>
                 <div class="w dfl">
@@ -24,13 +24,13 @@
             </div>
             <div class="mb20 fl">
                 <p class="block_title">
-                    <img src="../../assets/miner.svg"/>
+                    <img src="../../assets/img/miner.svg"/>
                     <span>旷工信息</span>
                 </p>
                 <div class="whf xs_section_fa">
                     <div class="xs_section br4">
                         <div>
-                            <img src="../../assets/miner-info1.svg"/>
+                            <img src="../../assets/img/miner-info1.svg"/>
                             <div class="section_info">
                                 <span>{{activeCount}}</span>
                                 <span>旷工数量</span>
@@ -39,7 +39,7 @@
                     </div>
                     <div class="xs_section br4">
                         <div>
-                            <img src="../../assets/miner-info2.svg"/>
+                            <img src="../../assets/img/miner-info2.svg"/>
                             <div class="section_info">
                                 <span>{{totalCount}}</span>
                                 <span>总交易量</span>
@@ -49,7 +49,7 @@
                     </div>
                     <div class="xs_section br4">
                         <div>
-                            <img src="../../assets/miner-info3.svg"/>
+                            <img src="../../assets/img/miner-info3.svg"/>
                             <div class="section_info">
                                 <span>{{transferCount}}</span>
                                 <span>转账交易</span>
@@ -58,7 +58,7 @@
                     </div>
                     <div class="xs_section br4">
                         <div>
-                            <img src="../../assets/miner-info4.svg"/>
+                            <img src="../../assets/img/miner-info4.svg"/>
                             <div class="section_info">
                                 <span>{{coinbaseCount}}</span>
                                 <span>CoinBase交易</span>
@@ -67,7 +67,7 @@
                     </div>
                     <div class="xs_section br4">
                         <div>
-                            <img src="../../assets/miner-info5.svg"/>
+                            <img src="../../assets/img/miner-info5.svg"/>
                             <div class="section_info">
                                 <span>{{storageCount}}</span>
                                 <span>存储交易</span>
@@ -76,7 +76,7 @@
                     </div>
                     <div class="xs_section br4">
                         <div>
-                            <img src="../../assets/miner-info6.svg"/>
+                            <img src="../../assets/img/miner-info6.svg"/>
                             <div class="section_info">
                                 <span>无</span>
                                 <span>别名修改</span>
@@ -88,7 +88,7 @@
             <div class="block_peers mb20 fr">
                 <p>
                     <span class="block_title fl">
-                        <img src="../../assets/peerlist.svg"/>
+                        <img src="../../assets/img/peerlist.svg"/>
                         <span>节点信息</span>
                     </span>
                     <span class="hrefbtn fr block_title csp">
@@ -105,7 +105,7 @@
             <div class="cb"></div>
             <div class="block_list">
                 <p  class="block_title">
-                    <img src="../../assets/block.svg"/>
+                    <img src="../../assets/img/block.svg"/>
                     <span>区块列表</span>
                 </p>
                 <div class="list_table w br4">

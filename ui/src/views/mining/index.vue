@@ -9,14 +9,14 @@
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
             <div class="mining-content">
-                <img src="../../assets/chatu.png" id="chatu">
+                <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
                         <li>全网挖矿: 第236块</li>
                         <li>我的资产: 100000 SS</li>
                         <li>我的收益: 100000 SS</li>
                         <li class="strong">
-                            <img src="../../assets/kuangchii_chakan.png">
+                            <img src="../../assets/img/kuangchii_chakan.png">
                             <span @click="isVisible('isRanking')">查看排行</span>
                         </li>
                     </ul>
@@ -31,16 +31,16 @@
                 <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">邀请好友得奖励</div>
                 <div class="rule-description" @click="$router.push({name: 'rule-description'})">规则说明</div>
                 <div class="my-mining create" @click="$router.push({name: 'my-mining'})">
-                    <img src="../../assets/wodekuangchi.png">
+                    <img src="../../assets/img/wodekuangchi.png">
                     <p>我的矿池</p>
                 </div>
                 <div class="create" @click="isVisible('isCreatePool')">
-                    <img src="../../assets/chuanjiankuangchi.png">
+                    <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>创建矿池</p>
                 </div>
             </div>
             <div class="mining-notice">
-                <img src="../../assets/guangbo.png" class="notice-img">
+                <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
                 矿产第2345块 | 出块者023 | 奖励: 1000 SS
             </span>
@@ -48,7 +48,7 @@
             <div class="mining-list">
                 <h5>
                     <div class="list-title">
-                        <img src="../../assets/miner.svg" class="mining-list-img">
+                        <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>矿池列表</span>
                     </div>
                     <el-select v-model="value" placeholder="排序">
@@ -72,15 +72,15 @@
                                 </div>
                                 <div class="tag">
                                     <p>
-                                        <img src="../../assets/kuangchisouyi.png">
+                                        <img src="../../assets/img/kuangchisouyi.png">
                                         <span>矿池收益 : {{mining.earnings}} SS</span>
                                     </p>
                                     <p>
-                                        <img src="../../assets/kuagnchifhenpei.png">
+                                        <img src="../../assets/img/kuagnchifhenpei.png">
                                         <span>收益分配 : {{mining.distribution}}%</span>
                                     </p>
                                     <p>
-                                        <img src="../../assets/kuangchishenyu.png">
+                                        <img src="../../assets/img/kuangchishenyu.png">
                                         <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
                                     </p>
                                 </div>
@@ -102,7 +102,7 @@
         <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
-                <img src="../../assets/logo.svg" class="receive-qr-img">
+                <img src="../../assets/img/logo.svg" class="receive-qr-img">
                 <p class="receive-text">
                     请扫描二维码下载0X钱包,<br>
                     进入"豆匣矿场"应用免费领取
@@ -121,7 +121,7 @@
                             <div class="reward-content-div">
                                 <div class="content-left">
                                     <p>
-                                        <img src="../../assets/logo.svg" class="content-left-img">
+                                        <img src="../../assets/img/logo.svg" class="content-left-img">
                                         <span class="strong">1000 SS(ERC-20)</span>
                                         <span>剩余: 0</span>
                                     </p>
@@ -140,36 +140,36 @@
         <div v-if="tabMenu === 'personal'">
             <div class="personal-content">
                 <div class="user">
-                    <img src="../../assets/wodezichan.png" class="header-img">
+                    <img src="../../assets/img/wodezichan.png" class="header-img">
                     <p>
                         <span>矿工名称</span>:
                         <span>未设置</span>
-                        <img src="../../assets/set.png" @click="isVisible('isSetName')">
+                        <img src="../../assets/img/set.png" @click="isVisible('isSetName')">
                     </p>
                     <p>
                         <span>TSS地址</span>:
                         <span>SSA-WHXU-6UB3-DB75-78GAT</span>
-                        <img src="../../assets/TSS.png" @click="isVisible('isTSS')">
+                        <img src="../../assets/img/TSS.png" @click="isVisible('isTSS')">
                     </p>
                 </div>
                 <div class="list" @click="$router.push({name: 'my-assets'})">
-                    <img src="../../assets/wodezichan.png">
+                    <img src="../../assets/img/wodezichan.png">
                     <span>我的资产</span>
                 </div>
                 <div class="list" @click="$router.push({name: 'free-collar-drill'})">
-                    <img src="../../assets/zhuanshi.png">
+                    <img src="../../assets/img/zhuanshi.png">
                     <span>免费领钻</span>
                 </div>
                 <div class="list" @click="$router.push({name: 'invite-friends'})">
-                    <img src="../../assets/haoyou.png">
+                    <img src="../../assets/img/haoyou.png">
                     <span>邀请好友</span>
                 </div>
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
-                    <img src="../../assets/zhuanshiduihuan.png">
+                    <img src="../../assets/img/zhuanshiduihuan.png">
                     <span>钻石兑换</span>
                 </div>
                 <div class="list">
-                    <img src="../../assets/guanyuwomen.png">
+                    <img src="../../assets/img/guanyuwomen.png">
                     <span>关于我们</span>
                 </div>
                 <div class="about">
@@ -239,7 +239,7 @@
                     <h3 class="pool-header">创建矿池</h3>
                     <div class="pool-attribute">
                         <h1 class="pool-title">
-                            <img src="../../assets/kuangchi_attribute.png">
+                            <img src="../../assets/img/kuangchi_attribute.png">
                             <span>矿池属性</span>
                         </h1>
                         <p>
@@ -261,7 +261,7 @@
                     </div>
                     <div class="pool-set">
                         <h1 class="pool-title">
-                            <img src="../../assets/kuangchi_set.png">
+                            <img src="../../assets/img/kuangchi_set.png">
                             <span>矿池设定</span>
                         </h1>
                         <div class="pool-data">
@@ -509,9 +509,7 @@
         margin: auto;
     }
 
-    #app .el-select .el-input .el-select__caret {
-        top: 0 !important;
-    }
+
 
     .el-select-dropdown__item.selected, .el-pager li.active {
         color: #fff !important;
@@ -594,7 +592,7 @@
         right: 10px;
         top: 10px;
         cursor: pointer;
-        background: url("../../assets/error.svg") no-repeat center;
+        background: url("../../assets/img/error.svg") no-repeat center;
     }
 
     .img-close:hover {
@@ -616,6 +614,10 @@
 </style>
 <!--豆匣矿场-->
 <style scoped>
+    #app .el-select .el-input .el-select__caret {
+        top: 0 !important;
+    }
+
     .mining-content {
         position: relative;
         margin-top: 10px;
@@ -623,7 +625,7 @@
         border-top-right-radius: 6px;
         height: 300px;
         padding: 30px;
-        background: url("../../assets/kuangchi_bg.png") no-repeat center 140px;
+        background: url("../../assets/img/kuangchi_bg.png") no-repeat center 140px;
         background-color: #513acB;
     }
 
@@ -970,15 +972,15 @@
     }
 
     .ranking-table .ranking-logo.bg-0 {
-        background-image: url("../../assets/ranking_1.png");
+        background-image: url("../../assets/img/ranking_1.png");
     }
 
     .ranking-table .ranking-logo.bg-1 {
-        background-image: url("../../assets/ranking_2.png");
+        background-image: url("../../assets/img/ranking_2.png");
     }
 
     .ranking-table .ranking-logo.bg-2 {
-        background-image: url("../../assets/ranking_3.png");
+        background-image: url("../../assets/img/ranking_3.png");
     }
 
     .ranking-content .my-assets {
@@ -1339,19 +1341,19 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/index.png") no-repeat center 26px;
+            background: url("../../assets/img/index.png") no-repeat center 26px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/personal.png") no-repeat center 26px;
+            background: url("../../assets/img/personal.png") no-repeat center 26px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/index-1.png") no-repeat center 26px;
+            background: url("../../assets/img/index-1.png") no-repeat center 26px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/personal-1.png") no-repeat center 26px;
+            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {

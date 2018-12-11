@@ -3,7 +3,7 @@
         <!--view account info-->
         <div class="modal_info" id="account_info" v-show="accountInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span >账户：{{accountInfo.accountRS}} 信息</span>
                 </h4>
@@ -37,23 +37,23 @@
                                 <tr v-for="transactions in accountTransactionInfo">
                                     <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS')}}</td>
                                     <td v-if="transactions.type === 0">
-                                        <img src="../../assets/pay.svg"/>
+                                        <img src="../../assets/img/pay.svg"/>
                                         <span>普通支付</span>
                                     </td>
                                     <td v-else-if="transactions.type === 1 && transactions.subtype === 0">
-                                        <img src="../../assets/infomation.svg"/>
+                                        <img src="../../assets/img/infomation.svg"/>
                                         <span>任意信息</span>
                                     </td>
                                     <td v-else-if="transactions.type === 1 && transactions.subtype === 5">
-                                        <img src="../../assets/infomation.svg"/>
+                                        <img src="../../assets/img/infomation.svg"/>
                                         <span>账户信息</span>
                                     </td>
                                     <td v-else-if="transactions.type === 6">
-                                        <img src="../../assets/infomation.svg"/>
+                                        <img src="../../assets/img/infomation.svg"/>
                                         <span>数据存储</span>
                                     </td>
                                     <td v-else-if="transactions.type === 9">
-                                        <img src="../../assets/coinBase.svg"/>
+                                        <img src="../../assets/img/coinBase.svg"/>
                                         <span>CoinBase</span>
                                     </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
@@ -71,7 +71,7 @@
         <!--view account transaction info-->
         <div class="modal_info" id="account_transaction" v-show="accountTransactionDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span >账户：{{accountInfo.accountRS}} 信息</span>
                 </h4>
@@ -198,7 +198,7 @@
         <div class="modal_info" id="block_info" v-show="blockInfoDialog">
 
             <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog()"/>
+                <img class="close" src="../../assets/img/close.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
                     <span >区块：{{blockInfo.block}} 信息</span>
                 </h4>
@@ -225,19 +225,19 @@
 
                             </td>
                             <td v-if="transaction.type === 0">
-                                <img src="../../assets/pay.svg"/>
+                                <img src="../../assets/img/pay.svg"/>
                                 <span>普通支付</span>
                             </td>
                             <td v-else-if="transaction.type === 1">
-                                <img src="../../assets/infomation.svg"/>
+                                <img src="../../assets/img/infomation.svg"/>
                                 <span>任意信息</span>
                             </td>
                             <td v-else-if="transaction.type === 6">
-                                <img src="../../assets/infomation.svg"/>
+                                <img src="../../assets/img/infomation.svg"/>
                                 <span>数据存储</span>
                             </td>
                             <td v-else-if="transaction.type === 9">
-                                <img src="../../assets/coinBase.svg"/>
+                                <img src="../../assets/img/coinBase.svg"/>
                                 <span>CoinBase</span>
                             </td>
                             <td>{{transaction.amountNQT/100000000}}</td>
@@ -323,7 +323,7 @@
         <!--view account transaction dialog-->
         <div class="modal_info" id="trading_info" v-show="tradingInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span >交易详情</span>
                 </h4>

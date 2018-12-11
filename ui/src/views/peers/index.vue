@@ -27,7 +27,7 @@
             </div>
             <div class="block_list">
                 <p class="block_title">
-                    <img src="../../assets/peerlist.svg"/>
+                    <img src="../../assets/img/peerlist.svg"/>
                     <span>节点列表</span>
                 </p>
                 <div class="list_table w br4">
@@ -48,13 +48,13 @@
                                 <tr v-for="(peer,index) in peersList" v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
                                     <td class="image_text linker" v-if="peer.state === 1" @click="openInfo(peer.address)">
                                         <span>
-                                            <img src="../../assets/success.svg"/>
+                                            <img src="../../assets/img/success.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
                                     </td>
                                     <td class="image_text linker" v-if="peer.state === 0" @click="openInfo(peer.address)">
                                         <span>
-                                            <img src="../../assets/error.svg"/>
+                                            <img src="../../assets/img/error.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
                                     </td>
@@ -133,7 +133,7 @@
         <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span >节点：{{peerInfo.address}}</span>
                 </h4>
