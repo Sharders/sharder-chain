@@ -338,12 +338,12 @@
                         <th>账户名：</th>
                         <td>
                             <div class="accountName" v-if="isShowName">
-                                <span v-if="accountInfo.name">{{accountInfo.name}}</span>
+                                <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
                                 <span v-else style="color:#999;font-weight: normal">未设置</span>
                                 <img src="../../assets/rewrite.svg" @click="isShowName = false"/>
                             </div>
                             <div class="rewriteName" v-else>
-                                <el-input v-model="accountInfo.name"></el-input>
+                                <el-input v-model="temporaryName"></el-input>
                                 <button class="common_btn" @click="openSecretPhraseDialog">确认</button>
                             </div>
                         </td>
@@ -462,7 +462,6 @@
                     guaranteedBalanceNQT:0,  //保证余额
                     balanceNQT:0,            //账户余额
                     unconfirmedBalanceNQT:0,
-                    name:'',
                     description:'',
                 },
                 selectType:'',
@@ -498,6 +497,7 @@
 
                 adminPasswordTitle:'',
                 params:[],
+                temporaryName:''
             };
         },
         created(){
@@ -583,19 +583,6 @@
                         data: yields.series,
                         type: 'line',
                         color: '#493eda',
-
-                        /*
-                        areaStyle: {normal: {
-                                color: new echarts.graphic.LinearGradient(
-                                    0, 0, 0, 1,
-                                    [
-                                        {offset: 0, color: '#493eda'},
-                                        {offset: 0.5, color: 'pink'},
-                                        {offset: 1, color: 'red'}
-                                    ]
-                                )
-                            }},
-                            */
                         smooth: true
                     }]
                 };
@@ -676,7 +663,30 @@
                     params.append("sharder.useNATService",false);
                 }
 
+                if(_this.hubsetting.SS_Address !== ''){
+                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                    if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
+                        _this.$message.warning('关联SS地址格式错误！');
+                        return false;
+                    }else{
+                        params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
+                        params.append("reBind",true);
+                    }
+                }else{
+                    params.append("reBind",false);
+                }
+
                 if(_this.hubsetting.isOpenMining){
+                    params.append("sharder.HubBind",true);
+                    if(_this.hubsetting.modifyMnemonicWord === ''){
+                        _this.$message.warning('开启矿池必须填写助记词！');
+                        return false;
+                    }
+                    params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
+                }else{
+                    params.append("sharder.HubBind",false);
+                }
+                /*if(_this.hubsetting.isOpenMining){
                     params.append("sharder.HubBind",true);
                     if(_this.hubsetting.SS_Address !== ''){
                         const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
@@ -693,7 +703,7 @@
                 }else{
                     params.append("sharder.HubBind",false);
                     params.append("reBind",false);
-                }
+                }*/
                 params.append("restart",false);
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
@@ -708,12 +718,13 @@
             },
             checkSharder(){
                 const _this = this;
+                let formData = new FormData();
                 if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
-                    _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',{
-                        username:_this.hubsetting.sharderAccount,
-                        password:_this.hubsetting.sharderPwd
-                    }).then(res=>{
-                        if(res.data.status === 'seccess'){
+                    formData.append("username",_this.hubsetting.sharderAccount);
+                    formData.append("password",_this.hubsetting.sharderPwd);
+                    console.log("___________________________________");
+                    _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',formData).then(res=>{
+                        if(res.data.status === 'success'){
                             _this.hubsetting.address = res.data.data.natServiceAddress;
                             _this.hubsetting.port = res.data.data.natServicePort;
                             _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
@@ -1200,10 +1211,9 @@
                 this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res) {
                     _this.accountTransactionList =res.data.transactions;
                     console.log("_this.accountTransactionList",_this.accountTransactionList);
-                    _this.getDrawData(_this.accountTransactionList);
-                    _this.totalSize += _this.accountTransactionList.length;
-                    // _this.newCount = res.data.transactions.length;
-
+                    _this.totalSize = _this.accountTransactionList.length;
+                    _this.unconfirmedTransactionsList = "";
+                    _this.getTotalList();
                 }).catch(function (err) {
                     console.log(err);
                 });
@@ -1226,18 +1236,13 @@
             openTradingInfoDialog:function(trading){
                 this.trading = trading;
                 this.tradingInfoDialog = true;
-                // this.$store.state.mask = true;
-                // this.tradingInfoDialog = true;
             },
             openUserInfoDialog:function(){
                 this.userInfoDialog = true;
                 this.$store.state.mask = true;
             },
             openAccountInfoDialog: function (account) {
-                // this.$store.state.mask = true;
-                // this.accountInfoDialog = true;
                 this.generatorRS = account;
-                console.log(account);
                 this.accountInfoDialog = true;
             },
             openBlockInfoDialog:function(height){
@@ -1307,7 +1312,7 @@
                 _this.file = null;
 
                 _this.isShowName = true;
-                _this.accountInfo.name = "";
+                _this.temporaryName = "";
 
             },
             copySuccess: function () {
@@ -1321,7 +1326,8 @@
             setName:function(secretPhrase){
                 const _this = this;
                 let formData = new FormData();
-                formData.append("name",_this.accountInfo.name);
+                console.log("dingwei");
+                formData.append("name",_this.temporaryName);
                 formData.append("secretPhrase",secretPhrase);
                 formData.append("deadline","1440");
                 formData.append("phased","false");
@@ -1331,16 +1337,16 @@
                 formData.append("feeNQT","0");
 
                 _this.$http.post('/sharder?requestType=setAccountInfo',formData).then(res=>{
-                    if(typeof res.data.errorDescription !== "undefined"){
+                    if(typeof res.data.errorDescription === "undefined"){
                         _this.$message.success("修改成功");
-                        _this.getAccount(SSO.accountRS).then(res=>{
-                            _this.accountInfo.name = res;
-                        });
+                        _this.accountInfo.name = res.data.transactionJSON.attachment.name;
+                        _this.isShowName = true;
+                        _this.temporaryName = "";
                     }else{
                         _this.$message.error(res.data.errorDescription);
                         _this.accountInfo.name = "";
+                        _this.isShowName = true;
                     }
-                    _this.isShowName = true;
                 })
 
             },
@@ -1383,7 +1389,7 @@
                 _this.secretPhraseDialog = false;
 
                 _this.isShowName = true;
-                _this.accountInfo.name = "";
+                _this.temporaryName = '';
 
             },
             versionCompare(current, latest){
@@ -1448,6 +1454,43 @@
                 }
                 this.drawBarchart(barchat);
                 this.drawYield(yields);
+            },
+            getTotalList:function () {
+                const _this = this;
+                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
+                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
+
+                    _this.totalSize = _this.accountTransactionList.length;
+
+                    let list = [];
+                    for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
+                        if(_this.selectType === ''){
+                            list.push(_this.unconfirmedTransactionsList[i]);
+                            _this.totalSize++;
+                        }else{
+                            if(_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0){
+                                list.push(_this.unconfirmedTransactionsList[i]);
+                                _this.totalSize++;
+                            }else if(_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type){
+                                list.push(_this.unconfirmedTransactionsList[i]);
+                                _this.totalSize++;
+                            }else if(_this.selectType === 1.5 &&
+                                _this.unconfirmedTransactionsList[i].type === 1 &&
+                                _this.unconfirmedTransactionsList[i].subtype === 5){
+                                list.push(_this.unconfirmedTransactionsList[i]);
+                                _this.totalSize++;
+                            }
+                        }
+                    }
+                    for(let i = 0;i<_this.accountTransactionList.length;i++){
+                        list.push(_this.accountTransactionList[i]);
+                    }
+
+                    _this.accountTransactionList = list;
+                    if(_this.selectType === '') {
+                        _this.getDrawData(_this.accountTransactionList);
+                    }
+                }
             }
         },
         watch: {
@@ -1582,25 +1625,7 @@
                 }
             });
 
-            setInterval(function () {
-                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
-                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
-
-                    _this.totalSize = _this.accountTransactionList.length + _this.unconfirmedTransactionsList.length;
-
-                    let list = [];
-                    for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
-                        list.push(_this.unconfirmedTransactionsList[i]);
-                    }
-                    for(let i = 0;i<_this.accountTransactionList.length;i++){
-                        list.push(_this.accountTransactionList[i]);
-                    }
-
-                    _this.accountTransactionList = list;
-                    _this.getDrawData(_this.accountTransactionList);
-                    console.log(_this.accountTransactionList);
-                }
-            },1000);
+            setInterval(_this.getTotalList,1000);
         },
     };
 

@@ -447,6 +447,109 @@
     }
 }
 
+.modal_hubSetting{
+    position: fixed;
+    background: #fff;
+    top: 80px;
+    width: 1200px;
+    border-radius: 4px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    .modal-header{
+        position: relative;
+        text-align: center;
+        height: 60px;
+        border-bottom: 1px solid #eee;
+        padding: 0 100px;
+        .modal-title{
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            line-height: 60px;
+            margin-left: 170px;
+        }
+        button{
+            float: right;
+            margin-top: 15px;
+            font-size: 14px;
+            height: 30px;
+            width: 80px;
+            &:first-child{
+                margin-left: 10px;
+            }
+        }
+    }
+    .modal-body{
+        padding: 30px 100px 80px;
+        .version_info{
+            span{
+                font-size: 16px;
+                font-family: "Microsoft YaHei UI";
+                color:#333;
+                &:nth-child(2){
+                    color: #493eda;
+                    font-weight: bold;
+                    padding: 0 10px;
+                }
+                &:nth-child(4){
+                    color: #f71616;
+                    font-weight: bold;
+                    padding: 0 10px;
+                }
+            }
+        }
+        .el-form{
+            margin-top: 40px;
+            .el-form-item{
+                margin-bottom: 10px;
+                .el-form-item__label{
+                    font-weight: bold;
+                    color: #333;
+                    padding: 0;
+                    font-size: 16px;
+                    font-family: "Microsoft YaHei UI";
+                }
+                .el-checkbox{
+                    .el-checkbox__input.is-checked .el-checkbox__inner,
+                    .el-checkbox__input.is-indeterminate .el-checkbox__inner{
+                        background: #493eda;
+                        border-color: #493eda;
+                    }
+                    .el-checkbox__inner:hover{
+                        border-color: #493eda;
+                    }
+                    .el-checkbox__input.is-focus .el-checkbox__inner{
+                        border-color: #493eda;
+                    }
+                    .el-checkbox__label{
+                        padding-left:6px;
+                        font-size: 13px;
+                        color:#bbb;
+                    }
+                    .el-checkbox__input.is-checked+.el-checkbox__label {
+                        color: #31da78;
+                    }
+                }
+            }
+        }
+        .footer-btn{
+            margin-top: 30px;
+            button{
+                float: right;
+                height: 40px;
+                width: 120px;
+                font-size: 16px;
+                &:first-child{
+                    margin-left: 30px;
+                }
+            }
+        }
+    }
+}
+
 .linker{
     color:#493eda!important;
     cursor: pointer!important;
@@ -454,4 +557,33 @@
         margin: 0 6px!important;
     }
 
+}
+
+.el-pagination{
+    margin-top: 14px;
+    button:hover{
+        color:#493eda;
+    }
+    button:disabled{
+        color: #c0c4cc;
+    }
+    .el-pager li.active{
+        background: #493eda;
+        border-color: #493eda;
+        color:#fff;
+    }
+    .el-pager li:hover {
+        color:#493eda;
+    }
+    .el-pager li.active:hover{
+        color:#fff;
+
+    }
+
+    .el-pagination__jump{
+        .el-pagination__editor.el-input .el-input__inner{
+            height: 25px;
+            border: none;
+        }
+    }
 }

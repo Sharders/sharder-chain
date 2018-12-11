@@ -45,7 +45,6 @@
         watch:{
             openDialog: function (val) {
                 const _this = this;
-                console.log(val);
                 _this.adminPasswordDialog = val;
                 if(val)
                 {

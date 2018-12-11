@@ -11,6 +11,7 @@ const store = new Vuex.Store({
         passphrase: "",
         account:"",  //账户ID
         unconfirmedTransactionsList:[],
+        userConfig:[],
     },
     mutations: { // 类似 vue 的 methods
         loginState (state) {

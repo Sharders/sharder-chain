@@ -45,7 +45,6 @@
         watch:{
             openDialog: function (val) {
                 const _this = this;
-                console.log(val);
                 _this.secretPhraseDialog = val;
                 if(val)
                 {

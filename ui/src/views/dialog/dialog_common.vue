@@ -133,9 +133,9 @@
                             <th>接收者</th>
                             <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
                             <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                            <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
-                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                             <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                            <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                         </tr>
                         <tr>
                             <th>区块时间戳</th>
@@ -177,11 +177,11 @@
                         </tr>
                         <tr>
                             <th>接收者</th>
-                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
+                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
                             <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                            <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
-                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                             <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                            <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                         </tr>
                         <tr>
                             <th>区块高度</th>
@@ -374,11 +374,11 @@
                     </tr>
                     <tr>
                         <th>接收者</th>
-                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
+                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
                         <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                        <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                         <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                        <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                     </tr>
                     <tr>
                         <th>区块时间戳</th>
@@ -422,9 +422,9 @@
                         <th>接收者</th>
                         <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
                         <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                        <td v-else-if="typeof transaction.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                         <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                        <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                     </tr>
                     <tr>
                         <th>区块高度</th>
@@ -515,7 +515,6 @@
                         if(!res.data.errorDescription){
                             _this.blockInfo = res.data;
 
-                            console.log(_this.blockInfo);
                             resolve("success");
                         }else{
                             resolve(res.data.errorDescription);
@@ -556,25 +555,6 @@
                         });
                     }
                 });
-                //
-                // this.$http.get('/sharder?requestType=getBlockchainTransactions',{
-                //     params: {
-                //         account:account
-                //     }
-                // }).then(function (res) {
-                //     _this.accountTransactionInfo = res.data.transactions;
-                // }).catch(function (err) {
-                //     console.error("error",err);
-                // });
-                // this.$http.get('/sharder?requestType=getAccount',{
-                //     params: {
-                //         account:account
-                //     }
-                // }).then(function (res) {
-                //     _this.accountInfo = res.data;
-                // }).catch(function (err) {
-                //     console.error("error",err);
-                // });
             },
             openTransactionDialog(transaction){
                 const _this = this;
@@ -593,10 +573,6 @@
                         _this.accountTransactionDialog = true;
                     }
                 });
-                // _this.transaction = transaction;
-                // _this.accountInfoDialog = false;
-                // _this.blockInfoDialog = false;
-                // _this.accountTransactionDialog = true;
             },
             openAccountInfo:function(accountRS){
                 const _this = this;
@@ -668,29 +644,6 @@
                         _this.tabTitle = "account";
                     }
                 });
-                /*if(_this.resultInfo !== 'success'){
-                    _this.$message({
-                        showClose: true,
-                        message: _this.resultInfo,
-                        type: "error"
-                    });
-                }else{
-                    _this.accountTransactionDialog = false;
-                    _this.accountInfoDialog = false;
-                    _this.tabTitle = "account";
-                }*/
-                // _this.accountTransactionDialog = false;
-                // _this.accountInfoDialog = false;
-                // this.$http.get('/sharder?requestType=getBlock',{
-                //     params: {
-                //         includeTransactions:true,
-                //         block:blockId
-                //     }
-                // }).then(function (res) {
-                //     _this.blockInfo = res.data;
-                // }).catch(function (err) {
-                //     console.error("error",err);
-                // });
             },
             closeDialog: function () {
                 const _this = this;
@@ -711,76 +664,7 @@
             }
         },
         watch:{
-            // accountTransactionDialog:function(val){
-            //     if(val){
-            //         const _this = this;
-            //         this.$http.get('/sharder?requestType=getTransaction',{
-            //             params:{
-            //                 transaction:_this.transaction
-            //             }
-            //         }).then(function (res) {
-            //             _this.transactionInfo = res.data;
-            //         }).catch(function (err) {
-            //         });
-            //         this.$store.state.mask = true;
-            //     }
-            // },
-            // accountInfoDialog:function (val) {
-            //     if(val){
-            //         const _this = this;
-            //         this.$http.get('/sharder?requestType=getBlockchainTransactions',{
-            //             params: {
-            //                 account:_this.accountRS
-            //             }
-            //         }).then(function (res) {
-            //             _this.accountTransactionInfo = res.data.transactions;
-            //         }).catch(function (err) {
-            //             console.error("error",err);
-            //         });
-            //         this.$http.get('/sharder?requestType=getAccount',{
-            //             params: {
-            //                 account:_this.accountRS
-            //             }
-            //         }).then(function (res) {
-            //             _this.accountInfo = res.data;
-            //         }).catch(function (err) {
-            //             console.error("error",err);
-            //         });
-            //
-            //         this.$store.state.mask = true;
-            //     }
-            // },
-            // blockInfoDialog: function (val) {
-            //     if(val){
-            //         const _this = this;
-            //         this.$http.get('/sharder?requestType=getBlock',{
-            //             params: {
-            //                 height:_this.height,
-            //                 includeTransactions:true,
-            //             }
-            //         }).then(function (res) {
-            //             _this.blockInfo = res.data;
-            //         }).catch(function (err) {
-            //             console.error("error",err);
-            //         });
-            //         this.$store.state.mask = true;
-            //     }
-            // },
-            // tradingInfoDialog:function(val){
-            //     if(val){
-            //         const _this = this;
-            //         this.$http.get('/sharder?requestType=getTransaction',{
-            //             params:{
-            //                 transaction:_this.trading
-            //             }
-            //         }).then(function (res) {
-            //             _this.transactionInfo = res.data;
-            //         }).catch(function (err) {
-            //
-            //         });
-            //         this.$store.state.mask = true;
-            //     }
-            // },
+
             blockInfoOpen:function (val) {
                 const _this = this;
                 if(val) {
@@ -801,25 +685,6 @@
                         }
                     });
                 }
-                  /*  if(_this.resultInfo !== 'success'){
-                        _this.$message({
-                            showClose: true,
-                            message: _this.resultInfo,
-                            type: "error"
-                        });
-                    }else{
-                        _this.blockInfoDialog = true;
-                        _this.accountInfoDialog = false;
-                        _this.accountTransactionDialog = false;
-                        _this.tradingInfoDialog = false;
-                    }
-                }*/
-                // _this.blockInfoDialog = val;
-                // if(val){
-                //     _this.accountInfoDialog = false;
-                //     _this.accountTransactionDialog = false;
-                //     _this.tradingInfoDialog = false;
-                // }
             },
             accountInfoOpen:function (val) {
                 const _this = this;
@@ -842,27 +707,6 @@
                         }
                     });
                 }
-                //     if(_this.resultInfo !== 'success'){
-                //         _this.$message({
-                //             showClose: true,
-                //             message: _this.resultInfo,
-                //             type: "error"
-                //         });
-                //     }else{
-                //         _this.accountInfoDialog = true;
-                //         _this.blockInfoDialog = false;
-                //         _this.accountTransactionDialog = false;
-                //         _this.tradingInfoDialog = false;
-                //         _this.accountRS = _this.generatorRS;
-                //     }
-                // }
-                // _this.accountInfoDialog = val;
-                // if(val){
-                //     _this.blockInfoDialog = false;
-                //     _this.accountTransactionDialog = false;
-                //     _this.tradingInfoDialog = false;
-                //     _this.accountRS = _this.generatorRS;
-                // }
             },
             tradingInfoOpen: function (val) {
                 const _this = this;
@@ -884,25 +728,6 @@
                         }
                     });
                 }
-                //     if(_this.resultInfo !== 'success'){
-                //         _this.$message({
-                //             showClose: true,
-                //             message: _this.resultInfo,
-                //             type: "error"
-                //         });
-                //     }else{
-                //         _this.tradingInfoDialog = true;
-                //         _this.blockInfoDialog = false;
-                //         _this.accountTransactionDialog = false;
-                //         _this.accountInfoDialog = false;
-                //     }
-                // }
-                // _this.tradingInfoDialog = val;
-                // if(val){
-                //     _this.blockInfoDialog = false;
-                //     _this.accountTransactionDialog = false;
-                //     _this.accountInfoDialog = false;
-                // }
             },
             isSearch: function (val) {
                 const _this = this;
@@ -910,7 +735,6 @@
                 if(val){
                     // _this.httpGetAccountInfo(_this.searchValue);
                     _this.httpGetAccountInfo(_this.searchVal).then(function (res) {
-                        console.log("httpGetAccountInfo",res);
                         if(res === 'success'){
                             _this.$store.state.mask = true;
                             _this.accountInfoDialog = true;
@@ -920,7 +744,6 @@
                             _this.accountRS = _this.searchVal;
                         }else{
                             _this.httpGetBlockInfo('',_this.searchVal).then(function (res) {
-                                console.log("httpGetBlockInfo",res);
                                 if(res === 'success') {
                                     _this.$store.state.mask = true;
                                     _this.blockInfoDialog = true;
@@ -929,7 +752,6 @@
                                     _this.tradingInfoDialog = false;
                                 }else{
                                     _this.httpGetTradingInfo(_this.searchVal).then(function (res) {
-                                        console.log("httpGetTradingInfo",res);
                                         if(res === 'success') {
                                             _this.$store.state.mask = true;
                                             _this.tradingInfoDialog = true;
@@ -951,38 +773,6 @@
                         console.log(err);
                     });
                     _this.$emit('isClose', false);
-
-                    // if(_this.resultInfo === 'success'){
-                    //     _this.accountInfoDialog = true;
-                    //     _this.blockInfoDialog = false;
-                    //     _this.accountTransactionDialog = false;
-                    //     _this.tradingInfoDialog = false;
-                    //     _this.accountRS = _this.searchValue;
-                    // }else{
-                    //     _this.httpGetBlockInfo('',_this.searchValue);
-                    //     console.log("httpGetBlockInfo",_this.resultInfo);
-                    //     if(_this.resultInfo === 'success'){
-                    //         _this.blockInfoDialog = true;
-                    //         _this.accountInfoDialog = false;
-                    //         _this.accountTransactionDialog = false;
-                    //         _this.tradingInfoDialog = false;
-                    //     }else{
-                    //         _this.httpGetTradingInfo(_this.searchValue);
-                    //         console.log("httpGetTradingInfo",_this.resultInfo);
-                    //         if(_this.resultInfo === 'success'){
-                    //             _this.tradingInfoDialog = true;
-                    //             _this.blockInfoDialog = false;
-                    //             _this.accountTransactionDialog = false;
-                    //             _this.accountInfoDialog = false;
-                    //         }else{
-                    //             _this.$message({
-                    //                 showClose: true,
-                    //                 message: "未找到任何信息，请再次查询。",
-                    //                 type: "error"
-                    //             });
-                    //         }
-                    //     }
-                    // }
                 }
             }
         }
