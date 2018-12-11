@@ -87,9 +87,9 @@ public class PocProcessorImpl implements PocProcessor {
     private static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
     private static final BigInteger BIFURCATION_CONVERGENCE_HARD_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
 
-    private static final Map<Integer, Map<Long, BigInteger>> scoreMap = new HashMap<>();
+    private static final Map<Integer, Map<Long, BigInteger>> SCORE_MAP = new HashMap<>();
 
-    private static final Map<Integer, Map<Long, Long>> balanceMap = new HashMap<>();
+    private static final Map<Integer, Map<Long, Long>> BALANCE_MAP = new HashMap<>();
 
     private static final Map<Integer, Map<String, Attachment.PocNodeConfiguration>> pocConfigMap = new HashMap<>();
 
@@ -117,6 +117,10 @@ public class PocProcessorImpl implements PocProcessor {
 
     @Override
     public BigInteger calPocScore(Account account, int height) {
+        
+        if (SCORE_MAP.containsKey(height) && SCORE_MAP.get(height).containsKey(account.getId())) {
+            return SCORE_MAP.get(height).get(account.getId());
+        }
 
         // SS持有得分
         BigInteger ssScore = BigInteger.ZERO;
@@ -148,8 +152,8 @@ public class PocProcessorImpl implements PocProcessor {
         if (accountNodeMap.containsKey(height) && accountNodeMap.get(height).containsKey(account.getId())) {
             String node = accountNodeMap.get(height).get(account.getId());
 
-            if (balanceMap.containsKey(height) && balanceMap.get(height).containsKey(account.getId())) {
-                ssScore = BigInteger.valueOf(balanceMap.get(height).get(account.getId())).multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
+            if (BALANCE_MAP.containsKey(height) && BALANCE_MAP.get(height).containsKey(account.getId())) {
+                ssScore = BigInteger.valueOf(BALANCE_MAP.get(height).get(account.getId())).multiply(SS_HOLD_PERCENT).divide(PERCENT_DIVISOR);
             }
 
             if (pocConfigMap.containsKey(height) && pocConfigMap.get(height).containsKey(node)) {
@@ -271,11 +275,11 @@ public class PocProcessorImpl implements PocProcessor {
 
         BigInteger totalScore =  nodeTypeScore.add(serverScore).add(hardwareScore).add(networkScore).add(tradeScore).add(ssScore).add(blockingMissScore).add(bifuractionConvergenceScore).add(onlineRateScore);
         Map<Long, BigInteger> score = new HashMap<>();
-        if (scoreMap.containsKey(height)) {
-            score = scoreMap.get(height);
+        if (SCORE_MAP.containsKey(height)) {
+            score = SCORE_MAP.get(height);
         }
         score.put(account.getId(), totalScore);
-        scoreMap.put(height, score);
+        SCORE_MAP.put(height, score);
 
         return totalScore;
     }
@@ -385,11 +389,11 @@ public class PocProcessorImpl implements PocProcessor {
                 pocConfigMap.put(block.getHeight(), pocConfig);
 
                 Map<Long, Long> balance = new HashMap<>();
-                if (balanceMap.containsKey(block.getHeight())) {
-                    balance = balanceMap.get(block.getHeight());
+                if (BALANCE_MAP.containsKey(block.getHeight())) {
+                    balance = BALANCE_MAP.get(block.getHeight());
                 }
                 balance.put(account.getId(), account.getBalanceNQT());
-                balanceMap.put(block.getHeight(), balance);
+                BALANCE_MAP.put(block.getHeight(), balance);
             }
         }
 
