@@ -2,9 +2,16 @@ package org.conch.http;
 
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.mint.pool.PoolRule;
+import org.conch.tx.Attachment;
+import org.conch.util.Logger;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**********************************************************************************
  * @package org.conch.http
@@ -50,7 +57,7 @@ public abstract class SharderPocTx {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             //TODO
-            
+
             return null;
         }
 
@@ -70,14 +77,28 @@ public abstract class SharderPocTx {
         static final CreatePocTemplate instance = new CreatePocTemplate();
 
         CreatePocTemplate() {
-            //TODO
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "XX", "XX");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "score", "weight");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            //TODO
-            return null;
+            Account account = ParameterParser.getSenderAccount(request);
+            JSONObject score = null;
+            try {
+                score = (JSONObject) (new JSONParser().parse(request.getParameter("score")));
+            } catch (Exception e) {
+                Logger.logErrorMessage("cant obtain score when create score template");
+            }
+            Map<String, Object> scoreMap = PoolRule.jsonObjectToMap(score);
+            JSONObject weight = null;
+            try {
+                weight = (JSONObject) (new JSONParser().parse(request.getParameter("weight")));
+            } catch (Exception e) {
+                Logger.logErrorMessage("cant obtain weight when create weight template");
+            }
+            Map<String, Object> weightMap = PoolRule.jsonObjectToMap(weight);
+            Attachment attachment = new PocTxBody.PocWeightTable(scoreMap, weightMap);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 

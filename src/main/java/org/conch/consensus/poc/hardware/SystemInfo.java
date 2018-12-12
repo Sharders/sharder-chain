@@ -16,6 +16,14 @@ public class SystemInfo {
 
     private int hardDiskSize; // 硬盘大小 （单位G）
 
+    private boolean hadPublicIp; // 是否有公网IP
+
+    private int bandWidth; // 公网ip带宽（Mbps），如果没有公网ip，这个值就是0
+
+    private int tradePerformance; // 交易处理性能
+
+    private boolean serverOpen; // 服务是否开启
+
     public int getCore() {
         return core;
     }
@@ -48,13 +56,40 @@ public class SystemInfo {
         this.hardDiskSize = hardDiskSize;
     }
 
+    public boolean isHadPublicIp() {
+        return hadPublicIp;
+    }
+
+    public void setHadPublicIp(boolean hadPublicIp) {
+        this.hadPublicIp = hadPublicIp;
+    }
+
+    public int getBandWidth() {
+        return bandWidth;
+    }
+
+    public void setBandWidth(int bandWidth) {
+        this.bandWidth = bandWidth;
+    }
+
+    public int getTradePerformance() {
+        return tradePerformance;
+    }
+
+    public void setTradePerformance(int tradePerformance) {
+        this.tradePerformance = tradePerformance;
+    }
+
+    public boolean isServerOpen() {
+        return serverOpen;
+    }
+
+    public void setServerOpen(boolean serverOpen) {
+        this.serverOpen = serverOpen;
+    }
+
     @Override
     public String toString() {
-        return "SystemInfo{" +
-                "core=" + core +
-                ", averageMHz=" + averageMHz +
-                ", memoryTotal=" + memoryTotal +
-                ", hardDiskSize=" + hardDiskSize +
-                '}';
+        return "SystemInfo{" + "core=" + core + ", averageMHz=" + averageMHz + ", memoryTotal=" + memoryTotal + ", hardDiskSize=" + hardDiskSize + ", hadPublicIp=" + hadPublicIp + ", bandWidth=" + bandWidth + ", tradePerformance=" + tradePerformance + ", serverOpen=" + serverOpen + '}';
     }
 }
