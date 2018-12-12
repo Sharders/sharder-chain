@@ -661,6 +661,10 @@ public class PocProcessorImpl implements PocProcessor {
         nodeHardwareTxProcess();
     }
 
+    public static void init(){
+
+    }
+
     // Listener process
     private static Map pocTemplateMap;
     private static void templateMapping(Block block){
