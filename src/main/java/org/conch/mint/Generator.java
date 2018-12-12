@@ -428,7 +428,7 @@ public class Generator implements Comparable<Generator> {
      * Return a list of generators for the next block.  The caller must hold the blockchain
      * read lock to ensure the integrity of the returned list.
      *
-     * @return                      List of generator account identifiers
+     * @return List of generator account identifiers
      */
     public static List<ActiveGenerator> getNextGenerators() {
         List<ActiveGenerator> generatorList;

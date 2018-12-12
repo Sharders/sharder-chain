@@ -20,16 +20,17 @@ import javax.servlet.http.HttpServletRequest;
  **********************************************************************************/
 public abstract class SharderPocTx {
 
-    public static final class NodeConfigurationTx extends CreateTransaction {
+    public static final class CreateNodeConf extends CreateTransaction {
 
-        static final NodeConfigurationTx instance = new NodeConfigurationTx();
+        static final CreateNodeConf instance = new CreateNodeConf();
 
-        NodeConfigurationTx() {
+        CreateNodeConf() {
             super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            //TODO 根据传入的参数创建交易
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
@@ -39,30 +40,80 @@ public abstract class SharderPocTx {
         }
     }
 
-    public static final class WeightTx extends CreateTransaction {
+    public static final class GetNodeConf extends APIServlet.APIRequestHandler {
 
-        static final WeightTx instance = new WeightTx();
+        static final GetNodeConf instance = new GetNodeConf();
 
-        WeightTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
+        GetNodeConf() {
+            super(new APITag[]{APITag.POC}, "ip", "port");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocWeight(ip, port, -1);
-            assert attachment != null;
-            return createTransaction(request, account, 0, 0, attachment);
+            //TODO
+            
+            return null;
+        }
+
+        @Override
+        protected boolean allowRequiredBlockParameters() {
+            return false;
+        }
+
+        @Override
+        protected boolean requireFullClient() {
+            return true;
         }
     }
 
-    public static final class OnlineRateTx extends CreateTransaction{
+    public static final class CreatePocTemplate extends CreateTransaction {
 
-        static final OnlineRateTx instance = new OnlineRateTx();
+        static final CreatePocTemplate instance = new CreatePocTemplate();
 
-        OnlineRateTx() {
+        CreatePocTemplate() {
+            //TODO
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "XX", "XX");
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            //TODO
+            return null;
+        }
+    }
+
+    public static final class GetPocTemplate extends APIServlet.APIRequestHandler {
+
+        static final GetPocTemplate instance = new GetPocTemplate();
+
+        GetPocTemplate() {
+            super(new APITag[]{APITag.POC}, "XX", "XX");
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            //TODO
+
+            return null;
+        }
+
+        @Override
+        protected boolean allowRequiredBlockParameters() {
+            return false;
+        }
+
+        @Override
+        protected boolean requireFullClient() {
+            return true;
+        }
+    }
+
+
+    public static final class OnlineRate extends CreateTransaction{
+
+        static final OnlineRate instance = new OnlineRate();
+
+        OnlineRate() {
             super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
         }
 
@@ -77,41 +128,5 @@ public abstract class SharderPocTx {
         }
     }
 
-    public static final class BlockingMissTx extends CreateTransaction{
 
-        static final BlockingMissTx instance = new BlockingMissTx();
-
-        BlockingMissTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
-        }
-
-        @Override
-        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocBlockingMiss(ip, port, -1);
-            assert attachment != null;
-            return createTransaction(request, account, 0, 0, attachment);
-        }
-    }
-
-    public static final class BifuractionConvergenceTx extends CreateTransaction {
-
-        static final BifuractionConvergenceTx instance = new BifuractionConvergenceTx();
-
-        BifuractionConvergenceTx() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
-        }
-
-        @Override
-        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocBOC(ip, port, -1);
-            assert attachment != null;
-            return createTransaction(request, account, 0, 0, attachment);
-        }
-    }
 }

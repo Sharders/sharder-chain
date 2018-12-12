@@ -8,6 +8,6 @@ package org.conch.consensus.cpos.account;
 public class ConchAccount {
     private Integer score;
 
-
+    
 
 }
