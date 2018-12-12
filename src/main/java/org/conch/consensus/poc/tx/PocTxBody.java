@@ -2,6 +2,7 @@ package org.conch.consensus.poc.tx;
 
 import org.conch.consensus.poc.hardware.DeviceInfo;
 import org.conch.consensus.poc.hardware.SystemInfo;
+import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
@@ -20,6 +21,66 @@ public abstract class PocTxBody  {
 
     private PocTxBody() {}
     
+    //TODO finish the PocNodeType definition
+    public final class PocNodeType extends Attachment.TxBodyBase {
+        private String ip;
+        private Peer.Type type;
+        
+        public PocNodeType(
+            String ip,
+            Peer.Type type) {
+          this.ip = ip;
+        }
+
+
+        public PocNodeType(ByteBuffer buffer, byte transactionVersion) {
+          super(buffer, transactionVersion);
+          this.ip = buffer.toString();
+        }
+    
+        public PocNodeType(JSONObject attachmentData) {
+          super(attachmentData);
+          this.ip = (String) attachmentData.get("ip");
+        }
+        
+
+        @Override
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+            return new PocWeightTable(buffer,transactionVersion);
+        }
+
+        @Override
+        protected AbstractAttachment inst(JSONObject attachmentData) {
+            return new PocWeightTable(attachmentData);
+        }
+
+        @Override
+        protected AbstractAttachment inst(int version) {
+            return null;
+        }
+
+
+        @Override
+        public int getMySize() {
+          return ip.getBytes().length;
+        }
+    
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+          buffer.put(ip.getBytes());
+        }
+    
+        @Override
+        public void putMyJSON(JSONObject attachment) {
+      
+        }
+    
+        @Override
+        public TransactionType getTransactionType() {
+          return PocTx.POC_WEIGHT_TABLE;
+        }
+  }
+  
     public final class PocWeightTable extends Attachment.TxBodyBase {
         private final String ip;
         private final String port;
@@ -390,40 +451,22 @@ public abstract class PocTxBody  {
   }
 
   public final class PocBlockMiss extends Attachment.TxBodyBase {
-    private final String ip;
-    private final String port;
-    private final int missLevel; // 0-零丢失； 1-低；2-中；3-高
+    private long missAccountId;
+//    private long reportAccountId;
+    
 
-    public String getIp() {
-      return ip;
-    }
-
-    public String getPort() {
-      return port;
-    }
-
-    public int getMissLevel() {
-      return missLevel;
-    }
-
-    public PocBlockMiss(String ip, String port, int missLevel) {
-      this.ip = ip;
-      this.port = port;
-      this.missLevel = missLevel;
+    public PocBlockMiss(long missAccountId) {
+        this.missAccountId = missAccountId;
     }
 
     public PocBlockMiss(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
-      this.ip = buffer.toString();
-      this.port = buffer.toString();
-      this.missLevel = buffer.getInt();
+      this.missAccountId = buffer.getLong();
     }
 
     public PocBlockMiss(JSONObject attachmentData) {
       super(attachmentData);
-      this.ip = (String) attachmentData.get("ip");
-      this.port = (String) attachmentData.get("port");
-      this.missLevel = (int) attachmentData.get("missLevel");
+      this.missAccountId = (long) attachmentData.get("missAccountId");
     }
 
     @Override
@@ -443,21 +486,21 @@ public abstract class PocTxBody  {
 
     @Override
     public int getMySize() {
-      return 2 + ip.getBytes().length + port.getBytes().length;
+      return 2;
     }
 
     @Override
     public void putMyBytes(ByteBuffer buffer) {
-      buffer.put(ip.getBytes());
-      buffer.put(port.getBytes());
-      buffer.putInt(missLevel);
+//      buffer.put(ip.getBytes());
+//      buffer.put(port.getBytes());
+//      buffer.putInt(missLevel);
     }
 
     @Override
     public void putMyJSON(JSONObject json) {
-      json.put("ip", ip);
-      json.put("port", port);
-      json.put("missCount", missLevel);
+//      json.put("ip", ip);
+//      json.put("port", port);
+//      json.put("missCount", missLevel);
     }
 
     @Override

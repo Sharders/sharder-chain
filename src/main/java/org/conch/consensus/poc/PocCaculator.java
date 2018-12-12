@@ -348,8 +348,31 @@ public class PocCaculator {
 //        saveObjToFile(ACCOUNT_NODE_MAP, LOCAL_STOAGE_POC_ACCOUNT_NODES);
 //    }
 
-
-
+    private static BigInteger nodeTypeCal(PocTxBody.PocNodeType nodeType){
+        //TODO wolf impl    
+        return BigInteger.ZERO;
+    }
+    
+    private static BigInteger nodeConfCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocNodeConf nodeConf){
+        //TODO wolf impl
+        return BigInteger.ZERO;
+    } 
+    
+    private static BigInteger onlineRateCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocOnlineRate onlineRate){
+        //TODO wolf impl
+        return BigInteger.ZERO;
+    } 
+    
+    private static BigInteger blockMissCal(Account account, PocTxBody.PocBlockMiss blockMiss){
+        //TODO xy impl
+        return BigInteger.ZERO;
+    } 
+    
+    private static BigInteger bcCal(Account account, PocTxBody.PocBC pocBC){
+        //TODO un-impl now
+        return BigInteger.ZERO;
+    } 
+    
     public static BigInteger calPocScore(Account account, Transaction transaction) {
         // SS持有得分
         BigInteger ssScore = BigInteger.ZERO;

@@ -28,11 +28,12 @@ import org.json.simple.JSONStreamAware;
 import java.util.Set;
 
 public interface Peer extends Comparable<Peer> {
-
     //peer type
     enum Type {
+        BOX(5),
+        HUB(4),
         NORMAL(3),
-        CERTIFIED(2),
+        COMMUNITY(2), //社区节点
         OFFICIAL(1);
         private final int code;
 

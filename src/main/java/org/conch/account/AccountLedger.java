@@ -462,13 +462,7 @@ public class AccountLedger {
         // TYPE_STORAGE
             STORAGE_UPLOAD(71, true),
             STORAGE_BACKUP(72, true),
-            STORAGE_EXTEND(73, true),
-        // TYPE_POC
-            POC_NODE_CONFIGURATION(81, true),
-            POC_WEIGHT(82, true),
-            POC_ONLINE_RATE(83, true),
-            POC_BLOCKING_MISS(84, true),
-            POC_BIFURACTION_OF_CONVERGENCE(85, true);
+            STORAGE_EXTEND(73, true);
 
         /** Event code mapping */
         private static final Map<Integer, LedgerEvent> eventMap = new HashMap<>();
