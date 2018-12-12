@@ -43,7 +43,7 @@ public class ConchDbVersion extends DbVersion {
                         + "previous_block_hash BINARY(32), cumulative_difficulty VARBINARY NOT NULL, base_target BIGINT NOT NULL, "
                         + "next_block_id BIGINT, "
                         + "height INT NOT NULL, generation_signature BINARY(64) NOT NULL, "
-                        + "block_signature BINARY(64) NOT NULL, payload_hash BINARY(32) NOT NULL, generator_id BIGINT NOT NULL)");
+                        + "block_signature BINARY(64) NOT NULL, payload_hash BINARY(32) NOT NULL, generator_id BIGINT NOT NULL, ext BINARY(237))");
             case 2:
                 apply("CREATE UNIQUE INDEX IF NOT EXISTS block_id_idx ON block (id)");
             case 3:
@@ -1198,7 +1198,9 @@ public class ConchDbVersion extends DbVersion {
             case 491:
                 apply("ALTER TABLE account ADD COLUMN IF NOT EXISTS frozen_balance BIGINT NOT NULL DEFAULT 0");
             case 492:
+                apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ext BINARY(237)");
                 break;
+     
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate
                         + ", probably trying to run older code on newer database");

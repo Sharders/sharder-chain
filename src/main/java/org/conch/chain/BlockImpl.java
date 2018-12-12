@@ -31,6 +31,7 @@ import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
+import org.conch.util.SizeUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -63,12 +64,12 @@ public final class BlockImpl implements Block {
     private volatile String stringId = null;
     private volatile long generatorId;
     private volatile byte[] bytes = null;
-    private String extension = null;
+    private byte[] extension = null;
     private com.alibaba.fastjson.JSONObject extensionJson = null;
-    
+     
     public enum ExtensionEnum {
-        IS_POC("isPoc",Boolean.class),
-        IS_POOL("isPool",Boolean.class);
+        CONTAIN_POC("h-poc",Boolean.class),
+        CONTAIN_POOL("h-pool",Boolean.class);
         
         private String name;
         private Class clazz;
@@ -86,6 +87,75 @@ public final class BlockImpl implements Block {
             }
             return null;
         }
+    }
+
+    /**
+     * allow the 12 extension pair, the max length of the one pair is 20.
+     * the pair is under the json format: "key":value, the length of key + the length of value <= 20
+     */
+    private static final int EXTENSION_MAX_SIZE = 276;
+    private static final int EXTENSION_ITEM_MAX_SIZE = 10;
+    private static final int EXTENSION_PAIR_MAX_SIZE = EXTENSION_ITEM_MAX_SIZE * 2 + 3;
+    private boolean _exceedMaxSize(String key, Object value){
+        if(key.length() > EXTENSION_ITEM_MAX_SIZE ) {
+            Logger.logWarningMessage("the pair-key[" + key + ",size=" + key.length() + "] is larger than allowed max size=" + EXTENSION_ITEM_MAX_SIZE + "], can't save it to extension area");
+            return true;
+        }
+        
+        if(SizeUtil.sizeOf(value) > EXTENSION_ITEM_MAX_SIZE ) {
+            Logger.logWarningMessage("the pair-value[" + key + ",size=" + SizeUtil.sizeOf(value) + "] is larger than allowed max size=" + EXTENSION_ITEM_MAX_SIZE + "], can't save it to extension area");
+            return true;
+        }
+
+        int pairSize = key.length() + SizeUtil.sizeOf(value);
+        if(this.extension.length < (EXTENSION_MAX_SIZE - EXTENSION_PAIR_MAX_SIZE)) {
+            Logger.logWarningMessage("extension area is full[current size=" +  this.extension.length + "allowed max size=" + EXTENSION_MAX_SIZE + "], the extension[key=" + key + ",value=" + value + ",size=" + pairSize + "] can't be append to tail");
+            return true;
+        }
+        
+        return false;
+    }
+
+    public String getExtensionStr() {
+        return String.valueOf(extension);
+    }
+    
+    public byte[] getExtension() {
+        return extension;
+    }
+    
+    private BlockImpl addExtension(String key, Object value){
+        if(this.extensionJson == null) this.extensionJson = new com.alibaba.fastjson.JSONObject();
+        this.extensionJson.put(key,value);
+        this.extension = this.extensionJson.toJSONString().getBytes();
+        return this;
+    }
+    
+
+    public BlockImpl addExtension(ExtensionEnum extensionEnum, Object value){
+        return addExtension(extensionEnum.name,value);
+    }
+
+    /**
+     *
+     * @param extensions String use the org.conch.chain.BlockImpl.ExtensionEnum.name
+     */
+    public BlockImpl addExtensions(Map<String,Object> extensions){
+        for (Map.Entry<String, Object> entry : extensions.entrySet()) {
+            addExtension(entry.getKey(),entry.getValue());
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @param extensionEnum use the org.conch.chain.BlockImpl.ExtensionEnum
+     * @return
+     */
+    public <T> T getExtValue(ExtensionEnum extensionEnum){
+        Class<T> clazz = extensionEnum.clazz;
+        if(extensionJson == null) extensionJson = com.alibaba.fastjson.JSONObject.parseObject(getExtensionStr());
+        return extensionJson.getObject(extensionEnum.name,clazz);
     }
 
 
@@ -137,6 +207,15 @@ public final class BlockImpl implements Block {
         this.id = id;
         this.generatorId = generatorId;
         this.blockTransactions = blockTransactions;
+    }
+    
+    public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
+              byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
+              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id, byte[] extension,
+              List<TransactionImpl> blockTransactions) {
+        this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+                generatorId, generationSignature, blockSignature, previousBlockHash,cumulativeDifficulty,baseTarget,nextBlockId,height,id,blockTransactions);
+        this.extension = extension;
     }
 
     @Override
@@ -530,41 +609,16 @@ public final class BlockImpl implements Block {
         cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
     }
 
-    public String getExtension() {
-        return extension;
-    }
+
 
 //    public void setExtension(String extension) {
 //        this.extension = extension;
 //    }
     
-    public BlockImpl addExtension(ExtensionEnum extensionEnum, Object value){
-        if(this.extensionJson == null) this.extensionJson = new com.alibaba.fastjson.JSONObject();
-        this.extensionJson.put(extensionEnum.name,value);
-        this.extension = this.extensionJson.toJSONString();
-        return this;
-    }
 
-    /**
-     * 
-     * @param extensions String use the org.conch.chain.BlockImpl.ExtensionEnum.name
-     */
-    public BlockImpl addExtensions(Map<String,Object> extensions){
-        if(this.extensionJson == null) this.extensionJson = new com.alibaba.fastjson.JSONObject();
-        this.extensionJson.putAll(extensions);
-        this.extension = this.extensionJson.toJSONString();
-        return this;
-    }
-
-    /**
-     * 
-     * @param extensionEnum use the org.conch.chain.BlockImpl.ExtensionEnum
-     * @return
-     */
-    public <T> T getExtValue(ExtensionEnum extensionEnum){
-        Class<T> clazz = extensionEnum.clazz;
-        if(extensionJson == null) extensionJson = com.alibaba.fastjson.JSONObject.parseObject(extension);
-        return extensionJson.getObject(extensionEnum.name,clazz);
-    }
-
+  public static void main(String[] args) {
+    //
+      String str = "{\"isPoc\":true}";
+    System.out.println(str + "\n\t" + str.getBytes().length);
+  }
 }
