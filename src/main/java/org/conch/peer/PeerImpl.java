@@ -138,7 +138,7 @@ final class PeerImpl implements Peer {
                 this.type = Type.OFFICIAL;
                 break;
             case 2:
-                this.type = Type.CERTIFIED;
+                this.type = Type.COMMUNITY;
                 break;
             case 3:
                 this.type = Type.NORMAL;
