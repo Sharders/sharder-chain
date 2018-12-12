@@ -2,6 +2,7 @@ package org.conch.consensus.poc;
 
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 
 import java.math.BigInteger;
@@ -84,11 +85,11 @@ public class PocCaculator {
     //当前使用的权重表模板
     static volatile PocTxBody.PocWeightTable pocWeightTable = null;
 
-    
+
     public void setCurWeightTable(PocTxBody.PocWeightTable weightTable){
         pocWeightTable = weightTable;
     }
-    
+
     //    public static Attachment.PocNodeConfiguration getPocConfiguration (String ip, String port, int height) {
 //        if (height < 0) {
 //            height = Conch.getBlockchain().getHeight();
@@ -349,30 +350,40 @@ public class PocCaculator {
 //    }
 
     private static BigInteger nodeTypeCal(PocTxBody.PocNodeType nodeType){
-        //TODO wolf impl    
+        if (nodeType.getType().equals(Peer.Type.OFFICIAL)) {
+
+        } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
+
+        } else if (nodeType.getType().equals(Peer.Type.HUB)) {
+
+        } else if (nodeType.getType().equals(Peer.Type.BOX)) {
+
+        } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
+
+        }
         return BigInteger.ZERO;
     }
-    
+
     private static BigInteger nodeConfCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocNodeConf nodeConf){
         //TODO wolf impl
         return BigInteger.ZERO;
-    } 
-    
+    }
+
     private static BigInteger onlineRateCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocOnlineRate onlineRate){
         //TODO wolf impl
         return BigInteger.ZERO;
-    } 
-    
+    }
+
     private static BigInteger blockMissCal(Account account, PocTxBody.PocBlockMiss blockMiss){
         //TODO xy impl
         return BigInteger.ZERO;
-    } 
-    
+    }
+
     private static BigInteger bcCal(Account account, PocTxBody.PocBC pocBC){
         //TODO un-impl now
         return BigInteger.ZERO;
-    } 
-    
+    }
+
     public static BigInteger calPocScore(Account account, Transaction transaction) {
         // SS持有得分
         BigInteger ssScore = BigInteger.ZERO;
