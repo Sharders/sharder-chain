@@ -4,21 +4,21 @@
             <div class="block_network mb20">
                 <p class="block_title csp">
                     <a @click="turn2network">
-                        <span>&lt;&lt;返回网络</span>
+                        <span>&lt;&lt;{{$t('peers.return_network')}}</span>
                     </a>
                 </p>
                 <div class="w dfl">
                     <div class="block_blue radius_blue">
-                        <p>节点数量</p>
-                        <p><span>{{peersCount}}</span>个</p>
+                        <p>{{$t('peers.total_peers')}}</p>
+                        <p><span>{{peersCount}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
-                        <p>HUB运行数</p>
-                        <p><span>{{activeHubCount}}</span>个</p>
+                        <p>{{$t('peers.active_hub')}}</p>
+                        <p><span>{{activeHubCount}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
-                        <p>活跃节点数</p>
-                        <p><span>{{activePeersCount}}</span>个</p>
+                        <p>{{$t('peers.active_peers')}}</p>
+                        <p><span>{{activePeersCount}}</span></p>
                     </div>
                 </div>
             </div>
@@ -28,20 +28,20 @@
             <div class="block_list">
                 <p class="block_title">
                     <img src="../../assets/img/peerlist.svg"/>
-                    <span>节点列表</span>
+                    <span>{{$t('peers.peer_list')}}</span>
                 </p>
                 <div class="list_table w br4">
                     <div class="list_content table_responsive data-loading">
                         <table class="table table-striped"  id="peers_table">
                             <thead>
                                 <tr>
-                                    <th>节点地址</th>
-                                    <th>已下载</th>
-                                    <th>已上传</th>
-                                    <th>应用程序</th>
-                                    <th>平台</th>
-                                    <th>服务</th>
-                                    <th>操作</th>
+                                    <th>{{$t('peers.peer_address')}}</th>
+                                    <th>{{$t('peers.download')}}</th>
+                                    <th>{{$t('peers.upload')}}</th>
+                                    <th>{{$t('peers.application')}}</th>
+                                    <th>{{$t('peers.platform')}}</th>
+                                    <th>{{$t('peers.server')}}</th>
+                                    <th>{{$t('peers.operating')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -68,8 +68,8 @@
                                         </el-tooltip>
                                     </td>
                                     <td>
-                                        <button class="list_button w40" @click="openConnectPeer(peer.address)">连接</button>
-                                        <button class="list_button w50" @click="openBlackDialog(peer.address)">黑名单</button>
+                                        <button class="list_button w40" @click="openConnectPeer(peer.address)">{{$t('peers.link')}}</button>
+                                        <button class="list_button w50" @click="openBlackDialog(peer.address)">{{$t('peers.blacklist')}}</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -96,46 +96,44 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">加入黑名单</h4>
+                        <h4 class="modal-title">{{$t('peers.join_blacklist')}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>是否将节点"{{blacklistPeer}}"添加到黑名单？</p>
-                        <p>管理密码</p>
+                        <p>{{$t('peers.join_blacklist_tip1')}}{{blacklistPeer}}{{$t('peers.join_blacklist_tip2')}}</p>
+                        <p>{{$t('peers.admin_password')}}</p>
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="addBlacklist(blacklistPeer)">添加</button>
+                        <button type="button" class="btn" @click="addBlacklist(blacklistPeer)">{{$t('peers.join')}}</button>
                     </div>
                 </div>
             </div>
         </div>
-
         <!--connect peer-->
         <div class="modal" id="connect_peer_modal" v-show="connectPeerDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">连接节点</h4>
+                        <h4 class="modal-title">{{$t('peers.link_peer')}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>节点名称：{{connectPeer}}</p>
-                        <p>管理密码</p>
+                        <p>{{$t('peers.peer_name')}}{{connectPeer}}</p>
+                        <p>{{$t('peers.admin_password')}}</p>
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="addConnectPeer(connectPeer)">连接</button>
+                        <button type="button" class="btn" @click="addConnectPeer(connectPeer)">{{$t('peers.link')}}</button>
                     </div>
                 </div>
             </div>
         </div>
-
         <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfoDialog">
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >节点：{{peerInfo.address}}</span>
+                    <span >{{$t('peers.peer')}}{{peerInfo.address}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -144,63 +142,58 @@
                         <tr>
                             <th>blockchain_state</th>
                             <td>{{peerInfo.blockchainState}}</td>
-                            <th>通讯端口</th>
+                            <th>{{$t('peers.communication_port')}}</th>
                             <td>{{peerInfo.port}}</td>
                         </tr>
                         <tr>
-                            <th>服务</th>
+                            <th>{{$t('peers.server')}}</th>
                             <td><span  v-for="service in peerInfo.services">{{service}}&nbsp;</span></td>
                             <th>Outbound Web Socket</th>
                             <td>{{peerInfo.outboundWebSocket}}</td>
                         </tr>
                         <tr>
-                            <th>版本</th>
+                            <th>{{$t('peers.version')}}</th>
                             <td>{{peerInfo.application}} {{peerInfo.version}}</td>
                             <th>peer_load</th>
                             <td v-if="peerInfo.peerLoad">{{peerInfo.peerLoad.load}}</td>
                             <td v-else></td>
                         </tr>
                         <tr>
-                            <th>平台</th>
+                            <th>{{$t('peers.platform')}}</th>
                             <td>{{peerInfo.platform}}</td>
                             <th>Last Connection Attempt</th>
                             <td>{{$global.myFormatTime(peerInfo.lastConnectAttempt,'YMDHMS')}}</td>
                         </tr>
                         <tr>
-                            <th>最后更新</th>
+                            <th>{{$t('peers.latest_update')}}</th>
                             <td>{{$global.myFormatTime(peerInfo.lastUpdated,'YMDHMS')}}</td>
-                            <th>状态</th>
+                            <th>{{$t('peers.status')}}</th>
                             <td>{{peerInfo.state === 1 ? 'CONNECTED' : 'UNCONNECTED'}}</td>
                         </tr>
                         <tr>
-                            <th>黑名单</th>
+                            <th>{{$t('peers.blacklist')}}</th>
                             <td>{{peerInfo.blacklisted}}</td>
-                            <th>共享地址</th>
+                            <th>{{$t('peers.shared_address')}}</th>
                             <td>{{peerInfo.shareAddress}}</td>
                         </tr>
                         <tr>
-                            <th>公布的地址</th>
+                            <th>{{$t('peers.shared_address')}}</th>
                             <td>{{peerInfo.announcedAddress}}</td>
-                            <th>已下载</th>
+                            <th>{{$t('peers.download')}}</th>
                             <td>{{peerInfo.downloadedVolume | formatByte}}</td>
                         </tr>
                         <tr>
                             <th>Api Port</th>
                             <td>{{peerInfo.apiPort}}</td>
-                            <th>已上传</th>
+                            <th>{{$t('peers.upload')}}</th>
                             <td>{{peerInfo.uploadedVolume | formatByte}}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
-
 </template>
-
-<!--<span>是否将节点"114.115.210.116"添加到黑名单？</span>-->
-            <!--<span>管理密码</span>-->
 <script>
     import echarts from "echarts";
     import world from "echarts-worldmap";
@@ -213,7 +206,6 @@
                 blacklistDialog: false,
                 connectPeerDialog: false,
                 peerInfoDialog: false,
-
                 //list列表
                 peersList:[],
                 //节点总览
@@ -238,7 +230,6 @@
 
             _this.peersList = _this.$global.peers.peers;
             _this.totalSize = _this.$global.peers.peers.length;
-            console.log("this.$global.peers",this.$global.peers);
             _this.getPeersInfo(_this.peersList);
         },
         methods: {
@@ -320,7 +311,6 @@
                     "Vienna": [16.373819, 48.208174],
                     "Zurich": [8.541694, 47.376887]
                 };
-
                 const rawData = [
                     ["Amsterdam", 101.6],
                     ["Athens", 62.6],
@@ -396,8 +386,6 @@
                     ["Vienna", 100.6],
                     ["Zurich", 119.1]
                 ];
-
-
 
                 function makeMapData (rawData) {
                     const mapData = [];
@@ -571,13 +559,13 @@
                     if(res.data){
                         _this.$message({
                             showClose: true,
-                            message: "已将'"+address+"'加入黑名单",
+                            message: this.$t('peers.join_blacklist_success1')+address+this.$t('peers.join_blacklist_success2'),
                             type: "success"
                         });
                     }else{
                         _this.$message({
                             showClose: true,
-                            message: "加入黑名单失败",
+                            message: this.$t('peers.join_blacklist_error'),
                             type: "error"
                         });
                     }
@@ -597,13 +585,13 @@
                     if(res.data){
                         _this.$message({
                             showClose: true,
-                            message: "已与'"+address+"'连接成功",
+                            message: this.$t('peers.join_link_peer_success1')+address+this.$t('peers.join_link_peer_success2'),
                             type: "success"
                         });
                     }else{
                         _this.$message({
                             showClose: true,
-                            message: "连接失败",
+                            message: this.$t('peers.join_link_peer_error'),
                             type: "error"
                         });
                     }
@@ -647,13 +635,13 @@
             getPeerServicesTooltip:function (service) {
                 let s = service.substring(0, 1) + service.substring(service.length - 1);
                 if(s === 'AI')
-                    return 'API服务';
+                    return this.$t('peers.API_service');
                 else if(s === 'CS')
-                    return '核心服务';
+                    return this.$t('peers.core_service');
                 else if(s === 'BI')
-                    return '商业API';
+                    return this.$t('peers.business_API');
                 else if(s === 'SE')
-                    return '存储服务';
+                    return this.$t('peers.Storage_service');
             }
         },
         mounted () {

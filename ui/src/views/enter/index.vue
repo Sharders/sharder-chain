@@ -2,7 +2,7 @@
     <div class="content_enter">
 
         <el-col :span="24" class="tip">
-            <a>您的密钥非常重要！为确保您已保存它, 请填写上一步生生成的密钥：</a>
+            <a>{{$t('enter.enter_tip')}}</a>
         </el-col>
 
         <el-col :span="24" class="input">
@@ -10,8 +10,8 @@
         </el-col>
 
         <el-col :span="24">
-            <el-button class="common_btn_contrary medium" @click="cancel">取消</el-button>
-            <el-button class="common_btn medium" @click="enter">进入客户端</el-button>
+            <el-button class="common_btn_contrary medium" @click="cancel">{{$t('enter.enter_cancel')}}</el-button>
+            <el-button class="common_btn medium" @click="enter">{{$t('enter.enter_client')}}</el-button>
         </el-col>
 
     </div>

@@ -5,29 +5,29 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >账户：{{accountInfo.accountRS}} 信息</span>
+                    <span >{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：&nbsp;</span><span>无</span>
+                    <span>{{$t('dialog.account_info_name')}}&nbsp</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
-                        <el-radio-button label="account" class="btn">所有交易</el-radio-button>
+                        <el-radio-button label="account" class="btn">{{$t('dialog.account_info_total_transaction')}}</el-radio-button>
                     </el-radio-group>
 
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
                             <tr>
-                                <th>交易时间</th>
-                                <th>交易类型</th>
-                                <th>数量</th>
-                                <th>手续费</th>
-                                <th>账户</th>
-                                <th>操作</th>
+                                <th>{{$t('dialog.account_info_transaction_time')}}</th>
+                                <th>{{$t('dialog.account_info_transaction_type')}}</th>
+                                <th>{{$t('dialog.account_info_amount')}}</th>
+                                <th>{{$t('dialog.account_info_fee')}}</th>
+                                <th>{{$t('dialog.account_info_account')}}</th>
+                                <th>{{$t('dialog.account_info_operating')}}</th>
                                 <th class="gutter"></th>
                             </tr>
                         </table>
@@ -38,19 +38,19 @@
                                     <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS')}}</td>
                                     <td v-if="transactions.type === 0">
                                         <img src="../../assets/img/pay.svg"/>
-                                        <span>普通支付</span>
+                                        <span>{{$t('dialog.account_info_payment')}}</span>
                                     </td>
                                     <td v-else-if="transactions.type === 1 && transactions.subtype === 0">
                                         <img src="../../assets/img/infomation.svg"/>
-                                        <span>任意信息</span>
+                                        <span>{{$t('dialog.account_info_information')}}</span>
                                     </td>
                                     <td v-else-if="transactions.type === 1 && transactions.subtype === 5">
-                                        <img src="../../assets/img/infomation.svg"/>
-                                        <span>账户信息</span>
+                                        <img src="../../assets/img/rename.svg"/>
+                                        <span>{{$t('dialog.account_info_account_info')}}</span>
                                     </td>
                                     <td v-else-if="transactions.type === 6">
-                                        <img src="../../assets/img/infomation.svg"/>
-                                        <span>数据存储</span>
+                                        <img src="../../assets/img/storage.svg"/>
+                                        <span>{{$t('dialog.account_info_data_storage')}}</span>
                                     </td>
                                     <td v-else-if="transactions.type === 9">
                                         <img src="../../assets/img/coinBase.svg"/>
@@ -59,7 +59,7 @@
                                     <td>{{transactions.amountNQT/100000000}}</td>
                                     <td>{{transactions.feeNQT/100000000}}</td>
                                     <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)"><span>{{transactions.senderRS}}</span></td>
-                                    <td class="linker" @click="openTransactionDialog(transactions.transaction)">查看详情</td>
+                                    <td class="linker" @click="openTransactionDialog(transactions.transaction)">{{$t('dialog.account_info_view_detail')}}</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -73,118 +73,118 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >账户：{{accountInfo.accountRS}} 信息</span>
+                    <span >{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>账户命名：&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>可用资金：&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>别名：&nbsp;</span><span>无</span>
+                    <span>{{$t('dialog.account_info_name')}}&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>
                 </div>
                 <div class="account_transactionInfo">
-                    <p class="fl">交易详情</p>
-                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">返回账户信息</button>
+                    <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
+                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">{{$t('dialog.account_transaction_return')}}</button>
                     <div class="cb"></div>
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>签名</th>
+                            <th>{{$t('dialog.account_transaction_signature')}}</th>
                             <td>{{transactionInfo.signature}}</td>
                         </tr>
                         <tr>
-                            <th>交易序列号</th>
+                            <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
                             <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">{{transactionInfo.transactionIndex}}</td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
-                            <th>类型</th>
+                            <th>{{$t('dialog.account_transaction_type')}}</th>
                             <td v-if="transactionInfo.type === 0">
-                                <span>普通支付</span>
+                                <span>{{$t('dialog.account_info_payment')}}</span>
                             </td>
                             <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 0">
-                                <span>任意信息</span>
+                                <span>{{$t('dialog.account_info_information')}}</span>
                             </td>
                             <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 5">
-                                <span>账户信息</span>
+                                <span>{{$t('dialog.account_info_account_info')}}</span>
                             </td>
                             <td v-else-if="transactionInfo.type === 6">
-                                <span>数据存储</span>
+                                <span>{{$t('dialog.account_info_data_storage')}}</span>
                             </td>
                             <td v-else-if="transactionInfo.type === 9">
                                 <span>CoinBase</span>
                             </td>
                         </tr>
                         <tr>
-                            <th>哈希签名</th>
+                            <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
                             <td>{{transactionInfo.signatureHash}}</td>
                         </tr>
                         <tr>
-                            <th>发送者</th>
+                            <th>{{$t('dialog.account_transaction_sender')}}</th>
                             <td v-if="transactionInfo.type === 9"></td>
                             <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}</td>
-                            <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
+                            <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
                         </tr>
                         <tr>
-                            <th>数额</th>
+                            <th>{{$t('dialog.account_transaction_amount')}}</th>
                             <td>{{transactionInfo.amountNQT/100000000}}</td>
                         </tr>
                         <tr>
-                            <th>接收者</th>
+                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
                             <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
-                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
                             <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
                             <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                         </tr>
                         <tr>
-                            <th>区块时间戳</th>
+                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
                             <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
                                 &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
-                            <th>时间戳</th>
+                            <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                             <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
                                 &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
                         </tr>
                         <tr>
-                            <th>发送者公钥</th>
+                            <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
                             <td>{{transactionInfo.senderPublicKey}}</td>
                         </tr>
                         <tr>
-                            <th>手续费</th>
+                            <th>{{$t('dialog.account_info_fee')}}</th>
                             <td>{{transactionInfo.feeNQT/100000000}}</td>
                         </tr>
                         <tr>
-                            <th>确认</th>
+                            <th>{{$t('dialog.account_transaction_confirm')}}</th>
                             <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}</td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
-                            <th>类型完整哈希：</th>
+                            <th>{{$t('dialog.account_transaction_fullHash')}}</th>
                             <td>{{transactionInfo.fullHash}}</td>
                         </tr>
                         <tr>
-                            <th>版本：</th>
+                            <th>{{$t('dialog.account_transaction_version')}}</th>
                             <td>{{transactionInfo.version}}</td>
                         </tr>
                         <tr>
-                            <th>发送者</th>
+                            <th>{{$t('dialog.account_transaction_sender')}}</th>
                             <td v-if="transactionInfo.type === 9"></td>
                             <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}</td>
-                            <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
+                            <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
                         </tr>
                         <tr>
-                            <th>接收者</th>
+                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
                             <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
-                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
                             <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
                             <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                         </tr>
                         <tr>
-                            <th>区块高度</th>
+                            <th>{{$t('dialog.account_transaction_block_height')}}</th>
                             <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.height}}</td>
                             <td v-else>-</td>
                         </tr>
@@ -200,25 +200,25 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
-                    <span >区块：{{blockInfo.block}} 信息</span>
+                    <span >{{$t('dialog.block_info_title1')}}{{blockInfo.block}}{{$t('dialog.block_info_title2')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <el-radio-group v-model="tabTitle" class="title">
-                    <el-radio-button label="account" class="btn">所有交易</el-radio-button>
-                    <el-radio-button label="blockInfo" class="btn">区块详情</el-radio-button>
+                    <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}</el-radio-button>
+                    <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>时间</th>
-                            <th>类型</th>
-                            <th>数量</th>
-                            <th>手续费</th>
-                            <th>发送者</th>
-                            <th>接受者</th>
+                            <th>{{$t('dialog.block_info_time')}}</th>
+                            <th>{{$t('dialog.block_info_type')}}</th>
+                            <th>{{$t('dialog.block_info_amount')}}</th>
+                            <th>{{$t('dialog.account_info_fee')}}</th>
+                            <th>{{$t('dialog.account_transaction_sender')}}</th>
+                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
                             <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
@@ -226,15 +226,19 @@
                             </td>
                             <td v-if="transaction.type === 0">
                                 <img src="../../assets/img/pay.svg"/>
-                                <span>普通支付</span>
+                                <span>{{$t('dialog.account_info_payment')}}</span>
                             </td>
-                            <td v-else-if="transaction.type === 1">
+                            <td v-else-if="transaction.type === 1&&transaction.subtype === 0">
                                 <img src="../../assets/img/infomation.svg"/>
-                                <span>任意信息</span>
+                                <span>{{$t('dialog.account_info_information')}}</span>
+                            </td>
+                            <td v-else-if="transaction.type === 1&&transaction.subtype === 5">
+                                <img src="../../assets/img/rename.svg"/>
+                                <span>{{$t('dialog.account_info_account_info')}}</span>
                             </td>
                             <td v-else-if="transaction.type === 6">
-                                <img src="../../assets/img/infomation.svg"/>
-                                <span>数据存储</span>
+                                <img src="../../assets/img/storage.svg"/>
+                                <span>{{$t('dialog.account_info_data_storage')}}</span>
                             </td>
                             <td v-else-if="transaction.type === 9">
                                 <img src="../../assets/img/coinBase.svg"/>
@@ -255,63 +259,63 @@
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>上一个区块哈希</th>
+                            <th>{{$t('dialog.block_info_previous_block_hash')}}</th>
                             <td>{{blockInfo.previousBlockHash}}</td>
                         </tr>
                         <tr>
-                            <th>载荷长度</th>
+                            <th>{{$t('dialog.block_info_payload_length')}}</th>
                             <td>{{blockInfo.payloadLength}}</td>
                         </tr>
                         <tr>
-                            <th>总数</th>
+                            <th>{{$t('dialog.block_info_total_amount')}}</th>
                             <td>{{blockInfo.totalAmountNQT/100000000}} SS</td>
                         </tr>
                         <tr>
-                            <th>矿工签名</th>
+                            <th>{{$t('dialog.block_info_generation_signature')}}</th>
                             <td>{{blockInfo.generationSignature}}</td>
                         </tr>
                         <tr>
-                            <th>矿工公钥</th>
+                            <th>{{$t('dialog.block_info_generation_public_key')}}</th>
                             <td>{{blockInfo.generatorPublicKey}}</td>
                         </tr>
                         <tr>
-                            <th>交易数量</th>
+                            <th>{{$t('dialog.block_info_transcation_amount')}}</th>
                             <td>{{blockInfo.numberOfTransactions}}</td>
                         </tr>
                         <tr>
-                            <th>区块签名</th>
+                            <th>{{$t('dialog.block_info_block_signature')}}</th>
                             <td>{{blockInfo.blockSignature}}</td>
                         </tr>
                         <tr>
-                            <th>版本：</th>
+                            <th>{{$t('dialog.account_transaction_version')}}</th>
                             <td>{{blockInfo.version}}</td>
                         </tr>
                         <tr>
-                            <th>总手续费</th>
+                            <th>{{$t('dialog.block_info_total_fee')}}</th>
                             <td>{{blockInfo.totalFeeNQT/100000000}} SS</td>
                         </tr>
                         <tr>
-                            <th>挖矿难度</th>
+                            <th>{{$t('dialog.block_info_cumulative_difficulty')}}</th>
                             <td>{{blockInfo.cumulativeDifficulty}}</td>
                         </tr>
                         <tr>
-                            <th>区块高度</th>
+                            <th>{{$t('dialog.account_transaction_block_height')}}</th>
                             <td>{{blockInfo.height}}</td>
                         </tr>
                         <tr>
-                            <th>时间戳</th>
+                            <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                             <td>{{blockInfo.timestamp}}</td>
                         </tr>
                         <tr>
-                            <th>矿工</th>
+                            <th>{{$t('dialog.block_info_mining')}}</th>
                             <td class="linker" @click="openAccountInfo(blockInfo.generatorRS)">{{blockInfo.generatorRS}}</td>
                         </tr>
                         <tr>
-                            <th>上一个区块</th>
+                            <th>{{$t('dialog.block_info_previous_block')}}</th>
                             <td class="linker" @click="openBlockInfo(blockInfo.previousBlock)">{{blockInfo.previousBlock}}</td>
                         </tr>
                         <tr>
-                            <th>下一个区块</th>
+                            <th>{{$t('dialog.block_info_next_block')}}</th>
                             <td class="linker" v-if="blockInfo.nextBlock" @click="openBlockInfo(blockInfo.nextBlock)">{{blockInfo.nextBlock}}</td>
                             <td v-else></td>
                         </tr>
@@ -325,109 +329,109 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >交易详情</span>
+                    <span >{{$t('dialog.account_transaction_detail')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <table class="table">
                     <tbody>
                     <tr>
-                        <th>签名</th>
+                        <th>{{$t('dialog.account_transaction_signature')}}</th>
                         <td>{{transactionInfo.signature}}</td>
                     </tr>
                     <tr>
-                        <th>交易序列号</th>
+                        <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
                         <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">{{transactionInfo.transactionIndex}}</td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
-                        <th>类型</th>
+                        <th>{{$t('dialog.account_transaction_type')}}</th>
                         <td v-if="transactionInfo.type === 0">
-                            <span>普通支付</span>
+                            <span>{{$t('dialog.account_info_payment')}}</span>
                         </td>
                         <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 0">
-                            <span>任意信息</span>
+                            <span>{{$t('dialog.account_info_information')}}</span>
                         </td>
                         <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 5">
-                            <span>账户信息</span>
+                            <span>{{$t('dialog.account_info_account_info')}}</span>
                         </td>
                         <td v-else-if="transactionInfo.type === 6">
-                            <span>数据存储</span>
+                            <span>{{$t('dialog.account_info_data_storage')}}</span>
                         </td>
                         <td v-else-if="transactionInfo.type === 9">
                             <span>CoinBase</span>
                         </td>
                     </tr>
                     <tr>
-                        <th>哈希签名</th>
+                        <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
                         <td>{{transactionInfo.signatureHash}}</td>
                     </tr>
                     <tr>
-                        <th>发送者</th>
+                        <th>{{$t('dialog.account_transaction_sender')}}</th>
                         <td v-if="transactionInfo.type === 9"></td>
                         <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}</td>
-                        <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
+                        <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
                     </tr>
                     <tr>
-                        <th>数额</th>
+                        <th>{{$t('dialog.account_transaction_amount')}}</th>
                         <td>{{transactionInfo.amountNQT/100000000}}</td>
                     </tr>
                     <tr>
-                        <th>接收者</th>
+                        <th>{{$t('dialog.account_transaction_recipient')}}</th>
                         <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
-                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
                         <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
                         <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                     </tr>
                     <tr>
-                        <th>区块时间戳</th>
+                        <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
                         <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
                             &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
-                        <th>时间戳</th>
+                        <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                         <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
                             &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
                     </tr>
                     <tr>
-                        <th>发送者公钥</th>
+                        <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
                         <td>{{transactionInfo.senderPublicKey}}</td>
                     </tr>
                     <tr>
-                        <th>手续费</th>
+                        <th>{{$t('dialog.account_info_fee')}}</th>
                         <td>{{transactionInfo.feeNQT/100000000}}</td>
                     </tr>
                     <tr>
-                        <th>确认</th>
+                        <th>{{$t('dialog.account_transaction_confirm')}}</th>
                         <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}</td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
-                        <th>类型完整哈希：</th>
+                        <th>{{$t('dialog.account_transaction_fullHash')}}</th>
                         <td>{{transactionInfo.fullHash}}</td>
                     </tr>
                     <tr>
-                        <th>版本：</th>
+                        <th>{{$t('dialog.account_transaction_version')}}</th>
                         <td>{{transactionInfo.version}}</td>
                     </tr>
                     <tr>
-                        <th>发送者</th>
+                        <th>{{$t('dialog.account_transaction_sender')}}</th>
                         <td v-if="transactionInfo.type === 9"></td>
                         <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}</td>
-                        <td v-else-if="$store.state.account === transactionInfo.senderRS">您</td>
+                        <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
                     </tr>
                     <tr>
-                        <th>接收者</th>
+                        <th>{{$t('dialog.account_transaction_recipient')}}</th>
                         <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
-                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">您</td>
-                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">您</td>
+                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
                         <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
                         <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
                     </tr>
                     <tr>
-                        <th>区块高度</th>
+                        <th>{{$t('dialog.account_transaction_block_height')}}</th>
                         <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.height}}</td>
                         <td v-else>-</td>
                     </tr>
@@ -609,23 +613,6 @@
                         }
                     });
                 }
-                /*if(_this.resultInfo !== 'success'){
-                    _this.$message({
-                        showClose: true,
-                        message: _this.resultInfo,
-                        type: "error"
-                    });
-                }else{
-                    _this.accountTransactionDialog = false;
-                    _this.blockInfoDialog = false;
-                    _this.accountInfoDialog = true;
-                }*/
-                // _this.accountTransactionDialog = false;
-                // _this.blockInfoDialog = false;
-                // if(accountRS !== null){
-                //     _this.accountRS = accountRS;
-                // }
-                // _this.accountInfoDialog = true;
             },
             openBlockInfo:function(blockId){
                 const _this = this;
@@ -761,7 +748,7 @@
                                         }else{
                                             _this.$message({
                                                 showClose: true,
-                                                message: "未找到任何信息，请再次查询。",
+                                                message: _this.$t('notification.search_null_info_error'),
                                                 type: "error"
                                             });
                                         }

@@ -4,16 +4,16 @@
             <div class="block_account mb20">
                 <p class="block_title">
                     <img src="../../assets/img/account.svg"/>
-                    <span>账户总览</span>
+                    <span>{{$t('account.account_title')}}</span>
                 </p>
                 <div class="w pt60">
                     <div class="account_address">
                         <span>{{accountInfo.accountRS}}</span>
                         <img class="csp" src="../../assets/img/copy.svg" v-clipboard:copy="accountInfo.accountRS"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
-                        <span class="csp" @click="openUserInfoDialog">账户详情</span>
+                        <span class="csp" @click="openUserInfoDialog">{{$t('account.account_info')}}</span>
                     </div>
-                    <p class="account_asset">资产：{{$global.formatMoney(accountInfo.unconfirmedBalanceNQT/100000000)}} SS</p>
+                    <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.unconfirmedBalanceNQT/100000000)}} SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -25,7 +25,7 @@
                                     <rect y="127.01" width="150" height="12.5"/>
                                 </svg>
                             </span>
-                            <span>转账</span>
+                            <span>{{$t('account.transfer')}}</span>
                         </button>
                         <button class="common_btn imgBtn" @click="openSendMessageDialog">
                             <span class="icon">
@@ -35,7 +35,7 @@
                                           transform="translate(-14.29 -28.57)"/>
                                 </svg>
                             </span>
-                            <span>发送消息</span>
+                            <span>{{$t('account.send_message')}}</span>
                         </button>
                         <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS" @click="openHubSettingDialog">
                             <span class="icon">
@@ -54,7 +54,7 @@
                                     <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
                                 </svg>
                             </span>
-                            <span>HUB设置</span>
+                            <span>{{$t('account.hub_setting')}}</span>
                         </button>
                     </div>
                 </div>
@@ -62,24 +62,22 @@
             <div class="block_receiptDisbursement mb20">
                 <p class="block_title">
                     <img src="../../assets/img/receipt&disbursementInfo.svg"/>
-                    <span>收支明细</span>
+                    <span>{{$t('account.income_and_expenditure_details')}}</span>
                 </p>
                 <div class="w">
                     <div class="whf" id="transaction_amount_bar">
-                        此处为数据图表
                     </div>
                     <div class="whf" id="yield_curve">
-                        此处为数据曲线
                     </div>
                 </div>
             </div>
             <div class="block_list">
                 <p class="block_title fl">
                     <img src="../../assets/img/transaction.svg"/>
-                    <span>交易记录</span>
+                    <span>{{$t('transaction.transaction_record')}}</span>
                 </p>
                 <div class="transaction_type">
-                    <el-select v-model="selectType" placeholder="全部">
+                    <el-select v-model="selectType" :placeholder="$t('transaction.transaction_type_all')">
                         <el-option
                             v-for="item in transactionType"
                             :key="item.value"
@@ -93,14 +91,14 @@
                         <table class="table table_striped" id="blocks_table">
                             <thead>
                             <tr>
-                                <th>交易时间</th>
-                                <th>区块高度</th>
-                                <th>交易类型</th>
-                                <th>金额</th>
-                                <th>手续费</th>
-                                <th class="dbw w300">交易账户</th>
-                                <th>确认数量</th>
-                                <th>操作</th>
+                                <th>{{$t('transaction.transaction_time')}}</th>
+                                <th>{{$t('transaction.block_height')}}</th>
+                                <th>{{$t('transaction.transaction_type')}}</th>
+                                <th>{{$t('transaction.transaction_amount')}}</th>
+                                <th>{{$t('transaction.transaction_fee')}}</th>
+                                <th class="dbw w300">{{$t('transaction.transaction_account')}}</th>
+                                <th>{{$t('transaction.transaction_confirm_quantity')}}</th>
+                                <th>{{$t('transaction.operating')}}</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -108,11 +106,11 @@
                                     <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
-                                    <td v-if="transaction.type === 0">普通支付</td>
-                                    <td v-if="transaction.type === 1 && transaction.subtype === 0">任意信息</td>
-                                    <td v-if="transaction.type === 1 && transaction.subtype === 5">账户信息</td>
-                                    <td v-if="transaction.type === 6">存储服务</td>
-                                    <td v-if="transaction.type === 9">出块奖励</td>
+                                    <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
+                                    <td v-if="transaction.type === 1 && transaction.subtype === 0">{{$t('transaction.transaction_type_information')}}</td>
+                                    <td v-if="transaction.type === 1 && transaction.subtype === 5">{{$t('transaction.transaction_type_account')}}</td>
+                                    <td v-if="transaction.type === 6">{{$t('transaction.transaction_type_storage_service')}}</td>
+                                    <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}</td>
 
                                     <td v-if="transaction.amountNQT === '0'">0 SS</td>
                                     <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
@@ -122,13 +120,13 @@
                                     <td class=" image_text w300">
                                         <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                              v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                              v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                               v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
                                         <img src="../../assets/img/right_arrow.svg"/>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">您</span>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">{{$t('transaction.self')}}</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                              v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">您</span>
+                                              v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
                                         <span class="linker" v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                               v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
@@ -162,98 +160,98 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">发送信息</h4>
+                        <h4 class="modal-title">{{$t('sendMessage.sendMessage_title')}}</h4>
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接收者" class="item_receiver">
+                            <el-form-item :label="$t('sendMessage.receiver')" class="item_receiver">
                                 <masked-input id="receiver" mask="AAA-****-****-****-*****" v-model="messageForm.receiver" />
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
-                            <el-form-item label="接收者公钥" v-if="messageForm.hasPublicKey">
+                            <el-form-item :label="$t('sendMessage.receiver_publickey')" v-if="messageForm.hasPublicKey">
                                 <el-input v-model="messageForm.publicKey" type="password"></el-input>
                             </el-form-item>
-                            <el-form-item label="信息">
-                                <el-checkbox v-model="messageForm.isEncrypted">加密信息</el-checkbox>
+                            <el-form-item :label="$t('sendMessage.infomation')">
+                                <el-checkbox v-model="messageForm.isEncrypted">{{$t('sendMessage.encrypted_information')}}</el-checkbox>
                                 <el-input
                                     :disabled="messageForm.isFile"
                                     type="textarea"
                                     :autosize="{ minRows: 2, maxRows: 10}"
                                     resize="none"
-                                    placeholder="请输入信息内容"
+                                    :placeholder="$t('sendMessage.message_tip')"
                                     v-model="messageForm.message">
                                 </el-input>
                             </el-form-item>
-                            <el-form-item label="文件">
-                                <el-input placeholder="请选择文件" class="input-with-select" v-model="messageForm.fileName" :readonly="true">
-                                    <el-button slot="append" v-if="file === null">浏览</el-button>
-                                    <el-button slot="append" @click="delFile" v-else>删除</el-button>
+                            <el-form-item :label="$t('sendMessage.file')">
+                                <el-input :placeholder="$t('sendMessage.file_tip')" class="input-with-select" v-model="messageForm.fileName" :readonly="true">
+                                    <el-button slot="append" v-if="file === null">{{$t('sendMessage.browse')}}</el-button>
+                                    <el-button slot="append" @click="delFile" v-else>{{$t('sendMessage.delete')}}</el-button>
                                 </el-input>
                                 <input id="file" ref="file" type="file" @change="fileChange" v-if="file === null"/>
                             </el-form-item>
-                            <el-form-item label="手续费">
-                                <el-button class="calculate_fee" @click="getMessageFee()">计算</el-button>
+                            <el-form-item :label="$t('sendMessage.fee')">
+                                <el-button class="calculate_fee" @click="getMessageFee()">{{$t('sendMessage.calculate')}}</el-button>
                                 <input class="el-input__inner"  v-model="messageForm.fee" type="number" min="1" max="100000" :step="0.1"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
-                            <el-form-item label="私钥">
+                            <el-form-item :label="$t('sendMessage.secret_key')">
                                 <el-input v-model="messageForm.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendMessageInfo">发送信息</button>
+                        <button type="button" class="btn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
                     </div>
                 </div>
             </div>
         </div>
-        <!--view tranfer account dialog-->
-        <div class="modal" id="tranfer_accounts_modal" v-show="tranferAccountsDialog">
+        <!--view transfer account dialog-->
+        <div class="modal" id="transfer_accounts_modal" v-show="tranferAccountsDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">发送信息</h4>
+                        <h4 class="modal-title">{{$t('transfer.transfer_title')}}</h4>
                     </div>
                     <div class="modal-body modal-message">
                         <el-form>
-                            <el-form-item label="接收者" class="item_receiver">
+                            <el-form-item :label="$t('transfer.receiver')" class="item_receiver">
                                 <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
-                            <el-form-item label="接收者公钥" v-if="transfer.hasPublicKey && transfer.hasMessage">
+                            <el-form-item :label="$t('transfer.receiver_public_key')" v-if="transfer.hasPublicKey && transfer.hasMessage">
                                 <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
                             </el-form-item>
-                            <el-form-item label="数额">
+                            <el-form-item :label="$t('transfer.amount')">
                                 <input class="el-input__inner"  v-model="transfer.number" min="0" :max="1000000000" type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
-                            <el-form-item label="手续费">
-                                <el-button class="calculate_fee" @click="getTransferFee()">计算</el-button>
+                            <el-form-item :label="$t('transfer.fee')">
+                                <el-button class="calculate_fee" @click="getTransferFee()">{{$t('transfer.calculate')}}</el-button>
                                 <input class="el-input__inner"  v-model="transfer.fee"  min="1" max="100000" :step="0.1" type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="">
-                                <el-checkbox v-model="transfer.hasMessage">添加一条信息</el-checkbox>
+                                <el-checkbox v-model="transfer.hasMessage">{{$t('transfer.enable_add_info')}}</el-checkbox>
                                 <el-checkbox ref="encrypted2" v-model="transfer.isEncrypted"
-                                             :disabled="!transfer.hasMessage">加密信息
+                                             :disabled="!transfer.hasMessage">{{$t('transfer.encrypted_information')}}
                                 </el-checkbox>
                                 <el-input
                                     type="textarea"
                                     :autosize="{ minRows: 2, maxRows: 10}"
                                     resize="none"
-                                    placeholder="请输入信息内容"
+                                    :placeholder="$t('transfer.message_tip')"
                                     v-model="transfer.message"
                                     :disabled="!transfer.hasMessage">
                                 </el-input>
                             </el-form-item>
-                            <el-form-item label="秘钥">
+                            <el-form-item :label="$t('transfer.secret_key')">
                                 <el-input v-model="transfer.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendTransferInfo">发送</button>
+                        <button type="button" class="btn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
                     </div>
                 </div>
             </div>
@@ -261,61 +259,61 @@
         <!--view tranfer account dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
-                <button class="common_btn" @click="openAdminDialog('reset')">重置Hub</button>
-                <button class="common_btn" @click="openAdminDialog('restart')">重启Hub</button>
+                <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
+                <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
                 <h4 class="modal-title">
-                    <span>Hub设置</span>
+                    <span>{{$t('hubsetting.title')}}</span>
                 </h4>
 
             </div>
             <div class="modal-body">
                 <div class="version_info">
-                    <span>当前版本：</span>
+                    <span>{{$t('hubsetting.current_version')}}</span>
                     <span>{{blockchainState.version}}</span>
-                    <span v-if="isUpdate">发现新版本:{{latesetVersion}}</span>
-                    <span v-if="isUpdate" @click="openAdminDialog('update')">点击更新</span>
+                    <span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>
+                    <span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>
                 </div>
                 <el-form label-position="left" label-width="160px">
-                    <el-form-item label="启动内网穿透服务:">
+                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item label="Sharder官网账户:">
+                    <el-form-item :label="$t('hubsetting.sharder_account')">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
-                    <el-form-item label="Sharder官网密码:" >
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')">
                         <el-input v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务地址:" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务端口:" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="穿透服务客户端秘钥:"  v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="公网地址:" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.public_ip_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.publicAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item label="关联SS地址:">
+                    <el-form-item :label="$t('hubsetting.token_address')">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
                     </el-form-item>
-                    <el-form-item label="是否开启挖矿:">
-                        <el-checkbox v-model="hubsetting.isOpenMining">锻造已启用</el-checkbox>
+                    <el-form-item :label="$t('hubsetting.enable_auto_mining')">
+                        <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
-                    <el-form-item label="改绑助记词:" v-if="hubsetting.isOpenMining">
+                    <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
                         <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
-                    <el-form-item label="新密码:">
+                    <el-form-item :label="$t('hubsetting.reset_password')">
                         <el-input v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
-                    <el-form-item label="确认新密码:">
+                    <el-form-item :label="$t('hubsetting.confirm_password')">
                         <el-input v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="openAdminDialog('reConfig')">确认</button>
-                    <button class="common_btn" @click="closeDialog()">取消</button>
+                    <button class="common_btn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
@@ -324,44 +322,44 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span>账户详情</span>
+                    <span>{{$t('account_info.account_information')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <table class="table">
                     <tbody>
                     <tr>
-                        <th>账户地址:</th>
+                        <th>{{$t('account_info.account_address')}}</th>
                         <td>{{accountInfo.accountRS}}</td>
                     </tr>
                     <tr>
-                        <th>账户名：</th>
+                        <th>{{$t('account_info.account_name')}}</th>
                         <td>
                             <div class="accountName" v-if="isShowName">
                                 <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
-                                <span v-else style="color:#999;font-weight: normal">未设置</span>
+                                <span v-else style="color:#999;font-weight: normal">{{$t('account_info.account_name_not_set')}}</span>
                                 <img src="../../assets/img/rewrite.svg" @click="isShowName = false"/>
                             </div>
                             <div class="rewriteName" v-else>
                                 <el-input v-model="temporaryName"></el-input>
-                                <button class="common_btn" @click="openSecretPhraseDialog">确认</button>
+                                <button class="common_btn" @click="openSecretPhraseDialog">{{$t('account_info.account_set_name')}}</button>
                             </div>
                         </td>
                     </tr>
                     <tr>
-                        <th>账户余额：</th>
+                        <th>{{$t('account_info.account_balance')}}</th>
                         <td>{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</td>
                     </tr>
                     <tr>
-                        <th>可用余额：</th>
+                        <th>{{$t('account_info.account_available_balance')}}<</th>
                         <td>{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS</td>
                     </tr>
                     <tr>
-                        <th>挖矿余额：</th>
+                        <th>{{$t('account_info.account_mining_balance')}}</th>
                         <td>{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}} SS</td>
                     </tr>
                     <tr>
-                        <th>公钥</th>
+                        <th>{{$t('account_info.public_key')}}<</th>
                         <td>{{accountInfo.publicKey}}</td>
                     </tr>
                     </tbody>
@@ -467,22 +465,22 @@
                 selectType:'',
                 transactionType:[{
                     value:'',
-                    label:'全部'
+                    label:this.$t('transaction.transaction_type_all')
                 },{
                     value:0,
-                    label:'普通支付'
+                    label:this.$t('transaction.transaction_type_payment')
                 },{
                     value:1,
-                    label:'任意信息'
+                    label:this.$t('transaction.transaction_type_information')
                 },{
                     value:1.5,
-                    label:'账户信息'
+                    label:this.$t('transaction.transaction_type_account')
                 },{
                     value:6,
-                    label:'存储服务'
+                    label:this.$t('transaction.transaction_type_storage_service')
                 },{
                     value:9,
-                    label:'出块奖励'
+                    label:this.$t('transaction.transaction_type_block_reward')
                 }],
 
                 trading:'',
@@ -600,7 +598,7 @@
                     adminPassword: adminPwd
                 }).then(res => {
                     if (res.data.upgraded) {
-                        _this.$message.success('更新成功');
+                        _this.$message.success(_this.$t('notification.update_success'));
                     } else {
                         _this.$message.error(res.data.error);
                     }
@@ -613,7 +611,7 @@
                 this.$http.post('/sharder?requestType=restart', {
                     adminPassword: adminPwd
                 }).then(res => {
-                    _this.$message.success('请稍后再次打开页面');
+                    _this.$message.success(_this.$t('notification.restart_success'));
                 }).catch(err => {
                     _this.$message.error(err);
 
@@ -625,7 +623,7 @@
                     adminPassword: adminPwd,
                     restart: true
                 }).then(res => {
-                    _this.$message.success('请稍后再次打开页面');
+                    _this.$message.success(_this.$t('notification.restart_success'));
                 }).catch(err => {
                     _this.$message.error(err);
                 });
@@ -634,7 +632,7 @@
                 const _this = this;
                 params.append("adminPassword",adminPwd);
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
-                    _this.$message.success('请稍后再次打开页面');
+                    _this.$message.success(_this.$t('notification.restart_success'));
                 }).catch(err => {
                     _this.$message.error(err);
                 });
@@ -649,9 +647,9 @@
                         _this.hubsetting.port === '' ||
                         _this.hubsetting.clientSecretkey === ''){
                         if(_this.hubsetting.sharderPwd === '')
-                            _this.$message.error("请输入Sharder账号获取HUB配置信息");
+                            _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
                         else
-                            _this.$message.error("请联系管理员获取Hub设置");
+                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         return false;
                     }else{
                         params.append("sharder.NATServiceAddress",_this.hubsetting.address);
@@ -666,7 +664,7 @@
                 if(_this.hubsetting.SS_Address !== ''){
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
-                        _this.$message.warning('关联SS地址格式错误！');
+                        _this.$message.warning(_this.$t('notification.hubsetting_account_address_error_format'));
                         return false;
                     }else{
                         params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
@@ -679,36 +677,18 @@
                 if(_this.hubsetting.isOpenMining){
                     params.append("sharder.HubBind",true);
                     if(_this.hubsetting.modifyMnemonicWord === ''){
-                        _this.$message.warning('开启矿池必须填写助记词！');
+                        _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
                         return false;
                     }
                     params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
                 }else{
                     params.append("sharder.HubBind",false);
                 }
-                /*if(_this.hubsetting.isOpenMining){
-                    params.append("sharder.HubBind",true);
-                    if(_this.hubsetting.SS_Address !== ''){
-                        const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                        if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
-                            _this.$message.warning('关联SS地址格式错误！');
-                            return false;
-                        }else{
-                            params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
-                            params.append("reBind",true);
-                        }
-                    }
-                    if(_this.hubsetting.modifyMnemonicWord !== '')
-                        params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
-                }else{
-                    params.append("sharder.HubBind",false);
-                    params.append("reBind",false);
-                }*/
                 params.append("restart",false);
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
-                        _this.$message.warning("密码不一致！");
+                        _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
                         return false;
                     }else{
                         params.append("newAdminPassword",_this.hubsetting.newPwd);
@@ -733,7 +713,7 @@
                         }else if(res.data.errorType === 'unifiedUserIsNull'){
                             _this.$message.error(res.data.errorMessage);
                         }else if(res.data.errorType === 'hubDirectoryIsNull'){
-                            _this.$message.error('暂无配置，请联系管理员');
+                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         }
                     })
                 }
@@ -752,7 +732,7 @@
                         }
                     }).then(function (res) {
                         resolve(res.data);
-                        console.log(_this.accountInfo);
+                        // console.log(_this.accountInfo);
                     }).catch(function (err) {
                         console.log(err);
                     });
@@ -767,7 +747,7 @@
 
                 _this.getAccount(SSO.account).then(res=>{
                     if(res.errorDescription === "Unknown account"){
-                        _this.$message.warning("您有一个全新的帐户，请先给它充值。");
+                        _this.$message.warning(_this.$t('notification.new_account_warning'));
                         return;
                     }
                 });
@@ -783,7 +763,7 @@
 
 
                 if(!_this.messageForm.errorCode){
-                    _this.$message.warning("请检查是否还有未填的信息");
+                    _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
                 formData.append("phased", 'false');
@@ -796,21 +776,19 @@
                 formData.append("publicKey", SSO.publicKey);
                 formData.append("deadline", '1440');
 
-
-
                 if(_this.messageForm.isEncrypted){
 
                     if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                         _this.messageForm.receiver === "___-____-____-____-_____"){
-                        _this.$message.warning("请输入接收者账户ID");
+                        _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                         return;
                     }
                     if(_this.messageForm.publicKey === ""){
-                        _this.$message.warning("请输入接收者账户公钥");
+                        _this.$message.warning(_this.$t('notification.sendmessage_null_account_public'));
                         return;
                     }
                     if(_this.messageForm.password === ""){
-                        _this.$message.warning("必须输入您的私钥来加密此信息");
+                        _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                         return;
                     }
                     options.account = _this.messageForm.receiver;
@@ -861,44 +839,41 @@
                 let formData = new FormData();
 
                 if(!_this.transfer.errorCode){
-                    _this.$message.warning("请检查是否还有未填的信息");
+                    _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
 
                 if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____"){
-                    _this.$message.warning('接收者不能为空');
+                    _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
                 const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if(!_this.transfer.receiver.toUpperCase().match(pattern)){
-                    _this.$message.warning('接收者ID格式错误！');
+                    _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
 
                 if(_this.transfer.number === 0){
-                    _this.$message.warning('请正确输入您要转账的值');
+                    _this.$message.warning(_this.$t('notification.transfer_amount_error'));
                     return;
                 }
                 _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                     if(typeof res.errorDescription === 'undefined') {
                         if(res.errorDescription === "Unknown account"){
-                            _this.$message.warning('您有一个全新的帐户，请先给它充值。');
+                            _this.$message.warning(_this.$t('notification.new_account_warning'));
                             return;
                         }
-
                     }
                     _this.accountInfo = res;
                     if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
-                        _this.$message.warning('您的余额不足');
+                        _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
-
                     if(typeof SSO.secretPhrase === "undefined" && _this.transfer.password === ""){
-                        _this.$message.warning('必须输入密钥。');
+                        _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
-
                     formData.append("recipient",_this.transfer.receiver);
                     formData.append("deadline","1440");
                     formData.append("phased", 'false');
@@ -914,11 +889,11 @@
                     if(_this.transfer.hasMessage && _this.transfer.message !== ""){
                         if(_this.transfer.isEncrypted){
                             if(_this.transfer.password === ""){
-                                _this.$message.warning('需要输入您的密钥来加密此信息。');
+                                _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                                 return;
                             }
                             if(_this.transfer.receiverPublickey === ""){
-                                _this.$message.warning('未指定公钥。');
+                                _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                                 return;
                             }
 
@@ -943,14 +918,12 @@
                     _this.sendTransfer(formData);
                 });
             },
-
             encryptFileCallback:function(file,encryptionkeys){
                 return new Promise(function (resolve, reject) {
                     SSO.encryptFile(file,encryptionkeys,function (encrypted) {
                         resolve(encrypted);
                     });
                 });
-
             },
             sendMessageInfo:function(){
                 const _this = this;
@@ -962,27 +935,27 @@
                     _this.messageForm.receiver === "___-____-____-____-_____" ||
                     _this.messageForm.receiver === "SSA" ||
                     _this.messageForm.receiver === ""){
-                    _this.$message.warning('接收者不能为空');
+                    _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
                 const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if(!_this.messageForm.receiver.toUpperCase().match(pattern)){
-                    _this.$message.warning('接收者ID格式错误！');
+                    _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
 
                 if(_this.messageForm.hasPublicKey){
                     if(_this.messageForm.publicKey === ""){
-                        _this.$message.warning('必须输入接收者公钥。');
+                        _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                         return;
                     }
                 }
                 if(!_this.messageForm.errorCode){
-                    _this.$message.warning("请检查是否还有未填的信息");
+                    _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
                 if(_this.messageForm.password === ''){
-                    _this.$message.warning('必须输入私钥。');
+                    _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                     return;
                 }
 
@@ -1048,7 +1021,7 @@
 
                         if(typeof res.data.errorDescription === 'undefined'){
                             if(res.data.broadcasted){
-                                _this.$message.success("您的消息已发送");
+                                _this.$message.success(_this.$t('notification.sendmessage_success'));
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
@@ -1071,7 +1044,6 @@
                 });
 
             },
-
             sendTransferInfo:function(){
                 const _this = this;
                 let options = {};
@@ -1079,7 +1051,7 @@
                 let formData = new FormData();
 
                 if(!_this.transfer.errorCode){
-                    _this.$message.warning("请检查是否还有未填的信息");
+                    _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
 
@@ -1087,39 +1059,37 @@
                     _this.transfer.receiver === "___-____-____-____-_____" ||
                     _this.transfer.receiver === "SSA" ||
                     _this.transfer.receiver === ""){
-                    _this.$message.warning('接收者不能为空');
+                    _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
                 const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if(!_this.transfer.receiver.toUpperCase().match(pattern)){
-                    _this.$message.warning('接收者ID格式错误！');
+                    _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
                 if(_this.transfer.receiverPublickey ===""){
-                    _this.$message.warning('请输入输入接收者公钥');
+                    _this.$message.warning(_this.$t('notification.sendmessage_null_account_public'));
                     return;
                 }
-
                 if(_this.transfer.number === 0){
-                    _this.$message.warning('请正确输入您要转账的值');
+                    _this.$message.warning(_this.$t('notification.transfer_amount_error'));
                     return;
                 }
-
                 _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                     if(typeof res.errorDescription === 'undefined') {
                         if(res.errorDescription === "Unknown account"){
-                            _this.$message.warning('您有一个全新的帐户，请先给它充值。');
+                            _this.$message.warning(_this.$t('notification.new_account_warning'));
                             return;
                         }
                     }
                     _this.accountInfo = res;
                     if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
-                        _this.$message.warning('您的余额不足');
+                        _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
 
                     if(_this.transfer.password === ""){
-                        _this.$message.warning('必须输入密钥。');
+                        _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
 
@@ -1169,7 +1139,7 @@
 
                         if(typeof res.data.errorDescription === 'undefined'){
                             if(res.data.broadcasted){
-                                _this.$message.success("SS 已发送");
+                                _this.$message.success(_this.$t('notification.transfer_success'));
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
@@ -1193,7 +1163,6 @@
             },
             getAccountTransactionList:function(){
                 const _this = this;
-                // console.log("第"+i+"次");
                 let params = new URLSearchParams();
 
                 params.append("account",_this.accountInfo.accountRS);
@@ -1210,7 +1179,7 @@
 
                 this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res) {
                     _this.accountTransactionList =res.data.transactions;
-                    console.log("_this.accountTransactionList",_this.accountTransactionList);
+                    // console.log("_this.accountTransactionList",_this.accountTransactionList);
                     _this.totalSize = _this.accountTransactionList.length;
                     _this.unconfirmedTransactionsList = "";
                     _this.getTotalList();
@@ -1319,7 +1288,7 @@
                 const _this = this;
                 _this.$message({
                     showClose: true,
-                    message: "已复制到剪切板",
+                    message: _this.$t('notification.clipboard_success'),
                     type: "success"
                 });
             },
@@ -1338,7 +1307,7 @@
 
                 _this.$http.post('/sharder?requestType=setAccountInfo',formData).then(res=>{
                     if(typeof res.data.errorDescription === "undefined"){
-                        _this.$message.success("修改成功");
+                        _this.$message.success(_this.$t('notification.modify_success'));
                         _this.accountInfo.name = res.data.transactionJSON.attachment.name;
                         _this.isShowName = true;
                         _this.temporaryName = "";
@@ -1354,7 +1323,7 @@
                 const _this = this;
                 _this.$message({
                     showClose: true,
-                    message: "复制失败",
+                    message: _this.$t('notification.clipboard_error'),
                     type: "error"
 
                 });
@@ -1373,10 +1342,9 @@
 
                 if(_this.file.size > 1024*1024*5){
                     _this.delFile();
-                    _this.$message.error("文件最大支持5M");
+                    _this.$message.error(_this.$t('notification.file_exceeds_max_limit'));
                     return;
                 }
-                console.log("file",_this.file);
                 _this.messageForm.isFile = true;
                 _this.messageForm.message = "";
             },
@@ -1429,9 +1397,9 @@
                         if(value.type === 0 && j<5){
                             j++;
                             if(value.senderRS === SSO.accountRS){
-                                barchat.xAxis.push("支出");
+                                barchat.xAxis.push(_this.$t('account.payout'));
                             }else{
-                                barchat.xAxis.push("收入");
+                                barchat.xAxis.push(_this.$t('account.income'));
                             }
                             barchat.series.push(value.amountNQT/100000000);
                         }
@@ -1558,11 +1526,11 @@
                 if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if(!receiver.toUpperCase().match(pattern)){
-                        _this.$message.warning('接收者ID格式错误！');
+                        _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                         return;
                     }
                     if(receiver === _this.accountInfo.accountRS){
-                        _this.$message.warning("这是您的账户");
+                        _this.$message.warning(_this.$t('notification.account_is_self'));
                         _this.messageForm.errorCode = true;
                     }
 
@@ -1571,7 +1539,7 @@
                         if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey === "") {
                             _this.messageForm.hasPublicKey = true;
                             _this.messageForm.errorCode = true;
-                            _this.$message.warning("接收者帐户是未知帐户，意味着它没有转入或转出的交易记录。您可以通过提供接收者的公钥来增加安全性。");
+                            _this.$message.warning(_this.$t('notification.unknown_account'));
                         }else if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey !== ""){
                             _this.messageForm.hasPublicKey = true;
                             _this.messageForm.errorCode = false;
@@ -1579,7 +1547,7 @@
                             _this.messageForm.errorCode = true;
                             _this.messageForm.hasPublicKey = false;
                             _this.messageForm.publicKey = "";
-                            _this.$message.warning("接收者的帐户格式不正确，请调整。");
+                            _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                         }else if(typeof res.errorDescription === "undefined"){
                             _this.messageForm.errorCode = false;
                             _this.messageForm.hasPublicKey = false;
@@ -1594,11 +1562,11 @@
                 if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if(!receiver.toUpperCase().match(pattern)){
-                        _this.$message.warning('接收者ID格式错误！');
+                        _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                         return;
                     }
                     if(receiver === _this.accountInfo.accountRS){
-                        _this.$message.warning("这是您的账户");
+                        _this.$message.warning(_this.$t('notification.unknown_account'));
                         _this.transfer.errorCode = true;
                     }
 
@@ -1614,7 +1582,7 @@
                             _this.transfer.errorCode = true;
                             _this.transfer.hasPublicKey = false;
                             _this.transfer.publicKey = "";
-                            _this.$message.warning("接收者的帐户格式不正确，请调整。");
+                            _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                         }else if(typeof res.errorDescription === "undefined"){
                             _this.transfer.errorCode = false;
                             _this.transfer.hasPublicKey = false;

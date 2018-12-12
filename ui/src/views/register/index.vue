@@ -2,7 +2,7 @@
     <div class="content_register">
 
         <el-col :span="24">
-            <a>已为您生成账户密钥</a>
+            <a>{{$t('register.register_title')}}</a>
         </el-col>
 
         <el-col :span="24">
@@ -13,14 +13,14 @@
 
         <el-col :span="24">
             <div class="radius_blue tip">
-                <div>请写下来或记住这12单词。该密钥用于访问您的 豆匣 账户。</div>
-                <div>注意：永远不要透露您的密钥。如果失去它您将无法访问您的账户！</div>
+                <div>{{$t('register.register_tip1')}}</div>
+                <div>{{$t('register.register_tip2')}}</div>
             </div>
         </el-col>
 
         <el-col :span="24">
-            <el-button class="common_btn_contrary medium" @click="cancel">取消</el-button>
-            <el-button class="common_btn medium" @click="enter">下一步</el-button>
+            <el-button class="common_btn_contrary medium" @click="cancel">{{$t('register.cancel')}}</el-button>
+            <el-button class="common_btn medium" @click="enter">{{$t('register.next_step')}}</el-button>
         </el-col>
 
     </div>

@@ -4,14 +4,14 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button class="close" @click="closeDialog">X</button>
-                    <h4 class="modal-title">输入管理员密码</h4>
+                    <h4 class="modal-title">{{$t('password_modal.title')}}</h4>
                 </div>
                 <div class="modal-body modal-peer">
-                    <p>管理密码</p>
+                    <p>{{$t('password_modal.admin_password')}}</p>
                     <input v-model="adminPassword" type="password"/>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" @click="returnValue()">开启</button>
+                    <button type="button" class="btn" @click="returnValue()">{{$t('password_modal.open')}}</button>
                 </div>
             </div>
         </div>

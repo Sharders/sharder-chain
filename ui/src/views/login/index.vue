@@ -150,7 +150,7 @@
                         }else if(res.data.errorType === 'unifiedUserIsNull'){
                             _this.$message.error(res.data.errorMessage);
                         }else if(res.data.errorType === 'hubDirectoryIsNull'){
-                            _this.$message.error('暂无配置，请联系管理员');
+                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         }
                     })
                 }
@@ -169,7 +169,7 @@
                 }
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
                     if(typeof res.data.errorDescription === 'undefined'){
-                        _this.$message.success('请稍后再次打开页面');
+                        _this.$message.success(_this.$t('notification.restart_success'));
                         _this.hubSettingDialog = false;
                     }else{
                         _this.$message.error(res.data.errorDescription);
@@ -188,9 +188,9 @@
                         _this.hubsetting.port === '' ||
                         _this.hubsetting.clientSecretkey === ''){
                         if(_this.hubsetting.sharderPwd === '')
-                            _this.$message.error("请输入Sharder账号获取HUB配置信息");
+                            _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
                         else
-                            _this.$message.error("请联系管理员获取Hub设置");
+                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         return false;
                     }else{
                         params.append("sharder.NATServiceAddress",_this.hubsetting.address);
@@ -205,7 +205,7 @@
                 if(_this.hubsetting.SS_Address !== ''){
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
-                        _this.$message.warning('关联SS地址格式错误！');
+                        _this.$message.warning(_this.$t('notification.hubsetting_account_address_error_format'));
                         return false;
                     }else{
                         params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
@@ -218,7 +218,7 @@
                 if(_this.hubsetting.isOpenMining){
                     params.append("sharder.HubBind",true);
                     if(_this.hubsetting.modifyMnemonicWord === ''){
-                        _this.$message.warning('开启矿池必须填写助记词！');
+                        _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
                         return false;
                     }
                     params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
@@ -247,7 +247,7 @@
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
-                        _this.$message.warning("密码不一致！");
+                        _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
                         return false;
                     }else{
                         params.append("newAdminPassword",_this.hubsetting.newPwd);
@@ -260,18 +260,17 @@
                 let _this = this;
                 let val = _this.getAccount();
                 if (val === "") {
-                    _this.$message.info("请输入账号或私钥");
+                    _this.$message.info(_this.$t('notification.login_no_input_error'));
                     return;
                 }
                 Login.login(_this.type, val, _this, function () {
-                    console.log(SSO);
+                    // console.log(SSO);
                     // console.log("account", SSO.account);
                     // console.log("accountInfo", SSO.accountInfo);
                     // console.log("accountRS", SSO.accountRS);
                     // console.log("publicKey", SSO.publicKey);
                     // console.log("settings", SSO.settings);
                     _this.$global.setEpochBeginning(_this).then(res=>{
-                        console.log("初试时间："+res);
                         _this.$store.state.isLogin = true;
                         _this.$router.push("/account");
                     });

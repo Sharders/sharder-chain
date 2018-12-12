@@ -4,28 +4,28 @@
             <div class="block_network mb20">
                 <p class="block_title">
                     <img src="../../assets/img/network.svg"/>
-                    <span>网络总览</span>
+                    <span>{{$t('network.network_title')}}</span>
                 </p>
                 <div class="w dfl">
                     <div class="block_blue radius_blue">
-                        <p>区块高度</p>
-                        <p><span>{{newestHeight}}</span>个</p>
-                        <p>生成时间：{{newestTime}}</p>
+                        <p>{{$t('network.block_height')}}</p>
+                        <p><span>{{newestHeight}}</span></p>
+                        <p>{{$t('network.block_newest_time')}}{{newestTime}}</p>
                     </div>
                     <div class="block_blue radius_blue">
-                        <p>区块平均交易量</p>
-                        <p><span>{{averageAmount}}</span>个</p>
+                        <p>{{$t('network.block_avg_transaction_volume')}}</p>
+                        <p><span>{{averageAmount}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
-                        <p>节点数量</p>
-                        <p><span>{{peerNum}}</span>个</p>
+                        <p>{{$t('network.block_peers_volume')}}</p>
+                        <p><span>{{peerNum}}</span></p>
                     </div>
                 </div>
             </div>
             <div class="mb20 fl">
                 <p class="block_title">
                     <img src="../../assets/img/miner.svg"/>
-                    <span>旷工信息</span>
+                    <span>{{$t('network.miner_info')}}</span>
                 </p>
                 <div class="whf xs_section_fa">
                     <div class="xs_section br4">
@@ -33,7 +33,7 @@
                             <img src="../../assets/img/miner-info1.svg"/>
                             <div class="section_info">
                                 <span>{{activeCount}}</span>
-                                <span>旷工数量</span>
+                                <span>{{$t('network.miner_volume')}}</span>
                             </div>
                         </div>
                     </div>
@@ -42,7 +42,7 @@
                             <img src="../../assets/img/miner-info2.svg"/>
                             <div class="section_info">
                                 <span>{{totalCount}}</span>
-                                <span>总交易量</span>
+                                <span>{{$t('network.total_trading_volume')}}</span>
                             </div>
                         </div>
 
@@ -52,7 +52,7 @@
                             <img src="../../assets/img/miner-info3.svg"/>
                             <div class="section_info">
                                 <span>{{transferCount}}</span>
-                                <span>转账交易</span>
+                                <span>{{$t('network.transfer_transaction')}}</span>
                             </div>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                             <img src="../../assets/img/miner-info4.svg"/>
                             <div class="section_info">
                                 <span>{{coinbaseCount}}</span>
-                                <span>CoinBase交易</span>
+                                <span>{{$t('network.coinbase_transaction')}}</span>
                             </div>
                         </div>
                     </div>
@@ -70,7 +70,7 @@
                             <img src="../../assets/img/miner-info5.svg"/>
                             <div class="section_info">
                                 <span>{{storageCount}}</span>
-                                <span>存储交易</span>
+                                <span>{{$t('network.store_transaction')}}</span>
                             </div>
                         </div>
                     </div>
@@ -78,8 +78,8 @@
                         <div>
                             <img src="../../assets/img/miner-info6.svg"/>
                             <div class="section_info">
-                                <span>无</span>
-                                <span>别名修改</span>
+                                <span></span>
+                                <span>{{$t('network.alias_modification')}}</span>
                             </div>
                         </div>
                     </div>
@@ -89,11 +89,11 @@
                 <p>
                     <span class="block_title fl">
                         <img src="../../assets/img/peerlist.svg"/>
-                        <span>节点信息</span>
+                        <span>{{$t('network.peers_info')}}</span>
                     </span>
                     <span class="hrefbtn fr block_title csp">
                         <a @click="turn2peers">
-                            <span>节点详情</span>
+                            <span>{{$t('network.peers_detail')}}</span>
                         </a>
                     </span>
                 </p>
@@ -106,20 +106,20 @@
             <div class="block_list">
                 <p  class="block_title">
                     <img src="../../assets/img/block.svg"/>
-                    <span>区块列表</span>
+                    <span>{{$t('network.block_list')}}</span>
                 </p>
                 <div class="list_table w br4">
                     <div class="list_content data_container table_responsive data_loading">
                         <table class="table table_striped" id="blocks_table">
                             <thead>
                                 <tr>
-                                    <th>高度</th>
-                                    <th class="w200">出块时间</th>
-                                    <th>金额</th>
-                                    <th>手续费</th>
-                                    <th>交易数</th>
-                                    <th class="w200 ">出块者</th>
-                                    <th>操作</th>
+                                    <th>{{$t('network.block_list_height')}}</th>
+                                    <th class="w200">{{$t('network.block_list_time')}}</th>
+                                    <th>{{$t('network.block_list_amount')}}</th>
+                                    <th>{{$t('network.block_list_fee')}}</th>
+                                    <th>{{$t('network.block_list_transaction')}}</th>
+                                    <th class="w200 ">{{$t('network.block_list_generator')}}</th>
+                                    <th>{{$t('network.block_list_operating')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -130,7 +130,7 @@
                                     <td><span>{{block.totalFee}}</span></td>
                                     <td><span>{{block.numberOfTransactions}}</span></td>
                                     <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}</td>
-                                    <td class="linker" @click="openBlockInfo(block.height)">查看详情</td>
+                                    <td class="linker" @click="openBlockInfo(block.height)">{{$t('network.view_details')}}</td>
                                 </tr>
                             </tbody>
                         </table>
