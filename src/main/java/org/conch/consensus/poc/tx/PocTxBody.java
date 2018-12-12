@@ -1,17 +1,18 @@
 package org.conch.consensus.poc.tx;
 
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import org.conch.consensus.poc.hardware.DeviceInfo;
 import org.conch.consensus.poc.hardware.SystemInfo;
+import org.conch.mint.pool.PoolRule;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.tx.TransactionType;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.math.BigInteger;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -20,12 +21,12 @@ import java.nio.ByteBuffer;
 public abstract class PocTxBody  {
 
     private PocTxBody() {}
-    
+
     //TODO finish the PocNodeType definition
     public final class PocNodeType extends Attachment.TxBodyBase {
         private String ip;
         private Peer.Type type;
-        
+
         public PocNodeType(
             String ip,
             Peer.Type type) {
@@ -37,12 +38,12 @@ public abstract class PocTxBody  {
           super(buffer, transactionVersion);
           this.ip = buffer.toString();
         }
-    
+
         public PocNodeType(JSONObject attachmentData) {
           super(attachmentData);
           this.ip = (String) attachmentData.get("ip");
         }
-        
+
 
         @Override
         protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
@@ -64,137 +65,65 @@ public abstract class PocTxBody  {
         public int getMySize() {
           return ip.getBytes().length;
         }
-    
+
         @Override
         public void putMyBytes(ByteBuffer buffer) {
           buffer.put(ip.getBytes());
         }
-    
+
         @Override
         public void putMyJSON(JSONObject attachment) {
-      
+
         }
-    
+
         @Override
         public TransactionType getTransactionType() {
           return PocTx.POC_WEIGHT_TABLE;
         }
-  }
-  
-    public final class PocWeightTable extends Attachment.TxBodyBase {
-        private final String ip;
-        private final String port;
-        private final BigInteger nodeWeight; // 节点类型 加权后的值
-        private final BigInteger serverWeight; // 开启服务 加权后的值
-        private final BigInteger configWeight; // 硬件配置 加权后的值
-        private final BigInteger networkWeight; // 网络配置 加权后的值
-        private final BigInteger tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
-        private final BigInteger ssHoldWeight; // SS持有量 加权后的值
-        private final BigInteger blockingMissWeight; // 出块丢失 加权后的值
-        private final BigInteger bifuractionConvergenceWeight; // 分叉收敛 加权后的值
-        private final BigInteger onlineRateWeight; // 在线率 加权后的值
-    
-        public String getIp() {
-          return ip;
-        }
-    
-        public String getPort() {
-          return port;
-        }
-    
-        public BigInteger getNodeWeight() {
-          return nodeWeight;
-        }
-    
-        public BigInteger getServerWeight() {
-          return serverWeight;
-        }
-    
-        public BigInteger getConfigWeight() {
-          return configWeight;
-        }
-    
-        public BigInteger getNetworkWeight() {
-          return networkWeight;
-        }
-    
-        public BigInteger getTpWeight() {
-          return tpWeight;
-        }
-    
-        public BigInteger getSsHoldWeight() {
-          return ssHoldWeight;
-        }
-    
-        public BigInteger getBlockingMissWeight() {
-          return blockingMissWeight;
-        }
-    
-        public BigInteger getBifuractionConvergenceWeight() {
-          return bifuractionConvergenceWeight;
-        }
-    
-        public BigInteger getOnlineRateWeight() {
-          return onlineRateWeight;
-        }
-        
-        public PocWeightTable(
-            String ip,
-            String port,
-            BigInteger nodeWeight,
-            BigInteger serverWeight,
-            BigInteger configWeight,
-            BigInteger networkWeight,
-            BigInteger tpWeight,
-            BigInteger ssHoldWeight,
-            BigInteger blockingMissWeight,
-            BigInteger bifuractionConvergenceWeight,
-            BigInteger onlineRateWeight) {
-          this.ip = ip;
-          this.port = port;
-          this.nodeWeight = nodeWeight;
-          this.serverWeight = serverWeight;
-          this.configWeight = configWeight;
-          this.networkWeight = networkWeight;
-          this.tpWeight = tpWeight;
-          this.ssHoldWeight = ssHoldWeight;
-          this.blockingMissWeight = blockingMissWeight;
-          this.bifuractionConvergenceWeight = bifuractionConvergenceWeight;
-          this.onlineRateWeight = onlineRateWeight;
+    }
+
+    public final static class PocWeightTable extends Attachment.TxBodyBase {
+        private Map<String, Object> scoreMap;
+        private Map<String, Object> weightMap;
+
+        public Map<String, Object> getScoreMap() {
+            return scoreMap;
         }
 
+        public Map<String, Object> getWeightMap() {
+            return weightMap;
+        }
+
+        public PocWeightTable(Map<String, Object> scoreMap, Map<String, Object> weightMap) {
+            this.scoreMap = scoreMap;
+            this.weightMap = weightMap;
+        }
 
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) {
-          super(buffer, transactionVersion);
-          this.ip = buffer.toString();
-          this.port = buffer.toString();
-          this.nodeWeight = new BigInteger(buffer.array());
-          this.serverWeight = new BigInteger(buffer.array());
-          this.configWeight = new BigInteger(buffer.array());
-          this.networkWeight = new BigInteger(buffer.array());
-          this.tpWeight = new BigInteger(buffer.array());
-          this.ssHoldWeight = new BigInteger(buffer.array());
-          this.blockingMissWeight = new BigInteger(buffer.array());
-          this.bifuractionConvergenceWeight = new BigInteger(buffer.array());
-          this.onlineRateWeight = new BigInteger(buffer.array());
+            super(buffer, transactionVersion);
+            Map<String,Object> scoreMap = null;
+            Map<String,Object> weightMap = null;
+            try{
+                ByteBuffer byteBuffer = ByteBuffer.allocate(buffer.remaining());
+                byteBuffer.put(buffer);
+
+                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(byteBuffer.array()));
+                scoreMap = (Map<String,Object>)ois.readObject();
+                weightMap = (Map<String,Object>)ois.readObject();
+                ois.close();
+            }catch (Exception e){
+                Logger.logErrorMessage("sharder pool create transaction can't load rule from byte", e);
+            }
+            this.scoreMap = scoreMap;
+            this.weightMap = weightMap;
         }
-    
+
         public PocWeightTable(JSONObject attachmentData) {
-          super(attachmentData);
-          this.ip = (String) attachmentData.get("ip");
-          this.port = (String) attachmentData.get("port");
-          this.nodeWeight = (BigInteger) attachmentData.get("nodeWeight");
-          this.serverWeight = (BigInteger) attachmentData.get("serverWeight");
-          this.configWeight = (BigInteger) attachmentData.get("configWeight");
-          this.networkWeight = (BigInteger) attachmentData.get("networkWeight");
-          this.tpWeight = (BigInteger) attachmentData.get("tpWeight");
-          this.ssHoldWeight = (BigInteger) attachmentData.get("ssHoldWeight");
-          this.blockingMissWeight = (BigInteger) attachmentData.get("blockingMissWeight");
-          this.bifuractionConvergenceWeight =
-              (BigInteger) attachmentData.get("bifuractionConvergenceWeight");
-          this.onlineRateWeight = (BigInteger) attachmentData.get("onlineRateWeight");
+            super(attachmentData);
+            this.scoreMap = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("score"));
+            this.weightMap = PoolRule.jsonObjectToMap((JSONObject) attachmentData.get("weight"));
         }
-        
+
 
         @Override
         protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
@@ -211,381 +140,380 @@ public abstract class PocTxBody  {
             return null;
         }
 
-
         @Override
         public int getMySize() {
-          return ip.getBytes().length
-              + port.getBytes().length
-              + nodeWeight.toByteArray().length
-              + serverWeight.toByteArray().length
-              + configWeight.toByteArray().length
-              + networkWeight.toByteArray().length
-              + tpWeight.toByteArray().length
-              + ssHoldWeight.toByteArray().length
-              + blockingMissWeight.toByteArray().length
-              + bifuractionConvergenceWeight.toByteArray().length
-              + onlineRateWeight.toByteArray().length;
+            try{
+                ByteArrayOutputStream boScore = new ByteArrayOutputStream();
+                ObjectOutputStream osScore = new ObjectOutputStream(boScore);
+                osScore.writeObject(scoreMap);
+                osScore.close();
+
+                ByteArrayOutputStream boWeight = new ByteArrayOutputStream();
+                ObjectOutputStream osWeight = new ObjectOutputStream(boWeight);
+                osWeight.writeObject(weightMap);
+                osWeight.close();
+                return boWeight.toByteArray().length + boScore.toByteArray().length;
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in sharder poc weight table", e);
+            }
+            return (int) (ObjectSizeCalculator.getObjectSize(scoreMap) + ObjectSizeCalculator.getObjectSize(weightMap));
         }
-    
+
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-          buffer.put(ip.getBytes());
-          buffer.put(port.getBytes());
-          buffer.put(nodeWeight.toByteArray());
-          buffer.put(serverWeight.toByteArray());
-          buffer.put(configWeight.toByteArray());
-          buffer.put(networkWeight.toByteArray());
-          buffer.put(tpWeight.toByteArray());
-          buffer.put(ssHoldWeight.toByteArray());
-          buffer.put(blockingMissWeight.toByteArray());
-          buffer.put(bifuractionConvergenceWeight.toByteArray());
-          buffer.put(onlineRateWeight.toByteArray());
+            try{
+                ByteArrayOutputStream boScore = new ByteArrayOutputStream();
+                ObjectOutputStream osScore = new ObjectOutputStream(boScore);
+                osScore.writeObject(scoreMap);
+                osScore.close();
+
+                ByteArrayOutputStream boWeight = new ByteArrayOutputStream();
+                ObjectOutputStream osWeight = new ObjectOutputStream(boWeight);
+                osWeight.writeObject(weightMap);
+                osWeight.close();
+
+                buffer.put(ByteBuffer.wrap(boScore.toByteArray()));
+                buffer.put(ByteBuffer.wrap(boWeight.toByteArray()));
+            }catch (Exception e){
+                Logger.logDebugMessage("rule can't turn to byte in sharder poc weight table", e);
+            }
         }
-    
+
         @Override
         public void putMyJSON(JSONObject attachment) {
-          attachment.put("ip", ip);
-          attachment.put("port", port);
-          attachment.put("nodeWeight", nodeWeight);
-          attachment.put("serverWeight", serverWeight);
-          attachment.put("configWeight", configWeight);
-          attachment.put("networkWeight", networkWeight);
-          attachment.put("tpWeight", tpWeight);
-          attachment.put("ssHoldWeight", ssHoldWeight);
-          attachment.put("blockingMissWeight", blockingMissWeight);
-          attachment.put("bifuractionConvergenceWeight", bifuractionConvergenceWeight);
-          attachment.put("onlineRateWeight", onlineRateWeight);
+            attachment.put("weight", weightMap);
+            attachment.put("score", scoreMap);
         }
-    
+
         @Override
         public TransactionType getTransactionType() {
           return PocTx.POC_WEIGHT_TABLE;
         }
   }
 
-  public final class PocNodeConf extends Attachment.TxBodyBase {
+    public final class PocNodeConf extends Attachment.TxBodyBase {
 
-    private final String ip;
-    private final String port;
-    private SystemInfo systemInfo;
-    private DeviceInfo deviceInfo;
+        private final String ip;
+        private final String port;
+        private SystemInfo systemInfo;
+        private DeviceInfo deviceInfo;
 
-    public String getIp() {
-      return ip;
-    }
-
-    public String getPort() {
-      return port;
-    }
-
-    public SystemInfo getSystemInfo() {
-      return systemInfo;
-    }
-
-    public DeviceInfo getDeviceInfo() {
-      return deviceInfo;
-    }
-
-    public PocNodeConf(String ip, String port, SystemInfo systemInfo, DeviceInfo deviceInfo) {
-      this.ip = ip;
-      this.port = port;
-      this.systemInfo = systemInfo;
-      this.deviceInfo = deviceInfo;
-    }
-
-    public PocNodeConf(ByteBuffer buffer, byte transactionVersion) {
-      super(buffer, transactionVersion);
-      this.ip = buffer.toString();
-      this.port = buffer.toString();
-
-      ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
-      try {
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        Object obj = ois.readObject();
-        if (obj instanceof SystemInfo) {
-          this.systemInfo = (SystemInfo) obj;
-        } else {
-          this.systemInfo = null;
+        public String getIp() {
+            return ip;
         }
-        if (obj instanceof DeviceInfo) {
-          this.deviceInfo = (DeviceInfo) obj;
-        } else {
-          this.deviceInfo = null;
+
+        public String getPort() {
+            return port;
         }
-        bais.close();
-        ois.close();
-      } catch (IOException | ClassNotFoundException e) {
-        e.printStackTrace();
-      }
+
+        public SystemInfo getSystemInfo() {
+            return systemInfo;
+        }
+
+        public DeviceInfo getDeviceInfo() {
+            return deviceInfo;
+        }
+
+        public PocNodeConf(String ip, String port, SystemInfo systemInfo, DeviceInfo deviceInfo) {
+            this.ip = ip;
+            this.port = port;
+            this.systemInfo = systemInfo;
+            this.deviceInfo = deviceInfo;
+        }
+
+        public PocNodeConf(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
+
+            ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
+            try {
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                Object obj = ois.readObject();
+                if (obj instanceof SystemInfo) {
+                    this.systemInfo = (SystemInfo) obj;
+                } else {
+                    this.systemInfo = null;
+                }
+                if (obj instanceof DeviceInfo) {
+                    this.deviceInfo = (DeviceInfo) obj;
+                } else {
+                    this.deviceInfo = null;
+                }
+                bais.close();
+                ois.close();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public PocNodeConf(JSONObject attachmentData) {
+            super(attachmentData);
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
+            this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
+            this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
+        }
+
+        @Override
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+            return new PocNodeConf(buffer,transactionVersion);
+        }
+
+        @Override
+        protected AbstractAttachment inst(JSONObject attachmentData) {
+            return new PocNodeConf(attachmentData);
+        }
+
+        @Override
+        protected AbstractAttachment inst(int version) {
+            return null;
+        }
+
+        @Override
+        public int getMySize() {
+            return ip.getBytes().length
+              + port.getBytes().length
+              + _readByteSize(systemInfo)
+              + _readByteSize(deviceInfo);
+        }
+
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
+
+            _putByteSize(buffer, systemInfo);
+            _putByteSize(buffer, deviceInfo);
+        }
+
+        @Override
+        public void putMyJSON(JSONObject attachment) {
+            attachment.put("ip", ip);
+            attachment.put("port", port);
+            attachment.put("systemInfo", systemInfo);
+            attachment.put("deviceInfo", deviceInfo);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return PocTx.POC_NODE_CONFIGURATION;
+        }
     }
 
-    public PocNodeConf(JSONObject attachmentData) {
-      super(attachmentData);
-      this.ip = (String) attachmentData.get("ip");
-      this.port = (String) attachmentData.get("port");
-      this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
-      this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
+    public final class PocOnlineRate extends Attachment.TxBodyBase {
+        private final String ip;
+        private final String port;
+        private final int networkRate; // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
+
+        public String getIp() {
+            return ip;
+        }
+
+        public String getPort() {
+            return port;
+        }
+
+        public int getNetworkRate() {
+            return networkRate;
+        }
+
+        public PocOnlineRate(String ip, String port, int networkRate) {
+            this.ip = ip;
+            this.port = port;
+            this.networkRate = networkRate;
+        }
+
+        public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
+            this.networkRate = buffer.getInt();
+        }
+
+        public PocOnlineRate(JSONObject attachmentData) {
+            super(attachmentData);
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
+            this.networkRate = (int) attachmentData.get("networkRate");
+        }
+
+        @Override
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+            return new PocOnlineRate(buffer,transactionVersion);
+        }
+
+        @Override
+        protected AbstractAttachment inst(JSONObject attachmentData) {
+            return new PocOnlineRate(attachmentData);
+        }
+
+        @Override
+        protected AbstractAttachment inst(int version) {
+            return null;
+        }
+
+        @Override
+        public int getMySize() {
+            return 2 + ip.getBytes().length + port.getBytes().length;
+        }
+
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
+            buffer.putInt(networkRate);
+        }
+
+        @Override
+        public void putMyJSON(JSONObject attachment) {
+            attachment.put("ip", ip);
+            attachment.put("port", port);
+            attachment.put("networkRate", networkRate);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return PocTx.POC_ONLINE_RATE;
+        }
     }
 
-      @Override
-      protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-          return new PocNodeConf(buffer,transactionVersion);
-      }
-
-      @Override
-      protected AbstractAttachment inst(JSONObject attachmentData) {
-          return new PocNodeConf(attachmentData);
-      }
-
-      @Override
-      protected AbstractAttachment inst(int version) {
-          return null;
-      }
-
-    @Override
-    public int getMySize() {
-      return ip.getBytes().length
-          + port.getBytes().length
-          + _readByteSize(systemInfo)
-          + _readByteSize(deviceInfo);
-    }
-
-    @Override
-    public void putMyBytes(ByteBuffer buffer) {
-      buffer.put(ip.getBytes());
-      buffer.put(port.getBytes());
-
-      _putByteSize(buffer, systemInfo);
-      _putByteSize(buffer, deviceInfo);
-    }
-
-    @Override
-    public void putMyJSON(JSONObject attachment) {
-      attachment.put("ip", ip);
-      attachment.put("port", port);
-      attachment.put("systemInfo", systemInfo);
-      attachment.put("deviceInfo", deviceInfo);
-    }
-
-    @Override
-    public TransactionType getTransactionType() {
-      return PocTx.POC_NODE_CONFIGURATION;
-    }
-  }
-
-  public final class PocOnlineRate extends Attachment.TxBodyBase {
-    private final String ip;
-    private final String port;
-    private final int networkRate; // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
-
-    public String getIp() {
-      return ip;
-    }
-
-    public String getPort() {
-      return port;
-    }
-
-    public int getNetworkRate() {
-      return networkRate;
-    }
-
-    public PocOnlineRate(String ip, String port, int networkRate) {
-      this.ip = ip;
-      this.port = port;
-      this.networkRate = networkRate;
-    }
-
-    public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
-      super(buffer, transactionVersion);
-      this.ip = buffer.toString();
-      this.port = buffer.toString();
-      this.networkRate = buffer.getInt();
-    }
-
-    public PocOnlineRate(JSONObject attachmentData) {
-      super(attachmentData);
-      this.ip = (String) attachmentData.get("ip");
-      this.port = (String) attachmentData.get("port");
-      this.networkRate = (int) attachmentData.get("networkRate");
-    }
-
-    @Override
-    protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-      return new PocOnlineRate(buffer,transactionVersion);
-    }
-    
-    @Override
-    protected AbstractAttachment inst(JSONObject attachmentData) {
-      return new PocOnlineRate(attachmentData);
-    }
-    
-    @Override
-    protected AbstractAttachment inst(int version) {
-      return null;
-    }
-
-    @Override
-    public int getMySize() {
-      return 2 + ip.getBytes().length + port.getBytes().length;
-    }
-
-    @Override
-    public void putMyBytes(ByteBuffer buffer) {
-      buffer.put(ip.getBytes());
-      buffer.put(port.getBytes());
-      buffer.putInt(networkRate);
-    }
-
-    @Override
-    public void putMyJSON(JSONObject attachment) {
-      attachment.put("ip", ip);
-      attachment.put("port", port);
-      attachment.put("networkRate", networkRate);
-    }
-
-    @Override
-    public TransactionType getTransactionType() {
-      return PocTx.POC_ONLINE_RATE;
-    }
-  }
-
-  public final class PocBlockMiss extends Attachment.TxBodyBase {
-    private long missAccountId;
+    public final class PocBlockMiss extends Attachment.TxBodyBase {
+        private long missAccountId;
 //    private long reportAccountId;
-    
 
-    public PocBlockMiss(long missAccountId) {
-        this.missAccountId = missAccountId;
-    }
 
-    public PocBlockMiss(ByteBuffer buffer, byte transactionVersion) {
-      super(buffer, transactionVersion);
-      this.missAccountId = buffer.getLong();
-    }
+        public PocBlockMiss(long missAccountId) {
+            this.missAccountId = missAccountId;
+        }
 
-    public PocBlockMiss(JSONObject attachmentData) {
-      super(attachmentData);
-      this.missAccountId = (long) attachmentData.get("missAccountId");
-    }
+        public PocBlockMiss(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+             this.missAccountId = buffer.getLong();
+        }
 
-    @Override
-    protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-        return new PocBlockMiss(buffer,transactionVersion);
-    }
-    
-    @Override
-    protected AbstractAttachment inst(JSONObject attachmentData) {
-        return new PocBlockMiss(attachmentData);
-    }
-    
-    @Override
-    protected AbstractAttachment inst(int version) {
-        return null;
-    }
+        public PocBlockMiss(JSONObject attachmentData) {
+            super(attachmentData);
+            this.missAccountId = (long) attachmentData.get("missAccountId");
+        }
 
-    @Override
-    public int getMySize() {
-      return 2;
-    }
+        @Override
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+            return new PocBlockMiss(buffer,transactionVersion);
+        }
 
-    @Override
-    public void putMyBytes(ByteBuffer buffer) {
-//      buffer.put(ip.getBytes());
-//      buffer.put(port.getBytes());
-//      buffer.putInt(missLevel);
-    }
+        @Override
+        protected AbstractAttachment inst(JSONObject attachmentData) {
+            return new PocBlockMiss(attachmentData);
+        }
 
-    @Override
-    public void putMyJSON(JSONObject json) {
-//      json.put("ip", ip);
-//      json.put("port", port);
-//      json.put("missCount", missLevel);
-    }
+        @Override
+        protected AbstractAttachment inst(int version) {
+            return null;
+        }
 
-    @Override
-    public TransactionType getTransactionType() {
-      return PocTx.POC_BLOCKING_MISS;
+        @Override
+        public int getMySize() {
+            return 2;
+        }
+
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+        //      buffer.put(ip.getBytes());
+        //      buffer.put(port.getBytes());
+        //      buffer.putInt(missLevel);
+        }
+
+        @Override
+        public void putMyJSON(JSONObject json) {
+        //      json.put("ip", ip);
+        //      json.put("port", port);
+        //      json.put("missCount", missLevel);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return PocTx.POC_BLOCKING_MISS;
+        }
     }
-  }
 
     /**
      * Bifurcation of convergence for PoC
      */
-  public final class PocBC extends Attachment.TxBodyBase {
-    private final String ip;
-    private final String port;
-    private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快
+    public final class PocBC extends Attachment.TxBodyBase {
+        private final String ip;
+        private final String port;
+        private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快
 
-    public String getIp() {
-      return ip;
-    }
+        public String getIp() {
+            return ip;
+        }
 
-    public String getPort() {
-      return port;
-    }
+        public String getPort() {
+            return port;
+        }
 
-    public int getSpeed() {
-      return speed;
-    }
+        public int getSpeed() {
+            return speed;
+        }
 
-    public PocBC(String ip, String port, int speed) {
-      this.ip = ip;
-      this.port = port;
-      this.speed = speed;
-    }
+        public PocBC(String ip, String port, int speed) {
+            this.ip = ip;
+            this.port = port;
+            this.speed = speed;
+        }
 
-    public PocBC(ByteBuffer buffer, byte transactionVersion) {
-      super(buffer, transactionVersion);
-      this.ip = buffer.toString();
-      this.port = buffer.toString();
-      this.speed = buffer.getInt();
-    }
+        public PocBC(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.ip = buffer.toString();
+            this.port = buffer.toString();
+            this.speed = buffer.getInt();
+        }
 
-    public PocBC(JSONObject attachmentData) {
-      super(attachmentData);
-      this.ip = (String) attachmentData.get("ip");
-      this.port = (String) attachmentData.get("port");
-      this.speed = (int) attachmentData.get("speed");
-    }
+        public PocBC(JSONObject attachmentData) {
+            super(attachmentData);
+            this.ip = (String) attachmentData.get("ip");
+            this.port = (String) attachmentData.get("port");
+            this.speed = (int) attachmentData.get("speed");
+        }
 
-    @Override
-    protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-        return new PocBC(buffer,transactionVersion);
-    }
-    
-    @Override
-    protected AbstractAttachment inst(JSONObject attachmentData) {
-        return new PocBC(attachmentData);
-    }
-    
-    @Override
-    protected AbstractAttachment inst(int version) {
-        return null;
-    }
+        @Override
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+            return new PocBC(buffer,transactionVersion);
+        }
 
-    @Override
-    public int getMySize() {
-      return 2 + ip.getBytes().length + port.getBytes().length;
-    }
+        @Override
+        protected AbstractAttachment inst(JSONObject attachmentData) {
+            return new PocBC(attachmentData);
+        }
 
-    @Override
-    public void putMyBytes(ByteBuffer buffer) {
-      buffer.put(ip.getBytes());
-      buffer.put(port.getBytes());
-      buffer.putInt(speed);
-    }
+        @Override
+        protected AbstractAttachment inst(int version) {
+            return null;
+        }
 
-    @Override
-    public void putMyJSON(JSONObject json) {
-      json.put("ip", ip);
-      json.put("port", port);
-      json.put("speed", speed);
-    }
+        @Override
+        public int getMySize() {
+            return 2 + ip.getBytes().length + port.getBytes().length;
+        }
 
-    @Override
-    public TransactionType getTransactionType() {
-      return PocTx.POC_BC;
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            buffer.put(ip.getBytes());
+            buffer.put(port.getBytes());
+            buffer.putInt(speed);
+        }
+
+        @Override
+        public void putMyJSON(JSONObject json) {
+            json.put("ip", ip);
+            json.put("port", port);
+            json.put("speed", speed);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return PocTx.POC_BC;
+        }
     }
-  }
 }
