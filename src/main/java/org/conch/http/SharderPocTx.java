@@ -2,8 +2,6 @@ package org.conch.http;
 
 import org.conch.account.Account;
 import org.conch.common.ConchException;
-import org.conch.consensus.poc.PocProcessorImpl;
-import org.conch.tx.Attachment;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,9 +32,10 @@ public abstract class SharderPocTx {
             Account account = ParameterParser.getSenderAccount(request);
             String ip = request.getParameter("ip");
             String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port, -1);
-            assert attachment != null;
-            return createTransaction(request, account, 0, 0, attachment);
+//            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port, -1);
+//            assert attachment != null;
+//            return createTransaction(request, account, 0, 0, attachment);
+            return null;
         }
     }
 
@@ -119,12 +118,7 @@ public abstract class SharderPocTx {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String port = request.getParameter("port");
-            Attachment attachment = PocProcessorImpl.getPocOnlineRate(ip, port, -1);
-            assert attachment != null;
-            return createTransaction(request, account, 0, 0, attachment);
+           return null;
         }
     }
 

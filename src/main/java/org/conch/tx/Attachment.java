@@ -28,9 +28,6 @@ import org.conch.asset.HoldingType;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.hardware.DeviceInfo;
-import org.conch.consensus.poc.hardware.SystemInfo;
-import org.conch.consensus.poc.tx.PocTx;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.mint.pool.PoolRule;
@@ -45,7 +42,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.*;
-import java.math.BigInteger;
+import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.*;
@@ -56,19 +53,19 @@ public interface Attachment extends Appendix {
 
     abstract class AbstractAttachment extends Appendix.AbstractAppendix implements Attachment {
 
-        private AbstractAttachment(ByteBuffer buffer, byte transactionVersion) {
+        public AbstractAttachment(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
         }
 
-        private AbstractAttachment(JSONObject attachmentData) {
+        public AbstractAttachment(JSONObject attachmentData) {
             super(attachmentData);
         }
 
-        private AbstractAttachment(int version) {
+        public AbstractAttachment(int version) {
             super(version);
         }
 
-        private AbstractAttachment() {}
+        public AbstractAttachment() {}
 
         @Override
         public final String getAppendixName() {
@@ -114,6 +111,66 @@ public interface Attachment extends Appendix {
             return isPhased(transaction) ? transaction.getPhasing().getFinishHeight() - 1 : Conch.getBlockchain().getHeight();
         }
 
+        public static Attachment.AbstractAttachment newObj(Class clazz, ByteBuffer buffer, byte transactionVersion) {
+            Constructor c1 = null;
+            try {
+                c1 = clazz.getDeclaredConstructor(ByteBuffer.class,byte.class);
+
+                return  (Attachment.AbstractAttachment) c1.newInstance(buffer,transactionVersion);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public static Attachment.AbstractAttachment newObj(Class clazz,JSONObject attachmentData) {
+            Constructor c1 = null;
+            try {
+                c1 = clazz.getDeclaredConstructor(JSONObject.class);
+
+                return  (Attachment.AbstractAttachment) c1.newInstance(attachmentData);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        protected int _readByteSize(Object obj){
+            int size = 0;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(baos);
+                oos.writeObject(obj);
+                oos.flush();
+                size = baos.toByteArray().length;
+                baos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return size;
+        }
+        
+        protected void _putByteSize(ByteBuffer buffer, Object obj){
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(baos);
+                oos.writeObject(obj);
+                oos.flush();
+                buffer.put(baos.toByteArray());
+                baos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        
+
     }
 
     abstract class EmptyAttachment extends AbstractAttachment {
@@ -123,16 +180,16 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        final int getMySize() {
+        public final int getMySize() {
             return 0;
         }
 
         @Override
-        final void putMyBytes(ByteBuffer buffer) {
+        public final void putMyBytes(ByteBuffer buffer) {
         }
 
         @Override
-        final void putMyJSON(JSONObject json) {
+        public final void putMyJSON(JSONObject json) {
         }
 
         @Override
@@ -201,12 +258,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return type.name().getBytes().length + 16 + consignors.size() * 16;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.put(type.name().getBytes());
             buffer.putLong(creator);
             buffer.putLong(generatorId);
@@ -217,7 +274,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("type", type);
             attachment.put("creator", creator);
             attachment.put("generatorId", generatorId);
@@ -306,12 +363,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(aliasName).length + 2 + Convert.toBytes(aliasURI).length;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] alias = Convert.toBytes(this.aliasName);
             byte[] uri = Convert.toBytes(this.aliasURI);
             buffer.put((byte)alias.length);
@@ -321,7 +378,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("alias", aliasName);
             attachment.put("uri", aliasURI);
         }
@@ -368,12 +425,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(aliasName).length + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] aliasBytes = Convert.toBytes(aliasName);
             buffer.put((byte)aliasBytes.length);
             buffer.put(aliasBytes);
@@ -381,7 +438,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("alias", aliasName);
             attachment.put("priceNQT", priceNQT);
         }
@@ -419,19 +476,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(aliasName).length;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] aliasBytes = Convert.toBytes(aliasName);
             buffer.put((byte) aliasBytes.length);
             buffer.put(aliasBytes);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("alias", aliasName);
         }
 
@@ -464,19 +521,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(aliasName).length;
         }
 
         @Override
-        void putMyBytes(final ByteBuffer buffer) {
+        public void putMyBytes(final ByteBuffer buffer) {
             byte[] aliasBytes = Convert.toBytes(aliasName);
             buffer.put((byte)aliasBytes.length);
             buffer.put(aliasBytes);
         }
 
         @Override
-        void putMyJSON(final JSONObject attachment) {
+        public void putMyJSON(final JSONObject attachment) {
             attachment.put("alias", aliasName);
         }
 
@@ -621,7 +678,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             int size = 2 + Convert.toBytes(pollName).length + 2 + Convert.toBytes(pollDescription).length + 1;
             for (String pollOption : pollOptions) {
                 size += 2 + Convert.toBytes(pollOption).length;
@@ -633,7 +690,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] name = Convert.toBytes(this.pollName);
             byte[] description = Convert.toBytes(this.pollDescription);
             byte[][] options = new byte[this.pollOptions.length][];
@@ -664,7 +721,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("name", this.pollName);
             attachment.put("description", this.pollDescription);
             attachment.put("finishHeight", this.finishHeight);
@@ -763,19 +820,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 1 + this.pollVote.length;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(this.pollId);
             buffer.put((byte) this.pollVote.length);
             buffer.put(this.pollVote);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("poll", Long.toUnsignedString(this.pollId));
             JSONArray vote = new JSONArray();
             if (this.pollVote != null) {
@@ -841,12 +898,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + 32 * transactionFullHashes.size() + 4 + revealedSecret.length;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.put((byte) transactionFullHashes.size());
             transactionFullHashes.forEach(buffer::put);
             buffer.putInt(revealedSecret.length);
@@ -854,7 +911,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             JSONArray jsonArray = new JSONArray();
             transactionFullHashes.forEach(hash -> jsonArray.add(Convert.toHexString(hash)));
             attachment.put("transactionFullHashes", jsonArray);
@@ -915,7 +972,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             int size = 8 + 1;
             for (String uri : uris) {
                 size += 2 + Convert.toBytes(uri).length;
@@ -924,7 +981,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(minFeePerByteNQT);
             buffer.put((byte) uris.length);
             for (String uri : uris) {
@@ -935,7 +992,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("minFeePerByteNQT", minFeePerByteNQT);
             JSONArray uris = new JSONArray();
             Collections.addAll(uris, this.uris);
@@ -980,12 +1037,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(name).length + 2 + Convert.toBytes(description).length;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] name = Convert.toBytes(this.name);
             byte[] description = Convert.toBytes(this.description);
             buffer.put((byte)name.length);
@@ -995,7 +1052,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("name", name);
             attachment.put("description", description);
         }
@@ -1038,12 +1095,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(property).length + 1 + Convert.toBytes(value).length;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] property = Convert.toBytes(this.property);
             byte[] value = Convert.toBytes(this.value);
             buffer.put((byte)property.length);
@@ -1053,7 +1110,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("property", property);
             attachment.put("value", value);
         }
@@ -1092,17 +1149,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(propertyId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("property", Long.toUnsignedString(propertyId));
         }
 
@@ -1148,12 +1205,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(name).length + 2 + Convert.toBytes(description).length + 8 + 1;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] name = Convert.toBytes(this.name);
             byte[] description = Convert.toBytes(this.description);
             buffer.put((byte)name.length);
@@ -1165,7 +1222,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("name", name);
             attachment.put("description", description);
             attachment.put("quantityQNT", quantityQNT);
@@ -1221,12 +1278,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8 + (getVersion() == 0 ? (2 + Convert.toBytes(comment).length) : 0);
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(assetId);
             buffer.putLong(quantityQNT);
             if (getVersion() == 0 && comment != null) {
@@ -1237,7 +1294,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("asset", Long.toUnsignedString(assetId));
             attachment.put("quantityQNT", quantityQNT);
             if (getVersion() == 0) {
@@ -1287,18 +1344,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(assetId);
             buffer.putLong(quantityQNT);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("asset", Long.toUnsignedString(assetId));
             attachment.put("quantityQNT", quantityQNT);
         }
@@ -1345,19 +1402,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(assetId);
             buffer.putLong(quantityQNT);
             buffer.putLong(priceNQT);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("asset", Long.toUnsignedString(assetId));
             attachment.put("quantityQNT", quantityQNT);
             attachment.put("priceNQT", priceNQT);
@@ -1437,17 +1494,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(orderId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("order", Long.toUnsignedString(orderId));
         }
 
@@ -1525,19 +1582,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 4 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(assetId);
             buffer.putInt(height);
             buffer.putLong(amountNQTPerQNT);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("asset", Long.toUnsignedString(assetId));
             attachment.put("height", height);
             attachment.put("amountNQTPerQNT", amountNQTPerQNT);
@@ -1597,13 +1654,13 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 2 + Convert.toBytes(name).length + 2 + Convert.toBytes(description).length + 2
                         + Convert.toBytes(tags).length + 4 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] nameBytes = Convert.toBytes(name);
             buffer.putShort((short) nameBytes.length);
             buffer.put(nameBytes);
@@ -1618,7 +1675,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("name", name);
             attachment.put("description", description);
             attachment.put("tags", tags);
@@ -1662,17 +1719,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(goodsId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("goods", Long.toUnsignedString(goodsId));
         }
 
@@ -1708,18 +1765,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(goodsId);
             buffer.putLong(priceNQT);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("goods", Long.toUnsignedString(goodsId));
             attachment.put("priceNQT", priceNQT);
         }
@@ -1758,18 +1815,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 4;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(goodsId);
             buffer.putInt(deltaQuantity);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("goods", Long.toUnsignedString(goodsId));
             attachment.put("deltaQuantity", deltaQuantity);
         }
@@ -1816,12 +1873,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 4 + 8 + 4;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(goodsId);
             buffer.putInt(quantity);
             buffer.putLong(priceNQT);
@@ -1829,7 +1886,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("goods", Long.toUnsignedString(goodsId));
             attachment.put("quantity", quantity);
             attachment.put("priceNQT", priceNQT);
@@ -1887,12 +1944,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 4 + goods.getSize() + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(purchaseId);
             buffer.putInt(goodsIsText ? goods.getData().length | Integer.MIN_VALUE : goods.getData().length);
             buffer.put(goods.getData());
@@ -1901,7 +1958,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("purchase", Long.toUnsignedString(purchaseId));
             attachment.put("goodsData", Convert.toHexString(goods.getData()));
             attachment.put("goodsNonce", Convert.toHexString(goods.getNonce()));
@@ -1961,7 +2018,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             if (getGoods() == null) {
                 return 8 + 4 + EncryptedData.getEncryptedSize(getPlaintext()) + 8;
             }
@@ -1969,7 +2026,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             if (getGoods() == null) {
                 throw new ConchException.NotYetEncryptedException("Goods not yet encrypted");
             }
@@ -1977,7 +2034,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             if (getGoods() == null) {
                 attachment.put("goodsToEncrypt", goodsIsText() ? Convert.toString(goodsToEncrypt) : Convert.toHexString(goodsToEncrypt));
                 attachment.put("recipientPublicKey", Convert.toHexString(recipientPublicKey));
@@ -2024,17 +2081,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(purchaseId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("purchase", Long.toUnsignedString(purchaseId));
         }
 
@@ -2070,18 +2127,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(purchaseId);
             buffer.putLong(refundNQT);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("purchase", Long.toUnsignedString(purchaseId));
             attachment.put("refundNQT", refundNQT);
         }
@@ -2116,17 +2173,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 2;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putShort((short)period);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("period", period);
         }
 
@@ -2219,13 +2276,13 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(name).length + 1 + Convert.toBytes(code).length + 2 +
                     Convert.toBytes(description).length + 1 + 8 + 8 + 8 + 4 + 8 + 1 + 1 + 1 + 1 + 1;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] name = Convert.toBytes(this.name);
             byte[] code = Convert.toBytes(this.code);
             byte[] description = Convert.toBytes(this.description);
@@ -2249,7 +2306,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("name", name);
             attachment.put("code", code);
             attachment.put("description", description);
@@ -2351,18 +2408,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(currencyId);
             buffer.putLong(amountPerUnitNQT);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("currency", Long.toUnsignedString(currencyId));
             attachment.put("amountPerUnitNQT", amountPerUnitNQT);
         }
@@ -2406,18 +2463,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(currencyId);
             buffer.putLong(units);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("currency", Long.toUnsignedString(currencyId));
             attachment.put("units", units);
         }
@@ -2461,18 +2518,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(currencyId);
             buffer.putLong(units);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("currency", Long.toUnsignedString(currencyId));
             attachment.put("units", units);
         }
@@ -2540,12 +2597,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8 + 8 + 8 + 8 + 8 + 8 + 4;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(currencyId);
             buffer.putLong(buyRateNQT);
             buffer.putLong(sellRateNQT);
@@ -2557,7 +2614,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("currency", Long.toUnsignedString(currencyId));
             attachment.put("buyRateNQT", buyRateNQT);
             attachment.put("sellRateNQT", sellRateNQT);
@@ -2635,19 +2692,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(currencyId);
             buffer.putLong(rateNQT);
             buffer.putLong(units);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("currency", Long.toUnsignedString(currencyId));
             attachment.put("rateNQT", rateNQT);
             attachment.put("units", units);
@@ -2741,12 +2798,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8 + 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(nonce);
             buffer.putLong(currencyId);
             buffer.putLong(units);
@@ -2754,7 +2811,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("nonce", nonce);
             attachment.put("currency", Long.toUnsignedString(currencyId));
             attachment.put("units", units);
@@ -2804,17 +2861,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(currencyId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("currency", Long.toUnsignedString(currencyId));
         }
 
@@ -2864,12 +2921,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 1 + 8 + 1 + 2;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(holdingId);
             buffer.put(holdingType.getCode());
             buffer.putLong(amount);
@@ -2878,7 +2935,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("holding", Long.toUnsignedString(holdingId));
             attachment.put("holdingType", holdingType.getCode());
             attachment.put("amount", amount);
@@ -2944,18 +3001,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 32;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(shufflingId);
             buffer.put(shufflingStateHash);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("shuffling", Long.toUnsignedString(shufflingId));
             attachment.put("shufflingStateHash", Convert.toHexString(shufflingStateHash));
         }
@@ -2997,17 +3054,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 32;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.put(shufflingFullHash);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("shufflingFullHash", Convert.toHexString(shufflingFullHash));
         }
 
@@ -3079,18 +3136,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return super.getMySize() + 32;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             super.putMyBytes(buffer);
             buffer.put(getHash());
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             super.putMyJSON(attachment);
             if (data != null) {
                 JSONArray jsonArray = new JSONArray();
@@ -3177,7 +3234,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             int size = super.getMySize();
             size += 1;
             size += 32 * recipientPublicKeys.length;
@@ -3185,7 +3242,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             super.putMyBytes(buffer);
             buffer.put((byte)recipientPublicKeys.length);
             for (byte[] bytes : recipientPublicKeys) {
@@ -3194,7 +3251,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             super.putMyJSON(attachment);
             JSONArray jsonArray = new JSONArray();
             attachment.put("recipientPublicKeys", jsonArray);
@@ -3296,7 +3353,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             int size = super.getMySize();
             size += 1;
             for (byte[] bytes : blameData) {
@@ -3310,7 +3367,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             super.putMyBytes(buffer);
             buffer.put((byte) blameData.length);
             for (byte[] bytes : blameData) {
@@ -3325,7 +3382,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             super.putMyJSON(attachment);
             JSONArray jsonArray = new JSONArray();
             attachment.put("blameData", jsonArray);
@@ -3434,7 +3491,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             if (taggedData != null) {
                 attachment.put("name", taggedData.getName());
                 attachment.put("description", taggedData.getDescription());
@@ -3582,17 +3639,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 32;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.put(getHash());
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             super.putMyJSON(attachment);
             attachment.put("hash", Convert.toHexString(getHash()));
         }
@@ -3655,17 +3712,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(taggedDataId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             super.putMyJSON(attachment);
             attachment.put("taggedData", Long.toUnsignedString(taggedDataId));
         }
@@ -3742,12 +3799,12 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return phasingParams.getMySize() + 8 + 2 + 2;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             phasingParams.putMyBytes(buffer);
             buffer.putLong(maxFees);
             buffer.putShort(minDuration);
@@ -3755,7 +3812,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject json) {
+        public void putMyJSON(JSONObject json) {
             JSONObject phasingControlParams = new JSONObject();
             phasingParams.putMyJSON(phasingControlParams);
             json.put("phasingControlParams", phasingControlParams);
@@ -3815,7 +3872,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             try{
                 ByteArrayOutputStream bo = new ByteArrayOutputStream();
                 ObjectOutputStream os = new ObjectOutputStream(bo);
@@ -3829,7 +3886,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putShort((short)period);
             try{
                 ByteArrayOutputStream bo = new ByteArrayOutputStream();
@@ -3843,7 +3900,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("period", period);
             attachment.put("rule", rule);
         }
@@ -3880,17 +3937,17 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(poolId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("poolId", poolId);
         }
 
@@ -3931,19 +3988,19 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 18;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(poolId);
             buffer.putLong(amount);
             buffer.putShort((short)period);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("poolId", poolId);
             attachment.put("amount", amount);
             attachment.put("period", period);
@@ -3989,18 +4046,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 16;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(txId);
             buffer.putLong(poolId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("txId", txId);
             attachment.put("poolId", poolId);
         }
@@ -4063,7 +4120,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 1 + Convert.toBytes(name).length +
                     2 + Convert.toBytes(description).length +
                     1 + Convert.toBytes(type).length +
@@ -4077,7 +4134,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             byte[] name = Convert.toBytes(this.name);
             byte[] description = Convert.toBytes(this.description);
             byte[] type = Convert.toBytes(this.type);
@@ -4098,7 +4155,7 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("name", name);
             attachment.put("description", description);
             attachment.put("type", type);
@@ -4166,18 +4223,18 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        int getMySize() {
+        public int getMySize() {
             return 8 + 8;
         }
 
         @Override
-        void putMyBytes(ByteBuffer buffer) {
+        public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(this.uploadTransaction);
             buffer.putLong(this.storerId);
         }
 
         @Override
-        void putMyJSON(JSONObject attachment) {
+        public void putMyJSON(JSONObject attachment) {
             attachment.put("uploadTransaction", uploadTransaction);
             attachment.put("storerId", storerId);
         }
@@ -4196,477 +4253,5 @@ public interface Attachment extends Appendix {
         }
     }
 
-    final class PocNodeConfiguration extends AbstractAttachment {
 
-        private final String ip;
-        private final String port;
-        private SystemInfo systemInfo;
-        private DeviceInfo deviceInfo;
-
-        public String getIp() {
-            return ip;
-        }
-
-        public String getPort() {
-            return port;
-        }
-
-        public SystemInfo getSystemInfo() {
-            return systemInfo;
-        }
-
-        public DeviceInfo getDeviceInfo() {
-            return deviceInfo;
-        }
-
-        public PocNodeConfiguration(String ip, String port, SystemInfo systemInfo, DeviceInfo deviceInfo) {
-            this.ip = ip;
-            this.port = port;
-            this.systemInfo = systemInfo;
-            this.deviceInfo = deviceInfo;
-        }
-
-        public PocNodeConfiguration(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
-            try {
-                ObjectInputStream ois = new ObjectInputStream(bais);
-                Object obj = ois.readObject();
-                if (obj instanceof SystemInfo) {
-                    this.systemInfo = (SystemInfo) obj;
-                } else {
-                    this.systemInfo = null;
-                }
-                if (obj instanceof DeviceInfo) {
-                    this.deviceInfo = (DeviceInfo) obj;
-                } else {
-                    this.deviceInfo = null;
-                }
-                bais.close();
-                ois.close();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public PocNodeConfiguration(JSONObject attachmentData) {
-            super(attachmentData);
-            this.ip = (String) attachmentData.get("ip");
-            this.port = (String) attachmentData.get("port");
-            this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
-            this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
-        }
-
-        @Override
-        int getMySize() {
-
-            int sysSize = 0;
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos;
-            try {
-                oos = new ObjectOutputStream(baos);
-                oos.writeObject(systemInfo);
-                oos.flush();
-                sysSize = baos.toByteArray().length;
-                baos.close();
-                oos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            int deviceSize = 0;
-
-            ByteArrayOutputStream deviceBaos = new ByteArrayOutputStream();
-            ObjectOutputStream deviceOos;
-            try {
-                deviceOos = new ObjectOutputStream(deviceBaos);
-                deviceOos.writeObject(deviceInfo);
-                deviceOos.flush();
-                deviceSize = deviceBaos.toByteArray().length;
-                deviceBaos.close();
-                deviceOos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return ip.getBytes().length + port.getBytes().length + sysSize + deviceSize;
-        }
-
-        @Override
-        void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos;
-            try {
-                oos = new ObjectOutputStream(baos);
-                oos.writeObject(systemInfo);
-                oos.flush();
-                buffer.put(baos.toByteArray());
-                baos.close();
-                oos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            ByteArrayOutputStream deviceBaos = new ByteArrayOutputStream();
-            ObjectOutputStream deviceOos;
-            try {
-                deviceOos = new ObjectOutputStream(deviceBaos);
-                deviceOos.writeObject(deviceInfo);
-                deviceOos.flush();
-                buffer.put(deviceBaos.toByteArray());
-                deviceBaos.close();
-                deviceOos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        void putMyJSON(JSONObject attachment) {
-            attachment.put("ip", ip);
-            attachment.put("port", port);
-            attachment.put("systemInfo", systemInfo);
-            attachment.put("deviceInfo", deviceInfo);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return PocTx.POC_NODE_CONFIGURATION;
-        }
-    }
-
-    final class PocWeight extends AbstractAttachment {
-        private final String ip;
-        private final String port;
-        private final BigInteger nodeWeight; // 节点类型 加权后的值
-        private final BigInteger serverWeight; // 开启服务 加权后的值
-        private final BigInteger configWeight; //硬件配置 加权后的值
-        private final BigInteger networkWeight; // 网络配置 加权后的值
-        private final BigInteger tpWeight; // TransactionProcessing Perfonnallce 交易处理性能 加权后的值
-        private final BigInteger ssHoldWeight; // SS持有量 加权后的值
-        private final BigInteger blockingMissWeight; // 出块丢失 加权后的值
-        private final BigInteger bifuractionConvergenceWeight; // 分叉收敛 加权后的值
-        private final BigInteger onlineRateWeight; // 在线率 加权后的值
-
-        public String getIp() {
-            return ip;
-        }
-
-        public String getPort() {
-            return port;
-        }
-
-        public BigInteger getNodeWeight() {
-            return nodeWeight;
-        }
-
-        public BigInteger getServerWeight() {
-            return serverWeight;
-        }
-
-        public BigInteger getConfigWeight() {
-            return configWeight;
-        }
-
-        public BigInteger getNetworkWeight() {
-            return networkWeight;
-        }
-
-        public BigInteger getTpWeight() {
-            return tpWeight;
-        }
-
-        public BigInteger getSsHoldWeight() {
-            return ssHoldWeight;
-        }
-
-        public BigInteger getBlockingMissWeight() {
-            return blockingMissWeight;
-        }
-
-        public BigInteger getBifuractionConvergenceWeight() {
-            return bifuractionConvergenceWeight;
-        }
-
-        public BigInteger getOnlineRateWeight() {
-            return onlineRateWeight;
-        }
-
-        public PocWeight(String ip, String port, BigInteger nodeWeight, BigInteger serverWeight, BigInteger configWeight, BigInteger networkWeight, BigInteger tpWeight, BigInteger ssHoldWeight, BigInteger blockingMissWeight, BigInteger bifuractionConvergenceWeight, BigInteger onlineRateWeight) {
-            this.ip = ip;
-            this.port = port;
-            this.nodeWeight = nodeWeight;
-            this.serverWeight = serverWeight;
-            this.configWeight = configWeight;
-            this.networkWeight = networkWeight;
-            this.tpWeight = tpWeight;
-            this.ssHoldWeight = ssHoldWeight;
-            this.blockingMissWeight = blockingMissWeight;
-            this.bifuractionConvergenceWeight = bifuractionConvergenceWeight;
-            this.onlineRateWeight = onlineRateWeight;
-        }
-
-        public PocWeight(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
-            this.nodeWeight = new BigInteger(buffer.array());
-            this.serverWeight = new BigInteger(buffer.array());
-            this.configWeight = new BigInteger(buffer.array());
-            this.networkWeight = new BigInteger(buffer.array());
-            this.tpWeight = new BigInteger(buffer.array());
-            this.ssHoldWeight = new BigInteger(buffer.array());
-            this.blockingMissWeight = new BigInteger(buffer.array());
-            this.bifuractionConvergenceWeight = new BigInteger(buffer.array());
-            this.onlineRateWeight = new BigInteger(buffer.array());
-        }
-
-        public PocWeight(JSONObject attachmentData) {
-            super(attachmentData);
-            this.ip = (String) attachmentData.get("ip");
-            this.port = (String) attachmentData.get("port");
-            this.nodeWeight = (BigInteger) attachmentData.get("nodeWeight");
-            this.serverWeight = (BigInteger) attachmentData.get("serverWeight");
-            this.configWeight = (BigInteger) attachmentData.get("configWeight");
-            this.networkWeight = (BigInteger) attachmentData.get("networkWeight");
-            this.tpWeight = (BigInteger) attachmentData.get("tpWeight");
-            this.ssHoldWeight = (BigInteger) attachmentData.get("ssHoldWeight");
-            this.blockingMissWeight = (BigInteger) attachmentData.get("blockingMissWeight");
-            this.bifuractionConvergenceWeight = (BigInteger) attachmentData.get("bifuractionConvergenceWeight");
-            this.onlineRateWeight = (BigInteger) attachmentData.get("onlineRateWeight");
-        }
-
-        @Override
-        int getMySize() {
-            return ip.getBytes().length + port.getBytes().length + nodeWeight.toByteArray().length + serverWeight.toByteArray().length + configWeight.toByteArray().length + networkWeight.toByteArray().length + tpWeight.toByteArray().length + ssHoldWeight.toByteArray().length + blockingMissWeight.toByteArray().length + bifuractionConvergenceWeight.toByteArray().length + onlineRateWeight.toByteArray().length;
-        }
-
-        @Override
-        void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
-            buffer.put(nodeWeight.toByteArray());
-            buffer.put(serverWeight.toByteArray());
-            buffer.put(configWeight.toByteArray());
-            buffer.put(networkWeight.toByteArray());
-            buffer.put(tpWeight.toByteArray());
-            buffer.put(ssHoldWeight.toByteArray());
-            buffer.put(blockingMissWeight.toByteArray());
-            buffer.put(bifuractionConvergenceWeight.toByteArray());
-            buffer.put(onlineRateWeight.toByteArray());
-        }
-
-        @Override
-        void putMyJSON(JSONObject attachment) {
-            attachment.put("ip", ip);
-            attachment.put("port", port);
-            attachment.put("nodeWeight", nodeWeight);
-            attachment.put("serverWeight", serverWeight);
-            attachment.put("configWeight", configWeight);
-            attachment.put("networkWeight", networkWeight);
-            attachment.put("tpWeight", tpWeight);
-            attachment.put("ssHoldWeight", ssHoldWeight);
-            attachment.put("blockingMissWeight", blockingMissWeight);
-            attachment.put("bifuractionConvergenceWeight", bifuractionConvergenceWeight);
-            attachment.put("onlineRateWeight", onlineRateWeight);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return PocTx.POC_WEIGHT;
-        }
-    }
-
-    final class PocOnlineRate extends AbstractAttachment {
-        private final String ip;
-        private final String port;
-        private final int networkRate; // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
-
-        public String getIp() {
-            return ip;
-        }
-
-        public String getPort() {
-            return port;
-        }
-
-        public int getNetworkRate() {
-            return networkRate;
-        }
-
-        public PocOnlineRate(String ip, String port, int networkRate) {
-            this.ip = ip;
-            this.port = port;
-            this.networkRate = networkRate;
-        }
-
-        public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
-            this.networkRate = buffer.getInt();
-        }
-
-        public PocOnlineRate(JSONObject attachmentData) {
-            super(attachmentData);
-            this.ip = (String) attachmentData.get("ip");
-            this.port = (String) attachmentData.get("port");
-            this.networkRate = (int) attachmentData.get("networkRate");
-        }
-
-        @Override
-        int getMySize() {
-            return 2 + ip.getBytes().length + port.getBytes().length;
-        }
-
-        @Override
-        void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
-            buffer.putInt(networkRate);
-        }
-
-        @Override
-        void putMyJSON(JSONObject attachment) {
-            attachment.put("ip", ip);
-            attachment.put("port", port);
-            attachment.put("networkRate", networkRate);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return PocTx.POC_ONLINE_RATE;
-        }
-    }
-
-    final class PocBlockingMiss extends AbstractAttachment {
-        private final String ip;
-        private final String port;
-        private final int missLevel; // 0-零丢失； 1-低；2-中；3-高
-
-        public String getIp() {
-            return ip;
-        }
-
-        public String getPort() {
-            return port;
-        }
-
-        public int getMissLevel() {
-            return missLevel;
-        }
-
-        public PocBlockingMiss(String ip, String port, int missLevel) {
-            this.ip = ip;
-            this.port = port;
-            this.missLevel = missLevel;
-        }
-
-        public PocBlockingMiss(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
-            this.missLevel = buffer.getInt();
-        }
-
-        public PocBlockingMiss(JSONObject attachmentData) {
-            super(attachmentData);
-            this.ip = (String) attachmentData.get("ip");
-            this.port = (String) attachmentData.get("port");
-            this.missLevel = (int) attachmentData.get("missLevel");
-        }
-
-        @Override
-        int getMySize() {
-            return 2 + ip.getBytes().length + port.getBytes().length;
-        }
-
-        @Override
-        void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
-            buffer.putInt(missLevel);
-        }
-
-        @Override
-        void putMyJSON(JSONObject json) {
-            json.put("ip", ip);
-            json.put("port", port);
-            json.put("missCount", missLevel);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return PocTx.POC_BLOCKING_MISS;
-        }
-    }
-
-    final class PocBifuractionOfConvergence extends AbstractAttachment {
-        private final String ip;
-        private final String port;
-        private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快
-
-        public String getIp() {
-            return ip;
-        }
-
-        public String getPort() {
-            return port;
-        }
-
-        public int getSpeed() {
-            return speed;
-        }
-
-        public PocBifuractionOfConvergence(String ip, String port, int speed) {
-            this.ip = ip;
-            this.port = port;
-            this.speed = speed;
-        }
-
-        public PocBifuractionOfConvergence(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
-            this.speed = buffer.getInt();
-        }
-
-        public PocBifuractionOfConvergence(JSONObject attachmentData) {
-            super(attachmentData);
-            this.ip = (String) attachmentData.get("ip");
-            this.port = (String) attachmentData.get("port");
-            this.speed = (int) attachmentData.get("speed");
-        }
-
-        @Override
-        int getMySize() {
-            return 2 + ip.getBytes().length + port.getBytes().length;
-        }
-
-        @Override
-        void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
-            buffer.putInt(speed);
-        }
-
-        @Override
-        void putMyJSON(JSONObject json) {
-            json.put("ip", ip);
-            json.put("port", port);
-            json.put("speed", speed);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return PocTx.POC_BIFURACTION_OF_CONVERGENCE;
-        }
-    }
 }
