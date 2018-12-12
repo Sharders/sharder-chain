@@ -19,9 +19,8 @@ import java.nio.ByteBuffer;
 public abstract class PocTxBody  {
 
     private PocTxBody() {}
-
     
-    public final class PocWeightTable extends Attachment.AbstractAttachment {
+    public final class PocWeightTable extends Attachment.TxBodyBase {
         private final String ip;
         private final String port;
         private final BigInteger nodeWeight; // 节点类型 加权后的值
@@ -77,7 +76,7 @@ public abstract class PocTxBody  {
         public BigInteger getOnlineRateWeight() {
           return onlineRateWeight;
         }
-    
+        
         public PocWeightTable(
             String ip,
             String port,
@@ -102,7 +101,8 @@ public abstract class PocTxBody  {
           this.bifuractionConvergenceWeight = bifuractionConvergenceWeight;
           this.onlineRateWeight = onlineRateWeight;
         }
-    
+
+
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) {
           super(buffer, transactionVersion);
           this.ip = buffer.toString();
@@ -133,7 +133,24 @@ public abstract class PocTxBody  {
               (BigInteger) attachmentData.get("bifuractionConvergenceWeight");
           this.onlineRateWeight = (BigInteger) attachmentData.get("onlineRateWeight");
         }
-    
+        
+
+        @Override
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+            return new PocWeightTable(buffer,transactionVersion);
+        }
+
+        @Override
+        protected AbstractAttachment inst(JSONObject attachmentData) {
+            return new PocWeightTable(attachmentData);
+        }
+
+        @Override
+        protected AbstractAttachment inst(int version) {
+            return null;
+        }
+
+
         @Override
         public int getMySize() {
           return ip.getBytes().length
@@ -185,7 +202,7 @@ public abstract class PocTxBody  {
         }
   }
 
-  public static final class PocNodeConf extends Attachment.AbstractAttachment {
+  public final class PocNodeConf extends Attachment.TxBodyBase {
 
     private final String ip;
     private final String port;
@@ -249,6 +266,21 @@ public abstract class PocTxBody  {
       this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
     }
 
+      @Override
+      protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+          return new PocNodeConf(buffer,transactionVersion);
+      }
+
+      @Override
+      protected AbstractAttachment inst(JSONObject attachmentData) {
+          return new PocNodeConf(attachmentData);
+      }
+
+      @Override
+      protected AbstractAttachment inst(int version) {
+          return null;
+      }
+
     @Override
     public int getMySize() {
       return ip.getBytes().length
@@ -280,7 +312,7 @@ public abstract class PocTxBody  {
     }
   }
 
-  public final class PocOnlineRate extends Attachment.AbstractAttachment {
+  public final class PocOnlineRate extends Attachment.TxBodyBase {
     private final String ip;
     private final String port;
     private final int networkRate; // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
@@ -318,6 +350,21 @@ public abstract class PocTxBody  {
     }
 
     @Override
+    protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+      return new PocOnlineRate(buffer,transactionVersion);
+    }
+    
+    @Override
+    protected AbstractAttachment inst(JSONObject attachmentData) {
+      return new PocOnlineRate(attachmentData);
+    }
+    
+    @Override
+    protected AbstractAttachment inst(int version) {
+      return null;
+    }
+
+    @Override
     public int getMySize() {
       return 2 + ip.getBytes().length + port.getBytes().length;
     }
@@ -342,7 +389,7 @@ public abstract class PocTxBody  {
     }
   }
 
-  public final class PocBlockMiss extends Attachment.AbstractAttachment {
+  public final class PocBlockMiss extends Attachment.TxBodyBase {
     private final String ip;
     private final String port;
     private final int missLevel; // 0-零丢失； 1-低；2-中；3-高
@@ -380,6 +427,21 @@ public abstract class PocTxBody  {
     }
 
     @Override
+    protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+        return new PocBlockMiss(buffer,transactionVersion);
+    }
+    
+    @Override
+    protected AbstractAttachment inst(JSONObject attachmentData) {
+        return new PocBlockMiss(attachmentData);
+    }
+    
+    @Override
+    protected AbstractAttachment inst(int version) {
+        return null;
+    }
+
+    @Override
     public int getMySize() {
       return 2 + ip.getBytes().length + port.getBytes().length;
     }
@@ -407,7 +469,7 @@ public abstract class PocTxBody  {
     /**
      * Bifurcation of convergence for PoC
      */
-  public final class PocBC extends Attachment.AbstractAttachment {
+  public final class PocBC extends Attachment.TxBodyBase {
     private final String ip;
     private final String port;
     private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快
@@ -442,6 +504,21 @@ public abstract class PocTxBody  {
       this.ip = (String) attachmentData.get("ip");
       this.port = (String) attachmentData.get("port");
       this.speed = (int) attachmentData.get("speed");
+    }
+
+    @Override
+    protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+        return new PocBC(buffer,transactionVersion);
+    }
+    
+    @Override
+    protected AbstractAttachment inst(JSONObject attachmentData) {
+        return new PocBC(attachmentData);
+    }
+    
+    @Override
+    protected AbstractAttachment inst(int version) {
+        return null;
     }
 
     @Override

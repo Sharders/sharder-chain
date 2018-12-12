@@ -77,12 +77,12 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return new PocTxBody.PocNodeConf(buffer,transactionVersion);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocNodeConf.class, buffer,transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return new PocTxBody.PocNodeConf(attachmentData);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocNodeConf.class,attachmentData);
         }
 
         @Override
@@ -138,12 +138,12 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocWeightTable.class, buffer, transactionVersion);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocWeightTable.class, buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocWeightTable.class, attachmentData);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocWeightTable.class, attachmentData);
         }
 
         @Override
@@ -184,12 +184,12 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocOnlineRate.class, buffer, transactionVersion);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocOnlineRate.class, buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocOnlineRate.class, attachmentData);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocOnlineRate.class, attachmentData);
         }
 
         @Override
@@ -231,12 +231,12 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocBlockMiss.class, buffer, transactionVersion);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocBlockMiss.class, buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocBlockMiss.class, attachmentData);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocBlockMiss.class, attachmentData);
         }
 
         @Override
@@ -277,12 +277,12 @@ public abstract class PocTx extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocBC.class, buffer, transactionVersion);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocBC.class, buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.AbstractAttachment.newObj(PocTxBody.PocBC.class, attachmentData);
+            return Attachment.TxBodyBase.newObj(PocTxBody.PocBC.class, attachmentData);
         }
 
         @Override

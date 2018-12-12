@@ -42,7 +42,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.*;
@@ -50,6 +50,63 @@ import java.util.*;
 public interface Attachment extends Appendix {
 
     TransactionType getTransactionType();
+
+    abstract class TxBodyBase extends AbstractAttachment {
+        protected abstract AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion);
+        protected abstract AbstractAttachment inst(JSONObject attachmentData);
+        protected abstract AbstractAttachment inst(int version);
+        
+        public TxBodyBase(){}
+        public TxBodyBase(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+        }
+        public TxBodyBase(JSONObject attachmentData) {
+            super(attachmentData);
+        }
+        public TxBodyBase(int version) {
+            super(version);
+        }
+
+        public static Attachment.AbstractAttachment newObj(Class clazz, ByteBuffer buffer, byte transactionVersion) {
+            Method method = null;
+            try {
+                
+                method = clazz.getDeclaredMethod("inst",ByteBuffer.class,byte.class);
+
+                return  (Attachment.AbstractAttachment) method.invoke(buffer,transactionVersion);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public static Attachment.AbstractAttachment newObj(Class clazz,JSONObject attachmentData) {
+            Method method = null;
+            try {
+                method = clazz.getDeclaredMethod("inst",JSONObject.class);
+
+                return  (Attachment.AbstractAttachment) method.invoke(attachmentData);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        
+        public static Attachment.AbstractAttachment newObj(Class clazz,int version) {
+            Method method = null;
+            try {
+                method = clazz.getDeclaredMethod("inst",int.class);
+
+                return  (Attachment.AbstractAttachment) method.invoke(version);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
 
     abstract class AbstractAttachment extends Appendix.AbstractAppendix implements Attachment {
 
@@ -66,7 +123,7 @@ public interface Attachment extends Appendix {
         }
 
         public AbstractAttachment() {}
-
+        
         @Override
         public final String getAppendixName() {
             return getTransactionType().getName();
@@ -111,31 +168,7 @@ public interface Attachment extends Appendix {
             return isPhased(transaction) ? transaction.getPhasing().getFinishHeight() - 1 : Conch.getBlockchain().getHeight();
         }
 
-        public static Attachment.AbstractAttachment newObj(Class clazz, ByteBuffer buffer, byte transactionVersion) {
-            Constructor c1 = null;
-            try {
-                c1 = clazz.getDeclaredConstructor(ByteBuffer.class,byte.class);
-
-                return  (Attachment.AbstractAttachment) c1.newInstance(buffer,transactionVersion);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        public static Attachment.AbstractAttachment newObj(Class clazz,JSONObject attachmentData) {
-            Constructor c1 = null;
-            try {
-                c1 = clazz.getDeclaredConstructor(JSONObject.class);
-
-                return  (Attachment.AbstractAttachment) c1.newInstance(attachmentData);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
+       
 
         protected int _readByteSize(Object obj){
             int size = 0;
@@ -168,9 +201,6 @@ public interface Attachment extends Appendix {
                 e.printStackTrace();
             }
         }
-        
-        
-
     }
 
     abstract class EmptyAttachment extends AbstractAttachment {
