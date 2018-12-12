@@ -38,10 +38,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public final class BlockImpl implements Block {
 
@@ -66,7 +63,30 @@ public final class BlockImpl implements Block {
     private volatile String stringId = null;
     private volatile long generatorId;
     private volatile byte[] bytes = null;
+    private String extension = null;
+    private com.alibaba.fastjson.JSONObject extensionJson = null;
     
+    public enum ExtensionEnum {
+        IS_POC("isPoc",Boolean.class),
+        IS_POOL("isPool",Boolean.class);
+        
+        private String name;
+        private Class clazz;
+        
+        ExtensionEnum(String name, Class clazz){
+          this.name = name;  
+          this.clazz = clazz;  
+        }
+        
+        public static Class getClazz(String key) {
+            for (ExtensionEnum _enum : values()) {
+                if (_enum.name.equals(key)) {
+                    return _enum.clazz;
+                }
+            }
+            return null;
+        }
+    }
 
 
     public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
@@ -278,6 +298,7 @@ public final class BlockImpl implements Block {
         JSONArray transactionsData = new JSONArray();
         getTransactions().forEach(transaction -> transactionsData.add(transaction.getJSONObject()));
         json.put("transactions", transactionsData);
+        json.put("extension", extension);
         return json;
     }
 
@@ -507,6 +528,43 @@ public final class BlockImpl implements Block {
             baseTarget = prevBaseTarget;
         }
         cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+//    public void setExtension(String extension) {
+//        this.extension = extension;
+//    }
+    
+    public BlockImpl addExtension(ExtensionEnum extensionEnum, Object value){
+        if(this.extensionJson == null) this.extensionJson = new com.alibaba.fastjson.JSONObject();
+        this.extensionJson.put(extensionEnum.name,value);
+        this.extension = this.extensionJson.toJSONString();
+        return this;
+    }
+
+    /**
+     * 
+     * @param extensions String use the org.conch.chain.BlockImpl.ExtensionEnum.name
+     */
+    public BlockImpl addExtensions(Map<String,Object> extensions){
+        if(this.extensionJson == null) this.extensionJson = new com.alibaba.fastjson.JSONObject();
+        this.extensionJson.putAll(extensions);
+        this.extension = this.extensionJson.toJSONString();
+        return this;
+    }
+
+    /**
+     * 
+     * @param extensionEnum use the org.conch.chain.BlockImpl.ExtensionEnum
+     * @return
+     */
+    public <T> T getExtValue(ExtensionEnum extensionEnum){
+        Class<T> clazz = extensionEnum.clazz;
+        if(extensionJson == null) extensionJson = com.alibaba.fastjson.JSONObject.parseObject(extension);
+        return extensionJson.getObject(extensionEnum.name,clazz);
     }
 
 }
