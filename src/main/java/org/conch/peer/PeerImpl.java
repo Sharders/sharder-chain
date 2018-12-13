@@ -470,6 +470,13 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public boolean isType(Type type) {
+        if(type == null) return false;
+        
+        return type == this.type;
+    }
+
+    @Override
     public JSONObject send(JSONStreamAware request) {
         return send(request, Peers.MAX_RESPONSE_SIZE);
     }

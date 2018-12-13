@@ -774,6 +774,23 @@ public final class Peers {
 
     };
 
+    private static Map<Integer, Map<Long, String>> accountPeerMap = new ConcurrentHashMap<>();
+    private static final Runnable validNodeSynThread = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                // TODO valid node list holder( extend the current node list) and valid method
+                
+            } catch (Exception e) {
+                Logger.logDebugMessage("syn valid node thread interrupted");
+            } catch (Throwable t) {
+                Logger.logErrorMessage(
+                        "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+                System.exit(1);
+            }
+        }
+    };
+
     static {
         Peers.addListener(peer -> peersService.submit(() -> {
             if (peer.getAnnouncedAddress() != null && !peer.isBlacklisted()) {
@@ -803,6 +820,7 @@ public final class Peers {
         if (! Constants.isOffline) {
             ThreadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 20);
             ThreadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 60);
+            ThreadPool.scheduleThread("validNodeSyn", Peers.validNodeSynThread, 20);
             if (Peers.getMorePeers) {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
             }
@@ -856,6 +874,16 @@ public final class Peers {
     public static List<Peer> getPeers(final Peer.State state) {
         return getPeers(peer -> peer.getState() == state);
     }
+    
+    public static List<Peer> getPeers(List<Peer.Type> types) {
+        List<Peer> result = new ArrayList<>();
+        for (Peer peer : peers.values()) {
+            for (Peer.Type type : types) {
+                if(peer.isType(type)) result.add(peer);
+            }
+        }
+        return result;
+    }
 
     public static List<Peer> getPeers(Filter<Peer> filter) {
         return getPeers(filter, Integer.MAX_VALUE);
@@ -875,6 +903,7 @@ public final class Peers {
     }
 
     public static Peer getPeer(String host) {
+        
         return peers.get(host);
     }
 

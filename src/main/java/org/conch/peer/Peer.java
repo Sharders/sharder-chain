@@ -133,6 +133,8 @@ public interface Peer extends Comparable<Peer> {
     int getLastUpdated();
 
     int getLastConnectAttempt();
+    
+    boolean isType(Type type);
 
     boolean isInbound();
 
