@@ -43,7 +43,6 @@ import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.*;
@@ -56,7 +55,7 @@ public interface Attachment extends Appendix {
         protected abstract AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion);
         protected abstract AbstractAttachment inst(JSONObject attachmentData);
         protected abstract AbstractAttachment inst(int version);
-
+        
         public TxBodyBase(){}
         public TxBodyBase(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
@@ -71,7 +70,7 @@ public interface Attachment extends Appendix {
         public static Attachment.AbstractAttachment newObj(Class clazz, ByteBuffer buffer, byte transactionVersion) {
             Method method = null;
             try {
-
+                
                 method = clazz.getDeclaredMethod("inst",ByteBuffer.class,byte.class);
 
                 return  (Attachment.AbstractAttachment) method.invoke(buffer,transactionVersion);
@@ -94,7 +93,7 @@ public interface Attachment extends Appendix {
             }
             return null;
         }
-
+        
         public static Attachment.AbstractAttachment newObj(Class clazz,int version) {
             Method method = null;
             try {
@@ -124,7 +123,7 @@ public interface Attachment extends Appendix {
         }
 
         public AbstractAttachment() {}
-
+        
         @Override
         public final String getAppendixName() {
             return getTransactionType().getName();
@@ -169,7 +168,7 @@ public interface Attachment extends Appendix {
             return isPhased(transaction) ? transaction.getPhasing().getFinishHeight() - 1 : Conch.getBlockchain().getHeight();
         }
 
-
+       
 
         protected int _readByteSize(Object obj){
             int size = 0;
@@ -187,13 +186,49 @@ public interface Attachment extends Appendix {
             }
             return size;
         }
-
+        
+        protected int _readByteSize(List<Object> objs){
+            int size = 0;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(baos);
+                while(objs.iterator().hasNext()){
+                    oos.writeObject(objs.iterator().next());
+                }
+                oos.flush();
+                size = baos.toByteArray().length;
+                baos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return size;
+        }
+        
         protected void _putByteSize(ByteBuffer buffer, Object obj){
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos;
             try {
                 oos = new ObjectOutputStream(baos);
                 oos.writeObject(obj);
+                oos.flush();
+                buffer.put(baos.toByteArray());
+                baos.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        protected void _putByteSize(ByteBuffer buffer, List<Object> objs){
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(baos);
+                while(objs.iterator().hasNext()){
+                    oos.writeObject(objs.iterator().next());
+                }
                 oos.flush();
                 buffer.put(baos.toByteArray());
                 baos.close();

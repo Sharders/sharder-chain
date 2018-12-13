@@ -581,8 +581,10 @@ public final class Conch {
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
+                
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
+                
                 Account.init();
                 AccountRestrictions.init();
                 AccountLedger.init();

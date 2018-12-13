@@ -71,4 +71,6 @@ public interface Block {
 
     JSONObject getJSONObject();
 
+    <T> T getExtValue(BlockImpl.ExtensionEnum extensionEnum);
+
 }

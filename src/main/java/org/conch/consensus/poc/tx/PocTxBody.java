@@ -1,5 +1,6 @@
 package org.conch.consensus.poc.tx;
 
+import com.google.common.collect.Lists;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
@@ -318,23 +319,36 @@ public abstract class PocTxBody  {
             return null;
         }
 
-        @Override
-        public int getMySize() {
-            return _readByteSize(weightMap) + _readByteSize(nodeTypeTemplate) + _readByteSize(serverOpenTemplate) + _readByteSize(hardwareConfigTemplate) + _readByteSize(networkConfigTemplate) + _readByteSize(txHandlePerformanceTemplate) + _readByteSize(onlineRateTemplate) + _readByteSize(blockingMissTemplate) + _readByteSize(bocSpeedTemplate);
-        }
+    @Override
+    public int getMySize() {
+      return _readByteSize(
+          Lists.newArrayList(
+              weightMap,
+              nodeTypeTemplate,
+              serverOpenTemplate,
+              hardwareConfigTemplate,
+              networkConfigTemplate,
+              txHandlePerformanceTemplate,
+              onlineRateTemplate,
+              blockingMissTemplate,
+              bocSpeedTemplate));
+    }
 
-        @Override
-        public void putMyBytes(ByteBuffer buffer) {
-            _putByteSize(buffer, weightMap);
-            _putByteSize(buffer, nodeTypeTemplate);
-            _putByteSize(buffer, serverOpenTemplate);
-            _putByteSize(buffer, hardwareConfigTemplate);
-            _putByteSize(buffer, networkConfigTemplate);
-            _putByteSize(buffer, txHandlePerformanceTemplate);
-            _putByteSize(buffer, onlineRateTemplate);
-            _putByteSize(buffer, blockingMissTemplate);
-            _putByteSize(buffer, bocSpeedTemplate);
-        }
+    @Override
+    public void putMyBytes(ByteBuffer buffer) {
+      _putByteSize(
+          buffer,
+          Lists.newArrayList(
+              weightMap,
+              nodeTypeTemplate,
+              serverOpenTemplate,
+              hardwareConfigTemplate,
+              networkConfigTemplate,
+              txHandlePerformanceTemplate,
+              onlineRateTemplate,
+              blockingMissTemplate,
+              bocSpeedTemplate));
+    }
 
         @Override
         public void putMyJSON(JSONObject attachment) {
