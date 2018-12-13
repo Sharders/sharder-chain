@@ -111,7 +111,7 @@ var NRS = (function (NRS) {
             return url;
         } else {
             console.warn("No available remote nodes");
-            $.growl($.t("no_available_remote_nodes"));
+            $.growl($.t("sso.no_available_remote_nodes"));
         }
     };
 
@@ -133,13 +133,13 @@ var NRS = (function (NRS) {
                 link.attr("onclick", script);
                 return;
             }
-            return "<a onclick='" + script + "' class='btn btn-xs btn-default'>" + $.t("download") + "</a>";
+            return "<a onclick='" + script + "' class='btn btn-xs btn-default'>" + $.t("sso.download") + "</a>";
         } else {
             if (link) {
                 link.attr("href", url);
                 return;
             }
-            return "<a href='" + url + "' class='btn btn-xs btn-default'>" + $.t("download") + "</a>";
+            return "<a href='" + url + "' class='btn btn-xs btn-default'>" + $.t("sso.download") + "</a>";
         }
     };
 
@@ -201,7 +201,7 @@ var NRS = (function (NRS) {
         if (isDesktopApplication) {
             return "";
         }
-        return $.t("generator_timing_accuracy_warning");
+        return $.t("sso.generator_timing_accuracy_warning");
     };
 
     NRS.isInitializePlugins = function () {

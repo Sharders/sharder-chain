@@ -463,7 +463,7 @@ var NRS = (function(NRS, $) {
 		// Build language select box for settings page, login
 		var $regionalFormatSelBoxes = $('select[name="regional_format"]');
 		$regionalFormatSelBoxes.empty();
-		$regionalFormatSelBoxes.append("<option value='default'>" + $.t("use_browser_default") + "</option>");
+		$regionalFormatSelBoxes.append("<option value='default'>" + $.t("sso.use_browser_default") + "</option>");
 		var localeKeys = NRS.getLocaleList();
         for (var i=0; i < localeKeys.length; i++) {
 			$regionalFormatSelBoxes.append("<option value='" + localeKeys[i] + "'>" + NRS.getLocaleName(localeKeys[i]) + "</option>");

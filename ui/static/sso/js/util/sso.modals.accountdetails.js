@@ -30,7 +30,7 @@ var NRS = (function(NRS, $, undefined) {
             NRS.generateQRCode("#account_details_modal_account_qr_code", NRS.accountRS);
             $("#account_details_modal_account_display").hide();
             $("#account_details_modal_passphrase_display").hide();
-            $("#account_details_modal_passphrase_qr_code").html($.t("passphrase_not_specified"));
+            $("#account_details_modal_passphrase_qr_code").html($.t("sso.passphrase_not_specified"));
         }
 		$("#account_details_modal_balance").show();
 
@@ -59,8 +59,8 @@ var NRS = (function(NRS, $, undefined) {
 
 				if (!NRS.accountInfo.publicKey) {
 					accountBalancePublicKey.html("/");
-                    var warning = NRS.publicKey != 'undefined' ? $.t("public_key_not_announced_warning", { "public_key": NRS.publicKey }) : $.t("no_public_key_warning");
-					accountBalanceWarning.html(warning + " " + $.t("public_key_actions")).show();
+                    var warning = NRS.publicKey != 'undefined' ? $.t("sso.public_key_not_announced_warning", { "public_key": NRS.publicKey }) : $.t("sso.no_public_key_warning");
+					accountBalanceWarning.html(warning + " " + $.t("sso.public_key_actions")).show();
 				}
 			}
 		}

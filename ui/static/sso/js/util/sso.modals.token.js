@@ -49,12 +49,12 @@ var NRS = (function(NRS, $) {
 		$("#token_modal").find(".error_message").hide();
 
 		if (response.valid) {
-			$("#decode_token_output").html($.t("success_valid_token", {
+			$("#decode_token_output").html($.t("sso.success_valid_token", {
 				"account_link": NRS.getAccountLink(response, "account"),
 				"timestamp": NRS.formatTimestamp(response.timestamp)
 			})).addClass("callout-info").removeClass("callout-danger").show();
 		} else {
-			$("#decode_token_output").html($.t("error_invalid_token", {
+			$("#decode_token_output").html($.t("sso.error_invalid_token", {
 				"account_link": NRS.getAccountLink(response, "account"),
 				"timestamp": NRS.formatTimestamp(response.timestamp)
 			})).addClass("callout-danger").removeClass("callout-info").show();
@@ -96,7 +96,7 @@ var NRS = (function(NRS, $) {
         var tokenOutput = $("#generate_token_output");
         var outputQrCodeContainer = $("#generate_token_output_qr_code");
         if (!website || website == "") {
-            tokenOutput.html($.t("data_required_field"));
+            tokenOutput.html($.t("sso.data_required_field"));
             tokenOutput.addClass("callout-danger").removeClass("callout-info").show();
             outputQrCodeContainer.hide();
             return;
@@ -107,7 +107,7 @@ var NRS = (function(NRS, $) {
             secretPhrase = data.secretPhrase;
 			var publicKey = NRS.getPublicKey(converters.stringToHexString(secretPhrase));
 			if (publicKey != NRS.publicKey && !isOffline) {
-				tokenOutput.html($.t("error_incorrect_passphrase"));
+				tokenOutput.html($.t("sso.error_incorrect_passphrase"));
 				tokenOutput.addClass("callout-danger").removeClass("callout-info").show();
                 outputQrCodeContainer.hide();
 				return;
@@ -116,7 +116,7 @@ var NRS = (function(NRS, $) {
         	secretPhrase = _password;
 		}
         var token = NRS.generateToken(website, secretPhrase);
-        tokenOutput.html($.t("generated_token_is") + "<br/><br/><textarea readonly style='width:100%' rows='3'>" + token + "</textarea>");
+        tokenOutput.html($.t("sso.generated_token_is") + "<br/><br/><textarea readonly style='width:100%' rows='3'>" + token + "</textarea>");
         tokenOutput.addClass("callout-info").removeClass("callout-danger").show();
         NRS.generateQRCode("#generate_token_output_qr_code", token, 14);
         outputQrCodeContainer.show();

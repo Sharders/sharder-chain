@@ -56,7 +56,7 @@ var NRS = (function (NRS, $, undefined) {
             return;
         }
         if (!asset) {
-            $.growl($.t("missing_asset_param"), {
+            $.growl($.t("sso.missing_asset_param"), {
                 "type": "danger"
             });
             return;
@@ -67,7 +67,7 @@ var NRS = (function (NRS, $, undefined) {
             "asset": asset
         }, function(response) {
             if (response.errorCode) {
-                $.growl($.t("invalid_asset_param", { asset: asset }), {
+                $.growl($.t("sso.invalid_asset_param", { asset: asset }), {
                     "type": "danger"
                 });
             } else {
@@ -155,13 +155,13 @@ var NRS = (function (NRS, $, undefined) {
         data.id = $.trim(data.id);
         if (!data.id) {
             return {
-                "error": $.t("error_asset_or_account_id_required")
+                "error": $.t("sso.error_asset_or_account_id_required")
             };
         }
 
         if (!/^\d+$/.test(data.id) && !/^SSA\-/i.test(data.id)) {
             return {
-                "error": $.t("error_asset_or_account_id_invalid")
+                "error": $.t("sso.error_asset_or_account_id_invalid")
             };
         }
 
@@ -175,7 +175,7 @@ var NRS = (function (NRS, $, undefined) {
                     if (response.assets && response.assets[0] && response.assets[0].length) {
                         NRS.saveAssetBookmarks(response.assets[0], NRS.forms.addAssetBookmarkComplete);
                     } else {
-                        NRS.showModalError($.t("account_no_assets"), $modal);
+                        NRS.showModalError($.t("sso.account_no_assets"), $modal);
                     }
                     //NRS.saveAssetIssuer(data.id);
                 }
@@ -195,7 +195,7 @@ var NRS = (function (NRS, $, undefined) {
                                 NRS.saveAssetBookmarks(response.assets[0], NRS.forms.addAssetBookmarkComplete);
                                 //NRS.saveAssetIssuer(data.id);
                             } else {
-                                NRS.showModalError($.t("no_asset_found"), $modal);
+                                NRS.showModalError($.t("sso.no_asset_found"), $modal);
                             }
                         }
                     });
@@ -222,7 +222,7 @@ var NRS = (function (NRS, $, undefined) {
         var assetExchangeSidebar = $("#asset_exchange_sidebar");
         if (newAssets.length == 0) {
             NRS.closeModal();
-            $.growl($.t("error_asset_already_bookmarked", {
+            $.growl($.t("sso.error_asset_already_bookmarked", {
                 "count": submittedAssets.length
             }), {
                 "type": "danger"
@@ -231,7 +231,7 @@ var NRS = (function (NRS, $, undefined) {
             assetExchangeSidebar.find("a[data-asset=" + submittedAssets[0].asset + "]").addClass("active").trigger("click");
         } else {
             NRS.closeModal();
-            var message = $.t("success_asset_bookmarked", {
+            var message = $.t("sso.success_asset_bookmarked", {
                 "count": newAssets.length
             });
             $.growl(message, {
@@ -405,7 +405,7 @@ var NRS = (function (NRS, $, undefined) {
             rows += "data-asset='" + NRS.escapeRespStr(asset.asset) + "'" + (!ungrouped ? " data-groupname='" + NRS.escapeRespStr(asset.groupName) + "'" : "");
             rows += (isClosedGroup ? " style='display:none'" : "") + " data-closed='" + isClosedGroup + "'>";
             rows += "<h4 class='list-group-item-heading'>" + NRS.escapeRespStr(asset.name) + "</h4>";
-            rows += "<p class='list-group-item-text'><span>" + $.t('quantity') + "</span>: " + NRS.formatQuantity(ownsQuantityQNT, asset.decimals) + "</p>";
+            rows += "<p class='list-group-item-text'><span>" + $.t('sso.quantity') + "</span>: " + NRS.formatQuantity(ownsQuantityQNT, asset.decimals) + "</p>";
             rows += "</a>";
         }
 
@@ -561,10 +561,10 @@ var NRS = (function (NRS, $, undefined) {
             $("#sell_asset_button").data("asset", assetId);
             $("#buy_asset_button").data("asset", assetId);
             $("#view_asset_distribution_link").data("asset", assetId);
-            $("#sell_asset_for_nxt").html($.t("sell_asset_for_nxt", {
+            $("#sell_asset_for_nxt").html($.t("sso.sell_asset_for_nxt", {
                 "assetName": NRS.escapeRespStr(asset.name)
             }));
-            $("#buy_asset_with_nxt").html($.t("buy_asset_with_nxt", {
+            $("#buy_asset_with_nxt").html($.t("sso.buy_asset_with_nxt", {
                 "assetName": NRS.escapeRespStr(asset.name)
             }));
             $("#sell_asset_price, #buy_asset_price").val("");
@@ -593,7 +593,7 @@ var NRS = (function (NRS, $, undefined) {
                 }
             });
 
-            $("#asset_exchange_duplicates_warning").html($.t("asset_exchange_duplicates_warning", {
+            $("#asset_exchange_duplicates_warning").html($.t("sso.asset_exchange_duplicates_warning", {
                 "count": nrDuplicates
             }));
 
@@ -607,7 +607,7 @@ var NRS = (function (NRS, $, undefined) {
                         }], function () {
                             setTimeout(function () {
                                 NRS.loadPage("asset_exchange");
-                                $.growl($.t("invalid asset") + " " + asset.name, {
+                                $.growl($.t("sso.invalid asset") + " " + asset.name, {
                                     "type": "danger"
                                 });
                             }, 50);
@@ -1061,14 +1061,14 @@ var NRS = (function (NRS, $, undefined) {
             var priceNQT = new BigInteger(NRS.calculatePricePerWholeQNT(NRS.convertToNQT(String($("#" + orderType + "_asset_price").val())), currentAsset.decimals));
             var totalNXT = NRS.formatAmount(NRS.calculateOrderTotalNQT(quantityQNT, priceNQT, currentAsset.decimals), false, true);
         } catch (err) {
-            $.growl($.t("error_invalid_input"), {
+            $.growl($.t("sso.error_invalid_input"), {
                 "type": "danger"
             });
             return e.preventDefault();
         }
 
         if (priceNQT.toString() == "0" || quantityQNT.toString() == "0") {
-            $.growl($.t("error_amount_price_required"), {
+            $.growl($.t("sso.error_amount_price_required"), {
                 "type": "danger"
             });
             return e.preventDefault();
@@ -1078,22 +1078,22 @@ var NRS = (function (NRS, $, undefined) {
         var description;
         var tooltipTitle;
         if (orderType == "buy") {
-            description = $.t("buy_order_description", {
+            description = $.t("sso.buy_order_description", {
                 "quantity": NRS.formatQuantity(quantityQNT, currentAsset.decimals, true),
                 "asset_name": $("#asset_name").html().escapeHTML(),
                 "nxt": NRS.formatAmount(priceNQTPerWholeQNT)
             });
-            tooltipTitle = $.t("buy_order_description_help", {
+            tooltipTitle = $.t("sso.buy_order_description_help", {
                 "nxt": NRS.formatAmount(priceNQTPerWholeQNT, false, true),
                 "total_nxt": totalNXT
             });
         } else {
-            description = $.t("sell_order_description", {
+            description = $.t("sso.sell_order_description", {
                 "quantity": NRS.formatQuantity(quantityQNT, currentAsset.decimals, true),
                 "asset_name": $("#asset_name").html().escapeHTML(),
                 "nxt": NRS.formatAmount(priceNQTPerWholeQNT)
             });
-            tooltipTitle = $.t("sell_order_description_help", {
+            tooltipTitle = $.t("sso.sell_order_description_help", {
                 "nxt": NRS.formatAmount(priceNQTPerWholeQNT, false, true),
                 "total_nxt": totalNXT
             });
@@ -1125,8 +1125,8 @@ var NRS = (function (NRS, $, undefined) {
         var orderType = $("#asset_order_type").val();
         return {
             "requestType": orderType,
-            "successMessage": (orderType == "placeBidOrder" ? $.t("success_buy_order_asset") : $.t("success_sell_order_asset")),
-            "errorMessage": $.t("error_order_asset")
+            "successMessage": (orderType == "placeBidOrder" ? $.t("sso.success_buy_order_asset") : $.t("sso.success_sell_order_asset")),
+            "errorMessage": $.t("sso.error_order_asset")
         };
     };
 
@@ -1135,11 +1135,11 @@ var NRS = (function (NRS, $, undefined) {
         data.description = $.trim(data.description);
         if (!data.description) {
             return {
-                "error": $.t("error_description_required")
+                "error": $.t("sso.error_description_required")
             };
         } else if (!/^\d+$/.test(data.quantity)) {
             return {
-                "error": $.t("error_whole_quantity")
+                "error": $.t("sso.error_whole_quantity")
             };
         } else {
             data.quantityQNT = String(data.quantity);
@@ -1185,7 +1185,7 @@ var NRS = (function (NRS, $, undefined) {
         var newGroupName = $("#asset_exchange_change_group_name_new").val();
         if (!newGroupName.match(/^[a-z0-9 ]+$/i)) {
             return {
-                "error": $.t("error_group_name")
+                "error": $.t("sso.error_group_name")
             };
         }
 
@@ -1196,7 +1196,7 @@ var NRS = (function (NRS, $, undefined) {
         }], function () {
             setTimeout(function () {
                 NRS.loadPage("asset_exchange");
-                $.growl($.t("success_group_name_update"), {
+                $.growl($.t("sso.success_group_name_update"), {
                     "type": "success"
                 });
             }, 50);
@@ -1256,7 +1256,7 @@ var NRS = (function (NRS, $, undefined) {
             }], function () {
                 setTimeout(function () {
                     NRS.loadPage("asset_exchange");
-                    $.growl($.t("success_asset_group_removal"), {
+                    $.growl($.t("sso.success_asset_group_removal"), {
                         "type": "success"
                     });
                 }, 50);
@@ -1273,7 +1273,7 @@ var NRS = (function (NRS, $, undefined) {
             }
 
             if (ownsAsset) {
-                $.growl($.t("error_owned_asset_no_removal"), {
+                $.growl($.t("sso.error_owned_asset_no_removal"), {
                     "type": "danger"
                 });
             } else {
@@ -1282,7 +1282,7 @@ var NRS = (function (NRS, $, undefined) {
                 }], function () {
                     setTimeout(function () {
                         NRS.loadPage("asset_exchange");
-                        $.growl($.t("success_asset_bookmark_removal"), {
+                        $.growl($.t("sso.success_asset_bookmark_removal"), {
                             "type": "success"
                         });
                     }, 50);
@@ -1317,11 +1317,11 @@ var NRS = (function (NRS, $, undefined) {
             setTimeout(function () {
                 NRS.loadPage("asset_exchange");
                 if (!groupName) {
-                    $.growl($.t("success_asset_group_removal"), {
+                    $.growl($.t("sso.success_asset_group_removal"), {
                         "type": "success"
                     });
                 } else {
-                    $.growl($.t("success_asset_group_add"), {
+                    $.growl($.t("sso.success_asset_group_add"), {
                         "type": "success"
                     });
                 }
@@ -1612,8 +1612,8 @@ var NRS = (function (NRS, $, undefined) {
                 "<td class='numeric'>" + (highestBidOrder != -1 ? NRS.formatOrderPricePerWholeQNT(highestBidOrder, asset.decimals, bidDecimals) : "") + "</td>" +
                 "<td class='numeric'>" + (highestBidOrder != -1 ? NRS.formatAmount(totalNQT, false, false, valueDecimals) : "") + "</td>" +
                 "<td>" +
-                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='transfer_asset'>" + $.t("transfer") + "</a>" +
-                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='delete_shares'>" + $.t("delete_shares") + "</a>" +
+                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='transfer_asset'>" + $.t("sso.transfer") + "</a>" +
+                    "<a href='#' class='btn btn-xs btn-default' data-toggle='modal' data-target='#transfer_asset_modal' data-asset='" + NRS.escapeRespStr(asset.asset) + "' data-name='" + NRS.escapeRespStr(asset.name) + "' data-decimals='" + NRS.escapeRespStr(asset.decimals) + "' data-action='delete_shares'>" + $.t("sso.delete_shares") + "</a>" +
                 "</td>" +
             "</tr>";
         }
@@ -1698,13 +1698,13 @@ var NRS = (function (NRS, $, undefined) {
 
         var availableAssetsMessage = "";
         if (confirmedBalance == unconfirmedBalance) {
-            availableAssetsMessage = " - " + $.t("available_qty", {
+            availableAssetsMessage = " - " + $.t("sso.available_qty", {
                 "qty": NRS.formatQuantity(confirmedBalance, decimals)
             });
         } else {
-            availableAssetsMessage = " - " + $.t("available_qty", {
+            availableAssetsMessage = " - " + $.t("sso.available_qty", {
                 "qty": NRS.formatQuantity(unconfirmedBalance, decimals)
-            }) + " (" + NRS.formatQuantity(confirmedBalance, decimals) + " " + $.t("total_lowercase") + ")";
+            }) + " (" + NRS.formatQuantity(confirmedBalance, decimals) + " " + $.t("sso.total_lowercase") + ")";
         }
         $("#transfer_asset_available").html(availableAssetsMessage);
     });
@@ -1721,7 +1721,7 @@ var NRS = (function (NRS, $, undefined) {
         var data = NRS.getFormData($modal.find("form:first"));
         if (!data.quantity) {
             return {
-                "error": $.t("error_not_specified", {
+                "error": $.t("sso.error_not_specified", {
                     "name": NRS.getTranslatedFieldName("quantity").toLowerCase()
                 }).capitalize()
             };
@@ -1732,7 +1732,7 @@ var NRS = (function (NRS, $, undefined) {
                 if (new Big(data.quantity).cmp(new Big(NRS.settings["asset_transfer_warning"])) > 0) {
                     NRS.showedFormWarning = true;
                     return {
-                        "error": $.t("error_max_asset_transfer_warning", {
+                        "error": $.t("sso.error_max_asset_transfer_warning", {
                             "qty": String(NRS.settings["asset_transfer_warning"]).escapeHTML()
                         })
                     };
@@ -1744,7 +1744,7 @@ var NRS = (function (NRS, $, undefined) {
             data.quantityQNT = NRS.convertToQNT(data.quantity, data.decimals);
         } catch (e) {
             return {
-                "error": $.t("error_incorrect_quantity_plus", {
+                "error": $.t("sso.error_incorrect_quantity_plus", {
                     "err": e.escapeHTML()
                 })
             };
@@ -1805,7 +1805,7 @@ var NRS = (function (NRS, $, undefined) {
                                 NRS.loadAsset(response);
                             });
                         } else {
-                            $.growl($.t("error_asset_not_found"), {
+                            $.growl($.t("sso.error_asset_not_found"), {
                                 "type": "danger"
                             });
                         }
@@ -1901,7 +1901,7 @@ var NRS = (function (NRS, $, undefined) {
             completeOrder.priceNQT = new BigInteger(completeOrder.priceNQT);
             completeOrder.quantityQNT = new BigInteger(completeOrder.quantityQNT);
             completeOrder.totalNQT = new BigInteger(NRS.calculateOrderTotalNQT(completeOrder.quantityQNT, completeOrder.priceNQT));
-            rows += "<tr data-order='" + NRS.escapeRespStr(completeOrder.order) + "'><td><a href='#' data-goto-asset='" + NRS.escapeRespStr(completeOrder.asset) + "'>" + NRS.escapeRespStr(completeOrder.assetName) + "</a></td><td>" + NRS.formatQuantity(completeOrder.quantityQNT, completeOrder.decimals) + "</td><td>" + NRS.formatOrderPricePerWholeQNT(completeOrder.priceNQT, completeOrder.decimals) + "</td><td>" + NRS.formatAmount(completeOrder.totalNQT) + "</td><td class='cancel'><a href='#' data-toggle='modal' data-target='#cancel_order_modal' data-order='" + NRS.escapeRespStr(completeOrder.order) + "' data-type='" + type + "'>" + $.t("cancel") + "</a></td></tr>";
+            rows += "<tr data-order='" + NRS.escapeRespStr(completeOrder.order) + "'><td><a href='#' data-goto-asset='" + NRS.escapeRespStr(completeOrder.asset) + "'>" + NRS.escapeRespStr(completeOrder.assetName) + "</a></td><td>" + NRS.formatQuantity(completeOrder.quantityQNT, completeOrder.decimals) + "</td><td>" + NRS.formatOrderPricePerWholeQNT(completeOrder.priceNQT, completeOrder.decimals) + "</td><td>" + NRS.formatAmount(completeOrder.totalNQT) + "</td><td class='cancel'><a href='#' data-toggle='modal' data-target='#cancel_order_modal' data-order='" + NRS.escapeRespStr(completeOrder.order) + "' data-type='" + type + "'>" + $.t("sso.cancel") + "</a></td></tr>";
         }
         openOrdersTable.find("tbody").empty().append(rows);
         NRS.dataLoadFinished(openOrdersTable);
@@ -1938,11 +1938,11 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.forms.cancelOrderComplete = function (response, data) {
         if (data.requestType == "cancelAskOrder") {
-            $.growl($.t("success_cancel_sell_order"), {
+            $.growl($.t("sso.success_cancel_sell_order"), {
                 "type": "success"
             });
         } else {
-            $.growl($.t("success_cancel_buy_order"), {
+            $.growl($.t("sso.success_cancel_buy_order"), {
                 "type": "success"
             });
         }
@@ -1960,7 +1960,7 @@ var NRS = (function (NRS, $, undefined) {
         }, function (response) {
             if (response.accountAssets) {
                 if (response.accountAssets.length > 0) {
-                    $noneOption.html($.t('no_asset_selected_for_approval', 'No Asset Selected'));
+                    $noneOption.html($.t('sso.no_asset_selected_for_approval', 'No Asset Selected'));
                     $.each(response.accountAssets, function (key, asset) {
                         var idString = String(asset.asset);
                         var $option = $('<option value="' + idString + '">' + NRS.escapeRespStr(asset.name) + '</option>');
@@ -1971,10 +1971,10 @@ var NRS = (function (NRS, $, undefined) {
                         $option.appendTo($select);
                     });
                 } else {
-                    $noneOption.html($.t('account_has_no_assets', 'Account has no assets'));
+                    $noneOption.html($.t('sso.account_has_no_assets', 'Account has no assets'));
                 }
             } else {
-                $noneOption.html($.t('no_connection'));
+                $noneOption.html($.t('sso.no_connection'));
             }
             if (!selectedApprovalAsset || !assetSelected) {
                 $noneOption.attr('selected', true);
@@ -2007,13 +2007,13 @@ var NRS = (function (NRS, $, undefined) {
                         rows += NRS.getTransactionRowHTML(t, ['approve'], decimals);
                     }
                 } else {
-                    $('#ar_asset_no_entries').html($.t('no_current_approval_requests', 'No current approval requests'));
+                    $('#ar_asset_no_entries').html($.t('sso.no_current_approval_requests', 'No current approval requests'));
                 }
                 // NRS.dataLoaded(rows);
                 NRS.addPhasingInfoToTransactionRows(response.transactions);
             });
         } else {
-            $('#ar_asset_no_entries').html($.t('please_select_asset_for_approval', 'Please select an asset'));
+            $('#ar_asset_no_entries').html($.t('sso.please_select_asset_for_approval', 'Please select an asset'));
             // NRS.dataLoaded();
         }
     };

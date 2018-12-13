@@ -80,7 +80,7 @@ var NRS = (function(NRS, $) {
 		if (ignore.indexOf(requestType) != -1) {
 			return "";
 		} else {
-			var key = "success_" + requestType;
+			var key = "sso.success_" + requestType;
 
 			if ($.i18n.exists(key)) {
 				return $.t(key);
@@ -96,7 +96,7 @@ var NRS = (function(NRS, $) {
 		if (ignore.indexOf(requestType) != -1) {
 			return "";
 		} else {
-			var key = "error_" + requestType;
+			var key = "sso.error_" + requestType;
 
 			if ($.i18n.exists(key)) {
 				return $.t(key);
@@ -258,14 +258,14 @@ var NRS = (function(NRS, $) {
 		var originalRequestType = requestType;
         if (NRS.isRequireBlockchain(requestType)) {
 			if (NRS.downloadingBlockchain && !NRS.state.apiProxy) {
-				$form.find(".error_message").html($.t("error_blockchain_downloading")).show();
+				$form.find(".error_message").html($.t("sso.error_blockchain_downloading")).show();
 				if (formErrorFunction) {
 					formErrorFunction();
 				}
 				NRS.unlockForm($modal, $btn);
 				return;
 			} else if (NRS.state.isScanning) {
-				$form.find(".error_message").html($.t("error_form_blockchain_rescanning")).show();
+				$form.find(".error_message").html($.t("sso.error_form_blockchain_rescanning")).show();
 				if (formErrorFunction) {
 					formErrorFunction();
 				}
@@ -285,14 +285,14 @@ var NRS = (function(NRS, $) {
 
 				if ($(this).hasAttr("max")) {
 					if (!/^[\-\d\.]+$/.test(value)) {
-						error = $.t("error_not_a_number", {
+						error = $.t("sso.error_not_a_number", {
 							"field": NRS.getTranslatedFieldName(name).toLowerCase()
 						}).capitalize();
 					} else {
 						var max = $(this).attr("max");
 
 						if (value > max) {
-							error = $.t("error_max_value", {
+							error = $.t("sso.error_max_value", {
 								"field": NRS.getTranslatedFieldName(name).toLowerCase(),
 								"max": max
 							}).capitalize();
@@ -302,14 +302,14 @@ var NRS = (function(NRS, $) {
 
 				if ($(this).hasAttr("min")) {
 					if (!/^[\-\d\.]+$/.test(value)) {
-						error = $.t("error_not_a_number", {
+						error = $.t("sso.error_not_a_number", {
 							"field": NRS.getTranslatedFieldName(name).toLowerCase()
 						}).capitalize();
 					} else {
 						var min = $(this).attr("min");
 
 						if (value < min) {
-							error = $.t("error_min_value", {
+							error = $.t("sso.error_min_value", {
 								"field": NRS.getTranslatedFieldName(name).toLowerCase(),
 								"min": min
 							}).capitalize();
@@ -318,7 +318,7 @@ var NRS = (function(NRS, $) {
 				}
 
 				if (!error) {
-					error = $.t("error_invalid_field", {
+					error = $.t("sso.error_invalid_field", {
 						"field": NRS.getTranslatedFieldName(name).toLowerCase()
 					}).capitalize();
 				}
@@ -395,7 +395,7 @@ var NRS = (function(NRS, $) {
 		if (data.recipient) {
 			data.recipient = $.trim(data.recipient);
 			if (/^\d+$/.test(data.recipient)) {
-				$form.find(".error_message").html($.t("error_numeric_ids_not_allowed")).show();
+				$form.find(".error_message").html($.t("sso.error_numeric_ids_not_allowed")).show();
 				if (formErrorFunction) {
 					formErrorFunction(false, data);
 				}
@@ -404,7 +404,7 @@ var NRS = (function(NRS, $) {
 			} else if (!/^SSA\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(data.recipient)) {
 				var convertedAccountId = $modal.find("input[name=converted_account_id]").val();
 				if (!convertedAccountId || (!/^\d+$/.test(convertedAccountId) && !/^SSA\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(convertedAccountId))) {
-					$form.find(".error_message").html($.t("error_account_id")).show();
+					$form.find(".error_message").html($.t("sso.error_account_id")).show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);
 					}
@@ -428,7 +428,7 @@ var NRS = (function(NRS, $) {
 					merchantInfo = $.trim(result[1]);
 
 					if (!data.add_message || !data.message) {
-						$form.find(".error_message").html($.t("info_merchant_message_required")).show();
+						$form.find(".error_message").html($.t("sso.info_merchant_message_required")).show();
 						if (formErrorFunction) {
 							formErrorFunction(false, data);
 						}
@@ -487,23 +487,23 @@ var NRS = (function(NRS, $) {
 								var minLength = parseInt(lengthRequirement[0], 10);
 								if (lengthRequirement[1]) {
 									var maxLength = parseInt(lengthRequirement[1], 10);
-									errorMessage = $.t("error_merchant_message_" + regexType + "_range_length", {
+									errorMessage = $.t("sso.error_merchant_message_" + regexType + "_range_length", {
 										"minLength": minLength,
 										"maxLength": maxLength
 									});
 								} else {
-									errorMessage = $.t("error_merchant_message_" + regexType + "_min_length", {
+									errorMessage = $.t("sso.error_merchant_message_" + regexType + "_min_length", {
 										"minLength": minLength
 									});
 								}
 							} else {
 								var requiredLength = parseInt(lengthRequirement[1], 10);
-								errorMessage = $.t("error_merchant_message_" + regexType + "_length", {
+								errorMessage = $.t("sso.error_merchant_message_" + regexType + "_length", {
 									"length": requiredLength
 								});
 							}
 						} else {
-							errorMessage = $.t("error_merchant_message_" + regexType);
+							errorMessage = $.t("sso.error_merchant_message_" + regexType);
 						}
 
 						$form.find(".error_message").html(errorMessage).show();
@@ -533,7 +533,7 @@ var NRS = (function(NRS, $) {
 
         if ("secretPhrase" in data && !data.secretPhrase.length && !NRS.rememberPassword &&
                 !(data.calculateFee && NRS.accountInfo.publicKey)) {
-			$form.find(".error_message").html($.t("error_passphrase_required")).show();
+			$form.find(".error_message").html($.t("sso.error_passphrase_required")).show();
 			if (formErrorFunction) {
 				formErrorFunction(false, data);
 			}
@@ -547,7 +547,7 @@ var NRS = (function(NRS, $) {
 				try {
 					var amountNQT = NRS.convertToNQT(data.amountSS);
 				} catch (err) {
-					$form.find(".error_message").html(String(err).escapeHTML() + " (" + $.t("amount") + ")").show();
+					$form.find(".error_message").html(String(err).escapeHTML() + " (" + $.t("sso.amount") + ")").show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);
 					}
@@ -557,7 +557,7 @@ var NRS = (function(NRS, $) {
 
 				if (new BigInteger(amountNQT).compareTo(new BigInteger(NRS.settings["amount_warning"])) > 0) {
 					NRS.showedFormWarning = true;
-					$form.find(".error_message").html($.t("error_max_amount_warning", {
+					$form.find(".error_message").html($.t("sso.error_max_amount_warning", {
 						"nxt": NRS.formatAmount(NRS.settings["amount_warning"])
 					})).show();
 					if (formErrorFunction) {
@@ -572,7 +572,7 @@ var NRS = (function(NRS, $) {
 				try {
 					var feeNQT = NRS.convertToNQT(data.feeSS);
 				} catch (err) {
-					$form.find(".error_message").html(String(err).escapeHTML() + " (" + $.t("fee") + ")").show();
+					$form.find(".error_message").html(String(err).escapeHTML() + " (" + $.t("sso.fee") + ")").show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);
 					}
@@ -582,7 +582,7 @@ var NRS = (function(NRS, $) {
 
 				if (new BigInteger(feeNQT).compareTo(new BigInteger(NRS.settings["fee_warning"])) > 0) {
 					NRS.showedFormWarning = true;
-					$form.find(".error_message").html($.t("error_max_fee_warning", {
+					$form.find(".error_message").html($.t("sso.error_max_fee_warning", {
 						"nxt": NRS.formatAmount(NRS.settings["fee_warning"])
 					})).show();
 					if (formErrorFunction) {
@@ -606,7 +606,7 @@ var NRS = (function(NRS, $) {
 					} else {
 						NRS.showedFormWarning = true;
 						var entity = (requestType == 'issueCurrency' ? 'currency' : 'asset');
-						$form.find(".error_message").html($.t("error_decimal_positions_warning", {
+						$form.find(".error_message").html($.t("sso.error_decimal_positions_warning", {
 							"entity": entity
 						})).show();
 						if (formErrorFunction) {
@@ -748,7 +748,7 @@ var NRS = (function(NRS, $) {
 					}
 					formCompleteFunction(response, data);
 				} else {
-					errorMessage = $.t("error_unknown");
+					errorMessage = $.t("sso.error_unknown");
 				}
 			}
 			if (!sentToFunction) {

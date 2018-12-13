@@ -59,7 +59,7 @@ var NRS = (function (NRS, $, undefined) {
 
 			if (!/^[0]+$/.test(toRemove)) {
 				// return new Big(price).div(new Big(Math.pow(10, decimals))).round(8, 0);
-				throw $.t("error_invalid_input");
+				throw $.t("sso.error_invalid_input");
 			} else {
 				return price.slice(0, -decimals);
 			}
@@ -158,7 +158,7 @@ var NRS = (function (NRS, $, undefined) {
 
 			return parts[0] + "." + fraction;
 		} else {
-			throw $.t("error_invalid_input");
+			throw $.t("sso.error_invalid_input");
 		}
 	};
 
@@ -180,7 +180,7 @@ var NRS = (function (NRS, $, undefined) {
                 fraction = parts[1].substring(0, 8);
 			}
 		} else {
-			throw $.t("error_invalid_input");
+			throw $.t("sso.error_invalid_input");
 		}
 
 		for (var i = fraction.length; i < 8; i++) {
@@ -191,7 +191,7 @@ var NRS = (function (NRS, $, undefined) {
 
 		// in case there's a comma or something else in there.. at this point there should only be numbers
 		if (!/^\d+$/.test(result)) {
-			throw $.t("error_invalid_input");
+			throw $.t("sso.error_invalid_input");
 		}
 
 		// remove leading zeroes
@@ -258,7 +258,7 @@ var NRS = (function (NRS, $, undefined) {
 		} else if (parts.length == 2) {
 			var fraction = parts[1];
 			if (fraction.length > decimals) {
-				throw $.t("error_fraction_decimals", {
+				throw $.t("sso.error_fraction_decimals", {
 					"decimals": decimals
 				});
 			} else if (fraction.length < decimals) {
@@ -268,12 +268,12 @@ var NRS = (function (NRS, $, undefined) {
 			}
 			qnt += fraction;
 		} else {
-			throw $.t("error_invalid_input");
+			throw $.t("sso.error_invalid_input");
 		}
 
 		// in case there's a comma or something else in there.. at this point there should only be numbers
 		if (!/^\d+$/.test(qnt)) {
-			throw $.t("error_invalid_input_numbers");
+			throw $.t("sso.error_invalid_input_numbers");
 		}
         try {
             if (parseInt(qnt) === 0) {
@@ -678,7 +678,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.getPeerLink = function (address) {
         if (!address) {
-            return "(" + $.t("temporarily_disconnected") + ")";
+            return "(" + $.t("sso.temporarily_disconnected") + ")";
         }
         return "<a href='#' class='show_peer_modal_action' data-address='" + String(address).escapeHTML() + "'>" +
             String(address).escapeHTML() + "</a>";
@@ -710,12 +710,12 @@ var NRS = (function (NRS, $, undefined) {
             if (object != null) {
                 if (object.type === 9 && object.subtype === 0) {
                     if (acc == "sender") {
-                        return $.t("coinbase");
+                        return $.t("sso.coinbase");
                     }
                     if (acc == "recipient") {
                         var senderAcc = String(object["senderRS"]).escapeHTML();
                         if (senderAcc === NRS.account || senderAcc === NRS.accountRS) {
-                            return $.t("you");
+                            return $.t("sso.you");
                         }
                         return senderAcc;
                         // return String(object["senderRS"]).escapeHTML();
@@ -730,9 +730,9 @@ var NRS = (function (NRS, $, undefined) {
         }
 
         if (formattedAcc == NRS.account || formattedAcc == NRS.accountRS) {
-            return $.t("you");
+            return $.t("sso.you");
         } else if (formattedAcc == NRS.constants.GENESIS || formattedAcc == NRS.constants.GENESIS_RS) {
-            return $.t("genesis");
+            return $.t("sso.genesis");
         } else if (formattedAcc in NRS.contacts) {
             return NRS.contacts[formattedAcc].name.escapeHTML();
         } else {
@@ -1094,10 +1094,10 @@ var NRS = (function (NRS, $, undefined) {
 					response.errorDescription = response.error;
 					response.errorCode = -1;
 				} else {
-					return $.t("error_unknown");
+					return $.t("sso.error_unknown");
 				}
 			} else {
-				return $.t("error_unknown");
+				return $.t("sso.error_unknown");
 			}
 		}
 
@@ -1105,92 +1105,92 @@ var NRS = (function (NRS, $, undefined) {
 			case -1:
 				switch (response.errorDescription) {
 					case "Invalid ordinary payment":
-						return $.t("error_invalid_ordinary_payment");
+						return $.t("sso.error_invalid_ordinary_payment");
 						break;
 					case "Missing alias name":
-						return $.t("error_missing_alias_name");
+						return $.t("sso.error_missing_alias_name");
 						break;
 					case "Transferring aliases to Genesis account not allowed":
-						return $.t("error_alias_transfer_genesis");
+						return $.t("sso.error_alias_transfer_genesis");
 						break;
 					case "Ask order already filled":
-						return $.t("error_ask_order_filled");
+						return $.t("sso.error_ask_order_filled");
 						break;
 					case "Bid order already filled":
-						return $.t("error_bid_order_filled");
+						return $.t("sso.error_bid_order_filled");
 						break;
 					case "Only text encrypted messages allowed":
-						return $.t("error_encrypted_text_messages_only");
+						return $.t("sso.error_encrypted_text_messages_only");
 						break;
 					case "Missing feedback message":
-						return $.t("error_missing_feedback_message");
+						return $.t("sso.error_missing_feedback_message");
 						break;
 					case "Only text public messages allowed":
-						return $.t("error_public_text_messages_only");
+						return $.t("sso.error_public_text_messages_only");
 						break;
 					case "Purchase does not exist yet or not yet delivered":
-						return $.t("error_purchase_delivery");
+						return $.t("sso.error_purchase_delivery");
 						break;
 					case "Purchase does not exist or is not delivered or is already refunded":
-						return $.t("error_purchase_refund");
+						return $.t("sso.error_purchase_refund");
 						break;
 					case "Recipient account does not have a public key, must attach a public key announcement":
-						return $.t("error_recipient_no_public_key_announcement");
+						return $.t("sso.error_recipient_no_public_key_announcement");
 						break;
 					case "Transaction is not signed yet":
-						return $.t("error_transaction_not_signed");
+						return $.t("sso.error_transaction_not_signed");
 						break;
 					case "Transaction already signed":
-						return $.t("error_transaction_already_signed");
+						return $.t("sso.error_transaction_already_signed");
 						break;
 					case "PublicKeyAnnouncement cannot be attached to transactions with no recipient":
-						return $.t("error_public_key_announcement_no_recipient");
+						return $.t("sso.error_public_key_announcement_no_recipient");
 						break;
 					case "Announced public key does not match recipient accountId":
-						return $.t("error_public_key_different_account_id");
+						return $.t("sso.error_public_key_different_account_id");
 						break;
 					case "Public key for this account has already been announced":
-						return $.t("error_public_key_already_announced");
+						return $.t("sso.error_public_key_already_announced");
 						break;
 					default:
 						if (response.errorDescription.indexOf("Alias already owned by another account") != -1) {
-							return $.t("error_alias_owned_by_other_account");
+							return $.t("sso.error_alias_owned_by_other_account");
 						} else if (response.errorDescription.indexOf("Invalid alias sell price") != -1) {
-							return $.t("error_invalid_alias_sell_price");
+							return $.t("sso.error_invalid_alias_sell_price");
 						} else if (response.errorDescription.indexOf("Alias hasn't been registered yet") != -1) {
-							return $.t("error_alias_not_yet_registered");
+							return $.t("sso.error_alias_not_yet_registered");
 						} else if (response.errorDescription.indexOf("Alias doesn't belong to sender") != -1) {
-							return $.t("error_alias_not_from_sender");
+							return $.t("sso.error_alias_not_from_sender");
 						} else if (response.errorDescription.indexOf("Alias is owned by account other than recipient") != -1) {
-							return $.t("error_alias_not_from_recipient");
+							return $.t("sso.error_alias_not_from_recipient");
 						} else if (response.errorDescription.indexOf("Alias is not for sale") != -1) {
-							return $.t("error_alias_not_for_sale");
+							return $.t("sso.error_alias_not_for_sale");
 						} else if (response.errorDescription.indexOf("Invalid alias name") != -1) {
-							return $.t("error_invalid_alias_name");
+							return $.t("sso.error_invalid_alias_name");
 						} else if (response.errorDescription.indexOf("Invalid URI length") != -1) {
-							return $.t("error_invalid_alias_uri_length");
+							return $.t("sso.error_invalid_alias_uri_length");
 						} else if (response.errorDescription.indexOf("Invalid ask order") != -1) {
-							return $.t("error_invalid_ask_order");
+							return $.t("sso.error_invalid_ask_order");
 						} else if (response.errorDescription.indexOf("Invalid bid order") != -1) {
-							return $.t("error_invalid_bid_order");
+							return $.t("sso.error_invalid_bid_order");
 						} else if (response.errorDescription.indexOf("Goods price or quantity changed") != -1) {
-							return $.t("error_dgs_price_quantity_changed");
+							return $.t("sso.error_dgs_price_quantity_changed");
 						} else if (response.errorDescription.indexOf("Invalid digital goods price change") != -1) {
-							return $.t("error_invalid_dgs_price_change");
+							return $.t("sso.error_invalid_dgs_price_change");
 						} else if (response.errorDescription.indexOf("Invalid digital goods refund") != -1) {
-							return $.t("error_invalid_dgs_refund");
+							return $.t("sso.error_invalid_dgs_refund");
 						} else if (response.errorDescription.indexOf("Purchase does not exist yet, or already delivered") != -1) {
-							return $.t("error_purchase_not_exist_or_delivered");
+							return $.t("sso.error_purchase_not_exist_or_delivered");
 						} else if (response.errorDescription.match(/Goods.*not yet listed or already delisted/)) {
-							return $.t("error_dgs_not_listed");
+							return $.t("sso.error_dgs_not_listed");
 						} else if (response.errorDescription.match(/Delivery deadline has already expired/)) {
-							return $.t("error_dgs_delivery_deadline_expired");
+							return $.t("sso.error_dgs_delivery_deadline_expired");
 						} else if (response.errorDescription.match(/Invalid effective balance leasing:.*recipient account.*not found or no public key published/)) {
-							return $.t("error_invalid_balance_leasing_no_public_key");
+							return $.t("sso.error_invalid_balance_leasing_no_public_key");
 						} else if (response.errorDescription.indexOf("Invalid effective balance leasing") != -1) {
-							return $.t("error_invalid_balance_leasing");
+							return $.t("sso.error_invalid_balance_leasing");
 						} else if (response.errorDescription.match(/Wrong buyer for.*expected:.*/)) {
-							return $.t("error_wrong_buyer_for_alias");
+							return $.t("sso.error_wrong_buyer_for_alias");
 						} else {
 							return response.errorDescription;
 						}
@@ -1200,10 +1200,10 @@ var NRS = (function (NRS, $, undefined) {
 			case 1:
 				switch (response.errorDescription) {
 					case "This request is only accepted using POST!":
-						return $.t("error_post_only");
+						return $.t("sso.error_post_only");
 						break;
 					case "Incorrect request":
-						return $.t("error_incorrect_request");
+						return $.t("sso.error_incorrect_request");
 						break;
 					default:
 						return response.errorDescription;
@@ -1216,7 +1216,7 @@ var NRS = (function (NRS, $, undefined) {
 			case 3:
                 match = response.errorDescription.match(/"([^"]+)" not specified/i);
 				if (match && match[1]) {
-					return $.t("error_not_specified", {
+					return $.t("sso.error_not_specified", {
 						"name": NRS.getTranslatedFieldName(match[1]).toLowerCase()
 					}).capitalize();
 				}
@@ -1231,7 +1231,7 @@ var NRS = (function (NRS, $, undefined) {
 
                     var translatedFieldNamesJoined = translatedFieldNames.join(", ");
 
-                    return $.t("error_not_specified", {
+                    return $.t("sso.error_not_specified", {
                         "names": translatedFieldNamesJoined,
                         "count": translatedFieldNames.length
                     }).capitalize();
@@ -1242,7 +1242,7 @@ var NRS = (function (NRS, $, undefined) {
             case 4:
                 match = response.errorDescription.match(/Incorrect "(.*)"(.*)/i);
 				if (match && match[1] && match[2]) {
-                    return $.t("error_incorrect_name", {
+                    return $.t("sso.error_incorrect_name", {
 						"name": NRS.getTranslatedFieldName(match[1]).toLowerCase(),
                         "reason": match[2]
 					}).capitalize();
@@ -1253,13 +1253,13 @@ var NRS = (function (NRS, $, undefined) {
 			case 5:
                 match = response.errorDescription.match(/Unknown (.*)/i);
 				if (match && match[1]) {
-					return $.t("error_unknown_name", {
+					return $.t("sso.error_unknown_name", {
 						"name": NRS.getTranslatedFieldName(match[1]).toLowerCase()
 					}).capitalize();
 				}
 
 				if (response.errorDescription == "Account is not forging") {
-					return $.t("error_not_forging");
+					return $.t("sso.error_not_forging");
 				} else {
 					return response.errorDescription;
 				}
@@ -1267,10 +1267,10 @@ var NRS = (function (NRS, $, undefined) {
 			case 6:
 				switch (response.errorDescription) {
 					case "Not enough assets":
-						return $.t("error_not_enough_assets");
+						return $.t("sso.error_not_enough_assets");
 						break;
 					case "Not enough funds":
-						return $.t("error_not_enough_funds");
+						return $.t("sso.error_not_enough_funds");
 						break;
 					default:
 						return response.errorDescription;
@@ -1279,7 +1279,7 @@ var NRS = (function (NRS, $, undefined) {
 				break;
 			case 7:
 				if (response.errorDescription == "Not allowed") {
-					return $.t("error_not_allowed");
+					return $.t("sso.error_not_allowed");
 				} else {
 					return response.errorDescription;
 				}
@@ -1287,24 +1287,24 @@ var NRS = (function (NRS, $, undefined) {
 			case 8:
 				switch (response.errorDescription) {
 					case "Goods have not been delivered yet":
-						return $.t("error_goods_not_delivered_yet");
+						return $.t("sso.error_goods_not_delivered_yet");
 						break;
 					case "Feedback already sent":
-						return $.t("error_feedback_already_sent");
+						return $.t("sso.error_feedback_already_sent");
 						break;
 					case "Refund already sent":
-						return $.t("error_refund_already_sent");
+						return $.t("sso.error_refund_already_sent");
 						break;
 					case "Purchase already delivered":
-						return $.t("error_purchase_already_delivered");
+						return $.t("sso.error_purchase_already_delivered");
 						break;
 					case "Decryption failed":
-						return $.t("error_decryption_failed");
+						return $.t("sso.error_decryption_failed");
 						break;
 					case "No attached message found":
-						return $.t("error_no_attached_message");
+						return $.t("sso.error_no_attached_message");
 					case "recipient account does not have public key":
-						return $.t("error_recipient_no_public_key");
+						return $.t("sso.error_recipient_no_public_key");
 					default:
 						return response.errorDescription;
 						break;
@@ -1312,7 +1312,7 @@ var NRS = (function (NRS, $, undefined) {
 				break;
 			case 9:
 				if (response.errorDescription == "Feature not available") {
-					return $.t("error_feature_not_available");
+					return $.t("sso.error_feature_not_available");
 				} else {
 					return response.errorDescription;
 				}
@@ -1358,7 +1358,7 @@ var NRS = (function (NRS, $, undefined) {
         } else {
             // do not allow period
             if (charCode == 110 || charCode == 190 || charCode == 188) {
-                $.growl($.t("error_fractions"), {
+                $.growl($.t("sso.error_fractions"), {
                     "type": "danger"
                 });
                 e.preventDefault();
@@ -1379,7 +1379,7 @@ var NRS = (function (NRS, $, undefined) {
             var selectedText = NRS.getSelectedText();
 
             if (selectedText != val) {
-                var errorMessage = $.t("error_decimals", {
+                var errorMessage = $.t("sso.error_decimals", {
                     "count": maxFractionLength
                 });
                 $.growl(errorMessage, {
@@ -1397,7 +1397,7 @@ var NRS = (function (NRS, $, undefined) {
         } else {
             // comma
             if (charCode == 188) {
-                $.growl($.t("error_comma_not_allowed"), {
+                $.growl($.t("sso.error_comma_not_allowed"), {
                     "type": "danger"
                 });
             }
@@ -1420,13 +1420,13 @@ var NRS = (function (NRS, $, undefined) {
     NRS.getTransactionStatusIcon = function (phasedEntity) {
         var statusIcon;
         if (phasedEntity.expectedCancellation == true) {
-            statusIcon = "<i class='fa fa-ban' title='" + $.t("cancelled") + "'></i>";
+            statusIcon = "<i class='fa fa-ban' title='" + $.t("sso.cancelled") + "'></i>";
         } else if (phasedEntity.phased == true) {
-            statusIcon = "<i class='fa fa-gavel' title='" + $.t("phased") + "'></i>";
+            statusIcon = "<i class='fa fa-gavel' title='" + $.t("sso.phased") + "'></i>";
         } else if (phasedEntity.phased == false) {
-            statusIcon = "<i class='fa fa-circle-o' title='" + $.t("unconfirmed") + "'></i>";
+            statusIcon = "<i class='fa fa-circle-o' title='" + $.t("sso.unconfirmed") + "'></i>";
         } else {
-            statusIcon = "<i class='fa fa-circle' title='" + $.t("confirmed") + "'></i>";
+            statusIcon = "<i class='fa fa-circle' title='" + $.t("sso.confirmed") + "'></i>";
         }
         return statusIcon;
     };

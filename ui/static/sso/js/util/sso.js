@@ -206,7 +206,7 @@ var Sso = (function (NRS, $, undefined) {
             initImpl();
             mobileHide();
         }).catch(function () {
-            var msg = $.t("cannot_find_remote_nodes");
+            var msg = $.t("sso.cannot_find_remote_nodes");
             NRS.logConsole(msg);
             $.growl(msg);
             var loadConstantsPromise = new Promise(function (resolve) {
@@ -499,7 +499,7 @@ var Sso = (function (NRS, $, undefined) {
             NRS.logConsole("Text:" + e.text);
             NRS.logConsole("Trigger:" + e.trigger);
 
-            $.growl($.t("success_clipboard_copy"), {
+            $.growl($.t("sso.success_clipboard_copy"), {
                 "type": "success"
             });
 
@@ -611,7 +611,7 @@ var Sso = (function (NRS, $, undefined) {
 
     NRS.connectionError = function (errorDescription) {
         NRS.serverConnect = false;
-        var msg = $.t("error_server_connect", {url: NRS.getRequestPath()}) +
+        var msg = $.t("sso.error_server_connect", {url: NRS.getRequestPath()}) +
             (errorDescription ? " " + NRS.escapeRespStr(errorDescription) : "");
         $.growl(msg, {
             "type": "danger",
@@ -632,14 +632,14 @@ var Sso = (function (NRS, $, undefined) {
             } else {
                 var clientOptionsLink = $("#header_client_options_link");
                 if (NRS.isMobileApp()) {
-                    clientOptionsLink.html($.t("mobile_client"));
+                    clientOptionsLink.html($.t("sso.mobile_client"));
                 }
                 if (response.apiProxy) {
                     if (!NRS.isMobileApp()) {
                         if (response.isLightClient) {
-                            clientOptionsLink.html($.t("light_client"));
+                            clientOptionsLink.html($.t("sso.light_client"));
                         } else {
-                            clientOptionsLink.html($.t("roaming_client"));
+                            clientOptionsLink.html($.t("sso.roaming_client"));
                         }
                     }
                     NRS.sendRequest("getBlocks", {
@@ -852,7 +852,7 @@ var Sso = (function (NRS, $, undefined) {
         var nextHTML = "<span style=\"display:inline-block;width:48px;text-align:left;\">";
 
         if (NRS.pageNumber > 1) {
-            prevHTML += "<a href='#' data-page='" + (NRS.pageNumber - 1) + "' title='" + $.t("previous") + "' style='font-size:20px;'>";
+            prevHTML += "<a href='#' data-page='" + (NRS.pageNumber - 1) + "' title='" + $.t("sso.previous") + "' style='font-size:20px;'>";
             prevHTML += "<i class='fa fa-arrow-circle-left'></i></a>";
         } else {
             prevHTML += "&nbsp;";
@@ -860,7 +860,7 @@ var Sso = (function (NRS, $, undefined) {
 
         if (NRS.hasMorePages) {
             currentHTML += currentStartNr + "-" + currentEndNr + "&nbsp;";
-            nextHTML += "<a href='#' data-page='" + (NRS.pageNumber + 1) + "' title='" + $.t("next") + "' style='font-size:20px;'>";
+            nextHTML += "<a href='#' data-page='" + (NRS.pageNumber + 1) + "' title='" + $.t("sso.next") + "' style='font-size:20px;'>";
             nextHTML += "<i class='fa fa-arrow-circle-right'></i></a>";
         } else {
             if (NRS.pageNumber > 1) {
@@ -945,7 +945,7 @@ var Sso = (function (NRS, $, undefined) {
             if (NRS.pages[page]) {
                 NRS.goToPage(page);
             } else {
-                $.growl($.t("page") + " " + page + " " + $.t("does_not_exist"), {
+                $.growl($.t("sso.page") + " " + page + " " + $.t("sso.does_not_exist"), {
                     "type": "danger",
                     "offset": 50
                 });
@@ -979,7 +979,7 @@ var Sso = (function (NRS, $, undefined) {
                             var isChecked = false;
                             if (value != "true" && value != "false") {
                                 isValidParams = false;
-                                $.growl($.t("value") + " " + value + " " + $.t("must_be_true_or_false") + " " + $.t("for") + " " + key, {
+                                $.growl($.t("sso.value") + " " + value + " " + $.t("sso.must_be_true_or_false") + " " + $.t("sso.for") + " " + key, {
                                     "type": "danger",
                                     "offset": 50
                                 });
@@ -1008,7 +1008,7 @@ var Sso = (function (NRS, $, undefined) {
                     a.click();
                 }
             } else {
-                $.growl($.t("modal") + " " + modalId + " " + $.t("does_not_exist"), {
+                $.growl($.t("sso.modal") + " " + modalId + " " + $.t("sso.does_not_exist"), {
                     "type": "danger",
                     "offset": 50
                 });
@@ -1206,12 +1206,12 @@ var Sso = (function (NRS, $, undefined) {
             if (response.peers && response.peers.length) {
                 NRS.peerConnect = true;
                 connectedIndicator.addClass("connected");
-                connectedIndicator.find("span").html($.t("Connected")).attr("data-i18n", "connected");
+                connectedIndicator.find("span").html($.t("Connected")).attr("data-i18n", "sso.connected");
                 connectedIndicator.show();
             } else {
                 NRS.peerConnect = false;
                 connectedIndicator.removeClass("connected");
-                connectedIndicator.find("span").html($.t("Not Connected")).attr("data-i18n", "not_connected");
+                connectedIndicator.find("span").html($.t("Not Connected")).attr("data-i18n", "sso.not_connected");
                 connectedIndicator.show();
             }
         });
@@ -1440,7 +1440,7 @@ var Sso = (function (NRS, $, undefined) {
                 if (response.name) {
                     $("#account_name").html(NRS.addEllipsis(NRS.escapeRespStr(response.name), 17)).removeAttr("data-i18n");
                 } else {
-                    $("#account_name").html($.t("set_account_info"));
+                    $("#account_name").html($.t("sso.set_account_info"));
                 }
             }
 
@@ -1459,7 +1459,7 @@ var Sso = (function (NRS, $, undefined) {
             if (NRS.accountInfo.errorCode == 5) {
                 if (NRS.downloadingBlockchain && !(NRS.state && NRS.state.apiProxy) && !NRS.state.isLightClient) {
                     if (NRS.newlyCreatedAccount) {
-                        $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html($.t("status_new_account", {
+                        $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html($.t("sso.status_new_account", {
                                 "account_id": NRS.escapeRespStr(NRS.accountRS),
                                 "public_key": NRS.escapeRespStr(NRS.publicKey)
                             }) + "<br/><br/>" + NRS.blockchainDownloadingMessage() +
@@ -1468,18 +1468,18 @@ var Sso = (function (NRS, $, undefined) {
                         $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html(NRS.blockchainDownloadingMessage()).show();
                     }
                 } else if (NRS.state && NRS.state.isScanning) {
-                    $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html($.t("status_blockchain_rescanning")).show();
+                    $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html($.t("sso.status_blockchain_rescanning")).show();
                 } else {
                     var message;
                     if (NRS.publicKey == "") {
-                        message = $.t("status_new_account_no_pk_v2", {
+                        message = $.t("sso.status_new_account_no_pk_v2", {
                             "account_id": NRS.escapeRespStr(NRS.accountRS)
                         });
                         if (NRS.downloadingBlockchain) {
                             message += "<br/><br/>" + NRS.blockchainDownloadingMessage();
                         }
                     } else {
-                        message = $.t("status_new_account", {
+                        message = $.t("sso.status_new_account", {
                             "account_id": NRS.escapeRespStr(NRS.accountRS),
                             "public_key": NRS.escapeRespStr(NRS.publicKey)
                         });
@@ -1491,16 +1491,16 @@ var Sso = (function (NRS, $, undefined) {
                     $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html(message).show();
                 }
             } else {
-                $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html(NRS.accountInfo.errorDescription ? NRS.escapeRespStr(NRS.accountInfo.errorDescription) : $.t("error_unknown")).show();
+                $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html(NRS.accountInfo.errorDescription ? NRS.escapeRespStr(NRS.accountInfo.errorDescription) : $.t("sso.error_unknown")).show();
             }
         } else {
             if (NRS.downloadingBlockchain) {
                 $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html(NRS.blockchainDownloadingMessage()).show();
             } else if (NRS.state && NRS.state.isScanning) {
-                $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html($.t("status_blockchain_rescanning")).show();
+                $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html($.t("sso.status_blockchain_rescanning")).show();
             } else if (!NRS.accountInfo.publicKey) {
-                var warning = NRS.publicKey != "undefined" ? $.t("public_key_not_announced_warning", {"public_key": NRS.publicKey}) : $.t("no_public_key_warning");
-                $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html(warning + " " + $.t("public_key_actions")).show();
+                var warning = NRS.publicKey != "undefined" ? $.t("sso.public_key_not_announced_warning", {"public_key": NRS.publicKey}) : $.t("sso.no_public_key_warning");
+                $("#dashboard_message").addClass("alert-danger").removeClass("alert-success").html(warning + " " + $.t("sso.public_key_actions")).show();
             } else if (NRS.state.isLightClient) {
                 $("#dashboard_message").addClass("alert-success").removeClass("alert-danger").html(NRS.blockchainDownloadingMessage()).show();
             } else {
@@ -1514,7 +1514,7 @@ var Sso = (function (NRS, $, undefined) {
         var accountLeasingStatus = "";
         var nextLesseeStatus = "";
         if (NRS.accountInfo.nextLeasingHeightFrom < NRS.constants.MAX_INT_JAVA) {
-            nextLesseeStatus = $.t("next_lessee_status", {
+            nextLesseeStatus = $.t("sso.next_lessee_status", {
                 "start": NRS.escapeRespStr(NRS.accountInfo.nextLeasingHeightFrom),
                 "end": NRS.escapeRespStr(NRS.accountInfo.nextLeasingHeightTo),
                 "account": String(NRS.convertNumericToRSAccountFormat(NRS.accountInfo.nextLessee)).escapeHTML()
@@ -1522,25 +1522,25 @@ var Sso = (function (NRS, $, undefined) {
         }
 
         if (NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom) {
-            accountLeasingLabel = $.t("leased_out");
-            accountLeasingStatus = $.t("balance_is_leased_out", {
+            accountLeasingLabel = $.t("sso.leased_out");
+            accountLeasingStatus = $.t("sso.balance_is_leased_out", {
                 "blocks": String(NRS.accountInfo.currentLeasingHeightTo - NRS.lastBlockHeight).escapeHTML(),
                 "end": NRS.escapeRespStr(NRS.accountInfo.currentLeasingHeightTo),
                 "account": NRS.escapeRespStr(NRS.accountInfo.currentLesseeRS)
             });
-            $("#lease_balance_message").html($.t("balance_leased_out_help"));
+            $("#lease_balance_message").html($.t("sso.balance_leased_out_help"));
         } else if (NRS.lastBlockHeight < NRS.accountInfo.currentLeasingHeightTo) {
-            accountLeasingLabel = $.t("leased_soon");
-            accountLeasingStatus = $.t("balance_will_be_leased_out", {
+            accountLeasingLabel = $.t("sso.leased_soon");
+            accountLeasingStatus = $.t("sso.balance_will_be_leased_out", {
                 "blocks": String(NRS.accountInfo.currentLeasingHeightFrom - NRS.lastBlockHeight).escapeHTML(),
                 "start": NRS.escapeRespStr(NRS.accountInfo.currentLeasingHeightFrom),
                 "end": NRS.escapeRespStr(NRS.accountInfo.currentLeasingHeightTo),
                 "account": NRS.escapeRespStr(NRS.accountInfo.currentLesseeRS)
             });
-            $("#lease_balance_message").html($.t("balance_leased_out_help"));
+            $("#lease_balance_message").html($.t("sso.balance_leased_out_help"));
         } else {
             accountLeasingStatus = $.t("balance_not_leased_out");
-            $("#lease_balance_message").html($.t("balance_leasing_help"));
+            $("#lease_balance_message").html($.t("sso.balance_leasing_help"));
         }
         if (nextLesseeStatus != "") {
             accountLeasingStatus += "<br>" + nextLesseeStatus;
@@ -1554,10 +1554,10 @@ var Sso = (function (NRS, $, undefined) {
                 accountLeasingStatus += "<br /><br />";
             }
 
-            accountLeasingLabel += $.t("x_lessor", {
+            accountLeasingLabel += $.t("sso.x_lessor", {
                 "count": NRS.accountInfo.lessors.length
             });
-            accountLeasingStatus += $.t("x_lessor_lease", {
+            accountLeasingStatus += $.t("sso.x_lessor_lease", {
                 "count": NRS.accountInfo.lessors.length
             });
 
@@ -1717,13 +1717,13 @@ var Sso = (function (NRS, $, undefined) {
 
                         if (quantity != "0") {
                             if (parseInt(quantity) == 1) {
-                                $.growl($.t("you_received_assets", {
+                                $.growl($.t("sso.you_received_assets", {
                                     "name": NRS.escapeRespStr(asset.name)
                                 }), {
                                     "type": "success"
                                 });
                             } else {
-                                $.growl($.t("you_received_assets_plural", {
+                                $.growl($.t("sso.you_received_assets_plural", {
                                     "name": NRS.escapeRespStr(asset.name),
                                     "count": quantity
                                 }), {
@@ -1737,13 +1737,13 @@ var Sso = (function (NRS, $, undefined) {
                         quantity = NRS.formatQuantity(asset.difference, asset.decimals);
                         if (quantity != "0") {
                             if (parseInt(quantity) == 1) {
-                                $.growl($.t("you_sold_assets", {
+                                $.growl($.t("sso.you_sold_assets", {
                                     "name": NRS.escapeRespStr(asset.name)
                                 }), {
                                     "type": "success"
                                 });
                             } else {
-                                $.growl($.t("you_sold_assets_plural", {
+                                $.growl($.t("sso.you_sold_assets_plural", {
                                     "name": NRS.escapeRespStr(asset.name),
                                     "count": quantity
                                 }), {
@@ -1756,7 +1756,7 @@ var Sso = (function (NRS, $, undefined) {
                 });
             }
         } else {
-            $.growl($.t("multiple_assets_differences"), {
+            $.growl($.t("sso.multiple_assets_differences"), {
                 "type": "success"
             });
         }
@@ -1766,7 +1766,7 @@ var Sso = (function (NRS, $, undefined) {
         debug("Check block chain download progess....");
         var lastNumBlocks = 5000;
         var downloadingBlockchain = $("#downloading_blockchain");
-        downloadingBlockchain.find(".last_num_blocks").html($.t("last_num_blocks", {"blocks": lastNumBlocks}));
+        downloadingBlockchain.find(".last_num_blocks").html($.t("sso.last_num_blocks", {"blocks": lastNumBlocks}));
 
         debug("NRS.state.isLightClient=" + NRS.state.isLightClient + ",NRS.serverConnect=" + NRS.serverConnect + ",NRS.peerConnect=" + NRS.peerConnect);
         if (NRS.state.isLightClient) {
@@ -1797,7 +1797,7 @@ var Sso = (function (NRS, $, undefined) {
             } else {
                 downloadingBlockchain.find(".db_progress_total").show();
                 downloadingBlockchain.find(".db_progress_total .progress-bar").css("width", percentageTotal + "%");
-                downloadingBlockchain.find(".db_progress_total .sr-only").html($.t("percent_complete", {
+                downloadingBlockchain.find(".db_progress_total .sr-only").html($.t("sso.percent_complete", {
                     "percent": percentageTotal
                 }));
             }
@@ -1806,13 +1806,13 @@ var Sso = (function (NRS, $, undefined) {
             } else {
                 downloadingBlockchain.find(".db_progress_last").show();
                 downloadingBlockchain.find(".db_progress_last .progress-bar").css("width", percentageLast + "%");
-                downloadingBlockchain.find(".db_progress_last .sr-only").html($.t("percent_complete", {
+                downloadingBlockchain.find(".db_progress_last .sr-only").html($.t("sso.percent_complete", {
                     "percent": percentageLast
                 }));
             }
             if (blocksLeft) {
                 downloadingBlockchain.find(".blocks_left_outer").show();
-                downloadingBlockchain.find(".blocks_left").html($.t("blocks_left", {"numBlocks": blocksLeft}));
+                downloadingBlockchain.find(".blocks_left").html($.t("sso.blocks_left", {"numBlocks": blocksLeft}));
             }
         }
     };
@@ -1832,14 +1832,14 @@ var Sso = (function (NRS, $, undefined) {
             }
 
             if (isForgingAllBlocks) {
-                $.growl($.t("fork_warning"), {
+                $.growl($.t("sso.fork_warning"), {
                     "type": "danger"
                 });
             }
 
             // FIXME[xy]测试网络暂时不进行分叉警告
             if (NRS.blocks && NRS.blocks.length > 0 && NRS.baseTargetPercent(NRS.blocks[0]) > 1000 && !NRS.isTestNet) {
-                $.growl($.t("fork_warning_base_target"), {
+                $.growl($.t("sso.fork_warning_base_target"), {
                     "type": "danger"
                 });
             }
@@ -1882,14 +1882,14 @@ var Sso = (function (NRS, $, undefined) {
                     response.account = input.account;
                     NRS.showAccountModal(response);
                 } else {
-                    $.growl($.t("error_search_no_results"), {
+                    $.growl($.t("sso.error_search_no_results"), {
                         "type": "danger"
                     });
                 }
             });
         } else {
             if (!/^\d+$/.test(id)) {
-                $.growl($.t("error_search_invalid"), {
+                $.growl($.t("sso.error_search_invalid"), {
                     "type": "danger"
                 });
                 return;
@@ -1916,7 +1916,7 @@ var Sso = (function (NRS, $, undefined) {
                                     response.block = input.block;
                                     NRS.showBlockModal(response);
                                 } else {
-                                    $.growl($.t("error_search_no_results"), {
+                                    $.growl($.t("sso.error_search_no_results"), {
                                         "type": "danger"
                                     });
                                 }
