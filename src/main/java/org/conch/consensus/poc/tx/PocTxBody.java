@@ -1,7 +1,6 @@
 package org.conch.consensus.poc.tx;
 
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
-import org.conch.consensus.poc.hardware.DeviceInfo;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.mint.pool.PoolRule;
 import org.conch.peer.Peer;
@@ -204,7 +203,6 @@ public abstract class PocTxBody  {
         private final String ip;
         private final String port;
         private SystemInfo systemInfo;
-        private DeviceInfo deviceInfo;
 
         public String getIp() {
             return ip;
@@ -218,15 +216,10 @@ public abstract class PocTxBody  {
             return systemInfo;
         }
 
-        public DeviceInfo getDeviceInfo() {
-            return deviceInfo;
-        }
-
-        public PocNodeConf(String ip, String port, SystemInfo systemInfo, DeviceInfo deviceInfo) {
+        public PocNodeConf(String ip, String port, SystemInfo systemInfo) {
             this.ip = ip;
             this.port = port;
             this.systemInfo = systemInfo;
-            this.deviceInfo = deviceInfo;
         }
 
         public PocNodeConf(ByteBuffer buffer, byte transactionVersion) {
@@ -243,11 +236,6 @@ public abstract class PocTxBody  {
                 } else {
                     this.systemInfo = null;
                 }
-                if (obj instanceof DeviceInfo) {
-                    this.deviceInfo = (DeviceInfo) obj;
-                } else {
-                    this.deviceInfo = null;
-                }
                 bais.close();
                 ois.close();
             } catch (IOException | ClassNotFoundException e) {
@@ -260,7 +248,6 @@ public abstract class PocTxBody  {
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
-            this.deviceInfo = (DeviceInfo) attachmentData.get("deviceInfo");
         }
 
         @Override
@@ -282,8 +269,7 @@ public abstract class PocTxBody  {
         public int getMySize() {
             return ip.getBytes().length
               + port.getBytes().length
-              + _readByteSize(systemInfo)
-              + _readByteSize(deviceInfo);
+              + _readByteSize(systemInfo);
         }
 
         @Override
@@ -292,7 +278,6 @@ public abstract class PocTxBody  {
             buffer.put(port.getBytes());
 
             _putByteSize(buffer, systemInfo);
-            _putByteSize(buffer, deviceInfo);
         }
 
         @Override
@@ -300,7 +285,6 @@ public abstract class PocTxBody  {
             attachment.put("ip", ip);
             attachment.put("port", port);
             attachment.put("systemInfo", systemInfo);
-            attachment.put("deviceInfo", deviceInfo);
         }
 
         @Override
