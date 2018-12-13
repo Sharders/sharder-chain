@@ -27,6 +27,14 @@ public abstract class PocTxBody  {
         private String ip;
         private Peer.Type type;
 
+        public String getIp() {
+            return ip;
+        }
+
+        public Peer.Type getType() {
+            return type;
+        }
+
         public PocNodeType(
             String ip,
             Peer.Type type) {

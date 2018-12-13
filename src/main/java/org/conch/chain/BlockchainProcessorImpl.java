@@ -1909,6 +1909,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             payloadLength += transaction.getFullSize();
             digest.update(transaction.bytes());
+
+            autoExtensionAppend(block,transaction);
+            
         }
         if (calculatedTotalAmount != block.getTotalAmountNQT()
                 || calculatedTotalFee != block.getTotalFeeNQT()) {
@@ -1931,6 +1934,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (coinBaseNum != 1) {
             throw new BlockNotAcceptedException(
                     "The number of CoinBase transaction doesn't match", block);
+        }
+    }
+    
+    private void autoExtensionAppend(BlockImpl block,TransactionImpl transaction ){
+        //auto extension process for isPoc and isPool
+        if(TransactionType.TYPE_POC == transaction.getType().getType()) {
+            block.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POC,true);
+        }
+
+        if(TransactionType.TYPE_SHARDER_POOL == transaction.getType().getType()){
+            block.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POOL,true);
         }
     }
 
@@ -2400,7 +2414,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Logger.logErrorMessage(
                     "Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
         }
-
+        
         for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
             blockTransactions.add(transaction);

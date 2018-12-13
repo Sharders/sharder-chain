@@ -66,11 +66,11 @@ public abstract class TransactionType {
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
     public static final byte TYPE_MONETARY_SYSTEM = 5;
-    static final byte TYPE_DATA = 6;
+    public static final byte TYPE_DATA = 6;
     protected static final byte TYPE_SHUFFLING = 7;
-    static final byte TYPE_SHARDER_POOL = 8;
-    static final byte TYPE_COIN_BASE = 9;
-    static final byte TYPE_CONTRACT = 10;
+    public static final byte TYPE_SHARDER_POOL = 8;
+    public static final byte TYPE_COIN_BASE = 9;
+    public static final byte TYPE_CONTRACT = 10;
     public static final byte TYPE_STORAGE = 11;
     public static final byte TYPE_POC = 12;
 
