@@ -2,6 +2,9 @@ package org.conch.consensus.poc.hardware;
 
 import org.conch.util.SendHttpRequest;
 import org.hyperic.sigar.*;
+import sun.net.util.IPAddressUtil;
+
+import java.util.Arrays;
 
 /**
  * @ClassName GetNodeHardware
@@ -72,6 +75,65 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
+    private static boolean externalIp(String ip) {
+        byte[] addr = IPAddressUtil.textToNumericFormatV4(ip);
+        final byte b0 = addr[0];
+        final byte b1 = addr[1];
+        //10.x.x.x/8
+        final byte section1 = 0x0A;
+        //172.16.x.x/12
+        final byte section2 = (byte) 0xAC;
+        final byte section3 = (byte) 0x10;
+        final byte section4 = (byte) 0x1F;
+        //192.168.x.x/16
+        final byte section5 = (byte) 0xC0;
+        final byte section6 = (byte) 0xA8;
+        switch (b0) {
+        case section1:
+            return false;
+        case section2:
+            if (b1 >= section3 && b1 <= section4) {
+                return false;
+            }
+        case section5:
+            switch (b1) {
+            case section6:
+                return false;
+            }
+        default:
+            return true;
+        }
+    }
+
+    public static SystemInfo network(SystemInfo systemInfo) throws Exception {
+        Sigar sigar = new Sigar();
+
+        String[] ipExcept = new String[]{"127.0.0.1", "0.0.0.0"};
+
+        String[] netInterfaceList = sigar.getNetInterfaceList();
+
+        Long bandWidth = 0L;
+
+        Boolean hadPublicIp = false;
+
+        // 获取网络流量信息
+        for (int i = 0; i < netInterfaceList.length; i++) {
+            String netInterface = netInterfaceList[i];// 网络接口
+            NetInterfaceConfig netInterfaceConfig = sigar.getNetInterfaceConfig(netInterface);
+            if (Arrays.asList(ipExcept).contains(netInterfaceConfig.getAddress()) || (netInterfaceConfig.getFlags() & 1L) <= 0L) {
+                continue;
+            }
+            NetInterfaceStat netInterfaceStat = sigar.getNetInterfaceStat(netInterface);
+            bandWidth = netInterfaceStat.getSpeed() / 1000000L / 8;
+            hadPublicIp = externalIp(netInterfaceConfig.getAddress());
+            break;
+        }
+        sigar.close();
+        systemInfo.setBandWidth(bandWidth.intValue());
+        systemInfo.setHadPublicIp(hadPublicIp);
+        return systemInfo;
+    }
+
     public static final String SYSTEM_INFO_REPORT_URL = "http://192.168.31.5:8080/bounties/SC/report";
     public static void readAndPush(){
         //提交系统配置信息
@@ -80,6 +142,7 @@ public class GetNodeHardware {
             cpu(systemInfo);
             memory(systemInfo);
             file(systemInfo);
+            network(systemInfo);
             System.out.println(systemInfo.toString());
             SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
 //            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));
