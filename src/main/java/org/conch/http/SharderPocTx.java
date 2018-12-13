@@ -1,16 +1,16 @@
 package org.conch.http;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.tx.PocTxBody;
-import org.conch.mint.pool.PoolRule;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.Map;
 
 /**********************************************************************************
@@ -83,22 +83,51 @@ public abstract class SharderPocTx {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
-            JSONObject score = null;
+            Map<String, Object> scoreMap = null;
+            Map<String, BigInteger> weightMap = null;
             try {
-                score = (JSONObject) (new JSONParser().parse(request.getParameter("score")));
+                scoreMap = (Map<String, Object>) JSONObject.parse(request.getParameter("score"));
+                weightMap = (Map<String, BigInteger>) JSONObject.parse(request.getParameter("weight"));
             } catch (Exception e) {
                 Logger.logErrorMessage("cant obtain score when create score template");
             }
-            Map<String, Object> scoreMap = PoolRule.jsonObjectToMap(score);
-            JSONObject weight = null;
-            try {
-                weight = (JSONObject) (new JSONParser().parse(request.getParameter("weight")));
-            } catch (Exception e) {
-                Logger.logErrorMessage("cant obtain weight when create weight template");
+            if (scoreMap != null && weightMap != null) {
+                Map<Integer, BigInteger> nodeTypeTemplate = new HashMap<>();
+                Map<Integer, BigInteger> serverOpenTemplate = new HashMap<>();
+                Map<Integer, BigInteger> hardwareConfigTemplate = new HashMap<>();
+                Map<Integer, BigInteger> networkConfigTemplate = new HashMap<>();
+                Map<Integer, BigInteger> txHandlePerformanceTemplate = new HashMap<>();
+                Map<Integer, BigInteger> onlineRateTemplate = new HashMap<>();
+                Map<Integer, BigInteger> blockingMissTemplate = new HashMap<>();
+                Map<Integer, BigInteger> bocSpeedTemplate = new HashMap<>();
+                if (weightMap.containsKey(PocTxBody.WeightTableOptions.NODE.getOptionValue()) && scoreMap.containsKey(PocTxBody.WeightTableOptions.NODE.getOptionValue())) {
+                    nodeTypeTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.NODE.getOptionValue());
+                }
+                if (weightMap.containsKey(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()) && scoreMap.containsKey(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue())) {
+                    serverOpenTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue());
+                }
+                if (weightMap.containsKey(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()) && scoreMap.containsKey(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue())) {
+                    hardwareConfigTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue());
+                }
+                if (weightMap.containsKey(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()) && scoreMap.containsKey(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue())) {
+                    networkConfigTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue());
+                }
+                if (weightMap.containsKey(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()) && scoreMap.containsKey(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue())) {
+                    txHandlePerformanceTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue());
+                }
+                if (scoreMap.containsKey(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue())) {
+                    onlineRateTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue());
+                }
+                if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BLOCKING_MISS.getOptionValue())) {
+                    blockingMissTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BLOCKING_MISS.getOptionValue());
+                }
+                if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue())) {
+                    bocSpeedTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue());
+                }
+                Attachment attachment = new PocTxBody.PocWeightTable(weightMap, nodeTypeTemplate, serverOpenTemplate, hardwareConfigTemplate, networkConfigTemplate, txHandlePerformanceTemplate, onlineRateTemplate, blockingMissTemplate, bocSpeedTemplate);
+                return createTransaction(request, account, 0, 0, attachment);
             }
-            Map<String, Object> weightMap = PoolRule.jsonObjectToMap(weight);
-            Attachment attachment = new PocTxBody.PocWeightTable(scoreMap, weightMap);
-            return createTransaction(request, account, 0, 0, attachment);
+            return null;
         }
     }
 

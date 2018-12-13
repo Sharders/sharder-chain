@@ -22,15 +22,6 @@ public class PocCaculator {
     // POC分数ss持有权重百分比， 先不算百分之，后面加完了统一除
     private static final BigInteger SS_HOLD_PERCENT = BigInteger.valueOf(40L);
 
-    // POC分数节点类型权重百分比， 先不算百分之，后面加完了统一除
-    private static final BigInteger NODE_TYPE_PERCENT = BigInteger.valueOf(25L);
-    // POC节点分数
-    private static final BigInteger NODE_TYPE_FOUNDATION_SCORE = BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NODE_TYPE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NODE_TYPE_COMMUNITY_SCORE = BigInteger.valueOf(8L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NODE_TYPE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NODE_TYPE_HUB_SCORE = BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NODE_TYPE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NODE_TYPE_BOX_SCORE = BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NODE_TYPE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NODE_TYPE_COMMON_SCORE = BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NODE_TYPE_PERCENT).divide(PERCENT_DIVISOR);
-
     // POC分数服务开启权重百分比， 先不算百分之，后面加完了统一除
     private static final BigInteger SERVER_OPEN_PERCENT = BigInteger.valueOf(20L);
     // POC开启服务分数
@@ -351,15 +342,15 @@ public class PocCaculator {
 
     private static BigInteger nodeTypeCal(PocTxBody.PocNodeType nodeType){
         if (nodeType.getType().equals(Peer.Type.OFFICIAL)) {
-
+            return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.OFFICIAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
-
+            return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.HUB)) {
-
+            return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.BOX)) {
-
+            return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
-
+            return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
         }
         return BigInteger.ZERO;
     }
