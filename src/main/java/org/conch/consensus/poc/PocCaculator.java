@@ -19,63 +19,82 @@ public class PocCaculator {
     // 百分之除数，在算总分完成后需要除以这个数才是最终分数
     private static final BigInteger PERCENT_DIVISOR = BigInteger.valueOf(100L);
 
-    // POC分数ss持有权重百分比， 先不算百分之，后面加完了统一除
-    private static final BigInteger SS_HOLD_PERCENT = BigInteger.valueOf(40L);
+  /**
+   * // POC分数ss持有权重百分比， 先不算百分之，后面加完了统一除 private static final BigInteger SS_HOLD_PERCENT =
+   * BigInteger.valueOf(40L);
+   *
+   * <p>// POC分数服务开启权重百分比， 先不算百分之，后面加完了统一除 private static final BigInteger SERVER_OPEN_PERCENT =
+   * BigInteger.valueOf(20L); // POC开启服务分数 private static final BigInteger SERVER_OPEN_SCORE =
+   * BigInteger.valueOf(4L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(SERVER_OPEN_PERCENT).divide(PERCENT_DIVISOR);
+   *
+   * <p>// POC分数硬件配置权重百分比， 先不算百分之，后面加完了统一除 private static final BigInteger HARDWARE_PERCENT =
+   * BigInteger.valueOf(5L); // POC硬件配置分数 private static final BigInteger
+   * HARDWARE_CONFIGURATION_LOW_SCORE =
+   * BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(HARDWARE_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger HARDWARE_CONFIGURATION_MEDIUM_SCORE =
+   * BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(HARDWARE_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger HARDWARE_CONFIGURATION_HIGH_SCORE =
+   * BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(HARDWARE_PERCENT).divide(PERCENT_DIVISOR);
+   *
+   * <p>// POC分数网络配置权重百分比， 先不算百分之，后面加完了统一除 private static final BigInteger NETWORK_PERCENT =
+   * BigInteger.valueOf(5L); // POC网络配置分数 private static final BigInteger
+   * NETWORK_CONFIGURATION_POOR_SCORE =
+   * BigInteger.ZERO.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger NETWORK_CONFIGURATION_LOW_SCORE =
+   * BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger NETWORK_CONFIGURATION_MEDIUM_SCORE =
+   * BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger NETWORK_CONFIGURATION_HIGH_SCORE =
+   * BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
+   *
+   * <p>// POC分数交易处理性能权重百分比， 先不算百分之，后面加完了统一除 private static final BigInteger TRADE_HANDLE_PERCENT =
+   * BigInteger.valueOf(5L); // POC交易处理性能分数 private static final BigInteger TRADE_HANDLE_LOW_SCORE =
+   * BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(TRADE_HANDLE_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger TRADE_HANDLE_MEDIUM_SCORE =
+   * BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(TRADE_HANDLE_PERCENT).divide(PERCENT_DIVISOR);
+   * private static final BigInteger TRADE_HANDLE_HIGH_SCORE =
+   * BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(TRADE_HANDLE_PERCENT).divide(PERCENT_DIVISOR);
+   *
+   * <p>// POC在线时长分数 private static final BigInteger FOUNDATION_ONLINE_RATE_GREATER99_LESS9999_SCORE
+   * = BigInteger.valueOf(-2L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 基金会节点在线率大于99%小于99.99%
+   * private static final BigInteger FOUNDATION_ONLINE_RATE_GREATER97_LESS99_SCORE =
+   * BigInteger.valueOf(-5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 基金会节点在线率大于97%小于99% private
+   * static final BigInteger FOUNDATION_ONLINE_RATE_LESS97_SCORE =
+   * BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 基金会节点在线率小于97% private
+   * static final BigInteger COMMUNITY_ONLINE_RATE_GREATER97_LESS99_SCORE =
+   * BigInteger.valueOf(-2L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 社区节点在线率大于97%小于99% private
+   * static final BigInteger COMMUNITY_ONLINE_RATE_GREATER90_LESS97_SCORE =
+   * BigInteger.valueOf(-5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 社区节点在线率大于90%小于97% private
+   * static final BigInteger COMMUNITY_ONLINE_RATE_LESS90_SCORE =
+   * BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 社区节点在线率小于90% private static
+   * final BigInteger HUB_BOX_ONLINE_RATE_GREATER99_SCORE =
+   * BigInteger.valueOf(5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // HUB/BOX节点在线率大于99% private
+   * static final BigInteger HUB_BOX_ONLINE_RATE_GREATER97_SCORE =
+   * BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE); // HUB/BOX节点在线率大于97% private
+   * static final BigInteger HUB_BOX_ONLINE_RATE_LESS90_SCORE =
+   * BigInteger.valueOf(-5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // HUB/BOX节点在线率小于90% private
+   * static final BigInteger COMMON_ONLINE_RATE_GREATER97_SCORE =
+   * BigInteger.valueOf(5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 普通节点在线率大于97% private static
+   * final BigInteger COMMON_ONLINE_RATE_GREATER90_SCORE =
+   * BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 普通节点在线率大于90%
+   *
+   * <p>// POC出块错过惩罚分 private static final BigInteger BLOCKING_MISS_LOW_SCORE =
+   * BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE); private static final BigInteger
+   * BLOCKING_MISS_MEDIUM_SCORE = BigInteger.valueOf(-6L).multiply(POINT_SYSTEM_CONVERSION_RATE);
+   * private static final BigInteger BLOCKING_MISS_HIGH_SCORE =
+   * BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE);
+   *
+   * <p>// POC分叉收敛惩罚分 private static final BigInteger BIFURCATION_CONVERGENCE_SLOW_SCORE =
+   * BigInteger.valueOf(-6L).multiply(POINT_SYSTEM_CONVERSION_RATE); private static final BigInteger
+   * BIFURCATION_CONVERGENCE_MEDIUM_SCORE =
+   * BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE); private static final BigInteger
+   * BIFURCATION_CONVERGENCE_HARD_SCORE =
+   * BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
+   *
+   */
 
-    // POC分数服务开启权重百分比， 先不算百分之，后面加完了统一除
-    private static final BigInteger SERVER_OPEN_PERCENT = BigInteger.valueOf(20L);
-    // POC开启服务分数
-    private static final BigInteger SERVER_OPEN_SCORE = BigInteger.valueOf(4L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(SERVER_OPEN_PERCENT).divide(PERCENT_DIVISOR);
-
-    // POC分数硬件配置权重百分比， 先不算百分之，后面加完了统一除
-    private static final BigInteger HARDWARE_PERCENT = BigInteger.valueOf(5L);
-    // POC硬件配置分数
-    private static final BigInteger HARDWARE_CONFIGURATION_LOW_SCORE = BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(HARDWARE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger HARDWARE_CONFIGURATION_MEDIUM_SCORE = BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(HARDWARE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger HARDWARE_CONFIGURATION_HIGH_SCORE = BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(HARDWARE_PERCENT).divide(PERCENT_DIVISOR);
-
-    // POC分数网络配置权重百分比， 先不算百分之，后面加完了统一除
-    private static final BigInteger NETWORK_PERCENT = BigInteger.valueOf(5L);
-    // POC网络配置分数
-    private static final BigInteger NETWORK_CONFIGURATION_POOR_SCORE = BigInteger.ZERO.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NETWORK_CONFIGURATION_LOW_SCORE = BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NETWORK_CONFIGURATION_MEDIUM_SCORE = BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger NETWORK_CONFIGURATION_HIGH_SCORE = BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(NETWORK_PERCENT).divide(PERCENT_DIVISOR);
-
-    // POC分数交易处理性能权重百分比， 先不算百分之，后面加完了统一除
-    private static final BigInteger TRADE_HANDLE_PERCENT = BigInteger.valueOf(5L);
-    // POC交易处理性能分数
-    private static final BigInteger TRADE_HANDLE_LOW_SCORE = BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(TRADE_HANDLE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger TRADE_HANDLE_MEDIUM_SCORE = BigInteger.valueOf(6L).multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(TRADE_HANDLE_PERCENT).divide(PERCENT_DIVISOR);
-    private static final BigInteger TRADE_HANDLE_HIGH_SCORE = BigInteger.TEN.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(TRADE_HANDLE_PERCENT).divide(PERCENT_DIVISOR);
-
-    // POC在线时长分数
-    private static final BigInteger FOUNDATION_ONLINE_RATE_GREATER99_LESS9999_SCORE = BigInteger.valueOf(-2L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 基金会节点在线率大于99%小于99.99%
-    private static final BigInteger FOUNDATION_ONLINE_RATE_GREATER97_LESS99_SCORE = BigInteger.valueOf(-5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 基金会节点在线率大于97%小于99%
-    private static final BigInteger FOUNDATION_ONLINE_RATE_LESS97_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 基金会节点在线率小于97%
-    private static final BigInteger COMMUNITY_ONLINE_RATE_GREATER97_LESS99_SCORE = BigInteger.valueOf(-2L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 社区节点在线率大于97%小于99%
-    private static final BigInteger COMMUNITY_ONLINE_RATE_GREATER90_LESS97_SCORE = BigInteger.valueOf(-5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 社区节点在线率大于90%小于97%
-    private static final BigInteger COMMUNITY_ONLINE_RATE_LESS90_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 社区节点在线率小于90%
-    private static final BigInteger HUB_BOX_ONLINE_RATE_GREATER99_SCORE = BigInteger.valueOf(5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // HUB/BOX节点在线率大于99%
-    private static final BigInteger HUB_BOX_ONLINE_RATE_GREATER97_SCORE = BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE); // HUB/BOX节点在线率大于97%
-    private static final BigInteger HUB_BOX_ONLINE_RATE_LESS90_SCORE = BigInteger.valueOf(-5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // HUB/BOX节点在线率小于90%
-    private static final BigInteger COMMON_ONLINE_RATE_GREATER97_SCORE = BigInteger.valueOf(5L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 普通节点在线率大于97%
-    private static final BigInteger COMMON_ONLINE_RATE_GREATER90_SCORE = BigInteger.valueOf(3L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 普通节点在线率大于90%
-
-    // POC出块错过惩罚分
-    private static final BigInteger BLOCKING_MISS_LOW_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
-    private static final BigInteger BLOCKING_MISS_MEDIUM_SCORE = BigInteger.valueOf(-6L).multiply(POINT_SYSTEM_CONVERSION_RATE);
-    private static final BigInteger BLOCKING_MISS_HIGH_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE);
-
-    // POC分叉收敛惩罚分
-    private static final BigInteger BIFURCATION_CONVERGENCE_SLOW_SCORE = BigInteger.valueOf(-6L).multiply(POINT_SYSTEM_CONVERSION_RATE);
-    private static final BigInteger BIFURCATION_CONVERGENCE_MEDIUM_SCORE = BigInteger.valueOf(-3L).multiply(POINT_SYSTEM_CONVERSION_RATE);
-    private static final BigInteger BIFURCATION_CONVERGENCE_HARD_SCORE = BigInteger.valueOf(-10L).multiply(POINT_SYSTEM_CONVERSION_RATE); // 硬分叉
-
-
-    //当前使用的权重表模板
-    static volatile PocTxBody.PocWeightTable pocWeightTable = null;
-
+  // 当前使用的权重表模板
+  static volatile PocTxBody.PocWeightTable pocWeightTable = null;
 
     public void setCurWeightTable(PocTxBody.PocWeightTable weightTable){
         pocWeightTable = weightTable;
@@ -356,8 +375,59 @@ public class PocCaculator {
     }
 
     private static BigInteger nodeConfCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocNodeConf nodeConf){
-        //TODO wolf impl
-        return BigInteger.ZERO;
+
+        // 打开服务得分
+        BigInteger serverScore = BigInteger.ZERO;
+        // 硬件配置得分
+        BigInteger hardwareScore = BigInteger.ZERO;
+        // 网络配置得分
+        BigInteger networkScore = BigInteger.ZERO;
+        // 交易处理性能得分
+        BigInteger txScore = BigInteger.ZERO;
+
+        if (nodeConf.getSystemInfo().isServerOpen()) {
+            if (nodeType.getType().equals(Peer.Type.OFFICIAL)) {
+                serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.OFFICIAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
+                serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            } else if (nodeType.getType().equals(Peer.Type.HUB)) {
+                serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            } else if (nodeType.getType().equals(Peer.Type.BOX)) {
+                serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
+                serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            }
+        }
+
+        if (nodeConf.getSystemInfo().getCore() >= 8 && nodeConf.getSystemInfo().getAverageMHz() >= 3600 && nodeConf.getSystemInfo().getMemoryTotal() >= 15 && nodeConf.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
+            hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        } else if (nodeConf.getSystemInfo().getCore() >= 4 && nodeConf.getSystemInfo().getAverageMHz() >= 3100 && nodeConf.getSystemInfo().getMemoryTotal() >= 7 && nodeConf.getSystemInfo().getHardDiskSize() >= 1000) {
+            hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        } else if (nodeConf.getSystemInfo().getCore() >= 2 && nodeConf.getSystemInfo().getAverageMHz() >= 2400 && nodeConf.getSystemInfo().getMemoryTotal() >= 3 && nodeConf.getSystemInfo().getHardDiskSize() >= 100) {
+            hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        }
+
+        if (nodeConf.getSystemInfo().isHadPublicIp()) {
+            if (nodeConf.getSystemInfo().getBandWidth() >= 10) {
+                networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            } else if (nodeConf.getSystemInfo().getBandWidth() >= 5) {
+                networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            } else if (nodeConf.getSystemInfo().getBandWidth() >= 1) {
+                networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            }
+        } else {
+            networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.POOR.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        }
+
+        if (nodeConf.getSystemInfo().getTradePerformance() >= 1000) {
+            txScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        } else if (nodeConf.getSystemInfo().getTradePerformance() >= 500) {
+            txScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        } else if (nodeConf.getSystemInfo().getTradePerformance() >= 300) {
+            txScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+        }
+
+        return serverScore.add(hardwareScore).add(networkScore).add(txScore);
     }
 
     private static BigInteger onlineRateCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocOnlineRate onlineRate){

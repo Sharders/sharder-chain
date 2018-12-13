@@ -138,6 +138,7 @@ public class GetNodeHardware {
     public static void readAndPush(){
         //提交系统配置信息
         SystemInfo systemInfo = new SystemInfo();
+        // TODO ======= 进行交易性能评分， 查看服务是否打开 ========
         try {
             cpu(systemInfo);
             memory(systemInfo);
