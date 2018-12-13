@@ -1,59 +1,59 @@
 <template>
     <div class="create-history">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
         <div class="history">
             <div class="history-content" v-for="history in historyList" @click="details(history)">
                 <p>
                     <img src="../../assets/img/kuangchisouyi.png">
-                    <span>创建时间</span>:
+                    <span>{{$t('mining.create_history.create_time')}}</span>:
                     <span>{{history.createTime}}</span>
                 </p>
                 <p>
                     <img src="../../assets/img/kuagnchifhenpei.png">
-                    <span>挖矿时长</span>:
-                    <span>{{history.miningTime}}块矿产(约12小时)</span>
+                    <span>{{$t('mining.create_history.mining_time')}}</span>:
+                    <span>{{history.miningTime}}{{$t('mining.create_history.mining_time_tip')}}</span>
                 </p>
                 <p>
                     <img src="../../assets/img/kuangchishenyu.png">
-                    <span>矿池收益</span>:
-                    <span>{{history.earnings}}砖石</span>
+                    <span>{{$t('mining.create_history.mining_income')}}</span>:
+                    <span>{{history.earnings}}{{$t('mining.create_history.diamond')}}</span>
                 </p>
             </div>
         </div>
         <div v-if="isDetails">
             <div class="history-details">
                 <div class="details">
-                    <h1>矿池详情</h1>
+                    <h1>{{$t('mining.attribute.pool_details')}}</h1>
                     <p>
-                        <span>创建时间</span>:
+                        <span>{{$t('mining.attribute.create_time')}}</span>:
                         <span>{{historyDetails.createTime}}</span>
                     </p>
                     <p>
-                        <span>结束时间</span>:
+                        <span>{{$t('mining.create_history.end_time')}}</span>:
                         <span>{{historyDetails.endTime}}</span>
                     </p>
                     <p>
-                        <span>挖矿时长</span>:
-                        <span>{{historyDetails.miningTime}}块矿产(约12小时)</span>
+                        <span>{{$t('mining.create_history.mining_time')}}</span>:
+                        <span>{{historyDetails.miningTime}}{{$t('mining.create_history.mining_time_tip')}}</span>
                     </p>
                     <p>
-                        <span>矿池收益</span>:
-                        <span>{{historyDetails.earnings}}钻石</span>
+                        <span>{{$t('mining.create_history.mining_income')}}</span>:
+                        <span>{{historyDetails.earnings}}{{$t('mining.create_history.diamond')}}</span>
                     </p>
                     <p>
-                        <span>奖励分配</span>:
+                        <span>{{$t('mining.create_history.reward_distribution')}}</span>:
                         <span>{{historyDetails.rewards}}%</span>
                     </p>
                     <p>
-                        <span>加入人数</span>:
-                        <span>{{historyDetails.numberPeople}}人</span>
+                        <span>{{$t('mining.create_history.join_people')}}</span>:
+                        <span>{{historyDetails.numberPeople}}</span>
                     </p>
                     <p>
-                        <span>矿池砖石</span>:
-                        <span>{{historyDetails.maximum}}(最大值)</span>
+                        <span>{{$t('mining.create_history.pool_diamond')}}</span>:
+                        <span>{{historyDetails.maximum}}{{$t('mining.create_history.max')}}</span>
                     </p>
                 </div>
-                <div class="close" @click="details(historyDetails)">关闭</div>
+                <div class="close" @click="details(historyDetails)">{{$t('mining.create_history.close')}}</div>
             </div>
         </div>
     </div>

@@ -1,24 +1,24 @@
 <template>
     <div class="diamond-exchange">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
         <div class="exchange">
             <div class="exchange-header">
-                <h1>砖石兑换</h1>
-                <p>砖石限时开发兑换中,数量有限先到先得</p>
+                <h1>{{$t('mining.diamond_exchange.diamond_exchange_title')}}</h1>
+                <p>{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
             </div>
             <div class="exchange-list" v-for="exchange in exchangeList">
                 <p>
                     <img :src="exchange.img" class="exchange-img">
                     <span class="title">
                         <span class="strong">{{exchange.name}}</span>
-                        <span>剩余 : {{exchange.num}}</span>
+                        <span>{{$t('mining.diamond_exchange.remaining')}}{{exchange.num}}</span>
                     </span>
                 </p>
-                <p>说明:{{exchange.info}}</p>
-                <button>暂未开放</button>
+                <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
+                <button>{{$t('mining.diamond_exchange.not_open')}}</button>
             </div>
             <div class="info">
-                更多兑换即将开启!
+                {{$t('mining.diamond_exchange.not_open_tip')}}
             </div>
         </div>
     </div>

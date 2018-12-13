@@ -1,58 +1,58 @@
 <template>
     <div class="pool-attribute">
         <div>
-            <p @click="$router.back()" class="pool-back">&lt;&lt;返回上一页</p>
+            <p @click="$router.back()" class="pool-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
             <div class="pool-content">
                 <div class="attribute-info">
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            矿池编号:{{mining.serialNumber}} | 挖矿几率 : {{mining.distribution}}%
+                            {{$t('mining.attribute.pool_number')}}{{mining.serialNumber}} | {{$t('mining.attribute.mining_probability')}}{{mining.distribution}}%
                         </span>
-                        <span class="pool-attribute-info" @click="miningMask('isAttribute')">矿池详情</span>
+                        <span class="pool-attribute-info" @click="miningMask('isAttribute')">{{$t('mining.attribute.pool_details')}}</span>
                     </div>
                     <div class="pool-state">
-                        <h1>挖矿中</h1>
-                        <h1>当前第 <span class="number">5689</span> 块矿产</h1>
+                        <h1>{{$t('mining.attribute.mining')}}</h1>
+                        <h1>{{$t('mining.attribute.mining_current_number1')}}<span class="number">5689</span>{{$t('mining.attribute.mining_current_number2')}}</h1>
                     </div>
-                    <div class="earnings">收益+2000SS</div>
+                    <div class="earnings">{{$t('mining.attribute.income')}}+2000SS</div>
                 </div>
                 <div class="my-info">
                     <h1>
                         <img src="../../assets/img/wodexingxi.png" class="head-portrait">
-                        <span>我的信息</span>
+                        <span>{{$t('mining.attribute.self_info')}}</span>
                     </h1>
                     <div class="my-attribute">
                         <el-row :gutter="20">
                             <el-col :span="6">
                                 <button class="info">
-                                    <p>加入时间</p>
+                                    <p>{{$t('mining.attribute.join_time')}}</p>
                                     <p class="strong">2018-06-13 12:00</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
-                                    <p>投入砖石</p>
+                                    <p>{{$t('mining.attribute.investing_diamonds')}}</p>
                                     <p class="strong">100000</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
-                                    <p>获得收益</p>
+                                    <p>{{$t('mining.attribute.gain_profit')}}</p>
                                     <p class="strong">2000 SS</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
-                                    <p>剩余挖矿时间</p>
+                                    <p>{{$t('mining.attribute.remaining_mining_time')}}</p>
                                     <p class="strong">600块(约12h)</p>
                                 </button>
                             </el-col>
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button class="join" @click="miningMask('isJoinPool')">投入砖石</button>
-                        <button class="exit" @click="miningMask('isExitPool')">退出矿池</button>
+                        <button class="join" @click="miningMask('isJoinPool')">{{$t('mining.attribute.investing_diamonds')}}</button>
+                        <button class="exit" @click="miningMask('isExitPool')">{{$t('mining.attribute.exit_pool')}}</button>
                     </div>
                 </div>
             </div>
@@ -64,43 +64,43 @@
                 <div class="attribute">
                     <h1>
                         <img src="../../assets/img/pay.svg" class="attribute-img">
-                        <span>矿池详情</span>
+                        <span>{{$t('mining.attribute.pool_details')}}</span>
                     </h1>
                     <div class="attribute-value">
                         <el-row :gutter="20">
                             <el-col :span="12">
                                 <button class="info">
-                                    创建者:SSA......84UPW
+                                    {{$t('mining.attribute.creator')}}SSA......84UPW
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    参与用户:23
+                                    {{$t('mining.attribute.participating_users')}}23
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    矿池编号:{{mining.serialNumber}}
+                                    {{$t('mining.attribute.pool_number')}}{{mining.serialNumber}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    容量:{{mining.currentInvestment}}/{{mining.investmentTotal}}
+                                    {{$t('mining.attribute.capacity')}}{{mining.currentInvestment}}/{{mining.investmentTotal}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    矿池收益:100000
+                                    {{$t('mining.attribute.pool_income')}}100000
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    奖励分配:{{mining.distribution}}%
+                                    {{$t('mining.attribute.reward_distribution')}}{{mining.distribution}}%
                                 </button>
                             </el-col>
                         </el-row>
                     </div>
-                    <button class="btn" style="display: none" @click="miningMask('isAttribute')">关闭</button>
+                    <button class="btn" style="display: none" @click="miningMask('isAttribute')">{{$t('mining.attribute.close')}}</button>
                 </div>
             </div>
         </div>
@@ -108,14 +108,14 @@
         <div v-if="isJoinPool">
             <div class="join-pool">
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
-                <h1 class="title">投入砖石</h1>
-                <p class="attribute">当前可用:200000SS | 矿池容量:2000000SS</p>
+                <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
+                <p class="attribute">{{$t('mining.attribute.currently_available')}}200000SS | {{$t('mining.attribute.pool_capacity')}}:2000000SS</p>
                 <p class="input">
-                    <el-input v-model="joinPool" placeholder="请输入投入数量"></el-input>
+                    <el-input v-model="joinPool" :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
                 </p>
                 <p class="btn">
-                    <button class="cancel" @click="miningMask('isJoinPool')">取消</button>
-                    <button class="confirm">确认</button>
+                    <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
+                    <button class="confirm">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -123,11 +123,11 @@
         <div v-if="isExitPool">
             <div class="exit-pool">
                 <span class="img-close" @click="miningMask('isExitPool')"></span>
-                <h1 class="title">退出矿池</h1>
-                <p class="info">退出就无法继续挖矿获得收益</p>
+                <h1 class="title">{{$t('mining.attribute.exit_pool')}}</h1>
+                <p class="info">{{$t('mining.attribute.exit_pool_tip')}}</p>
                 <p class="btn">
-                    <button class="cancel" @click="miningMask('isExitPool')">取消</button>
-                    <button class="confirm">确认</button>
+                    <button class="cancel" @click="miningMask('isExitPool')">{{$t('mining.attribute.cancel')}}</button>
+                    <button class="confirm">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>

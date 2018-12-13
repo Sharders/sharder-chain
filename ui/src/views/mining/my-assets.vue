@@ -1,31 +1,31 @@
 <template>
     <div class="my-assets">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
         <div class="assets">
             <div class="assets-info">
                 <div class="totle-assets">
-                    <span>总资产(砖石)</span>
+                    <span>{{$t('mining.my_assets.total_asset')}}</span>
                     <span class="strong">100000</span>
                 </div>
-                <p class="exchang" @click="$router.push({name: 'free-collar-drill'})">砖石兑换</p>
+                <p class="exchang" @click="$router.push({name: 'free-collar-drill'})">{{$t('mining.index.diamond_exchange')}}</p>
                 <div class="assets-detail">
                     <div>
-                        <p>可用资产</p>
+                        <p>{{$t('mining.my_assets.available_asset')}}</p>
                         <p class="strong">80000</p>
                     </div>
                     <div>
-                        <p>冻结资产(挖矿中)</p>
+                        <p>{{$t('mining.my_assets.frozen_assets')}}</p>
                         <p class="strong">20000</p>
                     </div>
                 </div>
             </div>
-            <div class="assets-header">资产记录</div>
+            <div class="assets-header">{{$t('mining.my_assets.asset_record')}}</div>
             <div class="assets-list" v-for="al in assetsList">
                 <div class="title">
                     <p class="strong">{{al.title}}</p>
                     <p>{{al.time}}</p>
                 </div>
-                <div class="number">{{al.num}}砖石</div>
+                <div class="number">{{al.num}}{{$t('mining.create_history.diamond')}}</div>
             </div>
         </div>
     </div>
@@ -38,37 +38,37 @@
             return {
                 assetsList: [
                     {
-                        title: "每日登陆",
+                        title: this.$t('mining.free_collar_drill.daily_login'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: "挖矿奖励",
+                        title: this.$t('mining.free_collar_drill.mining_reward'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: "每日登陆",
+                        title: this.$t('mining.free_collar_drill.daily_login'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: "挖矿奖励",
+                        title: this.$t('mining.free_collar_drill.mining_reward'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: "SS存储返利",
+                        title: this.$t('mining.free_collar_drill.ss_storage_rebate'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: "绑定手机",
+                        title: this.$t('mining.binding_validation.bind_phone'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: "挖矿奖励",
+                        title: this.$t('mining.free_collar_drill.mining_reward'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
@@ -80,7 +80,7 @@
 
 <style scoped>
     .my-assets .assets {
-        padding: 30px 15px 0px;
+        padding: 30px 15px 0;
         background: #fff;
     }
 

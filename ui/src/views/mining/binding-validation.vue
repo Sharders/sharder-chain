@@ -1,14 +1,14 @@
 <template>
     <div class="binding-validation">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
         <!--绑定手机-->
         <div v-if="binding.typeInfo === 'mobile-phone'" class="mobile-phone binding">
-            <h1 class="title">绑定手机</h1>
-            <p class="info">绑定手机后即可领取砖石奖励</p>
+            <h1 class="title">{{$t('mining.attribute.bind_phone')}}</h1>
+            <p class="info">{{$t('mining.attribute.bind_phone_tip')}}</p>
             <div class="input-div">
-                <h3>手机号码</h3>
+                <h3>{{$t('mining.attribute.bind_phone_tip')}}</h3>
                 <p>
-                    <el-select v-model="value" placeholder="区号" class="select">
+                    <el-select v-model="value" :placeholder="$t('mining.attribute.area_code')" class="select">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -16,42 +16,42 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                    <el-input v-model="phone" class="input" placeholder="请输入你的手机号码"></el-input>
+                    <el-input v-model="phone" class="input" :placeholder="$t('mining.attribute.phone_input_tip')"></el-input>
                 </p>
             </div>
             <div class="btn">
-                <button @click="next()">下一步</button>
+                <button @click="next()">{{$t('mining.attribute.next_step')}}</button>
             </div>
         </div>
         <!--绑定邮箱-->
         <div v-if="binding.typeInfo === 'email'" class="email binding">
-            <h1 class="title">绑定邮箱</h1>
-            <p class="info">绑定邮箱后即可领取砖石奖励</p>
+            <h1 class="title">{{$t('mining.attribute.bind_email')}}</h1>
+            <p class="info">{{$t('mining.attribute.bind_email_tip')}}</p>
             <div class="input-div">
-                <h3>邮箱号码</h3>
+                <h3>{{$t('mining.attribute.email_number')}}</h3>
                 <p>
-                    <el-input v-model="phone" class="input" placeholder="请输入你的邮箱"></el-input>
+                    <el-input v-model="phone" class="input" :placeholder="$t('mining.attribute.email_number_tip')"></el-input>
                 </p>
             </div>
             <div class="btn">
-                <button @click="next()">下一步</button>
+                <button @click="next()">{{$t('mining.attribute.next_step')}}</button>
             </div>
         </div>
         <!--验证码-->
         <div v-if="isValidation" class="validation binding">
-            <h1 class="title">请输入验证码</h1>
-            <p class="info">验证码已发送到: {{phone||email}}请注意查收</p>
+            <h1 class="title">{{$t('mining.attribute.verification_title')}}</h1>
+            <p class="info">{{$t('mining.attribute.verification_tip1')}}{{phone||email}}{{$t('mining.attribute.verification_tip2')}}</p>
             <div class="input-div">
-                <h3>请输入6位验证码</h3>
+                <h3>{{$t('mining.attribute.verification_tip3')}}</h3>
                 <p>
                     <input v-model="validationCode" autocomplete="yes" class="input" maxlength="6"/>
                 </p>
                 <p class="resend">
-                    重新发送验证码
+                    {{$t('mining.attribute.resend_verification')}}
                 </p>
             </div>
             <div class="btn">
-                <button @click="getRewards()">领取奖励</button>
+                <button @click="getRewards()">{{$t('mining.attribute.receive_award')}}</button>
             </div>
         </div>
         <!--领取弹窗-->
@@ -109,7 +109,7 @@
                 }
                 //校验验证码
 
-                this.alertInfo = {title: "领取成功", content: "恭喜你," + this.binding.name + " +" + this.binding.num + " 砖石"};
+                this.alertInfo = {title: this.$t('mining.binding_validation.receive_success_title'), content: this.$t('mining.binding_validation.receive_success_tip') + this.binding.name + " +" + this.binding.num + this.$t('mining.binding_validation.receive_success_tip2')};
                 this.isReceiveAlert = true;
             },
         }, watch: {

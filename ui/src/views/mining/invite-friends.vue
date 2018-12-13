@@ -1,37 +1,37 @@
 <template xmlns:v-clipboard="http://www.w3.org/1999/xhtml">
     <div class="invite-friends">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
         <div class="invite">
-            <h1 class="title">共识矿场</h1>
-            <p class="info">每邀请好友下载钱包并进入应用获得钻石奖励</p>
-            <p class="info">每邀请一位注册获得200钻石奖励 (最高8000)</p>
+            <h1 class="title">{{$t('mining.invite_friends.title')}}</h1>
+            <p class="info">{{$t('mining.invite_friends.subtitle1')}}</p>
+            <p class="info">{{$t('mining.invite_friends.subtitle2')}}</p>
             <div class="code">
-                <p class="you-code">你的邀请码</p>
+                <p class="you-code">{{$t('mining.invite_friends.invite_code')}}</p>
                 <p class="invite-code">
                     <span>{{inviteCode}}</span>
                 </p>
                 <p class="copy">
                     <button v-clipboard:copy="inviteCode" v-clipboard:success="copySuccess"
-                            v-clipboard:error="copyError">复制邀请码{{$store.$fun}}
+                            v-clipboard:error="copyError">{{$t('mining.invite_friends.copy_invite_code')}}{{$store.$fun}}
                     </button>
                 </p>
                 <div class="data">
                     <div>
-                        <p>已邀请</p>
-                        <p>{{invitePeople}}人</p>
+                        <p>{{$t('mining.invite_friends.invited')}}</p>
+                        <p>{{invitePeople}}{{$t('mining.invite_friends.unit_ren')}}</p>
                     </div>
                     <div>
-                        <p>获得奖励</p>
-                        <p>{{inviteReward}}钻石</p>
+                        <p>{{$t('mining.invite_friends.earn_rewards')}}</p>
+                        <p>{{inviteReward}}{{$t('mining.create_history.diamond')}}</p>
                     </div>
                 </div>
             </div>
             <div class="qr">
                 <img src="../../assets/img/account.svg" class="img-qr">
-                <p>扫码立即下载OX钱包</p>
+                <p>{{$t('mining.create_history.qr_tip1')}}</p>
             </div>
             <p class="about">
-                本活动最终解释权归OX钱宝所有
+                {{$t('mining.create_history.qr_tip2')}}
             </p>
         </div>
     </div>
@@ -52,7 +52,7 @@
                 const _this = this;
                 _this.$message({
                     showClose: true,
-                    message: "已复制到剪切板",
+                    message: _this.$t('notification.clipboard_success'),
                     type: "success"
                 });
             },
@@ -60,7 +60,7 @@
                 const _this = this;
                 _this.$message({
                     showClose: true,
-                    message: "复制失败",
+                    message: _this.$t('notification.clipboard_error'),
                     type: "error"
 
                 });

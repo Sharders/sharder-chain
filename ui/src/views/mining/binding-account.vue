@@ -3,69 +3,66 @@
         <!--矿池说明-->
         <div class="introduce">
             <div class="mining-info">
-                <h3>共识矿场说明</h3>
+                <h3>{{$t('mining.binding_account.title')}}</h3>
                 <p>
-                    共识矿场是基于Sharder Chain开发的DAPP.以"创建矿池"获得"砖石"为系统逻辑.
-                    用户可创建"矿池"以及投入钻石加入矿池挖矿享受砖石分红权.
+                    {{$t('mining.binding_account.subtitle1')}}
+                    {{$t('mining.binding_account.subtitle2')}}
                 </p>
             </div>
             <div class="info">
-                <p class="title">砖石说明:</p>
+                <p class="title">{{$t('mining.binding_account.description')}}</p>
                 <p>
-                    砖石与钱包的TSS (Sharder测试网络Token) 为1:1对应关系.在进入应用前需要你在当前钱包创建TSS地址.
+                    {{$t('mining.binding_account.description_tip1')}}
                 </p>
                 <p>
-                    如果你是矿机用户,请在钱包导入你的矿机挖矿的TSS地址,用于管理挖矿资产及获得对应砖石.
+                    {{$t('mining.binding_account.description_tip2')}}
                 </p>
                 <p>
-                    普通用户请先创建TSS地址,以便获得空投砖石
+                    {{$t('mining.binding_account.description_tip3')}}
                 </p>
-                <p>应用内的砖石可兑换为可流通的SS(ERC-20)</p>
+                <p>{{$t('mining.binding_account.description_tip4')}}</p>
             </div>
             <div class="info">
-                <p class="title">TSS说明:</p>
+                <p class="title">{{$t('mining.binding_account.tss_description')}}</p>
                 <p>
-                    基于Sharder Chain主网正在内测,为了更好的测试主网的运行情况,提高社区用户的活跃度同时推广豆匣项目,
-                    我们在测试网络发行了TSS (Sharder测试网络Token: Test SS).本钱包将支持创建TSS账户地址用于收发TSS.
-                    TSS不具备流通性,目的只做为测试及与共识矿场钻石产生兑换关系所用.
+                    {{$t('mining.binding_account.tss_description_tip')}}
                 </p>
             </div>
             <div class="info">
-                <p class="title">TSS获取</p>
+                <p class="title">{{$t('mining.binding_account.tss_acquisition')}}</p>
                 <p>
-                    我们将于UTC时间2018年11月01日12:00对所有OX钱包中存储有SS(ERC-20)的地址进行快照.快照结束后将根据
-                    XXX:1的比例空投TSS到你的TSS地址中.
+                    {{$t('mining.binding_account.tss_acquisition_tip1')}}
                 </p>
                 <p>
-                    未持有SS(ERC-20)的地址中也将会收到XXXX TSS.
+                    {{$t('mining.binding_account.tss_acquisition_tip2')}}
                 </p>
                 <p>
-                    进入应用完成应用任务或参与矿池挖矿获得钻石等同于获得TSS.
+                    {{$t('mining.binding_account.tss_acquisition_tip3')}}
                 </p>
             </div>
             <div class="btn">
-                <button @click="isBindingAccount('isAccount')">绑定豆匣账户进入应用</button>
-                <p>创建矿池权限也可以通过官网获得,请留意官网信息!</p>
-                <p>www.xxxx.org</p>
+                <button @click="isBindingAccount('isAccount')">{{$t('mining.binding_account.bind_btn')}}</button>
+                <p>{{$t('mining.binding_account.bind_btn_tip1')}}</p>
+                <p>{{$t('mining.binding_account.bind_btn_tip2')}}</p>
             </div>
         </div>
         <!--绑定地址-->
         <div v-if="isAccount">
             <div class="account">
                 <span class="img-close" @click="isBindingAccount('isAccount')"></span>
-                <h1>绑定地址</h1>
-                <p>检查到你的钱包持有TSS地址如下,请选择绑定地址</p>
+                <h1>{{$t('mining.binding_account.bind_address')}}</h1>
+                <p>{{$t('mining.binding_account.bind_address_tip')}}</p>
                 <div class="addr" v-for="account in accountList" @click="radio = account">
-                    <h3>地址:{{account.addr}}</h3>
+                    <h3>{{$t('mining.binding_account.address')}}{{account.addr}}</h3>
                     <p>
-                        TSS 数量: {{account.TSS}}
+                        {{$t('mining.binding_account.tss_volume')}}{{account.TSS}}
                     </p>
                     <span class="radio">
                         <el-radio v-model="radio" :label="account">&nbsp;</el-radio>
                     </span>
                 </div>
                 <div class="btn">
-                    <button @click="bindingAddr()">立即绑定</button>
+                    <button @click="bindingAddr()">{{$t('mining.binding_account.binding_immediately')}}</button>
                 </div>
             </div>
         </div>
@@ -73,16 +70,16 @@
         <div v-if="isBinding">
             <div class="binding">
                 <span class="img-close" @click="isBindingAccount('isBinding')" v-if="binding !== 'padding'"></span>
-                <h1>绑定地址</h1>
+                <h1>{{$t('mining.binding_account.bind_address')}}</h1>
                 <p class="img">
                     <span v-if="binding === 'padding'"><i class="el-icon-loading"></i></span>
                     <span v-if="binding === 'success'"><i class="el-icon-success"></i></span>
                     <span v-if="binding === 'failure'"><i class="el-icon-error"></i></span>
                 </p>
                 <p>
-                    <span v-if="binding === 'padding'">绑定中...</span>
-                    <span v-if="binding === 'success'">绑定成功</span>
-                    <span v-if="binding === 'failure'">绑定失败</span>
+                    <span v-if="binding === 'padding'">{{$t('mining.binding_account.bind_address')}}</span>
+                    <span v-if="binding === 'success'">{{$t('mining.binding_account.bind_success')}}</span>
+                    <span v-if="binding === 'failure'">{{$t('mining.binding_account.bing_error')}}</span>
                 </p>
             </div>
         </div>

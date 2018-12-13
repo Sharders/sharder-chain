@@ -1,10 +1,10 @@
 <template>
     <div class="my-mining">
         <div class="tabs">
-            <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+            <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
             <el-radio-group v-model="tabPosition" class="title">
-                <el-radio-button label="join" class="btn">我加入的</el-radio-button>
-                <el-radio-button label="create" class="btn">我创建的</el-radio-button>
+                <el-radio-button label="join" class="btn">{{$t('mining.my_mining.i_join')}}</el-radio-button>
+                <el-radio-button label="create" class="btn">{{$t('mining.my_mining.i_create')}}</el-radio-button>
             </el-radio-group>
         </div>
         <div v-if="tabPosition === 'join'">
@@ -13,7 +13,7 @@
                     <el-col :span="24" v-for="(mining,index) in joinList">
                         <div class="grid-content">
                             <div class="info">
-                                <h2>矿池{{mining.serialNumber}}</h2>
+                                <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
                                 <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
                                 <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
                                              :show-text="false"></el-progress>
@@ -21,22 +21,22 @@
                             <div class="tag">
                                 <p>
                                     <img src="../../assets/img/kuangchisouyi.png">
-                                    <span>矿池收益 : {{mining.earnings}} SS</span>
+                                    <span>{{$t('mining.index.pool_income')}}{{mining.earnings}} SS</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
-                                    <span>收益分配 : {{mining.distribution}}%</span>
+                                    <span>{{$t('mining.index.Income_distribution')}}{{mining.distribution}}%</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuangchishenyu.png">
-                                    <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
+                                    <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}{{$t('mining.index.net_mining_number2')}}(约13.5h)</span>
                                 </p>
                             </div>
                         </div>
                     </el-col>
                 </el-row>
             </div>
-            <div class="info">没有更多</div>
+            <div class="info">{{$t('mining.my_mining.no_more')}}</div>
         </div>
         <div v-if="tabPosition === 'create'">
             <div class="mining-list create">
@@ -44,7 +44,7 @@
                     <el-col :span="24" v-for="(mining,index) in createList">
                         <div class="grid-content">
                             <div class="info">
-                                <h2>矿池{{mining.serialNumber}}</h2>
+                                <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
                                 <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
                                 <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
                                              :show-text="false"></el-progress>
@@ -52,22 +52,22 @@
                             <div class="tag">
                                 <p>
                                     <img src="../../assets/img/kuangchisouyi.png">
-                                    <span>矿池收益 : {{mining.earnings}} SS</span>
+                                    <span>{{$t('mining.index.pool_income')}}{{mining.earnings}} SS</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
-                                    <span>收益分配 : {{mining.distribution}}%</span>
+                                    <span>{{$t('mining.index.Income_distribution')}}{{mining.distribution}}%</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuangchishenyu.png">
-                                    <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
+                                    <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}{{$t('mining.index.net_mining_number2')}}(约13.5h)</span>
                                 </p>
                             </div>
                         </div>
                     </el-col>
                 </el-row>
             </div>
-            <div class="history" @click="$router.push({name: 'create-history'})">历史创建记录&gt;&gt;</div>
+            <div class="history" @click="$router.push({name: 'create-history'})">{{$t('mining.my_mining.history_create_record')}}&gt;&gt;</div>
         </div>
     </div>
 </template>

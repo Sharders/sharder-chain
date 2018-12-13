@@ -1,21 +1,21 @@
 <template>
     <div class="free-collar-drill">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;返回上一页</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
         <div class="free-collar">
             <div class="free-header">
-                <h1>免费领钻</h1>
-                <p>免费领取砖石,走向致富之路</p>
+                <h1>{{$t('mining.free_collar_drill.free_collar_title')}}</h1>
+                <p>{{$t('mining.free_collar_drill.free_collar_subtitle')}}</p>
             </div>
             <div class="free-list" v-for="free in freeList">
                 <p>
                     <span>{{free.name}}</span>
                     <span>+{{free.num}}</span>
-                    <span>砖石</span>
+                    <span>{{$t('mining.create_history.diamond')}}</span>
                 </p>
                 <span class="state-info" v-if="free.state !== 'IN'">
                     <span>{{stateInfo(free.state)}}</span>
                 </span>
-                <button v-if="free.state === 'IN'" @click="toReceive(free)">立即领取</button>
+                <button v-if="free.state === 'IN'" @click="toReceive(free)">{{$t('mining.free_collar_drill.collar')}}</button>
             </div>
         </div>
         <!--领取弹窗-->
@@ -35,28 +35,28 @@
             return {
                 freeList: [
                     {
-                        name: "每日登陆",
+                        name: this.$t('mining.free_collar_drill.daily_login'),
                         num: 100,
                         type: "ORDINARY",
                         typeInfo: "daily",
                         state: "GET",
                     },
                     {
-                        name: "注册赠送",
+                        name: this.$t('mining.free_collar_drill.registration_gift'),
                         num: 120,
                         type: "ORDINARY",
                         typeInfo: "registered",
                         state: "IN",
                     },
                     {
-                        name: "绑定手机",
+                        name: this.$t('mining.binding_validation.bind_phone'),
                         num: 140,
                         type: "BINDING",
                         typeInfo: "mobile-phone",
                         state: "IN",
                     },
                     {
-                        name: "绑定邮箱",
+                        name: this.$t('mining.binding_validation.bind_email'),
                         num: 160,
                         type: "BINDING",
                         typeInfo: "email",
@@ -69,7 +69,7 @@
         }, methods: {
             stateInfo(val) {
                 if (val === "GET") {
-                    return "已领取";
+                    return this.$t('mining.binding_validation.received');
                 }
             },
             toReceive(val) {
@@ -84,7 +84,7 @@
             registered(val) {
                 //领取校验是否已经领取过了
 
-                this.alertInfo = {title: "领取成功", content: "恭喜你," + val.name + " +" + val.num + " 砖石"};
+                this.alertInfo = {title: this.$t('mining.binding_validation.receive_success_title'), content: this.$t('mining.binding_validation.receive_success_tip') + val.name + " +" + val.num + this.$t('mining.binding_validation.receive_success_tip2')};
                 this.isReceiveAlert = true;
             },
         }

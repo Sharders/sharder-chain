@@ -43,7 +43,7 @@
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')">
-                        <el-input v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
+                        <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
@@ -64,17 +64,17 @@
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
-                        <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
+                        <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.set_password')">
-                        <el-input v-model="hubsetting.newPwd"></el-input>
+                        <el-input type="password" v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.confirm_password')">
-                        <el-input v-model="hubsetting.confirmPwd"></el-input>
+                        <el-input type="password" v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="verifyHubSetting">{{$t('login.confirm_restart')}}</button>
+                    <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
                 </div>
             </div>
         </div>

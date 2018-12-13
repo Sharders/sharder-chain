@@ -2,9 +2,9 @@
     <div class="mining">
         <!--切换按钮-->
         <el-radio-group v-model="tabTitle" class="title">
-            <el-radio-button label="mining" class="btn">豆匣矿场</el-radio-button>
-            <el-radio-button label="welfare" class="btn">免费领SS</el-radio-button>
-            <el-radio-button label="exchange" class="btn">SS兑换</el-radio-button>
+            <el-radio-button label="mining" class="btn">{{$t('mining.index.sharder_mining')}}</el-radio-button>
+            <el-radio-button label="welfare" class="btn">{{$t('mining.index.free_collar')}}</el-radio-button>
+            <el-radio-button label="exchange" class="btn">{{$t('mining.index.ss_exchange')}}</el-radio-button>
         </el-radio-group>
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
@@ -12,46 +12,46 @@
                 <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
-                        <li>全网挖矿: 第236块</li>
-                        <li>我的资产: 100000 SS</li>
-                        <li>我的收益: 100000 SS</li>
+                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number')}}236{{$t('mining.index.net_mining_number2')}}</li>
+                        <li>{{$t('mining.index.my_assets')}}00000 SS</li>
+                        <li>{{$t('mining.index.my_income')}}100000 SS</li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
-                            <span @click="isVisible('isRanking')">查看排行</span>
+                            <span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>
                         </li>
                     </ul>
                 </div>
                 <div class="state">
                     <div class="state-info">
-                        <p>挖矿中</p>
-                        <p>全网收益 1000 SS</p>
+                        <p>{{$t('mining.attribute.mining')}}</p>
+                        <p>{{$t('mining.index.net_income')}}1000 SS</p>
                     </div>
                 </div>
-                <div class="instructions" @click="">豆匣矿场说明</div>
-                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">邀请好友得奖励</div>
-                <div class="rule-description" @click="$router.push({name: 'rule-description'})">规则说明</div>
+                <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
+                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">{{$t('mining.index.join_friends')}}</div>
+                <div class="rule-description" @click="$router.push({name: 'rule-description'})">{{$t('mining.index.rule_description')}}</div>
                 <div class="my-mining create" @click="$router.push({name: 'my-mining'})">
                     <img src="../../assets/img/wodekuangchi.png">
-                    <p>我的矿池</p>
+                    <p>{{$t('mining.index.my_pool')}}</p>
                 </div>
                 <div class="create" @click="isVisible('isCreatePool')">
                     <img src="../../assets/img/chuanjiankuangchi.png">
-                    <p>创建矿池</p>
+                    <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
             </div>
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                矿产第2345块 | 出块者023 | 奖励: 1000 SS
+                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number')}}2345{{$t('mining.index.net_mining_number2')}} | {{$t('mining.index.blocker')}}023 | {{$t('mining.index.reward')}}1000 SS
             </span>
             </div>
             <div class="mining-list">
                 <h5>
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
-                        <span>矿池列表</span>
+                        <span>{{$t('mining.index.pool_list')}}</span>
                     </div>
-                    <el-select v-model="value" placeholder="排序">
+                    <el-select v-model="value" :placeholder="$t('mining.index.sort')">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -65,7 +65,7 @@
                         <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>矿池{{mining.serialNumber}}</h2>
+                                    <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
                                     <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
                                     <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
                                                  :show-text="false"></el-progress>
@@ -73,15 +73,15 @@
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>矿池收益 : {{mining.earnings}} SS</span>
+                                        <span>{{$t('mining.index.pool_income')}}{{mining.earnings}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
-                                        <span>收益分配 : {{mining.distribution}}%</span>
+                                        <span>{{$t('mining.index.Income_distribution')}}{{mining.distribution}}%</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>剩余挖矿 : {{mining.remaining}}块(约13.5h)</span>
+                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}{{$t('mining.index.unit_block')}}(约13.5h)</span>
                                     </p>
                                 </div>
                             </div>
@@ -104,8 +104,8 @@
             <div class="receive">
                 <img src="../../assets/img/logo.svg" class="receive-qr-img">
                 <p class="receive-text">
-                    请扫描二维码下载0X钱包,<br>
-                    进入"豆匣矿场"应用免费领取
+                    {{$t('mining.index.welfare_title1')}}<br>
+                    {{$t('mining.index.welfare_title2')}}
                 </p>
             </div>
         </div>
@@ -113,7 +113,7 @@
         <div v-if="tabTitle === 'exchange'">
             <div class="reward">
                 <div class="reward-title">
-                    目前豆匣网络为开放测试网络,内部流通的SS为测试的SS,为了回馈社区用户参与测试网络及使用,开放SS兑换功能.数量有限先到先得.
+                    {{$t('mining.index.reward_title')}}
                 </div>
                 <div class="reward-content">
                     <el-row :gutter="20">
@@ -123,12 +123,12 @@
                                     <p>
                                         <img src="../../assets/img/logo.svg" class="content-left-img">
                                         <span class="strong">1000 SS(ERC-20)</span>
-                                        <span>剩余: 0</span>
+                                        <span>{{$t('mining.index.remaining')}}0</span>
                                     </p>
-                                    <p class="reward-instructions">说明:兑换成功后请联系官方管理员领取</p>
+                                    <p class="reward-instructions">{{$t('mining.index.reward_instruction')}}</p>
                                 </div>
                                 <div class="content-right">
-                                    <el-button type="info">暂未开放</el-button>
+                                    <el-button type="info">{{$t('mining.diamond_exchange.not_open')}}</el-button>
                                 </div>
                             </div>
                         </el-col>
@@ -142,39 +142,39 @@
                 <div class="user">
                     <img src="../../assets/img/wodezichan.png" class="header-img">
                     <p>
-                        <span>矿工名称</span>:
-                        <span>未设置</span>
+                        <span>{{$t('mining.index.miner_name')}}</span>:
+                        <span>{{$t('mining.index.not_open')}}</span>
                         <img src="../../assets/img/set.png" @click="isVisible('isSetName')">
                     </p>
                     <p>
-                        <span>TSS地址</span>:
+                        <span>{{$t('mining.index.tss_address')}}</span>:
                         <span>SSA-WHXU-6UB3-DB75-78GAT</span>
                         <img src="../../assets/img/TSS.png" @click="isVisible('isTSS')">
                     </p>
                 </div>
                 <div class="list" @click="$router.push({name: 'my-assets'})">
                     <img src="../../assets/img/wodezichan.png">
-                    <span>我的资产</span>
+                    <span>{{$t('mining.index.my_assets')}}</span>
                 </div>
                 <div class="list" @click="$router.push({name: 'free-collar-drill'})">
                     <img src="../../assets/img/zhuanshi.png">
-                    <span>免费领钻</span>
+                    <span>{{$t('mining.index.free_collar_drill')}}</span>
                 </div>
                 <div class="list" @click="$router.push({name: 'invite-friends'})">
                     <img src="../../assets/img/haoyou.png">
-                    <span>邀请好友</span>
+                    <span>{{$t('mining.index.join_friend')}}</span>
                 </div>
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
                     <img src="../../assets/img/zhuanshiduihuan.png">
-                    <span>钻石兑换</span>
+                    <span>{{$t('mining.index.diamond_exchange')}}</span>
                 </div>
                 <div class="list">
                     <img src="../../assets/img/guanyuwomen.png">
-                    <span>关于我们</span>
+                    <span>{{$t('mining.index.about_us')}}</span>
                 </div>
                 <div class="about">
-                    <p>关注我们</p>
-                    <p>www.oxwallet.org</p>
+                    <p>{{$t('mining.index.follow_us')}}</p>
+                    <p>{{$t('mining.index.webside')}}</p>
                 </div>
             </div>
         </div>
@@ -182,22 +182,22 @@
         <div v-if="isSetName">
             <div class="set-name">
                 <span class="img-close" @click="isVisible('isSetName')"></span>
-                <h1>名称设置</h1>
+                <h1>{{$t('mining.index.set_name')}}</h1>
                 <div class="input">
-                    <el-input v-model="setname" placeholder="请输入名称"></el-input>
+                    <el-input v-model="setname" :placeholder="$t('mining.index.set_name_tip')"></el-input>
                 </div>
-                <div class="determine">确定</div>
+                <div class="determine">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
         <!--TSS说明-->
         <div v-if="isTSS">
             <div class="tss">
-                <h1>TSS地址说明</h1>
+                <h1>{{$t('mining.index.tss_address_tile')}}</h1>
                 <div class="text">
-                    TSS地址为豆匣测试网络的账户地址,共识矿场是基于豆匣链开发的DAPP,此地址同时也是你共识矿场应用内的账户.
-                    TSS不具备价格流通.目前只能作为测试及与矿场砖石产生兑换关系所用,与钻石为一一对应关系.
+                    {{$t('mining.index.tss_address_subtitle1')}}
+                    {{$t('mining.index.tss_address_subtitle2')}}
                 </div>
-                <div class="close" @click="isVisible('isTSS')">关闭</div>
+                <div class="close" @click="isVisible('isTSS')">{{$t('mining.create_history.close')}}</div>
             </div>
         </div>
         <!--挖矿排行-->
@@ -205,12 +205,12 @@
             <div class="ranking">
                 <span class="img-close" @click="isVisible('isRanking')"></span>
                 <div class="ranking-content">
-                    <h3 class="ranking-title">挖矿排行</h3>
+                    <h3 class="ranking-title">{{$t('mining.index.mining_ranking')}}</h3>
                     <table class="ranking-table">
                         <tr>
-                            <th>排名</th>
-                            <th>账户</th>
-                            <th>SS数量</th>
+                            <th>{{$t('mining.index.sort')}}</th>
+                            <th>{{$t('mining.index.account')}}</th>
+                            <th>{{$t('mining.index.ss_volume')}}</th>
                         </tr>
                         <tr v-for="(ranking,index) in rankingList">
                             <td>
@@ -226,7 +226,7 @@
                         </tr>
                     </table>
                     <div class="my-assets">
-                        我的资产 : 100000 SS | 排名 : 98 名
+                        {{$t('mining.index.my_assets')}}100000 SS | {{$t('mining.index.sort')}}98 {{$t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -236,55 +236,55 @@
             <div class="create-pool">
                 <span class="img-close" @click="isVisible('isCreatePool')"></span>
                 <div class="create-pool-content">
-                    <h3 class="pool-header">创建矿池</h3>
+                    <h3 class="pool-header">{{$t('mining.index.create_pool')}}</h3>
                     <div class="pool-attribute">
                         <h1 class="pool-title">
                             <img src="../../assets/img/kuangchi_attribute.png">
-                            <span>矿池属性</span>
+                            <span>{{$t('mining.index.pool_properties')}}</span>
                         </h1>
                         <p>
-                            <span class="strong">矿池数量</span>:
+                            <span class="strong">{{$t('mining.index.pool_volume')}}</span>:
                             <span>21/51</span>
                         </p>
                         <p>
-                            <span class="strong">当前账户</span>:
+                            <span class="strong">{{$t('mining.index.current_account')}}</span>:
                             <span>{{accountInfo.accountRS}}</span>
                         </p>
                         <p>
-                            <span class="strong">矿池容量</span>:
+                            <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
                             <span>1000000 SS</span>
                         </p>
                         <p>
-                            <span class="strong">挖矿时长</span>:
+                            <span class="strong">{{$t('mining.index.mining_time')}}</span>:
                             <span>2880块(约24h)</span>
                         </p>
                     </div>
                     <div class="pool-set">
                         <h1 class="pool-title">
                             <img src="../../assets/img/kuangchi_set.png">
-                            <span>矿池设定</span>
+                            <span>{{$t('mining.index.mining_setting')}}</span>
                         </h1>
                         <div class="pool-data">
                             <p>
-                                <span class="strong">投入SS:</span>
+                                <span class="strong">{{$t('mining.index.invest_ss')}}</span>
                                 <span class="user-input">
-                                    <el-input v-model="investment" placeholder="请输入投入矿池SS数量, 最低20000SS"></el-input>
+                                    <el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>
                                 </span>
                             </p>
-                            <p>创建矿池时投入的SS也将参与挖矿并获得收益分配</p>
+                            <p>{{$t('mining.index.invest_ss_tip')}}</p>
                         </div>
                         <div class="pool-data">
                             <p>
-                                <span class="strong">收益分配:</span>
+                                <span class="strong">{{$t('mining.index.income_distribution')}}</span>
                                 <span class="user-input slider">
                                     <el-slider v-model="incomeDistribution"></el-slider>
                                 </span>
                             </p>
-                            <p>将按照设置的百分比从矿池收入 (挖矿奖励等) 中提取并分配给其余矿池的参与者.</p>
+                            <p>{{$t('mining.index.income_distribution_tip')}}</p>
                         </div>
                         <div class="pool-bth">
-                            <button class="cancel" @click="isVisible('isCreatePool')">取消</button>
-                            <button class="immediately-create" @click="createPool()">立即创建</button>
+                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('mining.enter.enter_cancel')}}</button>
+                            <button class="immediately-create" @click="createPool()">{{$t('mining.index.create_now')}}</button>
                         </div>
                     </div>
                 </div>
@@ -293,8 +293,8 @@
         <!--菜单栏-->
         <div class="menu" style="display: none">
             <el-radio-group v-model="tabMenu" class="title">
-                <el-radio-button label="mining" class="btn miner">矿场</el-radio-button>
-                <el-radio-button label="personal" class="btn personal">个人中心</el-radio-button>
+                <el-radio-button label="mining" class="btn miner">{{$t('mining.index.mine')}}</el-radio-button>
+                <el-radio-button label="personal" class="btn personal">{{$t('mining.index.personal_center')}}</el-radio-button>
             </el-radio-group>
         </div>
     </div>
@@ -314,19 +314,19 @@
                 options: [
                     {
                         value: 'default',
-                        label: '默认排序'
+                        label: this.$t('mining.index.mining_sort_default')
                     },
                     {
                         value: 'capacity',
-                        label: '矿池容量'
+                        label: this.$t('mining.index.mining_sort_capacity')
                     },
                     {
                         value: 'distribution',
-                        label: '奖励分配'
+                        label: this.$t('mining.index.mining_sort_distribution')
                     },
                     {
                         value: 'time',
-                        label: '剩余时间'
+                        label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
                 value: '',
@@ -434,7 +434,7 @@
                 let _this = this;
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
                     _this.isVisible('isCreatePool');
-                    _this.$message.info("权限不足");
+                    _this.$message.info(_this.$t('mining.index.insufficient_permissions'));
                     return;
                 }
 
@@ -460,10 +460,10 @@
                 this[val] = !this[val];
             },
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                // console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
+                // console.log(`当前页: ${val}`);
             },
             account() {
                 let _this = this;

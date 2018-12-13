@@ -3,7 +3,7 @@
         <div class="active">
             <h1>{{alertInfo.title}}</h1>
             <p>{{alertInfo.content}}</p>
-            <button @click="close()">关闭</button>
+            <button @click="close()">{{$t('mining.attribute.close')}}</button>
         </div>
     </div>
 </template>
