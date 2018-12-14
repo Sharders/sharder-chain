@@ -1027,7 +1027,7 @@ public final class Peers {
             badNetwork = true;
         }
 
-        if(badNetwork && abortWhenBadNetwork) throw new RuntimeException(networkDetail);
+//        if(badNetwork && abortWhenBadNetwork) throw new RuntimeException(networkDetail);
 
         if(badNetwork) Logger.logDebugMessage(networkDetail,"ignoring");
     }

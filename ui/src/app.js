@@ -51,7 +51,7 @@ Vue.use(Element);
 Vue.prototype.$http = axios;
 Vue.prototype.$global = global;
 Vue.prototype.url = "http://localhost:8215/sharder?requestType=";
-// Vue.prototype.url = "47.107.188.3:8215/sharder?requestType=";
+// Vue.prototype.url = "http://47.107.188.3:8215/sharder?requestType=";
 
 const app = new Vue({
     router,
