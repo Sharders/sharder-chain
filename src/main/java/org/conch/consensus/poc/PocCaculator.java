@@ -433,33 +433,33 @@ public class PocCaculator {
         private static BigInteger onlineRateCal(PocTxBody.PocNodeType nodeType, PocTxBody.PocOnlineRate onlineRate){
             if (nodeType.getType().equals(Peer.Type.OFFICIAL)) {
                 if (onlineRate.getNetworkRate() >= 9900 && onlineRate.getNetworkRate() < 9999) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9700 && onlineRate.getNetworkRate() < 9900) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() < 9700) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
                 if (onlineRate.getNetworkRate() >= 9700 && onlineRate.getNetworkRate() < 9900) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9000 && onlineRate.getNetworkRate() < 9700) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() < 9000) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             } else if (nodeType.getType().equals(Peer.Type.HUB) || nodeType.getType().equals(Peer.Type.BOX)) {
                 if (onlineRate.getNetworkRate() >= 9900) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9700) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() < 9000) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
                 if (onlineRate.getNetworkRate() >= 9700) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9000) {
-                    return pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue()).multiply(pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    return pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             }
             return BigInteger.ZERO;
