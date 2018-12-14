@@ -196,21 +196,35 @@ public abstract class PocTxBody  {
         private Map<Integer, BigInteger> txHandlePerformanceTemplate;
         /**
          *
-         * Map<Integer, BigInteger> onlineRateTemplate = new HashMap<>();
-         * txHandlePerformanceTemplate.put(1, new BigInteger.valueOf(-2L)); // 基金会节点在线率1  99%<在线率<99.99%
-         * txHandlePerformanceTemplate.put(2, new BigInteger.valueOf(-5L)); // 基金会节点在线率2  97%<在线率<99%
-         * txHandlePerformanceTemplate.put(3, new BigInteger.valueOf(-10L)); // 基金会节点在线率3  在线率<97%
-         * txHandlePerformanceTemplate.put(4, new BigInteger.valueOf(-2L)); // 社区节点在线率1  97%<在线率<99%
-         * txHandlePerformanceTemplate.put(5, new BigInteger.valueOf(-5L)); // 社区节点在线率2  90%<在线率<97%
-         * txHandlePerformanceTemplate.put(6, new BigInteger.valueOf(-10L)); // 社区节点在线率3  在线率<90%
-         * txHandlePerformanceTemplate.put(7, new BigInteger.valueOf(5L)); // HUB/BOX节点在线率1  99%<在线率
-         * txHandlePerformanceTemplate.put(8, new BigInteger.valueOf(3L)); // HUB/BOX节点在线率2  97%<在线率
-         * txHandlePerformanceTemplate.put(9, new BigInteger.valueOf(-5L)); // HUB/BOX节点在线率3  在线率<90%
-         * txHandlePerformanceTemplate.put(10, new BigInteger.valueOf(5L)); // 普通节点在线率1  97%<在线率
-         * txHandlePerformanceTemplate.put(11, new BigInteger.valueOf(3L)); // 普通节点在线率2  90%<在线率
-         *
+         * Map<Integer, BigInteger> onlineRateOfficialTemplate = new HashMap<>();
+         * onlineRateTemplate.put(3, new BigInteger.valueOf(-2L)); // 基金会节点在线率1  99%<在线率<99.99%
+         * onlineRateTemplate.put(2, new BigInteger.valueOf(-5L)); // 基金会节点在线率2  97%<在线率<99%
+         * onlineRateTemplate.put(1, new BigInteger.valueOf(-10L)); // 基金会节点在线率3  在线率<97%
          */
-        private Map<Integer, BigInteger> onlineRateTemplate;
+        private Map<Integer, BigInteger> onlineRateOfficialTemplate;
+        /**
+         *
+         * Map<Integer, BigInteger> onlineRateCommunityTemplate = new HashMap<>();
+         * onlineRateCommunityTemplate.put(3, new BigInteger.valueOf(-2L)); // 社区节点在线率1  97%<在线率<99%
+         * onlineRateCommunityTemplate.put(2, new BigInteger.valueOf(-5L)); // 社区节点在线率2  90%<在线率<97%
+         * onlineRateCommunityTemplate.put(1, new BigInteger.valueOf(-10L)); // 社区节点在线率3  在线率<90%
+         */
+        private Map<Integer, BigInteger> onlineRateCommunityTemplate;
+        /**
+         *
+         * Map<Integer, BigInteger> onlineRateHubBoxTemplate = new HashMap<>();
+         * onlineRateHubBoxTemplate.put(3, new BigInteger.valueOf(5L)); // HUB/BOX节点在线率1  99%<在线率
+         * onlineRateHubBoxTemplate.put(2, new BigInteger.valueOf(3L)); // HUB/BOX节点在线率2  97%<在线率
+         * onlineRateHubBoxTemplate.put(1, new BigInteger.valueOf(-5L)); // HUB/BOX节点在线率3  在线率<90%
+         */
+        private Map<Integer, BigInteger> onlineRateHubBoxTemplate;
+        /**
+         *
+         * Map<Integer, BigInteger> onlineRateNormalTemplate = new HashMap<>();
+         * onlineRateTemplate.put(3, new BigInteger.valueOf(5L)); // 普通节点在线率1  97%<在线率
+         * onlineRateTemplate.put(2, new BigInteger.valueOf(3L)); // 普通节点在线率2  90%<在线率
+         */
+        private Map<Integer, BigInteger> onlineRateNormalTemplate;
         /**
          *
          * Map<Integer, BigInteger> blockingMissTemplate = new HashMap<>();
@@ -254,8 +268,20 @@ public abstract class PocTxBody  {
             return txHandlePerformanceTemplate;
         }
 
-        public Map<Integer, BigInteger> getOnlineRateTemplate() {
-            return onlineRateTemplate;
+        public Map<Integer, BigInteger> getOnlineRateOfficialTemplate() {
+            return onlineRateOfficialTemplate;
+        }
+
+        public Map<Integer, BigInteger> getOnlineRateCommunityTemplate() {
+            return onlineRateCommunityTemplate;
+        }
+
+        public Map<Integer, BigInteger> getOnlineRateHubBoxTemplate() {
+            return onlineRateHubBoxTemplate;
+        }
+
+        public Map<Integer, BigInteger> getOnlineRateNormalTemplate() {
+            return onlineRateNormalTemplate;
         }
 
         public Map<Integer, BigInteger> getBlockingMissTemplate() {
@@ -266,14 +292,17 @@ public abstract class PocTxBody  {
             return bocSpeedTemplate;
         }
 
-        public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Integer, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txHandlePerformanceTemplate, Map<Integer, BigInteger> onlineRateTemplate, Map<Integer, BigInteger> blockingMissTemplate, Map<Integer, BigInteger> bocSpeedTemplate) {
+        public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Integer, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txHandlePerformanceTemplate, Map<Integer, BigInteger> onlineRateOfficialTemplate, Map<Integer, BigInteger> onlineRateCommunityTemplate, Map<Integer, BigInteger> onlineRateHubBoxTemplate, Map<Integer, BigInteger> onlineRateNormalTemplate, Map<Integer, BigInteger> blockingMissTemplate, Map<Integer, BigInteger> bocSpeedTemplate) {
             this.weightMap = weightMap;
             this.nodeTypeTemplate = nodeTypeTemplate;
             this.serverOpenTemplate = serverOpenTemplate;
             this.hardwareConfigTemplate = hardwareConfigTemplate;
             this.networkConfigTemplate = networkConfigTemplate;
             this.txHandlePerformanceTemplate = txHandlePerformanceTemplate;
-            this.onlineRateTemplate = onlineRateTemplate;
+            this.onlineRateOfficialTemplate = onlineRateOfficialTemplate;
+            this.onlineRateCommunityTemplate = onlineRateCommunityTemplate;
+            this.onlineRateHubBoxTemplate = onlineRateHubBoxTemplate;
+            this.onlineRateNormalTemplate = onlineRateNormalTemplate;
             this.blockingMissTemplate = blockingMissTemplate;
             this.bocSpeedTemplate = bocSpeedTemplate;
         }
@@ -286,7 +315,10 @@ public abstract class PocTxBody  {
             this.hardwareConfigTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
             this.networkConfigTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
             this.txHandlePerformanceTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.onlineRateTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
+            this.onlineRateOfficialTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
+            this.onlineRateCommunityTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
+            this.onlineRateHubBoxTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
+            this.onlineRateNormalTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
             this.blockingMissTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
             this.bocSpeedTemplate =(Map<Integer, BigInteger>) _getByte(buffer);
         }
@@ -299,7 +331,10 @@ public abstract class PocTxBody  {
             this.hardwareConfigTemplate = (Map<Integer, BigInteger>) attachmentData.get("hardwareConfig");
             this.networkConfigTemplate = (Map<Integer, BigInteger>) attachmentData.get("networkConfig");
             this.txHandlePerformanceTemplate = (Map<Integer, BigInteger>) attachmentData.get("txHandlePerformance");
-            this.onlineRateTemplate = (Map<Integer, BigInteger>) attachmentData.get("onlineRate");
+            this.onlineRateOfficialTemplate =(Map<Integer, BigInteger>) attachmentData.get("onlineRateOfficial");
+            this.onlineRateCommunityTemplate = (Map<Integer, BigInteger>) attachmentData.get("onlineRateCommunity");
+            this.onlineRateHubBoxTemplate =(Map<Integer, BigInteger>) attachmentData.get("onlineRateHubBox");
+            this.onlineRateNormalTemplate = (Map<Integer, BigInteger>) attachmentData.get("onlineRateNormal");
             this.blockingMissTemplate = (Map<Integer, BigInteger>) attachmentData.get("blockingMiss");
             this.bocSpeedTemplate = (Map<Integer, BigInteger>) attachmentData.get("bocSpeed");
         }
@@ -329,7 +364,10 @@ public abstract class PocTxBody  {
               hardwareConfigTemplate,
               networkConfigTemplate,
               txHandlePerformanceTemplate,
-              onlineRateTemplate,
+              onlineRateOfficialTemplate,
+              onlineRateCommunityTemplate,
+              onlineRateHubBoxTemplate,
+              onlineRateNormalTemplate,
               blockingMissTemplate,
               bocSpeedTemplate));
     }
@@ -345,7 +383,10 @@ public abstract class PocTxBody  {
               hardwareConfigTemplate,
               networkConfigTemplate,
               txHandlePerformanceTemplate,
-              onlineRateTemplate,
+              onlineRateOfficialTemplate,
+              onlineRateCommunityTemplate,
+              onlineRateHubBoxTemplate,
+              onlineRateNormalTemplate,
               blockingMissTemplate,
               bocSpeedTemplate));
     }
@@ -358,7 +399,10 @@ public abstract class PocTxBody  {
             attachment.put("hardwareConfig", hardwareConfigTemplate);
             attachment.put("networkConfig", networkConfigTemplate);
             attachment.put("txHandlePerformance", txHandlePerformanceTemplate);
-            attachment.put("onlineRate", onlineRateTemplate);
+            attachment.put("onlineRateOfficial", onlineRateOfficialTemplate);
+            attachment.put("onlineRateCommunity", onlineRateCommunityTemplate);
+            attachment.put("onlineRateHubBox", onlineRateHubBoxTemplate);
+            attachment.put("onlineRateNormal", onlineRateNormalTemplate);
             attachment.put("blockingMiss", blockingMissTemplate);
             attachment.put("bocSpeed", bocSpeedTemplate);
         }

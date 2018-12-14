@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
 import org.json.simple.JSONStreamAware;
@@ -97,7 +98,11 @@ public abstract class SharderPocTx {
                 Map<Integer, BigInteger> hardwareConfigTemplate = new HashMap<>();
                 Map<Integer, BigInteger> networkConfigTemplate = new HashMap<>();
                 Map<Integer, BigInteger> txHandlePerformanceTemplate = new HashMap<>();
-                Map<Integer, BigInteger> onlineRateTemplate = new HashMap<>();
+                Map<Integer, Object> onlineRateTemplate;
+                Map<Integer, BigInteger> onlineRateOfficialTemplate = new HashMap<>();
+                Map<Integer, BigInteger> onlineRateCommunityTemplate = new HashMap<>();
+                Map<Integer, BigInteger> onlineRateHubBoxTemplate = new HashMap<>();
+                Map<Integer, BigInteger> onlineRateNormalTemplate = new HashMap<>();
                 Map<Integer, BigInteger> blockingMissTemplate = new HashMap<>();
                 Map<Integer, BigInteger> bocSpeedTemplate = new HashMap<>();
                 if (weightMap.containsKey(PocTxBody.WeightTableOptions.NODE.getOptionValue()) && scoreMap.containsKey(PocTxBody.WeightTableOptions.NODE.getOptionValue())) {
@@ -116,7 +121,11 @@ public abstract class SharderPocTx {
                     txHandlePerformanceTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue());
                 }
                 if (scoreMap.containsKey(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue())) {
-                    onlineRateTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue());
+                    onlineRateTemplate = (Map<Integer, Object>) scoreMap.get(PocTxBody.WeightTableOptions.ONLINE_RATE.getOptionValue());
+                    onlineRateOfficialTemplate = (Map<Integer, BigInteger>) onlineRateTemplate.get(Peer.Type.OFFICIAL.getCode());
+                    onlineRateCommunityTemplate = (Map<Integer, BigInteger>) onlineRateTemplate.get(Peer.Type.COMMUNITY.getCode());
+                    onlineRateHubBoxTemplate = (Map<Integer, BigInteger>) onlineRateTemplate.get(Integer.valueOf(Peer.Type.HUB.getCode() + "" + Peer.Type.BOX.getCode()));
+                    onlineRateNormalTemplate = (Map<Integer, BigInteger>) onlineRateTemplate.get(Peer.Type.NORMAL.getCode());
                 }
                 if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BLOCKING_MISS.getOptionValue())) {
                     blockingMissTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BLOCKING_MISS.getOptionValue());
@@ -124,7 +133,7 @@ public abstract class SharderPocTx {
                 if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue())) {
                     bocSpeedTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue());
                 }
-                Attachment attachment = new PocTxBody.PocWeightTable(weightMap, nodeTypeTemplate, serverOpenTemplate, hardwareConfigTemplate, networkConfigTemplate, txHandlePerformanceTemplate, onlineRateTemplate, blockingMissTemplate, bocSpeedTemplate);
+                Attachment attachment = new PocTxBody.PocWeightTable(weightMap, nodeTypeTemplate, serverOpenTemplate, hardwareConfigTemplate, networkConfigTemplate, txHandlePerformanceTemplate, onlineRateOfficialTemplate, onlineRateCommunityTemplate, onlineRateHubBoxTemplate, onlineRateNormalTemplate, blockingMissTemplate, bocSpeedTemplate);
                 return createTransaction(request, account, 0, 0, attachment);
             }
             return null;
