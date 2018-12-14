@@ -145,11 +145,12 @@ public abstract class SharderPocTx {
         static final GetPocTemplate instance = new GetPocTemplate();
 
         GetPocTemplate() {
-            super(new APITag[]{APITag.POC}, "XX", "XX");
+            super(new APITag[]{APITag.POC}, "templateId");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            long templateId = ParameterParser.getLong(request, "templateId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             //TODO
 
             return null;
