@@ -84,7 +84,7 @@ var NRS = (function (NRS, $, undefined) {
 
         // noinspection JSUnresolvedVariable
         if (window.crypto || window.msCrypto) {
-            $loading.find("span.loading_text").html($.t("generating_passphrase_wait"));
+            $loading.find("span.loading_text").html($.t("sso.generating_passphrase_wait"));
         }
 
         $loading.show();
@@ -99,7 +99,7 @@ var NRS = (function (NRS, $, undefined) {
 
                 PassPhraseGenerator.generatePassPhrase("#account_phrase_generator_panel");
             }).fail(function () {
-                alert($.t("error_word_list"));
+                alert($.t("sso.error_word_list"));
             });
         } else {
             $loading.hide();
@@ -133,11 +133,11 @@ var NRS = (function (NRS, $, undefined) {
         var error = "";
 
         if (password.length < 35) {
-            error = $.t("error_passphrase_length");
+            error = $.t("sso.error_passphrase_length");
         } else if (password.length < 50 && (!password.match(/[A-Z]/) || !password.match(/[0-9]/))) {
-            error = $.t("error_passphrase_strength");
+            error = $.t("sso.error_passphrase_strength");
         } else if (password != repeat) {
-            error = $.t("error_passphrase_match");
+            error = $.t("sso.error_passphrase_match");
         }
 
         if (error) {
@@ -212,7 +212,7 @@ var NRS = (function (NRS, $, undefined) {
         // Return to the dashboard and notify the user
         NRS.goToPage("dashboard");
         NRS.login(false, account, function () {
-            $.growl($.t("switched_to_account", { account: account }));
+            $.growl($.t("sso.switched_to_account", { account: account }));
         }, true);
     };
 
@@ -452,7 +452,7 @@ var NRS = (function (NRS, $, undefined) {
                     // NRS.unlock();
 
                     if (NRS.isOutdated) {
-                        $.growl($.t("nrs_update_available"), {
+                        $.growl($.t("sso.nrs_update_available"), {
                             "type": "danger"
                         });
                     }

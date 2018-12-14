@@ -63,9 +63,9 @@ var NRS = (function(NRS, $) {
 						"<td>" + (contact.email ? contact.email.escapeHTML() : "-") + "</td>" +
 						"<td>" + contactDescription.escapeHTML() + "</td>" +
 						"<td style='white-space:nowrap'>" +
-						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_money_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("send_nxt") + "</a>&nbsp;" +
-						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_message_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("message") + "</a>&nbsp;" +
-						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#delete_contact_modal' data-contact='" + String(contact.id).escapeHTML() + "'>" + $.t("delete") + "</a>" +
+						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_money_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("sso.send_nxt") + "</a>&nbsp;" +
+						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#send_message_modal' data-contact='" + String(contact.name).escapeHTML() + "'>" + $.t("sso.message") + "</a>&nbsp;" +
+						"<a class='btn btn-xs btn-default' href='#' data-toggle='modal' data-target='#delete_contact_modal' data-contact='" + String(contact.id).escapeHTML() + "'>" + $.t("sso.delete") + "</a>" +
 						"</td>" +
 					"</tr>";
 				});
@@ -79,23 +79,23 @@ var NRS = (function(NRS, $) {
 		data.account_id = String(data.account_id);
 		if (!data.name) {
 			return {
-				"error": $.t("error_contact_name_required")
+				"error": $.t("sso.error_contact_name_required")
 			};
 		} else if (!data.account_id) {
 			return {
-				"error": $.t("error_account_id_required")
+				"error": $.t("sso.error_account_id_required")
 			};
 		}
 
 		if (/^\d+$/.test(data.name) || /^SSA\-/i.test(data.name)) {
 			return {
-				"error": $.t("error_contact_name_alpha")
+				"error": $.t("sso.error_contact_name_alpha")
 			};
 		}
 
 		if (data.email && !/@/.test(data.email)) {
 			return {
-				"error": $.t("error_email_address")
+				"error": $.t("sso.error_email_address")
 			};
 		}
 
@@ -105,7 +105,7 @@ var NRS = (function(NRS, $) {
 				data.account_id = convertedAccountId;
 			} else {
 				return {
-					"error": $.t("error_account_id")
+					"error": $.t("sso.error_account_id")
 				};
 			}
 		}
@@ -117,7 +117,7 @@ var NRS = (function(NRS, $) {
 				data.account = address.account_id();
 			} else {
 				return {
-					"error": $.t("error_account_id")
+					"error": $.t("sso.error_account_id")
 				};
 			}
 		} else {
@@ -126,7 +126,7 @@ var NRS = (function(NRS, $) {
 				data.account_rs = address.toString();
 			} else {
 				return {
-					"error": $.t("error_account_id")
+					"error": $.t("sso.error_account_id")
 				};
 			}
 		}
@@ -137,7 +137,7 @@ var NRS = (function(NRS, $) {
 			if (!response.errorCode) {
 				if (response.account != data.account || response.accountRS != data.account_rs) {
 					return {
-						"error": $.t("error_account_id")
+						"error": $.t("sso.error_account_id")
 					};
 				}
 			}
@@ -152,9 +152,9 @@ var NRS = (function(NRS, $) {
 		}], function (error, contacts) {
 			if (contacts && contacts.length) {
 				if (contacts[0].name == data.name) {
-					$modal.find(".error_message").html($.t("error_contact_name_exists")).show();
+					$modal.find(".error_message").html($.t("sso.error_contact_name_exists")).show();
 				} else {
-					$modal.find(".error_message").html($.t("error_contact_account_id_exists")).show();
+					$modal.find(".error_message").html($.t("sso.error_contact_account_id_exists")).show();
 				}
 				$btn.button("reset");
 				$modal.modal("unlock");
@@ -177,7 +177,7 @@ var NRS = (function(NRS, $) {
 						$btn.button("reset");
 						$modal.modal("unlock");
 						$modal.modal("hide");
-						$.growl($.t("success_contact_add"), {
+						$.growl($.t("sso.success_contact_add"), {
 							"type": "success"
 						});
 						if (NRS.currentPage == "contacts") {
@@ -230,11 +230,11 @@ var NRS = (function(NRS, $) {
 		data.account_id = String(data.account_id);
 		if (!data.name) {
 			return {
-				"error": $.t("error_contact_name_required")
+				"error": $.t("sso.error_contact_name_required")
 			};
 		} else if (!data.account_id) {
 			return {
-				"error": $.t("error_account_id_required")
+				"error": $.t("sso.error_account_id_required")
 			};
 		}
 
@@ -244,14 +244,14 @@ var NRS = (function(NRS, $) {
 				data.account_id = convertedAccountId;
 			} else {
 				return {
-					"error": $.t("error_account_id")
+					"error": $.t("sso.error_account_id")
 				};
 			}
 		}
 		var contactId = parseInt($("#update_contact_id").val(), 10);
 		if (!contactId) {
 			return {
-				"error": $.t("error_contact")
+				"error": $.t("sso.error_contact")
 			};
 		}
 		var address;
@@ -262,7 +262,7 @@ var NRS = (function(NRS, $) {
 				data.account = address.account_id();
 			} else {
 				return {
-					"error": $.t("error_account_id")
+					"error": $.t("sso.error_account_id")
 				};
 			}
 		} else {
@@ -271,7 +271,7 @@ var NRS = (function(NRS, $) {
 				data.account_rs = address.toString();
 			} else {
 				return {
-					"error": $.t("error_account_id")
+					"error": $.t("sso.error_account_id")
 				};
 			}
 		}
@@ -282,7 +282,7 @@ var NRS = (function(NRS, $) {
 			if (!response.errorCode) {
 				if (response.account != data.account_id || response.accountRS != data.account_rs) {
 					return {
-						"error": $.t("error_account_id")
+						"error": $.t("sso.error_account_id")
 					};
 				}
 			}
@@ -293,7 +293,7 @@ var NRS = (function(NRS, $) {
 			"account": data.account_id
 		}], function(error, contacts) {
 			if (contacts && contacts.length && contacts[0].id != contactId) {
-				$modal.find(".error_message").html($.t("error_contact_exists")).show();
+				$modal.find(".error_message").html($.t("sso.error_contact_exists")).show();
 				$btn.button("reset");
 				$modal.modal("unlock");
 			} else {
@@ -321,7 +321,7 @@ var NRS = (function(NRS, $) {
 						$btn.button("reset");
 						$modal.modal("unlock");
 						$modal.modal("hide");
-						$.growl($.t("success_contact_update"), {
+						$.growl($.t("sso.success_contact_update"), {
 							"type": "success"
 						});
 
@@ -359,7 +359,7 @@ var NRS = (function(NRS, $) {
 		}], function() {
 			delete NRS.contacts[$("#delete_contact_account_id").val()];
 			setTimeout(function() {
-				$.growl($.t("success_contact_delete"), {
+				$.growl($.t("sso.success_contact_delete"), {
 					"type": "success"
 				});
 
@@ -383,7 +383,7 @@ var NRS = (function(NRS, $) {
 			contacts_download.click();
 			document.body.removeChild(contacts_download);
 		} else {
-			$.growl($.t("error_no_contacts_available"), {"type":"warning"}).show();
+			$.growl($.t("sso.error_no_contacts_available"), {"type":"warning"}).show();
 		}
 	};
 	$("#export_contacts_button").on("click", function() {
@@ -399,9 +399,9 @@ var NRS = (function(NRS, $) {
 			}], function(error, contacts) {
 				if (contacts && contacts.length) {
 					if (contacts[0].name == imported_contact.name) {
-						$.growl(imported_contact.name + ' - ' + $.t("error_contact_name_exists"), {"type":"warning"}).show();
+						$.growl(imported_contact.name + ' - ' + $.t("sso.error_contact_name_exists"), {"type":"warning"}).show();
 					} else {
-						$.growl(imported_contact.account + ' - ' + $.t("error_contact_account_id_exists"), {"type":"warning"}).show();
+						$.growl(imported_contact.account + ' - ' + $.t("sso.error_contact_account_id_exists"), {"type":"warning"}).show();
 					}
 				} else {
 					NRS.storageInsert("contacts", "name", {
@@ -420,7 +420,7 @@ var NRS = (function(NRS, $) {
 						};
 
 						setTimeout(function() {
-							$.growl(imported_contact.name + ' - ' + $.t("success_contact_add"), {
+							$.growl(imported_contact.name + ' - ' + $.t("sso.success_contact_add"), {
 								"type": "success"
 							});
 							if (NRS.currentPage == "contacts") {

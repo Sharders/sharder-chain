@@ -41,10 +41,10 @@ var NRS = (function(NRS, $, undefined) {
         if (transaction.transactionJSON) {
             var namePrefix;
             if (transaction.transactionBytes) {
-                $("#raw_transaction_modal_transaction_json_label").html($.t("signed_transaction_json"));
+                $("#raw_transaction_modal_transaction_json_label").html($.t("sso.signed_transaction_json"));
                 namePrefix = "signed";
             } else {
-                $("#raw_transaction_modal_transaction_json_label").html($.t("unsigned_transaction_json"));
+                $("#raw_transaction_modal_transaction_json_label").html($.t("sso.unsigned_transaction_json"));
                 namePrefix = "unsigned";
             }
             var unsignedTransactionJson = $("#raw_transaction_modal_transaction_json");
@@ -114,7 +114,7 @@ var NRS = (function(NRS, $, undefined) {
         var fileInput = document.getElementById(fileInputId);
         var file = fileInput.files[0];
         if (!file) {
-            $.growl($.t("select_file_to_upload"));
+            $.growl($.t("sso.select_file_to_upload"));
             return;
         }
         var fileReader = new FileReader();
@@ -368,7 +368,7 @@ var NRS = (function(NRS, $, undefined) {
         $(this).find(".upload_container").hide();
 		$(this).find("#unsigned_transaction_bytes_reader").hide();
 		$(this).find(".tab_content:first").show();
-        $("#transaction_json_modal_button").text($.t("sign_transaction")).data("resetText", $.t("sign_transaction")).data("form", "sign_transaction_form");
+        $("#transaction_json_modal_button").text($.t("sso.sign_transaction")).data("resetText", $.t("sso.sign_transaction")).data("form", "sign_transaction_form");
 		var $invoker = $(e.relatedTarget);
 		var isOffline = !!$invoker.data("offline");
 		if (isOffline) {
@@ -397,13 +397,13 @@ var NRS = (function(NRS, $, undefined) {
 		$(this).addClass("active");
 		$(this).closest(".modal").find(".tab_content").hide();
 		if (tab == "broadcast_json") {
-			$("#transaction_json_modal_button").text($.t("broadcast")).data("resetText", $.t("broadcast")).data("form", "broadcast_json_form");
+			$("#transaction_json_modal_button").text($.t("sso.broadcast")).data("resetText", $.t("sso.broadcast")).data("form", "broadcast_json_form");
 		} else if(tab == "parse_transaction") {
-			$("#transaction_json_modal_button").text($.t("parse_transaction")).data("resetText", $.t("parse_transaction")).data("form", "parse_transaction_form");
+			$("#transaction_json_modal_button").text($.t("sso.parse_transaction")).data("resetText", $.t("sso.parse_transaction")).data("form", "parse_transaction_form");
 		} else if(tab == "calculate_full_hash") {
-			$("#transaction_json_modal_button").text($.t("calculate_full_hash")).data("resetText", $.t("calculate_full_hash")).data("form", "calculate_full_hash_form");
+			$("#transaction_json_modal_button").text($.t("sso.calculate_full_hash")).data("resetText", $.t("sso.calculate_full_hash")).data("form", "calculate_full_hash_form");
 		} else {
-			$("#transaction_json_modal_button").text($.t("sign_transaction")).data("resetText", $.t("sign_transaction")).data("form", "sign_transaction_form");
+			$("#transaction_json_modal_button").text($.t("sso.sign_transaction")).data("resetText", $.t("sso.sign_transaction")).data("form", "sign_transaction_form");
 		}
 		$("#transaction_json_modal_" + tab).show();
 	});
@@ -487,7 +487,7 @@ var NRS = (function(NRS, $, undefined) {
 					output.errorMessage = e.message;
 				}
 			} else {
-				output.errorMessage = $.t("error_passphrase_incorrect");
+				output.errorMessage = $.t("sso.error_passphrase_incorrect");
 			}
 			output.stop = true;
 			output.keepOpen = true;

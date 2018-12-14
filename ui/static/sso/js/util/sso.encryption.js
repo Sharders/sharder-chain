@@ -19,7 +19,7 @@ var NRS = (function (NRS, $) {
 			if (NRS.rememberPassword) {
 				secretPhrase = _password;
 			} else {
-				throw { message: $.t("error_generate_public_key_no_password") };
+				throw { message: $.t("sso.error_generate_public_key_no_password") };
 			}
 		}
 
@@ -162,7 +162,7 @@ var NRS = (function (NRS, $) {
 							secretPhrase = _decryptionPassword;
 						} else {
 							throw {
-								"message": $.t("error_decryption_passphrase_required"),
+								"message": $.t("sso.error_decryption_passphrase_required"),
 								"errorCode": 1
 							};
 						}
@@ -174,7 +174,7 @@ var NRS = (function (NRS, $) {
 				if (!options.publicKey) {
 					if (!options.account) {
 						throw {
-							"message": $.t("error_account_id_not_specified"),
+							"message": $.t("sso.error_account_id_not_specified"),
 							"errorCode": 2
 						};
 					}
@@ -192,7 +192,7 @@ var NRS = (function (NRS, $) {
 			} else {
 			    NRS.logConsole(err.message);
 				throw {
-					"message": $.t("error_message_decryption"),
+					"message": $.t("sso.error_message_decryption"),
 					"errorCode": 3
 				};
 			}
@@ -213,7 +213,7 @@ var NRS = (function (NRS, $) {
 				secretPhrase = _decryptionPassword;
 			} else {
 				throw {
-					"message": $.t("error_passphrase_required"),
+					"message": $.t("sso.error_passphrase_required"),
 					"errorCode": 3
 				};
 			}
@@ -242,7 +242,7 @@ var NRS = (function (NRS, $) {
 				secretPhrase = _password;
 			} else {
 				throw {
-					"message": $.t("error_signing_passphrase_required"),
+					"message": $.t("sso.error_signing_passphrase_required"),
 					"errorCode": 1
 				};
 			}
@@ -272,7 +272,7 @@ var NRS = (function (NRS, $) {
 		if (!areByteArraysEqual(h, h2)) {
             callback({
                 "errorCode": 1,
-                "errorDescription": $.t("error_signature_verification_client")
+                "errorDescription": $.t("sso.error_signature_verification_client")
             }, message);
             return false;
         }
@@ -295,7 +295,7 @@ var NRS = (function (NRS, $) {
 		}
 		try {
 			if (!message.attachment.encryptedMessage.data) {
-				return { message: $.t("message_empty") };
+				return { message: $.t("sso.message_empty") };
 			} else {
 				var decoded = NRS.decryptNote(message.attachment.encryptedMessage.data, {
 					"nonce": message.attachment.encryptedMessage.nonce,
@@ -394,11 +394,11 @@ var NRS = (function (NRS, $) {
 									translatedTitle = NRS.escapeRespStr(title).toLowerCase();
 								}
 
-								data.message = $.t("error_could_not_decrypt_var", {
+								data.message = $.t("sso.error_could_not_decrypt_var", {
 									"var": translatedTitle
 								}).capitalize();
 							} else {
-								data.message = $.t("error_could_not_decrypt");
+								data.message = $.t("sso.error_could_not_decrypt");
 							}
 						}
 					}
@@ -456,12 +456,12 @@ var NRS = (function (NRS, $) {
 		if (NRS.isTextMessage(transaction)) {
 			msg = String(data.message).autoLink().nl2br();
 		} else {
-			msg = $.t("binary_data");
+			msg = $.t("sso.binary_data");
 		}
 		var sharedKeyField = "";
 		var downloadLink = "";
 		if (data.sharedKey) {
-			sharedKeyField = "<div><label>" + $.t("shared_key") + "</label><br><span>" + data.sharedKey + "</span></div><br>";
+			sharedKeyField = "<div><label>" + $.t("sso.shared_key") + "</label><br><span>" + data.sharedKey + "</span></div><br>";
 			if (!NRS.isTextMessage(transaction) && transaction.block) {
 				downloadLink = NRS.getMessageDownloadLink(transaction.transaction, data.sharedKey) + "<br>";
 			}
@@ -472,7 +472,7 @@ var NRS = (function (NRS, $) {
     NRS.decryptNoteFormSubmit = function () {
 		var $form = $("#decrypt_note_form_container");
 		if (!_encryptedNote) {
-			$form.find(".callout").html($.t("error_encrypted_note_not_found")).show();
+			$form.find(".callout").html($.t("sso.error_encrypted_note_not_found")).show();
 			return;
 		}
 
@@ -485,7 +485,7 @@ var NRS = (function (NRS, $) {
 			} else if (_decryptionPassword) {
 				password = _decryptionPassword;
 			} else if (!sharedKey) {
-				$form.find(".callout").html($.t("error_passphrase_or_shared_key_required")).show();
+				$form.find(".callout").html($.t("sso.error_passphrase_or_shared_key_required")).show();
 				return;
 			}
 			useSharedKey = true;
@@ -493,7 +493,7 @@ var NRS = (function (NRS, $) {
 
 		var accountId = NRS.getAccountId(password);
 		if (accountId != NRS.account && !useSharedKey) {
-			$form.find(".callout").html($.t("error_incorrect_passphrase")).show();
+			$form.find(".callout").html($.t("sso.error_incorrect_passphrase")).show();
 			return;
 		}
 
@@ -550,7 +550,7 @@ var NRS = (function (NRS, $) {
 					decryptedFields[key] = data;
 				} catch (err) {
 					if (useSharedKey) {
-						data = { message: $.t("error_could_not_decrypt_message") };
+						data = { message: $.t("sso.error_could_not_decrypt_message") };
 						decryptedFields[key] = data;
 					} else {
 						decryptionError = true;
@@ -586,7 +586,7 @@ var NRS = (function (NRS, $) {
 		if (!password) {
 			if (!sharedKey) {
 				throw {
-					"message": $.t("error_passphrase_required"),
+					"message": $.t("sso.error_passphrase_required"),
 					"errorCode": 1
 				};
 			}
@@ -595,7 +595,7 @@ var NRS = (function (NRS, $) {
 			var accountId = NRS.getAccountId(password);
 			if (accountId != NRS.account) {
 				throw {
-					"message": $.t("error_incorrect_passphrase"),
+					"message": $.t("sso.error_incorrect_passphrase"),
 					"errorCode": 2
 				};
 			}
@@ -629,7 +629,7 @@ var NRS = (function (NRS, $) {
 				} catch (err) {
 					if (!useSharedKey) {
 						_decryptedTransactions[message.transaction] = {
-							"message": $.t("error_decryption_unknown")
+							"message": $.t("sso.error_decryption_unknown")
 						};
 					}
 					error++;
@@ -816,7 +816,7 @@ var NRS = (function (NRS, $) {
 		try {
 			r = new FileReader();
 		} catch (e) {
-			throw $.t("encrypted_file_upload_not_supported");
+			throw $.t("sso.encrypted_file_upload_not_supported");
 		}
 		r.onload = function (e) {
 			var bytes = e.target.result;
@@ -833,7 +833,7 @@ var NRS = (function (NRS, $) {
         if (!window.crypto && !window.msCrypto && !crypto) {
             throw {
                 "errorCode": -1,
-                "message": $.t("error_encryption_browser_support")
+                "message": $.t("sso.error_encryption_browser_support")
             };
         }
         var bytes = new Uint8Array(length);

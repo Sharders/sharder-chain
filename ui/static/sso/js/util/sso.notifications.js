@@ -57,7 +57,7 @@ var NRS = (function(NRS, $, undefined) {
 			$menuItem.find('span .nm_inner_total').css('backgroundColor', '#e06054');
 
 			var $markReadDiv = $("<div style='text-align:center;padding:12px 12px 8px 12px;'></div>");
-			var $markReadLink= $("<a href='#' style='color:#3c8dbc;'>" + $.t('notifications_mark_as_read', 'Mark all as read') + "</a>");
+			var $markReadLink= $("<a href='#' style='color:#3c8dbc;'>" + $.t('sso.notifications_mark_as_read', 'Mark all as read') + "</a>");
 			$markReadLink.click(function(e) {
 				e.preventDefault();
 				NRS.resetNotificationState();
@@ -65,14 +65,14 @@ var NRS = (function(NRS, $, undefined) {
 			});
 			$markReadLink.appendTo($markReadDiv);
 			$popoverItem.append($markReadDiv);
-			document.title = $.t('app_title') + ' (' + String(totalCount) + ')';
+			document.title = $.t('sso.app_title') + ' (' + String(totalCount) + ')';
 		} else {
 			$menuItem.find('span .nm_inner_subtype').css('backgroundColor', '#337ab7');
 			$menuItem.find('span .nm_inner_total').css('backgroundColor', '');
 			var html = "";
-			html += "<div style='text-align:center;padding:12px;'>" + $.t('no_notifications', 'No current notifications') + "</div>";
+			html += "<div style='text-align:center;padding:12px;'>" + $.t('sso.no_notifications', 'No current notifications') + "</div>";
 			$popoverItem.append(html);
-			document.title = $.t('app_title');
+			document.title = $.t('sso.app_title');
 		}
 
 		$menuItem.find('span .nm_inner_subtype').html(String(subTypeCount));

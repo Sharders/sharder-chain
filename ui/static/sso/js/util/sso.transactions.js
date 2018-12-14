@@ -344,10 +344,10 @@ var NRS = (function(NRS, $, undefined) {
 
 						var $popoverTable = $("<table class='table table-striped'></table>");
 						var $popoverTypeTR = $("<tr><td></td><td></td></tr>");
-						var $popoverVotesTR = $("<tr><td>" + $.t('votes', 'Votes') + ":</td><td></td></tr>");
-						var $popoverPercentageTR = $("<tr><td>" + $.t('percentage', 'Percentage') + ":</td><td></td></tr>");
-						var $popoverFinishTR = $("<tr><td>" + $.t('finish_height', 'Finish Height') + ":</td><td></td></tr>");
-						var $popoverApprovedTR = $("<tr><td>" + $.t('approved', 'Approved') + ":</td><td></td></tr>");
+						var $popoverVotesTR = $("<tr><td>" + $.t('sso.votes', 'Votes') + ":</td><td></td></tr>");
+						var $popoverPercentageTR = $("<tr><td>" + $.t('sso.percentage', 'Percentage') + ":</td><td></td></tr>");
+						var $popoverFinishTR = $("<tr><td>" + $.t('sso.finish_height', 'Finish Height') + ":</td><td></td></tr>");
+						var $popoverApprovedTR = $("<tr><td>" + $.t('sso.approved', 'Approved') + ":</td><td></td></tr>");
 
 						$popoverTypeTR.appendTo($popoverTable);
 						$popoverVotesTR.appendTo($popoverTable);
@@ -396,7 +396,7 @@ var NRS = (function(NRS, $, undefined) {
 						phasingDiv += "<div class='label label-" + state + "' style='display:inline-block;margin-right:5px;'>" + icon + "</div>";
 
 						if (vm == -1) {
-							phasingDiv += '<span style="color:' + color + '">' + $.t("none") + '</span>';
+							phasingDiv += '<span style="color:' + color + '">' + $.t("sso.none") + '</span>';
 						} else if (vm == 0) {
 							phasingDiv += '<span style="color:' + color + '">' + String(responsePoll.result) + '</span> / <span>' + String(attachment.phasingQuorum) + '</span>';
 						} else {
@@ -414,13 +414,13 @@ var NRS = (function(NRS, $, undefined) {
 						$phasingDiv.appendTo($tdPhasing);
                         var votesFormatted;
 						if (vm == 0) {
-							$popoverTypeTR.find("td:first").html($.t('accounts', 'Accounts') + ":");
+							$popoverTypeTR.find("td:first").html($.t('sso.accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
 							votesFormatted = String(responsePoll.result) + " / " + String(attachment.phasingQuorum);
 							$popoverVotesTR.find("td:last").html(votesFormatted);
 						}
 						if (vm == 1) {
-							$popoverTypeTR.find("td:first").html($.t('accounts', 'Accounts') + ":");
+							$popoverTypeTR.find("td:first").html($.t('sso.accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
 							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " SS";
 							$popoverVotesTR.find("td:last").html(votesFormatted);
@@ -437,7 +437,7 @@ var NRS = (function(NRS, $, undefined) {
 							}, function(phResponse) {
 								if (phResponse && phResponse.asset) {
 									if (vm == 2) {
-										$popoverTypeTR.find("td:first").html($.t('asset', 'Asset') + ":");
+										$popoverTypeTR.find("td:first").html($.t('sso.asset', 'Asset') + ":");
 										$popoverTypeTR.find("td:last").html(String(phResponse.name));
 										var votesFormatted = NRS.convertToQNTf(responsePoll.result, phResponse.decimals) + " / ";
 										votesFormatted += NRS.convertToQNTf(attachment.phasingQuorum, phResponse.decimals) + " QNT";
@@ -458,7 +458,7 @@ var NRS = (function(NRS, $, undefined) {
 							}, function(phResponse) {
 								if (phResponse && phResponse.currency) {
 									if (vm == 3) {
-										$popoverTypeTR.find("td:first").html($.t('currency', 'Currency') + ":");
+										$popoverTypeTR.find("td:first").html($.t('sso.currency', 'Currency') + ":");
 										$popoverTypeTR.find("td:last").html(String(phResponse.code));
 										var votesFormatted = NRS.convertToQNTf(responsePoll.result, phResponse.decimals) + " / ";
 										votesFormatted += NRS.convertToQNTf(attachment.phasingQuorum, phResponse.decimals) + " Units";
@@ -495,9 +495,9 @@ var NRS = (function(NRS, $, undefined) {
 
 		if (t.type == 1 && t.subtype == 6 && t.attachment.priceNQT == "0") {
 			if (t.sender == NRS.account && t.recipient == NRS.account) {
-				transactionType = $.t("alias_sale_cancellation");
+				transactionType = $.t("sso.alias_sale_cancellation");
 			} else {
-				transactionType = $.t("alias_transfer");
+				transactionType = $.t("sso.alias_transfer");
 			}
 		}
 
@@ -567,7 +567,7 @@ var NRS = (function(NRS, $, undefined) {
 		html += "<td class='td_transaction_phasing' style='min-width:100px;vertical-align:middle;text-align:center;'></td>";
 		html += "<td style='vertical-align:middle;text-align:center;'>" + (t.confirmed ? NRS.getBlockLink(t.height, null, true) : "-") + "</td>";
 		html += "<td class='confirmations' style='vertical-align:middle;text-align:center;font-size:12px;'>";
-		html += "<span class='show_popover' data-content='" + (t.confirmed ? NRS.formatAmount(t.confirmations) + " " + $.t("confirmations") : $.t("unconfirmed_transaction")) + "' ";
+		html += "<span class='show_popover' data-content='" + (t.confirmed ? NRS.formatAmount(t.confirmations) + " " + $.t("sso.confirmations") : $.t("sso.unconfirmed_transaction")) + "' ";
 		html += "data-container='body' data-placement='left'>";
 		html += (!t.confirmed ? "-" : (t.confirmations > 1440 ? (NRS.formatAmount('144000000000') + "+") : NRS.formatAmount(t.confirmations))) + "</span></td>";
 		if (actions && actions.length != undefined) {
@@ -576,7 +576,7 @@ var NRS = (function(NRS, $, undefined) {
                 html += "<a class='btn btn-xs btn-default approve_transaction_btn' href='#' data-toggle='modal' data-target='#approve_transaction_modal' ";
 				html += "data-transaction='" + NRS.escapeRespStr(t.transaction) + "' data-fullhash='" + NRS.escapeRespStr(t.fullHash) + "' ";
 				html += "data-timestamp='" + t.timestamp + "' " + "data-votingmodel='" + t.attachment.phasingVotingModel + "' ";
-				html += "data-fee='1' data-min-balance-formatted=''>" + $.t('approve') + "</a>";
+				html += "data-fee='1' data-min-balance-formatted=''>" + $.t('sso.approve') + "</a>";
 			}
 			html += "</td>";
 		}
@@ -726,7 +726,7 @@ var NRS = (function(NRS, $, undefined) {
         var subtypeNavi = $('#transactions_sub_type_navi');
         subtypeNavi.empty();
 		var html  = '<li role="presentation" class="active"><a href="#" data-transaction-sub-type="">';
-		html += '<span>' + $.t("all_types") + '</span></a></li>';
+		html += '<span>' + $.t("sso.all_types") + '</span></a></li>';
 		subtypeNavi.append(html);
 
 		var typeIndex = $('#transactions_type_navi').find('li.active a').attr('data-transaction-type');
@@ -877,7 +877,7 @@ var NRS = (function(NRS, $, undefined) {
             // NRS.dataLoaded(rows);
 			if (NRS.ledgerTrimKeep > 0) {
 				var ledgerMessage = $("#account_ledger_message");
-                ledgerMessage.text($.t("account_ledger_message", { blocks: NRS.ledgerTrimKeep }));
+                ledgerMessage.text($.t("sso.account_ledger_message", { blocks: NRS.ledgerTrimKeep }));
 				ledgerMessage.show();
 			}
         });
@@ -1068,10 +1068,10 @@ var NRS = (function(NRS, $, undefined) {
         var subTypeNaviBox = $('#transactions_sub_type_navi_box');
         if (subTypeNaviBox.is(':visible')) {
 			subTypeNaviBox.hide();
-			$(this).text($.t('show_type_menu', 'Show Type Menu'));
+			$(this).text($.t('sso.show_type_menu', 'Show Type Menu'));
 		} else {
 			subTypeNaviBox.show();
-			$(this).text($.t('hide_type_menu', 'Hide Type Menu'));
+			$(this).text($.t('sso.hide_type_menu', 'Hide Type Menu'));
 		}
 	});
 

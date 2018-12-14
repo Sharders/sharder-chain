@@ -72,7 +72,7 @@ var NRS = (function (NRS, $, undefined) {
         } catch (err) {
             callback({
                 "errorCode": 1,
-                "errorDescription": err + " (" + $.t(field) + ")"
+                "errorDescription": err + " (" + $.t("sso."+field) + ")"
             });
             return;
         }
@@ -121,7 +121,7 @@ var NRS = (function (NRS, $, undefined) {
             if (maxFees > 0 && new BigInteger(data.feeNQT).compareTo(new BigInteger(phasingControl.maxFees)) > 0) {
                 callback({
                     "errorCode": 1,
-                    "errorDescription": $.t("error_fee_exceeds_max_account_control_fee", {
+                    "errorDescription": $.t("sso.error_fee_exceeds_max_account_control_fee", {
                         "maxFee": NRS.convertToNXT(phasingControl.maxFees)
                     })
                 });
@@ -134,7 +134,7 @@ var NRS = (function (NRS, $, undefined) {
             if (phasingDuration < minDuration || phasingDuration > maxDuration) {
                 callback({
                     "errorCode": 1,
-                    "errorDescription": $.t("error_finish_height_out_of_account_control_interval", {
+                    "errorDescription": $.t("sso.error_finish_height_out_of_account_control_interval", {
                         "min": NRS.lastBlockHeight + minDuration,
                         "max": NRS.lastBlockHeight + maxDuration
                     })
@@ -180,7 +180,7 @@ var NRS = (function (NRS, $, undefined) {
             if (accountId != NRS.account && !data.calculateFee) {
                 callback({
                     "errorCode": 1,
-                    "errorDescription": $.t("error_passphrase_incorrect")
+                    "errorDescription": $.t("sso.error_passphrase_incorrect")
                 });
             } else {
                 // ok, accountId matches..continue with the real request.
@@ -246,7 +246,7 @@ var NRS = (function (NRS, $, undefined) {
             NRS.isRequireBlockchain(requestType) && NRS.accountInfo.errorCode && NRS.accountInfo.errorCode == 5) {
             callback({
                 "errorCode": 2,
-                "errorDescription": $.t("error_new_account")
+                "errorDescription": $.t("sso.error_new_account")
             }, data);
             return;
         }
@@ -255,7 +255,7 @@ var NRS = (function (NRS, $, undefined) {
             if (!/^[a-z0-9]{64}$/.test(data.referencedTransactionFullHash)) {
                 callback({
                     "errorCode": -1,
-                    "errorDescription": $.t("error_invalid_referenced_transaction_hash")
+                    "errorDescription": $.t("sso.error_invalid_referenced_transaction_hash")
                 }, data);
                 return;
             }
@@ -312,7 +312,7 @@ var NRS = (function (NRS, $, undefined) {
             if (!file && requestType == "uploadTaggedData") {
                 callback({
                     "errorCode": 3,
-                    "errorDescription": $.t("error_no_file_chosen")
+                    "errorDescription": $.t("sso.error_no_file_chosen")
                 }, data);
                 return;
             }
@@ -426,7 +426,7 @@ var NRS = (function (NRS, $, undefined) {
                                     !NRS.verifyTransactionBytes(converters.hexStringToByteArray(response.unsignedTransactionBytes), requestType, data, response.transactionJSON.attachment, isVolatile)) {
                                     callback({
                                         "errorCode": 1,
-                                        "errorDescription": $.t("error_bytes_validation_server")
+                                        "errorDescription": $.t("sso.error_bytes_validation_server")
                                     }, data);
                                     return;
                                 }
@@ -441,7 +441,7 @@ var NRS = (function (NRS, $, undefined) {
                         }
                         callback(response, data);
                         if (data.referencedTransactionFullHash && !response.errorCode) {
-                            $.growl($.t("info_referenced_transaction_hash"), {
+                            $.growl($.t("sso.info_referenced_transaction_hash"), {
                                 "type": "info"
                             });
                         }
@@ -470,7 +470,7 @@ var NRS = (function (NRS, $, undefined) {
                     NRS.resetRemoteNode(true);
                 }
                 if (error == "timeout") {
-                    error = $.t("error_request_timeout");
+                    error = $.t("sso.error_request_timeout");
                 }
                 callback({
                     "errorCode": -1,
@@ -485,7 +485,7 @@ var NRS = (function (NRS, $, undefined) {
         if (!NRS.verifyTransactionBytes(byteArray, requestType, data, response.transactionJSON.attachment, isVerifyECBlock)) {
             callback({
                 "errorCode": 1,
-                "errorDescription": $.t("error_bytes_validation_server")
+                "errorDescription": $.t("sso.error_bytes_validation_server")
             }, data);
             return;
         }
@@ -1524,7 +1524,7 @@ var NRS = (function (NRS, $, undefined) {
                 originalResponse.fullHash = response.fullHash;
                 callback(originalResponse, originalData);
                 if (originalData.referencedTransactionFullHash) {
-                    $.growl($.t("info_referenced_transaction_hash"), {
+                    $.growl($.t("sso.info_referenced_transaction_hash"), {
                         "type": "info"
                     });
                 }
@@ -1536,7 +1536,7 @@ var NRS = (function (NRS, $, undefined) {
             }
             NRS.resetRemoteNode(true);
             if (error == "timeout") {
-                error = $.t("error_request_timeout");
+                error = $.t("sso.error_request_timeout");
             }
             callback({
                 "errorCode": -1,
@@ -1560,7 +1560,7 @@ var NRS = (function (NRS, $, undefined) {
                 type++;
             }
         }
-        $(target).empty().html($.t("cannot_encode_message", qrCodeData.length));
+        $(target).empty().html($.t("sso.cannot_encode_message", qrCodeData.length));
     };
 
     function addAddressData (data) {
