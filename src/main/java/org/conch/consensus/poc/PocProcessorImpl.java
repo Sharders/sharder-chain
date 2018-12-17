@@ -34,6 +34,11 @@ public class PocProcessorImpl implements PocProcessor {
           ? pocScoreMap.get(height).get(accountId)
           : BigInteger.ZERO;
     }
+
+    static void scoreMapping(Transaction tx) {
+
+      nodeHardwareTxProcess();
+    }
     
   }
 
@@ -66,7 +71,15 @@ public class PocProcessorImpl implements PocProcessor {
   public BigInteger calPocScore(Account account, int height) {
     return PocHolder.getPocScore(height, account.getId());
   }
-
+  
+  public void scoreMapping(Transaction tx) { PocHolder.scoreMapping(tx); }
+  
+  // Listener process
+  private static void weightTableMapping(Transaction tx) {
+    tx.getBlock().getHeight();
+    // read the PocTemplate TX and parse them to PocTemplate object
+  }
+  
   public static void init() {
     ThreadPool.scheduleThread("PocTxSyn", pocTxSynThread, 10);
   }
@@ -79,29 +92,17 @@ public class PocProcessorImpl implements PocProcessor {
     //just process poc tx
     for(Transaction tx : block.getTransactions()) {
       if(TransactionType.TYPE_POC ==  tx.getType().getType()) {
-        weightTableMapping(block,tx);
-        scoreMapping(block,tx);
+        weightTableMapping(tx);
+        PocHolder.scoreMapping(tx);
       }
     }
   }
 
-  private static void scoreMapping(Block block, Transaction tx) {
-    for (Transaction transaction : block.getTransactions()) {
-      Account account = Account.getAccount(transaction.getSenderId());
-    }
 
-    nodeHardwareTxProcess();
-  }
-
-  // Listener process
-  private static void weightTableMapping(Block block, Transaction tx) {
-    block.getHeight();
-    // read the PocTemplate TX and parse them to PocTemplate object
-  }
 
   private static void nodeHardwareTxProcess() {
     // TODO read the PocConfigTx and update the hardware and performance info to node
-
+    
     // TODO gee the lifecycle from api.sharder.io and check the above info whether is in the alive.
     // Warning the api.sharder.io if exceed the max lifecycle.
   }
