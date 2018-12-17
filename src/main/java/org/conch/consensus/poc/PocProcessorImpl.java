@@ -7,11 +7,14 @@ import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
+import org.conch.util.Https;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -74,14 +77,20 @@ public class PocProcessorImpl implements PocProcessor {
   
   public void scoreMapping(Transaction tx) { PocHolder.scoreMapping(tx); }
   
-  // Listener process
   private static void weightTableMapping(Transaction tx) {
+    tx.getBlock().getHeight();
+    // read the PocTemplate TX and parse them to PocTemplate object
+  }
+
+  private static void validNodeMapping(Transaction tx) {
     tx.getBlock().getHeight();
     // read the PocTemplate TX and parse them to PocTemplate object
   }
   
   public static void init() {
-    ThreadPool.scheduleThread("PocTxSyn", pocTxSynThread, 10);
+    
+    ThreadPool.scheduleThread("PocTxSyn", pocTxSynThread, 10, TimeUnit.MINUTES);
+    ThreadPool.scheduleThread("validNodeSyn", validNodeSynThread, 30, TimeUnit.MINUTES);
   }
 
   private static void pocTxProcess(Block block) {
@@ -122,6 +131,28 @@ public class PocProcessorImpl implements PocProcessor {
           }
         }
       };
+
+
+  private static final String SC_FOUNDATION_API = "https://sharder.org/SC";
+  private static final String SC_PEERS_API = SC_FOUNDATION_API + "/getPeers.ss";
+  private static Map<Integer, Map<Long, String>> accountPeerMap = new ConcurrentHashMap<>();
+  private static final Runnable validNodeSynThread = new Runnable() {
+    @Override
+    public void run() {
+      try {
+        // TODO valid node list holder ( extend the current node list) and valid method
+        String peersStr = Https.httpRequest(SC_FOUNDATION_API,"GET", null);
+//        PeerImpl peer = com.alibaba.fastjson.JSONObject.parse(peersStr);
+
+      } catch (Exception e) {
+        Logger.logDebugMessage("syn valid node thread interrupted");
+      } catch (Throwable t) {
+        Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+        System.exit(1);
+      }
+    }
+  };
+  
 
   private static void nodeRefresh() {
     // read the PocTemplate TX and parse them to PocTemplate object
