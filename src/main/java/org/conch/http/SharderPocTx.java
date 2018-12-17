@@ -127,8 +127,8 @@ public abstract class SharderPocTx {
                     onlineRateHubBoxTemplate = (Map<Integer, BigInteger>) onlineRateTemplate.get(Integer.valueOf(Peer.Type.HUB.getCode() + "" + Peer.Type.BOX.getCode()));
                     onlineRateNormalTemplate = (Map<Integer, BigInteger>) onlineRateTemplate.get(Peer.Type.NORMAL.getCode());
                 }
-                if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BLOCKING_MISS.getOptionValue())) {
-                    blockingMissTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BLOCKING_MISS.getOptionValue());
+                if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BLOCK_MISS.getOptionValue())) {
+                    blockingMissTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BLOCK_MISS.getOptionValue());
                 }
                 if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue())) {
                     bocSpeedTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue());
