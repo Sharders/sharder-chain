@@ -27,7 +27,7 @@ public abstract class PocTxBody  {
         HARDWARE_CONFIG("hardwareConfig"),
         NETWORK_CONFIG("networkConfig"),
         TX_HANDLE_PERFORMANCE("txHandlePerformance"),
-        BLOCKING_MISS("blockingMiss"),
+        BLOCK_MISS("blockMiss"),
         BOC_SPEED("bocSpeed"), // 分叉收敛速度
         ONLINE_RATE("onlineRate")
         ;
