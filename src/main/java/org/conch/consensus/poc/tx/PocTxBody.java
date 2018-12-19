@@ -94,12 +94,12 @@ public abstract class PocTxBody  {
 
         @Override
         protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-            return new PocWeightTable(buffer,transactionVersion);
+            return new PocNodeType(buffer,transactionVersion);
         }
 
         @Override
         protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocWeightTable(attachmentData);
+            return new PocNodeType(attachmentData);
         }
 
         @Override
@@ -125,7 +125,7 @@ public abstract class PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-          return PocTx.POC_WEIGHT_TABLE;
+          return PocTx.POC_NODE_TYPE;
         }
     }
 
@@ -354,42 +354,46 @@ public abstract class PocTxBody  {
             return null;
         }
 
-    @Override
-    public int getMySize() {
-      return _readByteSize(
-          Lists.newArrayList(
-              weightMap,
-              nodeTypeTemplate,
-              serverOpenTemplate,
-              hardwareConfigTemplate,
-              networkConfigTemplate,
-              txHandlePerformanceTemplate,
-              onlineRateOfficialTemplate,
-              onlineRateCommunityTemplate,
-              onlineRateHubBoxTemplate,
-              onlineRateNormalTemplate,
-              blockingMissTemplate,
-              bocSpeedTemplate));
-    }
+        @Override
+        public int getMySize() {
+            return _readByteSize(
+                Lists.newArrayList(
+                    weightMap,
+                    nodeTypeTemplate,
+                    serverOpenTemplate,
+                    hardwareConfigTemplate,
+                    networkConfigTemplate,
+                    txHandlePerformanceTemplate,
+                    onlineRateOfficialTemplate,
+                    onlineRateCommunityTemplate,
+                    onlineRateHubBoxTemplate,
+                    onlineRateNormalTemplate,
+                    blockingMissTemplate,
+                    bocSpeedTemplate
+                )
+            );
+        }
 
-    @Override
-    public void putMyBytes(ByteBuffer buffer) {
-      _putByteSize(
-          buffer,
-          Lists.newArrayList(
-              weightMap,
-              nodeTypeTemplate,
-              serverOpenTemplate,
-              hardwareConfigTemplate,
-              networkConfigTemplate,
-              txHandlePerformanceTemplate,
-              onlineRateOfficialTemplate,
-              onlineRateCommunityTemplate,
-              onlineRateHubBoxTemplate,
-              onlineRateNormalTemplate,
-              blockingMissTemplate,
-              bocSpeedTemplate));
-    }
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            _putByteSize(
+                 buffer,
+                 Lists.newArrayList(
+                    weightMap,
+                    nodeTypeTemplate,
+                    serverOpenTemplate,
+                    hardwareConfigTemplate,
+                    networkConfigTemplate,
+                    txHandlePerformanceTemplate,
+                    onlineRateOfficialTemplate,
+                    onlineRateCommunityTemplate,
+                    onlineRateHubBoxTemplate,
+                    onlineRateNormalTemplate,
+                    blockingMissTemplate,
+                    bocSpeedTemplate
+                 )
+            );
+        }
 
         @Override
         public void putMyJSON(JSONObject attachment) {
