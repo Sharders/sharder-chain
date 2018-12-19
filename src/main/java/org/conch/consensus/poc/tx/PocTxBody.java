@@ -354,42 +354,46 @@ public abstract class PocTxBody  {
             return null;
         }
 
-    @Override
-    public int getMySize() {
-      return _readByteSize(
-          Lists.newArrayList(
-              weightMap,
-              nodeTypeTemplate,
-              serverOpenTemplate,
-              hardwareConfigTemplate,
-              networkConfigTemplate,
-              txHandlePerformanceTemplate,
-              onlineRateOfficialTemplate,
-              onlineRateCommunityTemplate,
-              onlineRateHubBoxTemplate,
-              onlineRateNormalTemplate,
-              blockingMissTemplate,
-              bocSpeedTemplate));
-    }
+        @Override
+        public int getMySize() {
+            return _readByteSize(
+                Lists.newArrayList(
+                    weightMap,
+                    nodeTypeTemplate,
+                    serverOpenTemplate,
+                    hardwareConfigTemplate,
+                    networkConfigTemplate,
+                    txHandlePerformanceTemplate,
+                    onlineRateOfficialTemplate,
+                    onlineRateCommunityTemplate,
+                    onlineRateHubBoxTemplate,
+                    onlineRateNormalTemplate,
+                    blockingMissTemplate,
+                    bocSpeedTemplate
+                )
+            );
+        }
 
-    @Override
-    public void putMyBytes(ByteBuffer buffer) {
-      _putByteSize(
-          buffer,
-          Lists.newArrayList(
-              weightMap,
-              nodeTypeTemplate,
-              serverOpenTemplate,
-              hardwareConfigTemplate,
-              networkConfigTemplate,
-              txHandlePerformanceTemplate,
-              onlineRateOfficialTemplate,
-              onlineRateCommunityTemplate,
-              onlineRateHubBoxTemplate,
-              onlineRateNormalTemplate,
-              blockingMissTemplate,
-              bocSpeedTemplate));
-    }
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            _putByteSize(
+                 buffer,
+                 Lists.newArrayList(
+                    weightMap,
+                    nodeTypeTemplate,
+                    serverOpenTemplate,
+                    hardwareConfigTemplate,
+                    networkConfigTemplate,
+                    txHandlePerformanceTemplate,
+                    onlineRateOfficialTemplate,
+                    onlineRateCommunityTemplate,
+                    onlineRateHubBoxTemplate,
+                    onlineRateNormalTemplate,
+                    blockingMissTemplate,
+                    bocSpeedTemplate
+                 )
+            );
+        }
 
         @Override
         public void putMyJSON(JSONObject attachment) {
