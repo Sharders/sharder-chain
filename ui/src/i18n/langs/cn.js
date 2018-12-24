@@ -71,6 +71,7 @@ const cn = {
         'transaction_type_information':"任意信息",
         'transaction_type_account':"账户信息",
         'transaction_type_storage_service':"存储服务",
+        'transaction_type_forge_pool':"矿池交易",
         'transaction_type_block_reward':"出块奖励",
         'self':"您",
         'view_details':"查看详情",
@@ -84,7 +85,7 @@ const cn = {
         'message_tip':"请输入信息内容",
         'file':"文件",
         'file_tip':"请选择文件",
-        'browse':"浏览",
+        'browse':"浏览文件",
         'delete':"删除",
         'fee':"手续费",
         'calculate':"计算",
@@ -146,7 +147,7 @@ const cn = {
         'miner_volume':"旷工数量",
         'total_trading_volume':"总交易量",
         'transfer_transaction':"转账交易",
-        'coinbase_transaction':"CoinBase交易",
+        'coinbase_transaction':"Basecoin交易",
         'store_transaction':"存储交易",
         'alias_modification':"别名修改",
         'peers_info':"节点信息",
@@ -234,7 +235,7 @@ const cn = {
                 "我们在测试网络发行了TSS (Sharder测试网络Token: Test SS).本钱包将支持创建TSS账户地址用于收发TSS.\n" +
                 "TSS不具备流通性,目的只做为测试及与共识矿场钻石产生兑换关系所用.",
             'tss_acquisition':"TSS获取",
-            'tss_acquisition_tip1':"我们将于UTC时间2018年11月01日12:00对所有OX钱包中存储有SS(ERC-20)的地址进行快照.快照结束后将根据\n" +
+            'tss_acquisition_tip1':"我们将于UTC时间2019年1月01日12:00对所有CAMP钱包中存储有SS(ERC-20)的地址进行快照.快照结束后将根据\n" +
                 "XXX:1的比例空投TSS到你的TSS地址中.",
             'tss_acquisition_tip2':"未持有SS(ERC-20)的地址中也将会收到XXXX TSS.",
             'tss_acquisition_tip3':"进入应用完成应用任务或参与矿池挖矿获得钻石等同于获得TSS.",
@@ -376,8 +377,8 @@ const cn = {
             'copy_invite_code':"复制邀请码",
             'invited':"已邀请",
             'earn_rewards':"获得奖励",
-            'qr_tip1':"扫码立即下载OX钱包",
-            'qr_tip2':"本活动最终解释权归OX钱宝所有",
+            'qr_tip1':"扫码立即下载CAMP钱包",
+            'qr_tip2':"本活动最终解释权归CAMP钱宝所有",
             'unit_ren':"人",
         },
         my_assets:{
@@ -411,9 +412,6 @@ const cn = {
         }
     },
     sso:{
-        /*'error_start_index_negative':"初始索引不应该为负数",
-        'error_bytes_length_too_little':"至少需要 %numBytes 字节才能转换为整数",
-        'error_bit_length_incompatible':"%num 不是一个 %numBytes 位整数",*/
         'missing_asset_param':"参数'asset'没有设置",
         'invalid_asset_param':"参数'asset' __asset__ 已失效, 请制定一个存在的资产ID",
         'error_asset_or_account_id_required':"必须填写资产帐户或帐户 ID 。",

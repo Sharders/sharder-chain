@@ -1,6 +1,6 @@
 <template>
     <div class="create-history">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
         <div class="history">
             <div class="history-content" v-for="history in historyList" @click="details(history)">
                 <p>

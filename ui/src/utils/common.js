@@ -259,7 +259,6 @@ export default {
             _this.newConsole = null;
             return;
         }
-
         url = url.replace(/&random=[\.\d]+/, "",url);
         _this.addToConsoleBody(url+ "("+type+")"+new Date().toString(), "url");
 

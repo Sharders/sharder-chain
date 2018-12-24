@@ -1,6 +1,6 @@
 <template>
     <div class="diamond-exchange">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
         <div class="exchange">
             <div class="exchange-header">
                 <h1>{{$t('mining.diamond_exchange.diamond_exchange_title')}}</h1>

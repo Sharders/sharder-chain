@@ -1,6 +1,6 @@
 <template xmlns:v-clipboard="http://www.w3.org/1999/xhtml">
     <div class="invite-friends">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
         <div class="invite">
             <h1 class="title">{{$t('mining.invite_friends.title')}}</h1>
             <p class="info">{{$t('mining.invite_friends.subtitle1')}}</p>
@@ -28,10 +28,10 @@
             </div>
             <div class="qr">
                 <img src="../../assets/img/account.svg" class="img-qr">
-                <p>{{$t('mining.create_history.qr_tip1')}}</p>
+                <p>{{$t('mining.invite_friends.qr_tip1')}}</p>
             </div>
             <p class="about">
-                {{$t('mining.create_history.qr_tip2')}}
+                {{$t('mining.invite_friends.qr_tip2')}}
             </p>
         </div>
     </div>

@@ -6,6 +6,7 @@ import org.conch.common.Constants;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.Attachment;
+import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -34,7 +35,9 @@ public abstract class SharderPoolTx {
             int period = ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
             JSONObject rules = null;
             try {
-                rules = (JSONObject) (new JSONParser().parse(req.getParameter("rule")));
+                String rule = req.getParameter("rule");
+                rules = (JSONObject)(new JSONParser().parse(rule));
+
             } catch (Exception e) {
                 Logger.logErrorMessage("cant obtain rule when create forge pool");
             }
@@ -105,8 +108,17 @@ public abstract class SharderPoolTx {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            return SharderPoolProcessor.getSharderPoolsFromNowAndDestroy(creatorId);
+
+            String cid = Convert.emptyToNull(request.getParameter("creatorId"));
+
+            if(cid == null){
+                return SharderPoolProcessor.getSharderPoolsFromNow();
+            }else{
+                long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+
+                return SharderPoolProcessor.getSharderPoolsFromNowAndDestroy(creatorId);
+            }
+
         }
 
         @Override

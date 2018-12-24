@@ -1,6 +1,6 @@
 <template>
     <div class="my-assets">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
         <div class="assets">
             <div class="assets-info">
                 <div class="totle-assets">
@@ -43,7 +43,7 @@
                         num: "+100"
                     },
                     {
-                        title: this.$t('mining.free_collar_drill.mining_reward'),
+                        title: this.$t('mining.my_assets.mining_reward'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
@@ -53,12 +53,12 @@
                         num: "+100"
                     },
                     {
-                        title: this.$t('mining.free_collar_drill.mining_reward'),
+                        title: this.$t('mining.my_assets.mining_reward'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
                     {
-                        title: this.$t('mining.free_collar_drill.ss_storage_rebate'),
+                        title: this.$t('mining.my_assets.ss_storage_rebate'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },
@@ -68,7 +68,7 @@
                         num: "+100"
                     },
                     {
-                        title: this.$t('mining.free_collar_drill.mining_reward'),
+                        title: this.$t('mining.my_assets.mining_reward'),
                         time: "2018-07-11 15:59",
                         num: "+100"
                     },

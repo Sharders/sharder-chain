@@ -204,7 +204,7 @@
                 }
             }).then(function(res){
                 _this.blocklist = res.data;
-                console.log(_this.blocklist);
+                // console.log(_this.blocklist);
                 _this.calcAverageAmount(res);
                 _this.newestHeight = res.data[0].height;
                 _this.totalSize = res.data[0].height;
@@ -542,7 +542,7 @@
                 _this.accountInfo = accountInfo;
                 _this.transactionDialog = true;
 
-                console.log(accountInfo);
+                console.log("accountInfo",accountInfo);
                 _this.accountInfoDialog = false;
             },
             isClose(){

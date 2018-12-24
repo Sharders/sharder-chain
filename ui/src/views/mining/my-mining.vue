@@ -1,7 +1,7 @@
 <template>
     <div class="my-mining">
         <div class="tabs">
-            <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.create_history.return_previous')}}</p>
+            <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
             <el-radio-group v-model="tabPosition" class="title">
                 <el-radio-button label="join" class="btn">{{$t('mining.my_mining.i_join')}}</el-radio-button>
                 <el-radio-button label="create" class="btn">{{$t('mining.my_mining.i_create')}}</el-radio-button>
@@ -225,6 +225,7 @@
 
     .my-mining .tabs .title .btn {
         width: 50%;
+        outline: none;
     }
 
     .my-mining .mining-list {

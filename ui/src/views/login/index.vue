@@ -91,8 +91,8 @@
         data() {
             return {
                 tabTitle: "key",
-                secretPhrase: "trail shape agree haunt distant attention perhaps skill admit deny week remind",
-                account: "SSA-ENRV-X8TW-UQND-AFA7W",
+                secretPhrase: "finish rant princess crimson cold forward such known lace built poetry ceiling",
+                account: "SSA-EF9Z-8J9G-LLHC-9VU5U",
                 type: 1,
                 userConfig:[],
                 hubSettingDialog:false,

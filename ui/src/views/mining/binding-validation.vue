@@ -3,12 +3,12 @@
         <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
         <!--绑定手机-->
         <div v-if="binding.typeInfo === 'mobile-phone'" class="mobile-phone binding">
-            <h1 class="title">{{$t('mining.attribute.bind_phone')}}</h1>
-            <p class="info">{{$t('mining.attribute.bind_phone_tip')}}</p>
+            <h1 class="title">{{$t('mining.binding_validation.bind_phone')}}</h1>
+            <p class="info">{{$t('mining.binding_validation.bind_phone_tip')}}</p>
             <div class="input-div">
-                <h3>{{$t('mining.attribute.bind_phone_tip')}}</h3>
+                <h3>{{$t('mining.binding_validation.bind_phone_tip')}}</h3>
                 <p>
-                    <el-select v-model="value" :placeholder="$t('mining.attribute.area_code')" class="select">
+                    <el-select v-model="value" :placeholder="$t('mining.binding_validation.area_code')" class="select">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -16,42 +16,42 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                    <el-input v-model="phone" class="input" :placeholder="$t('mining.attribute.phone_input_tip')"></el-input>
+                    <el-input v-model="phone" class="input" :placeholder="$t('mining.binding_validation.phone_input_tip')"></el-input>
                 </p>
             </div>
             <div class="btn">
-                <button @click="next()">{{$t('mining.attribute.next_step')}}</button>
+                <button @click="next()">{{$t('mining.binding_validation.next_step')}}</button>
             </div>
         </div>
         <!--绑定邮箱-->
         <div v-if="binding.typeInfo === 'email'" class="email binding">
-            <h1 class="title">{{$t('mining.attribute.bind_email')}}</h1>
-            <p class="info">{{$t('mining.attribute.bind_email_tip')}}</p>
+            <h1 class="title">{{$t('mining.binding_validation.bind_email')}}</h1>
+            <p class="info">{{$t('mining.binding_validation.bind_email_tip')}}</p>
             <div class="input-div">
-                <h3>{{$t('mining.attribute.email_number')}}</h3>
+                <h3>{{$t('mining.binding_validation.email_number')}}</h3>
                 <p>
-                    <el-input v-model="phone" class="input" :placeholder="$t('mining.attribute.email_number_tip')"></el-input>
+                    <el-input v-model="phone" class="input" :placeholder="$t('mining.binding_validation.email_number_tip')"></el-input>
                 </p>
             </div>
             <div class="btn">
-                <button @click="next()">{{$t('mining.attribute.next_step')}}</button>
+                <button @click="next()">{{$t('mining.binding_validation.next_step')}}</button>
             </div>
         </div>
         <!--验证码-->
         <div v-if="isValidation" class="validation binding">
-            <h1 class="title">{{$t('mining.attribute.verification_title')}}</h1>
-            <p class="info">{{$t('mining.attribute.verification_tip1')}}{{phone||email}}{{$t('mining.attribute.verification_tip2')}}</p>
+            <h1 class="title">{{$t('mining.binding_validation.verification_title')}}</h1>
+            <p class="info">{{$t('mining.binding_validation.verification_tip1')}}{{phone||email}}{{$t('mining.binding_validation.verification_tip2')}}</p>
             <div class="input-div">
-                <h3>{{$t('mining.attribute.verification_tip3')}}</h3>
+                <h3>{{$t('mining.binding_validation.verification_tip3')}}</h3>
                 <p>
                     <input v-model="validationCode" autocomplete="yes" class="input" maxlength="6"/>
                 </p>
                 <p class="resend">
-                    {{$t('mining.attribute.resend_verification')}}
+                    {{$t('mining.binding_validation.resend_verification')}}
                 </p>
             </div>
             <div class="btn">
-                <button @click="getRewards()">{{$t('mining.attribute.receive_award')}}</button>
+                <button @click="getRewards()">{{$t('mining.binding_validation.receive_award')}}</button>
             </div>
         </div>
         <!--领取弹窗-->

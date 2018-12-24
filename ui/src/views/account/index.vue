@@ -110,6 +110,7 @@
                                     <td v-if="transaction.type === 1 && transaction.subtype === 0">{{$t('transaction.transaction_type_information')}}</td>
                                     <td v-if="transaction.type === 1 && transaction.subtype === 5">{{$t('transaction.transaction_type_account')}}</td>
                                     <td v-if="transaction.type === 6">{{$t('transaction.transaction_type_storage_service')}}</td>
+                                    <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
                                     <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}</td>
 
                                     <td v-if="transaction.amountNQT === '0'">0 SS</td>
@@ -134,7 +135,7 @@
                                     </td>
                                     <td  v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
                                     <td  v-else>-</td>
-                                    <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">查看详情</td>
+                                    <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">{{$t('transaction.view_details')}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -219,7 +220,7 @@
                                 <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
-                            <el-form-item :label="$t('transfer.receiver_public_key')" v-if="transfer.hasPublicKey && transfer.hasMessage">
+                            <el-form-item :label="$t('transfer.receiver_public_key')" v-if="transfer.hasPublicKey">
                                 <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.amount')">
@@ -351,7 +352,7 @@
                         <td>{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</td>
                     </tr>
                     <tr>
-                        <th>{{$t('account_info.account_available_balance')}}<</th>
+                        <th>{{$t('account_info.account_available_balance')}}</th>
                         <td>{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS</td>
                     </tr>
                     <tr>
@@ -359,7 +360,7 @@
                         <td>{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}} SS</td>
                     </tr>
                     <tr>
-                        <th>{{$t('account_info.public_key')}}<</th>
+                        <th>{{$t('account_info.public_key')}}</th>
                         <td>{{accountInfo.publicKey}}</td>
                     </tr>
                     </tbody>
@@ -411,7 +412,7 @@
                 publicKey:SSO.publicKey,
                 messageForm: {
                     errorCode:false,
-                    receiver: "SSA",
+                    receiver: "SSA-____-____-____-_____",
                     message: "",
                     isEncrypted: false,
                     hasPublicKey:false,
@@ -424,7 +425,7 @@
                 },
                 file:null,
                 transfer: {
-                    receiver: "SSA",
+                    receiver: "SSA-____-____-____-_____",
                     number: 0,
                     fee: 1,
                     hasMessage: false,
@@ -478,6 +479,9 @@
                 },{
                     value:6,
                     label:this.$t('transaction.transaction_type_storage_service')
+                },{
+                    value:8,
+                    label:this.$t('transaction.transaction_type_forge_pool')
                 },{
                     value:9,
                     label:this.$t('transaction.transaction_type_block_reward')
@@ -702,7 +706,6 @@
                 if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
                     formData.append("username",_this.hubsetting.sharderAccount);
                     formData.append("password",_this.hubsetting.sharderPwd);
-                    console.log("___________________________________");
                     _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',formData).then(res=>{
                         if(res.data.status === 'success'){
                             _this.hubsetting.address = res.data.data.natServiceAddress;
@@ -1450,11 +1453,13 @@
                             }
                         }
                     }
+
                     for(let i = 0;i<_this.accountTransactionList.length;i++){
                         list.push(_this.accountTransactionList[i]);
                     }
 
                     _this.accountTransactionList = list;
+
                     if(_this.selectType === '') {
                         _this.getDrawData(_this.accountTransactionList);
                     }
@@ -1592,8 +1597,7 @@
                     });
                 }
             });
-
-            setInterval(_this.getTotalList,1000);
+            // setInterval(_this.getTotalList,1000);
         },
     };
 

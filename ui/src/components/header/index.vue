@@ -11,7 +11,7 @@
                 </a>
             </div>
             <nav class="navbar_main" role="navigation">
-                <el-menu class="navbar_left el-menu-demo" mode="horizontal" :router=isRouter @select="activeItem">
+                <el-menu class="navbar_left el-menu-demo" :class="this.$i18n.locale === 'en'? 'en_menu' : ''" mode="horizontal" :router=isRouter @select="activeItem">
                     <el-menu-item index="/account" :class="this.$route.path.indexOf('/account') >= 0 ? 'activeLi' : ''">{{$t('header.account')}}</el-menu-item>
                     <el-menu-item index="/network" :class="this.$route.path.indexOf('/network') >= 0 ? 'activeLi' : ''">{{$t('header.network')}}</el-menu-item>
                     <el-menu-item index="/mining" :class="this.$route.path.indexOf('/mining') >= 0 ? 'activeLi' : ''">{{$t('header.mining')}}</el-menu-item>
@@ -42,10 +42,10 @@
                         <el-tooltip class="item" :content="$t('header.forging_error_effective_balance')" placement="bottom" effect="light" v-else-if="accountInfo.effectiveBalanceSS === 0">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
-                        <el-tooltip class="item csp" :content="$t('header.forging_error_no_admin_password')" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) === 'undefined' && userConfig.SS_Address !== accountRS">
+                        <el-tooltip class="item csp" :content="$t('header.forging_error_no_admin_password')" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) === 'undefined' && userConfig['sharder.HubBindAddress'] !== accountRS">
                             <div class="pilotLamp_circle unknownForging"  @click="startForging(false,'')"></div>
                         </el-tooltip>
-                        <el-tooltip class="item csp" :content="$t('header.forging_error_exceeds_account_volume')" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) !== 'undefined' && userConfig.SS_Address !== accountRS">
+                        <el-tooltip class="item csp" :content="$t('header.forging_error_exceeds_account_volume')" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) !== 'undefined' && userConfig['sharder.HubBindAddress']  !== accountRS">
                             <div class="pilotLamp_circle unknownForging"></div>
                         </el-tooltip>
                         <el-tooltip class="item csp" :content="$t('header.no_forging')" placement="bottom" effect="light" v-else-if="forging.errorCode === 5">
@@ -118,30 +118,34 @@
                 search_val: "",
                 isSearch:false,
                 selectLan:'',
+                selectLanValue:'',
                 language:[{
                     value:'cn',
                     label:'简体中文'
                 },{
                     value:'en',
                     label:'English'
-                }]
-
+                }],
+                i:0,
             };
         },
         created(){
             const _this = this;
-
             let lang = this.$i18n.locale;
             if(typeof lang !== 'undefined'){
 
                 for(let i=0;i<_this.language.length;i++){
                     if(_this.language[i].value === lang){
                         _this.selectLan = _this.language[i].label;
+                        _this.selectLanValue = _this.language[i].value;
                     }
                 }
             }else{
                 _this.selectLan = _this.language[value === 'cn'].label;
+                _this.selectLanValue = _this.language[value === 'cn'].value;
             }
+
+
 
             this.getData();
             this.$http.get("/sharder?requestType=getAccount",{
@@ -158,7 +162,12 @@
             });
             _this.$global.getUserConfig(_this).then(res=>{
                 _this.userConfig = res;
+
+                console.log("accountRS",_this.accountRS);
+                console.log("userConfig",_this.userConfig);
             });
+
+
 
             let config = {
                 headers: {
@@ -177,33 +186,39 @@
             });
         },
         mounted(){
-            setInterval(this.getData(),30000);
+            let _this = this;
+            setInterval(()=>{
+                _this.getData();
+            },30000);
         },
         methods: {
             getData:function(){
                 const _this = this;
-                _this.$global.setBlockchainState(_this).then(res=>{
-                    _this.blockchainState = res;
-                    if(_this.$global.isOpenConsole){
-                        _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
-                    }
-                });
-                _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
-                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
-                    if(_this.$global.isOpenConsole){
-                        _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
-                    }
-                });
-                _this.$global.setPeers(_this).then(res=>{
-                    if(_this.$global.isOpenConsole){
-                        _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
-                    }
-                });
+                // if(_this.i%30 === 0){
+                    _this.$global.setBlockchainState(_this).then(res=>{
+                        _this.blockchainState = res;
+                        if(_this.$global.isOpenConsole){
+                            _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
+                        }
+                    });
+                    _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
+                        if(_this.$global.isOpenConsole){
+                            _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
+                        }
+                    });
+                    _this.$global.setPeers(_this).then(res=>{
+                        if(_this.$global.isOpenConsole){
+                            _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
+                        }
+                    });
+                // }
             },
             startForging:function(b,pwd){
                 const _this = this;
                 if(b){
-                    _this.$http.post("/sharder?requestType=startForging").then(res=>{
+                    _this.$http.post("/sharder?requestType=startForging",{
+                        secretPhrase:SSO.secretPhrase
+                    }).then(res=>{
                         if(!res.data.errorDescription){
                         }else{
                             _this.$message.error(res.data.errorDescription);
@@ -298,10 +313,11 @@
                     if(_this.language[i].value === language){
                         _this.$i18n.locale = language;
                         _this.$global.setlang(language);
+                        _this.selectLanValue = language;
                     }
                 }
             }
-        }
+        },
     };
 </script>
 <style lang="scss" type="text/scss">
@@ -318,6 +334,11 @@
         .el-select-dropdown__item.selected.hover{
             background-color: #493eda!important;
             color: #fff!important;
+        }
+    }
+    .en_menu{
+        .el-menu-item {
+            font-size: 12px!important;
         }
     }
 </style>

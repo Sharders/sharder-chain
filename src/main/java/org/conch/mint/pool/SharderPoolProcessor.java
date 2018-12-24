@@ -10,6 +10,7 @@ import org.conch.db.Db;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -314,8 +315,26 @@ public class SharderPoolProcessor implements Serializable {
         return past;
     }
 
+
+
     public static SharderPoolProcessor getSharderPool(long poolId) {
         return sharderPools.containsKey(poolId) ? sharderPools.get(poolId) : null;
+    }
+
+    public static JSONObject getSharderPoolsFromNow(){
+        List<SharderPoolProcessor> pasts = new ArrayList<>();
+        for(SharderPoolProcessor forgePool : sharderPools.values()){
+            pasts.add(forgePool);
+        }
+//        JSONObject jsonObject = new JSONObject();
+        JSONArray array = new JSONArray();
+        for (SharderPoolProcessor forgePool : pasts) {
+//            jsonObject.put(forgePool.poolId, forgePool.toJSonObject());
+            array.add(forgePool.toJSonObject());
+        }
+        JSONObject json = new JSONObject();
+        json.put("pools",array);
+        return json;
     }
 
     public static SharderPoolProcessor getSharderPoolFromAll(long creatorId, long poolId) {

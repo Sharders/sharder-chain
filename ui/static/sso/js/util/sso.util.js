@@ -1553,7 +1553,7 @@ var NRS = (function (NRS, $, undefined) {
                 buf += "0000000";
             } else if (number < 1024) {
                 buf += "000000";
-            } else if (number < 32768) {
+            } else if (number < 32768) {1
                 buf += "00000";
             } else if (number < 1048576) {
                 buf += "0000";

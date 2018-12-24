@@ -115,7 +115,7 @@
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -127,7 +127,7 @@
                 <p class="info">{{$t('mining.attribute.exit_pool_tip')}}</p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isExitPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" @click="miningExit">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -148,8 +148,26 @@
         },
         methods: {
             miningExit() {
-                this.miningMask('isExitPool');
-
+                // this.miningMask('isExitPool');
+                let formData = new FormData();
+                formData.append("txId",txId);
+                formData.append("poolId",poolId);
+                this.$http.post('/sharder?requestType=quitPool',formData).then(res=>{
+                    console.log(res.data);
+                }).catch(err=>{
+                    console.log(err);
+                });
+            },
+            miningJoin(){
+                let formData = new FormData();
+                formData.append("poolId",poolId);
+                formData.append("period",period);
+                formData.append("amount",amount);
+                this.$http.post('/sharder?requestType=quitPool',formData).then(res=>{
+                    console.log(res.data);
+                }).catch(err=>{
+                    console.log(err);
+                });
             },
             miningMask(val) {
                 if (this[val]) {
@@ -161,7 +179,37 @@
             },
         },
         created: function () {
+            let _this = this;
+        /*
+            let formData = new FormData();
+            formData.append("poolId",_this.mining.poolId);
+            this.$http.post('/sharder?requestType=getPoolInfo',formData).then(res=>{
+              if(res.data.errorDescription !== undefined){
+                  _this.$message.error(res.data.errorDescription);
+                  if(res.data.errorDescription === "sharder pool doesn't exists"){
+                  }
+                  history.back(-1);
+              }
+            }).catch(err=>{
+              console.log(err);
+            });
 
+            formData = new FormData();
+            formData.append("creatorId",_this.mining.creatorId);
+            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
+              if(res.data.errorDescription !== undefined){
+                  _this.$message.error(res.data.errorDescription);
+                  if(res.data.errorDescription === "sharder pool doesn't exists"){
+                  }
+                  history.back(-1);
+              }
+            }).catch(err=>{
+              console.log(err);
+            });
+
+
+
+        */
         }
     }
 </script>

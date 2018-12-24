@@ -46,12 +46,12 @@
             </span>
             </div>
             <div class="mining-list">
-                <h5>
+                <h5 >
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
                     </div>
-                    <el-select v-model="value" :placeholder="$t('mining.index.sort')">
+                    <el-select v-model="value" :placeholder="$t('mining.index.sort')" v-if="miningList !== undefined && miningList.length >0">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -62,8 +62,8 @@
                 </h5>
                 <div class="mining-list-info">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-for="(mining,index) in miningList">
-                            <div class="grid-content">
+                        <el-col :span="8" v-if="miningList !== undefined && miningList.length > 0" v-for="(mining,index) in miningList">
+                            <div class="grid-content" >
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
                                     <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
@@ -86,16 +86,19 @@
                                 </div>
                             </div>
                         </el-col>
+                        <el-col class="mining-list-null" v-else>
+                            暂时没有任何矿池
+                        </el-col>
                     </el-row>
                 </div>
             </div>
-            <div class="mining-paging">
+            <div class="mining-paging"  v-if="miningList !== undefined && miningList.length > 0">
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
                     :page-size="10"
                     layout="total, prev, pager, next ,jumper"
-                    :total="1000">
+                    :total="totalSize">
                 </el-pagination>
             </div>
         </div>
@@ -143,7 +146,7 @@
                     <img src="../../assets/img/wodezichan.png" class="header-img">
                     <p>
                         <span>{{$t('mining.index.miner_name')}}</span>:
-                        <span>{{$t('mining.index.not_open')}}</span>
+                        <span>{{$t('mining.index.miner_name_not_defined')}}</span>
                         <img src="../../assets/img/set.png" @click="isVisible('isSetName')">
                     </p>
                     <p>
@@ -277,13 +280,13 @@
                             <p>
                                 <span class="strong">{{$t('mining.index.income_distribution')}}</span>
                                 <span class="user-input slider">
-                                    <el-slider v-model="incomeDistribution"></el-slider>
+                                    <el-slider v-model="incomeDistribution" :min="0" :max="30"></el-slider>
                                 </span>
                             </p>
                             <p>{{$t('mining.index.income_distribution_tip')}}</p>
                         </div>
                         <div class="pool-bth">
-                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('mining.enter.enter_cancel')}}</button>
+                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}</button>
                             <button class="immediately-create" @click="createPool()">{{$t('mining.index.create_now')}}</button>
                         </div>
                     </div>
@@ -331,10 +334,10 @@
                 ],
                 value: '',
                 setname: '',
-                incomeDistribution: 80,
+                incomeDistribution: 0,
                 investment: '',
                 miningList: [
-                    {
+                   {
                         serialNumber: "001",
                         investmentTotal: 500000,
                         currentInvestment: 180000,
@@ -342,46 +345,46 @@
                         distribution: 80,
                         remaining: 800,
                     },
-                    {
-                        serialNumber: "002",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "003",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "004",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "005",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "006",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
+                    /*       {
+                              serialNumber: "002",
+                              investmentTotal: 500000,
+                              currentInvestment: 180000,
+                              earnings: 1000,
+                              distribution: 80,
+                              remaining: 800,
+                          },
+                          {
+                              serialNumber: "003",
+                              investmentTotal: 500000,
+                              currentInvestment: 180000,
+                              earnings: 1000,
+                              distribution: 80,
+                              remaining: 800,
+                          },
+                          {
+                              serialNumber: "004",
+                              investmentTotal: 500000,
+                              currentInvestment: 180000,
+                              earnings: 1000,
+                              distribution: 80,
+                              remaining: 800,
+                          },
+                          {
+                              serialNumber: "005",
+                              investmentTotal: 500000,
+                              currentInvestment: 180000,
+                              earnings: 1000,
+                              distribution: 80,
+                              remaining: 800,
+                          },
+                          {
+                              serialNumber: "006",
+                              investmentTotal: 500000,
+                              currentInvestment: 180000,
+                              earnings: 1000,
+                              distribution: 80,
+                              remaining: 800,
+                          },*/
                 ],
                 rewardList: ['1', '2', '3', '4'],
                 rankingList: [
@@ -427,6 +430,8 @@
                     }
                 ],
                 accountInfo: SSO.accountInfo,
+
+                totalSize: 10,
             }
         },
         methods: {
@@ -438,17 +443,35 @@
                     return;
                 }
 
-                _this.$global.fetch("POST", {
-                    secretPhrase: "",
-                    publicKey: SSO.publicKey,
-                }, "createPool").then(res => {
+                let formData = new FormData();
+                formData.append("period","400");
+                formData.append("secretPhrase",SSO.secretPhrase);
+                formData.append("deadline","1440");
+                formData.append("feeNQT","100000000");
 
-                    console.info(res);
-                    _this.isVisible('isCreatePool');
-                }).catch(error => {
+                let rule = {
+                    'forgepool':{
+                      'reward': _this.incomeDistribution/100,
+                      'number':50,
+                    },
+                    "rule":{
+                        "totalBlocks":0
+                    },
+                    'consignor':{
+                        'amount':_this.investment/1
+                    },
+                };
+                formData.append("rule",JSON.stringify(rule));
 
-                    console.info(error);
-                    _this.isVisible('isCreatePool');
+                _this.$http.post('/sharder?requestType=createPool',formData).then(function (res) {
+                  if(res.data.broadcasted){
+                      _this.$message.success("创建成功！");
+                  }else{
+                      _this.$message.error(res.data.errorDescription);
+                  }
+                  _this.isVisible('isCreatePool');
+                }).catch(function (err) {
+                  console.log(err);
                 });
 
             },
@@ -471,8 +494,13 @@
                     shell: "account",
                     token: window.token,
                 }, "authorizationLogin").then(value => {
-                    console.info(value);
-                    if (!value.success) return;
+                    console.info("value",value);
+                    if (!value.success){
+                        console.log("验证签名：",value.success);
+                        history.back(-1);
+                        return;
+                    }
+                    console.log("account:",value.data.account);
                     Login.login(0, value.data.account, _this, function () {
                         _this.$store.state.isLogin = true;
                     });
@@ -481,17 +509,26 @@
         },
         mounted: function () {
             let _this = this;
-
         },
         created: function () {
             let _this = this;
             if (!_this.$store.state.isLogin) {
                 window.token = window.location.search.substring(1 + "token".length);
-                console.info(token);
+                console.info("token",token);
                 _this.account();
             }
-
-        }
+/*
+            let formData = new FormData();
+            _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
+                console.log(res.data);
+                _this.miningList = res.data.peers;
+                _this.totalSize = _this.miningList.length;
+            }).catch(function (err) {
+                console.log(err);
+            });
+*/
+            console.log("miningList",_this.miningList);
+        },
     }
 </script>
 <!--全局样式处理-->
@@ -610,13 +647,12 @@
     .mining-back:hover {
         color: #513ac8aa;
     }
-
+    .mining-list .el-select .el-input .el-select__caret {
+        top: 0 !important;
+    }
 </style>
 <!--豆匣矿场-->
 <style scoped>
-    #app .el-select .el-input .el-select__caret {
-        top: 0 !important;
-    }
 
     .mining-content {
         position: relative;
@@ -750,6 +786,11 @@
         margin-right: 6px;
         width: 14px;
         height: 14px;
+    }
+
+    .mining-list .mining-list-null{
+        text-align: center;
+        margin-top: 20px;
     }
 
     .grid-content {
