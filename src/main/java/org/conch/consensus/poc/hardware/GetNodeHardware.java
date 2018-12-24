@@ -60,13 +60,13 @@ public class GetNodeHardware {
                     break;
             }
         }
-        int hdTotal = (int) (ypTotal / 1000L);
+        int hdTotal = (int)((double)ypTotal / 1024L / 1024L);
         if (hdTotal == 0){
             for (int i = 0; i <fsList.length; i++) {
                 FileSystem fs = fsList[i];
                 if (fs.getDirName().equals("/")) {
                     FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                     hdTotal = (int) (usage.getTotal() / 1000L);
+                     hdTotal = (int)((double)usage.getTotal() / 1024L / 1024L);
                      break;
                 }
             }
@@ -145,8 +145,8 @@ public class GetNodeHardware {
             file(systemInfo);
             network(systemInfo);
             System.out.println(systemInfo.toString());
-            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,"test");
-//            SendHttpRequest.sendPost(SYSTEM_INFO_REPORT_URL,JSON.toJSONString(systemInfo));
+//            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,"test=test");
+//            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,systemInfo.toString());
             System.out.println("------------------------系统信息-------------------------");
             System.out.println(systemInfo.getCore());
             System.out.println(systemInfo.getAverageMHz());
