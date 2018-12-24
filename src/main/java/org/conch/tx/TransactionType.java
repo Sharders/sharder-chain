@@ -73,6 +73,7 @@ public abstract class TransactionType {
     public static final byte TYPE_CONTRACT = 10;
     public static final byte TYPE_STORAGE = 11;
     public static final byte TYPE_POC = 12;
+    public static final byte TYPE_SHARDER_ONLINE_RATE = 13;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -3687,6 +3688,30 @@ public abstract class TransactionType {
                 return "quitPool";
             }
         };
+    }
+
+    public static abstract class SharderOnlineRate extends TransactionType {
+
+        @Override
+        public final byte getType() {
+            return TransactionType.TYPE_SHARDER_ONLINE_RATE;
+        }
+
+
+        @Override
+        public final boolean canHaveRecipient() {
+            return false;
+        }
+
+        @Override
+        public final boolean isPhasingSafe() {
+            return false;
+        }
+
+        @Override
+        public final boolean isPhasable() {
+            return false;
+        }
     }
 
     public static abstract class Poc extends TransactionType {

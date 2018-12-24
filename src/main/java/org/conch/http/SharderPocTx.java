@@ -6,6 +6,7 @@ import org.conch.common.ConchException;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
+import org.conch.util.IPList;
 import org.conch.util.Logger;
 import org.json.simple.JSONStreamAware;
 
@@ -168,19 +169,56 @@ public abstract class SharderPocTx {
     }
 
 
-    public static final class OnlineRate extends CreateTransaction{
+    public static final class CreateOnlineRate extends CreateTransaction{
 
-        static final OnlineRate instance = new OnlineRate();
+        static final CreateOnlineRate instance = new CreateOnlineRate();
 
-        OnlineRate() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
+        CreateOnlineRate() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ips");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            String senderIp;
+            Account account = ParameterParser.getSenderAccount(request);
+            if (request.getHeader("x-forwarded-for") == null) {
+                senderIp =  request.getRemoteAddr();
+            } else {
+                senderIp =  request.getHeader("x-forwarded-for");
+            }
+            if (IPList.SERVER_IP.equals(senderIp)){
+                String[] ips = request.getParameterValues("ips");
+                Attachment attachment = new Attachment.SharderOnlineRateCreate(ips);
+                return createTransaction(request, account, 0, 0, attachment);
+            }
            return null;
         }
     }
 
+    public static final class GetOnlineRate extends APIServlet.APIRequestHandler {
+
+        static final GetOnlineRate instance = new GetOnlineRate();
+
+        GetOnlineRate() {
+            super(new APITag[]{APITag.POC}, "XX", "XX");
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            //TODO
+
+            return null;
+        }
+
+        @Override
+        protected boolean allowRequiredBlockParameters() {
+            return false;
+        }
+
+        @Override
+        protected boolean requireFullClient() {
+            return true;
+        }
+    }
 
 }
