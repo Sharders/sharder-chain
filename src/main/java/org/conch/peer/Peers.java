@@ -100,7 +100,7 @@ public final class Peers {
     private static final int configuredServerPort;
     private static final String myHallmark;
     private static final boolean shareMyAddress;
-    private static final boolean enablePeerUPnP;
+    private static final boolean enablePeerUPnP;   
     private static final int maxNumberOfInboundConnections;
     private static final int maxNumberOfOutboundConnections;
     public static final int maxNumberOfConnectedPublicPeers;

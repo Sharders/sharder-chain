@@ -1,10 +1,15 @@
 package org.conch.consensus.poc;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
+import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.Peer;
+import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Https;
@@ -72,7 +77,19 @@ public class PocProcessorImpl implements PocProcessor {
 
   @Override
   public BigInteger calPocScore(Account account, int height) {
-    return PocHolder.getPocScore(height, account.getId());
+
+    long id = SharderPoolProcessor.ownOnePool(account.getId());
+    BigInteger effectiveBalance = BigInteger.ZERO;
+    if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+        effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
+                .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
+    }else {
+        effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
+    }
+    return effectiveBalance;
+            
+//    temporary closed for dev test
+//    return PocHolder.getPocScore(height, account.getId());
   }
   
   public void scoreMapping(Transaction tx) { PocHolder.scoreMapping(tx); }
@@ -135,14 +152,17 @@ public class PocProcessorImpl implements PocProcessor {
 
   private static final String SC_FOUNDATION_API = "https://sharder.org/SC";
   private static final String SC_PEERS_API = SC_FOUNDATION_API + "/getPeers.ss";
-  private static Map<Integer, Map<Long, String>> accountPeerMap = new ConcurrentHashMap<>();
+  private static Map<Integer, Map<Long, Peer>> accountPeerMap = new ConcurrentHashMap<>();
   private static final Runnable validNodeSynThread = new Runnable() {
     @Override
     public void run() {
       try {
-        // TODO valid node list holder ( extend the current node list) and valid method
+        // TODO valid node list holder (extend the current node list) and valid method
         String peersStr = Https.httpRequest(SC_FOUNDATION_API,"GET", null);
-//        PeerImpl peer = com.alibaba.fastjson.JSONObject.parse(peersStr);
+        JSONObject peerJson = com.alibaba.fastjson.JSON.parseObject(peersStr);
+        String host = peerJson.getString("host");
+        
+        Peers.getPeer(host);
 
       } catch (Exception e) {
         Logger.logDebugMessage("syn valid node thread interrupted");
@@ -152,6 +172,12 @@ public class PocProcessorImpl implements PocProcessor {
       }
     }
   };
+  
+  
+  public static boolean validNodeTypeTxCreator(String host){
+    
+    return false;
+  }
   
 
   private static void nodeRefresh() {
