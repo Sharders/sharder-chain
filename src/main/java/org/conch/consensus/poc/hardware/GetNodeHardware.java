@@ -1,6 +1,5 @@
 package org.conch.consensus.poc.hardware;
 
-import org.conch.util.SendHttpRequest;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
@@ -154,6 +153,8 @@ public class GetNodeHardware {
             System.out.println(systemInfo.getMemoryTotal());
         } catch (Exception e) {
             e.printStackTrace();
+        } catch(Throwable throwable){
+            throwable.printStackTrace();
         }
     }
 }
