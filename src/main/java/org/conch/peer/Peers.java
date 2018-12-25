@@ -100,7 +100,7 @@ public final class Peers {
     private static final int configuredServerPort;
     private static final String myHallmark;
     private static final boolean shareMyAddress;
-    private static final boolean enablePeerUPnP;
+    private static final boolean enablePeerUPnP;   
     private static final int maxNumberOfInboundConnections;
     private static final int maxNumberOfOutboundConnections;
     public static final int maxNumberOfConnectedPublicPeers;
@@ -774,22 +774,6 @@ public final class Peers {
 
     };
 
-    private static Map<Integer, Map<Long, String>> accountPeerMap = new ConcurrentHashMap<>();
-    private static final Runnable validNodeSynThread = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                // TODO valid node list holder( extend the current node list) and valid method
-                
-            } catch (Exception e) {
-                Logger.logDebugMessage("syn valid node thread interrupted");
-            } catch (Throwable t) {
-                Logger.logErrorMessage(
-                        "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-                System.exit(1);
-            }
-        }
-    };
 
     static {
         Peers.addListener(peer -> peersService.submit(() -> {
@@ -820,7 +804,6 @@ public final class Peers {
         if (! Constants.isOffline) {
             ThreadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 20);
             ThreadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 60);
-            ThreadPool.scheduleThread("validNodeSyn", Peers.validNodeSynThread, 20);
             if (Peers.getMorePeers) {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
             }

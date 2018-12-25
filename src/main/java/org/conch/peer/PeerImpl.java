@@ -132,19 +132,8 @@ final class PeerImpl implements Peer {
         return this.type == null ? Type.NORMAL : this.type;
     }
 
-    public void setType(int type){
-        switch (type){
-            case 1:
-                this.type = Type.OFFICIAL;
-                break;
-            case 2:
-                this.type = Type.COMMUNITY;
-                break;
-            case 3:
-                this.type = Type.NORMAL;
-            default:
-                Logger.logErrorMessage("error with setting peer type:" + type);
-        }
+    public void setType(Type type){
+        this.type = type;
     }
 
     @Override

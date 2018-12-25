@@ -192,6 +192,7 @@ public enum APIEnum {
     GET_PRUNABLE_MESSAGE("getPrunableMessage", GetPrunableMessage.instance),
     GET_PRUNABLE_MESSAGES("getPrunableMessages", GetPrunableMessages.instance),
     GET_ALL_PRUNABLE_MESSAGES("getAllPrunableMessages", GetAllPrunableMessages.instance),
+    GET_PERFORMANCE_TEST_RESULT("getPerformanceTestResult",GetPerformanceTest.instance),
     VERIFY_PRUNABLE_MESSAGE("verifyPrunableMessage", VerifyPrunableMessage.instance),
     ISSUE_ASSET("issueAsset", IssueAsset.instance),
     ISSUE_CURRENCY("issueCurrency", IssueCurrency.instance),
@@ -314,7 +315,8 @@ public enum APIEnum {
     GET_POC_NODE_CONFIG ("getPocNodeConf", SharderPocTx.GetNodeConf.instance),
     CREATE_POC_TEMPLATE ("createPocTemplate", SharderPocTx.CreatePocTemplate.instance),
     GET_POC_TEMPLATE ("getPocTemplate", SharderPocTx.GetPocTemplate.instance),
-    POC_ONLINE_RATE("pocOnlineRate", SharderPocTx.OnlineRate.instance);
+    CREATE_POC_ONLINE_RATE("createPocOnlineRate", SharderPocTx.CreateOnlineRate.instance),
+    GET_POC_ONLINE_RATE("getPocOnlineRate", SharderPocTx.GetOnlineRate.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

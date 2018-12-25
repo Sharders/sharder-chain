@@ -12,9 +12,9 @@ public class SystemInfo {
 
     private int averageMHz; // 平均兆赫
 
-    private int memoryTotal; // 内存大小 （单位G）
+    private int memoryTotal; // 内存大小 （单位GB）
 
-    private int hardDiskSize; // 硬盘大小 （单位G）
+    private int hardDiskSize; // 硬盘大小 （单位GB）
 
     private boolean hadPublicIp; // 是否有公网IP
 
@@ -90,6 +90,9 @@ public class SystemInfo {
 
     @Override
     public String toString() {
-        return "SystemInfo{" + "core=" + core + ", averageMHz=" + averageMHz + ", memoryTotal=" + memoryTotal + ", hardDiskSize=" + hardDiskSize + ", hadPublicIp=" + hadPublicIp + ", bandWidth=" + bandWidth + ", tradePerformance=" + tradePerformance + ", serverOpen=" + serverOpen + '}';
+        return "core=" + core +
+                "&averageMhz=" + averageMHz +
+                "&memoryTotal=" + memoryTotal +
+                "&hardDiskSize=" + hardDiskSize;
     }
 }

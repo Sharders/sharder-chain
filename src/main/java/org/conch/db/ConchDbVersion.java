@@ -1199,11 +1199,11 @@ public class ConchDbVersion extends DbVersion {
                 apply("ALTER TABLE account ADD COLUMN IF NOT EXISTS frozen_balance BIGINT NOT NULL DEFAULT 0");
             case 492:
                 apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ext BINARY(237)");
+            case 493:
                 break;
-     
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate
-                        + ", probably trying to run older code on newer database");
+                        + ", probably trying to run older code on newer database[ you can check the code in ConchDbVersion.java firstly]");
         }
     }
 }

@@ -31,7 +31,7 @@ import org.conch.common.Constants;
 import org.conch.common.Token;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
 import org.conch.market.*;
 import org.conch.mint.Generator;
 import org.conch.peer.Hallmark;
@@ -502,6 +502,7 @@ public final class JSONData {
         json.put("address", peer.getHost());
         json.put("port", peer.getPort());
         json.put("state", peer.getState().ordinal());
+        json.put("type", peer.getType().getCode());
         json.put("announcedAddress", peer.getAnnouncedAddress());
         json.put("shareAddress", peer.shareAddress());
         if (peer.getHallmark() != null) {
