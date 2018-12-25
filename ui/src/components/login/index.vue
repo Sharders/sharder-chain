@@ -46,7 +46,7 @@
         methods: {
             languageChange: function (language) {
                 this.$i18n.locale = language;
-                this.$global.setlang(language);
+                this.$store.commit('updateLang',language);
             }
         }
     };

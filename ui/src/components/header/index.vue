@@ -312,7 +312,7 @@
                 for(let i=0;i<_this.language.length;i++){
                     if(_this.language[i].value === language){
                         _this.$i18n.locale = language;
-                        _this.$global.setlang(language);
+                        _this.$store.commit('updateLang',language);
                         _this.selectLanValue = language;
                     }
                 }

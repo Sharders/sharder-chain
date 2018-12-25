@@ -12,6 +12,7 @@ const store = new Vuex.Store({
         account:"",  //账户ID
         unconfirmedTransactionsList:[],
         userConfig:[],
+        currentLang:localStorage.getItem('lang'),
     },
     mutations: { // 类似 vue 的 methods
         loginState (state) {
@@ -19,6 +20,10 @@ const store = new Vuex.Store({
         },
         setUnconfirmedNotificationsList(state,data){
             state.unconfirmedTransactionsList = data;
+        },
+        updateLang(state,value){
+            state.currentLang =value;
+            localStorage.setItem('lang',state.currentLang);
         }
     },
     modules: {

@@ -434,6 +434,11 @@
                 totalSize: 10,
             }
         },
+        computed:{
+            getLang:function(){
+                return this.$store.state.currentLang;
+            }
+        },
         methods: {
             createPool() {
                 let _this = this;
@@ -529,6 +534,32 @@
 */
             console.log("miningList",_this.miningList);
         },
+        watch:{
+            getLang:{
+                handler:function(oldValue,newValue){
+                    const _this = this;
+                    _this.options = [
+                        {
+                            value: 'default',
+                            label: this.$t('mining.index.mining_sort_default')
+                        },
+                        {
+                            value: 'capacity',
+                            label: this.$t('mining.index.mining_sort_capacity')
+                        },
+                        {
+                            value: 'distribution',
+                            label: this.$t('mining.index.mining_sort_distribution')
+                        },
+                        {
+                            value: 'time',
+                            label: this.$t('mining.index.mining_sort_time')
+                        }
+                    ];
+                },
+                deep:true
+            }
+        }
     }
 </script>
 <!--全局样式处理-->

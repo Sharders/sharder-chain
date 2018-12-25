@@ -402,6 +402,7 @@
                 adminPasswordDialog:false,
                 secretPhraseDialog:false,
 
+
                 isShowName: true,
                 generatorRS:'',
                 secretPhrase:SSO.secretPhrase,
@@ -486,7 +487,6 @@
                     value:9,
                     label:this.$t('transaction.transaction_type_block_reward')
                 }],
-
                 trading:'',
                 accountTransactionList:[],
                 //分页信息
@@ -499,7 +499,8 @@
 
                 adminPasswordTitle:'',
                 params:[],
-                temporaryName:''
+                temporaryName:'',
+
             };
         },
         created(){
@@ -1466,6 +1467,11 @@
                 }
             }
         },
+        computed:{
+            getLang:function(){
+                return this.$store.state.currentLang;
+            }
+        },
         watch: {
             transfer: {
                 handler:function(oldValue,newValue){
@@ -1520,8 +1526,37 @@
             },
             selectType:function () {
                 const _this = this;
+
                 _this.getAccountTransactionList();
             },
+            getLang:{
+                handler:function(oldValue,newValue){
+                    const _this = this;
+                    _this.transactionType = [{
+                        value:'',
+                        label:this.$t('transaction.transaction_type_all')
+                    },{
+                        value:0,
+                        label:this.$t('transaction.transaction_type_payment')
+                    },{
+                        value:1,
+                        label:this.$t('transaction.transaction_type_information')
+                    },{
+                        value:1.5,
+                        label:this.$t('transaction.transaction_type_account')
+                    },{
+                        value:6,
+                        label:this.$t('transaction.transaction_type_storage_service')
+                    },{
+                        value:8,
+                        label:this.$t('transaction.transaction_type_forge_pool')
+                    },{
+                        value:9,
+                        label:this.$t('transaction.transaction_type_block_reward')
+                    }]
+                },
+                deep:true
+            }
         },
         mounted() {
             const _this = this;
@@ -1597,7 +1632,6 @@
                     });
                 }
             });
-            // setInterval(_this.getTotalList,1000);
         },
     };
 
