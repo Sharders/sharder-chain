@@ -18,9 +18,9 @@ import java.util.Map;
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2018/12/12
  */
-public abstract class PocTxBody  {
+public interface PocTxBody  {
 
-    public enum WeightTableOptions {
+     enum WeightTableOptions {
         NODE("node"),
         SERVER_OPEN("serverOpen"),
         SS_HOLD("ssHold"),
@@ -29,8 +29,8 @@ public abstract class PocTxBody  {
         TX_HANDLE_PERFORMANCE("txHandlePerformance"),
         BLOCK_MISS("blockMiss"),
         BOC_SPEED("bocSpeed"), // 分叉收敛速度
-        ONLINE_RATE("onlineRate")
-        ;
+        ONLINE_RATE("onlineRate");
+        
         private String optionValue;
 
         WeightTableOptions(String optionValue) {
@@ -42,12 +42,12 @@ public abstract class PocTxBody  {
         }
     }
 
-    public enum DeviceLevels {
+    enum DeviceLevels {
         POOR(0), // 极差
         BAD(1), // 可以认为是差、低、丢失量高,等
         MIDDLE(2), // 中
-        GOOD(3), // 可以认为是好、高、丢失量低,等
-        ;
+        GOOD(3); // 可以认为是好、高、丢失量低,等
+        
         private Integer level;
 
         public Integer getLevel() {
@@ -59,10 +59,9 @@ public abstract class PocTxBody  {
         }
     }
 
-    private PocTxBody() {}
 
-    //TODO finish the PocNodeType definition
-    public final class PocNodeType extends Attachment.TxBodyBase {
+
+     final class PocNodeType extends Attachment.TxBodyBase {
         private String ip;
         private Peer.Type type;
 
@@ -74,10 +73,9 @@ public abstract class PocTxBody  {
             return type;
         }
 
-        public PocNodeType(
-            String ip,
-            Peer.Type type) {
+        public PocNodeType(String ip, Peer.Type type) {
           this.ip = ip;
+          this.type = type;
         }
 
 
@@ -129,7 +127,7 @@ public abstract class PocTxBody  {
         }
     }
 
-    public final static class PocWeightTable extends Attachment.TxBodyBase {
+    final class PocWeightTable extends Attachment.TxBodyBase {
 
         /**
          * eg: weightMap 结构
@@ -417,7 +415,7 @@ public abstract class PocTxBody  {
         }
     }
 
-    public final class PocNodeConf extends Attachment.TxBodyBase {
+    final class PocNodeConf extends Attachment.TxBodyBase {
 
         private final String ip;
         private final String port;
@@ -512,7 +510,7 @@ public abstract class PocTxBody  {
         }
     }
 
-    public final class PocOnlineRate extends Attachment.TxBodyBase {
+    final class PocOnlineRate extends Attachment.TxBodyBase {
         private final String ip;
         private final String port;
         private final int networkRate; // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
@@ -589,7 +587,7 @@ public abstract class PocTxBody  {
         }
     }
 
-    public final class PocBlockMiss extends Attachment.TxBodyBase {
+    final class PocBlockMiss extends Attachment.TxBodyBase {
         private long missAccountId;
 //    private long reportAccountId;
 
@@ -651,7 +649,7 @@ public abstract class PocTxBody  {
     /**
      * Bifurcation of convergence for PoC
      */
-    public final class PocBC extends Attachment.TxBodyBase {
+    final class PocBC extends Attachment.TxBodyBase {
         private final String ip;
         private final String port;
         private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快

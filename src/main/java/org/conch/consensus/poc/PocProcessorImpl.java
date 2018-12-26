@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -13,10 +14,12 @@ import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.Https;
+import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -158,12 +161,17 @@ public class PocProcessorImpl implements PocProcessor {
     public void run() {
       try {
         // TODO valid node list holder (extend the current node list) and valid method
-        String peersStr = Https.httpRequest(SC_FOUNDATION_API,"GET", null);
-        JSONObject peerJson = com.alibaba.fastjson.JSON.parseObject(peersStr);
-        String host = peerJson.getString("host");
-        
-        Peers.getPeer(host);
+        String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
+        JSONArray peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
+        Iterator iterator = peerArrayJson.iterator();
+        while(iterator.hasNext()){
+          JSONObject peerJson = (JSONObject)iterator.next();
+          String host = peerJson.getString("host");
+          String ip = IpUtil.getIp(host);
+          Peer peer = Peers.getPeer(host);
+        }
 
+       
       } catch (Exception e) {
         Logger.logDebugMessage("syn valid node thread interrupted");
       } catch (Throwable t) {

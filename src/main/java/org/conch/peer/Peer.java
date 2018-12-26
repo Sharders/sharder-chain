@@ -21,6 +21,7 @@
 
 package org.conch.peer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.http.APIEnum;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -33,7 +34,7 @@ public interface Peer extends Comparable<Peer> {
         BOX(5),
         HUB(4),
         NORMAL(3),
-        COMMUNITY(2), //社区节点
+        COMMUNITY(2),
         OFFICIAL(1);
         private final int code;
 
@@ -43,6 +44,27 @@ public interface Peer extends Comparable<Peer> {
 
         public int getCode() {
             return code;
+        }
+
+        public static Type getByCode(int code) {
+            for (Type _enum : values()) {
+                if (_enum.code == code) {
+                    return _enum;
+                }
+            }
+            return null;
+        }
+        
+        public static Type getByCode(String code) {
+            if(StringUtils.isEmpty(code)) return null;
+            
+            for (Type _enum : values()) {
+                if (_enum.code == Integer.valueOf(code).intValue()) {
+                    return _enum;
+                }
+            }
+            
+            return null;
         }
     }
 

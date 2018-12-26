@@ -1,5 +1,6 @@
 package org.conch.util;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -25,6 +26,15 @@ public class IpUtil {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public static String getSenderIp(HttpServletRequest req) {
+        return req.getHeader("x-forwarded-for") == null ? req.getRemoteAddr() : req.getHeader("x-forwarded-for");
+    }
+
+    public static boolean matchHost(HttpServletRequest req, String host) {
+        String senderIp = getSenderIp(req);
+        return senderIp.equals(getIp(host));
     }
     
 }

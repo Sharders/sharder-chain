@@ -7,6 +7,7 @@ import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.util.IPList;
+import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 import org.json.simple.JSONStreamAware;
 
@@ -73,6 +74,33 @@ public abstract class SharderPocTx {
             return true;
         }
     }
+    
+    
+    static final String validHost = "sharder.org";
+    /**
+     * Create a node type definition tx
+     */
+    public static final class CreateNodeType extends CreateTransaction {
+
+        static final CreateNodeType instance = new CreateNodeType();
+
+        CreateNodeType() {
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
+        }
+
+        @Override
+        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            Account account = ParameterParser.getSenderAccount(request);
+            
+            if(!IpUtil.matchHost(request,validHost)) throw new ConchException.NotValidException("Not valid host! ONLY " + validHost  + " can create this tx");
+            
+            String ip = request.getParameter("ip");
+            String type = request.getParameter("type");
+            Attachment attachment = new PocTxBody.PocNodeType(ip,Peer.Type.getByCode(type));
+            return createTransaction(request, account, 0, 0, attachment);
+        }
+    }
+    
 
     public static final class CreatePocTemplate extends CreateTransaction {
 
@@ -134,6 +162,7 @@ public abstract class SharderPocTx {
                 if (scoreMap.containsKey(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue())) {
                     bocSpeedTemplate = (Map<Integer, BigInteger>) scoreMap.get(PocTxBody.WeightTableOptions.BOC_SPEED.getOptionValue());
                 }
+                
                 Attachment attachment = new PocTxBody.PocWeightTable(weightMap, nodeTypeTemplate, serverOpenTemplate, hardwareConfigTemplate, networkConfigTemplate, txHandlePerformanceTemplate, onlineRateOfficialTemplate, onlineRateCommunityTemplate, onlineRateHubBoxTemplate, onlineRateNormalTemplate, blockingMissTemplate, bocSpeedTemplate);
                 return createTransaction(request, account, 0, 0, attachment);
             }
@@ -179,13 +208,8 @@ public abstract class SharderPocTx {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            String senderIp;
             Account account = ParameterParser.getSenderAccount(request);
-            if (request.getHeader("x-forwarded-for") == null) {
-                senderIp =  request.getRemoteAddr();
-            } else {
-                senderIp =  request.getHeader("x-forwarded-for");
-            }
+            String senderIp = IpUtil.getSenderIp(request);
             if (IPList.SERVER_IP.equals(senderIp)){
                 String[] ips = request.getParameterValues("ips");
                 Attachment attachment = new Attachment.SharderOnlineRateCreate(ips);
