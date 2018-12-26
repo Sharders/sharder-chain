@@ -386,11 +386,11 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
+                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
                         <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
                         <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
                         <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>

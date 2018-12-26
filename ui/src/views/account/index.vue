@@ -330,6 +330,10 @@
                 <table class="table">
                     <tbody>
                     <tr>
+                        <th>{{$t('account_info.accountID')}}</th>
+                        <td>{{accountInfo.account}}</td>
+                    </tr>
+                    <tr>
                         <th>{{$t('account_info.account_address')}}</th>
                         <td>{{accountInfo.accountRS}}</td>
                     </tr>
@@ -454,15 +458,16 @@
                 unconfirmedTransactionsList:[],
                 blockchainState:this.$global.blockchainState,
                 accountInfo:{
-                    accountRS: SSO.accountRS,
+                    account:'',
+                    accountRS:SSO.accountRS,
+                    balanceNQT:0,              //账户余额
+                    effectiveBalanceSS:0,      //可用余额
+                    forgedBalanceNQT:0,        //挖矿余额
+                    frozenBalanceNQT:0,        //冻结余额
+                    guaranteedBalanceNQT:0,    //保证余额
                     publicKey: SSO.publicKey,
-                    accountId: SSO.account,
-                    forgedBalanceNQT:0,      //挖矿余额
-                    effectiveBalanceSS:0,   //可用余额
-                    guaranteedBalanceNQT:0,  //保证余额
-                    balanceNQT:0,            //账户余额
-                    unconfirmedBalanceNQT:0,
-                    description:'',
+                    requestProcessingTime: '',
+                    unconfirmedBalanceNQT: '',
                 },
                 selectType:'',
                 transactionType:[{
@@ -500,13 +505,35 @@
                 adminPasswordTitle:'',
                 params:[],
                 temporaryName:'',
+                ssPublickey:SSO.publicKey
 
             };
         },
         created(){
             const _this = this;
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
-                _this.accountInfo = res;
+                console.log("res",res);
+
+/**
+                    account:'',
+                    accountRS:SSO.accountRS,
+                    balanceNQT:0,              //账户余额
+                    effectiveBalanceSS:0,      //可用余额
+                    forgedBalanceNQT:0,        //挖矿余额
+                    frozenBalanceNQT:0,        //冻结余额
+                    guaranteedBalanceNQT:0,    //保证余额
+                    publicKey: SSO.publicKey,
+                    unconfirmedBalanceNQT: '',
+* */
+
+                _this.accountInfo.account = res.account;
+                _this.accountInfo.balanceNQT = res.balanceNQT;
+                _this.accountInfo.effectiveBalanceSS = res.effectiveBalanceSS;
+                _this.accountInfo.forgedBalanceNQT = res.forgedBalanceNQT;
+                _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
+                _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
+                _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
+
             });
 
             _this.getAccountTransactionList();

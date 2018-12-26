@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :class="this.$i18n.locale === 'en'? 'en_login' : ''">
         <div class="content_login" v-if="typeof userConfig['sharder.HubBindAddress'] !== 'undefined'">
             <el-radio-group v-model="tabTitle" class="title">
                 <el-radio-button label="key" class="btn">{{$t('login.secret_login')}}</el-radio-button>
@@ -35,7 +35,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" label-width="160px">
+                <el-form label-position="left" :label-width="label_width">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
@@ -75,6 +75,7 @@
                 </el-form>
                 <div class="footer-btn">
                     <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn" @click="closeHub">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
@@ -110,6 +111,7 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
+                label_width:'160px'
             };
         },
         created() {
@@ -158,6 +160,25 @@
             initHub:function(){
                 this.$store.state.mask = true;
                 this.hubSettingDialog = true;
+            },
+            closeHub:function(){
+                this.$store.state.mask = false;
+                this.hubSettingDialog = false;
+
+                this.hubsetting = {
+                    openPunchthrough: true,
+                    sharderAccount: '',
+                    sharderPwd: '',
+                    address:'',
+                    port: '',
+                    clientSecretkey: '',
+                    publicAddress: '',
+                    SS_Address: '',
+                    isOpenMining: false,
+                    modifyMnemonicWord: '',
+                    newPwd: '',
+                    confirmPwd: ''
+                };
             },
             verifyHubSetting:function(){
                 const _this = this;
@@ -352,6 +373,10 @@
     }
     .modal_hubSetting .modal-body .el-form{
         margin-top: 20px!important;
+    }
+
+    .en_login .modal_hubSetting .modal-body{
+
     }
 </style>
 <style lang="scss">
