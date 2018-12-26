@@ -297,13 +297,13 @@ public enum APIEnum {
     //sharder_authorization_login
     AUTHORIZATION_LOGIN("authorizationLogin",AuthorizationLogin.instance),
     // sharder pool
-    CREATE_SHARDER_POOL("createPool", SharderPoolTx.CreatePoolTx.instance),
-    DESTROY_SHARDER_POOL("destroyPool", SharderPoolTx.DestoryPoolTx.instance),
-    JOIN_SHARDER_POOL("joinPool", SharderPoolTx.JoinPoolTx.instance),
-    QUIT_SHARDER_POOL("quitPool", SharderPoolTx.QuitPoolTx.instance),
-    GET_SHARDER_POOL_INFO("getPoolInfo", SharderPoolTx.GetPoolInfo.instance),
-    GET_SHARDER_POOLS("getPools", SharderPoolTx.GetPools.instance),
-    GET_SHARDER_POOL_RULE("getPoolRule", SharderPoolTx.GetPoolRule.instance),
+    CREATE_SHARDER_POOL("createPool", PoolTxApi.CreatePoolTx.instance),
+    DESTROY_SHARDER_POOL("destroyPool", PoolTxApi.DestoryPoolTx.instance),
+    JOIN_SHARDER_POOL("joinPool", PoolTxApi.JoinPoolTx.instance),
+    QUIT_SHARDER_POOL("quitPool", PoolTxApi.QuitPoolTx.instance),
+    GET_SHARDER_POOL_INFO("getPoolInfo", PoolTxApi.GetPoolInfo.instance),
+    GET_SHARDER_POOLS("getPools", PoolTxApi.GetPools.instance),
+    GET_SHARDER_POOL_RULE("getPoolRule", PoolTxApi.GetPoolRule.instance),
     // off-chain storage
     START_STORING("startStoring", StartStoring.instance),
     STOP_STORING("stopStoring", StopStoring.instance),
@@ -311,12 +311,12 @@ public enum APIEnum {
     GET_STORED_DATA("getStoredData", GetStoredData.instance), // get off-chain file content
     DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance), // download off-chain file
     // poc
-    CREATE_POC_NODE_CONFIG ("createPocNodeConf", SharderPocTx.CreateNodeConf.instance),
-    GET_POC_NODE_CONFIG ("getPocNodeConf", SharderPocTx.GetNodeConf.instance),
-    CREATE_POC_TEMPLATE ("createPocTemplate", SharderPocTx.CreatePocTemplate.instance),
-    GET_POC_TEMPLATE ("getPocTemplate", SharderPocTx.GetPocTemplate.instance),
-    CREATE_POC_ONLINE_RATE("createPocOnlineRate", SharderPocTx.CreateOnlineRate.instance),
-    GET_POC_ONLINE_RATE("getPocOnlineRate", SharderPocTx.GetOnlineRate.instance);
+    CREATE_POC_NODE_CONFIG ("createPocNodeConf", PocTxApi.CreateNodeConf.instance),
+    GET_POC_NODE_CONFIG ("getPocNodeConf", PocTxApi.GetNodeConf.instance),
+    CREATE_POC_TEMPLATE ("createPocTemplate", PocTxApi.CreatePocTemplate.instance),
+    GET_POC_TEMPLATE ("getPocTemplate", PocTxApi.GetPocTemplate.instance),
+    CREATE_POC_ONLINE_RATE("createPocOnlineRate", PocTxApi.CreateOnlineRate.instance),
+    GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

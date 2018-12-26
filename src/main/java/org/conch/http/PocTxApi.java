@@ -26,7 +26,7 @@ import java.util.Map;
  * @tel 18716387615
  * @comment
  **********************************************************************************/
-public abstract class SharderPocTx {
+public abstract class PocTxApi {
 
     public static final class CreateNodeConf extends CreateTransaction {
 

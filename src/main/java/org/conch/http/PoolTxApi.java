@@ -20,7 +20,7 @@ import java.util.Map;
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2018/11/24
  */
-public abstract class SharderPoolTx {
+public abstract class PoolTxApi {
 
     public static final class CreatePoolTx extends CreateTransaction {
         static final CreatePoolTx instance = new CreatePoolTx();
