@@ -1,6 +1,7 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -76,7 +77,7 @@ public abstract class PocTxApi {
     }
     
     
-    static final String validHost = "sharder.org";
+
     /**
      * Create a node type definition tx
      */
@@ -92,7 +93,7 @@ public abstract class PocTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             
-            if(!IpUtil.matchHost(request,validHost)) throw new ConchException.NotValidException("Not valid host! ONLY " + validHost  + " can create this tx");
+            if(!IpUtil.matchHost(request,Conch.SHARDER_FOUNDATION_URL)) throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.SHARDER_FOUNDATION_URL  + " can create this tx");
             
             String ip = request.getParameter("ip");
             String type = request.getParameter("type");

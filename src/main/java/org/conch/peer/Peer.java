@@ -133,6 +133,8 @@ public interface Peer extends Comparable<Peer> {
     Hallmark getHallmark();
 
     int getWeight();
+    
+    long getBindedAccountId();
 
     boolean shareAddress();
 

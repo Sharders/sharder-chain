@@ -241,6 +241,8 @@ public interface PocTxBody  {
          *
          */
         private Map<Integer, BigInteger> bocSpeedTemplate;
+        
+        private int templateVersion;
 
         public Map<String, BigInteger> getWeightMap() {
             return weightMap;
@@ -288,6 +290,14 @@ public interface PocTxBody  {
 
         public Map<Integer, BigInteger> getBocSpeedTemplate() {
             return bocSpeedTemplate;
+        }
+
+        public int getTemplateVersion() {
+            return templateVersion;
+        }
+
+        public void setTemplateVersion(int templateVersion) {
+            this.templateVersion = templateVersion;
         }
 
         public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Integer, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txHandlePerformanceTemplate, Map<Integer, BigInteger> onlineRateOfficialTemplate, Map<Integer, BigInteger> onlineRateCommunityTemplate, Map<Integer, BigInteger> onlineRateHubBoxTemplate, Map<Integer, BigInteger> onlineRateNormalTemplate, Map<Integer, BigInteger> blockingMissTemplate, Map<Integer, BigInteger> bocSpeedTemplate) {

@@ -47,7 +47,6 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     static void scoreMapping(Transaction tx) {
-
       nodeHardwareTxProcess();
     }
     
@@ -160,7 +159,6 @@ public class PocProcessorImpl implements PocProcessor {
     @Override
     public void run() {
       try {
-        // TODO valid node list holder (extend the current node list) and valid method
         String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
         JSONArray peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
         Iterator iterator = peerArrayJson.iterator();
@@ -170,7 +168,7 @@ public class PocProcessorImpl implements PocProcessor {
           String ip = IpUtil.getIp(host);
           Peer peer = Peers.getPeer(host);
         }
-
+        
        
       } catch (Exception e) {
         Logger.logDebugMessage("syn valid node thread interrupted");
@@ -181,8 +179,28 @@ public class PocProcessorImpl implements PocProcessor {
     }
   };
   
+  public static boolean validNode(String host,Integer height){
+    Peer peer = Peers.getPeer(host);
+    long peerBindAccountId = peer.getBindedAccountId();
+    
+    return false;
+  }
   
-  public static boolean validNodeTypeTxCreator(String host){
+  
+  public static boolean addOrUpdateNodeType(int height,String host){
+    Peer peer = Peers.getPeer(host);
+    
+    if(peer == null) {
+      //TODO get peer info by host and add it into map later
+    }
+    
+    long peerBindAccountId = peer.getBindedAccountId();
+
+    Map<Long, Peer> peerMap = accountPeerMap.get(height);
+    if(peerMap == null) peerMap = new ConcurrentHashMap<>();
+    peerMap.put(peerBindAccountId,peer);
+
+    accountPeerMap.put(height,peerMap);
     
     return false;
   }
