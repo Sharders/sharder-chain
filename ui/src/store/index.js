@@ -7,6 +7,7 @@ const store = new Vuex.Store({
     state: {
         mask: false,
         isLogin: false,
+        isHubInit:false,
         isPassphrase: false,
         passphrase: "",
         account:"",  //账户ID

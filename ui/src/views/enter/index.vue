@@ -51,7 +51,12 @@
                     */
                     _this.$global.setEpochBeginning(_this).then(res=>{
                         _this.$store.state.isLogin = true;
+                        if(!_this.$store.state.isHubInit){
+                            _this.$router.push({path:'/login', query:{info:'register2Init'}});
+                            return;
+                        }
                         _this.$router.push("/account");
+
                     });
                 });
             }

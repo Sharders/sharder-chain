@@ -1,6 +1,6 @@
 <template>
     <div :class="this.$i18n.locale === 'en'? 'en_login' : ''">
-        <div class="content_login" v-if="typeof userConfig['sharder.HubBindAddress'] !== 'undefined'">
+        <div class="content_login" v-if="$store.state.isHubInit">
             <el-radio-group v-model="tabTitle" class="title">
                 <el-radio-button label="key" class="btn">{{$t('login.secret_login')}}</el-radio-button>
                 <el-radio-button label="account" class="btn">{{$t('login.account_login')}}</el-radio-button>
@@ -57,8 +57,9 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')">
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')">
+                        <el-input  v-model="hubsetting.SS_Address"></el-input>
+                        <a @click="register"><span>创建账户</span></a>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
@@ -120,6 +121,14 @@
                 if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
                     _this.$store.state.userConfig = res;
                     _this.userConfig = res;
+                    _this.$store.state.isHubInit = true;
+                }else{
+                    if(_this.$route.query.info === 'register2Init'){
+                        _this.hubSettingDialog = true;
+                        _this.$store.state.mask = true;
+                        _this.hubsetting.SS_Address = SSO.accountRS;
+                    }
+
                 }
             });
         },
@@ -148,7 +157,7 @@
                             _this.hubsetting.port = res.data.data.natServicePort;
                             _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
                             _this.hubsetting.publicAddress = res.data.data.hubAddress;
-                            _this.hubsetting.SS_Address = '';
+                            // _this.hubsetting.SS_Address = '';
                         }else if(res.data.errorType === 'unifiedUserIsNull'){
                             _this.$message.error(res.data.errorMessage);
                         }else if(res.data.errorType === 'hubDirectoryIsNull'){
@@ -192,6 +201,7 @@
                     if(typeof res.data.errorDescription === 'undefined'){
                         _this.$message.success(_this.$t('notification.restart_success'));
                         _this.hubSettingDialog = false;
+                        this.$router.push("/login");
                     }else{
                         _this.$message.error(res.data.errorDescription);
                     }
@@ -306,6 +316,7 @@
                 // }
             },
             register: function () {
+                this.$store.state.mask = false;
                 this.$router.push("/register");
             },
             languageChange: function (language) {
@@ -374,10 +385,18 @@
     .modal_hubSetting .modal-body .el-form{
         margin-top: 20px!important;
     }
-
-    .en_login .modal_hubSetting .modal-body{
-
+    .modal_hubSetting .modal-body .el-form .create_account .el-input{
+        width:450px;
     }
+    .modal_hubSetting .modal-body .el-form .create_account a{
+        position: absolute;
+        right: 20px;
+        top: 0;
+        cursor: pointer;
+    }
+    /*.en_login .modal_hubSetting .modal-body{*/
+
+    /*}*/
 </style>
 <style lang="scss">
     @import './style.scss';
