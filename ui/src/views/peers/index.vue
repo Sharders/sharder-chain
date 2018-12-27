@@ -550,11 +550,9 @@
             },
             addBlacklist:function(address){
                 const _this = this;
-                this.$http.get('sharder?requestType=blacklistPeer',{
-                    params:{
+                this.$http.post('sharder?requestType=blacklistPeer',{
                         peer:address,
                         adminPassword:_this.adminPassword
-                    }
                 }).then(function (res) {
                     if(res.data){
                         _this.$message({
@@ -576,11 +574,9 @@
             },
             addConnectPeer:function(address){
                 const _this = this;
-                this.$http.get('sharder?requestType=addPeer',{
-                    params:{
+                this.$http.post('sharder?requestType=addPeer',{
                         peer:address,
                         adminPassword:_this.adminPassword
-                    }
                 }).then(function (res) {
                     if(res.data){
                         _this.$message({

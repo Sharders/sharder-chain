@@ -167,17 +167,14 @@
                 console.log("userConfig",_this.userConfig);
             });
 
-
-
+            let formData = new FormData();
+            formData.append("secretPhrase",_this.secretPhrase);
             let config = {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             };
-            let formData = new FormData();
-            formData.append("secretPhrase",_this.secretPhrase);
-            this.$http.post("/sharder?requestType=getForging",formData,config
-            ).then(res=>{
+            _this.$http.post('/sharder?requestType=getForging',formData,config).then(res=>{
                 _this.forging = res.data;
                 // console.log("forging",_this.forging);
             }).catch(err=>{
@@ -215,11 +212,24 @@
             },
             startForging:function(b,pwd){
                 const _this = this;
+                let formData = new FormData();
+                let config = {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                };
                 if(b){
-                    _this.$http.post("/sharder?requestType=startForging",{
-                        secretPhrase:SSO.secretPhrase
-                    }).then(res=>{
+                    formData.append("secretPhrase",SSO.secretPhrase);
+                    _this.$http.post("/sharder?requestType=startForging",formData,config).then(res=>{
                         if(!res.data.errorDescription){
+                            _this.$http.post('/sharder?requestType=getForging',formData,config).then(res=>{
+                                _this.forging = res.data;
+                                // console.log("forging",_this.forging);
+                            }).catch(err=>{
+                                _this.$message.error(err);
+                                console.error(err);
+                            });
+
                         }else{
                             _this.$message.error(res.data.errorDescription);
                             console.error(res.data.errorDescription);
@@ -232,10 +242,16 @@
                     _this.startForgingDialog = true;
                     _this.$store.state.mask = true;
                 }else{
-                    _this.$http.post("/sharder?requestType=startForging",{
-                        secretPhrase:pwd
-                    }).then(res=>{
+                    formData.append("secretPhrase",pwd);
+                    _this.$http.post("/sharder?requestType=startForging",formData,config).then(res=>{
                         if(!res.data.errorDescription){
+                            _this.$http.post('/sharder?requestType=getForging',formData,config).then(res=>{
+                                _this.forging = res.data;
+                                // console.log("forging",_this.forging);
+                            }).catch(err=>{
+                                _this.$message.error(err);
+                                console.error(err);
+                            });
                         }else{
                             _this.$message.error(res.data.errorDescription);
                             console.error(res.data.errorDescription);

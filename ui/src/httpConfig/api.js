@@ -20,4 +20,4 @@ const api = {
     sharderUrl: getUrl() + "/sharder",
 };
 window.api = api;
-export default getUrl();api
+export default getUrl();

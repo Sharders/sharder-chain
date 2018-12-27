@@ -2,7 +2,6 @@
  * 全局变量及方法
  */
 
-
 export default {
     epochBeginning: -1,
     newConsole:null,

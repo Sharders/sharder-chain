@@ -1,5 +1,5 @@
 <template>
-    <div class="mining">
+    <div class="mining" :class="this.$i18n.locale === 'en'? 'en_mining' : ''">
         <!--切换按钮-->
         <el-radio-group v-model="tabTitle" class="title">
             <el-radio-button label="mining" class="btn">{{$t('mining.index.sharder_mining')}}</el-radio-button>
@@ -12,7 +12,7 @@
                 <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
-                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number')}}236{{$t('mining.index.net_mining_number2')}}</li>
+                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number', {number:'236'})}}</li>
                         <li>{{$t('mining.index.my_assets')}}00000 SS</li>
                         <li>{{$t('mining.index.my_income')}}100000 SS</li>
                         <li class="strong">
@@ -42,7 +42,7 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number')}}2345{{$t('mining.index.net_mining_number2')}} | {{$t('mining.index.blocker')}}023 | {{$t('mining.index.reward')}}1000 SS
+                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:'2345'})}} | {{$t('mining.index.blocker')}}023 | {{$t('mining.index.reward')}}1000 SS
             </span>
             </div>
             <div class="mining-list">
@@ -522,7 +522,7 @@
                 console.info("token",token);
                 _this.account();
             }
-/*
+
             let formData = new FormData();
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
                 console.log(res.data);
@@ -531,7 +531,7 @@
             }).catch(function (err) {
                 console.log(err);
             });
-*/
+
             console.log("miningList",_this.miningList);
         },
         watch:{
@@ -681,6 +681,13 @@
     .mining-list .el-select .el-input .el-select__caret {
         top: 0 !important;
     }
+
+    .en_mining .title .el-radio-button__inner{
+        width: 140px;
+        padding: 12px 25px;
+    }
+
+
 </style>
 <!--豆匣矿场-->
 <style scoped>
@@ -914,6 +921,15 @@
         margin-top: 10px;
         border-radius: 6px;
     }
+
+
+    .en_mining .state .state-info{
+        width: 160px;
+        font-size: 12px;
+    }
+    .en_mining .state .state-info p:last-child{
+        margin-top: 5px;
+    }
 </style>
 <!--免费领SS-->
 <style scoped>
@@ -981,6 +997,8 @@
 
     .content-left .reward-instructions {
         padding-top: 6px;
+        max-width: 400px;
+        font-size: 12px;
     }
 
     .reward-content-div .content-right {
@@ -1007,6 +1025,16 @@
         background-color: #513ac8aa;
     }
 
+    .en_mining .content-left span.strong{
+        font-size:24px;
+    }
+    .en_mining .reward-content-div .content-right button{
+        padding: 0;
+    }
+    .en_mining .reward .reward-title{
+        font-size:14px;
+        text-align: left;
+    }
 </style>
 <!--排行-->
 <style scoped>
@@ -1185,6 +1213,9 @@
         background-color: #513ac810;
     }
 
+    .en_mining .pool-data .strong{
+        font-size:12px;
+    }
 </style>
 <!--钱包内置兼容-->
 <style>

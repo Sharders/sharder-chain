@@ -15,7 +15,6 @@ axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded
  * 整理数据
  */
 axios.defaults.transformRequest = function (data) {
-
     if(!(data instanceof FormData)){
         data = JSON.stringify(data);
     }
