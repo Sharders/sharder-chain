@@ -1,0 +1,21 @@
+.content_enter{
+    a{
+        font-family: "Microsoft YaHei";
+        color: #333333;
+        font-size: 14px;
+    }
+    :nth-child(3){
+        text-align: right;
+        margin-top: 30px;
+    }
+    .tip{
+        margin-top: 38px;
+    }
+    .input{
+        margin-top: 10px;
+        textarea{
+            resize:none;
+            background: #edeff5;
+        }
+    }
+}

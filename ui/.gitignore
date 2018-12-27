@@ -1,0 +1,4 @@
+/node_modules
+/theme
+/dist
+package-lock.json

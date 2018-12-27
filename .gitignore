@@ -5,16 +5,28 @@
 classes
 out
 contrib
-logs
-sharder_db
-sharder_test_db
 *.bat
 jre
 
+package-lock.json
+
+!/html/www/
+/html/www/*
+!html/www/img/
+
+conf/.lock
+conf/localstorage
+
 DestroyForgePool
 ForgePools
+SharderPools
+DestroyedPools
+
+logs
+sharder_db
+sharder_test_db
 
 # storage/ipfs/bin
-storage/
+# storage/
 .ipfs
 bin.exe
