@@ -26,6 +26,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocCaculator;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -167,51 +168,52 @@ public abstract class PocTx extends TransactionType {
         }
     };
 
-    public static final TransactionType POC_WEIGHT_TABLE = new PocTx() {
+  public static final TransactionType POC_WEIGHT_TABLE =
+      new PocTx() {
 
         @Override
         public byte getSubtype() {
-            return SUBTYPE_POC_WEIGHT;
+          return SUBTYPE_POC_WEIGHT;
         }
 
         @Override
         public AccountLedger.LedgerEvent getLedgerEvent() {
-            return null;
+          return null;
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocWeightTable.class, buffer, transactionVersion);
+        public Attachment.AbstractAttachment parseAttachment(
+            ByteBuffer buffer, byte transactionVersion) {
+          return Attachment.TxBodyBase.newObj(
+              PocTxBody.PocWeightTable.class, buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocWeightTable.class, attachmentData);
+          return Attachment.TxBodyBase.newObj(PocTxBody.PocWeightTable.class, attachmentData);
         }
 
         @Override
-        public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-            PocTxBody.PocWeightTable pocWeight = (PocTxBody.PocWeightTable) transaction.getAttachment();
-            if (pocWeight == null) {
-                throw new ConchException.NotValidException("Invalid PocWeightTable: null");
-            }
+        public void validateAttachment(Transaction transaction)
+            throws ConchException.ValidationException {
+          PocTxBody.PocWeightTable pocWeight =
+              (PocTxBody.PocWeightTable) transaction.getAttachment();
+          if (pocWeight == null) {
+            throw new ConchException.NotValidException("Invalid PocWeightTable: null");
+          }
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocWeightTable pocWeight = (PocTxBody.PocWeightTable) transaction.getAttachment();
-            // TODO to add task 2 PocProcessorImpl
-
-//            PocProcessorImpl.setPocWeight(senderAccount, transaction);
-//            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_WEIGHT, transaction.getId(), -transaction.getAmountNQT());
-//            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
+          PocTxBody.PocWeightTable pocWeight =  (PocTxBody.PocWeightTable) transaction.getAttachment();
+          PocCaculator.setCurWeightTable(pocWeight);
         }
 
         @Override
         public String getName() {
-            return "weight";
+          return "weight";
         }
-    };
+      };
 
     public static final TransactionType POC_ONLINE_RATE = new PocTx() {
 

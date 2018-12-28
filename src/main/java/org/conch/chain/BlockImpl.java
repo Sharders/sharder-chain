@@ -155,6 +155,7 @@ public final class BlockImpl implements Block {
     public <T> T getExtValue(ExtensionEnum extensionEnum){
         Class<T> clazz = extensionEnum.clazz;
         if(extensionJson == null) extensionJson = com.alibaba.fastjson.JSONObject.parseObject(getExtensionStr());
+        if(extensionJson == null) return null;
         return extensionJson.getObject(extensionEnum.name,clazz);
     }
 

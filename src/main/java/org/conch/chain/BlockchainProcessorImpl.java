@@ -27,7 +27,6 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.cpos.core.ConchGenesis;
-import org.conch.consensus.cpos.core.RewardIssuer;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
 import org.conch.mint.Generator;
@@ -1749,17 +1748,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
 
-  private static final long AMOUNT_LIMIT = 10000L;
-
-  private boolean validForgeAccountTranscation(TransactionImpl transaction) {
-    if (Account.getId(transaction.getSenderPublicKey()) != RewardIssuer.FORGE_ACCOUNT_ID)
-      return true;
-
-    if (!ConchGenesis.isFoundAccount(transaction.getRecipientId())
-        && transaction.getAmountNQT() >= AMOUNT_LIMIT * Constants.ONE_SS) return false;
-
-    return true;
-  }
 
   private void validateTransactions(
       BlockImpl block,
@@ -1839,10 +1827,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           transaction.validate();
         } catch (ConchException.ValidationException e) {
           throw new TransactionNotAcceptedException(e.getMessage(), transaction);
-        }
-
-        if (!validForgeAccountTranscation(transaction)) {
-          throw new TransactionNotAcceptedException("Invalid forge transaction", transaction);
         }
       }
       if (transaction.attachmentIsDuplicate(duplicates, true)) {

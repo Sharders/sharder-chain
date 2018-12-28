@@ -29,10 +29,41 @@ import java.util.concurrent.TimeUnit;
  * @since 2018/11/27
  */
 public class PocProcessorImpl implements PocProcessor {
+  
+  
+  class PocScore {
+    Long accountId;
+    int height;
+    // SS持有得分
+    BigInteger ssScore = BigInteger.ZERO;
+    // 节点类型得分
+    BigInteger nodeTypeScore = BigInteger.ZERO;
+    // 打开服务得分
+    BigInteger serverScore = BigInteger.ZERO;
+    // 硬件配置得分
+    BigInteger hardwareScore = BigInteger.ZERO;
+    // 网络配置得分
+    BigInteger networkScore = BigInteger.ZERO;
+    // 交易处理性能得分
+    BigInteger performanceScore = BigInteger.ZERO;
+    // 在线率奖惩得分
+    BigInteger onlineRateScore = BigInteger.ZERO;
+    // 出块错过惩罚分
+    BigInteger blockMissScore = BigInteger.ZERO;
+    // 分叉收敛惩罚分
+    BigInteger bcScore = BigInteger.ZERO;
+    
+    public PocScore(){}
+    
+    public BigInteger total(){
+      return ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
+    }
+  }
 
   /** */
-  private static final class PocHolder {
-    static Map<Integer, Map<Long, BigInteger>> pocScoreMap = null;
+  static final class PocHolder {
+    static Map<Integer, Map<Long, PocScore>> pocScoreMap = null;
+    static Map<Integer, PocScore> heightScoreMap = null;
 
     static BigInteger getPocScore(int height, long accountId) {
       if (!pocScoreMap.containsKey(height)) {
@@ -42,13 +73,17 @@ public class PocProcessorImpl implements PocProcessor {
         return BigInteger.ZERO;
       }
       return pocScoreMap.get(height).containsKey(accountId)
-          ? pocScoreMap.get(height).get(accountId)
+          ? pocScoreMap.get(height).get(accountId).total()
           : BigInteger.ZERO;
     }
 
     static void scoreMapping(Transaction tx) {
       nodeHardwareTxProcess();
     }
+
+
+    static Map<Integer, Map<Long, Peer>> accountPeerMap = new ConcurrentHashMap<>();
+    
     
   }
 
@@ -114,8 +149,8 @@ public class PocProcessorImpl implements PocProcessor {
 
   private static void pocTxProcess(Block block) {
     //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
-    boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
-    if(!containPoc) return;
+    Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
+    if(containPoc == null || !containPoc) return;
     
     //just process poc tx
     for(Transaction tx : block.getTransactions()) {
@@ -154,11 +189,12 @@ public class PocProcessorImpl implements PocProcessor {
 
   private static final String SC_FOUNDATION_API = "https://sharder.org/SC";
   private static final String SC_PEERS_API = SC_FOUNDATION_API + "/getPeers.ss";
-  private static Map<Integer, Map<Long, Peer>> accountPeerMap = new ConcurrentHashMap<>();
+
   private static final Runnable validNodeSynThread = new Runnable() {
-    @Override
-    public void run() {
+  @Override
+  public void run() {
       try {
+        
         String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
         JSONArray peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
         Iterator iterator = peerArrayJson.iterator();
@@ -191,16 +227,17 @@ public class PocProcessorImpl implements PocProcessor {
     Peer peer = Peers.getPeer(host);
     
     if(peer == null) {
+      //PeerImpl newPeer = Peers.findOrCreatePeer(inetAddress, announcedAddress, useNATService, true);
       //TODO get peer info by host and add it into map later
     }
     
     long peerBindAccountId = peer.getBindedAccountId();
-
-    Map<Long, Peer> peerMap = accountPeerMap.get(height);
+    
+    Map<Long, Peer> peerMap = PocHolder.accountPeerMap.get(height);
     if(peerMap == null) peerMap = new ConcurrentHashMap<>();
     peerMap.put(peerBindAccountId,peer);
 
-    accountPeerMap.put(height,peerMap);
+    PocHolder.accountPeerMap.put(height,peerMap);
     
     return false;
   }
