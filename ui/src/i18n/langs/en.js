@@ -148,7 +148,7 @@ const en = {
         'miner_volume':"Miners",
         'total_trading_volume':"Total Transactions",
         'transfer_transaction':"Transfer Transactions",
-        'coinbase_transaction':"Basecoin Transactions",
+        'coinbase_transaction':"Coinbase Transactions",
         'store_transaction':"Storage Transactions",
         'alias_modification':"Change Alias",
         'peers_info':"Peer Info",

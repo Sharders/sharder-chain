@@ -778,7 +778,7 @@
                 }
 
 
-                if(!_this.messageForm.errorCode){
+                if(_this.messageForm.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -854,7 +854,7 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(!_this.transfer.errorCode){
+                if(_this.transfer.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -966,7 +966,7 @@
                         return;
                     }
                 }
-                if(!_this.messageForm.errorCode){
+                if(_this.messageForm.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -1066,7 +1066,7 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(!_this.transfer.errorCode){
+                if(_this.transfer.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -1441,6 +1441,7 @@
             },
             getTotalList:function () {
                 const _this = this;
+                console.log("~~~~~~~~~~~~~~~~~~~~~~~");
                 if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
                     _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
 
@@ -1638,7 +1639,7 @@
                         }else if(typeof res.errorDescription === "undefined"){
                             _this.transfer.errorCode = false;
                             _this.transfer.hasPublicKey = false;
-                            _this.transfer.publicKey = res.publicKey;
+                            _this.transfer.receiverPublickey = res.publicKey;
 
                         }
                     });
