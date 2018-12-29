@@ -24,7 +24,7 @@
                 <div class="state">
                     <div class="state-info">
                         <p>{{$t('mining.attribute.mining')}}</p>
-                        <p>{{$t('mining.index.net_income')}}1000 SS</p>
+                        <p>{{$t('mining.index.net_income')}} 1000 SS</p>
                     </div>
                 </div>
                 <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
@@ -65,7 +65,7 @@
                         <el-col :span="8" v-if="miningList !== undefined && miningList.length > 0" v-for="(mining,index) in miningList">
                             <div class="grid-content" >
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
+                                    <h2>{{$t('mining.index.pool')}}{{index}}</h2>
                                     <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
                                     <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
                                                  :show-text="false"></el-progress>
@@ -73,7 +73,7 @@
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.earnings}} SS</span>
+                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalIncome}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
@@ -81,7 +81,7 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}{{$t('mining.index.unit_block')}}(约13.5h)</span>
+                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.endBlockNo - mining.startBlockNo - mining.historicalBlocks}}{{$t('mining.index.unit_block')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -524,9 +524,10 @@
             }
 
             let formData = new FormData();
+            // formData.append("createId","9011521658538046000");
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
                 console.log(res.data);
-                _this.miningList = res.data.peers;
+                _this.miningList = res.data.pools;
                 _this.totalSize = _this.miningList.length;
             }).catch(function (err) {
                 console.log(err);
@@ -1034,6 +1035,7 @@
     .en_mining .reward .reward-title{
         font-size:14px;
         text-align: left;
+        padding: 10px 20px;
     }
 </style>
 <!--排行-->
@@ -1327,13 +1329,22 @@
         .mining .mining-content .state .state-info {
             /*width: 130px;*/
             height: 45px;
-            font-size: 14px;
+            font-size: 12px;
             position: relative;
             top: 80px;
+            text-align: center;
+        }
+        .en_mining .mining-content .state .state-info {
+            height:60px;
+            width: 130px;
         }
 
         .mining .mining-list .mining-list-img {
             margin-left: 15px;
+        }
+
+        .ranking-content .ranking-table{
+            font-size: 12px;
         }
 
         #chatu {

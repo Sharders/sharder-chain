@@ -197,6 +197,14 @@ public class SharderPoolProcessor implements Serializable {
             destroyedPools = new ConcurrentHashMap<>();
         }
 
+        /**
+         * After block accepted:
+         * - Update the pool state
+         * - Update the remaining block numbers of pool
+         * - Destroy pool when lifecycle finished
+         * - Coinbase reward unfreeze
+         * - Persistence the pool to local disk
+         */
         Conch.getBlockchainProcessor()
                 .addListener(
                         block -> {
@@ -243,7 +251,8 @@ public class SharderPoolProcessor implements Serializable {
                                     forgePool.chance = forgePool.historicalBlocks / forgePool.totalBlocks;
                                 }
                             }
-
+                            
+                            // update pool summary
                             long id = ownOnePool(block.getGeneratorId());
                             if (id != -1
                                     && SharderPoolProcessor.getSharderPool(id)
@@ -251,7 +260,8 @@ public class SharderPoolProcessor implements Serializable {
                                     .equals(SharderPoolProcessor.State.WORKING)) {
                                 updateSharderPool(id, block.getTotalFeeNQT());
                             }
-
+                            
+                            //unfreeze the reward
                             if (height > Constants.SHARDER_REWARD_DELAY) {
                                 Block past =
                                         Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);

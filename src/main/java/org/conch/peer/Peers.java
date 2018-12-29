@@ -92,8 +92,6 @@ public final class Peers {
 
     static final boolean useProxy = System.getProperty("socksProxyHost") != null || System.getProperty("http.proxyHost") != null;
     static final boolean isGzipEnabled;
-
-
  
     private static final int MAX_PUBLIC_PEER_CONNECT_IN_TEST_OR_DEV = 50;
     private static final String myPlatform;

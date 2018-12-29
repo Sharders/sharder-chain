@@ -26,8 +26,8 @@ import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
-import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.TransactionProcessorImpl;
 import org.conch.util.*;
 
@@ -342,19 +342,6 @@ public class Generator implements Comparable<Generator> {
     }
 
 
-    protected void calEffectiveBalance(Account account , int height) {
-        if (account == null) {
-            effectiveBalance = BigInteger.ZERO;
-        }else{
-            long id = SharderPoolProcessor.ownOnePool(account.getId());
-            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
-                        .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
-            }else {
-                effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
-            }
-        }
-    }
 
     /**
      * 1.设置最后一个区块
@@ -365,7 +352,7 @@ public class Generator implements Comparable<Generator> {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
         
-        calEffectiveBalance(account,height);
+        PocScore.calEffectiveBalance(account,height);
         
         pocScore = PocProcessorImpl.instance.calPocScore(account,height);
 //        if (effectiveBalance.signum() == 0) {
@@ -521,7 +508,7 @@ public class Generator implements Comparable<Generator> {
                 hitTime = Long.MAX_VALUE;
                 return;
             }
-            calEffectiveBalance(account,height);
+            PocScore.calEffectiveBalance(account,height);
 ////            effectiveBalance = Math.max(account.getEffectiveBalanceSS(height), BigInteger.ZERO);
 //            long id = SharderPoolProcessor.ownOnePool(account.getId());
 //            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {

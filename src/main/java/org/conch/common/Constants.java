@@ -256,6 +256,10 @@ public final class Constants {
     public static final int SHARDER_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
     public static final int SHARDER_REWARD_DELAY = 10;
 
+    //Coinbase
+    public static final int MAX_COINBASE_TYPE_LENGTH = 16;
+    
+    
     //Chain begin time
     static {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

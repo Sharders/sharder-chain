@@ -512,20 +512,6 @@
         created(){
             const _this = this;
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
-                console.log("res",res);
-
-/**
-                    account:'',
-                    accountRS:SSO.accountRS,
-                    balanceNQT:0,              //账户余额
-                    effectiveBalanceSS:0,      //可用余额
-                    forgedBalanceNQT:0,        //挖矿余额
-                    frozenBalanceNQT:0,        //冻结余额
-                    guaranteedBalanceNQT:0,    //保证余额
-                    publicKey: SSO.publicKey,
-                    unconfirmedBalanceNQT: '',
-* */
-
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
                 _this.accountInfo.effectiveBalanceSS = res.effectiveBalanceSS;
@@ -533,7 +519,6 @@
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
                 _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
-
             });
 
             _this.getAccountTransactionList();
@@ -793,7 +778,7 @@
                 }
 
 
-                if(!_this.messageForm.errorCode){
+                if(_this.messageForm.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -869,7 +854,7 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(!_this.transfer.errorCode){
+                if(_this.transfer.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -981,7 +966,7 @@
                         return;
                     }
                 }
-                if(!_this.messageForm.errorCode){
+                if(_this.messageForm.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -1081,7 +1066,7 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(!_this.transfer.errorCode){
+                if(_this.transfer.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
                 }
@@ -1456,6 +1441,7 @@
             },
             getTotalList:function () {
                 const _this = this;
+                console.log("~~~~~~~~~~~~~~~~~~~~~~~");
                 if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
                     _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
 
@@ -1485,7 +1471,7 @@
                     for(let i = 0;i<_this.accountTransactionList.length;i++){
                         list.push(_this.accountTransactionList[i]);
                     }
-
+                    console.log("accountTransactionList",list);
                     _this.accountTransactionList = list;
 
                     if(_this.selectType === '') {
@@ -1653,7 +1639,7 @@
                         }else if(typeof res.errorDescription === "undefined"){
                             _this.transfer.errorCode = false;
                             _this.transfer.hasPublicKey = false;
-                            _this.transfer.publicKey = res.publicKey;
+                            _this.transfer.receiverPublickey = res.publicKey;
 
                         }
                     });

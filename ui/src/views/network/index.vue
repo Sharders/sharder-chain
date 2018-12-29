@@ -78,7 +78,7 @@
                         <div>
                             <img src="../../assets/img/miner-info6.svg"/>
                             <div class="section_info">
-                                <span></span>
+                                <span>{{aliasCount}}</span>
                                 <span>{{$t('network.alias_modification')}}</span>
                             </div>
                         </div>
@@ -104,7 +104,7 @@
             </div>
             <div class="cb"></div>
             <div class="block_list">
-                <p  class="block_title">
+                <p class="block_title">
                     <img src="../../assets/img/block.svg"/>
                     <span>{{$t('network.block_list')}}</span>
                 </p>
@@ -112,26 +112,28 @@
                     <div class="list_content data_container table_responsive data_loading">
                         <table class="table table_striped" id="blocks_table">
                             <thead>
-                                <tr>
-                                    <th>{{$t('network.block_list_height')}}</th>
-                                    <th class="w200">{{$t('network.block_list_time')}}</th>
-                                    <th>{{$t('network.block_list_amount')}}</th>
-                                    <th>{{$t('network.block_list_fee')}}</th>
-                                    <th>{{$t('network.block_list_transaction')}}</th>
-                                    <th class="w200 ">{{$t('network.block_list_generator')}}</th>
-                                    <th>{{$t('network.block_list_operating')}}</th>
-                                </tr>
+                            <tr>
+                                <th>{{$t('network.block_list_height')}}</th>
+                                <th class="w200">{{$t('network.block_list_time')}}</th>
+                                <th>{{$t('network.block_list_amount')}}</th>
+                                <th>{{$t('network.block_list_fee')}}</th>
+                                <th>{{$t('network.block_list_transaction')}}</th>
+                                <th class="w200 ">{{$t('network.block_list_generator')}}</th>
+                                <th>{{$t('network.block_list_operating')}}</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(block,index) in blocklist">
-                                    <td><span>{{block.height}}</span></td>
-                                    <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
-                                    <td><span>{{block.totalAmount}}</span></td>
-                                    <td><span>{{block.totalFee}}</span></td>
-                                    <td><span>{{block.numberOfTransactions}}</span></td>
-                                    <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}</td>
-                                    <td class="linker" @click="openBlockInfo(block.height)">{{$t('network.view_details')}}</td>
-                                </tr>
+                            <tr v-for="(block,index) in blocklist">
+                                <td><span>{{block.height}}</span></td>
+                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
+                                <td><span>{{block.totalAmountNQT/100000000}} SS</span></td>
+                                <td><span>{{block.totalFeeNQT/100000000}} SS</span></td>
+                                <td><span>{{block.numberOfTransactions}}</span></td>
+                                <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}
+                                </td>
+                                <td class="linker" @click="openBlockInfo(block.height)">{{$t('network.view_details')}}
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -148,7 +150,8 @@
                 </div>
             </div>
         </div>
-        <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight" :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
+        <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight"
+                      :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
     </div>
 </template>
 
@@ -160,74 +163,83 @@
 
     export default {
         name: "Network",
-        components: { echarts, world, dialogCommon},
+        components: {echarts, world, dialogCommon},
 
-        data () {
+        data() {
             return {
                 tabTitle: "account",
                 //blockinfoDialog
                 blockInfoDialog: false,
-                blockInfoHeight:-1,
+                blockInfoHeight: -1,
                 //accountinfoDialog
-                accountInfoDialog:false,
-                generatorRS:'',
+                accountInfoDialog: false,
+                generatorRS: '',
                 //transactionDialog
-                transactionId:'',
-                transactionDialog:false,
-                accountInfo:[],
+                transactionId: '',
+                transactionDialog: false,
+                accountInfo: [],
 
                 //list列表
-                blocklist:[],
+                blocklist: [],
                 //网络总览
-                newestHeight:0,
-                newestTime:0,
-                averageAmount:0,
-                peerNum:0,
+                newestHeight: 0,
+                newestTime: 0,
+                averageAmount: 0,
+                peerNum: 0,
                 //旷工信息
-                activeCount:0,
-                totalCount:0,
-                storageCount:0,
-                transferCount:0,
-                coinbaseCount:0,
+                activeCount: 0,
+                totalCount: 0,
+                storageCount: 0,
+                transferCount: 0,
+                coinbaseCount: 0,
+                aliasCount: 0,
                 //分页信息
-                currentPage:1,
-                totalSize:0,
-                pageSize:10,
+                currentPage: 1,
+                totalSize: 0,
+                pageSize: 10,
             };
         },
-        created:function(){
+        created: function () {
             const _this = this;
-            this.$http.get('/sharder?requestType=getBizBlocks',{
+            this.$http.get('/sharder?requestType=getBlocks', {
                 params: {
-                    firstIndex: (_this.currentPage-1)*10,
-                    lastIndex:_this.currentPage * 10 -1
+                    firstIndex: (_this.currentPage - 1) * 10,
+                    lastIndex: _this.currentPage * 10 - 1
                 }
-            }).then(function(res){
-                _this.blocklist = res.data;
-                // console.log(_this.blocklist);
-                _this.calcAverageAmount(res);
-                _this.newestHeight = res.data[0].height;
-                _this.totalSize = res.data[0].height;
-                _this.newestTime = _this.$global.myFormatTime(res.data[0].timestamp,'YMDHMS');
+            }).then(function (res) {
+                if (!res.data.errorDescription) {
+                    _this.blocklist = res.data.blocks;
+                    console.log("blocklist", _this.blocklist);
+                    // _this.calcAverageAmount(res);
+
+                    _this.newestHeight = res.data.blocks[0].height;
+                    _this.coinbaseCount = _this.newestHeight;
+                    _this.totalSize = res.data.blocks[0].height;
+                    _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                } else {
+                    _this.$message.error(res.data.errorDescription);
+                }
+
             }).catch(function (err) {
-                console.error("error",err);
+                _this.$message.error("error", err);
             });
             this.$http.get('/sharder?requestType=getPeers').then(function (res) {
                 _this.peerNum = res.data.peers.length;
             }).catch(function (err) {
-                console.error("error",err);
+                console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
                 _this.activeCount = res.data.activeCount;
             }).catch(function (err) {
-                console.error("error",err);
+                console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
                 _this.transferCount = res.data.transferCount;
                 _this.storageCount = res.data.storageCount;
-                _this.totalCount = _this.transferCount + _this.storageCount + _this.coinbaseCount;
+                _this.totalCount = res.data.transferAmount;
+                _this.averageAmount = res.data.storageCount24H + res.data.storageDataLength24H + res.data.transferCount24H;
             }).catch(function (err) {
-                console.error("error",err);
+                console.error("error", err);
             });
         },
         methods: {
@@ -501,51 +513,51 @@
                 myChart.setOption(option);
             },
 
-            getBlockList(currentPage){
+            getBlockList(currentPage) {
                 const _this = this;
-                this.$http.get('/sharder?requestType=getBizBlocks',{
+                this.$http.get('/sharder?requestType=getBlocks', {
                     params: {
-                        firstIndex: (currentPage-1)*10,
-                        lastIndex:currentPage * 10 -1
+                        firstIndex: (currentPage - 1) * 10,
+                        lastIndex: currentPage * 10 - 1
                     }
-                }).then(function(res){
-                    _this.blocklist = res.data;
-                    _this.calcAverageAmount(res);
+                }).then(function (res) {
+                    _this.blocklist = res.data.blocks;
+                    // _this.calcAverageAmount(res);
                     return res;
                 }).catch(function (err) {
                     return null;
                 });
             },
-            calcAverageAmount(res){
+            /*calcAverageAmount(res) {
                 const _this = this;
                 let num = 0;
-                res.data.forEach(function(item){
-                    num += parseInt(item.totalAmount);
+                res.data.blocks.forEach(function (item) {
+                    num += parseInt(item.totalAmountNQT/100000000);
                 });
-                _this.averageAmount = num/10;
-            },
-            openBlockInfo(height){
+                _this.averageAmount = num / 10;
+            },*/
+            openBlockInfo(height) {
                 const _this = this;
                 _this.blockInfoHeight = height;
                 _this.blockInfoDialog = true;
             },
-            openAccountInfo(generatorRS){
+            openAccountInfo(generatorRS) {
                 const _this = this;
                 _this.generatorRS = generatorRS;
                 _this.accountInfoDialog = true;
 
                 _this.transactionDialog = false;
             },
-            openTransaction(transactionId,accountInfo){
+            openTransaction(transactionId, accountInfo) {
                 const _this = this;
                 _this.transactionId = transactionId;
                 _this.accountInfo = accountInfo;
                 _this.transactionDialog = true;
 
-                console.log("accountInfo",accountInfo);
+                console.log("accountInfo", accountInfo);
                 _this.accountInfoDialog = false;
             },
-            isClose(){
+            isClose() {
                 const _this = this;
                 _this.accountInfoDialog = false;
                 _this.adminPasswordDialog = false;
@@ -555,7 +567,7 @@
 
             }
         },
-        mounted () {
+        mounted() {
             this.drawPeers();
         },
     };
