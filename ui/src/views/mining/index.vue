@@ -24,7 +24,7 @@
                 <div class="state">
                     <div class="state-info">
                         <p>{{$t('mining.attribute.mining')}}</p>
-                        <p>{{$t('mining.index.net_income')}}1000 SS</p>
+                        <p>{{$t('mining.index.net_income')}} 1000 SS</p>
                     </div>
                 </div>
                 <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
@@ -1034,6 +1034,7 @@
     .en_mining .reward .reward-title{
         font-size:14px;
         text-align: left;
+        padding: 10px 20px;
     }
 </style>
 <!--排行-->
@@ -1327,13 +1328,22 @@
         .mining .mining-content .state .state-info {
             /*width: 130px;*/
             height: 45px;
-            font-size: 14px;
+            font-size: 12px;
             position: relative;
             top: 80px;
+            text-align: center;
+        }
+        .en_mining .mining-content .state .state-info {
+            height:60px;
+            width: 130px;
         }
 
         .mining .mining-list .mining-list-img {
             margin-left: 15px;
+        }
+
+        .ranking-content .ranking-table{
+            font-size: 12px;
         }
 
         #chatu {

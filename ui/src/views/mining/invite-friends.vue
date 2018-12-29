@@ -90,8 +90,10 @@
 
     .invite .info {
         color: #513ac8;
-        font-size: 13px;
+        font-size: 12px;
         margin: 0 0 5px 0;
+        text-align: left;
+        padding: 0 26px;
     }
 
     .invite .code, .invite .qr {

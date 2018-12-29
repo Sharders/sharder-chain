@@ -29,7 +29,7 @@
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuangchishenyu.png">
-                                    <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}{{$t('mining.index.net_mining_number2')}}(约13.5h)</span>
+                                    <span>{{$t('mining.index.remaining_mining', {number:remaining})}}(约13.5h)</span>
                                 </p>
                             </div>
                         </div>
@@ -60,7 +60,7 @@
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuangchishenyu.png">
-                                    <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}{{$t('mining.index.net_mining_number2')}}(约13.5h)</span>
+                                    <span>{{$t('mining.index.remaining_mining',{mining:remaining})}}(约13.5h)</span>
                                 </p>
                             </div>
                         </div>

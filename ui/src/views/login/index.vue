@@ -35,7 +35,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :label-width="label_width">
+                <el-form label-position="left" :label-width="this.$i18n.locale === 'en'? '200px':'160px'">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
@@ -112,7 +112,6 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
-                label_width:'160px'
             };
         },
         created() {
@@ -256,23 +255,6 @@
                 }else{
                     params.append("sharder.HubBind",false);
                 }
-
-               /* if(_this.hubsetting.isOpenMining){
-                    params.append("sharder.HubBind",true);
-                    if(_this.hubsetting.SS_Address !== ''){
-                        const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                        if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
-                            _this.$message.warning('关联SS地址格式错误！');
-                            return false;
-                        }else{
-                            params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
-                        }
-                    }
-                    if(_this.hubsetting.modifyMnemonicWord !== '')
-                        params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
-                }else{
-                    params.append("sharder.HubBind",false);
-                }*/
                 params.append("restart",false);
                 params.append("sharder.disableAdminPassword",false);
 
@@ -306,14 +288,6 @@
                         _this.$router.push("/account");
                     });
                 });
-
-                // if (this.type && $.trim(this.account)) {
-                //     this.$store.state.isPassphrase = true;
-                //     this.$store.state.passphrase = this.account;
-                // } else {
-                //     this.$store.state.isPassphrase = false;
-                //     this.$store.state.passphrase = "";
-                // }
             },
             register: function () {
                 this.$store.state.mask = false;
@@ -321,6 +295,7 @@
             },
             languageChange: function (language) {
                 console.log(language);
+                this.label_width = '200px'
             }
         }
     };

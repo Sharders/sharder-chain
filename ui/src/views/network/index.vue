@@ -197,18 +197,23 @@
         },
         created:function(){
             const _this = this;
-            this.$http.get('/sharder?requestType=getBizBlocks',{
+            this.$http.get('/sharder?requestType=GetBlocks',{
                 params: {
                     firstIndex: (_this.currentPage-1)*10,
                     lastIndex:_this.currentPage * 10 -1
                 }
             }).then(function(res){
-                _this.blocklist = res.data;
-                // console.log(_this.blocklist);
-                _this.calcAverageAmount(res);
-                _this.newestHeight = res.data[0].height;
-                _this.totalSize = res.data[0].height;
-                _this.newestTime = _this.$global.myFormatTime(res.data[0].timestamp,'YMDHMS');
+                if(!res.data.errorDescription){
+                    _this.blocklist = res.data;
+                    console.log("blocklist",_this.blocklist);
+                    _this.calcAverageAmount(res);
+                    _this.newestHeight = res.data[0].height;
+                    _this.totalSize = res.data[0].height;
+                    _this.newestTime = _this.$global.myFormatTime(res.data[0].timestamp,'YMDHMS');
+                }else{
+                    _this.$message.error(res.data.errorDescription);
+                }
+
             }).catch(function (err) {
                 console.error("error",err);
             });
