@@ -5,7 +5,10 @@ package org.conch.util;
  * @since 2018/12/12
  */
 public class SizeUtil {
-
+    //long 8
+    //int 4
+    //short 2
+    //byte 2
    public static int sizeOf(Object obj){
        if(obj instanceof Long) return 16;
        if(obj instanceof Integer) return 16;

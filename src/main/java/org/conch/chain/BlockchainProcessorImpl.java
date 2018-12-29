@@ -2364,7 +2364,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   0,
                   (short) 10,
                   new Attachment.CoinBase(
-                      Attachment.CoinBase.Type.POOL, Account.getId(publicKey), id, map))
+                      Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), id, map))
               .timestamp(blockTimestamp)
               .recipientId(0)
               .build(secretPhrase);

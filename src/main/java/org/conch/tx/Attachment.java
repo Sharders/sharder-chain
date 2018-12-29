@@ -296,11 +296,11 @@ public interface Attachment extends Appendix {
     };
 
     final class CoinBase extends AbstractAttachment {
-        public enum Type {
+        public enum CoinBaseType {
             POOL, SINGLE, BLOCKING_REWARD, FOUNDING_TX, X_REWARD, SPECIAL_LOGIC;
 
-            public static Type getType(String name) {
-                for (Type type : Type.values()) {
+            public static CoinBaseType getType(String name) {
+                for (CoinBaseType type : CoinBaseType.values()) {
                     if (type.name().equals(name)) {
                         return type;
                     }
@@ -309,14 +309,14 @@ public interface Attachment extends Appendix {
             }
         }
 
-        private final Type type;
+        private final CoinBaseType coinBaseType;
         private final long creator; //transaction creator
         private final long generatorId; //by pool or account
         private final Map<Long, Long> consignors;
 
-        public CoinBase(ByteBuffer buffer, byte transactionVersion) {
+        public CoinBase(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
-            this.type = Type.getType(new String(buffer.array()));
+            this.coinBaseType = CoinBaseType.getType(Convert.readString(buffer,buffer.get(),Constants.MAX_COINBASE_TYPE_LENGTH));
             this.creator = buffer.getLong();
             this.generatorId = buffer.getLong();
             Map<Long, Long> temp = new HashMap<>();
@@ -333,14 +333,14 @@ public interface Attachment extends Appendix {
 
         public CoinBase(JSONObject attachmentData) {
             super(attachmentData);
-            this.type = (Type) attachmentData.get("type");
+            this.coinBaseType = (CoinBaseType) attachmentData.get("coinBaseType");
             this.creator = (Long) attachmentData.get("creator");
             this.generatorId = (Long) attachmentData.get("generatorId");
             this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
         }
 
-        public CoinBase(Type type, long creator, long generatorId, Map<Long, Long> consignors) {
-            this.type = type;
+        public CoinBase(CoinBaseType coinBaseType, long creator, long generatorId, Map<Long, Long> consignors) {
+            this.coinBaseType = coinBaseType;
             this.creator = creator;
             this.generatorId = generatorId;
             this.consignors = consignors;
@@ -348,12 +348,13 @@ public interface Attachment extends Appendix {
 
         @Override
         public int getMySize() {
-            return type.name().getBytes().length + 16 + consignors.size() * 16;
+            return 2 + coinBaseType.name().getBytes().length + 8 + 8 + consignors.size() * 2 * 8;
         }
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            buffer.put(type.name().getBytes());
+            buffer.put((byte) coinBaseType.name().length());
+            buffer.put(Convert.toBytes(coinBaseType.name()));
             buffer.putLong(creator);
             buffer.putLong(generatorId);
             for (Map.Entry<Long, Long> entry : consignors.entrySet()) {
@@ -364,7 +365,7 @@ public interface Attachment extends Appendix {
 
         @Override
         public void putMyJSON(JSONObject attachment) {
-            attachment.put("type", type);
+            attachment.put("coinBaseType", coinBaseType);
             attachment.put("creator", creator);
             attachment.put("generatorId", generatorId);
             attachment.put("consignors", mapToJson(consignors));
@@ -375,8 +376,8 @@ public interface Attachment extends Appendix {
             return TransactionType.CoinBase.ORDINARY;
         }
 
-        public Type getType() {
-            return type;
+        public CoinBaseType getCoinBaseType() {
+            return coinBaseType;
         }
 
         public Map<Long, Long> getConsignors() {
