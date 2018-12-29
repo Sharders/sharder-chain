@@ -2309,8 +2309,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           .thenComparingInt(UnconfirmedTransaction::getHeight)
           .thenComparingLong(UnconfirmedTransaction::getId);
 
-  public void generateBlock(String secretPhrase, int blockTimestamp)
-      throws BlockNotAcceptedException {
+  public void generateBlock(String secretPhrase, int blockTimestamp) throws BlockNotAcceptedException {
 
     Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
     if (blockchain.getHeight() >= Constants.PHASING_BLOCK) {
@@ -2319,8 +2318,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
           try {
             phasedTransaction.validate();
-            phasedTransaction.attachmentIsDuplicate(
-                duplicates, false); // pre-populate duplicates map
+            phasedTransaction.attachmentIsDuplicate(duplicates, false); // pre-populate duplicates map
           } catch (ConchException.ValidationException ignore) {
           }
         }

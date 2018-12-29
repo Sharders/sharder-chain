@@ -1,5 +1,7 @@
 package org.conch.consensus.poc.hardware;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 /**
  * @ClassName SystemInfo
  * @Description  系统信息对象
@@ -90,9 +92,6 @@ public class SystemInfo {
 
     @Override
     public String toString() {
-        return "core=" + core +
-                "&averageMhz=" + averageMHz +
-                "&memoryTotal=" + memoryTotal +
-                "&hardDiskSize=" + hardDiskSize;
+        return ToStringBuilder.reflectionToString(this);
     }
 }

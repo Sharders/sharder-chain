@@ -3714,6 +3714,4 @@ public abstract class TransactionType {
         }
     }
 
-    public static abstract class Poc extends TransactionType {
-    }
 }

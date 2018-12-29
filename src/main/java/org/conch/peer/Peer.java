@@ -134,7 +134,7 @@ public interface Peer extends Comparable<Peer> {
 
     int getWeight();
     
-    long getBindedAccountId();
+    long getBindAccountId();
 
     boolean shareAddress();
 
@@ -159,6 +159,8 @@ public interface Peer extends Comparable<Peer> {
     int getLastConnectAttempt();
 
     Type getType();
+    
+    void setType(Type type);
     
     boolean isType(Type type);
 
