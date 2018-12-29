@@ -101,7 +101,7 @@ public final class Conch {
     private static final DirProvider dirProvider;
 
     private static final Properties defaultProperties = new Properties();
-
+    public static final String SHARDER_FOUNDATION_URL = "sharder.org";
 
     /**
      * Preset parameters
@@ -641,7 +641,7 @@ public final class Conch {
                 testSecureRandom();
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
-                Logger.logMessage("COS server " + VERSION + " started successfully.");
+                Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) {
