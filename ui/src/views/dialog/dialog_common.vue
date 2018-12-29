@@ -115,6 +115,10 @@
                             <td v-else-if="transactionInfo.type === 6">
                                 <span>{{$t('dialog.account_info_data_storage')}}</span>
                             </td>
+                            <td v-else-if="transaction.type === 8">
+                                <img src="../../assets/img/forge_pool.svg"/>
+                                <span>{{$t('transaction.transaction_type_forge_pool')}}</span>
+                            </td>
                             <td v-else-if="transactionInfo.type === 9">
                                 <span>CoinBase</span>
                             </td>

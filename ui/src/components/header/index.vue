@@ -199,6 +199,7 @@
                         }
                     });
                     _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
+                        _this.$store.state.unconfirmedTransactionsList = res;
                         if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
                         }

@@ -180,9 +180,9 @@
         },
         created: function () {
             let _this = this;
-        /*
             let formData = new FormData();
-            formData.append("poolId",_this.mining.poolId);
+            formData.append("poolId", _this.mining.poolId);
+
             this.$http.post('/sharder?requestType=getPoolInfo',formData).then(res=>{
               if(res.data.errorDescription !== undefined){
                   _this.$message.error(res.data.errorDescription);
@@ -195,7 +195,7 @@
             });
 
             formData = new FormData();
-            formData.append("creatorId",_this.mining.creatorId);
+            formData.append("creatorId",_this.mining.creatorID);
             this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
               if(res.data.errorDescription !== undefined){
                   _this.$message.error(res.data.errorDescription);
@@ -209,7 +209,6 @@
 
 
 
-        */
         }
     }
 </script>
