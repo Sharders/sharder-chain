@@ -81,7 +81,7 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.endBlockNo - mining.startBlockNo - mining.historicalBlocks}}{{$t('mining.index.unit_block')}}(约13.5h)</span>
+                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.endBlockNo - mining.startBlockNo - mining.historicalBlocks}}{{$t('mining.index.unit_block')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -524,6 +524,7 @@
             }
 
             let formData = new FormData();
+            // formData.append("createId","9011521658538046000");
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
                 console.log(res.data);
                 _this.miningList = res.data.pools;
