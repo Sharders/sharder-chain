@@ -201,9 +201,9 @@ public interface Attachment extends Appendix {
                 oos = new ObjectOutputStream(baos);
                 while (objs.iterator().hasNext()) {
                     oos.writeObject(objs.iterator().next());
+                    oos.flush();
+                    size = baos.toByteArray().length;
                 }
-                oos.flush();
-                size = baos.toByteArray().length;
                 baos.close();
                 oos.close();
             } catch (IOException e) {
@@ -234,9 +234,9 @@ public interface Attachment extends Appendix {
                 oos = new ObjectOutputStream(baos);
                 while (objs.iterator().hasNext()) {
                     oos.writeObject(objs.iterator().next());
+                    oos.flush();
+                    buffer.put(baos.toByteArray());
                 }
-                oos.flush();
-                buffer.put(baos.toByteArray());
                 baos.close();
                 oos.close();
             } catch (IOException e) {

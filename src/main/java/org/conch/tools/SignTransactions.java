@@ -22,20 +22,21 @@
 package org.conch.tools;
 
 import org.conch.Conch;
+import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.Console;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public final class SignTransactions {
 
     public static void main(String[] args) {
+        _signTxAndSaveItToBytesFile(args);
+    }
+    
+    static void _signTxBytesFile(String[] args){
         try {
             if (args.length != 2) {
                 System.out.println("Usage: SignTransactions <unsigned transaction bytes file> <signed transaction bytes file>");
@@ -48,10 +49,11 @@ public final class SignTransactions {
             }
             File signed = new File(args[1]);
             if (signed.exists()) {
-                System.out.println("File already exists: " + signed.getAbsolutePath());
-                System.exit(1);
+                System.out.println("File already exists, delete it: " + signed.getAbsolutePath());
+                signed.delete();
             }
             String secretPhrase;
+            System.out.println("Input the secret phrase >>");
             Console console = System.console();
             if (console == null) {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
@@ -74,6 +76,38 @@ public final class SignTransactions {
                 }
             }
             System.out.println("Signed " + n + " transactions");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    static void _signTxAndSaveItToBytesFile(String[] args){
+        try {
+            File signed = new File(args[0]);
+            if (signed.exists()) {
+                System.out.println("File already exists, delete it: " + signed.getAbsolutePath());
+                signed.delete();
+            }
+            String secretPhrase;
+            System.out.println("Input the secret phrase >>");
+            Console console = System.console();
+            if (console == null) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+                    secretPhrase = reader.readLine();
+                }
+            } else {
+                secretPhrase = new String(console.readPassword("Secret phrase: "));
+            }
+            
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(signed))) {
+                Attachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
+                Transaction.Builder builder = Conch.newTransactionBuilder(ConchGenesis.CREATOR_PUBLIC_KEY, 0, 0,
+                      (short) 0, attachment).timestamp(0).ecBlockHeight(0).ecBlockId(0);
+                Transaction transaction = builder.build(secretPhrase);
+                writer.write(Convert.toHexString(transaction.getBytes()));
+                writer.newLine();
+            }
+            System.out.println("Signed transactions: " + signed.getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
         }

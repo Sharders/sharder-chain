@@ -57,8 +57,8 @@ public class PocScore {
     }
     
     
-    public void nodeConfCal(Peer.Type nodeType, PocTxBody.PocNodeConf nodeConf){
-        PocCalculator.nodeConfCal(this,nodeType,nodeConf);
+    public void nodeConfCal(PocTxBody.PocNodeConf nodeConf){
+        PocCalculator.nodeConfCal(this,nodeConf);
     }
     
     public void nodeTypeCal(PocTxBody.PocNodeType nodeType){
@@ -132,21 +132,21 @@ public class PocScore {
 
         static void nodeTypeCal(PocScore pocScore,PocTxBody.PocNodeType nodeType){
             BigInteger typeScore = BigInteger.ZERO;
-            if (nodeType.getType().equals(Peer.Type.OFFICIAL)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.OFFICIAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            if (nodeType.getType().equals(Peer.Type.FOUNDATION)) {
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.FOUNDATION.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.HUB)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.BOX)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getOptionValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             }
             pocScore.nodeTypeScore = typeScore;
         }
 
-        static void nodeConfCal(PocScore pocScore, Peer.Type nodeType, PocTxBody.PocNodeConf nodeConf){
+        static void nodeConfCal(PocScore pocScore, PocTxBody.PocNodeConf nodeConf){
 
             // 打开服务得分
             BigInteger serverScore = BigInteger.ZERO;
@@ -156,51 +156,48 @@ public class PocScore {
             BigInteger networkScore = BigInteger.ZERO;
             // 交易处理性能得分
             BigInteger performanceScore = BigInteger.ZERO;
-
-            if (nodeConf.getSystemInfo().isServerOpen()) {
-                if (nodeType.equals(Peer.Type.OFFICIAL)) {
-                    serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.OFFICIAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
-                } else if (nodeType.equals(Peer.Type.COMMUNITY)) {
-                    serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
-                } else if (nodeType.equals(Peer.Type.HUB)) {
-                    serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
-                } else if (nodeType.equals(Peer.Type.BOX)) {
-                    serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
-                } else if (nodeType.equals(Peer.Type.NORMAL)) {
-                    serverScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getOptionValue()).multiply(pocWeightTable.getServerOpenTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+            
+            Long[] openedServices = nodeConf.getSystemInfo().getOpenServices();
+            if (openedServices != null && openedServices.length > 0) {
+                
+                for (Long serviceCode : openedServices) {
+                    BigInteger _scorePreDefined = pocWeightTable.getServerOpenTemplate().get(serviceCode);
+                    if(_scorePreDefined == null) continue;
+                    serverScore = serverScore.add(_scorePreDefined);
                 }
-                pocScore.serverScore = serverScore;
+                
+                pocScore.serverScore = serverScore.multiply(POINT_SYSTEM_CONVERSION_RATE).multiply(pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SERVER_OPEN.getValue())).divide(PERCENT_DIVISOR);
             }
 
             if (nodeConf.getSystemInfo().getCore() >= 8 && nodeConf.getSystemInfo().getAverageMHz() >= 3600 && nodeConf.getSystemInfo().getMemoryTotal() >= 15 && nodeConf.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
-                hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeConf.getSystemInfo().getCore() >= 4 && nodeConf.getSystemInfo().getAverageMHz() >= 3100 && nodeConf.getSystemInfo().getMemoryTotal() >= 7 && nodeConf.getSystemInfo().getHardDiskSize() >= 1000) {
-                hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeConf.getSystemInfo().getCore() >= 2 && nodeConf.getSystemInfo().getAverageMHz() >= 2400 && nodeConf.getSystemInfo().getMemoryTotal() >= 3 && nodeConf.getSystemInfo().getHardDiskSize() >= 100) {
-                hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getOptionValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                hardwareScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.HARDWARE_CONFIG.getValue()).multiply(pocWeightTable.getHardwareConfigTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             }
 
             pocScore.hardwareScore = hardwareScore;
 
             if (nodeConf.getSystemInfo().isHadPublicIp()) {
                 if (nodeConf.getSystemInfo().getBandWidth() >= 10) {
-                    networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
                 } else if (nodeConf.getSystemInfo().getBandWidth() >= 5) {
-                    networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
                 } else if (nodeConf.getSystemInfo().getBandWidth() >= 1) {
-                    networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                    networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
                 }
             } else {
-                networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getOptionValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.POOR.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                networkScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NETWORK_CONFIG.getValue()).multiply(pocWeightTable.getNetworkConfigTemplate().get(PocTxBody.DeviceLevels.POOR.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             }
             pocScore.networkScore = networkScore;
 
             if (nodeConf.getSystemInfo().getTradePerformance() >= 1000) {
-                performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeConf.getSystemInfo().getTradePerformance() >= 500) {
-                performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeConf.getSystemInfo().getTradePerformance() >= 300) {
-                performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getOptionValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getValue()).multiply(pocWeightTable.getTxHandlePerformanceTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             }
             pocScore.performanceScore = performanceScore;
 
@@ -208,35 +205,36 @@ public class PocScore {
 
         static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate){
             BigInteger onlineRateScore = BigInteger.ZERO;
-            if (nodeType.equals(Peer.Type.OFFICIAL)) {
+
+            if (nodeType.equals(Peer.Type.FOUNDATION)) {
                 if (onlineRate.getNetworkRate() >= 9900 && onlineRate.getNetworkRate() < 9999) {
-                    onlineRateScore = pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.OnlineStatusDef.FROM_99_00_TO_99_99.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9700 && onlineRate.getNetworkRate() < 9900) {
-                    onlineRateScore = pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.OnlineStatusDef.FROM_97_00_TO_99_00.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() < 9700) {
-                    onlineRateScore = pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateOfficialTemplate().get(PocTxBody.OnlineStatusDef.FROM_00_00_TO_97_00.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             } else if (nodeType.equals(Peer.Type.COMMUNITY)) {
                 if (onlineRate.getNetworkRate() >= 9700 && onlineRate.getNetworkRate() < 9900) {
-                    onlineRateScore = pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.OnlineStatusDef.FROM_97_00_TO_99_00.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9000 && onlineRate.getNetworkRate() < 9700) {
-                    onlineRateScore = pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.OnlineStatusDef.FROM_90_00_TO_97_00.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() < 9000) {
-                    onlineRateScore = pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateCommunityTemplate().get(PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             } else if (nodeType.equals(Peer.Type.HUB) || nodeType.equals(Peer.Type.BOX)) {
                 if (onlineRate.getNetworkRate() >= 9900) {
-                    onlineRateScore = pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.OnlineStatusDef.FROM_99_00_TO_100.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9700) {
-                    onlineRateScore = pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.OnlineStatusDef.FROM_97_00_TO_100.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() < 9000) {
-                    onlineRateScore = pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateHubBoxTemplate().get(PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             } else if (nodeType.equals(Peer.Type.NORMAL)) {
                 if (onlineRate.getNetworkRate() >= 9700) {
-                    onlineRateScore = pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.OnlineStatusDef.FROM_97_00_TO_100.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 } else if (onlineRate.getNetworkRate() >= 9000) {
-                    onlineRateScore = pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel()).multiply(POINT_SYSTEM_CONVERSION_RATE);
+                    onlineRateScore = pocWeightTable.getOnlineRateNormalTemplate().get(PocTxBody.OnlineStatusDef.FROM_90_00_TO_100.getValue()).multiply(POINT_SYSTEM_CONVERSION_RATE);
                 }
             }
             pocScore.onlineRateScore = onlineRateScore;

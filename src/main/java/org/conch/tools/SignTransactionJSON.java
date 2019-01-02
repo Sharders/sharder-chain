@@ -22,20 +22,14 @@
 package org.conch.tools;
 
 import org.conch.Conch;
-import org.conch.tx.Transaction;
 import org.conch.crypto.Crypto;
+import org.conch.tx.Transaction;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.Console;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public final class SignTransactionJSON {
 
@@ -60,8 +54,8 @@ public final class SignTransactionJSON {
                 signed = new File(unsigned.getParentFile(), "signed." + unsigned.getName());
             }
             if (signed.exists()) {
-                System.out.println("File already exists: " + signed.getAbsolutePath());
-                System.exit(1);
+                System.out.println("File already exists, delete it: " + signed.getAbsolutePath());
+                signed.delete();
             }
             try (BufferedReader reader = new BufferedReader(new FileReader(unsigned));
                  BufferedWriter writer = new BufferedWriter(new FileWriter(signed))) {

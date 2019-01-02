@@ -27,6 +27,7 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
 import org.conch.mint.Generator;
@@ -1507,6 +1508,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   //            throw new RuntimeException(e.toString(), e);
   //        }
   //    }
+    
+  private void _defaultPocTemplateTx(){
+      Attachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
+//      Transaction.Builder builder = Conch.newTransactionBuilder(ConchGenesis.CREATOR_PUBLIC_KEY, 0, 0,
+//              (short) 0, attachment).timestamp(0).ecBlockHeight(0).ecBlockId(0).height(0);
+      
+//      new TransactionImpl.BuilderImpl(
+//              (byte) 0,
+//              ConchGenesis.CREATOR_PUBLIC_KEY,
+//              0,
+//              0,
+//              (short) 0,
+//              PocTxBody.PocWeightTable.defaultPocWeightTable())
+//              .timestamp(0)
+//              .signature(ConchGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
+//              .height(0)
+//              .ecBlockHeight(0)
+//              .ecBlockId(0)
+//              .build();
+  }
 
   private boolean addConchGenesisBlock() {
     if (BlockDb.hasBlock(ConchGenesis.GENESIS_BLOCK_ID, 0)) {
@@ -1559,10 +1580,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               ConchGenesis.GENESIS_BLOCK_SIGNATURE,
               null,
               transactions);
-      //            BlockImpl genesisBlock = new BlockImpl(-1, 0, 0, Constants.MAX_BALANCE_NQT, 0,
-      // transactions.size() * 128, digest.digest(),
-      //                    ConchGenesis.CREATOR_PUBLIC_KEY, new byte[64], null,
-      // transactions,ConchGenesis.CREATOR_SP);
       Logger.logMessage(
           "ConchGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
 
@@ -2550,7 +2567,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         long currentBlockId = currentBlock.getId();
         if (height == 0) {
           blockchain.setLastBlock(currentBlock); // special case to avoid no last block
-          ConchGenesis.enableOfficalAccount();
+          ConchGenesis.enableGenesisAccount();
         } else {
           blockchain.setLastBlock(BlockDb.findBlockAtHeight(height - 1));
         }

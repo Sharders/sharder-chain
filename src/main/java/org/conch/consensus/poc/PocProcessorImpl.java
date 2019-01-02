@@ -151,8 +151,6 @@ public class PocProcessorImpl implements PocProcessor {
           String ip = IpUtil.getIp(host);
           Peer peer = Peers.getPeer(host);
         }
-        
-       
       } catch (Exception e) {
         Logger.logDebugMessage("syn valid node thread interrupted");
       } catch (Throwable t) {
@@ -225,7 +223,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     long peerBindAccountId = peer.getBindAccountId();
     PocScore pocScoreToUpdate = new PocScore(peerBindAccountId,height);
-    pocScoreToUpdate.nodeConfCal(peer.getType(),pocNodeConf);
+    pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
     PocHolder.scoreMapping(pocScoreToUpdate);
     return false;

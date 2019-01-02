@@ -35,7 +35,7 @@ public interface Peer extends Comparable<Peer> {
         HUB(4),
         NORMAL(3),
         COMMUNITY(2),
-        OFFICIAL(1);
+        FOUNDATION(1);
         private final int code;
 
         Type(int code) {
@@ -71,15 +71,18 @@ public interface Peer extends Comparable<Peer> {
     enum State {
         NON_CONNECTED, CONNECTED, DISCONNECTED
     }
-
+    
     enum Service {
         HALLMARK(1),                    // Hallmarked node
         PRUNABLE(2),                    // Stores expired prunable messages
-        API(4),                         // Provides open API access over http
-        API_SSL(8),                     // Provides open API access over https
+        API(4),                         // Open API access over http
+        API_SSL(8),                     // Open API access over https
         CORS(16),                       // API CORS enabled
-        BAPI(32),                       // Provides business API access over http
-        STORAGE(64);                    // Provides off-chain data storage
+        BAPI(32),                       // Business API access over http => watcher role
+        STORAGE(64),                    // Off-chain data storage => Storer role
+        MINER(128),                     // Minting service => Miner role
+        NATER(256),                     // Nat service => Traversal role (TBD)
+        PROVER(512);                    // Prove service => Prover role (TBD)
         private final long code;        // Service code - must be a power of 2
 
         Service(int code) {
