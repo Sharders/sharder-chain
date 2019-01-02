@@ -21,6 +21,7 @@
 
 package org.conch.util;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
@@ -243,6 +244,28 @@ public final class Convert {
         byte[] bytes = new byte[numBytes];
         buffer.get(bytes);
         return Convert.toString(bytes);
+    }
+    
+    public static int writeString(ByteBuffer buffer, String content) {
+        int size = content.length();
+        buffer.putInt(size);
+        buffer.put(Convert.toBytes(content));
+        System.out.println("size=" + size);
+        return size;
+    }
+    
+    public static int writeMap(ByteBuffer buffer, Map map) {
+        return writeString(buffer,JSONObject.toJSONString(map));
+    }
+    
+    public static int writeMapArray(ByteBuffer buffer, List<Map> mapArray) {
+        int size = 0;
+        if(mapArray == null || mapArray.size() <= 0) return size;
+        
+        for(Map map : mapArray){
+            size += writeString(buffer,JSONObject.toJSONString(map));
+        }
+        return size;
     }
 
     public static String truncate(String s, String replaceNull, int limit, boolean dots) {

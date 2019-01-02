@@ -21,6 +21,7 @@
 
 package org.conch.tx;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -184,6 +185,10 @@ public interface Appendix {
             return isPhasable() && transaction.getPhasing() != null;
         }
 
+        @Override
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this);
+        }
     }
 
     static boolean hasAppendix(String appendixName, JSONObject attachmentData) {

@@ -52,7 +52,7 @@ public interface Attachment extends Appendix {
     TransactionType getTransactionType();
 
     abstract class TxBodyBase extends AbstractAttachment {
-        protected abstract AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion);
+        protected abstract AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException;
 
         protected abstract AbstractAttachment inst(JSONObject attachmentData);
 

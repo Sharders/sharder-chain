@@ -1,6 +1,5 @@
 package org.conch.consensus.poc.tx;
 
-import com.google.common.collect.Lists;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.peer.Peer;
@@ -82,7 +81,6 @@ public interface PocTxBody  {
             this.value = value;
         }
     }
-
 
 
      final class PocNodeType extends Attachment.TxBodyBase {
@@ -169,11 +167,10 @@ public interface PocTxBody  {
         private Map<Long, BigInteger> serverOpenTemplate;
         private Map<Integer, BigInteger> hardwareConfigTemplate;
         private Map<Integer, BigInteger> networkConfigTemplate;
-        private Map<Integer, BigInteger> txHandlePerformanceTemplate;
-        private Map<Integer, BigInteger> onlineRateOfficialTemplate;
-        private Map<Integer, BigInteger> onlineRateCommunityTemplate;
-        private Map<Integer, BigInteger> onlineRateHubBoxTemplate;
-        private Map<Integer, BigInteger> onlineRateNormalTemplate;
+        private Map<Integer, BigInteger> txPerformanceTemplate;
+        
+        private Map<Peer.Type,Map<Integer, BigInteger>> onlineRateTemplate;
+        
         private Map<Integer, BigInteger> blockingMissTemplate;
         private Map<Integer, BigInteger> bocSpeedTemplate;
         
@@ -199,24 +196,21 @@ public interface PocTxBody  {
             return networkConfigTemplate;
         }
 
-        public Map<Integer, BigInteger> getTxHandlePerformanceTemplate() {
-            return txHandlePerformanceTemplate;
+        public Map<Integer, BigInteger> getTxPerformanceTemplate() {
+            return txPerformanceTemplate;
         }
 
-        public Map<Integer, BigInteger> getOnlineRateOfficialTemplate() {
-            return onlineRateOfficialTemplate;
+        public Map<Peer.Type, Map<Integer, BigInteger>> getOnlineRateTemplate() {
+            return onlineRateTemplate;
         }
 
-        public Map<Integer, BigInteger> getOnlineRateCommunityTemplate() {
-            return onlineRateCommunityTemplate;
+        public void setOnlineRateTemplate(Map<Peer.Type, Map<Integer, BigInteger>> onlineRateTemplate) {
+            this.onlineRateTemplate = onlineRateTemplate;
         }
-
-        public Map<Integer, BigInteger> getOnlineRateHubBoxTemplate() {
-            return onlineRateHubBoxTemplate;
-        }
-
-        public Map<Integer, BigInteger> getOnlineRateNormalTemplate() {
-            return onlineRateNormalTemplate;
+        
+        public Map<Integer, BigInteger> getOnlineRateTemplate(Peer.Type type){
+           if(type == null || onlineRateTemplate == null || onlineRateTemplate.size() <= 0) return null;
+           return onlineRateTemplate.get(type);
         }
 
         public Map<Integer, BigInteger> getBlockingMissTemplate() {
@@ -234,7 +228,7 @@ public interface PocTxBody  {
         public void setTemplateVersion(Long templateVersion) {
             this.templateVersion = templateVersion;
         }
-
+        
 
         /**
          * 
@@ -242,62 +236,69 @@ public interface PocTxBody  {
          */
         public static PocWeightTable defaultPocWeightTable(){
 
-           Map<String, BigInteger> weightMap = new HashMap<>();
-           weightMap.put(WeightTableOptions.NODE.value, BigInteger.valueOf(25)); // 节点类型占比， 25%，先不算百分比
-           weightMap.put(WeightTableOptions.SERVER_OPEN.value, BigInteger.valueOf(20L)); // 开启服务占比，20%， 先不算百分比
-           weightMap.put(WeightTableOptions.SS_HOLD.value, BigInteger.valueOf(40L)); // SS持有量占比， 40%，先不算百分比
-           weightMap.put(WeightTableOptions.HARDWARE_CONFIG.value, BigInteger.valueOf(5L)); // 硬件配置占比，5%，先不算百分比
-           weightMap.put(WeightTableOptions.NETWORK_CONFIG.value, BigInteger.valueOf(5L)); // 网络配置占比， 5%，先不算百分比
-           weightMap.put(WeightTableOptions.TX_HANDLE_PERFORMANCE.value, BigInteger.valueOf(5L)); //交易处理性能占比， 5%,先不算百分比
+            Map<String, BigInteger> weightMap = new HashMap<>();
+            weightMap.put(WeightTableOptions.NODE.value, BigInteger.valueOf(25)); // 节点类型占比， 25%，先不算百分比
+            weightMap.put(WeightTableOptions.SERVER_OPEN.value, BigInteger.valueOf(20L)); // 开启服务占比，20%， 先不算百分比
+            weightMap.put(WeightTableOptions.SS_HOLD.value, BigInteger.valueOf(40L)); // SS持有量占比， 40%，先不算百分比
+            weightMap.put(WeightTableOptions.HARDWARE_CONFIG.value, BigInteger.valueOf(5L)); // 硬件配置占比，5%，先不算百分比
+            weightMap.put(WeightTableOptions.NETWORK_CONFIG.value, BigInteger.valueOf(5L)); // 网络配置占比， 5%，先不算百分比
+            weightMap.put(WeightTableOptions.TX_HANDLE_PERFORMANCE.value, BigInteger.valueOf(5L)); //交易处理性能占比， 5%,先不算百分比
            
-            Map<Integer, BigInteger> nodeTypeTemplate = new HashMap();
-            nodeTypeTemplate.put(Peer.Type.FOUNDATION.getCode(), BigInteger.valueOf(10L)); // 基金会节点
-            nodeTypeTemplate.put(Peer.Type.COMMUNITY.getCode(), BigInteger.valueOf(8L)); // 社区节点 
-            nodeTypeTemplate.put(Peer.Type.HUB.getCode(), BigInteger.valueOf(6L)); // HUB节点 
-            nodeTypeTemplate.put(Peer.Type.BOX.getCode(), BigInteger.valueOf(6L)); // BOX节点 
-            nodeTypeTemplate.put(Peer.Type.NORMAL.getCode(), BigInteger.valueOf(3L)); // 普通节点
+            Map<Integer, BigInteger> nodeTypeTP = new HashMap();
+            nodeTypeTP.put(Peer.Type.FOUNDATION.getCode(), BigInteger.valueOf(10L)); // 基金会节点
+            nodeTypeTP.put(Peer.Type.COMMUNITY.getCode(), BigInteger.valueOf(8L)); // 社区节点 
+            nodeTypeTP.put(Peer.Type.HUB.getCode(), BigInteger.valueOf(6L)); // HUB节点 
+            nodeTypeTP.put(Peer.Type.BOX.getCode(), BigInteger.valueOf(6L)); // BOX节点 
+            nodeTypeTP.put(Peer.Type.NORMAL.getCode(), BigInteger.valueOf(3L)); // 普通节点
             
-            Map<Long, BigInteger> serverOpenTemplate = new HashMap<>();
-            serverOpenTemplate.put(Peer.Service.MINER.getCode(),BigInteger.valueOf(4L)); // 矿工服务开启 
-            serverOpenTemplate.put(Peer.Service.BAPI.getCode(),BigInteger.valueOf(4L)); // 观察者服务开启 
-            serverOpenTemplate.put(Peer.Service.NATER.getCode(),BigInteger.valueOf(4L)); // 穿透者服务开启
-            serverOpenTemplate.put(Peer.Service.STORAGE.getCode(),BigInteger.valueOf(4L)); // 存储者服务开启 
-            serverOpenTemplate.put(Peer.Service.PROVER.getCode(),BigInteger.valueOf(4L)); // 证明者服务开启
+            Map<Long, BigInteger> serverOpenTP = new HashMap<>();
+            serverOpenTP.put(Peer.Service.MINER.getCode(),BigInteger.valueOf(4L)); // 矿工服务开启 
+            serverOpenTP.put(Peer.Service.BAPI.getCode(),BigInteger.valueOf(4L)); // 观察者服务开启 
+            serverOpenTP.put(Peer.Service.NATER.getCode(),BigInteger.valueOf(4L)); // 穿透者服务开启
+            serverOpenTP.put(Peer.Service.STORAGE.getCode(),BigInteger.valueOf(4L)); // 存储者服务开启 
+            serverOpenTP.put(Peer.Service.PROVER.getCode(),BigInteger.valueOf(4L)); // 证明者服务开启
             
-            Map<Integer, BigInteger> hardwareConfigTemplate = new HashMap<>();
-            hardwareConfigTemplate.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(3L)); // 硬件配置低 
-            hardwareConfigTemplate.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(6L)); // 硬件配置中 
-            hardwareConfigTemplate.put(DeviceLevels.GOOD.getLevel(), BigInteger.valueOf(10L)); // 硬件配置高 
+            Map<Integer, BigInteger> hardwareConfigTP = new HashMap<>();
+            hardwareConfigTP.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(3L)); // 硬件配置低 
+            hardwareConfigTP.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(6L)); // 硬件配置中 
+            hardwareConfigTP.put(DeviceLevels.GOOD.getLevel(), BigInteger.valueOf(10L)); // 硬件配置高 
             
-            Map<Integer, BigInteger> networkConfigTemplate = new HashMap<>();
-            networkConfigTemplate.put(DeviceLevels.POOR.getLevel(), BigInteger.valueOf(0L)); // 网络配置极差 
-            networkConfigTemplate.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(3L)); // 网络配置差 
-            networkConfigTemplate.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(6L)); // 网络配置中 
-            networkConfigTemplate.put(DeviceLevels.GOOD.getLevel(), BigInteger.valueOf(10L)); // 网络配置高 
+            Map<Integer, BigInteger> networkConfigTP = new HashMap<>();
+            networkConfigTP.put(DeviceLevels.POOR.getLevel(), BigInteger.valueOf(0L)); // 网络配置极差 
+            networkConfigTP.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(3L)); // 网络配置差 
+            networkConfigTP.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(6L)); // 网络配置中 
+            networkConfigTP.put(DeviceLevels.GOOD.getLevel(), BigInteger.valueOf(10L)); // 网络配置高 
             
-            Map<Integer, BigInteger> txHandlePerformanceTemplate = new HashMap<>();
-            txHandlePerformanceTemplate.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(3L)); // 交易处理性能低 
-            txHandlePerformanceTemplate.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(6L)); // 交易处理性能中 
-            txHandlePerformanceTemplate.put(DeviceLevels.GOOD.getLevel(), BigInteger.valueOf(10L));  // 交易处理性能高 
+            Map<Integer, BigInteger> txPerformanceTP = new HashMap<>();
+            txPerformanceTP.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(3L)); // 交易处理性能低 
+            txPerformanceTP.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(6L)); // 交易处理性能中 
+            txPerformanceTP.put(DeviceLevels.GOOD.getLevel(), BigInteger.valueOf(10L));  // 交易处理性能高 
             
-            Map<Integer, BigInteger> onlineRateOfficialTemplate = new HashMap<>();
-            onlineRateOfficialTemplate.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), BigInteger.valueOf(-2L)); // 基金会节点在线率1 
-            onlineRateOfficialTemplate.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), BigInteger.valueOf(-5L)); // 基金会节点在线率2 
-            onlineRateOfficialTemplate.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), BigInteger.valueOf(-10L)); // 基金会节点在线率3 
+            Map<Integer, BigInteger> onlineRateFoundationTP = new HashMap<>();
+            onlineRateFoundationTP.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), BigInteger.valueOf(-2L)); // 基金会节点在线率1 
+            onlineRateFoundationTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), BigInteger.valueOf(-5L)); // 基金会节点在线率2 
+            onlineRateFoundationTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), BigInteger.valueOf(-10L)); // 基金会节点在线率3 
             
-            Map<Integer, BigInteger> onlineRateCommunityTemplate = new HashMap<>();
-            onlineRateCommunityTemplate.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(),BigInteger.valueOf(-2L)); // 社区节点在线率1  
-            onlineRateCommunityTemplate.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(),BigInteger.valueOf(-5L)); // 社区节点在线率2 
-            onlineRateCommunityTemplate.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(),BigInteger.valueOf(-10L)); // 社区节点在线率3  
+            Map<Integer, BigInteger> onlineRateCommunityTP = new HashMap<>();
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(),BigInteger.valueOf(-2L)); // 社区节点在线率1  
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(),BigInteger.valueOf(-5L)); // 社区节点在线率2 
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(),BigInteger.valueOf(-10L)); // 社区节点在线率3  
             
-            Map<Integer, BigInteger> onlineRateHubBoxTemplate = new HashMap<>();
-            onlineRateHubBoxTemplate.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), BigInteger.valueOf(5L)); // HUB/BOX节点在线率1 
-            onlineRateHubBoxTemplate.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), BigInteger.valueOf(3L)); // HUB/BOX节点在线率2 
-            onlineRateHubBoxTemplate.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), BigInteger.valueOf(-5L)); // HUB/BOX节点在线率3  
+            Map<Integer, BigInteger> onlineRateHubBoxTP = new HashMap<>();
+            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), BigInteger.valueOf(5L)); // HUB/BOX节点在线率1 
+            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), BigInteger.valueOf(3L)); // HUB/BOX节点在线率2 
+            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), BigInteger.valueOf(-5L)); // HUB/BOX节点在线率3  
             
-            Map<Integer, BigInteger> onlineRateNormalTemplate = new HashMap<>();
-            onlineRateNormalTemplate.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), BigInteger.valueOf(5L)); // 普通节点在线率1 
-            onlineRateNormalTemplate.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), BigInteger.valueOf(3L)); // 普通节点在线率2 
+            Map<Integer, BigInteger> onlineRateNormalTP = new HashMap<>();
+            onlineRateNormalTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), BigInteger.valueOf(5L)); // 普通节点在线率1 
+            onlineRateNormalTP.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), BigInteger.valueOf(3L)); // 普通节点在线率2 
+            
+            Map<Peer.Type,Map<Integer, BigInteger>> onlineRateMap = new HashMap<>();
+            onlineRateMap.put(Peer.Type.FOUNDATION,onlineRateFoundationTP);
+            onlineRateMap.put(Peer.Type.COMMUNITY,onlineRateCommunityTP);
+            onlineRateMap.put(Peer.Type.HUB,onlineRateHubBoxTP);
+            onlineRateMap.put(Peer.Type.BOX,onlineRateHubBoxTP);
+            onlineRateMap.put(Peer.Type.NORMAL,onlineRateNormalTP);
             
             Map<Integer, BigInteger> blockingMissTemplate = new HashMap<>();
             blockingMissTemplate.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(-10L)); // 丢失量高
@@ -311,60 +312,51 @@ public interface PocTxBody  {
 
             Long version = 20190218L;
                     
-            return new PocWeightTable(weightMap,nodeTypeTemplate,serverOpenTemplate,hardwareConfigTemplate,networkConfigTemplate,txHandlePerformanceTemplate,onlineRateOfficialTemplate,onlineRateCommunityTemplate,onlineRateHubBoxTemplate,onlineRateNormalTemplate,blockingMissTemplate,bocSpeedTemplate,version);
+            return new PocWeightTable(weightMap,nodeTypeTP,serverOpenTP,hardwareConfigTP,networkConfigTP,txPerformanceTP,onlineRateMap,blockingMissTemplate,bocSpeedTemplate,version);
         }
         
         
-        public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Long, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txHandlePerformanceTemplate, Map<Integer, BigInteger> onlineRateOfficialTemplate, Map<Integer, BigInteger> onlineRateCommunityTemplate, Map<Integer, BigInteger> onlineRateHubBoxTemplate, Map<Integer, BigInteger> onlineRateNormalTemplate, Map<Integer, BigInteger> blockingMissTemplate, Map<Integer, BigInteger> bocSpeedTemplate,Long version) {
+        public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Long, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txPerformanceTemplate,Map<Peer.Type, Map<Integer, BigInteger>> onlineRateTemplate, Map<Integer, BigInteger> blockingMissTemplate, Map<Integer, BigInteger> bocSpeedTemplate, Long version) {
             this.weightMap = weightMap;
             this.nodeTypeTemplate = nodeTypeTemplate;
             this.serverOpenTemplate = serverOpenTemplate;
             this.hardwareConfigTemplate = hardwareConfigTemplate;
             this.networkConfigTemplate = networkConfigTemplate;
-            this.txHandlePerformanceTemplate = txHandlePerformanceTemplate;
-            this.onlineRateOfficialTemplate = onlineRateOfficialTemplate;
-            this.onlineRateCommunityTemplate = onlineRateCommunityTemplate;
-            this.onlineRateHubBoxTemplate = onlineRateHubBoxTemplate;
-            this.onlineRateNormalTemplate = onlineRateNormalTemplate;
+            this.txPerformanceTemplate = txPerformanceTemplate;
+            this.onlineRateTemplate = onlineRateTemplate;
             this.blockingMissTemplate = blockingMissTemplate;
             this.bocSpeedTemplate = bocSpeedTemplate;
             this.templateVersion = version;
         }
 
-        public PocWeightTable(ByteBuffer buffer, byte transactionVersion) {
+        public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
-            this.weightMap = (Map<String, BigInteger>) _getByte(buffer);
-            this.nodeTypeTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.serverOpenTemplate = (Map<Long, BigInteger>) _getByte(buffer);
-            this.hardwareConfigTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.networkConfigTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.txHandlePerformanceTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.onlineRateOfficialTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.onlineRateCommunityTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.onlineRateHubBoxTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.onlineRateNormalTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.blockingMissTemplate = (Map<Integer, BigInteger>) _getByte(buffer);
-            this.bocSpeedTemplate =(Map<Integer, BigInteger>) _getByte(buffer);
+            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.blockingMissTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
         }
 
         public PocWeightTable(JSONObject attachmentData) {
             super(attachmentData);
-            this.weightMap = (Map<String, BigInteger>) attachmentData.get("weight");
-            this.nodeTypeTemplate = (Map<Integer, BigInteger>) attachmentData.get("node");
-            this.serverOpenTemplate = (Map<Long, BigInteger>) attachmentData.get("serverOpen");
-            this.hardwareConfigTemplate = (Map<Integer, BigInteger>) attachmentData.get("hardwareConfig");
-            this.networkConfigTemplate = (Map<Integer, BigInteger>) attachmentData.get("networkConfig");
-            this.txHandlePerformanceTemplate = (Map<Integer, BigInteger>) attachmentData.get("txHandlePerformance");
-            this.onlineRateOfficialTemplate =(Map<Integer, BigInteger>) attachmentData.get("onlineRateOfficial");
-            this.onlineRateCommunityTemplate = (Map<Integer, BigInteger>) attachmentData.get("onlineRateCommunity");
-            this.onlineRateHubBoxTemplate =(Map<Integer, BigInteger>) attachmentData.get("onlineRateHubBox");
-            this.onlineRateNormalTemplate = (Map<Integer, BigInteger>) attachmentData.get("onlineRateNormal");
-            this.blockingMissTemplate = (Map<Integer, BigInteger>) attachmentData.get("blockingMiss");
-            this.bocSpeedTemplate = (Map<Integer, BigInteger>) attachmentData.get("bocSpeed");
+            weightMap = (Map<String, BigInteger>) attachmentData.get("weightMap");
+            nodeTypeTemplate = (Map<Integer, BigInteger>) attachmentData.get("nodeTypeTemplate");
+            serverOpenTemplate = (Map<Long, BigInteger>) attachmentData.get("serverOpenTemplate");
+            hardwareConfigTemplate = (Map<Integer, BigInteger>) attachmentData.get("hardwareConfigTemplate");
+            networkConfigTemplate = (Map<Integer, BigInteger>) attachmentData.get("networkConfigTemplate");
+            txPerformanceTemplate = (Map<Integer, BigInteger>) attachmentData.get("txPerformanceTemplate");
+            onlineRateTemplate = (Map<Peer.Type, Map<Integer, BigInteger>>) attachmentData.get("onlineRateTemplate");
+            blockingMissTemplate = (Map<Integer, BigInteger>) attachmentData.get("blockingMissTemplate");
+            bocSpeedTemplate = (Map<Integer, BigInteger>) attachmentData.get("bocSpeedTemplate");
         }
 
         @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
+        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             return new PocWeightTable(buffer,transactionVersion);
         }
 
@@ -380,59 +372,41 @@ public interface PocTxBody  {
 
         @Override
         public int getMySize() {
-            return _readByteSize(
-                Lists.newArrayList(
-                    weightMap,
-                    nodeTypeTemplate,
-                    serverOpenTemplate,
-                    hardwareConfigTemplate,
-                    networkConfigTemplate,
-                    txHandlePerformanceTemplate,
-                    onlineRateOfficialTemplate,
-                    onlineRateCommunityTemplate,
-                    onlineRateHubBoxTemplate,
-                    onlineRateNormalTemplate,
-                    blockingMissTemplate,
-                    bocSpeedTemplate
-                )
-            );
+            return 4 * 9 + com.alibaba.fastjson.JSONObject.toJSONString(weightMap).length() 
+                    + com.alibaba.fastjson.JSONObject.toJSONString(nodeTypeTemplate).length() 
+                    + com.alibaba.fastjson.JSONObject.toJSONString(serverOpenTemplate).length() 
+                    + com.alibaba.fastjson.JSONObject.toJSONString(hardwareConfigTemplate).length() 
+                    + com.alibaba.fastjson.JSONObject.toJSONString(networkConfigTemplate).length()
+                    + com.alibaba.fastjson.JSONObject.toJSONString(txPerformanceTemplate).length()
+                    + com.alibaba.fastjson.JSONObject.toJSONString(onlineRateTemplate).length()
+                    + com.alibaba.fastjson.JSONObject.toJSONString(blockingMissTemplate).length()
+                    + com.alibaba.fastjson.JSONObject.toJSONString(bocSpeedTemplate).length();
         }
 
         @Override
-        public void putMyBytes(ByteBuffer buffer) {
-            _putByteSize(
-                 buffer,
-                 Lists.newArrayList(
-                    weightMap,
-                    nodeTypeTemplate,
-                    serverOpenTemplate,
-                    hardwareConfigTemplate,
-                    networkConfigTemplate,
-                    txHandlePerformanceTemplate,
-                    onlineRateOfficialTemplate,
-                    onlineRateCommunityTemplate,
-                    onlineRateHubBoxTemplate,
-                    onlineRateNormalTemplate,
-                    blockingMissTemplate,
-                    bocSpeedTemplate
-                 )
-            );
+        public void putMyBytes(ByteBuffer buffer) { 
+            Convert.writeMap(buffer,weightMap);
+            Convert.writeMap(buffer,nodeTypeTemplate);
+            Convert.writeMap(buffer,serverOpenTemplate);
+            Convert.writeMap(buffer,hardwareConfigTemplate);
+            Convert.writeMap(buffer,networkConfigTemplate);
+            Convert.writeMap(buffer,txPerformanceTemplate);
+            Convert.writeMap(buffer,onlineRateTemplate);
+            Convert.writeMap(buffer,blockingMissTemplate);
+            Convert.writeMap(buffer,bocSpeedTemplate);
         }
 
         @Override
         public void putMyJSON(JSONObject attachment) {
-            attachment.put("weight", weightMap);
-            attachment.put("node", nodeTypeTemplate);
-            attachment.put("serverOpen", serverOpenTemplate);
-            attachment.put("hardwareConfig", hardwareConfigTemplate);
-            attachment.put("networkConfig", networkConfigTemplate);
-            attachment.put("txHandlePerformance", txHandlePerformanceTemplate);
-            attachment.put("onlineRateOfficial", onlineRateOfficialTemplate);
-            attachment.put("onlineRateCommunity", onlineRateCommunityTemplate);
-            attachment.put("onlineRateHubBox", onlineRateHubBoxTemplate);
-            attachment.put("onlineRateNormal", onlineRateNormalTemplate);
-            attachment.put("blockingMiss", blockingMissTemplate);
-            attachment.put("bocSpeed", bocSpeedTemplate);
+            attachment.put("weightMap", weightMap);
+            attachment.put("nodeTypeTemplate", nodeTypeTemplate);
+            attachment.put("serverOpenTemplate", serverOpenTemplate);
+            attachment.put("hardwareConfigTemplate", hardwareConfigTemplate);
+            attachment.put("networkConfigTemplate", networkConfigTemplate);
+            attachment.put("txPerformanceTemplate", txPerformanceTemplate);
+            attachment.put("onlineRateTemplate", onlineRateTemplate);
+            attachment.put("blockingMissTemplate", blockingMissTemplate);
+            attachment.put("bocSpeedTemplate", bocSpeedTemplate);
         }
 
         @Override

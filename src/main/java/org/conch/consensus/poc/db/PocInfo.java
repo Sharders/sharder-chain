@@ -1,4 +1,4 @@
-package org.conch.consensus.poc;
+package org.conch.consensus.poc.db;
 
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
