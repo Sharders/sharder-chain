@@ -32,7 +32,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 
 /**
- * Compact and reorganize the NRS database. The NRS application must not be running.
+ * Compact and reorganize the database.
  *
  * <p>To run the database compact tool on Linux or Mac:
  *

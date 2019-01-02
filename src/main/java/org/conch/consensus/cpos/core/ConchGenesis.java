@@ -40,14 +40,6 @@ public class ConchGenesis {
             Long.parseUnsignedLong("3197158431999605856")  //Reserve Fund
     };
 
-    public static boolean isFoundAccount(long accountId){
-        for(long foundId : GENESIS_RECIPIENTS){
-            if(foundId == accountId) return true;
-        }
-        return false;
-    }
-
-
     public static final byte[][] GENESIS_RECIPIENTS_PK = {
             {30, 5, 14, 84, -15, -59, 81, 105, 88, -43, 119, 56, 10, 34, 62, -93, 23, -122, 95, -14, 21, 35, 8, 58, -62, 6, -114, 52, -72, 35, 120, 17},
             {92, -123, -106, 33, 110, -45, 83, -18, 33, 92, 33, -38, -69, -88, 97, -2, 78, 1, -65, -112, -30, -40, 116, -2, 28, -1, -93, -5, -17, -17, -106, 125},
@@ -67,11 +59,11 @@ public class ConchGenesis {
             {96, 60, -5, -107, -89, -106, 94, 44, -30, -114, 87, -53, -67, -36, 127, 9, -85, 118, -56, -67, -117, -4, -66, -35, -48, 106, 122, 109, -47, 66, -50, -48}
     };
 
-    private static boolean enableOfficalAccount = false;
-    public static final void enableOfficalAccount(){
-        if(enableOfficalAccount) return;
+    private static boolean enableGenesisAccount = false;
+    public static final void enableGenesisAccount(){
+        if(enableGenesisAccount) return;
 
-        Logger.logDebugMessage("Enable offical accountp[size=" + GENESIS_RECIPIENTS.length + 1 + "]");
+        Logger.logDebugMessage("Enable genesis account[size=" + GENESIS_RECIPIENTS.length + 1 + "]");
 
         Account.addOrGetAccount(CREATOR_ID).apply(CREATOR_PUBLIC_KEY);
 
@@ -79,7 +71,7 @@ public class ConchGenesis {
             Account.addOrGetAccount(GENESIS_RECIPIENTS[i]).apply(GENESIS_RECIPIENTS_PK[i]);
         }
 
-        enableOfficalAccount = true;
+        enableGenesisAccount = true;
     }
 
     private ConchGenesis() {}

@@ -24,7 +24,7 @@ public class SystemInfo {
 
     private int tradePerformance; // 交易处理性能
 
-    private boolean serverOpen; // 服务是否开启
+    private Long[] openServices; // 开启的服务列表
 
     public int getCore() {
         return core;
@@ -82,12 +82,12 @@ public class SystemInfo {
         this.tradePerformance = tradePerformance;
     }
 
-    public boolean isServerOpen() {
-        return serverOpen;
+    public Long[] getOpenServices() {
+        return openServices;
     }
 
-    public void setServerOpen(boolean serverOpen) {
-        this.serverOpen = serverOpen;
+    public void setOpenServices(Long[] openServices) {
+        this.openServices = openServices;
     }
 
     @Override
