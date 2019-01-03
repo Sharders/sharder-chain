@@ -209,6 +209,7 @@ const cn = {
             'gain_profit':"获得收益",
             'remaining_mining_time':"剩余挖矿时间",
             'exit_pool':"退出矿池",
+            'destory_pool':"退出矿池",
             'creator':"创建者:",
             'participating_users':"参与用户:",
             'capacity':"容量:",
@@ -718,7 +719,9 @@ const cn = {
         'account_info_payment':"普通支付",
         'account_info_information':"任意信息",
         'account_info_account_info':"账户信息",
+        'account_info_block_reward':"出块奖励",
         'account_info_data_storage':"数据存储",
+        'account_info_forge_pool':"矿池交易",
         'account_info_view_detail':"查看详情",
 
         'account_transaction_detail':"交易详情",
