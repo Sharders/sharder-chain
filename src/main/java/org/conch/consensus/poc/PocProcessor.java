@@ -22,10 +22,23 @@
 package org.conch.consensus.poc;
 
 import org.conch.account.Account;
+import org.conch.consensus.poc.tx.PocTxBody;
 
 import java.math.BigInteger;
 
 public interface PocProcessor {
 
+    /**
+     * @param account
+     * @param height
+     * @return
+     */
     BigInteger calPocScore(Account account,int height);
+
+    /**
+     * Get the poc weight table
+     * @param version template version
+     * @return PocWeightTable
+     */
+    PocTxBody.PocWeightTable getPocWeightTable(Long version);
 }
