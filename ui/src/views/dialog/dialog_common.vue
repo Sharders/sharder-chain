@@ -52,9 +52,9 @@
                                         <img src="../../assets/img/storage.svg"/>
                                         <span>{{$t('dialog.account_info_data_storage')}}</span>
                                     </td>
-                                    <td v-else-if="transaction.type === 8">
+                                    <td v-else-if="transactions.type === 8">
                                         <img src="../../assets/img/forge_pool.svg"/>
-                                        <span>{{$t('transaction.transaction_type_forge_pool')}}</span>
+                                        <span>{{$t('dialog.account_info_forge_pool')}}</span>
                                     </td>
                                     <td v-else-if="transactions.type === 9">
                                         <img src="../../assets/img/coinBase.svg"/>
@@ -116,7 +116,6 @@
                                 <span>{{$t('dialog.account_info_data_storage')}}</span>
                             </td>
                             <td v-else-if="transaction.type === 8">
-                                <img src="../../assets/img/forge_pool.svg"/>
                                 <span>{{$t('transaction.transaction_type_forge_pool')}}</span>
                             </td>
                             <td v-else-if="transactionInfo.type === 9">
@@ -369,6 +368,9 @@
                         </td>
                         <td v-else-if="transactionInfo.type === 6">
                             <span>{{$t('dialog.account_info_data_storage')}}</span>
+                        </td>
+                        <td v-else-if="transactionInfo.type === 8">
+                            <span>{{$t('dialog.account_info_block_reward')}}</span>
                         </td>
                         <td v-else-if="transactionInfo.type === 9">
                             <span>CoinBase</span>

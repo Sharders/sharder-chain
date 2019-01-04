@@ -107,8 +107,13 @@ public class PocProcessorImpl implements PocProcessor {
 //    temporary closed for dev test
 //    return PocHolder.getPocScore(height, account.getId());
   }
-  
-  
+
+  @Override
+  public PocTxBody.PocWeightTable getPocWeightTable(Long version) {
+    return null;
+  }
+
+
   public static void init() {
     ThreadPool.scheduleThread("PocTxSyn", pocTxSynThread, 10, TimeUnit.MINUTES);
 //    ThreadPool.scheduleThread("validNodeSyn", validNodeSynThread, 30, TimeUnit.MINUTES);

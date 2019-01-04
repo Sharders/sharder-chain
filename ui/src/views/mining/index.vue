@@ -337,58 +337,58 @@
                 incomeDistribution: 0,
                 investment: '',
                 miningList: [
-                   {
-                        serialNumber: "001",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    /*       {
-                              serialNumber: "002",
-                              investmentTotal: 500000,
-                              currentInvestment: 180000,
-                              earnings: 1000,
-                              distribution: 80,
-                              remaining: 800,
-                          },
-                          {
-                              serialNumber: "003",
-                              investmentTotal: 500000,
-                              currentInvestment: 180000,
-                              earnings: 1000,
-                              distribution: 80,
-                              remaining: 800,
-                          },
-                          {
-                              serialNumber: "004",
-                              investmentTotal: 500000,
-                              currentInvestment: 180000,
-                              earnings: 1000,
-                              distribution: 80,
-                              remaining: 800,
-                          },
-                          {
-                              serialNumber: "005",
-                              investmentTotal: 500000,
-                              currentInvestment: 180000,
-                              earnings: 1000,
-                              distribution: 80,
-                              remaining: 800,
-                          },
-                          {
-                              serialNumber: "006",
-                              investmentTotal: 500000,
-                              currentInvestment: 180000,
-                              earnings: 1000,
-                              distribution: 80,
-                              remaining: 800,
-                          },*/
+                    /* {
+                          serialNumber: "001",
+                          investmentTotal: 500000,
+                          currentInvestment: 180000,
+                          earnings: 1000,
+                          distribution: 80,
+                          remaining: 800,
+                      },
+                             {
+                                serialNumber: "002",
+                                investmentTotal: 500000,
+                                currentInvestment: 180000,
+                                earnings: 1000,
+                                distribution: 80,
+                                remaining: 800,
+                            },
+                            {
+                                serialNumber: "003",
+                                investmentTotal: 500000,
+                                currentInvestment: 180000,
+                                earnings: 1000,
+                                distribution: 80,
+                                remaining: 800,
+                            },
+                            {
+                                serialNumber: "004",
+                                investmentTotal: 500000,
+                                currentInvestment: 180000,
+                                earnings: 1000,
+                                distribution: 80,
+                                remaining: 800,
+                            },
+                            {
+                                serialNumber: "005",
+                                investmentTotal: 500000,
+                                currentInvestment: 180000,
+                                earnings: 1000,
+                                distribution: 80,
+                                remaining: 800,
+                            },
+                            {
+                                serialNumber: "006",
+                                investmentTotal: 500000,
+                                currentInvestment: 180000,
+                                earnings: 1000,
+                                distribution: 80,
+                                remaining: 800,
+                            },*/
                 ],
-                rewardList: ['1', '2', '3', '4'],
+                rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [
-                    {
+                /*    {
                         account: "SSA-92HT-CNBE-YADN-B4JPW",
                         assets: 1000000
                     },
@@ -427,7 +427,7 @@
                     {
                         account: "SSA-92HT-CNBE-YADN-B4JPW",
                         assets: 1000000
-                    }
+                    }*/
                 ],
                 accountInfo: SSO.accountInfo,
 
@@ -457,7 +457,7 @@
                 let rule = {
                     'forgepool':{
                       'reward': _this.incomeDistribution/100,
-                      'number':50,
+                      'number':100,
                     },
                     "rule":{
                         "totalBlocks":0
@@ -524,7 +524,7 @@
             }
 
             let formData = new FormData();
-            // formData.append("createId","9011521658538046000");
+            formData.append("createId",SSO.account);
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
                 console.log(res.data);
                 _this.miningList = res.data.pools;
