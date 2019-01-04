@@ -147,11 +147,11 @@ export default {
     },
     /**
      * 格式化金额
-     * @param num
+     * @param s
      * @returns {string}
      */
-    formatMoney(num) {
-        let result = '', counter = 0;
+    formatMoney(s,n=8) {
+/*        let result = '', counter = 0;
         num = (num || 0).toString();
         for (let i = num.length - 1; i >= 0; i--) {
             counter++;
@@ -160,7 +160,27 @@ export default {
                 result = ',' + result;
             }
         }
-        return result;
+        return result;*/
+
+
+        n = n >= 0 && n <= 20 ? n : 2;
+        s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";
+        let l = s.split(".")[0].split("").reverse(),
+            r = s.split(".")[1].replace(/(0+)\b/,'');         //去除末尾的零
+        let t = "";
+        for (let i = 0; i < l.length; i++) {
+            t += l[i] + ((i + 1) % 3 === 0 && (i + 1) !== l.length ? "," : "");
+        }
+        /*let num = t.split("").reverse().join("") + "." + r;
+
+        num = parseFloat(num).toString();
+        return num;*/
+        if(r === ''){
+            return t.split("").reverse().join("")
+        }else
+            return t.split("").reverse().join("") + "." + r;
+
+
     },
     /**
      * 获取用户配置
