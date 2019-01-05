@@ -35,7 +35,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.consensus.poc.tx.PocTx;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Order;

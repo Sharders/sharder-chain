@@ -27,7 +27,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.*;

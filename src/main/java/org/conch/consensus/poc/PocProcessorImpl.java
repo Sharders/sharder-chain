@@ -24,13 +24,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class PocProcessorImpl implements PocProcessor {
   
-
-  /** PocHolder to hold the score map **/
+  /** 
+   * PocHolder to hold the score map.
+   * This map stored in the memory, changed by the poc txs.
+   */
   static class PocHolder {
+    // poc score map
     static Map<Long, PocScore> scoreMap = null;
+    // certified miner: foundation node,sharder hub, community node
+    static Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
   
     private PocHolder(){}
-    
+
+    /**
+     * get the poc score of the specified height
+     * @param height 
+     * @param accountId 
+     * @return
+     */
     static BigInteger getPocScore(int height,long accountId) {
       if (!scoreMap.containsKey(accountId)) {
         if(Conch.getBlockchain().getHeight() < height) {
@@ -44,8 +55,11 @@ public class PocProcessorImpl implements PocProcessor {
       
       return BigInteger.ZERO;
     }
-    
 
+    /**
+     * update the poc score of account
+     * @param pocScore a poc score object
+     */
     static synchronized void scoreMapping(PocScore pocScore){
        PocScore _pocScore = null;
        if(scoreMap.containsKey(pocScore.accountId)) {
@@ -56,11 +70,6 @@ public class PocProcessorImpl implements PocProcessor {
        }
        scoreMap.put(pocScore.accountId,_pocScore);
     }
-    
-    
-    // certified miner: foundation node,sharder hub, community node
-    static Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
-    
  
   }
 
@@ -182,12 +191,21 @@ public class PocProcessorImpl implements PocProcessor {
   private static void savePocScoreMap(Block block){
     //TODO save score map to local disk
   }
-  
+
+  /**
+   * get the peer info and add it into the peer list by ip
+   * @param ip
+   */
   private static void _synPeer(String ip){
     //TODO get peer info by host and add it into map later
   }
 
-  
+  /**
+   * process the node type tx of poc series
+   * @param height block height that included this tx
+   * @param pocNodeType PocNodeType tx 
+   * @return
+   */
   public static boolean nodeTypeTxProcess(int height,PocTxBody.PocNodeType pocNodeType){
     if(pocNodeType == null || StringUtils.isEmpty(pocNodeType.getIp())) return false;
     
@@ -217,7 +235,13 @@ public class PocProcessorImpl implements PocProcessor {
     
     return false;
   }
-  
+
+  /**
+   * process the node conf tx of poc series
+   * @param height block height that included this tx
+   * @param pocNodeConf PocNodeConf tx
+   * @return
+   */
   public static boolean nodeConfTxProcess(int height,PocTxBody.PocNodeConf pocNodeConf){
     Peer peer = Peers.getPeer(pocNodeConf.getIp());
 
@@ -233,7 +257,13 @@ public class PocProcessorImpl implements PocProcessor {
     PocHolder.scoreMapping(pocScoreToUpdate);
     return false;
   }
-  
+
+  /**
+   * process the online rate tx of poc series
+   * @param height block height that included this tx
+   * @param onlineRate OnlineRate tx
+   * @return
+   */
   public static boolean onlineRateTxProcess(int height,PocTxBody.PocOnlineRate onlineRate){
     Peer peer = Peers.getPeer(onlineRate.getIp());
 
@@ -249,7 +279,13 @@ public class PocProcessorImpl implements PocProcessor {
     PocHolder.scoreMapping(pocScoreToUpdate);
     return false;
   }
-  
+
+  /**
+   * process the block miss tx of poc series
+   * @param height block height that included this tx
+   * @param pocBlockMiss PocBlockMiss tx
+   * @return
+   */
   public static boolean blockMissTxProcess(int height,PocTxBody.PocBlockMiss pocBlockMiss){
     
     long missAccountId = pocBlockMiss.getMissAccountId();

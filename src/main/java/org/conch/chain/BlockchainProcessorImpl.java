@@ -26,7 +26,7 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
@@ -1463,70 +1463,22 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       throw new RuntimeException(e.toString(), e);
     }
   }
-
-  //    private boolean addGenesisBlock() {
-  //        if (BlockDb.hasBlock(Genesis.GENESIS_BLOCK_ID, 0)) {
-  //            Logger.logMessage("Genesis block already in database");
-  //            BlockImpl lastBlock = BlockDb.findLastBlock();
-  //            blockchain.setLastBlock(lastBlock);
-  //            popOffTo(lastBlock);
-  //            Logger.logMessage("Last block height: " + lastBlock.getHeight());
-  //            return false;
-  //        }
-  //        Logger.logMessage("Genesis block not in database, starting from scratch");
-  //        try {
-  //            List<TransactionImpl> transactions = new ArrayList<>();
-  //            for (int i = 0; i < Genesis.GENESIS_RECIPIENTS.length; i++) {
-  //                TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 0,
-  // Genesis.CREATOR_PUBLIC_KEY,
-  //                        Genesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS, 0, (short) 0,
-  //                        Attachment.ORDINARY_PAYMENT)
-  //                        .timestamp(0)
-  //                        .recipientId(Genesis.GENESIS_RECIPIENTS[i])
-  //                        .signature(Genesis.GENESIS_SIGNATURES[i])
-  //                        .height(0)
-  //                        .ecBlockHeight(0)
-  //                        .ecBlockId(0)
-  //                        .build();
-  //                transactions.add(transaction);
-  //            }
-  //            Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
-  //            MessageDigest digest = Crypto.sha256();
-  //            for (TransactionImpl transaction : transactions) {
-  //                digest.update(transaction.bytes());
-  //            }
-  //            BlockImpl genesisBlock = new BlockImpl(-1, 0, 0, Constants.MAX_BALANCE_NQT, 0,
-  // transactions.size() * 128, digest.digest(),
-  //                    Genesis.CREATOR_PUBLIC_KEY, new byte[64], Genesis.GENESIS_BLOCK_SIGNATURE,
-  // null, transactions);
-  //
-  //            genesisBlock.setPrevious(null);
-  //            addBlock(genesisBlock);
-  //            return true;
-  //        } catch (ConchException.ValidationException e) {
-  //            Logger.logMessage(e.getMessage());
-  //            throw new RuntimeException(e.toString(), e);
-  //        }
-  //    }
     
-  private void _defaultPocTemplateTx(){
-      Attachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
-//      Transaction.Builder builder = Conch.newTransactionBuilder(ConchGenesis.CREATOR_PUBLIC_KEY, 0, 0,
-//              (short) 0, attachment).timestamp(0).ecBlockHeight(0).ecBlockId(0).height(0);
-      
-//      new TransactionImpl.BuilderImpl(
-//              (byte) 0,
-//              ConchGenesis.CREATOR_PUBLIC_KEY,
-//              0,
-//              0,
-//              (short) 0,
-//              PocTxBody.PocWeightTable.defaultPocWeightTable())
-//              .timestamp(0)
-//              .signature(ConchGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
-//              .height(0)
-//              .ecBlockHeight(0)
-//              .ecBlockId(0)
-//              .build();
+  private TransactionImpl _defaultPocTemplateTx() throws ConchException.NotValidException {
+      Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
+      return new TransactionImpl.BuilderImpl(
+                    (byte) 0,
+                    ConchGenesis.CREATOR_PUBLIC_KEY,
+                    0,
+                    0,
+                    (short) 0,
+                    attachment)
+                    .timestamp(0)
+                    .signature(ConchGenesis.CREATOR_SIGNATURES)
+                    .height(0)
+                    .ecBlockHeight(0)
+                    .ecBlockId(0)
+                    .build();
   }
 
   private boolean addConchGenesisBlock() {
@@ -1559,6 +1511,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 .build();
         transactions.add(transaction);
       }
+
+      transactions.add(_defaultPocTemplateTx());
+      
       Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
       MessageDigest digest = Crypto.sha256();
       for (TransactionImpl transaction : transactions) {

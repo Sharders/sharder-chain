@@ -30,7 +30,7 @@ import org.conch.asset.token.CurrencyTransfer;
 import org.conch.asset.token.CurrencyType;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.market.ExchangeRequest;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.CurrencyMinting;
