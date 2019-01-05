@@ -4,17 +4,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
+import org.conch.chain.BlockImpl;
+import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.common.Constants;
 import org.conch.consensus.poc.tx.PocTxBody;
-import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.db.DbIterator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
+import org.conch.util.DiskStorageUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
+import java.io.File;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -87,32 +95,40 @@ public class PocProcessorImpl implements PocProcessor {
     loadExistPocHolder();
   }
 
-
-  private static void loadExistPocHolder() {
-    // TODO load the exist poc object from DB
-
-    // TODO load the poc object from block history if db is null or db is older than current block
-
-    // BlockchainImpl.getInstapnce().getBlocks()
-
-    // TODO no disk backup, read the all blocks to combine the poc holder
+  public static Object _getMaxKey() {
+    if (PocHolder.scoreMap == null || PocHolder.scoreMap.size() <= 0) return null;
+    
+    Set<Long> set = PocHolder.scoreMap.keySet();
+    Object[] obj = set.toArray();
+    Arrays.sort(obj);
+    return obj[obj.length-1];
   }
-
   
+  private static void loadExistPocHolder() {
+    // read the disk backup
+    boolean loadedFromDisk = false;
+    int height = 0;
+    File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STOAGE_POC_SCORE_MAP));
+    if (file.exists()) {
+      PocHolder.scoreMap = (Map<Long, PocScore>) DiskStorageUtil.getObjFromFile(LOCAL_STOAGE_POC_SCORE_MAP);
+      loadedFromDisk = true;
+      PocHolder.scoreMap.get(PocHolder.scoreMap.size() - 1);
+    } else {
+      PocHolder.scoreMap =  new ConcurrentHashMap<>();
+    }
 
+    if(loadedFromDisk) return;
+    
+    //if no disk backup, read the poc txs from history blocks
+    DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getAllBlocks();
+    for(BlockImpl block : blocks) pocSeriesTxProcess(block);
+    
+  }
+  
   @Override
   public BigInteger calPocScore(Account account, int height) {
 
-    long id = SharderPoolProcessor.ownOnePool(account.getId());
-    BigInteger effectiveBalance = BigInteger.ZERO;
-    if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-        effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
-                .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
-    }else {
-        effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
-    }
-    return effectiveBalance;
-            
+    return PocScore.calEffectiveBalance(account,height);
 //    temporary closed for dev test
 //    return PocHolder.getPocScore(height, account.getId());
   }
@@ -147,50 +163,34 @@ public class PocProcessorImpl implements PocProcessor {
       };
 
   
-  /**
 
-  private static final String SC_FOUNDATION_API = "https://sharder.org/SC";
-  private static final String SC_PEERS_API = SC_FOUNDATION_API + "/getPeers.ss";
+  private static void pocSeriesTxProcess(Block block) {
+    //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
+    Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
+    if(containPoc == null || !containPoc) return;
 
-  private static final Runnable validNodeSynThread = new Runnable() {
-  @Override
-  public void run() {
-      try {
-        
-        String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
-        JSONArray peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
-        Iterator iterator = peerArrayJson.iterator();
-        while(iterator.hasNext()){
-          JSONObject peerJson = (JSONObject)iterator.next();
-          String host = peerJson.getString("host");
-          String ip = IpUtil.getIp(host);
-          Peer peer = Peers.getPeer(host);
-        }
-      } catch (Exception e) {
-        Logger.logDebugMessage("syn valid node thread interrupted");
-      } catch (Throwable t) {
-        Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-        System.exit(1);
+    //just process poc tx
+    for(Transaction tx : block.getTransactions()) {
+      if(TransactionType.TYPE_POC !=  tx.getType().getType()) continue;
+      
+      if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
+        nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
+      }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
+        nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
+      }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
+        onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
+      }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISS == tx.getType().getSubtype()){
+        blockMissTxProcess(tx.getHeight(), (PocTxBody.PocBlockMiss)tx.getAttachment());
+      }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT == tx.getType().getSubtype()){
+        PocScore.setCurWeightTable((PocTxBody.PocWeightTable)tx.getAttachment());
       }
     }
-  };
-  **/
-
-//  private static void pocTxProcess(Block block) {
-//    //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
-//    Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
-//    if(containPoc == null || !containPoc) return;
-//
-//    //just process poc tx
-//    for(Transaction tx : block.getTransactions()) {
-//      if(TransactionType.TYPE_POC ==  tx.getType().getType()) {
-//        weightTableMapping(tx);
-//        PocHolder.scoreMapping(tx);
-//      }
-//    }
-//  }
+    
+  }
+  
+  private static final String LOCAL_STOAGE_POC_SCORE_MAP = "PocScoreMap";
   private static void savePocScoreMap(Block block){
-    //TODO save score map to local disk
+      DiskStorageUtil.saveObjToFile(PocHolder.scoreMap, LOCAL_STOAGE_POC_SCORE_MAP);
   }
 
   /**
@@ -297,10 +297,4 @@ public class PocProcessorImpl implements PocProcessor {
     return false;
   }
   
-
-  private static void nodeRefresh() {
-    // read the PocTemplate TX and parse them to PocTemplate object
-
-    // read the ref PocTx and cal the score to generate accountScoreMap
-  }
 }

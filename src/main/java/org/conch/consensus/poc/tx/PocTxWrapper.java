@@ -35,14 +35,13 @@ import java.nio.ByteBuffer;
 
 public abstract class PocTxWrapper extends TransactionType {
 
-    private static final byte SUBTYPE_POC_NODE_TYPE = 0; // 节点类型
-    private static final byte SUBTYPE_POC_NODE_CONF = 1; // 节点配置
-    private static final byte SUBTYPE_POC_WEIGHT = 2; // 权重
-    private static final byte SUBTYPE_POC_ONLINE_RATE = 3; // 在线率
-    private static final byte SUBTYPE_POC_BLOCK_MISS = 4; // 出块丢失
-    private static final byte SUBTYPE_POC_BC = 5; // 分叉收敛
+    public static final byte SUBTYPE_POC_NODE_TYPE = 0; // 节点类型
+    public static final byte SUBTYPE_POC_NODE_CONF = 1; // 节点配置
+    public static final byte SUBTYPE_POC_WEIGHT = 2; // 权重
+    public static final byte SUBTYPE_POC_ONLINE_RATE = 3; // 在线率
+    public static final byte SUBTYPE_POC_BLOCK_MISS = 4; // 出块丢失
+    public static final byte SUBTYPE_POC_BC = 5; // 分叉收敛
 
-    private static final String API_SERVER = "https://api.sharder.io";
 
     public static TransactionType findTxType(byte subtype) {
         switch (subtype) {
@@ -312,23 +311,19 @@ public abstract class PocTxWrapper extends TransactionType {
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             PocTxBody.PocBC pocBc = (PocTxBody.PocBC) transaction.getAttachment();
             if (pocBc == null) {
-                throw new ConchException.NotValidException("Invalid pocBifuractionConvergence: null");
+                throw new ConchException.NotValidException("Invalid bcRate: null");
             }
 
         }
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocBC pocBC = (PocTxBody.PocBC) transaction.getAttachment();
-            // TODO to add task 2 PocProcessorImpl
-//            PocProcessorImpl.setPocBOC(senderAccount, transaction);
-//            senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.POC_BC, transaction.getId(), -transaction.getAmountNQT());
-//            senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
+            
         }
 
         @Override
         public String getName() {
-            return "bifuractionOfConvergence";
+            return "bcRate";
         }
     };
 
