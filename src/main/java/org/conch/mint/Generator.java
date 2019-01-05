@@ -161,7 +161,7 @@ public class Generator implements Comparable<Generator> {
         Generator old = generators.putIfAbsent(secretPhrase, generator);
 
         if (old != null) {
-            Logger.logDebugMessage(old + " is already forging");
+            Logger.logDebugMessage(old + " is already mining");
             return old;
         }
         listeners.notify(generator, Event.START_FORGING);

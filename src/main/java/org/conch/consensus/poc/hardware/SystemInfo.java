@@ -22,7 +22,7 @@ public class SystemInfo {
 
     private int bandWidth; // 公网ip带宽（Mbps），如果没有公网ip，这个值就是0
 
-    private int tradePerformance; // 交易处理性能
+    private long tradePerformance; // 交易处理性能
 
     private Long[] openServices; // 开启的服务列表
 
@@ -74,11 +74,11 @@ public class SystemInfo {
         this.bandWidth = bandWidth;
     }
 
-    public int getTradePerformance() {
+    public long getTradePerformance() {
         return tradePerformance;
     }
 
-    public void setTradePerformance(int tradePerformance) {
+    public void setTradePerformance(long tradePerformance) {
         this.tradePerformance = tradePerformance;
     }
 

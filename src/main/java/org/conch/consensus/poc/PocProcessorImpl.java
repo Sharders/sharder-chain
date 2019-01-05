@@ -119,7 +119,8 @@ public class PocProcessorImpl implements PocProcessor {
 
   @Override
   public PocTxBody.PocWeightTable getPocWeightTable(Long version) {
-    return null;
+    //TODO get the tx from holder
+    return PocTxBody.PocWeightTable.defaultPocWeightTable();
   }
 
 

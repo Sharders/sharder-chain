@@ -33,7 +33,7 @@ import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
 
-public abstract class PocTx extends TransactionType {
+public abstract class PocTxWrapper extends TransactionType {
 
     private static final byte SUBTYPE_POC_NODE_TYPE = 0; // 节点类型
     private static final byte SUBTYPE_POC_NODE_CONF = 1; // 节点配置
@@ -63,10 +63,10 @@ public abstract class PocTx extends TransactionType {
         }
     }
 
-    private PocTx() {}
+    private PocTxWrapper() {}
 
 
-    public static final TransactionType POC_WEIGHT_TABLE = new PocTx() {
+    public static final TransactionType POC_WEIGHT_TABLE = new PocTxWrapper() {
 
             @Override
             public byte getSubtype() {
@@ -113,7 +113,7 @@ public abstract class PocTx extends TransactionType {
     };
     
 
-    public static final TransactionType POC_NODE_TYPE = new PocTx() {
+    public static final TransactionType POC_NODE_TYPE = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
@@ -156,7 +156,7 @@ public abstract class PocTx extends TransactionType {
         }
     };
     
-    public static final TransactionType POC_NODE_CONFIGURATION = new PocTx() {
+    public static final TransactionType POC_NODE_CONFIGURATION = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
@@ -201,7 +201,7 @@ public abstract class PocTx extends TransactionType {
 
  
 
-    public static final TransactionType POC_ONLINE_RATE = new PocTx() {
+    public static final TransactionType POC_ONLINE_RATE = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
@@ -243,7 +243,7 @@ public abstract class PocTx extends TransactionType {
         }
     };
 
-    public static final TransactionType POC_BLOCKING_MISS = new PocTx() {
+    public static final TransactionType POC_BLOCKING_MISS = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
@@ -286,7 +286,7 @@ public abstract class PocTx extends TransactionType {
         }
     };
 
-    public static final TransactionType POC_BC = new PocTx() {
+    public static final TransactionType POC_BC = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {

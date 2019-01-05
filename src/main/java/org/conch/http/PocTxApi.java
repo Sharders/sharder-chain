@@ -6,7 +6,6 @@ import org.conch.common.ConchException;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
-import org.conch.util.IPList;
 import org.conch.util.IpUtil;
 import org.json.simple.JSONStreamAware;
 
@@ -20,7 +19,7 @@ public abstract class PocTxApi {
         static final CreateNodeConf instance = new CreateNodeConf();
 
         CreateNodeConf() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "nodeconf");
         }
 
         @Override
@@ -41,7 +40,7 @@ public abstract class PocTxApi {
         static final GetNodeConf instance = new GetNodeConf();
 
         GetNodeConf() {
-            super(new APITag[]{APITag.POC}, "ip", "port");
+            super(new APITag[]{APITag.POC}, "nodeconf");
         }
 
         @Override
@@ -72,15 +71,16 @@ public abstract class PocTxApi {
         static final CreateNodeType instance = new CreateNodeType();
 
         CreateNodeType() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ip", "port");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "nodetype");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
-            
-            if(!IpUtil.matchHost(request,Conch.SHARDER_FOUNDATION_URL)) throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.SHARDER_FOUNDATION_URL  + " can create this tx");
-            
+
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL()))
+            throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+
             String ip = request.getParameter("ip");
             String type = request.getParameter("type");
             Attachment attachment = new PocTxBody.PocNodeType(ip,Peer.Type.getByCode(type));
@@ -94,7 +94,7 @@ public abstract class PocTxApi {
         static final CreatePocTemplate instance = new CreatePocTemplate();
 
         CreatePocTemplate() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "score", "weight");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "weighttable");
         }
 
         @Override
@@ -109,7 +109,7 @@ public abstract class PocTxApi {
         static final GetPocTemplate instance = new GetPocTemplate();
 
         GetPocTemplate() {
-            super(new APITag[]{APITag.POC}, "templateId");
+            super(new APITag[]{APITag.POC}, "weighttable");
         }
 
         @Override
@@ -137,14 +137,16 @@ public abstract class PocTxApi {
         static final CreateOnlineRate instance = new CreateOnlineRate();
 
         CreateOnlineRate() {
-            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "ips");
+            super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "onlinerate");
         }
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             String senderIp = IpUtil.getSenderIp(request);
-            if (IPList.SERVER_IP.equals(senderIp)){
+            String foundationIP = IpUtil.getIp(Conch.getSharderFoundationURL());
+            
+            if (foundationIP.equals(senderIp)){
                 String[] ips = request.getParameterValues("ips");
                 Attachment attachment = new Attachment.SharderOnlineRateCreate(ips);
                 return createTransaction(request, account, 0, 0, attachment);
@@ -158,7 +160,7 @@ public abstract class PocTxApi {
         static final GetOnlineRate instance = new GetOnlineRate();
 
         GetOnlineRate() {
-            super(new APITag[]{APITag.POC}, "XX", "XX");
+            super(new APITag[]{APITag.POC}, "onlinerate");
         }
 
         @Override
