@@ -250,7 +250,6 @@ public final class Convert {
         int size = content.length();
         buffer.putInt(size);
         buffer.put(Convert.toBytes(content));
-        System.out.println("size=" + size);
         return size;
     }
     

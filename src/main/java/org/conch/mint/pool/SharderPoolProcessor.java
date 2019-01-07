@@ -6,14 +6,15 @@ import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.db.Db;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
+import org.conch.util.DiskStorageUtil;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.io.*;
+import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,25 +174,24 @@ public class SharderPoolProcessor implements Serializable {
         forgePool.historicalIncome += incom;
     }
 
-    private static final String LOCAL_STORAGE_FORDER = Db.getDir() + File.separator + "local";
     private static final String LOCAL_STOAGE_SHARDER_POOLS = "SharderPools";
     private static final String LOCAL_STOAGE_DESTROYED_POOLS = "DestroyedPools";
 
     static {
-        File file = new File(getLocalStoragePath(LOCAL_STOAGE_SHARDER_POOLS));
+        File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STOAGE_SHARDER_POOLS));
         if (file.exists()) {
             sharderPools =
-                    (ConcurrentMap<Long, SharderPoolProcessor>) getObjFromFile(LOCAL_STOAGE_SHARDER_POOLS);
+                    (ConcurrentMap<Long, SharderPoolProcessor>) DiskStorageUtil.getObjFromFile(LOCAL_STOAGE_SHARDER_POOLS);
         } else {
             // TODO delete by user ,pop off get block from network
             sharderPools = new ConcurrentHashMap<>();
         }
 
-        file = new File(getLocalStoragePath(LOCAL_STOAGE_DESTROYED_POOLS));
+        file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STOAGE_DESTROYED_POOLS));
         if (file.exists()) {
             destroyedPools =
                     (ConcurrentMap<Long, List<SharderPoolProcessor>>)
-                            getObjFromFile(LOCAL_STOAGE_DESTROYED_POOLS);
+                            DiskStorageUtil.getObjFromFile(LOCAL_STOAGE_DESTROYED_POOLS);
         } else {
             // TODO delete by user
             destroyedPools = new ConcurrentHashMap<>();
@@ -272,8 +272,8 @@ public class SharderPoolProcessor implements Serializable {
                                 }
                             }
 
-                            saveObjToFile(sharderPools, LOCAL_STOAGE_SHARDER_POOLS);
-                            saveObjToFile(destroyedPools, LOCAL_STOAGE_DESTROYED_POOLS);
+                            DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STOAGE_SHARDER_POOLS);
+                            DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STOAGE_DESTROYED_POOLS);
                         },
                         BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
@@ -282,35 +282,7 @@ public class SharderPoolProcessor implements Serializable {
         PoolRule.init();
     }
 
-    private static String getLocalStoragePath(String fileName) {
-        return LOCAL_STORAGE_FORDER + File.separator + fileName;
-    }
-
-    private static void saveObjToFile(Object o, String fileName) {
-        try {
-            File localStorageFolder = new File(LOCAL_STORAGE_FORDER);
-            if (!localStorageFolder.exists()) localStorageFolder.mkdir();
-
-            ObjectOutputStream oos =
-                    new ObjectOutputStream(new FileOutputStream(getLocalStoragePath(fileName)));
-            oos.writeObject(o);
-            oos.close();
-        } catch (Exception e) {
-            Logger.logErrorMessage("save sharder pool to file failed, file " + fileName + e.toString());
-        }
-    }
-
-    private static Object getObjFromFile(String fileName) {
-        try {
-            ObjectInputStream ois =
-                    new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
-            Object object = ois.readObject();
-            return object;
-        } catch (Exception e) {
-            Logger.logErrorMessage("failed to read sharder pool from file " + fileName + e.toString());
-            return null;
-        }
-    }
+    
 
     public static SharderPoolProcessor newSharderPoolFromDestroyed(long creator) {
         if (!destroyedPools.containsKey(creator)) {

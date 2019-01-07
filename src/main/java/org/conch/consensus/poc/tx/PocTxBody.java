@@ -156,7 +156,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-          return PocTx.POC_NODE_TYPE;
+          return PocTxWrapper.POC_NODE_TYPE;
         }
     }
 
@@ -411,7 +411,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-          return PocTx.POC_WEIGHT_TABLE;
+          return PocTxWrapper.POC_WEIGHT_TABLE;
         }
     }
 
@@ -506,7 +506,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTx.POC_NODE_CONFIGURATION;
+            return PocTxWrapper.POC_NODE_CONFIGURATION;
         }
     }
 
@@ -583,7 +583,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTx.POC_ONLINE_RATE;
+            return PocTxWrapper.POC_ONLINE_RATE;
         }
     }
 
@@ -649,7 +649,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTx.POC_BLOCKING_MISS;
+            return PocTxWrapper.POC_BLOCKING_MISS;
         }
     }
 
@@ -729,7 +729,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTx.POC_BC;
+            return PocTxWrapper.POC_BC;
         }
     }
 }

@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -52,6 +53,7 @@ import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
 import org.conch.shuffle.Shuffling;
@@ -101,8 +103,14 @@ public final class Conch {
     private static final DirProvider dirProvider;
 
     private static final Properties defaultProperties = new Properties();
-    public static final String SHARDER_FOUNDATION_URL = "sharder.org";
-
+    private static final String SHARDER_FOUNDATION_URL = "sharder.org";
+    private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
+    
+    
+    public static String getSharderFoundationURL(){
+        return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
+    } 
+    
     /**
      * Preset parameters
      */
@@ -667,9 +675,14 @@ public final class Conch {
                         Generator.stopForging(hubBindPassPhrase.trim());
                         Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
                     } else {
-                        Logger.logInfoMessage("Account " + hubBindAddress + "started forging automatically");
+                        Logger.logInfoMessage("Account " + hubBindAddress + "started mining automatically");
                     }
+                    
+                    // open miner service
+                    Peers.checkAndSetOpeningServices(Lists.newArrayList(Peer.Service.MINER));
                 }
+
+                Peers.sysInitialed = true;
 
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);

@@ -35,8 +35,8 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
-import org.conch.consensus.poc.tx.PocTx;
+import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Order;
 import org.conch.mint.Hub;
@@ -257,7 +257,7 @@ public abstract class TransactionType {
             case TYPE_STORAGE:
                 return StorageTx.findTxType(subtype);
             case TYPE_POC:
-                return PocTx.findTxType(subtype);
+                return PocTxWrapper.findTxType(subtype);
             default:
                 return null;
         }

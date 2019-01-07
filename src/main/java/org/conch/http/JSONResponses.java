@@ -232,7 +232,7 @@ public final class JSONResponses {
     static {
         JSONObject response = new JSONObject();
         response.put("errorCode", 5);
-        response.put("errorDescription", "Account is not forging");
+        response.put("errorDescription", "Account is not mining");
         NOT_FORGING = JSON.prepare(response);
     }
 

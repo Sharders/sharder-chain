@@ -22,8 +22,8 @@
 package org.conch.tools;
 
 import org.conch.Conch;
-import org.conch.consensus.cpos.core.ConchGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.crypto.Crypto;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -101,7 +101,8 @@ public final class SignTransactions {
             
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(signed))) {
                 Attachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
-                Transaction.Builder builder = Conch.newTransactionBuilder(ConchGenesis.CREATOR_PUBLIC_KEY, 0, 0,
+                
+                Transaction.Builder builder = Conch.newTransactionBuilder(Crypto.getPublicKey(secretPhrase), 0, 0,
                       (short) 0, attachment).timestamp(0).ecBlockHeight(0).ecBlockId(0);
                 Transaction transaction = builder.build(secretPhrase);
                 writer.write(Convert.toHexString(transaction.getBytes()));
