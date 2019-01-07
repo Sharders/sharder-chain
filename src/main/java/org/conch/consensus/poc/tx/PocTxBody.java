@@ -23,14 +23,14 @@ import java.util.Map;
 public interface PocTxBody  {
 
      enum WeightTableOptions {
-        NODE("node"),
+        NODE_TYPE("node"),
         SERVER_OPEN("serverOpen"),
         SS_HOLD("ssHold"),
         HARDWARE_CONFIG("hardwareConfig"),
         NETWORK_CONFIG("networkConfig"),
-        TX_HANDLE_PERFORMANCE("txHandlePerformance"),
+        TX_PERFORMANCE("txPerformance"),
         BLOCK_MISS("blockMiss"),
-        BOC_SPEED("bocSpeed"), // 分叉收敛速度
+        BC_SPEED("bcSpeed"), 
         ONLINE_RATE("onlineRate");
         
         private String value;
@@ -237,12 +237,12 @@ public interface PocTxBody  {
         public static PocWeightTable defaultPocWeightTable(){
 
             Map<String, BigInteger> weightMap = new HashMap<>();
-            weightMap.put(WeightTableOptions.NODE.value, BigInteger.valueOf(25)); // 节点类型占比， 25%，先不算百分比
+            weightMap.put(WeightTableOptions.NODE_TYPE.value, BigInteger.valueOf(25)); // 节点类型占比， 25%，先不算百分比
             weightMap.put(WeightTableOptions.SERVER_OPEN.value, BigInteger.valueOf(20L)); // 开启服务占比，20%， 先不算百分比
             weightMap.put(WeightTableOptions.SS_HOLD.value, BigInteger.valueOf(40L)); // SS持有量占比， 40%，先不算百分比
             weightMap.put(WeightTableOptions.HARDWARE_CONFIG.value, BigInteger.valueOf(5L)); // 硬件配置占比，5%，先不算百分比
             weightMap.put(WeightTableOptions.NETWORK_CONFIG.value, BigInteger.valueOf(5L)); // 网络配置占比， 5%，先不算百分比
-            weightMap.put(WeightTableOptions.TX_HANDLE_PERFORMANCE.value, BigInteger.valueOf(5L)); //交易处理性能占比， 5%,先不算百分比
+            weightMap.put(WeightTableOptions.TX_PERFORMANCE.value, BigInteger.valueOf(5L)); //交易处理性能占比， 5%,先不算百分比
            
             Map<Integer, BigInteger> nodeTypeTP = new HashMap();
             nodeTypeTP.put(Peer.Type.FOUNDATION.getCode(), BigInteger.valueOf(10L)); // 基金会节点
@@ -506,7 +506,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTxWrapper.POC_NODE_CONFIGURATION;
+            return PocTxWrapper.POC_NODE_CONF;
         }
     }
 
@@ -649,7 +649,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTxWrapper.POC_BLOCKING_MISS;
+            return PocTxWrapper.POC_BLOCK_MISS;
         }
     }
 
@@ -729,7 +729,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTxWrapper.POC_BC;
+            return PocTxWrapper.POC_BC_SPEED;
         }
     }
 }

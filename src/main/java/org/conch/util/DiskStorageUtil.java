@@ -9,15 +9,15 @@ import java.io.*;
  * @since 2018/12/12
  */
 public class DiskStorageUtil {
-    private static final String LOCAL_STORAGE_FORDER = Db.getDir() + File.separator + "local";
+    private static final String LOCAL_STORAGE_FOLDER = Db.getDir() + File.separator + "local";
 
     public static String getLocalStoragePath(String fileName) {
-        return LOCAL_STORAGE_FORDER + File.separator + fileName;
+        return LOCAL_STORAGE_FOLDER + File.separator + fileName;
     }
 
     public static void saveObjToFile(Object o, String fileName) {
         try {
-            File localStorageFolder = new File(LOCAL_STORAGE_FORDER);
+            File localStorageFolder = new File(LOCAL_STORAGE_FOLDER);
             if (!localStorageFolder.exists()) localStorageFolder.mkdir();
 
             ObjectOutputStream oos =
