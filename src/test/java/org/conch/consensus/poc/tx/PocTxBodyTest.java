@@ -18,6 +18,7 @@ public class PocTxBodyTest {
         buffer = ByteBuffer.allocate(weightTable.getMySize());
         weightTable.putMyBytes(buffer);
         byteStr = Convert.toString(buffer.array());
+        System.out.println("size=" + byteStr.length());
         System.out.println(byteStr);
     }
     

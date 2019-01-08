@@ -29,6 +29,7 @@ import org.conch.consensus.poc.PocScore;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -67,53 +68,57 @@ public abstract class PocTxWrapper extends TransactionType {
 
     private PocTxWrapper() {}
 
+  public static final TransactionType POC_WEIGHT_TABLE =
+      new PocTxWrapper() {
 
-    public static final TransactionType POC_WEIGHT_TABLE = new PocTxWrapper() {
+        @Override
+        public byte getSubtype() {
+          return SUBTYPE_POC_WEIGHT_TABLE;
+        }
 
-            @Override
-            public byte getSubtype() {
-                return SUBTYPE_POC_WEIGHT_TABLE;
-            }
+        @Override
+        public AccountLedger.LedgerEvent getLedgerEvent() {
+          return null;
+        }
 
-            @Override
-            public AccountLedger.LedgerEvent getLedgerEvent() {
-                return null;
-            }
+        @Override
+        public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
+          try {
+            new PocTxBody.PocWeightTable(buffer, transactionVersion);
+          } catch (ConchException.NotValidException e) {
+            Logger.logErrorMessage("Can't new PocWeightTable instance",e);
+          }
+          return null;
+        }
 
-            @Override
-            public Attachment.AbstractAttachment parseAttachment(
-                    ByteBuffer buffer, byte transactionVersion) {
-                return Attachment.TxBodyBase.newObj(
-                        PocTxBody.PocWeightTable.class, buffer, transactionVersion);
-            }
+        @Override
+        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
+            return  new PocTxBody.PocWeightTable(attachmentData);
+        }
 
-            @Override
-            public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-                return Attachment.TxBodyBase.newObj(PocTxBody.PocWeightTable.class, attachmentData);
-            }
+        @Override
+        public void validateAttachment(Transaction transaction)
+            throws ConchException.ValidationException {
+          PocTxBody.PocWeightTable pocWeight =
+              (PocTxBody.PocWeightTable) transaction.getAttachment();
+          if (pocWeight == null) {
+            throw new ConchException.NotValidException("Invalid PocWeightTable: null");
+          }
+        }
 
-            @Override
-            public void validateAttachment(Transaction transaction)
-                    throws ConchException.ValidationException {
-                PocTxBody.PocWeightTable pocWeight =
-                        (PocTxBody.PocWeightTable) transaction.getAttachment();
-                if (pocWeight == null) {
-                    throw new ConchException.NotValidException("Invalid PocWeightTable: null");
-                }
-            }
+        @Override
+        public void applyAttachment(
+            Transaction transaction, Account senderAccount, Account recipientAccount) {
+          PocTxBody.PocWeightTable pocWeight =
+              (PocTxBody.PocWeightTable) transaction.getAttachment();
+          PocScore.PocCalculator.setCurWeightTable(pocWeight, transaction.getHeight());
+        }
 
-            @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                PocTxBody.PocWeightTable pocWeight =  (PocTxBody.PocWeightTable) transaction.getAttachment();
-                PocScore.PocCalculator.setCurWeightTable(pocWeight,transaction.getHeight());
-            }
-
-            @Override
-            public String getName() {
-                return "pocWeightTable";
-            }
-    };
-    
+        @Override
+        public String getName() {
+          return "pocWeightTable";
+        }
+      };
 
     public static final TransactionType POC_NODE_TYPE = new PocTxWrapper() {
 
@@ -128,13 +133,13 @@ public abstract class PocTxWrapper extends TransactionType {
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocNodeConf.class, buffer,transactionVersion);
+        public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion)  {
+            return new PocTxBody.PocNodeType(buffer, transactionVersion);
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocNodeConf.class,attachmentData);
+        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
+            return new PocTxBody.PocNodeType(attachmentData);
         }
 
         @Override
@@ -171,13 +176,13 @@ public abstract class PocTxWrapper extends TransactionType {
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocNodeConf.class, buffer,transactionVersion);
+        public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
+            return new PocTxBody.PocNodeConf(buffer,transactionVersion);
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocNodeConf.class,attachmentData);
+        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
+            return new PocTxBody.PocNodeConf(attachmentData);
         }
 
         @Override
@@ -217,12 +222,12 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocOnlineRate.class, buffer, transactionVersion);
+            return new PocTxBody.PocOnlineRate(buffer,transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocOnlineRate.class, attachmentData);
+            return new PocTxBody.PocOnlineRate(attachmentData);
         }
 
         @Override
@@ -259,12 +264,12 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocBlockMiss.class, buffer, transactionVersion);
+            return new PocTxBody.PocBlockMiss(buffer,transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocBlockMiss.class, attachmentData);
+            return new PocTxBody.PocBlockMiss(attachmentData);
         }
 
         @Override
@@ -302,18 +307,18 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocBC.class, buffer, transactionVersion);
+            return new PocTxBody.PocBcSpeed(buffer, transactionVersion);
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return Attachment.TxBodyBase.newObj(PocTxBody.PocBC.class, attachmentData);
+            return new PocTxBody.PocBlockMiss(attachmentData);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-            PocTxBody.PocBC pocBc = (PocTxBody.PocBC) transaction.getAttachment();
-            if (pocBc == null) {
+            PocTxBody.PocBcSpeed pocBcSpeed = (PocTxBody.PocBcSpeed) transaction.getAttachment();
+            if (pocBcSpeed == null) {
                 throw new ConchException.NotValidException("Invalid pocBcRate: null");
             }
 
