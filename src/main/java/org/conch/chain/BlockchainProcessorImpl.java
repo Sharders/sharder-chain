@@ -26,8 +26,9 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
 import org.conch.mint.Generator;
@@ -158,7 +159,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             -77, 16, -52, 88, -21, -67, -119, 121, 121, 120, -70, 88, 44, -99, -9, -42, 48, -77, 28,
             40, 106, -48, 13, 30, -22, -122, 35, 22, 29, 2, -93, 94
           };
-
+  
   private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
   public static BlockchainProcessorImpl getInstance() {
@@ -1463,70 +1464,22 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       throw new RuntimeException(e.toString(), e);
     }
   }
-
-  //    private boolean addGenesisBlock() {
-  //        if (BlockDb.hasBlock(Genesis.GENESIS_BLOCK_ID, 0)) {
-  //            Logger.logMessage("Genesis block already in database");
-  //            BlockImpl lastBlock = BlockDb.findLastBlock();
-  //            blockchain.setLastBlock(lastBlock);
-  //            popOffTo(lastBlock);
-  //            Logger.logMessage("Last block height: " + lastBlock.getHeight());
-  //            return false;
-  //        }
-  //        Logger.logMessage("Genesis block not in database, starting from scratch");
-  //        try {
-  //            List<TransactionImpl> transactions = new ArrayList<>();
-  //            for (int i = 0; i < Genesis.GENESIS_RECIPIENTS.length; i++) {
-  //                TransactionImpl transaction = new TransactionImpl.BuilderImpl((byte) 0,
-  // Genesis.CREATOR_PUBLIC_KEY,
-  //                        Genesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS, 0, (short) 0,
-  //                        Attachment.ORDINARY_PAYMENT)
-  //                        .timestamp(0)
-  //                        .recipientId(Genesis.GENESIS_RECIPIENTS[i])
-  //                        .signature(Genesis.GENESIS_SIGNATURES[i])
-  //                        .height(0)
-  //                        .ecBlockHeight(0)
-  //                        .ecBlockId(0)
-  //                        .build();
-  //                transactions.add(transaction);
-  //            }
-  //            Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
-  //            MessageDigest digest = Crypto.sha256();
-  //            for (TransactionImpl transaction : transactions) {
-  //                digest.update(transaction.bytes());
-  //            }
-  //            BlockImpl genesisBlock = new BlockImpl(-1, 0, 0, Constants.MAX_BALANCE_NQT, 0,
-  // transactions.size() * 128, digest.digest(),
-  //                    Genesis.CREATOR_PUBLIC_KEY, new byte[64], Genesis.GENESIS_BLOCK_SIGNATURE,
-  // null, transactions);
-  //
-  //            genesisBlock.setPrevious(null);
-  //            addBlock(genesisBlock);
-  //            return true;
-  //        } catch (ConchException.ValidationException e) {
-  //            Logger.logMessage(e.getMessage());
-  //            throw new RuntimeException(e.toString(), e);
-  //        }
-  //    }
     
-  private void _defaultPocTemplateTx(){
-      Attachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
-//      Transaction.Builder builder = Conch.newTransactionBuilder(ConchGenesis.CREATOR_PUBLIC_KEY, 0, 0,
-//              (short) 0, attachment).timestamp(0).ecBlockHeight(0).ecBlockId(0).height(0);
-      
-//      new TransactionImpl.BuilderImpl(
-//              (byte) 0,
-//              ConchGenesis.CREATOR_PUBLIC_KEY,
-//              0,
-//              0,
-//              (short) 0,
-//              PocTxBody.PocWeightTable.defaultPocWeightTable())
-//              .timestamp(0)
-//              .signature(ConchGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
-//              .height(0)
-//              .ecBlockHeight(0)
-//              .ecBlockId(0)
-//              .build();
+  private TransactionImpl _defaultPocTemplateTx() throws ConchException.NotValidException {
+      Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
+      return new TransactionImpl.BuilderImpl(
+                    (byte) 0,
+                    ConchGenesis.CREATOR_PUBLIC_KEY,
+                    0,
+                    0,
+                    (short) 0,
+                    attachment)
+                    .timestamp(0)
+                    .signature(ConchGenesis.CREATOR_SIGNATURES)
+                    .height(0)
+                    .ecBlockHeight(0)
+                    .ecBlockId(0)
+                    .build();
   }
 
   private boolean addConchGenesisBlock() {
@@ -1559,6 +1512,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 .build();
         transactions.add(transaction);
       }
+
+      transactions.add(_defaultPocTemplateTx());
+      
       Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
       MessageDigest digest = Crypto.sha256();
       for (TransactionImpl transaction : transactions) {
@@ -2337,6 +2293,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             phasedTransaction.validate();
             phasedTransaction.attachmentIsDuplicate(duplicates, false); // pre-populate duplicates map
           } catch (ConchException.ValidationException ignore) {
+            
           }
         }
       }
@@ -2354,32 +2311,31 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     long totalFeeNQT = 0;
     int payloadLength = 0;
 
-    // Forge reward
     try {
+      
       // Check generator whether pool owner:
       // Pool owner -> pool rewards map (send rewards to pool)
       // Single miner -> empty map (send rewards to miner)
+      long blockCreatorId = Account.getId(publicKey);
       Map<Long, Long> map;
-      long id = SharderPoolProcessor.ownOnePool(Account.getId(publicKey));
-      if (id == -1
-          || !SharderPoolProcessor.getSharderPool(id)
-              .getState()
-              .equals(SharderPoolProcessor.State.WORKING)) {
-        id = Account.getId(publicKey);
+      long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
+      if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
+        poolId = blockCreatorId;
         map = new HashMap<>();
       } else {
-        map = SharderPoolProcessor.getSharderPool(id).getConsignorsAmountMap();
+        map = SharderPoolProcessor.getSharderPool(poolId).getConsignorsAmountMap();
       }
+      
       // transaction version=1, deadline=10,timestamp=blockTimestamp
       TransactionImpl transaction =
           new TransactionImpl.BuilderImpl(
                   (byte) 1,
                   publicKey,
-                  10 * Constants.ONE_SS,
+                  RewardCalculator.mintReward(blockCreatorId),
                   0,
                   (short) 10,
                   new Attachment.CoinBase(
-                      Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), id, map))
+                      Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), poolId, map))
               .timestamp(blockTimestamp)
               .recipientId(0)
               .build(secretPhrase);

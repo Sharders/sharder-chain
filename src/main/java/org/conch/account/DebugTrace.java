@@ -30,7 +30,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.db.DbIterator;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Exchange;

@@ -22,7 +22,7 @@
 package org.conch.tools;
 
 import org.conch.common.Constants;
-import org.conch.consensus.cpos.core.ConchGenesis;
+import org.conch.consensus.ConchGenesis;
 import org.conch.util.Convert;
 
 import java.io.BufferedReader;

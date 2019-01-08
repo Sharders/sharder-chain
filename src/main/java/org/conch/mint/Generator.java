@@ -26,7 +26,6 @@ import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
-import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.tx.TransactionProcessorImpl;
 import org.conch.util.*;
@@ -44,7 +43,7 @@ public class Generator implements Comparable<Generator> {
         GENERATION_DEADLINE, START_FORGING, STOP_FORGING
     }
 
-    private static final int MAX_FORGERS = Conch.getIntProperty("sharder.maxNumberOfForgers");
+    private static final int MAX_MINERS = Conch.getIntProperty("sharder.maxNumberOfForgers");
     private static final byte[] fakeForgingPublicKey = Conch.getBooleanProperty("sharder.enableFakeForging") ?
             Account.getPublicKey(Convert.parseAccountId(Conch.getStringProperty("sharder.fakeForgingAccount"))) : null;
 
@@ -119,7 +118,7 @@ public class Generator implements Comparable<Generator> {
 
                         for (Generator generator : sortedForgers) {
                             if(generator.getHitTime() > generationLimit) return;
-                            if(generator.forge(lastBlock, generationLimit)) return;
+                            if(generator.mint(lastBlock, generationLimit)) return;
                         }
                     } finally {
                         BlockchainImpl.getInstance().updateUnlock();
@@ -154,14 +153,14 @@ public class Generator implements Comparable<Generator> {
     }
 
     public static Generator startForging(String secretPhrase) {
-        if (generators.size() >= MAX_FORGERS) {
-            throw new RuntimeException("Cannot forge with more than " + MAX_FORGERS + " accounts on the same node");
+        if (generators.size() >= MAX_MINERS) {
+            throw new RuntimeException("Cannot mint with more than " + MAX_MINERS + " accounts on the same node");
         }
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
 
         if (old != null) {
-            Logger.logDebugMessage(old + " is already forging");
+            Logger.logDebugMessage(old + " is already mining");
             return old;
         }
         listeners.notify(generator, Event.START_FORGING);
@@ -351,10 +350,9 @@ public class Generator implements Comparable<Generator> {
     private void setLastBlock(Block lastBlock) {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
-
-        effectiveBalance = PocScore.calEffectiveBalance(account,height);
-//        PocScore.calEffectiveBalance(account,height);
         
+//        PocScore.calEffectiveBalance(account,height);
+
         pocScore = PocProcessorImpl.instance.calPocScore(account,height);
 //        if (effectiveBalance.signum() == 0) {
 //            hitTime = 0;
@@ -374,10 +372,10 @@ public class Generator implements Comparable<Generator> {
         listeners.notify(this, Event.GENERATION_DEADLINE);
     }
 
-    boolean forge(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException {
+    boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException {
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, effectiveBalance, lastBlock, timestamp)) {
-            Logger.logDebugMessage(this.toString() + " failed to forge at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
+            Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
             return false;
         }
         int start = Conch.getEpochTime();
@@ -475,17 +473,11 @@ public class Generator implements Comparable<Generator> {
      * Active generator
      */
     public static class ActiveGenerator extends Generator {
-//        private final long accountId;
-//        private long hitTime;
-//        private long effectiveBalanceSS;
-//        private BigInteger pocScore;
-//        private byte[] publicKey;
 
         public ActiveGenerator(long accountId) {
             this.accountId = accountId;
             this.hitTime = Long.MAX_VALUE;
         }
-        
 
         public long getEffectiveBalance() {
             return effectiveBalance.longValue();
@@ -509,10 +501,7 @@ public class Generator implements Comparable<Generator> {
                 hitTime = Long.MAX_VALUE;
                 return;
             }
-            effectiveBalance = PocScore.calEffectiveBalance(account,height);
 //            PocScore.calEffectiveBalance(account,height);
-
-
 ////            effectiveBalance = Math.max(account.getEffectiveBalanceSS(height), BigInteger.ZERO);
 //            long id = SharderPoolProcessor.ownOnePool(account.getId());
 //            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {

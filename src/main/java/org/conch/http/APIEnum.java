@@ -192,7 +192,7 @@ public enum APIEnum {
     GET_PRUNABLE_MESSAGE("getPrunableMessage", GetPrunableMessage.instance),
     GET_PRUNABLE_MESSAGES("getPrunableMessages", GetPrunableMessages.instance),
     GET_ALL_PRUNABLE_MESSAGES("getAllPrunableMessages", GetAllPrunableMessages.instance),
-    GET_PERFORMANCE_TEST_RESULT("getPerformanceTestResult",GetPerformanceTest.instance),
+    GET_PERFORMANCE_TEST_RESULT("getPerformanceTestResult",GetPerformance.instance),
     VERIFY_PRUNABLE_MESSAGE("verifyPrunableMessage", VerifyPrunableMessage.instance),
     ISSUE_ASSET("issueAsset", IssueAsset.instance),
     ISSUE_CURRENCY("issueCurrency", IssueCurrency.instance),

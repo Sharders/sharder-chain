@@ -38,11 +38,12 @@ public class PocScore {
     BigInteger bcScore = BigInteger.ZERO;
     
     // height : { accountId : pocScore }
-    Map<Integer,Map<Long,BigInteger>> historySocre = new ConcurrentHashMap<>();
+    Map<Integer,Map<Long,BigInteger>> historySocore = new ConcurrentHashMap<>();
     
     public PocScore(Long accountId,int height){
         this.accountId = accountId;
         this.height = height;
+        this.ssScore = _calBalance(accountId,height);
     }
 
     public BigInteger total(){
@@ -50,7 +51,7 @@ public class PocScore {
     }
     
     public BigInteger getTotal(int height,Long accountId){
-        Map<Long,BigInteger> map = historySocre.get(height);
+        Map<Long,BigInteger> map = historySocore.get(height);
         if(map == null) return BigInteger.ZERO;
         BigInteger score = map.get(accountId);
         return score !=null ? score : BigInteger.ZERO;
@@ -73,22 +74,24 @@ public class PocScore {
         PocCalculator.blockMissCal(this,pocBlockMiss);
     }
 
-    public static void setCurWeightTable(PocTxBody.PocWeightTable weightTable) {
-        PocCalculator.setCurWeightTable(weightTable);
-    }
-    
-    
-    private void _recordHistoryScore(PocScore another){
-        Map<Long,BigInteger> map = historySocre.get(height);
+    /**
+     * record current poc score into history
+     */
+    private void _recordHistoryScore(){
+        Map<Long,BigInteger> map = historySocore.get(height);
         if(map == null) map = new HashMap<>();
 
         map.put(accountId,total());
         
-        historySocre.put(height,map);
+        historySocore.put(height,map);
     }
 
+    /**
+     * replace the attributes of poc 
+     * @param another 
+     */
     public void synScoreFrom(PocScore another){
-        _recordHistoryScore(another);
+        _recordHistoryScore();
         this.ssScore = another.ssScore;
         this.nodeTypeScore = another.nodeTypeScore;
         this.serverScore = another.serverScore;
@@ -99,12 +102,15 @@ public class PocScore {
         this.blockMissScore = another.blockMissScore;
         this.bcScore = another.bcScore;
     }
-
-    public static BigInteger calEffectiveBalance(Account account , int height) {
+    
+    private static BigInteger _calBalance(Long accountId, int height){
         BigInteger balance = BigInteger.ZERO;
+        if (accountId == null) return balance;
+        
+        Account account = Account.getAccount(accountId, height);
         if (account == null) return balance;
         
-        long id = SharderPoolProcessor.ownOnePool(account.getId());
+        long id = SharderPoolProcessor.ownOnePool(accountId);
         if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
             balance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
                     .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
@@ -113,9 +119,19 @@ public class PocScore {
         }
         return balance;
     }
+    
+    /**
+     * effective balance calculate
+     * @param account 
+     * @param height
+     * @return
+     */
+    public static BigInteger calEffectiveBalance(Account account , int height) {
+        return _calBalance(account.getId(), height);
+    }
 
     /** Poc calculator instance **/
-    static class PocCalculator {
+    public static class PocCalculator {
 
         // 分制转换率，将10分制 转为 500000000分制（SS总发行量 5亿）， 所以转换率是50000000
         private static final BigInteger POINT_SYSTEM_CONVERSION_RATE = BigInteger.valueOf(50000000L);
@@ -125,28 +141,31 @@ public class PocScore {
 
         // 当前使用的权重表模板
         static volatile PocTxBody.PocWeightTable pocWeightTable = null;
+        
+        static volatile int lastHeight = -1;
 
-        public static void setCurWeightTable(PocTxBody.PocWeightTable weightTable){
+        public static void setCurWeightTable(PocTxBody.PocWeightTable weightTable, int height) {
             pocWeightTable = weightTable;
+            lastHeight = height;
         }
 
-        static void nodeTypeCal(PocScore pocScore,PocTxBody.PocNodeType nodeType){
+        static void nodeTypeCal(PocScore pocScore,PocTxBody.PocNodeType nodeType) {
             BigInteger typeScore = BigInteger.ZERO;
             if (nodeType.getType().equals(Peer.Type.FOUNDATION)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.FOUNDATION.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE_TYPE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.FOUNDATION.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE_TYPE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.COMMUNITY.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.HUB)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE_TYPE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.HUB.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.BOX)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE_TYPE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.BOX.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
-                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
+                typeScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.NODE_TYPE.getValue()).multiply(pocWeightTable.getNodeTypeTemplate().get(Peer.Type.NORMAL.getCode())).multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             }
             pocScore.nodeTypeScore = typeScore;
         }
 
-        static void nodeConfCal(PocScore pocScore, PocTxBody.PocNodeConf nodeConf){
+        static void nodeConfCal(PocScore pocScore, PocTxBody.PocNodeConf nodeConf) {
             
             BigInteger serverScore = BigInteger.ZERO, hardwareScore = BigInteger.ZERO , networkScore = BigInteger.ZERO , performanceScore = BigInteger.ZERO;
             
@@ -193,11 +212,11 @@ public class PocScore {
             } else if (nodeConf.getSystemInfo().getTradePerformance() >= 300) {
                 performanceScore =pocWeightTable.getTxPerformanceTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel());
             }
-            pocScore.performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_HANDLE_PERFORMANCE.getValue()).multiply(performanceScore.multiply(POINT_SYSTEM_CONVERSION_RATE)).divide(PERCENT_DIVISOR);
+            pocScore.performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_PERFORMANCE.getValue()).multiply(performanceScore.multiply(POINT_SYSTEM_CONVERSION_RATE)).divide(PERCENT_DIVISOR);
 
         }
 
-        static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate){
+        static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
             BigInteger onlineRateScore = BigInteger.ZERO;
 
             if (nodeType.equals(Peer.Type.FOUNDATION)) {
@@ -236,7 +255,7 @@ public class PocScore {
         
         static Map<Long,Integer> missBlockMap = new HashMap<>();
 
-        static void blockMissCal(PocScore pocScore,PocTxBody.PocBlockMiss blockMiss){
+        static void blockMissCal(PocScore pocScore,PocTxBody.PocBlockMiss blockMiss) {
             Long accountId = pocScore.accountId;
             Integer missCount = 0;
             if(missBlockMap.containsKey(accountId)) missCount = missBlockMap.get(accountId);

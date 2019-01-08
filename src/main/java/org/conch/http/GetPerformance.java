@@ -21,41 +21,33 @@
 
 package org.conch.http;
 
-import org.conch.util.IPList;
-import org.conch.util.PerformanceTestUtil;
+import org.conch.Conch;
+import org.conch.consensus.poc.hardware.PerformanceCheckingUtil;
+import org.conch.util.IpUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-public final class GetPerformanceTest extends APIServlet.APIRequestHandler {
+public final class GetPerformance extends APIServlet.APIRequestHandler {
 
-    static final GetPerformanceTest instance = new GetPerformanceTest();
+    static final GetPerformance instance = new GetPerformance();
 
-    private GetPerformanceTest() {
+    private GetPerformance() {
         super(new APITag[] {APITag.TEST}, "time");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) {
-        String senderIp;
-        if (request.getHeader("x-forwarded-for") == null) {
-            senderIp =  request.getRemoteAddr();
-        } else {
-            senderIp =  request.getHeader("x-forwarded-for");
-        }
-        if (IPList.SERVER_IP.equals(senderIp)){
-            String time = request.getParameter("time");
-            Long executeCount = PerformanceTestUtil.test(Integer.parseInt(time));
-            JSONObject response = new JSONObject();
-            response.put("executeCount", executeCount);
-            return response;
-        }
-//        String time = request.getParameter("time");
-//        Long executeCount = PerformanceTestUtil.test(Integer.parseInt(time));
-//        JSONObject response = new JSONObject();
-//        response.put("executeCount", executeCount);
-        return null;
+        String senderIp = IpUtil.getSenderIp(request);
+        String foundationIp = IpUtil.getIp(Conch.getSharderFoundationURL());
+        
+        if (!foundationIp.equals(senderIp)) return null;
+        
+        Integer time = Integer.parseInt(request.getParameter("time"));
+        JSONObject response = new JSONObject();
+        response.put("executeCount", PerformanceCheckingUtil.check(time));
+        return response;
     }
 
 }

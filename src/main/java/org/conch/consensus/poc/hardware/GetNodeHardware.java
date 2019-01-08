@@ -1,9 +1,14 @@
 package org.conch.consensus.poc.hardware;
 
+import org.conch.Conch;
+import org.conch.peer.Peer;
+import org.conch.peer.Peers;
+import org.conch.util.SendHttpRequest;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @ClassName GetNodeHardware
@@ -132,29 +137,50 @@ public class GetNodeHardware {
         systemInfo.setHadPublicIp(hadPublicIp);
         return systemInfo;
     }
+    
+    private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
+    public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
+        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(DEFAULT_TX_CHECKING_COUNT));
+        return systemInfo;
+    }
+    
+    public static SystemInfo openingServices(SystemInfo systemInfo) throws Exception {
+        List<Peer.Service> services = Peers.getServices();
+        Long[] serviceList = new Long[services.size()];
+        
+        for(int i = 0 ; i < services.size(); i++ ){
+            serviceList[i] = services.get(i).getCode();
+        }
+        systemInfo.setOpenServices(serviceList);
+        return systemInfo;
+    }
 
-    public static final String SYSTEM_INFO_REPORT_URL = "http://192.168.31.5:8080/bounties/SC/report";
-    public static void readAndPush(){
+    public static final String SYSTEM_INFO_REPORT_URL = Conch.getSharderFoundationURL() + "/bounties/SC/report";
+    
+    public static boolean readAndReport(){
         //提交系统配置信息
         SystemInfo systemInfo = new SystemInfo();
-        // TODO ======= 进行交易性能评分， 查看服务是否打开 ========
+        
         try {
             cpu(systemInfo);
             memory(systemInfo);
             file(systemInfo);
             network(systemInfo);
+            txPerformance(systemInfo);
+            openingServices(systemInfo);
+            
+            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,systemInfo.toString());
+            System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL  + "] ===>");
             System.out.println(systemInfo.toString());
-//            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,"test=test");
-//            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,systemInfo.toString());
-            System.out.println("------------------------系统信息-------------------------");
-            System.out.println(systemInfo.getCore());
-            System.out.println(systemInfo.getAverageMHz());
-            System.out.println(systemInfo.getHardDiskSize());
-            System.out.println(systemInfo.getMemoryTotal());
+            System.out.println("<=== reported");
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         } catch(Throwable throwable){
             throwable.printStackTrace();
+            return false;
         }
+
+        return true;
     }
 }

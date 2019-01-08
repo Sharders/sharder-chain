@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * <p>
  * The GetNextBlockGenerators API will return the next block generators ordered by the
- * hit time.  The list of active forgers is initialized using the block generators
+ * hit time.  The list of active miners is initialized using the block generators
  * with at least 2 blocks generated within the previous 10,000 blocks.  Accounts without
  * a public key will not be included.  The list is
  * updated as new blocks are processed.  This means the results will not be 100%
@@ -46,7 +46,7 @@ import java.util.List;
  * <p>
  * Request parameters:
  * <ul>
- * <li>limit - The number of forgers to return and defaults to 1.
+ * <li>limit - The number of miners to return and defaults to 1.
  * </ul>
  * <p>
  * Return fields:

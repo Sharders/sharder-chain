@@ -121,7 +121,7 @@ public final class Peers {
     private static PeerLoad myLoad;
 
     private static final JSONObject myPeerInfo;
-    private static final List<Peer.Service> myServices;
+    private static List<Peer.Service> myServices;
     private static volatile Peer.BlockchainState currentBlockchainState;
     private static volatile JSONStreamAware myPeerInfoRequest;
     private static volatile JSONStreamAware myPeerInfoResponse;
@@ -303,12 +303,8 @@ public final class Peers {
             servicesList.add(Peer.Service.STORAGE);
         }
 
-        long services = 0;
-        for (Peer.Service service : servicesList) {
-            services |= service.getCode();
-        }
-        json.put("services", Long.toUnsignedString(services));
-        myServices = Collections.unmodifiableList(servicesList);
+        myServices = servicesList;
+        json.put("services", Long.toUnsignedString(getServicesInLong()));
         Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
 
         myPeerInfo = json;
@@ -807,10 +803,31 @@ public final class Peers {
             }
         }
     }
+    
+    
+    public static volatile boolean hardwareTested = false;
+    public static volatile boolean sysInitialed = false;
+    private static final Runnable hardwareTestingThread = new Runnable() {
+        @Override
+        public void run() {
+            if(!sysInitialed) {
+                Logger.logInfoMessage("Wait Conch initial, sleep 30S...");
+                try {
+                    Thread.sleep(30 * 1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            if(hardwareTested) return;
+
+            hardwareTested = GetNodeHardware.readAndReport();
+        }
+    };
 
     public static void init() {
         Init.init();
-        GetNodeHardware.readAndPush();
+        ThreadPool.scheduleThread("PeerHardwareTestingThread", Peers.hardwareTestingThread, 5);
     }
 
     public static void shutdown() {
@@ -1322,6 +1339,18 @@ public final class Peers {
     public static List<Peer.Service> getServices() {
         return myServices;
     }
+    
+    public static long getServicesInLong() {
+        return _serviceMapping(myServices);
+    }
+    
+    private static long _serviceMapping(List<Peer.Service> servicesList) {
+        long services = 0;
+        for (Peer.Service service : servicesList) {
+            services |= service.getCode();
+        }
+        return services;
+    }
 
     private static void checkBlockchainState() {
         Peer.BlockchainState state = Constants.isLightClient ? Peer.BlockchainState.LIGHT_CLIENT :
@@ -1376,5 +1405,10 @@ public final class Peers {
 
     public static String getBestPeerUri(){
         return "127.0.0.1".equals(bestPeer) ? "http://127.0.0.1:" + API.openAPIPort : peers.get(bestPeer).getPeerApiUri().toString();
+    }
+
+    public static void checkAndSetOpeningServices(List<Peer.Service> services){
+        myServices.addAll(services);
+        myServices = Collections.unmodifiableList(myServices);
     }
 }
