@@ -28,6 +28,7 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.ConchGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
 import org.conch.mint.Generator;
@@ -158,7 +159,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             -77, 16, -52, 88, -21, -67, -119, 121, 121, 120, -70, 88, 44, -99, -9, -42, 48, -77, 28,
             40, 106, -48, 13, 30, -22, -122, 35, 22, 29, 2, -93, 94
           };
-
+  
   private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
   public static BlockchainProcessorImpl getInstance() {
@@ -2292,6 +2293,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             phasedTransaction.validate();
             phasedTransaction.attachmentIsDuplicate(duplicates, false); // pre-populate duplicates map
           } catch (ConchException.ValidationException ignore) {
+            
           }
         }
       }
@@ -2309,32 +2311,31 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     long totalFeeNQT = 0;
     int payloadLength = 0;
 
-    // Forge reward
     try {
+      
       // Check generator whether pool owner:
       // Pool owner -> pool rewards map (send rewards to pool)
       // Single miner -> empty map (send rewards to miner)
+      long blockCreatorId = Account.getId(publicKey);
       Map<Long, Long> map;
-      long id = SharderPoolProcessor.ownOnePool(Account.getId(publicKey));
-      if (id == -1
-          || !SharderPoolProcessor.getSharderPool(id)
-              .getState()
-              .equals(SharderPoolProcessor.State.WORKING)) {
-        id = Account.getId(publicKey);
+      long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
+      if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
+        poolId = blockCreatorId;
         map = new HashMap<>();
       } else {
-        map = SharderPoolProcessor.getSharderPool(id).getConsignorsAmountMap();
+        map = SharderPoolProcessor.getSharderPool(poolId).getConsignorsAmountMap();
       }
+      
       // transaction version=1, deadline=10,timestamp=blockTimestamp
       TransactionImpl transaction =
           new TransactionImpl.BuilderImpl(
                   (byte) 1,
                   publicKey,
-                  10 * Constants.ONE_SS,
+                  RewardCalculator.mintReward(blockCreatorId),
                   0,
                   (short) 10,
                   new Attachment.CoinBase(
-                      Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), id, map))
+                      Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), poolId, map))
               .timestamp(blockTimestamp)
               .recipientId(0)
               .build(secretPhrase);

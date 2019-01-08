@@ -297,7 +297,9 @@ public class SharderPoolProcessor implements Serializable {
         return past;
     }
 
-
+    public static boolean isDead(long poolId){
+        return !SharderPoolProcessor.State.WORKING.equals(getSharderPool(poolId).getState());
+    }
 
     public static SharderPoolProcessor getSharderPool(long poolId) {
         return sharderPools.containsKey(poolId) ? sharderPools.get(poolId) : null;
