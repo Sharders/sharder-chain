@@ -1126,7 +1126,6 @@
 
                             options.account = _this.transfer.receiver;
                             options.publicKey = _this.transfer.receiverPublickey;
-
                             encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
                             formData.append("encrypt_message",'1');
                             formData.append("encryptedMessageData", encrypted.message);
@@ -1182,6 +1181,9 @@
                 let params = new URLSearchParams();
 
                 params.append("account",_this.accountInfo.accountRS);
+                // params.append("firstIndex",0);
+                // params.append("firstIndex",0);
+
                 if(_this.selectType === 1.5){
                     params.append("type","1");
                     params.append("subtype","5");
