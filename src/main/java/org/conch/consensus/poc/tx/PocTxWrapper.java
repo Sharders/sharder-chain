@@ -33,14 +33,17 @@ import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
 
+/**
+ * poc tx series wrapper: validate , parse , apply
+ */
 public abstract class PocTxWrapper extends TransactionType {
 
     public static final byte SUBTYPE_POC_NODE_TYPE = 0; // 节点类型
     public static final byte SUBTYPE_POC_NODE_CONF = 1; // 节点配置
-    public static final byte SUBTYPE_POC_WEIGHT = 2; // 权重
+    public static final byte SUBTYPE_POC_WEIGHT_TABLE = 2; // 权重
     public static final byte SUBTYPE_POC_ONLINE_RATE = 3; // 在线率
     public static final byte SUBTYPE_POC_BLOCK_MISS = 4; // 出块丢失
-    public static final byte SUBTYPE_POC_BC = 5; // 分叉收敛
+    public static final byte SUBTYPE_POC_BC_SPEED = 5; // 分叉收敛
 
 
     public static TransactionType findTxType(byte subtype) {
@@ -48,15 +51,15 @@ public abstract class PocTxWrapper extends TransactionType {
             case SUBTYPE_POC_NODE_TYPE:
                 return POC_NODE_TYPE;
             case SUBTYPE_POC_NODE_CONF:
-                return POC_NODE_CONFIGURATION;
-            case SUBTYPE_POC_WEIGHT:
+                return POC_NODE_CONF;
+            case SUBTYPE_POC_WEIGHT_TABLE:
                 return POC_WEIGHT_TABLE;
             case SUBTYPE_POC_ONLINE_RATE:
                 return POC_ONLINE_RATE;
             case SUBTYPE_POC_BLOCK_MISS:
-                return POC_BLOCKING_MISS;
-            case SUBTYPE_POC_BC:
-                return POC_BC;
+                return POC_BLOCK_MISS;
+            case SUBTYPE_POC_BC_SPEED:
+                return POC_BC_SPEED;
             default:
                 return null;
         }
@@ -69,7 +72,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
             @Override
             public byte getSubtype() {
-                return SUBTYPE_POC_WEIGHT;
+                return SUBTYPE_POC_WEIGHT_TABLE;
             }
 
             @Override
@@ -102,12 +105,12 @@ public abstract class PocTxWrapper extends TransactionType {
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 PocTxBody.PocWeightTable pocWeight =  (PocTxBody.PocWeightTable) transaction.getAttachment();
-                PocScore.setCurWeightTable(pocWeight);
+                PocScore.PocCalculator.setCurWeightTable(pocWeight,transaction.getHeight());
             }
 
             @Override
             public String getName() {
-                return "weightTable";
+                return "pocWeightTable";
             }
     };
     
@@ -151,11 +154,11 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public String getName() {
-            return "nodeConfiguration";
+            return "pocNodeType";
         }
     };
     
-    public static final TransactionType POC_NODE_CONFIGURATION = new PocTxWrapper() {
+    public static final TransactionType POC_NODE_CONF = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
@@ -182,7 +185,7 @@ public abstract class PocTxWrapper extends TransactionType {
             // CONF tx need be created by official site
             PocTxBody.PocNodeConf configuration = (PocTxBody.PocNodeConf) transaction.getAttachment();
             if (configuration == null) {
-                throw new ConchException.NotValidException("Invalid pocNodeConfiguration: null");
+                throw new ConchException.NotValidException("Invalid pocNodeConf: null");
             }
         }
 
@@ -194,7 +197,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public String getName() {
-            return "nodeConfiguration";
+            return "pocNodeConf";
         }
     };
 
@@ -238,11 +241,11 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public String getName() {
-            return "onlineRate";
+            return "pocOnlineRate";
         }
     };
 
-    public static final TransactionType POC_BLOCKING_MISS = new PocTxWrapper() {
+    public static final TransactionType POC_BLOCK_MISS = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
@@ -268,7 +271,7 @@ public abstract class PocTxWrapper extends TransactionType {
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             PocTxBody.PocBlockMiss pocBlockingMiss = (PocTxBody.PocBlockMiss) transaction.getAttachment();
             if (pocBlockingMiss == null) {
-                throw new ConchException.NotValidException("Invalid pocBlockingMiss: null");
+                throw new ConchException.NotValidException("Invalid pocBlockMiss: null");
             }
         }
 
@@ -281,15 +284,15 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public String getName() {
-            return "blockingMiss";
+            return "pocBlockMiss";
         }
     };
 
-    public static final TransactionType POC_BC = new PocTxWrapper() {
+    public static final TransactionType POC_BC_SPEED = new PocTxWrapper() {
 
         @Override
         public byte getSubtype() {
-            return SUBTYPE_POC_BC;
+            return SUBTYPE_POC_BC_SPEED;
         }
 
         @Override
@@ -311,7 +314,7 @@ public abstract class PocTxWrapper extends TransactionType {
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             PocTxBody.PocBC pocBc = (PocTxBody.PocBC) transaction.getAttachment();
             if (pocBc == null) {
-                throw new ConchException.NotValidException("Invalid bcRate: null");
+                throw new ConchException.NotValidException("Invalid pocBcRate: null");
             }
 
         }
@@ -323,7 +326,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public String getName() {
-            return "bcRate";
+            return "pocBcRate";
         }
     };
 
