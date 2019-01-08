@@ -42,7 +42,7 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}{{newestBlock.generators[0].accountRS}} | {{$t('mining.index.reward')}}SS
+                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}<!--{{newestBlock.generators[0].accountRS}} -->| {{$t('mining.index.reward')}}SS
             </span>
             </div>
             <div class="mining-list">
@@ -218,7 +218,7 @@
                         <tr v-for="(ranking,index) in rankingList">
                             <td>
                                 <span v-if="index <= 2" :class="'ranking-logo bg-'+ index"></span>
-                                <span v-if="index > 2">0{{index}}</span>
+                                <span v-if="index > 2">{{index}}</span>
                             </td>
                             <td>
                                 {{ranking.account}}
