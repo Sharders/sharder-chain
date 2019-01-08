@@ -1441,7 +1441,6 @@
             },
             getTotalList:function () {
                 const _this = this;
-                console.log("~~~~~~~~~~~~~~~~~~~~~~~");
                 if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
                     _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
 

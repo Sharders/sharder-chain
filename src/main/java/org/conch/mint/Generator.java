@@ -351,8 +351,9 @@ public class Generator implements Comparable<Generator> {
     private void setLastBlock(Block lastBlock) {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
-        
-        PocScore.calEffectiveBalance(account,height);
+
+        effectiveBalance = PocScore.calEffectiveBalance(account,height);
+//        PocScore.calEffectiveBalance(account,height);
         
         pocScore = PocProcessorImpl.instance.calPocScore(account,height);
 //        if (effectiveBalance.signum() == 0) {
@@ -508,7 +509,10 @@ public class Generator implements Comparable<Generator> {
                 hitTime = Long.MAX_VALUE;
                 return;
             }
-            PocScore.calEffectiveBalance(account,height);
+            effectiveBalance = PocScore.calEffectiveBalance(account,height);
+//            PocScore.calEffectiveBalance(account,height);
+
+
 ////            effectiveBalance = Math.max(account.getEffectiveBalanceSS(height), BigInteger.ZERO);
 //            long id = SharderPoolProcessor.ownOnePool(account.getId());
 //            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {

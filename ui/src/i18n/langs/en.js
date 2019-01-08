@@ -209,6 +209,7 @@ const en = {
             'gain_profit':"Gain Rewards",
             'remaining_mining_time':"Mining Time Remaining",
             'exit_pool':"Exit Pool",
+            'destroy_pool':"Destroy Pool",
             'creator':"Creator:",
             'participating_users':"Participants:",
             'capacity':"Capacity:",
@@ -220,6 +221,7 @@ const en = {
             'cancel':"Cancel",
             'confirm':"Confirm",
             'exit_pool_tip':"You’ll no longer be able to mine rewards after exiting the pool.",
+            'destroy_pool_tip':"You’ll no longer be able to mine rewards after destroy the pool.",
             'join_pool_tip':"Please enter amount to be staked",
         },
         binding_account:{

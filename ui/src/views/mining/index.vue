@@ -12,7 +12,7 @@
                 <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
-                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number', {number:'236'})}}</li>
+                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number', {number:newestBlock.height})}}</li>
                         <li>{{$t('mining.index.my_assets')}}00000 SS</li>
                         <li>{{$t('mining.index.my_income')}}100000 SS</li>
                         <li class="strong">
@@ -42,7 +42,7 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:'2345'})}} | {{$t('mining.index.blocker')}}023 | {{$t('mining.index.reward')}}1000 SS
+                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}{{newestBlock.generators[0].accountRS}} | {{$t('mining.index.reward')}}SS
             </span>
             </div>
             <div class="mining-list">
@@ -65,9 +65,9 @@
                         <el-col :span="8" v-if="miningList !== undefined && miningList.length > 0" v-for="(mining,index) in miningList">
                             <div class="grid-content" >
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>{{$t('mining.index.pool')}}{{index}}</h2>
-                                    <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
-                                    <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
+                                    <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
+                                    <p>{{mining.power}}/{{maxPoolinvestment}}</p>
+                                    <el-progress :percentage="(mining.power/maxPoolinvestment)*100"
                                                  :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
@@ -280,7 +280,7 @@
                             <p>
                                 <span class="strong">{{$t('mining.index.income_distribution')}}</span>
                                 <span class="user-input slider">
-                                    <el-slider v-model="incomeDistribution" :min="0" :max="30"></el-slider>
+                                    <el-slider v-model="incomeDistribution" :min="rule.forgepool.reward.min | getPercentage" :max="rule.forgepool.reward.max | getPercentage"></el-slider>
                                 </span>
                             </p>
                             <p>{{$t('mining.index.income_distribution_tip')}}</p>
@@ -314,6 +314,7 @@
                 isSetName: false,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
+                maxPoolinvestment: 50000,
                 options: [
                     {
                         value: 'default',
@@ -336,6 +337,11 @@
                 setname: '',
                 incomeDistribution: 0,
                 investment: '',
+                newestBlock:[],
+                totalAssets:0,
+                forgeAssets:0,
+                rule:[],
+                avgBlocksTime:'',
                 miningList: [
                     /* {
                           serialNumber: "001",
@@ -457,7 +463,7 @@
                 let rule = {
                     'forgepool':{
                       'reward': _this.incomeDistribution/100,
-                      'number':100,
+                      'number':_this.rule.forgepool.number.max-1,
                     },
                     "rule":{
                         "totalBlocks":0
@@ -471,10 +477,22 @@
                 _this.$http.post('/sharder?requestType=createPool',formData).then(function (res) {
                   if(res.data.broadcasted){
                       _this.$message.success("创建成功！");
+
+                      formData = new FormData();
+                      formData.append("period",parseInt((10 * 60)/_this.avgBlocksTime).toString());
+                      formData.append("secretPhrase",SSO.secretPhrase);
+                      formData.append("deadline","1440");
+                      formData.append("feeNQT","100000000");
+
+                      formData.append("poolId",_this.mining.poolId);
+                      formData.append("amount",_this.investment);
+                      _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
+                          _this.isVisible('isCreatePool');
+
+                      })
                   }else{
                       _this.$message.error(res.data.errorDescription);
                   }
-                  _this.isVisible('isCreatePool');
                 }).catch(function (err) {
                   console.log(err);
                 });
@@ -523,6 +541,18 @@
                 _this.account();
             }
 
+            formData = new FormData();
+            formData.append("creatorId",SSO.account);
+            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
+                _this.rule = res.data;
+
+                console.log("getRule",_this.rule.forgepool.reward.max);
+            }).catch(err=>{
+                console.log(err);
+            });
+
+
+
             let formData = new FormData();
             formData.append("createId",SSO.account);
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
@@ -534,6 +564,32 @@
             });
 
             console.log("miningList",_this.miningList);
+
+            formData = new FormData();
+            _this.$http.post('/sharder?requestType=getNextBlockGenerators',formData).then(function (res) {
+                console.log("getNextBlockGenerators",res.data);
+
+                _this.newestBlock = res.data;
+
+            }).catch(function (err) {
+                console.log(err);
+            });
+
+            this.$http.get('/sharder?requestType=getBlocks', {
+                params: {
+                    firstIndex: 0,
+                    lastIndex: 9
+                }
+            }).then(function (res) {
+                if (!res.data.errorDescription) {
+                    let len = res.data.blocks.length;
+                    _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.data.blocks[0].timestamp, res.data.blocks[len-1].timestamp,len);
+                } else {
+                    _this.$message.error(res.data.errorDescription);
+                }
+            }).catch(function (err) {
+                _this.$message.error(err);
+            });
         },
         watch:{
             getLang:{
@@ -559,6 +615,11 @@
                     ];
                 },
                 deep:true
+            }
+        },
+        filters:{
+            getPercentage:function (val) {
+                return parseFloat(val) * 100;
             }
         }
     }
