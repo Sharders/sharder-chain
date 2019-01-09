@@ -83,9 +83,9 @@ public class DesktopSystemTray {
     private static final Map<String,ItemName> itemNameMap = new ConcurrentHashMap<>();
     {
         itemNameMap.put("Shutdown",new ItemName("Shutdown","关闭"));
-        itemNameMap.put("OpenWIB",new ItemName("Open Wallet in Browser","浏览器端"));
-        itemNameMap.put("ShowDA",new ItemName("Show Desktop Application","显示终端"));
-        itemNameMap.put("RefreshW",new ItemName("Refresh Wallet","刷新终端"));
+        itemNameMap.put("OpenWIB",new ItemName("Open Client in Browser","浏览器端"));
+        itemNameMap.put("ShowDA",new ItemName("Show Client","显示终端"));
+        itemNameMap.put("RefreshW",new ItemName("Refresh Client","刷新终端"));
         itemNameMap.put("ViewLF",new ItemName("View Log File","查看日志"));
         itemNameMap.put("Status",new ItemName("Status","终端状态"));
         itemNameMap.put("Initializing",new ItemName("Initializing","初始化中"));
@@ -104,15 +104,15 @@ public class DesktopSystemTray {
         itemNameMap.put("Timestamp",new ItemName("Timestamp","时间戳"));
         itemNameMap.put("Time",new ItemName("Last Block","最后一块"));
         itemNameMap.put("SecondsP",new ItemName("Seconds passed","过去秒数"));
-        itemNameMap.put("Forging",new ItemName("Forging","开启挖矿"));
-        itemNameMap.put("ForgingA",new ItemName("Forging accounts","挖矿账户"));
+        itemNameMap.put("Forging",new ItemName("Mining","开启挖矿"));
+        itemNameMap.put("ForgingA",new ItemName("Mining accounts","挖矿账户"));
         itemNameMap.put("Environment",new ItemName("Environment","环境信息"));
         itemNameMap.put("NumberOP",new ItemName("Number of peers","节点数"));
         itemNameMap.put("Unavailable",new ItemName("Unavailable","不可用"));
         itemNameMap.put("DevNet", new ItemName("Devnet", "开发网络"));
         itemNameMap.put("TestNet", new ItemName("Testnet", "测试网络"));
         itemNameMap.put("MainNet", new ItemName("Mainnet", "正式网络"));
-        itemNameMap.put("AvailableP",new ItemName("Available processors","矿工"));
+        itemNameMap.put("AvailableP",new ItemName("Available miners","矿工"));
         itemNameMap.put("MaxM",new ItemName("Max memory","最大内存"));
         itemNameMap.put("TotalM",new ItemName("Total memory","占用内存"));
         itemNameMap.put("FreeM",new ItemName("Free memory","空闲内存"));

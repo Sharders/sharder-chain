@@ -237,7 +237,12 @@ public final class Convert {
         return bytes;
     }
 
+    public static int countJsonBytes(Map map){
+        return toBytes(JSONObject.toJSONString(map)).length;
+    }
+
     public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws ConchException.NotValidException {
+        
         if (numBytes > 3 * maxLength) {
             throw new ConchException.NotValidException("Max parameter length exceeded");
         }
@@ -247,10 +252,10 @@ public final class Convert {
     }
     
     public static int writeString(ByteBuffer buffer, String content) {
-        int size = content.length();
-        buffer.putInt(size);
-        buffer.put(Convert.toBytes(content));
-        return size;
+        byte[] contentBytes = toBytes(content);
+        buffer.putInt(contentBytes.length);
+        buffer.put(contentBytes);
+        return contentBytes.length;
     }
     
     public static int writeMap(ByteBuffer buffer, Map map) {
