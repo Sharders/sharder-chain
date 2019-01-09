@@ -1,11 +1,14 @@
 package org.conch.http;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocTemplate;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
+import org.conch.util.Https;
 import org.conch.util.IpUtil;
 import org.json.simple.JSONStreamAware;
 
@@ -60,8 +63,8 @@ public abstract class PocTxApi {
             return true;
         }
     }
-    
-    
+
+
 
     /**
      * Create a node type definition tx
@@ -87,7 +90,7 @@ public abstract class PocTxApi {
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
-    
+
 
     public static final class CreatePocTemplate extends CreateTransaction {
 
@@ -99,8 +102,14 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            String templateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
-            return null;
+            PocTemplate customPocTemp = JSONObject.parseObject(
+                    templateJson,
+                    PocTemplate.class
+                    );
+            Attachment attachment = PocTxBody.PocWeightTable.pocWeightTableBuilder(customPocTemp);
+            return createTransaction(request, account, attachment);
         }
     }
 
@@ -145,7 +154,7 @@ public abstract class PocTxApi {
             Account account = ParameterParser.getSenderAccount(request);
             String senderIp = IpUtil.getSenderIp(request);
             String foundationIP = IpUtil.getIp(Conch.getSharderFoundationURL());
-            
+
             if (foundationIP.equals(senderIp)){
                 String[] ips = request.getParameterValues("ips");
                 Attachment attachment = new Attachment.SharderOnlineRateCreate(ips);
