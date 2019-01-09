@@ -395,4 +395,40 @@ export default {
             return null;
         }
     },
+
+    getAvgTimestamp:function(lastBlockTimestamp, firstBlockTimestamp, length){
+        let avgTimestamp = parseInt((lastBlockTimestamp - firstBlockTimestamp)/length);
+/*
+        let minute = parseInt(avgTimestamp/60);
+        let hour = parseInt(minute/60);
+        let day = parseInt(hour/24);
+        let second = avgTimestamp - minute * 60;
+
+        console.log("lastBlockTimestamp",lastBlockTimestamp);
+        console.log("firstBlockTimestamp",firstBlockTimestamp);
+        console.log("length",length);
+        console.log("avgTimestamp",avgTimestamp);
+        console.log("second",second);
+        console.log("minute",minute);
+        console.log("hour",hour);
+        console.log("day",day);
+
+        let dataTime = "";
+        if (day !== 0) {
+            dataTime = dataTime + day + " (day) ";
+        }
+        if (hour !== 0) {
+            dataTime = dataTime + hour + " (hour) ";
+        }
+        if (minute !== 0) {
+            dataTime = dataTime + minute + " (min) ";
+        }
+        if (second !== 0) {
+            dataTime = dataTime + second + " (s) ";
+        }
+
+        return dataTime;//将格式化后的字符串输出到前端显示
+*/
+        return avgTimestamp;
+    }
 };

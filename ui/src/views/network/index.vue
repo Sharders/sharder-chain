@@ -221,7 +221,7 @@
                 }
 
             }).catch(function (err) {
-                _this.$message.error("error", err);
+                _this.$message.error(err);
             });
             this.$http.get('/sharder?requestType=getPeers').then(function (res) {
                 _this.peerNum = res.data.peers.length;
