@@ -1,6 +1,6 @@
 <template>
     <div :class="this.$i18n.locale === 'en'? 'en_login' : ''">
-        <div class="content_login" v-if="$store.state.isHubInit">
+        <div class="content_login">
             <el-radio-group v-model="tabTitle" class="title">
                 <el-radio-button label="key" class="btn">{{$t('login.secret_login')}}</el-radio-button>
                 <el-radio-button label="account" class="btn">{{$t('login.account_login')}}</el-radio-button>
@@ -19,7 +19,8 @@
                 <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>
-        <div class="content_welcome" v-else>  <!--Hub初始化-->
+<!--
+        <div class="content_welcome" v-else>  &lt;!&ndash;Hub初始化&ndash;&gt;
             <el-col :span="24" class="welcome_info">
                 <p>{{$t('login.welcome_tip')}}</p>
             </el-col>
@@ -27,6 +28,7 @@
                 <button class="init_hub_btn" @click="initHub">{{$t('login.init_hub')}}</button>
             </el-col>
         </div>
+-->
 
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
@@ -116,18 +118,25 @@
         },
         created() {
             const _this = this;
-            this.$global.getUserConfig(this).then(res=>{
-                if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
-                    _this.$store.state.userConfig = res;
-                    _this.userConfig = res;
-                    _this.$store.state.isHubInit = true;
-                }else{
-                    if(_this.$route.query.info === 'register2Init'){
-                        _this.hubSettingDialog = true;
-                        _this.$store.state.mask = true;
-                        _this.hubsetting.SS_Address = SSO.accountRS;
-                    }
+            // this.$global.getUserConfig(this).then(res=>{
+            //     if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
+            //         _this.$store.state.userConfig = res;
+            //         _this.userConfig = res;
+            //         _this.$store.state.isHubInit = true;
+            //     }else{
+            //         if(_this.$route.query.info === 'register2Init'){
+            //             _this.hubSettingDialog = true;
+            //             _this.$store.state.mask = true;
+            //             _this.hubsetting.SS_Address = SSO.accountRS;
+            //         }
+            //     }
+            // });
 
+            this.$global.setBlockchainState(this).then(res=>{
+                if(typeof res.data.errorDescription === 'undefined'){
+                    _this.$message.error(res.data)
+                }else{
+                    //TODO  获取区块链
                 }
             });
         },
@@ -149,7 +158,6 @@
                 if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
                     formData.append("username",_this.hubsetting.sharderAccount);
                     formData.append("password",_this.hubsetting.sharderPwd);
-                    console.log("___________________________________");
                     _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',formData).then(res=>{
                         if(res.data.status === 'success'){
                             _this.hubsetting.address = res.data.data.natServiceAddress;

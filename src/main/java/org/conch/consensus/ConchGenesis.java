@@ -71,7 +71,7 @@ public class ConchGenesis {
     public static final void enableGenesisAccount(){
         if(enableGenesisAccount) return;
 
-        Logger.logDebugMessage("Enable genesis account[size=" + GENESIS_RECIPIENTS.length + 1 + "]");
+        Logger.logDebugMessage("Enable genesis account[size=" + (GENESIS_RECIPIENTS.length + 1) + "]");
 
         Account.addOrGetAccount(CREATOR_ID).apply(CREATOR_PUBLIC_KEY);
 

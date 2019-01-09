@@ -276,7 +276,7 @@ public class PocScore {
             // TODO xy impl miss_block check in interval
         }
 
-        static void bcCal(PocScore pocScore, Account account, PocTxBody.PocBC pocBC){
+        static void bcCal(PocScore pocScore, Account account, PocTxBody.PocBcSpeed pocBcSpeed){
             //TODO un-impl now -20181230
         }
 

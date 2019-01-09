@@ -120,22 +120,6 @@ public interface PocTxBody  {
 
 
         @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-            return new PocNodeType(buffer,transactionVersion);
-        }
-
-        @Override
-        protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocNodeType(attachmentData);
-        }
-
-        @Override
-        protected AbstractAttachment inst(int version) {
-            return null;
-        }
-
-
-        @Override
         public int getMySize() {
             return 4 + 2 + ip.getBytes().length;
         }
@@ -175,7 +159,7 @@ public interface PocTxBody  {
         private Map<Integer, BigInteger> blockingMissTemplate;
         private Map<Integer, BigInteger> bocSpeedTemplate;
         
-        private Long templateVersion;
+        private Long weightTableVersion;
 
         public Map<String, BigInteger> getWeightMap() {
             return weightMap;
@@ -222,12 +206,12 @@ public interface PocTxBody  {
             return bocSpeedTemplate;
         }
 
-        public Long getTemplateVersion() {
-            return templateVersion;
+        public Long getWeightTableVersion() {
+            return weightTableVersion;
         }
 
-        public void setTemplateVersion(Long templateVersion) {
-            this.templateVersion = templateVersion;
+        public void setWeightTableVersion(Long weightTableVersion) {
+            this.weightTableVersion = weightTableVersion;
         }
 
         /**
@@ -331,6 +315,7 @@ public interface PocTxBody  {
         
         
         public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Long, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txPerformanceTemplate,Map<Peer.Type, Map<Integer, BigInteger>> onlineRateTemplate, Map<Integer, BigInteger> blockingMissTemplate, Map<Integer, BigInteger> bocSpeedTemplate, Long version) {
+            super(0);
             this.weightMap = weightMap;
             this.nodeTypeTemplate = nodeTypeTemplate;
             this.serverOpenTemplate = serverOpenTemplate;
@@ -340,24 +325,28 @@ public interface PocTxBody  {
             this.onlineRateTemplate = onlineRateTemplate;
             this.blockingMissTemplate = blockingMissTemplate;
             this.bocSpeedTemplate = bocSpeedTemplate;
-            this.templateVersion = version;
+            this.weightTableVersion = version;
         }
 
+        private static int MAX_POC_WEIGHT_TABLE_ITEM = 10240;
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
-            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.blockingMissTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
-            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),10240),Map.class);
+            this.weightTableVersion = buffer.getLong();
+            System.out.println("weightTableVersion=" + weightTableVersion);
+            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.blockingMissTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
         }
 
         public PocWeightTable(JSONObject attachmentData) {
             super(attachmentData);
+            weightTableVersion = (Long) attachmentData.get("templateVersion");
             weightMap = (Map<String, BigInteger>) attachmentData.get("weightMap");
             nodeTypeTemplate = (Map<Integer, BigInteger>) attachmentData.get("nodeTypeTemplate");
             serverOpenTemplate = (Map<Long, BigInteger>) attachmentData.get("serverOpenTemplate");
@@ -367,38 +356,26 @@ public interface PocTxBody  {
             onlineRateTemplate = (Map<Peer.Type, Map<Integer, BigInteger>>) attachmentData.get("onlineRateTemplate");
             blockingMissTemplate = (Map<Integer, BigInteger>) attachmentData.get("blockingMissTemplate");
             bocSpeedTemplate = (Map<Integer, BigInteger>) attachmentData.get("bocSpeedTemplate");
+             
         }
-
-        @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-            return new PocWeightTable(buffer,transactionVersion);
-        }
-
-        @Override
-        protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocWeightTable(attachmentData);
-        }
-
-        @Override
-        protected AbstractAttachment inst(int version) {
-            return null;
-        }
+        
 
         @Override
         public int getMySize() {
-            return 4 * 9 + com.alibaba.fastjson.JSONObject.toJSONString(weightMap).length() 
-                    + com.alibaba.fastjson.JSONObject.toJSONString(nodeTypeTemplate).length() 
-                    + com.alibaba.fastjson.JSONObject.toJSONString(serverOpenTemplate).length() 
-                    + com.alibaba.fastjson.JSONObject.toJSONString(hardwareConfigTemplate).length() 
-                    + com.alibaba.fastjson.JSONObject.toJSONString(networkConfigTemplate).length()
-                    + com.alibaba.fastjson.JSONObject.toJSONString(txPerformanceTemplate).length()
-                    + com.alibaba.fastjson.JSONObject.toJSONString(onlineRateTemplate).length()
-                    + com.alibaba.fastjson.JSONObject.toJSONString(blockingMissTemplate).length()
-                    + com.alibaba.fastjson.JSONObject.toJSONString(bocSpeedTemplate).length();
+            return 8 + 4 * 9 + Convert.countJsonBytes(weightMap)
+                    + Convert.countJsonBytes(nodeTypeTemplate)
+                    + Convert.countJsonBytes(serverOpenTemplate)
+                    + Convert.countJsonBytes(hardwareConfigTemplate)
+                    + Convert.countJsonBytes(networkConfigTemplate)
+                    + Convert.countJsonBytes(txPerformanceTemplate)
+                    + Convert.countJsonBytes(onlineRateTemplate)
+                    + Convert.countJsonBytes(blockingMissTemplate)
+                    + Convert.countJsonBytes(bocSpeedTemplate);
         }
 
         @Override
-        public void putMyBytes(ByteBuffer buffer) { 
+        public void putMyBytes(ByteBuffer buffer) {
+            buffer.putLong(weightTableVersion);
             Convert.writeMap(buffer,weightMap);
             Convert.writeMap(buffer,nodeTypeTemplate);
             Convert.writeMap(buffer,serverOpenTemplate);
@@ -412,6 +389,7 @@ public interface PocTxBody  {
 
         @Override
         public void putMyJSON(JSONObject attachment) {
+            attachment.put("templateVersion", weightTableVersion);
             attachment.put("weightMap", weightMap);
             attachment.put("nodeTypeTemplate", nodeTypeTemplate);
             attachment.put("serverOpenTemplate", serverOpenTemplate);
@@ -482,21 +460,6 @@ public interface PocTxBody  {
         }
 
         @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-            return new PocNodeConf(buffer,transactionVersion);
-        }
-
-        @Override
-        protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocNodeConf(attachmentData);
-        }
-
-        @Override
-        protected AbstractAttachment inst(int version) {
-            return null;
-        }
-
-        @Override
         public int getMySize() {
             return ip.getBytes().length
               + port.getBytes().length
@@ -562,21 +525,6 @@ public interface PocTxBody  {
         }
 
         @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-            return new PocOnlineRate(buffer,transactionVersion);
-        }
-
-        @Override
-        protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocOnlineRate(attachmentData);
-        }
-
-        @Override
-        protected AbstractAttachment inst(int version) {
-            return null;
-        }
-
-        @Override
         public int getMySize() {
             return 2 + ip.getBytes().length + port.getBytes().length;
         }
@@ -630,21 +578,6 @@ public interface PocTxBody  {
         }
 
         @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-            return new PocBlockMiss(buffer,transactionVersion);
-        }
-
-        @Override
-        protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocBlockMiss(attachmentData);
-        }
-
-        @Override
-        protected AbstractAttachment inst(int version) {
-            return null;
-        }
-
-        @Override
         public int getMySize() {
             return 8 + 4;
         }
@@ -670,7 +603,7 @@ public interface PocTxBody  {
     /**
      * Bifurcation of convergence for PoC
      */
-    final class PocBC extends Attachment.TxBodyBase {
+    final class PocBcSpeed extends Attachment.TxBodyBase {
         private final String ip;
         private final String port;
         private final int speed; // 分叉收敛速度 1-硬分叉；2-慢；3-中；4-快
@@ -687,39 +620,24 @@ public interface PocTxBody  {
             return speed;
         }
 
-        public PocBC(String ip, String port, int speed) {
+        public PocBcSpeed(String ip, String port, int speed) {
             this.ip = ip;
             this.port = port;
             this.speed = speed;
         }
 
-        public PocBC(ByteBuffer buffer, byte transactionVersion) {
+        public PocBcSpeed(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.ip = buffer.toString();
             this.port = buffer.toString();
             this.speed = buffer.getInt();
         }
 
-        public PocBC(JSONObject attachmentData) {
+        public PocBcSpeed(JSONObject attachmentData) {
             super(attachmentData);
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.speed = (int) attachmentData.get("speed");
-        }
-
-        @Override
-        protected AbstractAttachment inst(ByteBuffer buffer, byte transactionVersion) {
-            return new PocBC(buffer,transactionVersion);
-        }
-
-        @Override
-        protected AbstractAttachment inst(JSONObject attachmentData) {
-            return new PocBC(attachmentData);
-        }
-
-        @Override
-        protected AbstractAttachment inst(int version) {
-            return null;
         }
 
         @Override

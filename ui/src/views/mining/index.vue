@@ -13,7 +13,7 @@
                 <div class="assets">
                     <ul>
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number', {number:newestBlock.height})}}</li>
-                        <li>{{$t('mining.index.my_assets')}}00000 SS</li>
+                        <li>{{$t('mining.index.my_assets')}}100000 SS</li>
                         <li>{{$t('mining.index.my_income')}}100000 SS</li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
@@ -42,7 +42,7 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}<!--{{newestBlock.generators[0].accountRS}} -->| {{$t('mining.index.reward')}}SS
+                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}}SS
             </span>
             </div>
             <div class="mining-list">
@@ -62,7 +62,7 @@
                 </h5>
                 <div class="mining-list-info">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-if="miningList !== undefined && miningList.length > 0" v-for="(mining,index) in miningList">
+                        <el-col :span="8" v-show="miningList.length !== 0" v-for="(mining,index) in miningList">
                             <div class="grid-content" >
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
@@ -86,9 +86,9 @@
                                 </div>
                             </div>
                         </el-col>
-                        <el-col class="mining-list-null" v-else>
+                        <div v-show="miningList.length === 0" class="mining-list-null" >
                             暂时没有任何矿池
-                        </el-col>
+                        </div>
                     </el-row>
                 </div>
             </div>
@@ -315,6 +315,7 @@
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolinvestment: 50000,
+                maxForgeTime:5 * 60,
                 options: [
                     {
                         value: 'default',
@@ -338,6 +339,7 @@
                 incomeDistribution: 0,
                 investment: '',
                 newestBlock:[],
+                newestBlockCreator:'',
                 totalAssets:0,
                 forgeAssets:0,
                 rule:[],
@@ -455,10 +457,13 @@
                 }
 
                 let formData = new FormData();
-                formData.append("period","400");
+                let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
+                formData.append("period",period);
                 formData.append("secretPhrase",SSO.secretPhrase);
                 formData.append("deadline","1440");
                 formData.append("feeNQT","100000000");
+                formData.append("amount",_this.investment);
+
 
                 let rule = {
                     'forgepool':{
@@ -477,19 +482,21 @@
                 _this.$http.post('/sharder?requestType=createPool',formData).then(function (res) {
                   if(res.data.broadcasted){
                       _this.$message.success("创建成功！");
-
+/*
                       formData = new FormData();
-                      formData.append("period",parseInt((10 * 60)/_this.avgBlocksTime).toString());
+                      let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
+                      formData.append("period",period);
                       formData.append("secretPhrase",SSO.secretPhrase);
                       formData.append("deadline","1440");
                       formData.append("feeNQT","100000000");
 
                       formData.append("poolId",_this.mining.poolId);
                       formData.append("amount",_this.investment);
-                      _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
-                          _this.isVisible('isCreatePool');
 
-                      })
+                      _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
+                      });*/
+                      _this.isVisible('isCreatePool');
+
                   }else{
                       _this.$message.error(res.data.errorDescription);
                   }
@@ -499,7 +506,8 @@
 
             },
             poolAttribute(mining) {
-                this.$router.push({name: "mining-attribute", params: mining});
+
+                this.$router.push({name: "mining-attribute", params: {mining:mining, newestBlock:this.newestBlock}});
             },
             isVisible(val) {
                 this.$store.state.mask = !this[val];
@@ -552,7 +560,6 @@
             });
 
 
-
             let formData = new FormData();
             formData.append("createId",SSO.account);
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
@@ -564,12 +571,14 @@
             });
 
             console.log("miningList",_this.miningList);
+            console.log("miningListLength",_this.miningList.length);
 
             formData = new FormData();
             _this.$http.post('/sharder?requestType=getNextBlockGenerators',formData).then(function (res) {
                 console.log("getNextBlockGenerators",res.data);
 
                 _this.newestBlock = res.data;
+                _this.newestBlockCreator = res.data.generators[0].accountRS;
 
             }).catch(function (err) {
                 console.log(err);
@@ -584,6 +593,7 @@
                 if (!res.data.errorDescription) {
                     let len = res.data.blocks.length;
                     _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.data.blocks[0].timestamp, res.data.blocks[len-1].timestamp,len);
+                    console.log("avgBlocksTime",_this.avgBlocksTime);
                 } else {
                     _this.$message.error(res.data.errorDescription);
                 }
