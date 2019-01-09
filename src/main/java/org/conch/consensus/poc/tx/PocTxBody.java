@@ -314,7 +314,7 @@ public interface PocTxBody  {
             this.weightTableVersion = version;
         }
 
-        private static int MAX_POC_WEIGHT_TABLE_ITEM = 1024;
+        private static int MAX_POC_WEIGHT_TABLE_ITEM = 10240;
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
             this.weightTableVersion = buffer.getLong();
@@ -371,8 +371,6 @@ public interface PocTxBody  {
             Convert.writeMap(buffer,onlineRateTemplate);
             Convert.writeMap(buffer,blockingMissTemplate);
             Convert.writeMap(buffer,bocSpeedTemplate);
-//            byte[] array = buffer.array();
-//            System.out.println( "getMySize method=" + getMySize() + ",size=" + array.length + ",PocWeightTable =>" + Convert.toString(array));
         }
 
         @Override

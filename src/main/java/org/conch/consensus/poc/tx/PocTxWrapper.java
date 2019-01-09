@@ -84,7 +84,7 @@ public abstract class PocTxWrapper extends TransactionType {
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           try {
-            new PocTxBody.PocWeightTable(buffer, transactionVersion);
+            return new PocTxBody.PocWeightTable(buffer, transactionVersion);
           } catch (ConchException.NotValidException e) {
             Logger.logErrorMessage("Can't new PocWeightTable instance",e);
           }
