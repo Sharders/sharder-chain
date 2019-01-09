@@ -24,7 +24,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
     /**
      * 用于保存token的队列;
      */
-    private static HashMap<String, Object> hashMap = new HashMap<>();
+    public static HashMap<String, Object> hashMap = new HashMap<>();
 
     enum Shell {
         /**

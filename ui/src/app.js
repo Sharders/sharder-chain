@@ -30,6 +30,13 @@ function passage(path) {
 }
 
 router.beforeEach((to, from, next) => {
+    // console.info(to);
+    let redirect = to.query['redirect'];
+    if (passage(redirect)) {
+        next(redirect + "?token" + to.query['token']);
+        return;
+    }
+
     if (passage(to.path)) {
         next();
         return;

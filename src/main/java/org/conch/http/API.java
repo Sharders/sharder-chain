@@ -472,7 +472,11 @@ public final class API {
 
         @Override
         public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            ((HttpServletResponse) response).setHeader("X-FRAME-OPTIONS", "SAMEORIGIN");
+            String options = "";
+            if(AuthorizationLogin.hashMap.get(request.getParameter("token")) == null){
+                options = "SAMEORIGIN";
+            }
+            ((HttpServletResponse) response).setHeader("X-FRAME-OPTIONS", options);
             chain.doFilter(request, response);
         }
 
