@@ -13,7 +13,7 @@
                     </div>
                     <div class="pool-state">
                         <h1>{{$t('mining.attribute.mining')}}</h1>
-                        <h1>{{$t('mining.attribute.mining_current_number1')}}<span class="number">5689</span>{{$t('mining.attribute.mining_current_number2')}}</h1>
+                        <h1>{{$t('mining.attribute.mining_current_number1')}}<span class="number">{{newestBlock.height}}</span>{{$t('mining.attribute.mining_current_number2')}}</h1>
                     </div>
                     <div class="earnings">{{$t('mining.attribute.income')}}+{{miningInfo.income}}SS</div>
                 </div>
@@ -96,7 +96,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.reward_distribution')}}{{miningInfo.distribution}}%
+                                    {{$t('mining.attribute.reward_distribution')}}{{miningInfo.chance * 100}}%
                                 </button>
                             </el-col>
                         </el-row>
@@ -152,7 +152,8 @@
         name: "attribute",
         data() {
             return {
-                mining: this.$route.params,
+                mining: this.$route.params.mining,
+                newestBlock: this.$route.params.newestBlock,
                 isAttribute: false,
                 isJoinPool: false,
                 isExitPool: false,
@@ -258,6 +259,9 @@
             let _this = this;
             let formData = new FormData();
             formData.append("poolId", _this.mining.poolId);
+
+            console.log("newestBlock",_this.newestBlock);
+
 
             this.$http.post('/sharder?requestType=getPoolInfo',formData).then(res=>{
                 if(res.data.errorDescription !== undefined){
