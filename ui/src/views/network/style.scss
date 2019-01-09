@@ -1,0 +1,50 @@
+.xs_section_fa {
+    height: 260px;
+    background: transparent;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    .xs_section {
+        width: 190px;
+        height: 125px;
+        background: #fff;
+        margin-right: 5px;
+        margin-bottom: 10px;
+        padding-left: 20px;
+        position: relative;
+        div{
+            position: relative;
+            display: flex;
+            top: 30%;
+            img{
+                width: 50px;
+                height: 50px;
+            }
+            .section_info{
+                display: grid;
+                margin-left: 10px;
+                text-align: left;
+                span{
+                    font-size: 14px;
+                    color:#666;
+                    font-family: "Microsoft YaHei UI";
+                    &:first-child{
+                        font-weight: bold;
+                        font-size: 20px;
+                        color:#333;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.block_peers{
+    display: grid;
+    margin-bottom: 20px;
+    .w600{
+        background: #fff;
+        height:260px;
+    }
+}
+
+
