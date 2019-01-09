@@ -209,7 +209,7 @@ const cn = {
             'gain_profit':"获得收益",
             'remaining_mining_time':"剩余挖矿时间",
             'exit_pool':"退出矿池",
-            'destory_pool':"退出矿池",
+            'destroy_pool':"删除矿池",
             'creator':"创建者:",
             'participating_users':"参与用户:",
             'capacity':"容量:",
@@ -221,6 +221,7 @@ const cn = {
             'cancel':"取消",
             'confirm':"确定",
             'exit_pool_tip':"退出就无法继续挖矿获得收益",
+            'destroy_pool_tip':"删除就无法继续挖矿获得收益",
             'join_pool_tip':"请输入投入数量",
         },
         binding_account:{

@@ -1,37 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rules>
     <version>1.0</version>
+    <!--创建矿工-->
     <level0 id="0">
         <rule>
+            <!--生命周期，最大获取块数-->
             <totalBlocks>
                 <min>0</min>
                 <max>30</max>
             </totalBlocks>
         </rule>
-
         <forgepool>
             <number id="1">
                 <min>1</min>
-                <max>100</max>
+                <max>101</max>
             </number>
             <reward id="2">
-                <min>0.1</min>
-                <max>0.2</max>
+                <!--收益比率-->
+                <min>0.0</min>
+                <max>0.3</max>
             </reward>
         </forgepool>
 
         <consignor>
+            <!--投入SS区间-->
             <amount>
                 <min>1</min>
-                <max>100000000000000000</max>
+                <max>500001</max>
             </amount>
         </consignor>
     </level0>
-
+    <!--加入矿工-->
     <level1 id="1">
         <rule>
             <totalBlocks>
-                <min>30</min>
+                <min>1</min>
                 <max>50</max>
             </totalBlocks>
         </rule>
@@ -39,18 +42,18 @@
         <forgepool>
             <number id="1">
                 <min>1</min>
-                <max>100</max>
+                <max>101</max>
             </number>
             <reward id="2">
-                <min>0.1</min>
-                <max>0.2</max>
+                <min>0.0</min>
+                <max>0.3</max>
             </reward>
         </forgepool>
 
         <consignor>
             <amount>
                 <min>1</min>
-                <max>100000000000000000</max>
+                <max>500001</max>
             </amount>
         </consignor>
     </level1>

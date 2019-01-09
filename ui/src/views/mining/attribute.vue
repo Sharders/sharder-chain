@@ -7,7 +7,7 @@
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}}{{mining.serialNumber}} | {{$t('mining.attribute.mining_probability')}}{{mining.distribution}}%
+                            {{$t('mining.attribute.pool_number')}}{{mining.serialNumber}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
                         </span>
                         <span class="pool-attribute-info" @click="miningMask('isAttribute')">{{$t('mining.attribute.pool_details')}}</span>
                     </div>
@@ -15,7 +15,7 @@
                         <h1>{{$t('mining.attribute.mining')}}</h1>
                         <h1>{{$t('mining.attribute.mining_current_number1')}}<span class="number">5689</span>{{$t('mining.attribute.mining_current_number2')}}</h1>
                     </div>
-                    <div class="earnings">{{$t('mining.attribute.income')}}+2000SS</div>
+                    <div class="earnings">{{$t('mining.attribute.income')}}+{{miningInfo.income}}SS</div>
                 </div>
                 <div class="my-info">
                     <h1>
@@ -27,19 +27,19 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.join_time')}}</p>
-                                    <p class="strong">2018-06-13 12:00</p>
+                                    <p class="strong"></p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.investing_diamonds')}}</p>
-                                    <p class="strong">100000</p>
+                                    <p class="strong">{{miningInfo.currentInvestment}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.gain_profit')}}</p>
-                                    <p class="strong">2000 SS</p>
+                                    <p class="strong">{{miningInfo.income}} SS</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
@@ -52,8 +52,8 @@
                     </div>
                     <div class="attribute-btn">
                         <button class="join" @click="miningMask('isJoinPool')">{{$t('mining.attribute.investing_diamonds')}}</button>
-                        <button v-if="myAccount !== mining.creator" class="exit" @click="miningMask('isExitPool')">{{$t('mining.attribute.exit_pool')}}</button>
-                        <button v-else class="exit" @click="miningMask('isExitPool')">{{$t('mining.attribute.exit_pool')}}</button>
+                        <button v-if="myAccount !== miningInfo.accountId" class="exit" @click="miningMask('isExitPool')">{{$t('mining.attribute.exit_pool')}}</button>
+                        <button v-else class="exit" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.destroy_pool')}}</button>
                     </div>
                 </div>
             </div>
@@ -136,8 +136,8 @@
         <div v-if="isDestroyPool">
             <div class="exit-pool">
                 <span class="img-close" @click="miningMask('isDestroyPool')"></span>
-                <h1 class="title">{{$t('mining.attribute.exit_pool')}}</h1>
-                <p class="info">{{$t('mining.attribute.exit_pool_tip')}}</p>
+                <h1 class="title">{{$t('mining.attribute.destroy_pool')}}</h1>
+                <p class="info">{{$t('mining.attribute.destroy_pool_tip')}}</p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}</button>
                     <button class="confirm" @click="miningDestory">{{$t('mining.attribute.confirm')}}</button>
@@ -161,12 +161,14 @@
                 myAccount:SSO.account,
                 miningInfo:{
                     account:'',
+                    accountId:"",
                     amount:0,
                     poolId:'',
                     currentInvestment:0,
                     investmentTotal:500000,
                     income:0,
-                    distribution:0
+                    distribution:0,
+                    chance:0
                 }
             }
         },
@@ -267,10 +269,13 @@
                     _this.miningInfo.amount = res.data.number+1;
                     _this.miningInfo.poolId = res.data.poolId;
                     _this.miningInfo.currentInvestment = res.data.power;
+                    _this.miningInfo.accountId = res.data.creatorID;
+                    _this.miningInfo.income = res.data.historicalIncome;
+                    _this.miningInfo.chance = res.data.chance;
 
                     _this.$http.get('/sharder?requestType=getAccount',{
                         params: {
-                            account:SSO.account
+                            account:res.data.creatorID
                         }
                     }).then(res=>{
                         _this.miningInfo.account = res.data.accountRS;
@@ -281,23 +286,6 @@
             }).catch(err=>{
               console.log(err);
             });
-
-            formData = new FormData();
-            formData.append("creatorId",_this.mining.creatorID);
-            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
-              if(res.data.errorDescription !== undefined){
-                  _this.$message.error(res.data.errorDescription);
-                  if(res.data.errorDescription === "sharder pool doesn't exists"){
-                  }
-                  history.back(-1);
-              }
-              console.log("rule",res.data);
-            }).catch(err=>{
-              console.log(err);
-            });
-
-
-
         }
     }
 </script>

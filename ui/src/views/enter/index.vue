@@ -42,13 +42,14 @@
                     return;
                 }
                 Login.login(true, _this.passphrase, _this, function () {
-/*                    console.log(SSO);
+/*
+                    console.log(SSO);
                     console.log("account", SSO.account);
                     console.log("accountInfo", SSO.accountInfo);
                     console.log("accountRS", SSO.accountRS);
                     console.log("publicKey", SSO.publicKey);
                     console.log("settings", SSO.settings);
-                    */
+*/
                     _this.$global.setEpochBeginning(_this).then(res=>{
                         _this.$store.state.isLogin = true;
                         if(!_this.$store.state.isHubInit){

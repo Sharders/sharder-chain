@@ -1,6 +1,7 @@
 package org.conch.consensus.poc;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -42,9 +43,13 @@ public class PocProcessorImpl implements PocProcessor {
     static PocHolder inst = new PocHolder();
     
     // poc score map
+    // accountId : pocScore
     static Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
     // certified miner: foundation node,sharder hub, community node
+    // height : <bindAccountId,peer>
     static Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
+    // bindAccountId : ip of peer
+    static Map<Long, String> hubAccountPeerMap = Maps.newConcurrentMap();
     
     static int lastHeight = -1;
   
@@ -96,6 +101,8 @@ public class PocProcessorImpl implements PocProcessor {
       
       return hasPocWeightTable ? PocScore.PocCalculator.pocWeightTable : PocTxBody.PocWeightTable.defaultPocWeightTable();
     }
+    
+    
  
   }
 
@@ -106,6 +113,11 @@ public class PocProcessorImpl implements PocProcessor {
   private static synchronized PocProcessorImpl getOrCreate() {
     return instance != null ? instance : new PocProcessorImpl();
   }
+
+  public static boolean isHubBind(long accountId){
+    return PocHolder.inst.hubAccountPeerMap.containsKey(accountId);
+  }
+  
 
   static {
     Conch.getBlockchainProcessor().addListener(PocProcessorImpl::savePocHolder, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
@@ -249,8 +261,15 @@ public class PocProcessorImpl implements PocProcessor {
     Map<Long, Peer> peerMap = PocHolder.inst.certifiedMinerPeerMap.get(height);
     if(peerMap == null) peerMap = new ConcurrentHashMap<>();
     peerMap.put(peerBindAccountId,peer);
-
     PocHolder.inst.certifiedMinerPeerMap.put(height,peerMap);
+    
+    //update peer bind account
+    if(PocHolder.inst.hubAccountPeerMap.containsKey(peerBindAccountId)) {
+        String peerIp = PocHolder.inst.hubAccountPeerMap.get(peerBindAccountId);
+        if(!ip.equalsIgnoreCase(peerIp)) PocHolder.inst.hubAccountPeerMap.remove(peerBindAccountId);
+    }
+    PocHolder.inst.hubAccountPeerMap.put(peerBindAccountId,ip);
+    
   }
   
 

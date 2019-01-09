@@ -297,10 +297,14 @@ public class SharderPoolProcessor implements Serializable {
         return past;
     }
 
-
+    public static boolean isDead(long poolId){
+        return !SharderPoolProcessor.State.WORKING.equals(getSharderPool(poolId).getState());
+    }
 
     public static SharderPoolProcessor getSharderPool(long poolId) {
-        return sharderPools.containsKey(poolId) ? sharderPools.get(poolId) : null;
+//        return sharderPools.containsKey(poolId) ? sharderPools.get(poolId) : null;
+        SharderPoolProcessor spp =  sharderPools.get(poolId);
+        return spp;
     }
 
     public static JSONObject getSharderPoolsFromNow(){
@@ -312,6 +316,11 @@ public class SharderPoolProcessor implements Serializable {
         JSONArray array = new JSONArray();
         for (SharderPoolProcessor forgePool : pasts) {
 //            jsonObject.put(forgePool.poolId, forgePool.toJSonObject());
+//            JSONObject json = forgePool.toJSonObject();
+//            String poolId = String.valueOf((long)json.get("poolId"));
+//            String creatorId = String.valueOf((long)json.get("creatorId"));
+//            json.put("poolId",poolId);
+//            json.put("creatorId",poolId);
             array.add(forgePool.toJSonObject());
         }
         JSONObject json = new JSONObject();
