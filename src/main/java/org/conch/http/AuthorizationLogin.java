@@ -15,7 +15,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
     /**
      * 授权有效期(毫秒)
      */
-    private static final int AUTH_TIME = 10 * 1000;
+    private static final int AUTH_TIME = 120 * 1000;
     /**
      * 授权码长度
      */
@@ -24,7 +24,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
     /**
      * 用于保存token的队列;
      */
-    private static HashMap<String, Object> hashMap = new HashMap<>();
+    public static HashMap<String, Object> hashMap = new HashMap<>();
 
     enum Shell {
         /**
@@ -153,10 +153,10 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
             Map<String, String[]> parameterMap = request.getParameterMap();
             HashMap<String, Object> map = new HashMap<>();
             for (String key : parameterMap.keySet()) {
-                if (key.contains("accountList") && key.contains("[addr]")) {
+                if (key.contains("accountList") && key.contains("[account]")) {
                     map.put(key, parameterMap.get(key));
                 }
-                if (key.contains("accountList") && key.contains("[TSS]")) {
+                if (key.contains("accountList") && key.contains("[assets]")) {
                     map.put(key, parameterMap.get(key));
                 }
             }

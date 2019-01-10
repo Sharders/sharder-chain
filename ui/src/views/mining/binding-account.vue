@@ -53,9 +53,9 @@
                 <h1>{{$t('mining.binding_account.bind_address')}}</h1>
                 <p>{{$t('mining.binding_account.bind_address_tip')}}</p>
                 <div class="addr" v-for="account in accountList" @click="radio = account">
-                    <h3>{{$t('mining.binding_account.address')}}{{account.addr}}</h3>
+                    <h3>{{$t('mining.binding_account.address')}}{{account.account}}</h3>
                     <p>
-                        {{$t('mining.binding_account.tss_volume')}}{{account.TSS}}
+                        {{$t('mining.binding_account.tss_volume')}}{{account.assets}}
                     </p>
                     <span class="radio">
                         <el-radio v-model="radio" :label="account">&nbsp;</el-radio>
@@ -116,7 +116,7 @@
                 _this.$global.fetch("POST", {
                     shell: "bindingAccount",
                     token: window.token,
-                    account: _this.radio.addr,
+                    account: _this.radio.account,
                 }, "authorizationLogin").then(value => {
                     // console.info(value.data);
                     if (!value.success) return;
@@ -142,22 +142,22 @@
                 let keys = Object.keys(value.data);
                 let accountList = [];
                 for (let o of keys) {
-                    if (o.indexOf("[addr]") !== 1) {
-                        let a = o.substring("accountList[".length, o.lastIndexOf("][addr]"));
+                    if (o.indexOf("[account]") !== 1) {
+                        let a = o.substring("accountList[".length, o.lastIndexOf("][account]"));
                         if (/^[0-9]+$/.test(a)) {
                             if (!accountList[a]) {
                                 accountList[a] = {};
                             }
-                            accountList[a]["addr"] = value.data[o];
+                            accountList[a]["account"] = value.data[o];
                         }
                     }
-                    if (o.indexOf("[TSS]") !== 1) {
-                        let a = o.substring("accountList[".length, o.lastIndexOf("][TSS]"));
+                    if (o.indexOf("[assets]") !== 1) {
+                        let a = o.substring("accountList[".length, o.lastIndexOf("][assets]"));
                         if (/^[0-9]+$/.test(a)) {
                             if (!accountList[a]) {
                                 accountList[a] = {};
                             }
-                            accountList[a]["TSS"] = value.data[o];
+                            accountList[a]["assets"] = value.data[o];
                         }
                     }
                 }
