@@ -649,44 +649,29 @@ public final class Conch {
                     setTime(new Time.FasterTime(Math.max(getEpochTime(), Conch.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
                     Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
                 }
+                
                 try {
                     secureRandomInitThread.join(10000);
                 } catch (InterruptedException ignore) {}
+                
                 testSecureRandom();
+                autoMining();
+                
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
-                if (API.getWelcomePageUri() != null) {
-                    Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
-                }
+                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
+                
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
-                if (isDesktopApplicationEnabled()) {
-                    launchDesktopApplication();
-                }
-                if (Constants.isTestnet()) {
-                    Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
-                }
-                if (Constants.isDevnet()) {
-                    Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
-                }
-                // [Hub] if owner binded then start mine automatic
-                Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
-                String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
-                String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
-                if (hubBind && hubBindPassPhrase != null) {
-                    Generator hubGenerator = Generator.startForging(hubBindPassPhrase.trim());
-                    if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
-                        Generator.stopForging(hubBindPassPhrase.trim());
-                        Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
-                    } else {
-                        Logger.logInfoMessage("Account " + hubBindAddress + "started mining automatically");
-                    }
-                    
-                    // open miner service
-                    Peers.checkAndSetOpeningServices(Lists.newArrayList(Peer.Service.MINER));
-                }
+                
+                if (isDesktopApplicationEnabled()) launchDesktopApplication();
+                
+                if (Constants.isTestnet()) Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                
+                if (Constants.isDevnet()) Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
+
 
                 Peers.sysInitialed = true;
 
@@ -707,6 +692,35 @@ public final class Conch {
 
         private Init() {} // never
 
+    }
+
+    /**
+     * Auto mining of Hub or Miner 
+     */
+    private static void autoMining(){
+        // [Hub] if owner bind the passphrase then start mine automatic
+        Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
+        String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
+        String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
+        if (hubBind && hubBindPassPhrase != null) {
+            Generator hubGenerator = Generator.startMining(hubBindPassPhrase.trim());
+            if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
+                Generator.stopMining(hubBindPassPhrase.trim());
+                Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
+            } else {
+                Logger.logInfoMessage("Account " + hubBindAddress + "started mining...");
+            }
+
+            // open miner service
+            Peers.checkAndSetOpeningServices(Lists.newArrayList(Peer.Service.MINER));
+        }else {
+            // [Miner] if owner set the passphrase of mint then start mining
+            String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+            if(autoMintPR != null) {
+                Generator bindGenerator = Generator.startMining(autoMintPR.trim());
+                Logger.logInfoMessage("Account " + Convert.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+            }
+        }
     }
 
     private static void setSystemProperties() {

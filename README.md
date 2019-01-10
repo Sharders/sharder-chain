@@ -4,7 +4,7 @@
 - Sharder is a blockchain-based multi-chain storage Network.
 
 ## Run Sharder client ##
-   - TODO
+- TODO
 
 ## Start mine ##
 Mine will open soon!
@@ -24,7 +24,7 @@ Mine will open soon!
 - 豆匣是基于区块链的多链架构存储网络。
 
 ## 运行豆匣客户端 ##
- - TODO
+- TODO
 
 ## 开始挖矿 ##
   暂未开放

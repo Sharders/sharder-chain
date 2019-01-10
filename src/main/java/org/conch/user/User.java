@@ -21,8 +21,8 @@
 
 package org.conch.user;
 
-import org.conch.mint.Generator;
 import org.conch.crypto.Crypto;
+import org.conch.mint.Generator;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -76,14 +76,14 @@ final class User {
     }
 
     void lockAccount() {
-        Generator.stopForging(secretPhrase);
+        Generator.stopMining(secretPhrase);
         secretPhrase = null;
     }
 
     long unlockAccount(String secretPhrase) {
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.secretPhrase = secretPhrase;
-        return Generator.startForging(secretPhrase).getAccountId();
+        return Generator.startMining(secretPhrase).getAccountId();
     }
 
     synchronized void processPendingResponses(HttpServletRequest req, HttpServletResponse resp) throws IOException {
