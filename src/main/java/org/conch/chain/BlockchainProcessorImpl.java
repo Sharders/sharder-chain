@@ -2322,8 +2322,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               .build(secretPhrase);
       sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
     } catch (ConchException.NotValidException e) {
-      Logger.logErrorMessage(
-          "Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
+      Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
     }
 
     for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
@@ -2363,8 +2362,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       pushBlock(block);
       blockListeners.notify(block, Event.BLOCK_GENERATED);
       Logger.logDebugMessage(
-          "Account "
+          "Account[id="
               + Long.toUnsignedString(block.getGeneratorId())
+              + ", RS="
+              + Convert.rsAccount(block.getGeneratorId())
+              + "]"
               + " generated block "
               + block.getStringId()
               + " at height "

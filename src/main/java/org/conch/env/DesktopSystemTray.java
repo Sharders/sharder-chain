@@ -117,7 +117,7 @@ public class DesktopSystemTray {
         itemNameMap.put("TotalM",new ItemName("Total memory","占用内存"));
         itemNameMap.put("FreeM",new ItemName("Free memory","空闲内存"));
         itemNameMap.put("ProcessI",new ItemName("Process id","进程ID"));
-        itemNameMap.put("Updated",new ItemName("Updated","更新时间"));
+        itemNameMap.put("Updated",new ItemName("Last updated","最后更新"));
         itemNameMap.put("COSSS",new ItemName("COS Server Status","COS服务状态"));
         itemNameMap.put("Version",new ItemName("Version","版本号"));
         itemNameMap.put("InitializationeE",new ItemName("Initialization Error","初始化出错"));
