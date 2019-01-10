@@ -698,6 +698,12 @@ public final class Conch {
      * Auto mining of Hub or Miner 
      */
     private static void autoMining(){
+        if(getBlockchain().getHeight() <= 0) {
+            Logger.logWarningMessage("!!! current height <= 0, need syn blocks or wait genesis block be saved into db");
+            Logger.logWarningMessage("!!! you can restart the client after genesis block created");
+            return;
+        }
+        
         // [Hub] if owner bind the passphrase then start mine automatic
         Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
         String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
