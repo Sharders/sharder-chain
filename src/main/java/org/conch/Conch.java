@@ -286,29 +286,35 @@ public final class Conch {
         try {
 
             if (useNATService) {
-                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
-                cmd.append(" -s ").append(NATServiceAddress == null?addressHost(myAddress):NATServiceAddress)
-                        .append(" -p ").append(NATServicePort)
-                        .append(" -k ").append(NATClientKey);
-                Process process = Runtime.getRuntime().exec(cmd.toString());
-                // any error message?
-                StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
-                // any output?
-                StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
-                // kick them off
-                errorGobbler.start();
-                outputGobbler.start();
-                Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
-                InputStreamReader isr = new InputStreamReader(findName.getInputStream());
-                BufferedReader br = new BufferedReader(isr);
-                if (br.readLine() == null){
-                    Logger.logInfoMessage("Open NAT Client Auto Start");
-                    Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+                File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
+                
+                if(natCmdFile.exists()){
+                    StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
+                    cmd.append(" -s ").append(NATServiceAddress == null?addressHost(myAddress):NATServiceAddress)
+                            .append(" -p ").append(NATServicePort)
+                            .append(" -k ").append(NATClientKey);
+                    Process process = Runtime.getRuntime().exec(cmd.toString());
+                    // any error message?
+                    StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
+                    // any output?
+                    StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
+                    // kick them off
+                    errorGobbler.start();
+                    outputGobbler.start();
+                    Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
+                    InputStreamReader isr = new InputStreamReader(findName.getInputStream());
+                    BufferedReader br = new BufferedReader(isr);
+                    if (br.readLine() == null){
+                        Logger.logInfoMessage("Open NAT Client Auto Start");
+                        Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+                    }
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
+                    Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
+                }else{
+                    Logger.logWarningMessage("!!! useNatService is true but command file not exist");
                 }
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
-                Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
             }
         } catch (IOException e) {
             useNATService = false;

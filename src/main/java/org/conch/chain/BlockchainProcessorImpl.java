@@ -27,7 +27,6 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.ConchGenesis;
-import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
@@ -1465,23 +1464,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
     
-  private TransactionImpl _defaultPocTemplateTx() throws ConchException.NotValidException {
-      Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
-      return new TransactionImpl.BuilderImpl(
-                    (byte) 0,
-                    ConchGenesis.CREATOR_PUBLIC_KEY,
-                    0,
-                    0,
-                    (short) 0,
-                    attachment)
-                    .timestamp(0)
-                    .signature(ConchGenesis.CREATOR_SIGNATURES)
-                    .height(0)
-                    .ecBlockHeight(0)
-                    .ecBlockId(0)
-                    .build();
-  }
-
   private boolean addConchGenesisBlock() {
     if (BlockDb.hasBlock(ConchGenesis.GENESIS_BLOCK_ID, 0)) {
       Logger.logMessage("Genesis block already in database");
@@ -1513,7 +1495,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         transactions.add(transaction);
       }
 
-      transactions.add(_defaultPocTemplateTx());
+      transactions.add(ConchGenesis.defaultPocWeightTableTx());
       
       Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
       MessageDigest digest = Crypto.sha256();
@@ -1536,8 +1518,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               ConchGenesis.GENESIS_BLOCK_SIGNATURE,
               null,
               transactions);
-      Logger.logMessage(
-          "ConchGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
+      Logger.logMessage("ConchGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
 
       genesisBlock.setPrevious(null);
       addBlock(genesisBlock);
