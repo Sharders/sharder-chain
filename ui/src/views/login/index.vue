@@ -118,6 +118,10 @@
         },
         created() {
             const _this = this;
+
+            let url = window.location.host;
+            alert(url);
+
             // this.$global.getUserConfig(this).then(res=>{
             //     if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
             //         _this.$store.state.userConfig = res;

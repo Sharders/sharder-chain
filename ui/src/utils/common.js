@@ -3,6 +3,7 @@
  */
 
 export default {
+    loginState:'hub',
     epochBeginning: -1,
     newConsole:null,
     isOpenConsole:false,
@@ -161,7 +162,9 @@ export default {
             }
         }
         return result;*/
-
+        if(isNaN(s)){
+            return 0;
+        }
 
         n = n >= 0 && n <= 20 ? n : 2;
         s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";

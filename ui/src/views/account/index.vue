@@ -37,6 +37,7 @@
                             </span>
                             <span>{{$t('account.send_message')}}</span>
                         </button>
+                        
                         <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
@@ -521,6 +522,20 @@
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
             });
 
+            this.$global.getUserConfig(this).then(res=>{
+                if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
+                    _this.$store.state.userConfig = res;
+                    _this.userConfig = res;
+                    _this.$store.state.isHubInit = true;
+                }else{
+                    // if(_this.$route.query.info === 'register2Init'){
+                    //     _this.hubSettingDialog = true;
+                    //     _this.$store.state.mask = true;
+                    //     _this.hubsetting.SS_Address = SSO.accountRS;
+                    // }
+                }
+            });
+
             _this.getAccountTransactionList();
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res;
@@ -778,10 +793,10 @@
                 }
 
 
-                if(_this.messageForm.errorCode){
-                    _this.$message.warning(_this.$t('notification.null_information_warning'));
-                    return;
-                }
+                // if(_this.messageForm.errorCode){
+                //     _this.$message.warning(_this.$t('notification.null_information_warning'));
+                //     return;
+                // }
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
                 formData.append("phasingHashedSecret", '');
@@ -854,10 +869,10 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(_this.transfer.errorCode){
+ /*               if(_this.transfer.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
-                }
+                }*/
 
                 if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____"){
@@ -966,10 +981,10 @@
                         return;
                     }
                 }
-                if(_this.messageForm.errorCode){
+/*                if(_this.messageForm.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
-                }
+                }*/
                 if(_this.messageForm.password === ''){
                     _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                     return;
@@ -1066,10 +1081,10 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(_this.transfer.errorCode){
+/*                if(_this.transfer.errorCode){
                     _this.$message.warning(_this.$t('notification.null_information_warning'));
                     return;
-                }
+                }*/
 
                 if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____" ||
@@ -1297,6 +1312,19 @@
                 _this.messageForm.password = "";
                 _this.messageForm.fee = 1;
                 _this.file = null;
+
+                _this.transfer.receiver = "SSA";
+                _this.transfer.number = 0;
+                _this.transfer.fee = 1;
+                _this.transfer.hasMessage = false;
+                _this.transfer.message = "";
+                _this.transfer.isEncrypted = false;
+                _this.transfer.password = "";
+                _this.transfer.hasPublicKey = false;
+                _this.transfer.receiverPublickey = "";
+                _this.transfer.errorCode = false;
+
+
 
                 _this.isShowName = true;
                 _this.temporaryName = "";

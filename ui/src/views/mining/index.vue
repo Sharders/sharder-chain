@@ -13,8 +13,8 @@
                 <div class="assets">
                     <ul>
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number', {number:newestBlock.height})}}</li>
-                        <li>{{$t('mining.index.my_assets')}}100000 SS</li>
-                        <li>{{$t('mining.index.my_income')}}100000 SS</li>
+                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</li>
+                        <li>{{$t('mining.index.my_income')}}{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}} SS</li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
                             <span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>
@@ -81,7 +81,7 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.endBlockNo - mining.startBlockNo - mining.historicalBlocks}}{{$t('mining.index.unit_block')}}</span>
+                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.startBlockNo > newestBlock.height ? mining.endBlockNo - mining.startBlockNo : mining.endBlockNo - newestBlock.height}}{{$t('mining.index.unit_block')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -315,7 +315,7 @@
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolinvestment: 50000,
-                maxForgeTime:5 * 60,
+                maxForgeTime:1 * 60 * 60,
                 options: [
                     {
                         value: 'default',
@@ -334,6 +334,7 @@
                         label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
+
                 value: '',
                 setname: '',
                 incomeDistribution: 0,
@@ -510,6 +511,11 @@
                 this.$router.push({name: "mining-attribute", params: {mining:mining, newestBlock:this.newestBlock}});
             },
             isVisible(val) {
+
+                if(val === "isCreatePool" && this.rule === null){
+                    this.$message.error("您还未拥有创建矿池的权限");
+                    return;
+                }
                 this.$store.state.mask = !this[val];
                 this[val] = !this[val];
             },
@@ -552,8 +558,12 @@
             formData = new FormData();
             formData.append("creatorId",SSO.account);
             this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
-                _this.rule = res.data;
 
+                if(typeof res.data.errorDescription !== 'undefined'){
+                    _this.rule = null;
+                }else{
+                    _this.rule = res.data;
+                }
                 console.log("getRule",_this.rule.forgepool.reward.max);
             }).catch(err=>{
                 console.log(err);
@@ -561,7 +571,7 @@
 
 
             let formData = new FormData();
-            formData.append("createId",SSO.account);
+            // formData.append("createId",SSO.account);
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
                 console.log(res.data);
                 _this.miningList = res.data.pools;
@@ -600,6 +610,21 @@
             }).catch(function (err) {
                 _this.$message.error(err);
             });
+
+           /* this.$http.get('/sharder?requesSSO.accountRS,tType=getAccount', {
+                params: {
+                    account:SSO.accountRS,
+                    includeLessors: true,
+                    includeAssets: true,
+                    includeEffectiveBalance: true,
+                    includeCurrencies: true,
+
+                }
+            }).then(function (res) {
+
+            }).catch(function(err){
+
+            });*/
         },
         watch:{
             getLang:{
