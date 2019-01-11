@@ -58,7 +58,7 @@ public class Generator implements Comparable<Generator> {
     private static final ConcurrentMap<String, Generator> generators = new ConcurrentHashMap<>();
     private static final Collection<Generator> allGenerators = Collections.unmodifiableCollection(generators.values());
     private static volatile List<Generator> sortedMiners = null;
-    private static volatile List<Long> blockMissingMinerIds = Lists.newArrayList();
+    private static volatile List<Long> generationMissingMinerIds = Lists.newArrayList();
     private static long lastBlockId;
     private static int delayTime = Constants.FORGING_DELAY;
     
@@ -125,7 +125,7 @@ public class Generator implements Comparable<Generator> {
                             }
                         }
 
-                        // blockMissingMinerIds.clear();
+                        // generationMissingMinerIds.clear();
                         for (Generator generator : sortedMiners) {
                             if(generator.getHitTime() > generationLimit) {
                                 return;
@@ -133,7 +133,7 @@ public class Generator implements Comparable<Generator> {
                             if(generator.mint(lastBlock, generationLimit)) {
                                 return;
                             }
-                            blockMissingMinerIds.add(generator.getAccountId());
+                            generationMissingMinerIds.add(generator.getAccountId());
                         }
                         
                     } finally {
@@ -151,6 +151,17 @@ public class Generator implements Comparable<Generator> {
         }
 
     };
+
+
+    public static boolean hasGenerationMissingAccount(){
+        return generationMissingMinerIds.size() > 0;
+    }
+    
+    public synchronized static List<Long> getAndResetGenerationMissingMiners(){
+        List<Long> missingAccountds = Collections.unmodifiableList(generationMissingMinerIds);
+        generationMissingMinerIds.clear();
+        return missingAccountds;
+    }
 
     static {
         if (!Constants.isLightClient) {
@@ -275,8 +286,12 @@ public class Generator implements Comparable<Generator> {
     }
 
     public static BigInteger getHit(byte[] publicKey, Block block) {
-        if (allowsFakeForging(publicKey)) return BigInteger.ZERO;
-        if (block.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK) throw new IllegalArgumentException("Not supported below Transparent Forging Block");
+        if (allowsFakeForging(publicKey)) {
+            return BigInteger.ZERO;
+        }
+        if (block.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK) {
+            throw new IllegalArgumentException("Not supported below Transparent Forging Block");
+        }
 
         MessageDigest digest = Crypto.sha256();
         digest.update(block.getGenerationSignature());
@@ -455,7 +470,9 @@ public class Generator implements Comparable<Generator> {
 
             //添加当前的合格锻造者到活跃锻造者池
             for(Generator generator : sortedMiners){
-                if(activeGeneratorIds.contains(generator.getAccountId())) continue;
+                if(activeGeneratorIds.contains(generator.getAccountId())) {
+                    continue;
+                }
                 ActiveGenerator activeForger = new ActiveGenerator(generator.getAccountId());
                 curForgers.add(activeForger);
             }

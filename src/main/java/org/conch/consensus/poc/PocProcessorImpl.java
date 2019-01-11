@@ -243,7 +243,7 @@ public class PocProcessorImpl implements PocProcessor {
       }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
         onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
       }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
-        blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocBlockMissing)tx.getAttachment());
+        blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
       }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
         PocScore.PocCalculator.setCurWeightTable((PocTxBody.PocWeightTable)tx.getAttachment(),block.getHeight());
       }
@@ -367,9 +367,9 @@ public class PocProcessorImpl implements PocProcessor {
    * @param pocBlockMissing PocBlockMissing tx
    * @return
    */
-  public static boolean blockMissingTxProcess(int height, PocTxBody.PocBlockMissing pocBlockMissing){
+  public static boolean blockMissingTxProcess(int height, PocTxBody.PocGenerationMissing pocBlockMissing){
     
-    List<Long> missAccountIds = pocBlockMissing.getMissAccountIds();
+    List<Long> missAccountIds = pocBlockMissing.getMissingAccountIds();
     for(Long missAccountId : missAccountIds){
       PocScore pocScoreToUpdate = new PocScore(missAccountId,height);
       pocScoreToUpdate.blockMissCal(pocBlockMissing);

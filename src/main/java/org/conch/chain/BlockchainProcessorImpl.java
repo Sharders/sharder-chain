@@ -27,6 +27,7 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
@@ -447,11 +448,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
 
             JSONObject response = peer.send(JSON.prepareRequest(milestoneBlockIdsRequest));
-            if (response == null) return 0;
+            if (response == null) {
+                return 0;
+            }
 
             JSONArray milestoneBlockIds = (JSONArray) response.get("milestoneBlockIds");
-            if (milestoneBlockIds == null) return 0;
-            if (milestoneBlockIds.isEmpty()) return SharderGenesis.GENESIS_BLOCK_ID;
+            if (milestoneBlockIds == null) {
+                return 0;
+            }
+            if (milestoneBlockIds.isEmpty()) {
+                return SharderGenesis.GENESIS_BLOCK_ID;
+            }
 
             // prevent overloading with blockIds
             if (milestoneBlockIds.size() > 20) {
@@ -463,7 +470,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return 0;
             }
 
-            if (Boolean.TRUE.equals(response.get("last"))) peerHasMore = false;
+            if (Boolean.TRUE.equals(response.get("last"))) {
+                peerHasMore = false;
+            }
 
             for (Object milestoneBlockId : milestoneBlockIds) {
               long blockId = Convert.parseUnsignedLong((String) milestoneBlockId);
@@ -817,7 +826,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // index so no more blocks will be processed.
       //
       List<JSONObject> nextBlocks = (List<JSONObject>) response.get("nextBlocks");
-      if (nextBlocks == null) return null;
+      if (nextBlocks == null) {
+          return null;
+      }
       if (nextBlocks.size() > 36) {
         Logger.logDebugMessage(
             "Obsolete or rogue peer "
@@ -831,7 +842,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         int count = stop - start;
         for (JSONObject blockData : nextBlocks) {
           blockList.add(BlockImpl.parseBlock(blockData));
-          if (--count <= 0) break;
+          if (--count <= 0) {
+              break;
+          }
         }
       } catch (RuntimeException | ConchException.NotValidException e) {
         Logger.logDebugMessage("Failed to parse block: " + e.toString(), e);
@@ -1019,7 +1032,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               long id = it.next();
               requestList.add(Long.toUnsignedString(id));
               it.remove();
-              if (requestList.size() == 100) break;
+              if (requestList.size() == 100) {
+                  break;
+              }
             }
           }
           // [NAT] inject useNATService property to the request params
@@ -2205,7 +2220,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     Transaction storeTransaction =
         Conch.getBlockchain().getTransaction(dataStorageBackup.getUploadTransaction());
     if (!uploadTransactions.containsKey(dataStorageBackup.getUploadTransaction())
-        && storeTransaction == null) return false;
+        && storeTransaction == null) {
+        return false;
+    }
     return true;
   }
 
@@ -2255,10 +2272,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private boolean hasBackuped(Map<Long, Map<String, Long>> backupNum, Transaction backup) {
     Attachment.DataStorageBackup dataStorageBackup =
         (Attachment.DataStorageBackup) backup.getAttachment();
-    if (backupNum.containsKey(dataStorageBackup.getUploadTransaction())
-        && backupNum.get(dataStorageBackup.getUploadTransaction()).get("backuper")
-            == backup.getSenderId()) return true;
-    return false;
+      return backupNum.containsKey(dataStorageBackup.getUploadTransaction())
+              && backupNum.get(dataStorageBackup.getUploadTransaction()).get("backuper")
+              == backup.getSenderId();
   }
 
   private static final Comparator<UnconfirmedTransaction> transactionArrivalComparator =
@@ -2275,7 +2291,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
           try {
             phasedTransaction.validate();
-            phasedTransaction.attachmentIsDuplicate(duplicates, false); // pre-populate duplicates map
+            // pre-populate duplicates map
+            phasedTransaction.attachmentIsDuplicate(duplicates, false); 
           } catch (ConchException.ValidationException ignore) {
             
           }
@@ -2323,39 +2340,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               .build(secretPhrase);
       sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
     } catch (ConchException.NotValidException e) {
-      Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
+        long accountId = Account.getId(publicKey);
+        Logger.logErrorMessage("Can't create coin base transaction[current miner=" + Convert.rsAccount(accountId)  + ", id=" + accountId + "]", e);
     }
     
     // generation missing
-    try {
-          // Pool owner -> pool rewards map (send rewards to pool joiners)
-          // Single miner -> empty rewards map (send rewards to miner)
-          long blockCreatorId = Account.getId(publicKey);
-          Map<Long, Long> map = new HashMap<>();
-          long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
-          if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
-              poolId = blockCreatorId;
-          } else {
-              map = SharderPoolProcessor.getSharderPool(poolId).getConsignorsAmountMap();
-          }
-    
-          // transaction version=1, deadline=10,timestamp=blockTimestamp
-          TransactionImpl transaction =
-                  new TransactionImpl.BuilderImpl(
-                          (byte) 1,
-                          publicKey,
-                          RewardCalculator.mintReward(blockCreatorId),
-                          0,
-                          (short) 10,
-                          new Attachment.CoinBase(
-                                  Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), poolId, map))
-                          .timestamp(blockTimestamp)
-                          .recipientId(0)
-                          .build(secretPhrase);
-          sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
-      } catch (ConchException.NotValidException e) {
-          Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
-      }
+    try { 
+        if(Generator.hasGenerationMissingAccount()) {
+            TransactionImpl transaction =
+                    new TransactionImpl.BuilderImpl(
+                            (byte) 1,
+                            publicKey,
+                            0,
+                            0,
+                            (short) 10,
+                            new PocTxBody.PocGenerationMissing(Generator.getAndResetGenerationMissingMiners()))
+                            .timestamp(blockTimestamp)
+                            .recipientId(0)
+                            .build(secretPhrase);
+            sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
+        }
+    } catch (ConchException.NotValidException e) {
+        long accountId = Account.getId(publicKey);
+        Logger.logErrorMessage("Can't create generation missing transaction[current miner=" + Convert.rsAccount(accountId)  + ", id=" + accountId + "]", e);
+    }
 
     for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
       TransactionImpl transaction = unconfirmedTransaction.getTransaction();

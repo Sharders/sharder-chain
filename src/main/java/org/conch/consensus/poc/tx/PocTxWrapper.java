@@ -261,7 +261,7 @@ public abstract class PocTxWrapper extends TransactionType {
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
             try {
-                return new PocTxBody.PocBlockMissing(buffer,transactionVersion);
+                return new PocTxBody.PocGenerationMissing(buffer,transactionVersion);
             } catch (ConchException.NotValidException e) {
                 Logger.logErrorMessage("Can't new PocTxBody.PocBlockMissing instance",e);
             }
@@ -270,12 +270,12 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return new PocTxBody.PocBlockMissing(attachmentData);
+            return new PocTxBody.PocGenerationMissing(attachmentData);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-            PocTxBody.PocBlockMissing pocBlockingMiss = (PocTxBody.PocBlockMissing) transaction.getAttachment();
+            PocTxBody.PocGenerationMissing pocBlockingMiss = (PocTxBody.PocGenerationMissing) transaction.getAttachment();
             if (pocBlockingMiss == null) {
                 throw new ConchException.NotValidException("Invalid PocTxBody.PocBlockMissing: null");
             }
@@ -283,7 +283,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocBlockMissing pocBlockMissing = (PocTxBody.PocBlockMissing) transaction.getAttachment();
+            PocTxBody.PocGenerationMissing pocBlockMissing = (PocTxBody.PocGenerationMissing) transaction.getAttachment();
 
             PocProcessorImpl.blockMissingTxProcess(transaction.getHeight(), pocBlockMissing);
         }
@@ -313,7 +313,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return new PocTxBody.PocBlockMissing(attachmentData);
+            return new PocTxBody.PocGenerationMissing(attachmentData);
         }
 
         @Override

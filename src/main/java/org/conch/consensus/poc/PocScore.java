@@ -70,7 +70,7 @@ public class PocScore {
         PocCalculator.onlineRateCal(this,nodeType,onlineRate);
     }
     
-    public void blockMissCal(PocTxBody.PocBlockMissing pocBlockMissing){
+    public void blockMissCal(PocTxBody.PocGenerationMissing pocBlockMissing){
         PocCalculator.blockMissCal(this, pocBlockMissing);
     }
 
@@ -261,7 +261,7 @@ public class PocScore {
         
         static Map<Long,Integer> missBlockMap = new HashMap<>();
 
-        static void blockMissCal(PocScore pocScore,PocTxBody.PocBlockMissing blockMiss) {
+        static void blockMissCal(PocScore pocScore,PocTxBody.PocGenerationMissing blockMiss) {
             Long accountId = pocScore.accountId;
             Integer missCount = 0;
             if(missBlockMap.containsKey(accountId)) missCount = missBlockMap.get(accountId);
@@ -272,11 +272,11 @@ public class PocScore {
              *  只实现了累积的判断，还未实现一段时间丢失率的判断检查
              * */
             if(missCount <= 3){
-                missBlcokScore = pocWeightTable.getBlockingMissTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel());
+                missBlcokScore = pocWeightTable.getGenerationMissingTemplate().get(PocTxBody.DeviceLevels.GOOD.getLevel());
             }else if(missCount > 3 && missCount <= 10){
-                missBlcokScore = pocWeightTable.getBlockingMissTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel());
+                missBlcokScore = pocWeightTable.getGenerationMissingTemplate().get(PocTxBody.DeviceLevels.MIDDLE.getLevel());
             }else if(missCount > 10){
-                missBlcokScore = pocWeightTable.getBlockingMissTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel());
+                missBlcokScore = pocWeightTable.getGenerationMissingTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel());
             }
             pocScore.blockMissScore = missBlcokScore.multiply(POINT_SYSTEM_CONVERSION_RATE).divide(PERCENT_DIVISOR);
             // TODO xy impl miss_block check in interval
