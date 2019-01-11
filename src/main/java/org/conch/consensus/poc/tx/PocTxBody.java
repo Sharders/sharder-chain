@@ -15,6 +15,7 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +23,8 @@ import java.util.Map;
  * @since 2018/12/12
  */
 public interface PocTxBody  {
-
+     int MAX_POC_ITEM_BYTEBUFFER = 10240;
+     
      enum WeightTableOptions {
         NODE_TYPE("node"),
         SERVER_OPEN("serverOpen"),
@@ -328,19 +330,19 @@ public interface PocTxBody  {
             this.weightTableVersion = version;
         }
 
-        private static int MAX_POC_WEIGHT_TABLE_ITEM = 10240;
+    
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
             this.weightTableVersion = buffer.getLong();
-            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.blockingMissTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
-            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
+            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.blockingMissTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
         }
 
         public PocWeightTable(JSONObject attachmentData) {
@@ -548,54 +550,54 @@ public interface PocTxBody  {
         }
     }
 
-    final class PocBlockMiss extends Attachment.TxBodyBase {
-        private long missAccountId;
+    final class PocBlockMissing extends Attachment.TxBodyBase {
+        private List<Long> missAccountIds;
         private int blockMissTimeStamp;
 
-        public PocBlockMiss(long missAccountId) {
-            this.missAccountId = missAccountId;
+        public PocBlockMissing(List<Long> missAccountIds) {
+            this.missAccountIds = missAccountIds;
         }
 
-        public long getMissAccountId() {
-            return missAccountId;
+        public List<Long> getMissAccountIds() {
+            return missAccountIds;
         }
 
         public int getBlockMissTimeStamp() {
             return blockMissTimeStamp;
         }
 
-        public PocBlockMiss(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
-             this.missAccountId = buffer.getLong();
+        public PocBlockMissing(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+             super(buffer, transactionVersion);
+             this.missAccountIds = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),List.class);
              this.blockMissTimeStamp = buffer.getInt();
         }
 
-        public PocBlockMiss(JSONObject attachmentData) {
+        public PocBlockMissing(JSONObject attachmentData) {
             super(attachmentData);
-            this.missAccountId = (long) attachmentData.get("missAccountId");
+            this.missAccountIds = (List<Long>) attachmentData.get("missAccountIds");
             this.blockMissTimeStamp = (int) attachmentData.get("blockMissTimeStamp");
         }
 
         @Override
         public int getMySize() {
-            return 8 + 4;
+            return Convert.countJsonBytes(missAccountIds) + 4;
         }
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(missAccountId);
+            Convert.writeList(buffer,missAccountIds);
             buffer.putInt(blockMissTimeStamp);
         }
 
         @Override
         public void putMyJSON(JSONObject json) {
-              json.put("missAccountId", missAccountId);
+              json.put("missAccountIds", missAccountIds);
               json.put("blockMissTimeStamp", blockMissTimeStamp);
         }
 
         @Override
         public TransactionType getTransactionType() {
-            return PocTxWrapper.POC_BLOCK_MISS;
+            return PocTxWrapper.POC_BLOCK_MISSING;
         }
     }
 

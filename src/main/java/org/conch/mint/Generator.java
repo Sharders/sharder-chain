@@ -328,12 +328,8 @@ public class Generator implements Comparable<Generator> {
     
     @Override
     public int compareTo(Generator g) {
-//        int i = this.hit.multiply(g.effectiveBalance).compareTo(g.hit.multiply(this.effectiveBalance));
         int i = this.hit.multiply(g.pocScore).compareTo(g.hit.multiply(this.pocScore));
-        if (i != 0) {
-            return i;
-        }
-        return Long.compare(accountId, g.accountId);
+        return i != 0 ? i : Long.compare(accountId, g.accountId);
     }
 
     @Override
@@ -353,9 +349,7 @@ public class Generator implements Comparable<Generator> {
         Account account = Account.getAccount(accountId, height);
 
 
-        //不获取effectiveBalance 会导致不出块
         effectiveBalance = PocScore.calEffectiveBalance(account,height);
-//      PocScore.calEffectiveBalance(account,height);
 
         pocScore = PocProcessorImpl.instance.calPocScore(account,height);
 //        if (effectiveBalance.signum() == 0) {

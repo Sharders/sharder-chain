@@ -70,8 +70,8 @@ public class PocScore {
         PocCalculator.onlineRateCal(this,nodeType,onlineRate);
     }
     
-    public void blockMissCal(PocTxBody.PocBlockMiss pocBlockMiss){
-        PocCalculator.blockMissCal(this,pocBlockMiss);
+    public void blockMissCal(PocTxBody.PocBlockMissing pocBlockMissing){
+        PocCalculator.blockMissCal(this, pocBlockMissing);
     }
 
     /**
@@ -102,7 +102,13 @@ public class PocScore {
         this.blockMissScore = another.blockMissScore;
         this.bcScore = another.bcScore;
     }
-    
+
+    /**
+     * effective balance is pool balance if the miner own a sharder pool 
+     * @param accountId
+     * @param height
+     * @return
+     */
     private static BigInteger _calBalance(Long accountId, int height){
         BigInteger balance = BigInteger.ZERO;
         if (accountId == null) return balance;
@@ -255,7 +261,7 @@ public class PocScore {
         
         static Map<Long,Integer> missBlockMap = new HashMap<>();
 
-        static void blockMissCal(PocScore pocScore,PocTxBody.PocBlockMiss blockMiss) {
+        static void blockMissCal(PocScore pocScore,PocTxBody.PocBlockMissing blockMiss) {
             Long accountId = pocScore.accountId;
             Integer missCount = 0;
             if(missBlockMap.containsKey(accountId)) missCount = missBlockMap.get(accountId);

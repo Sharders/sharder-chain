@@ -1158,7 +1158,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     ThreadPool.runBeforeStart(
         () -> {
           alreadyInitialized = true;
-          if (addConchGenesisBlock()) {
+          if (addSharderGenesisBlock()) {
             scan(0, false);
           } else if (Conch.getBooleanProperty("sharder.forceScan")) {
             scan(0, Conch.getBooleanProperty("sharder.forceValidate"));
@@ -1331,7 +1331,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         scheduleScan(0, false);
         // BlockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
         BlockDb.deleteAll();
-        if (addConchGenesisBlock()) {
+        if (addSharderGenesisBlock()) {
           scan(0, false);
         }
       } finally {
@@ -1464,7 +1464,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
     
-  private boolean addConchGenesisBlock() {
+  private boolean addSharderGenesisBlock() {
     if (BlockDb.hasBlock(SharderGenesis.GENESIS_BLOCK_ID, 0)) {
       Logger.logMessage("Genesis block already in database");
       BlockImpl lastBlock = BlockDb.findLastBlock();
@@ -1473,7 +1473,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Logger.logMessage("Last block height: " + lastBlock.getHeight());
       return false;
     }
-    Logger.logMessage("ConchGenesis block not in database, starting from scratch");
+    
+    Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
       List<TransactionImpl> transactions = new ArrayList<>();
       for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
@@ -1518,7 +1519,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               SharderGenesis.GENESIS_BLOCK_SIGNATURE,
               null,
               transactions);
-      Logger.logMessage("ConchGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
+      Logger.logMessage("SharderGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
 
       genesisBlock.setPrevious(null);
       addBlock(genesisBlock);

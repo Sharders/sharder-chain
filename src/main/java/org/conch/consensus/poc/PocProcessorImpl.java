@@ -231,8 +231,8 @@ public class PocProcessorImpl implements PocProcessor {
         nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
       }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
         onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
-      }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISS == tx.getType().getSubtype()){
-        blockMissTxProcess(tx.getHeight(), (PocTxBody.PocBlockMiss)tx.getAttachment());
+      }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
+        blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocBlockMissing)tx.getAttachment());
       }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
         PocScore.PocCalculator.setCurWeightTable((PocTxBody.PocWeightTable)tx.getAttachment(),block.getHeight());
       }
@@ -297,7 +297,7 @@ public class PocProcessorImpl implements PocProcessor {
 
     PocHolder.inst.scoreMapping(pocScoreToUpdate);
     
-    return false;
+    return true;
   }
 
   /**
@@ -319,7 +319,7 @@ public class PocProcessorImpl implements PocProcessor {
     pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
     PocHolder.inst.scoreMapping(pocScoreToUpdate);
-    return false;
+    return true;
   }
 
   /**
@@ -341,23 +341,24 @@ public class PocProcessorImpl implements PocProcessor {
     pocScoreToUpdate.onlineRateCal(peer.getType(),onlineRate);
 
     PocHolder.inst.scoreMapping(pocScoreToUpdate);
-    return false;
+    return true;
   }
 
   /**
    * process the block miss tx of poc series
    * @param height block height that included this tx
-   * @param pocBlockMiss PocBlockMiss tx
+   * @param pocBlockMissing PocBlockMissing tx
    * @return
    */
-  public static boolean blockMissTxProcess(int height,PocTxBody.PocBlockMiss pocBlockMiss){
+  public static boolean blockMissingTxProcess(int height, PocTxBody.PocBlockMissing pocBlockMissing){
     
-    long missAccountId = pocBlockMiss.getMissAccountId();
-    PocScore pocScoreToUpdate = new PocScore(missAccountId,height);
-    pocScoreToUpdate.blockMissCal(pocBlockMiss);
-
-    PocHolder.inst.scoreMapping(pocScoreToUpdate);
-    return false;
+    List<Long> missAccountIds = pocBlockMissing.getMissAccountIds();
+    for(Long missAccountId : missAccountIds){
+      PocScore pocScoreToUpdate = new PocScore(missAccountId,height);
+      pocScoreToUpdate.blockMissCal(pocBlockMissing);
+      PocHolder.inst.scoreMapping(pocScoreToUpdate);
+    }
+    return true;
   }
   
 }
