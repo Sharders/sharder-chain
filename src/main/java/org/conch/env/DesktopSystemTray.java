@@ -83,26 +83,26 @@ public class DesktopSystemTray {
     private static final Map<String,ItemName> itemNameMap = new ConcurrentHashMap<>();
     {
         itemNameMap.put("Shutdown",new ItemName("Shutdown","关闭"));
-        itemNameMap.put("OpenWIB",new ItemName("Open Client in Browser","浏览器端"));
+        itemNameMap.put("OpenWIB",new ItemName("Open in Browser","浏览器端"));
         itemNameMap.put("ShowDA",new ItemName("Show Client","显示终端"));
         itemNameMap.put("RefreshW",new ItemName("Refresh Client","刷新终端"));
         itemNameMap.put("ViewLF",new ItemName("View Log File","查看日志"));
         itemNameMap.put("Status",new ItemName("Status","终端状态"));
         itemNameMap.put("Initializing",new ItemName("Initializing","初始化中"));
         itemNameMap.put("ShutdownTips",new ItemName("Sure you want to shutdown COS?\n\nIf you do, this will stop mining.\n\n","你确定要关闭COS吗?\n\n关闭将会导致无法挖矿!\n\n"));
-        itemNameMap.put("Installation",new ItemName("Installation","显示窗口"));
-        itemNameMap.put("Application",new ItemName("Application","程序"));
+        itemNameMap.put("Installation",new ItemName("Client","客户端"));
+        itemNameMap.put("Application",new ItemName("Application","应用程序"));
         itemNameMap.put("Network",new ItemName("Network","网络"));
-        itemNameMap.put("WorkingO",new ItemName("Working offline","离线模式"));
-        itemNameMap.put("Wallet",new ItemName("Wallet","浏览器端"));
+        itemNameMap.put("WorkingO",new ItemName("Offline","离线模式"));
+        itemNameMap.put("Wallet",new ItemName("Browser","浏览器端"));
         itemNameMap.put("PeerP",new ItemName("Peer port","监听端口"));
         itemNameMap.put("ProgramF",new ItemName("Program folder","程序目录"));
-        itemNameMap.put("UserF",new ItemName("User folder","配置目录"));
+        itemNameMap.put("UserF",new ItemName("User folder","用户目录"));
         itemNameMap.put("DatabaseU",new ItemName("Database URL","数据库"));
-        itemNameMap.put("LastB",new ItemName("Last Block","最新区块"));
+        itemNameMap.put("LastB",new ItemName("Block","区块"));
         itemNameMap.put("Height",new ItemName("Height","区块高度"));
         itemNameMap.put("Timestamp",new ItemName("Timestamp","时间戳"));
-        itemNameMap.put("Time",new ItemName("Last Block","最后一块"));
+        itemNameMap.put("Time",new ItemName("Last Block","最后区块"));
         itemNameMap.put("SecondsP",new ItemName("Seconds passed","过去秒数"));
         itemNameMap.put("Forging",new ItemName("Mining","开启挖矿"));
         itemNameMap.put("ForgingA",new ItemName("Mining accounts","挖矿账户"));
@@ -117,7 +117,7 @@ public class DesktopSystemTray {
         itemNameMap.put("TotalM",new ItemName("Total memory","占用内存"));
         itemNameMap.put("FreeM",new ItemName("Free memory","空闲内存"));
         itemNameMap.put("ProcessI",new ItemName("Process id","进程ID"));
-        itemNameMap.put("Updated",new ItemName("Updated","更新时间"));
+        itemNameMap.put("Updated",new ItemName("Last updated","最后更新"));
         itemNameMap.put("COSSS",new ItemName("COS Server Status","COS服务状态"));
         itemNameMap.put("Version",new ItemName("Version","版本号"));
         itemNameMap.put("InitializationeE",new ItemName("Initialization Error","初始化出错"));
@@ -280,11 +280,16 @@ public class DesktopSystemTray {
                 addDataRow(statusPanel, getItemDisplay("ForgingA"), generators.toString());
             }
         }
-
+        
+        int minerCount = 0;
+        try {
+            minerCount = Generator.getAllGenerators().size();
+        }catch(Exception e){}
+        
         addEmptyRow(statusPanel);
         addLabelRow(statusPanel, getItemDisplay("Environment"));
         addDataRow(statusPanel, getItemDisplay("NumberOP"), String.valueOf(Peers.getAllPeers().size()));
-        addDataRow(statusPanel, getItemDisplay("AvailableP"), String.valueOf(Runtime.getRuntime().availableProcessors()));
+        addDataRow(statusPanel, getItemDisplay("AvailableP"), String.valueOf(minerCount));
         addDataRow(statusPanel, getItemDisplay("MaxM"), humanReadableByteCount(Runtime.getRuntime().maxMemory()));
         addDataRow(statusPanel, getItemDisplay("TotalM"), humanReadableByteCount(Runtime.getRuntime().totalMemory()));
         addDataRow(statusPanel, getItemDisplay("FreeM"), humanReadableByteCount(Runtime.getRuntime().freeMemory()));

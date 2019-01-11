@@ -42,7 +42,7 @@ public final class StopForging extends APIServlet.APIRequestHandler {
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);
         JSONObject response = new JSONObject();
         if (secretPhrase != null) {
-            Generator generator = Generator.stopForging(secretPhrase);
+            Generator generator = Generator.stopMining(secretPhrase);
             response.put("foundAndStopped", generator != null);
             response.put("forgersCount", Generator.getGeneratorCount());
         } else {

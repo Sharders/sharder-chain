@@ -41,8 +41,13 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class MintWorker {
 
+/**
+ * independent currency miner
+ * 
+ */
+public class MintWorker {
+    
     public static void main(String[] args) {
         MintWorker mintWorker = new MintWorker();
         mintWorker.mint();

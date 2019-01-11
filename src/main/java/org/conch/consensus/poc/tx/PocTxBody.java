@@ -332,7 +332,6 @@ public interface PocTxBody  {
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
             this.weightTableVersion = buffer.getLong();
-            System.out.println("weightTableVersion=" + weightTableVersion);
             this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
             this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);
             this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_WEIGHT_TABLE_ITEM),Map.class);

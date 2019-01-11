@@ -286,29 +286,35 @@ public final class Conch {
         try {
 
             if (useNATService) {
-                StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
-                cmd.append(" -s ").append(NATServiceAddress == null?addressHost(myAddress):NATServiceAddress)
-                        .append(" -p ").append(NATServicePort)
-                        .append(" -k ").append(NATClientKey);
-                Process process = Runtime.getRuntime().exec(cmd.toString());
-                // any error message?
-                StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
-                // any output?
-                StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
-                // kick them off
-                errorGobbler.start();
-                outputGobbler.start();
-                Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
-                InputStreamReader isr = new InputStreamReader(findName.getInputStream());
-                BufferedReader br = new BufferedReader(isr);
-                if (br.readLine() == null){
-                    Logger.logInfoMessage("Open NAT Client Auto Start");
-                    Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+                File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
+                
+                if(natCmdFile.exists()){
+                    StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
+                    cmd.append(" -s ").append(NATServiceAddress == null?addressHost(myAddress):NATServiceAddress)
+                            .append(" -p ").append(NATServicePort)
+                            .append(" -k ").append(NATClientKey);
+                    Process process = Runtime.getRuntime().exec(cmd.toString());
+                    // any error message?
+                    StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
+                    // any output?
+                    StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT");
+                    // kick them off
+                    errorGobbler.start();
+                    outputGobbler.start();
+                    Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
+                    InputStreamReader isr = new InputStreamReader(findName.getInputStream());
+                    BufferedReader br = new BufferedReader(isr);
+                    if (br.readLine() == null){
+                        Logger.logInfoMessage("Open NAT Client Auto Start");
+                        Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+                    }
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
+                    Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
+                }else{
+                    Logger.logWarningMessage("!!! useNatService is true but command file not exist");
                 }
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
-                Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
             }
         } catch (IOException e) {
             useNATService = false;
@@ -643,44 +649,29 @@ public final class Conch {
                     setTime(new Time.FasterTime(Math.max(getEpochTime(), Conch.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
                     Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
                 }
+                
                 try {
                     secureRandomInitThread.join(10000);
                 } catch (InterruptedException ignore) {}
+                
                 testSecureRandom();
+                autoMining();
+                
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
-                if (API.getWelcomePageUri() != null) {
-                    Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
-                }
+                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
+                
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
-                if (isDesktopApplicationEnabled()) {
-                    launchDesktopApplication();
-                }
-                if (Constants.isTestnet()) {
-                    Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
-                }
-                if (Constants.isDevnet()) {
-                    Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
-                }
-                // [Hub] if owner binded then start mine automatic
-                Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
-                String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
-                String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
-                if (hubBind && hubBindPassPhrase != null) {
-                    Generator hubGenerator = Generator.startForging(hubBindPassPhrase.trim());
-                    if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
-                        Generator.stopForging(hubBindPassPhrase.trim());
-                        Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
-                    } else {
-                        Logger.logInfoMessage("Account " + hubBindAddress + "started mining automatically");
-                    }
-                    
-                    // open miner service
-                    Peers.checkAndSetOpeningServices(Lists.newArrayList(Peer.Service.MINER));
-                }
+                
+                if (isDesktopApplicationEnabled()) launchDesktopApplication();
+                
+                if (Constants.isTestnet()) Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                
+                if (Constants.isDevnet()) Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
+
 
                 Peers.sysInitialed = true;
 
@@ -701,6 +692,41 @@ public final class Conch {
 
         private Init() {} // never
 
+    }
+
+    /**
+     * Auto mining of Hub or Miner 
+     */
+    private static void autoMining(){
+        if(getBlockchain().getHeight() <= 0) {
+            Logger.logWarningMessage("!!! current height <= 0, need syn blocks or wait genesis block be saved into db");
+            Logger.logWarningMessage("!!! you can restart the client after genesis block created");
+            return;
+        }
+        
+        // [Hub] if owner bind the passphrase then start mine automatic
+        Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
+        String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
+        String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
+        if (hubBind && hubBindPassPhrase != null) {
+            Generator hubGenerator = Generator.startMining(hubBindPassPhrase.trim());
+            if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
+                Generator.stopMining(hubBindPassPhrase.trim());
+                Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
+            } else {
+                Logger.logInfoMessage("Account " + hubBindAddress + "started mining...");
+            }
+
+            // open miner service
+            Peers.checkAndSetOpeningServices(Lists.newArrayList(Peer.Service.MINER));
+        }else {
+            // [Miner] if owner set the passphrase of mint then start mining
+            String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+            if(autoMintPR != null) {
+                Generator bindGenerator = Generator.startMining(autoMintPR.trim());
+                Logger.logInfoMessage("Account " + Convert.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+            }
+        }
     }
 
     private static void setSystemProperties() {

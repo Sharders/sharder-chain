@@ -153,7 +153,7 @@ public class Generator implements Comparable<Generator> {
         return listeners.removeListener(listener, eventType);
     }
 
-    public static Generator startForging(String secretPhrase) {
+    public static Generator startMining(String secretPhrase) {
         if (generators.size() >= MAX_MINERS) {
             throw new RuntimeException("Cannot mint with more than " + MAX_MINERS + " accounts on the same node");
         }
@@ -169,7 +169,7 @@ public class Generator implements Comparable<Generator> {
         return generator;
     }
 
-    public static Generator stopForging(String secretPhrase) {
+    public static Generator stopMining(String secretPhrase) {
         Generator generator = generators.remove(secretPhrase);
         if (generator != null) {
             Conch.getBlockchain().updateLock();
@@ -338,7 +338,7 @@ public class Generator implements Comparable<Generator> {
 
     @Override
     public String toString() {
-        return "Miner " + Long.toUnsignedString(accountId) + " deadline " + getDeadline() + " hit " + hitTime;
+        return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
     }
 
 
@@ -378,7 +378,7 @@ public class Generator implements Comparable<Generator> {
 
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException {
         int timestamp = getTimestamp(generationLimit);
-        if (!verifyHit(hit, effectiveBalance, lastBlock, timestamp)) {
+        if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
             return false;
         }

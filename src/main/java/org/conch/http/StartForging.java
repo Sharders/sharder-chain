@@ -40,7 +40,7 @@ public final class StartForging extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
 
         String secretPhrase = ParameterParser.getSecretPhrase(req, true);
-        Generator generator = Generator.startForging(secretPhrase);
+        Generator generator = Generator.startMining(secretPhrase);
 
         JSONObject response = new JSONObject();
         response.put("deadline", generator.getDeadline());
