@@ -51,6 +51,10 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * @author ben
+ * @date 01/11/2018
+ */
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private static final byte[] CHECKSUM_TRANSPARENT_FORGING =
@@ -1061,13 +1065,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Listener<Block> checksumListener =
       block -> {
         if (block.getHeight() == Constants.TRANSPARENT_FORGING_BLOCK) {
-          if (!verifyChecksum(
-              CHECKSUM_TRANSPARENT_FORGING, 0, Constants.TRANSPARENT_FORGING_BLOCK)) {
+          if (!verifyChecksum(CHECKSUM_TRANSPARENT_FORGING, 0, Constants.TRANSPARENT_FORGING_BLOCK)) {
             popOffTo(0);
           }
         } else if (block.getHeight() == Constants.NQT_BLOCK) {
-          if (!verifyChecksum(
-              CHECKSUM_NQT_BLOCK, Constants.TRANSPARENT_FORGING_BLOCK, Constants.NQT_BLOCK)) {
+          if (!verifyChecksum(CHECKSUM_NQT_BLOCK, Constants.TRANSPARENT_FORGING_BLOCK, Constants.NQT_BLOCK)) {
             popOffTo(Constants.TRANSPARENT_FORGING_BLOCK);
           }
         } else if (block.getHeight() == Constants.MONETARY_SYSTEM_BLOCK) {
@@ -2293,8 +2295,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     long totalFeeNQT = 0;
     int payloadLength = 0;
 
+    // coin base
     try {
-      
       // Pool owner -> pool rewards map (send rewards to pool joiners)
       // Single miner -> empty rewards map (send rewards to miner)
       long blockCreatorId = Account.getId(publicKey);
@@ -2323,6 +2325,37 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     } catch (ConchException.NotValidException e) {
       Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
     }
+    
+    // generation missing
+    try {
+          // Pool owner -> pool rewards map (send rewards to pool joiners)
+          // Single miner -> empty rewards map (send rewards to miner)
+          long blockCreatorId = Account.getId(publicKey);
+          Map<Long, Long> map = new HashMap<>();
+          long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
+          if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
+              poolId = blockCreatorId;
+          } else {
+              map = SharderPoolProcessor.getSharderPool(poolId).getConsignorsAmountMap();
+          }
+    
+          // transaction version=1, deadline=10,timestamp=blockTimestamp
+          TransactionImpl transaction =
+                  new TransactionImpl.BuilderImpl(
+                          (byte) 1,
+                          publicKey,
+                          RewardCalculator.mintReward(blockCreatorId),
+                          0,
+                          (short) 10,
+                          new Attachment.CoinBase(
+                                  Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), poolId, map))
+                          .timestamp(blockTimestamp)
+                          .recipientId(0)
+                          .build(secretPhrase);
+          sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
+      } catch (ConchException.NotValidException e) {
+          Logger.logErrorMessage("Can't generate coin base transaction[rewardUserId=" + Account.getId(publicKey) + "]", e);
+      }
 
     for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
       TransactionImpl transaction = unconfirmedTransaction.getTransaction();

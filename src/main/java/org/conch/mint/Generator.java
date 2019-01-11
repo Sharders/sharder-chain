@@ -21,6 +21,7 @@
 
 package org.conch.mint;
 
+import com.google.common.collect.Lists;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
@@ -38,6 +39,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author ben 
+ * @date 01/11/2018
+ */
 public class Generator implements Comparable<Generator> {
 
     public enum Event {
@@ -52,10 +57,11 @@ public class Generator implements Comparable<Generator> {
 
     private static final ConcurrentMap<String, Generator> generators = new ConcurrentHashMap<>();
     private static final Collection<Generator> allGenerators = Collections.unmodifiableCollection(generators.values());
-    private static volatile List<Generator> sortedForgers = null;
+    private static volatile List<Generator> sortedMiners = null;
+    private static volatile List<Long> blockMissingMinerIds = Lists.newArrayList();
     private static long lastBlockId;
     private static int delayTime = Constants.FORGING_DELAY;
-
+    
     private static final Runnable generateBlocksThread = new Runnable() {
 
         private volatile boolean logged;
@@ -70,10 +76,12 @@ public class Generator implements Comparable<Generator> {
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
                         //等待更新了最新的区块信息才开始锻造
-                        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) return;
+                        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
+                            return;
+                        }
 
                         final int generationLimit = Conch.getEpochTime() - delayTime;
-                        if (lastBlock.getId() != lastBlockId || sortedForgers == null || sortedForgers.size() == 0) {
+                        if (lastBlock.getId() != lastBlockId || sortedMiners == null || sortedMiners.size() == 0) {
                             lastBlockId = lastBlock.getId();
                             if (lastBlock.getTimestamp() > Conch.getEpochTime() - 600) {
                                 Block previousBlock = Conch.getBlockchain().getBlock(lastBlock.getPreviousBlockId());
@@ -103,12 +111,12 @@ public class Generator implements Comparable<Generator> {
                             }
 
                             Collections.sort(forgers);
-                            sortedForgers = Collections.unmodifiableList(forgers);
+                            sortedMiners = Collections.unmodifiableList(forgers);
                             logged = false;
                         }
 
                         if (!logged) {
-                            for (Generator generator : sortedForgers) {
+                            for (Generator generator : sortedMiners) {
                                 if (generator.getHitTime() - generationLimit > 60) {
                                     break;
                                 }
@@ -117,10 +125,17 @@ public class Generator implements Comparable<Generator> {
                             }
                         }
 
-                        for (Generator generator : sortedForgers) {
-                            if(generator.getHitTime() > generationLimit) return;
-                            if(generator.mint(lastBlock, generationLimit)) return;
+                        // blockMissingMinerIds.clear();
+                        for (Generator generator : sortedMiners) {
+                            if(generator.getHitTime() > generationLimit) {
+                                return;
+                            }
+                            if(generator.mint(lastBlock, generationLimit)) {
+                                return;
+                            }
+                            blockMissingMinerIds.add(generator.getAccountId());
                         }
+                        
                     } finally {
                         BlockchainImpl.getInstance().updateUnlock();
                     }
@@ -174,7 +189,7 @@ public class Generator implements Comparable<Generator> {
         if (generator != null) {
             Conch.getBlockchain().updateLock();
             try {
-                sortedForgers = null;
+                sortedMiners = null;
             } finally {
                 Conch.getBlockchain().updateUnlock();
             }
@@ -195,7 +210,7 @@ public class Generator implements Comparable<Generator> {
         }
         Conch.getBlockchain().updateLock();
         try {
-            sortedForgers = null;
+            sortedMiners = null;
         } finally {
             Conch.getBlockchain().updateUnlock();
         }
@@ -214,16 +229,16 @@ public class Generator implements Comparable<Generator> {
         return allGenerators;
     }
 
-    public static List<Generator> getSortedForgers() {
-        List<Generator> forgers = sortedForgers;
+    public static List<Generator> getSortedMiners() {
+        List<Generator> forgers = sortedMiners;
         return forgers == null ? Collections.emptyList() : forgers;
     }
 
     public static long getNextHitTime(long lastBlockId, int curTime) {
         BlockchainImpl.getInstance().readLock();
         try {
-            if (lastBlockId == Generator.lastBlockId && sortedForgers != null) {
-                for (Generator generator : sortedForgers) {
+            if (lastBlockId == Generator.lastBlockId && sortedMiners != null) {
+                for (Generator generator : sortedMiners) {
                     if (generator.getHitTime() >= curTime - Constants.FORGING_DELAY) {
                         return generator.getHitTime();
                     }
@@ -303,7 +318,7 @@ public class Generator implements Comparable<Generator> {
             if (Conch.getBlockchain().getHeight() >= Constants.LAST_KNOWN_BLOCK) {
                 setLastBlock(Conch.getBlockchain().getLastBlock());
             }
-            sortedForgers = null;
+            sortedMiners = null;
         } finally {
             Conch.getBlockchain().updateUnlock();
         }
@@ -439,7 +454,7 @@ public class Generator implements Comparable<Generator> {
             List<ActiveGenerator> curForgers = new ArrayList<>();
 
             //添加当前的合格锻造者到活跃锻造者池
-            for(Generator generator : sortedForgers){
+            for(Generator generator : sortedMiners){
                 if(activeGeneratorIds.contains(generator.getAccountId())) continue;
                 ActiveGenerator activeForger = new ActiveGenerator(generator.getAccountId());
                 curForgers.add(activeForger);

@@ -220,23 +220,26 @@ public final class Constants {
     public static final int ASSET_EXCHANGE_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = isTestnetOrDevnet() ? 0 : 0;
-    public static final int DIGITAL_GOODS_STORE_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    public static final int MONETARY_SYSTEM_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    public static final int PHASING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_16 = isTestnetOrDevnet() ? 0 : 0;
-    public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_17 = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_18 = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_19 = isTestnetOrDevnet() ? 0 : 0;
+
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
-    public static final int CHECKSUM_BLOCK_20 = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_21 = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_22 = isTestnetOrDevnet() ? 0 : 0;
-
+    public static final int LAST_CHECKSUM_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    
+    /*** Move to check sum processor ***/
+    public static final int DIGITAL_GOODS_STORE_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int MONETARY_SYSTEM_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int PHASING_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_16 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_17 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_18 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_19 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_20 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_21 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    public static final int CHECKSUM_BLOCK_22 = Constants.isTestnetOrDevnet() ? 0 : 0;
+    /*** ***/
+    
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
-
-    public static final int LAST_CHECKSUM_BLOCK = CHECKSUM_BLOCK_22;
-    public static final int LAST_KNOWN_BLOCK = CHECKSUM_BLOCK_22;
 
     public static final int[] MIN_VERSION = new int[] {0, 0, 1};
     public static final int[] MIN_PROXY_VERSION = new int[] {0, 0, 1};
