@@ -1,13 +1,16 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocTemplate;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
+import org.conch.util.Convert;
 import org.conch.util.Https;
 import org.conch.util.IpUtil;
 import org.json.simple.JSONStreamAware;
@@ -104,6 +107,8 @@ public abstract class PocTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             String templateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL()))
+                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
             PocTemplate customPocTemp = JSONObject.parseObject(
                     templateJson,
                     PocTemplate.class
@@ -123,10 +128,38 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            long templateId = ParameterParser.getLong(request, "templateId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            //TODO
 
-            return null;
+            String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
+            String transactionFullHash = Convert.emptyToNull(request.getParameter("fullHash"));
+            boolean includePhasingResult = "true".equalsIgnoreCase(request.getParameter("includePhasingResult"));
+            PocTxBody.PocWeightTable pocWeightTable;
+            org.json.simple.JSONObject result = new org.json.simple.JSONObject();
+
+
+            long version = ParameterParser.getLong(request, "version", Long.MIN_VALUE, Long.MAX_VALUE, false);
+            // 先根据交易ID和交易哈希查询
+            org.json.simple.JSONObject transation = GetTransaction.getTransaction(transactionIdString, transactionFullHash, includePhasingResult);
+            if (transation == null) {
+                // 根据version单独获取权重表
+                pocWeightTable = PocProcessorImpl.instance.getPocWeightTable(version);
+                System.out.println(JSONObject.toJSONString(pocWeightTable));
+                result.put("data", JSONObject.toJSONString(pocWeightTable));
+                result.put("success", Boolean.TRUE);
+            } else {
+                // 若ID或哈希都匹配，先查看附件类型是否是PoC
+                org.json.simple.JSONObject attachment = (org.json.simple.JSONObject) transation.get("attachment");
+                Long pocVersion = attachment.get("version.pocWeightTable") == null ? 0:Long.parseLong(attachment.get("version.pocWeightTable").toString());
+                if (pocVersion != 0 && version != 0 && pocVersion == version) {
+                    // 类型是PoC，且版本匹配,获取权重表
+                    pocWeightTable = PocProcessorImpl.instance.getPocWeightTable(version);
+                    result.put("success", Boolean.TRUE);
+                    result.put("data", JSONObject.toJSONString(pocWeightTable));
+                } else {
+                    result.put("success", Boolean.FALSE);
+                    result.put("data", "");
+                }
+            }
+            return result;
         }
 
         @Override
