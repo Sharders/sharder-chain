@@ -27,7 +27,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.*;
@@ -1224,7 +1224,7 @@ public final class Account {
         }
 
         if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
-            if (Arrays.binarySearch(ConchGenesis.GENESIS_RECIPIENTS, id) >= 0) {
+            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {
                 return balanceNQT / Constants.ONE_SS;
             }
             long receivedInLastBlock = 0;
@@ -1816,7 +1816,7 @@ public final class Account {
     }
 
     private static void checkBalance(long accountId, long confirmed, long unconfirmed) {
-        if (accountId == ConchGenesis.CREATOR_ID) {
+        if (accountId == SharderGenesis.CREATOR_ID) {
             return;
         }
         if (confirmed < 0) {

@@ -3,7 +3,7 @@ package org.conch.account;
 import com.google.common.collect.Lists;
 import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
@@ -26,7 +26,7 @@ public class AccountTest {
     
     static {
         try {
-            transactions = Lists.newArrayList(ConchGenesis.defaultPocWeightTableTx());
+            transactions = Lists.newArrayList(SharderGenesis.defaultPocWeightTableTx());
         } catch (ConchException.NotValidException e) {
             e.printStackTrace();
         }

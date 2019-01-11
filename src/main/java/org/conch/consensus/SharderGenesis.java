@@ -15,7 +15,7 @@ import java.util.List;
  * @author  xy@ichaoj.com
  * @version 16/7/1
  */
-public class ConchGenesis {
+public class SharderGenesis {
 
     public static final long GENESIS_BLOCK_ID = 6840612405442242239L;
     public static final long CREATOR_ID = 7690917826419382695L;
@@ -77,7 +77,7 @@ public class ConchGenesis {
         enableGenesisAccount = true;
     }
 
-    private ConchGenesis() {}
+    private SharderGenesis() {}
 
     /**
      * original coinbase, initial supply of ss
@@ -98,13 +98,13 @@ public class ConchGenesis {
         Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
         return new TransactionImpl.BuilderImpl(
                 (byte) 0,
-                ConchGenesis.CREATOR_PUBLIC_KEY,
+                SharderGenesis.CREATOR_PUBLIC_KEY,
                 0,
                 0,
                 (short) 0,
                 attachment)
                 .timestamp(0)
-                .signature(ConchGenesis.CREATOR_SIGNATURES)
+                .signature(SharderGenesis.CREATOR_SIGNATURES)
                 .height(0)
                 .ecBlockHeight(0)
                 .ecBlockId(0)

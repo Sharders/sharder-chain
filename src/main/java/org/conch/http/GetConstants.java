@@ -24,7 +24,7 @@ package org.conch.http;
 import org.conch.asset.HoldingType;
 import org.conch.asset.token.CurrencyType;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.crypto.HashFunction;
 import org.conch.mint.CurrencyMinting;
 import org.conch.peer.Peer;
@@ -54,8 +54,8 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
         static {
             try {
                 JSONObject response = new JSONObject();
-                response.put("genesisBlockId", Long.toUnsignedString(ConchGenesis.GENESIS_BLOCK_ID));
-                response.put("genesisAccountId", Long.toUnsignedString(ConchGenesis.CREATOR_ID));
+                response.put("genesisBlockId", Long.toUnsignedString(SharderGenesis.GENESIS_BLOCK_ID));
+                response.put("genesisAccountId", Long.toUnsignedString(SharderGenesis.CREATOR_ID));
                 response.put("epochBeginning", Constants.EPOCH_BEGINNING);
                 response.put("maxBlockPayloadLength", Constants.MAX_PAYLOAD_LENGTH);
                 response.put("maxArbitraryMessageLength", Constants.MAX_ARBITRARY_MESSAGE_LENGTH);

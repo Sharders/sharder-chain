@@ -22,7 +22,7 @@
 package org.conch.tools;
 
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.util.Convert;
 
 import java.io.BufferedReader;
@@ -116,7 +116,7 @@ public final class VerifyTraceFile {
                     issuedAssetQuantities.put(assetId, Long.parseLong(valueMap.get("asset quantity")));
                 }
                 if ("asset transfer".equals(event)
-                        && ConchGenesis.CREATOR_ID == Convert.parseUnsignedLong(accountId)) {
+                        && SharderGenesis.CREATOR_ID == Convert.parseUnsignedLong(accountId)) {
                     String assetId = valueMap.get("asset");
                     long deletedQuantity = Long.parseLong(valueMap.get("asset quantity"));
                     long currentQuantity = issuedAssetQuantities.get(assetId);
@@ -252,7 +252,7 @@ public final class VerifyTraceFile {
                     System.out.println("total confirmed asset quantity change: " + totalAssetDelta);
                     long assetBalance = nullToZero(assetValues.get("asset balance"));
                     if (assetBalance != totalAssetDelta
-                            && (ConchGenesis.CREATOR_ID != Convert.parseUnsignedLong(accountId)
+                            && (SharderGenesis.CREATOR_ID != Convert.parseUnsignedLong(accountId)
                             || assetBalance != 0)) {
                         System.out.println("ERROR: asset balance doesn't match total asset quantity change!!!");
                         failed.add(accountId);

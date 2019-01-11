@@ -35,7 +35,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Order;
@@ -288,7 +288,7 @@ public abstract class TransactionType {
             }
             long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
             if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT
-                    && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
+                    && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY))) {
                 return false;
             }
             senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, -feeNQT);
@@ -436,7 +436,7 @@ public abstract class TransactionType {
         @Override
         public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             if (recipientAccount == null) {
-                Account.getAccount(ConchGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
+                Account.getAccount(SharderGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
                         transaction.getId(), transaction.getAmountNQT());
             }
         }
@@ -658,7 +658,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID && Conch.getBlockchain().getHeight() > Constants.MONETARY_SYSTEM_BLOCK) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID && Conch.getBlockchain().getHeight() > Constants.MONETARY_SYSTEM_BLOCK) {
                     throw new ConchException.NotValidException("Sending messages to Genesis not allowed.");
                 }
             }
@@ -827,7 +827,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid alias sell price: " + priceNQT);
                 }
                 if (priceNQT == 0) {
-                    if (ConchGenesis.CREATOR_ID == transaction.getRecipientId()) {
+                    if (SharderGenesis.CREATOR_ID == transaction.getRecipientId()) {
                         throw new ConchException.NotValidException("Transferring aliases to Genesis account not allowed");
                     } else if (transaction.getRecipientId() == 0) {
                         throw new ConchException.NotValidException("Missing alias transfer recipient");
@@ -839,7 +839,7 @@ public abstract class TransactionType {
                 } else if (alias.getAccountId() != transaction.getSenderId()) {
                     throw new ConchException.NotCurrentlyValidException("Alias doesn't belong to sender: " + aliasName);
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Selling alias to Genesis not allowed");
                 }
             }
@@ -1545,7 +1545,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Setting Genesis account properties not allowed");
                 }
             }
@@ -1613,7 +1613,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Deleting Genesis account properties not allowed");
                 }
             }
@@ -1804,7 +1804,7 @@ public abstract class TransactionType {
                 Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
                 senderAccount.addToAssetBalanceQNT(getLedgerEvent(), transaction.getId(), attachment.getAssetId(),
                         -attachment.getQuantityQNT());
-                if (recipientAccount.getId() == ConchGenesis.CREATOR_ID) {
+                if (recipientAccount.getId() == SharderGenesis.CREATOR_ID) {
                     Asset.deleteAsset(transaction, attachment.getAssetId(), attachment.getQuantityQNT());
                 } else {
                     recipientAccount.addToAssetAndUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
@@ -1828,7 +1828,7 @@ public abstract class TransactionType {
                         || attachment.getAssetId() == 0) {
                     throw new ConchException.NotValidException("Invalid asset transfer amount or comment: " + attachment.getJSONObject());
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID && attachment.getFinishValidationHeight(transaction) > Constants.SHUFFLING_BLOCK) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID && attachment.getFinishValidationHeight(transaction) > Constants.SHUFFLING_BLOCK) {
                     throw new ConchException.NotValidException("Asset transfer to Genesis no longer allowed, "
                             + "use asset delete attachment instead");
                 }
@@ -3067,7 +3067,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "
                             + " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Leasing to Genesis account not allowed");
                 }
             }
@@ -3537,7 +3537,7 @@ public abstract class TransactionType {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
                 //Balance and genesis creator check
                 if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT
-                        && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
+                        && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY))) {
                     return false;
                 }
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, 0);

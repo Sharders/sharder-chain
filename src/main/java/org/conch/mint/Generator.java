@@ -499,23 +499,15 @@ public class Generator implements Comparable<Generator> {
                     return;
                 }
             }
+            
             int height = lastBlock.getHeight();
             Account account = Account.getAccount(accountId, height);
             if (account == null) {
                 hitTime = Long.MAX_VALUE;
                 return;
             }
-            //不获取effectiveBalance 会导致不出块
+            
             effectiveBalance = PocScore.calEffectiveBalance(account,height);
-//            PocScore.calEffectiveBalance(account,height);
-////            effectiveBalance = Math.max(account.getEffectiveBalanceSS(height), BigInteger.ZERO);
-//            long id = SharderPoolProcessor.ownOnePool(account.getId());
-//            if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-//                effectiveBalance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
-//                        .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
-//            }else {
-//                effectiveBalance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
-//            }
             pocScore = PocProcessorImpl.instance.calPocScore(account,height); 
 //            if (effectiveBalance.signum() == 0) {
 //                hitTime = Long.MAX_VALUE;

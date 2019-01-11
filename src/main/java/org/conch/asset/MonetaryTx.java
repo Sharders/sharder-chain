@@ -30,7 +30,7 @@ import org.conch.asset.token.CurrencyTransfer;
 import org.conch.asset.token.CurrencyType;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.market.ExchangeRequest;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.CurrencyMinting;
@@ -414,7 +414,7 @@ public abstract class MonetaryTx extends TransactionType {
             if (attachment.getUnits() <= 0) {
                 throw new ConchException.NotValidException("Invalid currency transfer: " + attachment.getJSONObject());
             }
-            if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+            if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                 throw new ConchException.NotValidException("Currency transfer to genesis account not allowed");
             }
             Currency currency = Currency.getCurrency(attachment.getCurrencyId());

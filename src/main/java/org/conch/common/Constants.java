@@ -108,8 +108,7 @@ public final class Constants {
 
 //  public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnet ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 1440) : 1440;
 //  public static final int LEASING_DELAY = isTestnet ? Conch.getIntProperty("sharder.testnetLeasingDelay", 1440) : 1440;
-    //内测期间只需要10次确认
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 10) : 10;
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 3) : 10;
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 10;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
@@ -246,7 +245,7 @@ public final class Constants {
     public static final long SHUFFLING_DEPOSIT_NQT = (isTestnetOrDevnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
-    public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix, you can replace all in files to redefine it
+    public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix，SSA: Sharder Storage Account
 
     public static final long EPOCH_BEGINNING;
 

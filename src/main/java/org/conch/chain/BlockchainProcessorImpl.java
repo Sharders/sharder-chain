@@ -26,7 +26,7 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
@@ -303,9 +303,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
 
             // 里程碑区块
-            long commonMilestoneBlockId = ConchGenesis.GENESIS_BLOCK_ID;
+            long commonMilestoneBlockId = SharderGenesis.GENESIS_BLOCK_ID;
 
-            if (blockchain.getLastBlock().getId() != ConchGenesis.GENESIS_BLOCK_ID) {
+            if (blockchain.getLastBlock().getId() != SharderGenesis.GENESIS_BLOCK_ID) {
               commonMilestoneBlockId = getCommonMilestoneBlockId(peer);
             }
             if (commonMilestoneBlockId == 0 || !peerHasMore) {
@@ -447,7 +447,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             JSONArray milestoneBlockIds = (JSONArray) response.get("milestoneBlockIds");
             if (milestoneBlockIds == null) return 0;
-            if (milestoneBlockIds.isEmpty()) return ConchGenesis.GENESIS_BLOCK_ID;
+            if (milestoneBlockIds.isEmpty()) return SharderGenesis.GENESIS_BLOCK_ID;
 
             // prevent overloading with blockIds
             if (milestoneBlockIds.size() > 20) {
@@ -1465,7 +1465,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
     
   private boolean addConchGenesisBlock() {
-    if (BlockDb.hasBlock(ConchGenesis.GENESIS_BLOCK_ID, 0)) {
+    if (BlockDb.hasBlock(SharderGenesis.GENESIS_BLOCK_ID, 0)) {
       Logger.logMessage("Genesis block already in database");
       BlockImpl lastBlock = BlockDb.findLastBlock();
       blockchain.setLastBlock(lastBlock);
@@ -1476,18 +1476,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     Logger.logMessage("ConchGenesis block not in database, starting from scratch");
     try {
       List<TransactionImpl> transactions = new ArrayList<>();
-      for (int i = 0; i < ConchGenesis.GENESIS_RECIPIENTS.length; i++) {
+      for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
         TransactionImpl transaction =
             new TransactionImpl.BuilderImpl(
                     (byte) 0,
-                    ConchGenesis.CREATOR_PUBLIC_KEY,
-                    ConchGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
+                    SharderGenesis.CREATOR_PUBLIC_KEY,
+                    SharderGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
                     0,
                     (short) 0,
                     Attachment.ORDINARY_PAYMENT)
                 .timestamp(0)
-                .recipientId(ConchGenesis.GENESIS_RECIPIENTS[i])
-                .signature(ConchGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
+                .recipientId(SharderGenesis.GENESIS_RECIPIENTS[i])
+                .signature(SharderGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
                 .height(0)
                 .ecBlockHeight(0)
                 .ecBlockId(0)
@@ -1495,7 +1495,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         transactions.add(transaction);
       }
 
-      transactions.add(ConchGenesis.defaultPocWeightTableTx());
+      transactions.add(SharderGenesis.defaultPocWeightTableTx());
       
       Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
       MessageDigest digest = Crypto.sha256();
@@ -1505,7 +1505,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
       BlockImpl genesisBlock =
           new BlockImpl(
-              ConchGenesis.GENESIS_BLOCK_ID,
+              SharderGenesis.GENESIS_BLOCK_ID,
               -1,
               0,
               0,
@@ -1513,9 +1513,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               0,
               transactions.size() * 128,
               digest.digest(),
-              ConchGenesis.CREATOR_PUBLIC_KEY,
+              SharderGenesis.CREATOR_PUBLIC_KEY,
               new byte[64],
-              ConchGenesis.GENESIS_BLOCK_SIGNATURE,
+              SharderGenesis.GENESIS_BLOCK_SIGNATURE,
               null,
               transactions);
       Logger.logMessage("ConchGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
@@ -2032,7 +2032,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 + " at "
                 + commonBlock.getHeight());
         while (block.getId() != commonBlock.getId()
-            && block.getId() != ConchGenesis.GENESIS_BLOCK_ID) {
+            && block.getId() != SharderGenesis.GENESIS_BLOCK_ID) {
           poppedOffBlocks.add(block);
           block = popLastBlock();
         }
@@ -2058,7 +2058,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private BlockImpl popLastBlock() {
     BlockImpl block = blockchain.getLastBlock();
-    if (block.getId() == ConchGenesis.GENESIS_BLOCK_ID) {
+    if (block.getId() == SharderGenesis.GENESIS_BLOCK_ID) {
       throw new RuntimeException("Cannot pop off genesis block");
     }
     BlockImpl previousBlock = BlockDb.deleteBlocksFrom(block.getId());
@@ -2294,15 +2294,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     try {
       
-      // Check generator whether pool owner:
-      // Pool owner -> pool rewards map (send rewards to pool)
-      // Single miner -> empty map (send rewards to miner)
+      // Pool owner -> pool rewards map (send rewards to pool joiners)
+      // Single miner -> empty rewards map (send rewards to miner)
       long blockCreatorId = Account.getId(publicKey);
-      Map<Long, Long> map;
+      Map<Long, Long> map = new HashMap<>();
       long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
       if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
         poolId = blockCreatorId;
-        map = new HashMap<>();
       } else {
         map = SharderPoolProcessor.getSharderPool(poolId).getConsignorsAmountMap();
       }
@@ -2506,7 +2504,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         long currentBlockId = currentBlock.getId();
         if (height == 0) {
           blockchain.setLastBlock(currentBlock); // special case to avoid no last block
-          ConchGenesis.enableGenesisAccount();
+          SharderGenesis.enableGenesisAccount();
         } else {
           blockchain.setLastBlock(BlockDb.findBlockAtHeight(height - 1));
         }
@@ -2543,7 +2541,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     validPhasedTransactions,
                     invalidPhasedTransactions,
                     duplicates);
-                if (validate && currentBlockId != ConchGenesis.GENESIS_BLOCK_ID) {
+                if (validate && currentBlockId != SharderGenesis.GENESIS_BLOCK_ID) {
                   int curTime = Conch.getEpochTime();
                   validate(currentBlock, blockchain.getLastBlock(), curTime);
                   byte[] blockBytes = currentBlock.bytes();

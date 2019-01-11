@@ -30,7 +30,7 @@ import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
 import org.conch.util.Convert;
@@ -626,7 +626,7 @@ final public class TransactionImpl implements Transaction {
                 buffer.putInt(timestamp);
                 buffer.putShort(deadline);
                 buffer.put(getSenderPublicKey());
-                buffer.putLong(type.canHaveRecipient() ? recipientId : ConchGenesis.CREATOR_ID);
+                buffer.putLong(type.canHaveRecipient() ? recipientId : SharderGenesis.CREATOR_ID);
                 if (useNQT()) {
                     buffer.putLong(amountNQT);
                     buffer.putLong(feeNQT);

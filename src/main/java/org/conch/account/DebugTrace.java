@@ -30,7 +30,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.SharderGenesis;
 import org.conch.db.DbIterator;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Exchange;
@@ -236,7 +236,7 @@ public final class DebugTrace {
             }
             long recipientId = transaction.getRecipientId();
             if (transaction.getAmountNQT() > 0 && recipientId == 0) {
-                recipientId = ConchGenesis.CREATOR_ID;
+                recipientId = SharderGenesis.CREATOR_ID;
             }
             if (include(recipientId)) {
                 log(getValues(recipientId, transaction, true, true, true));
