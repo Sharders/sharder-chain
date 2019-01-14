@@ -435,10 +435,13 @@ public abstract class TransactionType {
 
         @Override
         public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            if (recipientAccount == null) {
-                Account.getAccount(SharderGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
-                        transaction.getId(), transaction.getAmountNQT());
-            }
+            // closed follow logic and use the coinbase tx to replace it 
+            // coinbase tx you can see org.conch.tx.TransactionType.CoinBase#applyByType
+            // - 2019.01.14 Ben
+//            if (recipientAccount == null) {
+//                Account.getAccount(SharderGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
+//                        transaction.getId(), transaction.getAmountNQT());
+//            }
         }
 
         @Override
@@ -522,6 +525,10 @@ public abstract class TransactionType {
             return true;
         }
 
+        /**
+         * unfreeze mining balance use by pool, the caller of this method should be SharderPoolProcessor
+         * @param transaction
+         */
         public static void unFreezeForgeBalance(Transaction transaction) {
             Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
@@ -603,8 +610,8 @@ public abstract class TransactionType {
                         }
                     }
                 }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
-                    if(SharderGenesis.isGenesisCreator(coinBase.getCreator())){
-                        recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                    if(SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId()) ){
+                        senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
                     }
                 }
             }

@@ -26,7 +26,7 @@ public class AccountTest {
     
     static {
         try {
-            transactions = Lists.newArrayList(SharderGenesis.defaultPocWeightTableTx());
+            transactions = Lists.newArrayList(SharderGenesis.genesisTransactions());
         } catch (ConchException.NotValidException e) {
             e.printStackTrace();
         }

@@ -49,7 +49,7 @@ import java.util.*;
 public interface Attachment extends Appendix {
 
     TransactionType getTransactionType();
-
+    
     abstract class TxBodyBase extends AbstractAttachment {
         public TxBodyBase() {
         }
@@ -65,49 +65,6 @@ public interface Attachment extends Appendix {
         public TxBodyBase(int version) {
             super(version);
         }
-
-//        public static Attachment.AbstractAttachment newObj(Class clazz, ByteBuffer buffer, byte transactionVersion) {
-//            Method method = null;
-//            try {
-//
-//                method = clazz.getDeclaredMethod("inst", ByteBuffer.class, byte.class);
-//                
-//                if(method != null)
-//                return (Attachment.AbstractAttachment) method.invoke(buffer, transactionVersion);
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
-//
-//        public static Attachment.AbstractAttachment newObj(Class clazz, JSONObject attachmentData) {
-//            Method method = null;
-//            try {
-//                method = clazz.getDeclaredMethod("inst", JSONObject.class);
-//
-//                if(method != null)
-//                return (Attachment.AbstractAttachment) method.invoke(attachmentData);
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
-//
-//        public static Attachment.AbstractAttachment newObj(Class clazz, int version) {
-//            Method method = null;
-//            try {
-//                method = clazz.getDeclaredMethod("inst", int.class);
-//
-//                if(method != null)
-//                return (Attachment.AbstractAttachment) method.invoke(version);
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
     }
 
     abstract class AbstractAttachment extends Appendix.AbstractAppendix implements Attachment {
@@ -242,6 +199,7 @@ public interface Attachment extends Appendix {
     };
 
     final class CoinBase extends AbstractAttachment {
+        
         public enum CoinBaseType {
             BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC;
 
@@ -287,6 +245,13 @@ public interface Attachment extends Appendix {
             this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
         }
 
+        /**
+         * The coinbase tx that used to issue the coins when block generated
+         * @param coinBaseType see org.conch.tx.Attachment.CoinBase.CoinBaseType
+         * @param creator  account id of creator
+         * @param generatorId the pool id/ creator id when type is Block Reward; the recipient id when type is Genesis.
+         * @param consignors pool joiner's map contains joiner id and reward amount
+         */
         public CoinBase(CoinBaseType coinBaseType, long creator, long generatorId, Map<Long, Long> consignors) {
             this.coinBaseType = coinBaseType;
             this.creator = creator;

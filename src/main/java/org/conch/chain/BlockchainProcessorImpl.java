@@ -1493,8 +1493,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     
     Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
-      List<TransactionImpl> transactions = SharderGenesis.coinbase();
-      transactions.add(SharderGenesis.defaultPocWeightTableTx());
+      List<TransactionImpl> transactions = SharderGenesis.genesisTransactions();
       
       Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
       MessageDigest digest = Crypto.sha256();

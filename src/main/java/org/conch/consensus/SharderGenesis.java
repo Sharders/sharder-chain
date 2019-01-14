@@ -82,7 +82,7 @@ public class SharderGenesis {
 
     public static boolean isGenesisRecipients(long accountId){
         for(int i = 0 ; i < GENESIS_RECIPIENTS.length; i ++) {
-            if(Account.getId(GENESIS_RECIPIENTS_PK[i]) == accountId){
+            if(GENESIS_RECIPIENTS[i] == accountId){
                 return true;
             }
         }
@@ -90,61 +90,53 @@ public class SharderGenesis {
     }
     
     public static boolean isGenesisCreator(long accountId){
-        return Account.getId(CREATOR_PUBLIC_KEY) == accountId ? true : false;
+        return CREATOR_ID == accountId ? true : false;
     }
 
     private SharderGenesis() {}
+
+    /**
+     * genesis transactions: 
+     * 1. coinbase tx for the genesis account
+     * 2. default poc weight table tx
+     * @return
+     */
+    public static List<TransactionImpl> genesisTransactions() throws ConchException.NotValidException {
+        List<TransactionImpl> transactions = Lists.newArrayList();
+        transactions.addAll(coinbaseTxs());
+        transactions.add(defaultPocWeightTableTx());
+        return transactions;
+    }
     
-  
     /**
      * original coinbase, initial supply of ss
      * @return coinbase txs
      */
-    public static List<TransactionImpl> coinbase(){
+    private static List<TransactionImpl> coinbaseTxs(){
         List<TransactionImpl> transactions = Lists.newArrayList();
-//        // transfer txs
-//        try{
-//            for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
-//                TransactionImpl transaction =
-//                        new TransactionImpl.BuilderImpl(
-//                                (byte) 0,
-//                                SharderGenesis.CREATOR_PUBLIC_KEY,
-//                                SharderGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
-//                                0,
-//                                (short) 0,
-//                                Attachment.ORDINARY_PAYMENT)
-//                                .timestamp(0)
-//                                .recipientId(SharderGenesis.GENESIS_RECIPIENTS[i])
-//                                .signature(SharderGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
-//                                .height(0)
-//                                .ecBlockHeight(0)
-//                                .ecBlockId(0)
-//                                .build();
-//                transactions.add(transaction);
-//            }
-//        }catch (ConchException.NotValidException e) {
-//            e.printStackTrace();
-//        }
 
         // coinbase txs
         try{
+            long genesisCreatorId = Account.getId(SharderGenesis.CREATOR_PUBLIC_KEY);
             for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
-                long genesisCreatorId = Account.getId(SharderGenesis.CREATOR_PUBLIC_KEY);
                 TransactionImpl transaction =
                 new TransactionImpl.BuilderImpl(
                         (byte) 1,
-                        SharderGenesis.CREATOR_PUBLIC_KEY,
+                        SharderGenesis.GENESIS_RECIPIENTS_PK[i],
                         SharderGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
                         0,
                         (short) 0,
                         new Attachment.CoinBase(
-                            Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId,genesisCreatorId,Maps.newHashMap()))
+                            Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, SharderGenesis.GENESIS_RECIPIENTS[i], Maps.newHashMap()))
                     .timestamp(0)
                     .recipientId(SharderGenesis.GENESIS_RECIPIENTS[i])
-                    .recipientId(0)
+                    .signature(SharderGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
+                    .height(0)
+                    .ecBlockHeight(0)
+                    .ecBlockId(0)
                     .build();
-                    transactions.add(transaction);
-                }
+                transactions.add(transaction);
+            }
         }catch (ConchException.NotValidException e) {
             e.printStackTrace();
         }
@@ -157,7 +149,7 @@ public class SharderGenesis {
      * @return
      * @throws ConchException.NotValidException
      */
-    public static TransactionImpl defaultPocWeightTableTx() throws ConchException.NotValidException {
+    private static TransactionImpl defaultPocWeightTableTx() throws ConchException.NotValidException {
         Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
         return new TransactionImpl.BuilderImpl(
                 (byte) 0,
