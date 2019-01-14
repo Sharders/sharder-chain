@@ -2,6 +2,7 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
@@ -16,6 +17,8 @@ import org.conch.util.IpUtil;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class PocTxApi {
@@ -132,34 +135,49 @@ public abstract class PocTxApi {
             String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
             String transactionFullHash = Convert.emptyToNull(request.getParameter("fullHash"));
             boolean includePhasingResult = "true".equalsIgnoreCase(request.getParameter("includePhasingResult"));
-            PocTxBody.PocWeightTable pocWeightTable;
+            List<org.json.simple.JSONObject> pocWeightTablesJson = new ArrayList<>();
             org.json.simple.JSONObject result = new org.json.simple.JSONObject();
-
 
             long version = ParameterParser.getLong(request, "version", Long.MIN_VALUE, Long.MAX_VALUE, false);
             // 先根据交易ID和交易哈希查询
-            org.json.simple.JSONObject transation = GetTransaction.getTransaction(transactionIdString, transactionFullHash, includePhasingResult);
-            if (transation == null) {
-                // 根据version单独获取权重表
-                pocWeightTable = PocProcessorImpl.instance.getPocWeightTable(version);
-                System.out.println(JSONObject.toJSONString(pocWeightTable));
-                result.put("data", JSONObject.toJSONString(pocWeightTable));
-                result.put("success", Boolean.TRUE);
+            List<org.json.simple.JSONObject> transactions = GetTransaction.getTransactions(transactionIdString, transactionFullHash, includePhasingResult);
+            boolean searchViaVersion = StringUtils.isEmpty(transactionIdString) && StringUtils.isEmpty(transactionFullHash);
+            if (transactions == null) {
+                if (searchViaVersion) {
+                    // 获得所有的交易，按照version查询
+                    transactions = GetTransaction.getTransactions(null, includePhasingResult);
+                    processPocTransactions(pocWeightTablesJson, version, transactions);
+                }
             } else {
-                // 若ID或哈希都匹配，先查看附件类型是否是PoC
-                org.json.simple.JSONObject attachment = (org.json.simple.JSONObject) transation.get("attachment");
+                // 若ID或哈希都匹配，先查看附件类型是否是PoC，然后匹配version
+                processPocTransactions(pocWeightTablesJson, version, transactions);
+            }
+            System.out.println(JSONObject.toJSONString(pocWeightTablesJson));
+            result.put("data", JSONObject.toJSONString(pocWeightTablesJson));
+            return result;
+        }
+
+        private void processPocTransactions(List<org.json.simple.JSONObject> pocWeightTablesJson, long version, List<org.json.simple.JSONObject> transactions) {
+            org.json.simple.JSONObject pocWeightTableJson;
+            PocTxBody.PocWeightTable pocWeightTable;
+            for(org.json.simple.JSONObject transaction : transactions) {
+                pocWeightTableJson = new org.json.simple.JSONObject();
+                org.json.simple.JSONObject attachment = (org.json.simple.JSONObject) transaction.get("attachment");
                 Long pocVersion = attachment.get("version.pocWeightTable") == null ? 0:Long.parseLong(attachment.get("version.pocWeightTable").toString());
-                if (pocVersion != 0 && version != 0 && pocVersion == version) {
-                    // 类型是PoC，且版本匹配,获取权重表
-                    pocWeightTable = PocProcessorImpl.instance.getPocWeightTable(version);
-                    result.put("success", Boolean.TRUE);
-                    result.put("data", JSONObject.toJSONString(pocWeightTable));
-                } else {
-                    result.put("success", Boolean.FALSE);
-                    result.put("data", "");
+                // 是POC交易但是查询没有指定版本
+                boolean isPocNoVersion = pocVersion != 0 && version == 0;
+                // 是POC交易，且查询指定了版本，则要根据版本筛选
+                boolean isPocAndVersion = pocVersion != 0 && version != 0 && pocVersion == version;
+                if (isPocNoVersion || isPocAndVersion) {
+                    pocWeightTable = PocProcessorImpl.instance.getPocWeightTable(pocVersion);
+                    if (pocWeightTable != null) {
+                        pocWeightTable.putMyJSON(pocWeightTableJson);
+                        pocWeightTableJson.put("fullHash", transaction.get("fullHash"));
+                        pocWeightTableJson.put("transaction", transaction.get("transaction"));
+                        pocWeightTablesJson.add(pocWeightTableJson);
+                    }
                 }
             }
-            return result;
         }
 
         @Override
