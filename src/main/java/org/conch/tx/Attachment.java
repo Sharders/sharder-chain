@@ -243,7 +243,7 @@ public interface Attachment extends Appendix {
 
     final class CoinBase extends AbstractAttachment {
         public enum CoinBaseType {
-            POOL, SINGLE, BLOCKING_REWARD, FOUNDING_TX, X_REWARD, SPECIAL_LOGIC;
+            BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC;
 
             public static CoinBaseType getType(String name) {
                 for (CoinBaseType type : CoinBaseType.values()) {
@@ -256,8 +256,10 @@ public interface Attachment extends Appendix {
         }
 
         private final CoinBaseType coinBaseType;
-        private final long creator; //transaction creator
-        private final long generatorId; //by pool or account
+        //transaction creator
+        private final long creator; 
+        //by pool or account
+        private final long generatorId; 
         private final Map<Long, Long> consignors;
 
         public CoinBase(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {

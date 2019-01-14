@@ -1493,26 +1493,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     
     Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
-      List<TransactionImpl> transactions = new ArrayList<>();
-      for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
-        TransactionImpl transaction =
-            new TransactionImpl.BuilderImpl(
-                    (byte) 0,
-                    SharderGenesis.CREATOR_PUBLIC_KEY,
-                    SharderGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
-                    0,
-                    (short) 0,
-                    Attachment.ORDINARY_PAYMENT)
-                .timestamp(0)
-                .recipientId(SharderGenesis.GENESIS_RECIPIENTS[i])
-                .signature(SharderGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
-                .height(0)
-                .ecBlockHeight(0)
-                .ecBlockId(0)
-                .build();
-        transactions.add(transaction);
-      }
-
+      List<TransactionImpl> transactions = SharderGenesis.coinbase();
       transactions.add(SharderGenesis.defaultPocWeightTableTx());
       
       Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
@@ -2334,7 +2315,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   0,
                   (short) 10,
                   new Attachment.CoinBase(
-                      Attachment.CoinBase.CoinBaseType.POOL, Account.getId(publicKey), poolId, map))
+                      Attachment.CoinBase.CoinBaseType.BLOCK_REWARD, Account.getId(publicKey), poolId, map))
               .timestamp(blockTimestamp)
               .recipientId(0)
               .build(secretPhrase);

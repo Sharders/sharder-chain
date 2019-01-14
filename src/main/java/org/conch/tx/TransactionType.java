@@ -570,33 +570,53 @@ public abstract class TransactionType {
             public boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
                 return isDuplicate(CoinBase.ORDINARY, "OrdinaryCoinBase", duplicates, true);
             }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
-                Map<Long,Long> consignors = coinBase.getConsignors();
-                long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
-                if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
-                        && !SharderPoolProcessor.getSharderPool(id).validateConsignorsAmountMap(consignors)) {
-                    throw new ConchException.NotValidException("Allocation rule is wrong");
+            
+            private void validateByType(Transaction transaction) throws ConchException.NotValidException {
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+                if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()){
+                    Map<Long,Long> consignors = coinBase.getConsignors();
+                    long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
+                    if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
+                            && !SharderPoolProcessor.getSharderPool(id).validateConsignorsAmountMap(consignors)) {
+                        throw new ConchException.NotValidException("allocation rule is wrong");
+                    }  
+                }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
+                    if(!SharderGenesis.isGenesisCreator(coinBase.getCreator())){
+                        throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");  
+                    }
+                }
+            }
+            
+            private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+                if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()){
+                    Map<Long,Long> consignors = coinBase.getConsignors();
+                    if(consignors.size() == 0){
+                        senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                        senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                    }else {
+                        Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
+                        for(long id : rewardList.keySet()){
+                            Account account = Account.getAccount(id);
+                            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
+                            account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
+                        }
+                    }
+                }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
+                    if(SharderGenesis.isGenesisCreator(coinBase.getCreator())){
+                        recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                    }
                 }
             }
 
             @Override
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                validateByType(transaction);
+            }
+
+            @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
-                Map<Long,Long> consignors = coinBase.getConsignors();
-                if(consignors.size() == 0){
-                    senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                    senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                }else {
-                    Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
-                    for(long id : rewardList.keySet()){
-                        Account account = Account.getAccount(id);
-                        account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
-                        account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
-                    }
-                }
+                applyByType(transaction,senderAccount,recipientAccount);
             }
         };
 

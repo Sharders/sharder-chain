@@ -1,8 +1,10 @@
 package org.conch.consensus;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.tx.Attachment;
 import org.conch.tx.TransactionImpl;
@@ -64,7 +66,9 @@ public class SharderGenesis {
 
     private static boolean enableGenesisAccount = false;
     public static final void enableGenesisAccount(){
-        if(enableGenesisAccount) return;
+        if(enableGenesisAccount) {
+            return;
+        }
 
         Logger.logDebugMessage("Enable genesis account[size=" + (GENESIS_RECIPIENTS.length + 1) + "]");
 
@@ -73,19 +77,78 @@ public class SharderGenesis {
         for(int i = 0 ; i < GENESIS_RECIPIENTS.length; i ++) {
             Account.addOrGetAccount(GENESIS_RECIPIENTS[i]).apply(GENESIS_RECIPIENTS_PK[i]);
         }
-
         enableGenesisAccount = true;
     }
 
-    private SharderGenesis() {}
+    public static boolean isGenesisRecipients(long accountId){
+        for(int i = 0 ; i < GENESIS_RECIPIENTS.length; i ++) {
+            if(Account.getId(GENESIS_RECIPIENTS_PK[i]) == accountId){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public static boolean isGenesisCreator(long accountId){
+        return Account.getId(CREATOR_PUBLIC_KEY) == accountId ? true : false;
+    }
 
+    private SharderGenesis() {}
+    
+  
     /**
      * original coinbase, initial supply of ss
      * @return coinbase txs
      */
     public static List<TransactionImpl> coinbase(){
         List<TransactionImpl> transactions = Lists.newArrayList();
-        //TODO 
+//        // transfer txs
+//        try{
+//            for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
+//                TransactionImpl transaction =
+//                        new TransactionImpl.BuilderImpl(
+//                                (byte) 0,
+//                                SharderGenesis.CREATOR_PUBLIC_KEY,
+//                                SharderGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
+//                                0,
+//                                (short) 0,
+//                                Attachment.ORDINARY_PAYMENT)
+//                                .timestamp(0)
+//                                .recipientId(SharderGenesis.GENESIS_RECIPIENTS[i])
+//                                .signature(SharderGenesis.GENESIS_RECIPIENTS_SIGNATURES[i])
+//                                .height(0)
+//                                .ecBlockHeight(0)
+//                                .ecBlockId(0)
+//                                .build();
+//                transactions.add(transaction);
+//            }
+//        }catch (ConchException.NotValidException e) {
+//            e.printStackTrace();
+//        }
+
+        // coinbase txs
+        try{
+            for (int i = 0; i < SharderGenesis.GENESIS_RECIPIENTS.length; i++) {
+                long genesisCreatorId = Account.getId(SharderGenesis.CREATOR_PUBLIC_KEY);
+                TransactionImpl transaction =
+                new TransactionImpl.BuilderImpl(
+                        (byte) 1,
+                        SharderGenesis.CREATOR_PUBLIC_KEY,
+                        SharderGenesis.GENESIS_AMOUNTS[i] * Constants.ONE_SS,
+                        0,
+                        (short) 0,
+                        new Attachment.CoinBase(
+                            Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId,genesisCreatorId,Maps.newHashMap()))
+                    .timestamp(0)
+                    .recipientId(SharderGenesis.GENESIS_RECIPIENTS[i])
+                    .recipientId(0)
+                    .build();
+                    transactions.add(transaction);
+                }
+        }catch (ConchException.NotValidException e) {
+            e.printStackTrace();
+        }
+
         return transactions;
     }
 
