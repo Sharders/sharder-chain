@@ -1471,8 +1471,8 @@
             },
             getTotalList:function () {
                 const _this = this;
-                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList){
-                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList;
+                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions){
+                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
                     _this.totalSize = _this.accountTransactionList.length;
 
@@ -1660,6 +1660,7 @@
                         }else if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey !== ""){
                             _this.transfer.hasPublicKey = true;
                             _this.transfer.errorCode = false;
+                            _this.transfer.publicKey = "";
                         }else if(res.errorDescription === "Incorrect \"account\""){
                             _this.transfer.errorCode = true;
                             _this.transfer.hasPublicKey = false;
