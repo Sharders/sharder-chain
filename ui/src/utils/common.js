@@ -4,6 +4,7 @@
 
 export default {
     loginState:'hub',
+    apiUrl:'',
     epochBeginning: -1,
     newConsole:null,
     isOpenConsole:false,
@@ -433,5 +434,14 @@ export default {
         return dataTime;//将格式化后的字符串输出到前端显示
 */
         return avgTimestamp;
+    },
+
+    //将科学计数法转换为小数
+    toNonExponential:function(num){
+        let m = num.toExponential().match(/\d(?:\.(\d*))?e([+-]\d+)/);
+        console.log("m",m);
+        let result = num.toFixed(Math.max(0, (m[1] || '').length - m[2]));
+        console.log("result",result);
+        return result;
     }
 };

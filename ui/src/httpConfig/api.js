@@ -3,7 +3,9 @@ const SERVER_API = "http://localhost:9215";
 // const SERVER_API_DEV = "47.107.188.3:8215";
 // const SERVER_API_DEV = "http://localhost:8215";
 const SERVER_API_TEST = "http://localhost:8215";
-const SERVER_API_DEV = "http://192.168.31.115:9215";
+const SERVER_API_DEV = "http://localhost:9215";
+const SERVER_PORT_TEST = 8215;
+const SERVER_PORT_DEV = 9215;
 
 
 function getUrl() {
@@ -14,6 +16,13 @@ function getUrl() {
         return SERVER_API;
     }
 }
+/*
+
+function setUrl(url){
+    if(url !== null || url !== "")
+        SERVER_API_DEV = url;
+}
+*/
 
 const api = {
     apiUrl: getUrl(),
@@ -21,3 +30,4 @@ const api = {
 };
 window.api = api;
 export default getUrl();
+

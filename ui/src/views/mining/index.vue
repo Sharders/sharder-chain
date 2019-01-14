@@ -66,18 +66,19 @@
                             <div class="grid-content" >
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
-                                    <p>{{mining.power}}/{{maxPoolinvestment}}</p>
-                                    <el-progress :percentage="(mining.power/maxPoolinvestment)*100"
+                                    <p>{{mining.power/100000000}}/{{maxPoolinvestment/100000000}}</p>
+                                    <el-progress :percentage="(mining.power/100000000/maxPoolinvestment/100000000)*100"
                                                  :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalIncome}} SS</span>
+                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalIncome/100000000}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
-                                        <span>{{$t('mining.index.Income_distribution')}}{{mining.distribution}}%</span>
+                                        <span>{{$t('mining.index.Income_distribution')}}{{typeof mining.rule.level1 !== 'undefined' ?
+                                                (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
@@ -314,7 +315,7 @@
                 isSetName: false,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
-                maxPoolinvestment: 50000,
+                maxPoolinvestment: 50000000000000,
                 maxForgeTime:1 * 60 * 60,
                 options: [
                     {
@@ -465,7 +466,7 @@
                 formData.append("feeNQT","100000000");
                 formData.append("amount",_this.investment);
 
-
+                console.log("getAmount",50000000000000);
                 let rule = {
                     'forgepool':{
                       'reward': _this.incomeDistribution/100,
@@ -475,7 +476,7 @@
                         "totalBlocks":0
                     },
                     'consignor':{
-                        'amount':_this.investment/1
+                        'amount':50000000000000
                     },
                 };
                 formData.append("rule",JSON.stringify(rule));
@@ -573,18 +574,26 @@
             let formData = new FormData();
             // formData.append("createId",SSO.account);
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
+                if(typeof res.data.errorDescription !== "undefined"){
+                    _this.$message.error(res.data.errorDescription);
+                    return;
+                }
                 console.log(res.data);
                 _this.miningList = res.data.pools;
                 _this.totalSize = _this.miningList.length;
+
             }).catch(function (err) {
                 console.log(err);
             });
 
-            console.log("miningList",_this.miningList);
-            console.log("miningListLength",_this.miningList.length);
+
 
             formData = new FormData();
             _this.$http.post('/sharder?requestType=getNextBlockGenerators',formData).then(function (res) {
+                if(typeof res.data.errorDescription !== "undefined"){
+                    _this.$message.error(res.data.errorDescription);
+                    return;
+                }
                 console.log("getNextBlockGenerators",res.data);
 
                 _this.newestBlock = res.data;
@@ -611,7 +620,7 @@
                 _this.$message.error(err);
             });
 
-           /* this.$http.get('/sharder?requesSSO.accountRS,tType=getAccount', {
+            this.$http.get('/sharder?requestType=getAccount', {
                 params: {
                     account:SSO.accountRS,
                     includeLessors: true,
@@ -621,10 +630,14 @@
 
                 }
             }).then(function (res) {
-
+                if(typeof res.data.errorDescription !== "undefined"){
+                    _this.$message.error(res.data.errorDescription);
+                    return;
+                }
+                _this.accountInfo = res.data;
             }).catch(function(err){
 
-            });*/
+            });
         },
         watch:{
             getLang:{

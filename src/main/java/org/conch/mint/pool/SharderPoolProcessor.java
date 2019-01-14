@@ -435,8 +435,12 @@ public class SharderPoolProcessor implements Serializable {
         jsonObject.put("chance", chance);
         jsonObject.put("historicalBlocks", historicalBlocks);
         jsonObject.put("historicalIncome", historicalIncome);
+        jsonObject.put("totalBlocks",totalBlocks);
+        jsonObject.put("consignors",consignors);
         jsonObject.put("startBlockNo", startBlockNo);
         jsonObject.put("endBlockNo", endBlockNo);
+        jsonObject.put("updateHeight", updateHeight);
+        jsonObject.put("rule",rule);
         jsonObject.put("state", state);
         return jsonObject;
     }

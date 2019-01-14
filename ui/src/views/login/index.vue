@@ -119,8 +119,11 @@
         created() {
             const _this = this;
 
-            let url = window.location.host;
-            alert(url);
+            let url = window.location.href;
+            let pathname = window.location.pathname;
+            console.log("~~~~~~~~~~~~~~~~~~~~~~", url.split(pathname)[0]);
+
+
 
             // this.$global.getUserConfig(this).then(res=>{
             //     if(typeof res["sharder.HubBindAddress"] !== 'undefined'){

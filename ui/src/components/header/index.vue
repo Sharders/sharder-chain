@@ -36,10 +36,10 @@
                     </div>
                     <div class="navbar_pilotLamp">
 
-                        <el-tooltip class="item" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-if="accountInfo.errorDescription === 'Unknown account'">
+                        <el-tooltip class="item csp" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-if="accountInfo.errorDescription === 'Unknown account'">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
-                        <el-tooltip class="item" :content="$t('header.forging_error_effective_balance')" placement="bottom" effect="light" v-else-if="accountInfo.effectiveBalanceSS === 0">
+                        <el-tooltip class="item csp" :content="$t('header.forging_error_effective_balance')" placement="bottom" effect="light" v-else-if="accountInfo.effectiveBalanceSS === 0">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
                         <el-tooltip class="item csp" :content="$t('header.forging_error_no_admin_password')" placement="bottom" effect="light" v-else-if="typeof(secretPhrase) === 'undefined' && userConfig['sharder.HubBindAddress'] !== accountRS">
