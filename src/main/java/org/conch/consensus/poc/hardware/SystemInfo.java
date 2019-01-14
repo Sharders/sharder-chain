@@ -10,6 +10,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  **/
 public class SystemInfo {
 
+    private String ip;
+
+    private String port;
+
     private int core; // 几核
 
     private int averageMHz; // 平均兆赫
@@ -25,6 +29,24 @@ public class SystemInfo {
     private long tradePerformance; // 交易处理性能
 
     private Long[] openServices; // 开启的服务列表
+
+    public String getIp() {
+        return ip;
+    }
+
+    public SystemInfo setIp(String ip) {
+        this.ip = ip;
+        return this;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public SystemInfo setPort(String port) {
+        this.port = port;
+        return this;
+    }
 
     public int getCore() {
         return core;

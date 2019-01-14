@@ -1,13 +1,13 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocTemplate;
+import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
@@ -33,14 +33,14 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            //TODO 根据传入的参数创建交易
+            String nodeTypeConfigJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String port = request.getParameter("port");
-//            Attachment attachment = PocProcessorImpl.getPocConfiguration(ip, port, -1);
-//            assert attachment != null;
-//            return createTransaction(request, account, 0, 0, attachment);
-            return null;
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+            }
+            SystemInfo systemInfo = JSONObject.parseObject(nodeTypeConfigJson, SystemInfo.class);
+            Attachment attachment = new PocTxBody.PocNodeConf(systemInfo.getIp(), systemInfo.getPort(), systemInfo);
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 
@@ -110,8 +110,9 @@ public abstract class PocTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             String templateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL()))
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
                 throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+            }
             PocTemplate customPocTemp = JSONObject.parseObject(
                     templateJson,
                     PocTemplate.class
