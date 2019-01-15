@@ -54,7 +54,7 @@ public final class SellAlias extends CreateTransaction {
         long recipientId = 0;
         if (recipientValue != null) {
             try {
-                recipientId = Convert.parseAccountId(recipientValue);
+                recipientId = Account.rsAccountToId(recipientValue);
             } catch (RuntimeException e) {
                 return INCORRECT_RECIPIENT;
             }

@@ -2321,7 +2321,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
     } catch (ConchException.NotValidException e) {
         long accountId = Account.getId(publicKey);
-        Logger.logErrorMessage("Can't create coin base transaction[current miner=" + Convert.rsAccount(accountId)  + ", id=" + accountId + "]", e);
+        Logger.logErrorMessage("Can't create coin base transaction[current miner=" + Account.rsAccount(accountId)  + ", id=" + accountId + "]", e);
     }
     
     // generation missing
@@ -2342,7 +2342,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     } catch (ConchException.NotValidException e) {
         long accountId = Account.getId(publicKey);
-        Logger.logErrorMessage("Can't create generation missing transaction[current miner=" + Convert.rsAccount(accountId)  + ", id=" + accountId + "]", e);
+        Logger.logErrorMessage("Can't create generation missing transaction[current miner=" + Account.rsAccount(accountId)  + ", id=" + accountId + "]", e);
     }
 
     for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
@@ -2385,7 +2385,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           "Account[id="
               + Long.toUnsignedString(block.getGeneratorId())
               + ", RS="
-              + Convert.rsAccount(block.getGeneratorId())
+              + Account.rsAccount(block.getGeneratorId())
               + "]"
               + " generated block "
               + block.getStringId()

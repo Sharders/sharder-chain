@@ -22,8 +22,9 @@
 package org.conch.http.biz.handler;
 
 import org.conch.Conch;
-import org.conch.db.*;
-import org.conch.db.*;
+import org.conch.account.Account;
+import org.conch.db.Db;
+import org.conch.db.DbUtils;
 import org.conch.http.APIServlet;
 import org.conch.http.APITag;
 import org.conch.tx.Transaction;
@@ -71,7 +72,7 @@ public final class GetBackup extends APIServlet.APIRequestHandler {
                     JSONObject jsonObject = new JSONObject();
                     Long storerId = rs.getLong(1);
                     jsonObject.put("storerId", storerId);
-                    jsonObject.put("storerAddress", Convert.rsAccount(storerId));
+                    jsonObject.put("storerAddress", Account.rsAccount(storerId));
                     String transactionId = rs.getString(2);
                     jsonObject.put("backup_Tx", transactionId);
                     Transaction transaction = Conch.getBlockchain().getTransaction(Convert.parseUnsignedLong(transactionId));

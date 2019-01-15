@@ -1144,7 +1144,7 @@ public final class JSONData {
 
     public static void putAccount(JSONObject json, String name, long accountId) {
         json.put(name, Long.toUnsignedString(accountId));
-        json.put(name + "RS", Convert.rsAccount(accountId));
+        json.put(name + "RS", Account.rsAccount(accountId));
     }
 
     private static void putCurrencyInfo(JSONObject json, long currencyId) {

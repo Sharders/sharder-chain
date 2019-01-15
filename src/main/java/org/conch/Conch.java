@@ -710,7 +710,7 @@ public final class Conch {
         String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
         if (hubBind && hubBindPassPhrase != null) {
             Generator hubGenerator = Generator.startMining(hubBindPassPhrase.trim());
-            if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
+            if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(hubBindAddress))) {
                 Generator.stopMining(hubBindPassPhrase.trim());
                 Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
             } else {
@@ -724,7 +724,7 @@ public final class Conch {
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
                 Generator bindGenerator = Generator.startMining(autoMintPR.trim());
-                Logger.logInfoMessage("Account " + Convert.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+                Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
             }
         }
     }

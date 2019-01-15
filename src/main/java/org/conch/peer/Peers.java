@@ -811,7 +811,7 @@ public final class Peers {
         @Override
         public void run() {
             if(!sysInitialed) {
-                Logger.logInfoMessage("Wait Conch initial, sleep 30S...");
+                Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
                 try {
                     Thread.sleep(30 * 1000L);
                 } catch (InterruptedException e) {

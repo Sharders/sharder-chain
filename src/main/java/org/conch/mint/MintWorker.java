@@ -22,6 +22,7 @@
 package org.conch.mint;
 
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
@@ -66,7 +67,7 @@ public class MintWorker {
         boolean isStopOnError = Conch.getBooleanProperty("sharder.mint.stopOnError");
         byte[] publicKeyHash = Crypto.sha256().digest(Crypto.getPublicKey(secretPhrase));
         long accountId = Convert.fullHashToId(publicKeyHash);
-        String rsAccount = Convert.rsAccount(accountId);
+        String rsAccount = Account.rsAccount(accountId);
         JSONObject currency = getCurrency(currencyCode);
         if (currency.get("currency") == null) {
             throw new IllegalArgumentException("Invalid currency code " + currencyCode);

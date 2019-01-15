@@ -43,7 +43,6 @@ import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionProcessor;
-import org.conch.util.Convert;
 import org.conch.util.Logger;
 
 import java.io.*;
@@ -68,7 +67,7 @@ public final class DebugTrace {
                 accountIds.clear();
                 break;
             }
-            accountIds.add(Convert.parseAccountId(accountId));
+            accountIds.add(Account.rsAccountToId(accountId));
         }
         final DebugTrace debugTrace = addDebugTrace(accountIds, logName);
         Conch.getBlockchainProcessor().addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);

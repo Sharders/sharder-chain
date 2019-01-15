@@ -30,7 +30,10 @@ import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.tx.TransactionProcessorImpl;
-import org.conch.util.*;
+import org.conch.util.Listener;
+import org.conch.util.Listeners;
+import org.conch.util.Logger;
+import org.conch.util.ThreadPool;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -51,7 +54,7 @@ public class Generator implements Comparable<Generator> {
 
     private static final int MAX_MINERS = Conch.getIntProperty("sharder.maxNumberOfForgers");
     private static final byte[] fakeForgingPublicKey = Conch.getBooleanProperty("sharder.enableFakeForging") ?
-            Account.getPublicKey(Convert.parseAccountId(Conch.getStringProperty("sharder.fakeForgingAccount"))) : null;
+            Account.getPublicKey(Account.rsAccountToId(Conch.getStringProperty("sharder.fakeForgingAccount"))) : null;
 
     private static final Listeners<Generator,Event> listeners = new Listeners<>();
 
@@ -158,9 +161,9 @@ public class Generator implements Comparable<Generator> {
     }
     
     public synchronized static List<Long> getAndResetGenerationMissingMiners(){
-        List<Long> missingAccountds = Collections.unmodifiableList(generationMissingMinerIds);
+        List<Long> missingAccounts = Collections.unmodifiableList(generationMissingMinerIds);
         generationMissingMinerIds.clear();
-        return missingAccountds;
+        return missingAccounts;
     }
 
     static {
@@ -183,6 +186,13 @@ public class Generator implements Comparable<Generator> {
         if (generators.size() >= MAX_MINERS) {
             throw new RuntimeException("Cannot mint with more than " + MAX_MINERS + " accounts on the same node");
         }
+        
+        long accountId = Account.getId(secretPhrase);
+        
+        if(!PocProcessorImpl.isHubBind(accountId)) {
+            Logger.logInfoMessage("Account[id=" + accountId  + "] is not be bind to hub");
+        }
+        
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
 

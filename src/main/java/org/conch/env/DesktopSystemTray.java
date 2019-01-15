@@ -23,6 +23,7 @@ package org.conch.env;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.db.Db;
@@ -240,7 +241,7 @@ public class DesktopSystemTray {
 
         StringBuilder generators = new StringBuilder();
         for (Generator generator : allGenerators) {
-            generators.append(Convert.rsAccount(generator.getAccountId())).append(' ');
+            generators.append(Account.rsAccount(generator.getAccountId())).append(' ');
         }
         Object optionPaneBackground = UIManager.get("OptionPane.background");
         UIManager.put("OptionPane.background", Color.WHITE);
