@@ -267,9 +267,18 @@ public class PocProcessorImpl implements PocProcessor {
   
   private static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
     Peer peer = Peers.getPeer(ip);
+    if(StringUtils.isEmpty(ip)){
+      Logger.logWarningMessage("peer ip[" + ip + "] is null, can't find peer!");
+      return;
+    }
     
     // update peer type
-    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
+    String bindRsAccount = peer.getBindRsAccount();
+    if(StringUtils.isEmpty(bindRsAccount)){
+      Logger.logWarningMessage("bind rs account of peer[ip=" + ip + "] is null, can't finish certified node updated");
+      return;
+    }
+    long peerBindAccountId = Account.rsAccountToId(bindRsAccount);
     peer.setType(type);
 
     // update certified nodes

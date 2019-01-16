@@ -298,7 +298,7 @@ public enum APIEnum {
     AUTHORIZATION_LOGIN("authorizationLogin",AuthorizationLogin.instance),
     // sharder pool
     CREATE_SHARDER_POOL("createPool", PoolTxApi.CreatePoolTx.instance),
-    DESTROY_SHARDER_POOL("destroyPool", PoolTxApi.DestoryPoolTx.instance),
+    DESTROY_SHARDER_POOL("destroyPool", PoolTxApi.DestroyPoolTx.instance),
     JOIN_SHARDER_POOL("joinPool", PoolTxApi.JoinPoolTx.instance),
     QUIT_SHARDER_POOL("quitPool", PoolTxApi.QuitPoolTx.instance),
     GET_SHARDER_POOL_INFO("getPoolInfo", PoolTxApi.GetPoolInfo.instance),

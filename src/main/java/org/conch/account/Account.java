@@ -1154,6 +1154,10 @@ public final class Account {
     public long getId() {
         return id;
     }
+    
+    public String getRsAddress() {
+        return rsAccount(id);
+    }
 
     public AccountInfo getAccountInfo() {
         return accountInfoTable.get(accountDbKeyFactory.newKey(this));
