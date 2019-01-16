@@ -122,6 +122,12 @@ public class PocProcessorImpl implements PocProcessor {
     return PocHolder.hubAccountPeerMap.containsKey(accountId);
   }
   
+  public static boolean isHubBind(long accountId, String peerIp){
+    String bindPeerIp = PocHolder.hubAccountPeerMap.get(accountId);
+   
+    return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
+  }
+  
 
   static {
     Conch.getBlockchainProcessor().addListener(PocProcessorImpl::savePocHolder, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);

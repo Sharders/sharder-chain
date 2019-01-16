@@ -114,8 +114,8 @@ public final class Constants {
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
 //    public static final int FORGING_DELAY = 600; // 内测阶段设为10分钟延迟
-    public static final int FORGING_DELAY = Conch.getIntProperty("sharder.forgingDelay");
-    public static final int FORGING_SPEEDUP = Conch.getIntProperty("sharder.forgingSpeedup");
+    public static final int FORGING_DELAY = Conch.getIntProperty("sharder.miningDelay");
+    public static final int FORGING_SPEEDUP = Conch.getIntProperty("sharder.miningSpeedup");
 
     public static final byte MAX_PHASING_VOTE_TRANSACTIONS = 10;
     public static final byte MAX_PHASING_WHITELIST_SIZE = 10;

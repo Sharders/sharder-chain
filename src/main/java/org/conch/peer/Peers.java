@@ -1341,10 +1341,10 @@ public final class Peers {
     }
     
     public static long getServicesInLong() {
-        return _serviceMapping(myServices);
+        return _mapServiceToLong(myServices);
     }
     
-    private static long _serviceMapping(List<Peer.Service> servicesList) {
+    private static long _mapServiceToLong(List<Peer.Service> servicesList) {
         long services = 0;
         for (Peer.Service service : servicesList) {
             services |= service.getCode();
@@ -1407,8 +1407,12 @@ public final class Peers {
         return "127.0.0.1".equals(bestPeer) ? "http://127.0.0.1:" + API.openAPIPort : peers.get(bestPeer).getPeerApiUri().toString();
     }
 
-    public static void checkAndSetOpeningServices(List<Peer.Service> services){
+    public static void checkAndAddOpeningServices(List<Peer.Service> services){
         myServices.addAll(services);
         myServices = Collections.unmodifiableList(myServices);
+    }
+    
+    public static boolean isOpenService(Peer.Service service){
+        return myServices.contains(service);
     }
 }

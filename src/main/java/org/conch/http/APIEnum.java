@@ -223,7 +223,7 @@ public enum APIEnum {
     DELETE_ALIAS("deleteAlias", DeleteAlias.instance),
     SIGN_TRANSACTION("signTransaction", SignTransaction.instance),
     START_FORGING("startForging", StartForging.instance),
-    STOP_FORGING("stopForging", StopForging.instance),
+    STOP_FORGING("stopMining", StopForging.instance),
     GET_FORGING("getForging", GetForging.instance),
     TRANSFER_ASSET("transferAsset", TransferAsset.instance),
     TRANSFER_CURRENCY("transferCurrency", TransferCurrency.instance),
