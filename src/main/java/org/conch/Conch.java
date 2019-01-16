@@ -715,7 +715,7 @@ public final class Conch {
                 Generator.stopMining(hubBindPassPhrase.trim());
                 Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
             } else {
-                Logger.logInfoMessage("Account " + hubBindAddress + "started mining...");
+                Logger.logInfoMessage("Account " + hubBindAddress + " started mining...");
             }
         }else {
             // [Normal Miner] if owner set the passphrase of mint then start mining

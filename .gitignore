@@ -16,6 +16,7 @@ package-lock.json
 
 conf/.lock
 conf/localstorage
+conf/sharder.properties
 
 DestroyForgePool
 ForgePools
