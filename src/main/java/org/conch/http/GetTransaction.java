@@ -70,7 +70,7 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
         if (StringUtils.isEmpty(transactionIdString) && StringUtils.isEmpty(transactionFullHash)) {
             return null;
         }
-        //精确查询
+        // 精确查询
         // 先查现有区块的交易
         if (StringUtils.isNotEmpty(transactionIdString)) {
             transactionId = Convert.parseLong(transactionIdString);
