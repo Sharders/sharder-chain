@@ -767,9 +767,68 @@ public final class Peers {
         }
 
     };
+    
+    private static final String SC_PEERS_API =
+      Constants.isMainnet()
+          ? (Conch.getSharderFoundationURL() + "/sc/peer/list.ss")
+          : "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
+    private static Map<Integer, Map<Long, Peer>> accountPeerMap = new ConcurrentHashMap<>();
+    private static final Runnable getHubPeerThread = () -> {
+        try {
+            String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
+            com.alibaba.fastjson.JSONArray peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
+            Iterator iterator = peerArrayJson.iterator();
+            
+            String detail = "get peer info and update hub peer info [size=" + peerArrayJson.size() + "]==================>\n\r";
+            while(iterator.hasNext()){
+                com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject)iterator.next();
+                String host = peerJson.getString("host");
+                String bindAddress = peerJson.getString("bindAddress");
+                Peer peer = Peers.getPeer(host);
+                if(peer == null) {
+                    peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
+                    if (peer != null) {
+                        Peers.addPeer(peer, host);
+                        Peers.connectPeer(peer);
+                    }
+                    peer = Peers.getPeer(host);
+                    detail += "create a new hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+                }else{
+                    detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r"; 
+                }
+                peer.setBindRsAccount(bindAddress);
+            }
+            detail += "<================== hub peer info updated";
+            Logger.logInfoMessage(detail);
 
+        } catch (Exception e) {
+            Logger.logDebugMessage("syn valid node thread interrupted");
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
+
+
+    public static volatile boolean hardwareTested = false;
+    public static volatile boolean sysInitialed = false;
+    private static final Runnable hardwareTestingThread = () -> {
+        if(!sysInitialed) {
+            Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
+            try {
+                Thread.sleep(30 * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(hardwareTested) return;
+
+        hardwareTested = GetNodeHardware.readAndReport();
+    };
 
     static {
+        // listener and thread run
         Peers.addListener(peer -> peersService.submit(() -> {
             if (peer.getAnnouncedAddress() != null && !peer.isBlacklisted()) {
                 try {
@@ -784,17 +843,13 @@ public final class Peers {
                 }
             }
         }), Peers.Event.CHANGED_SERVICES);
-    }
 
-    static {
         Account.addListener(account -> peers.values().forEach(peer -> {
             if (peer.getHallmark() != null && peer.getHallmark().getAccountId() == account.getId()) {
                 Peers.listeners.notify(peer, Event.WEIGHT);
             }
         }), Account.Event.BALANCE);
-    }
 
-    static {
         if (! Constants.isOffline) {
             ThreadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 20);
             ThreadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 60);
@@ -802,32 +857,16 @@ public final class Peers {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
             }
         }
-    }
-    
-    
-    public static volatile boolean hardwareTested = false;
-    public static volatile boolean sysInitialed = false;
-    private static final Runnable hardwareTestingThread = new Runnable() {
-        @Override
-        public void run() {
-            if(!sysInitialed) {
-                Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
-                try {
-                    Thread.sleep(30 * 1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            
-            if(hardwareTested) return;
 
-            hardwareTested = GetNodeHardware.readAndReport();
-        }
-    };
+        ThreadPool.scheduleThread("GetHubPeer", Peers.getHubPeerThread, 20);
+    }
+
+    
+
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("PeerHardwareTestingThread", Peers.hardwareTestingThread, 5);
+        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.hardwareTestingThread, 5);
     }
 
     public static void shutdown() {

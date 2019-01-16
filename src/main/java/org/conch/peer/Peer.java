@@ -137,7 +137,9 @@ public interface Peer extends Comparable<Peer> {
 
     int getWeight();
     
-    long getBindAccountId();
+    String getBindRsAccount();
+    
+    void setBindRsAccount(String bindRsAccount);
 
     boolean shareAddress();
 

@@ -168,63 +168,61 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   private static boolean synPocTxNow = true;
-  private static final Runnable pocTxSynThread = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          
-          if(!synPocTxNow) {
-            Logger.logInfoMessage("No needs to syn now, sleep 10 minutes...");
-            Thread.sleep(10 * 60 * 1000);
-          }
-          
-          int fromHeight = (PocHolder.lastHeight <= -1) ? 0 : PocHolder.lastHeight;
-          int toHeight = BlockchainImpl.getInstance().getHeight();
-
-
-          DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
-          for(BlockImpl block : blocks) {
-              pocSeriesTxProcess(block);
-          }
-
-          synPocTxNow = false;
-          
-        } catch (Exception e) {
-          Logger.logDebugMessage("Poc tx syn thread interrupted");
-        } catch (Throwable t) {
-          Logger.logErrorMessage(
-              "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-          System.exit(1);
-        }
+  private static final Runnable pocTxSynThread = () -> {
+    try {
+      
+      if(!synPocTxNow) {
+        Logger.logInfoMessage("No needs to syn now, sleep 10 minutes...");
+        Thread.sleep(10 * 60 * 1000);
       }
+      
+      int fromHeight = (PocHolder.lastHeight <= -1) ? 0 : PocHolder.lastHeight;
+      int toHeight = BlockchainImpl.getInstance().getHeight();
+
+
+      DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
+      for(BlockImpl block : blocks) {
+          pocSeriesTxProcess(block);
+      }
+
+      synPocTxNow = false;
+      
+    } catch (Exception e) {
+      Logger.logDebugMessage("Poc tx syn thread interrupted");
+    } catch (Throwable t) {
+      Logger.logErrorMessage(
+          "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
+    }
   };
   
   private static volatile List<String> synPeerList = Lists.newArrayList();
-  private static final Runnable peerSynThread = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          
-          if(synPeerList.size() <= 0) {
-            Logger.logInfoMessage("No needs to syn peer, sleep 10 minutes...");
-            Thread.sleep(10 * 60 * 1000);
-          }
-
-          for(String ip : synPeerList){
-            //TODO call Peers to get peer info by host and add it into map
-            Peer.Type type = null;
-            _updateCertifiedNodes(ip, type, -1);
-          }
-          synPeerList.clear();
-          
-        } catch (Exception e) {
-          Logger.logDebugMessage("Peer syn thread interrupted");
-        } catch (Throwable t) {
-          Logger.logErrorMessage(
-              "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-          System.exit(1);
-        }
+  private static final Runnable peerSynThread = () -> {
+    try {
+      
+      if(synPeerList.size() <= 0) {
+        Logger.logInfoMessage("No needs to syn peer, sleep 10 minutes...");
+        Thread.sleep(10 * 60 * 1000);
       }
+
+      for(String peerAddress : synPeerList){
+        Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
+        if (peer != null) {
+          Peers.addPeer(peer, peerAddress);
+          Peers.connectPeer(peer);
+        }
+        peer = Peers.getPeer(peerAddress);
+        _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
+      }
+      synPeerList.clear();
+      
+    } catch (Exception e) {
+      Logger.logDebugMessage("Peer syn thread interrupted");
+    } catch (Throwable t) {
+      Logger.logErrorMessage(
+          "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
+    }
   };
 
   
@@ -271,7 +269,7 @@ public class PocProcessorImpl implements PocProcessor {
     Peer peer = Peers.getPeer(ip);
     
     // update peer type
-    long peerBindAccountId = peer.getBindAccountId();
+    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
     peer.setType(type);
 
     // update certified nodes
@@ -315,7 +313,8 @@ public class PocProcessorImpl implements PocProcessor {
     _updateCertifiedNodes(pocNodeType.getIp(),pocNodeType.getType(),height);
     
     // re-calculate poc score
-    PocScore pocScoreToUpdate = new PocScore(peer.getBindAccountId(),height);
+    long accountId = Account.rsAccountToId(peer.getBindRsAccount());
+    PocScore pocScoreToUpdate = new PocScore(accountId,height);
     pocScoreToUpdate.nodeTypeCal(pocNodeType);
 
     PocHolder.scoreMapping(pocScoreToUpdate);
@@ -337,7 +336,7 @@ public class PocProcessorImpl implements PocProcessor {
       return false;
     }
     
-    long peerBindAccountId = peer.getBindAccountId();
+    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
     PocScore pocScoreToUpdate = new PocScore(peerBindAccountId,height);
     pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
@@ -359,7 +358,7 @@ public class PocProcessorImpl implements PocProcessor {
       return false;
     }
     
-    long peerBindAccountId = peer.getBindAccountId();
+    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
     PocScore pocScoreToUpdate = new PocScore(peerBindAccountId,height);
     pocScoreToUpdate.onlineRateCal(peer.getType(),onlineRate);
 
