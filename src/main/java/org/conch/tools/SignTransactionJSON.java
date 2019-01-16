@@ -22,6 +22,7 @@
 package org.conch.tools;
 
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -61,7 +62,7 @@ public final class SignTransactionJSON {
                  BufferedWriter writer = new BufferedWriter(new FileWriter(signed))) {
                 JSONObject json = (JSONObject) JSONValue.parseWithException(reader);
                 byte[] publicKeyHash = Crypto.sha256().digest(Convert.parseHexString((String) json.get("senderPublicKey")));
-                String senderRS = Convert.rsAccount(Convert.fullHashToId(publicKeyHash));
+                String senderRS = Account.rsAccount(Convert.fullHashToId(publicKeyHash));
                 String secretPhrase;
                 Console console = System.console();
                 if (console == null) {

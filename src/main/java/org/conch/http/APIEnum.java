@@ -223,7 +223,7 @@ public enum APIEnum {
     DELETE_ALIAS("deleteAlias", DeleteAlias.instance),
     SIGN_TRANSACTION("signTransaction", SignTransaction.instance),
     START_FORGING("startForging", StartForging.instance),
-    STOP_FORGING("stopForging", StopForging.instance),
+    STOP_FORGING("stopMining", StopForging.instance),
     GET_FORGING("getForging", GetForging.instance),
     TRANSFER_ASSET("transferAsset", TransferAsset.instance),
     TRANSFER_CURRENCY("transferCurrency", TransferCurrency.instance),
@@ -298,7 +298,7 @@ public enum APIEnum {
     AUTHORIZATION_LOGIN("authorizationLogin",AuthorizationLogin.instance),
     // sharder pool
     CREATE_SHARDER_POOL("createPool", PoolTxApi.CreatePoolTx.instance),
-    DESTROY_SHARDER_POOL("destroyPool", PoolTxApi.DestoryPoolTx.instance),
+    DESTROY_SHARDER_POOL("destroyPool", PoolTxApi.DestroyPoolTx.instance),
     JOIN_SHARDER_POOL("joinPool", PoolTxApi.JoinPoolTx.instance),
     QUIT_SHARDER_POOL("quitPool", PoolTxApi.QuitPoolTx.instance),
     GET_SHARDER_POOL_INFO("getPoolInfo", PoolTxApi.GetPoolInfo.instance),

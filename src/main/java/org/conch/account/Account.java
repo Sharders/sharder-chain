@@ -863,6 +863,10 @@ public final class Account {
         return Convert.fullHashToId(publicKeyHash);
     }
 
+    public static long getId(String secretPhrase) {
+       return getId(Crypto.getPublicKey(secretPhrase));
+    }
+
     public static byte[] getPublicKey(long id) {
         DbKey dbKey = publicKeyDbKeyFactory.newKey(id);
         byte[] key = null;
@@ -880,6 +884,23 @@ public final class Account {
         }
         return key;
     }
+
+    public static long rsAccountToId(String rsAccount) {
+        if (rsAccount == null || (rsAccount = rsAccount.trim()).isEmpty()) {
+            return 0;
+        }
+        rsAccount = rsAccount.toUpperCase();
+        if (rsAccount.startsWith(Constants.ACCOUNT_PREFIX)) {
+            return Crypto.rsDecode(rsAccount.substring(4));
+        } else {
+            return Long.parseUnsignedLong(rsAccount);
+        }
+    }
+
+    public static String rsAccount(long accountId) {
+        return Constants.ACCOUNT_PREFIX + Crypto.rsEncode(accountId);
+    }
+    
 
     public static Account addOrGetAccount(long id) {
         if (id == 0) {
@@ -1132,6 +1153,10 @@ public final class Account {
 
     public long getId() {
         return id;
+    }
+    
+    public String getRsAddress() {
+        return rsAccount(id);
     }
 
     public AccountInfo getAccountInfo() {
@@ -1879,6 +1904,7 @@ public final class Account {
         this.addToBalanceNQT(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, -totalDividend);
         AssetDividend.addAssetDividend(transactionId, attachment, totalDividend, numAccounts);
     }
+
 
     @Override
     public String toString() {

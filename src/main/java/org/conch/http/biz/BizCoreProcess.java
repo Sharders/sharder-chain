@@ -158,7 +158,7 @@ public class BizCoreProcess {
         if (whitelistValues != null && whitelistValues.length > 0) {
             whitelist = new long[whitelistValues.length];
             for (int i = 0; i < whitelistValues.length; i++) {
-                whitelist[i] = Convert.parseAccountId(whitelistValues[i]);
+                whitelist[i] = Account.rsAccountToId(whitelistValues[i]);
                 if (whitelist[i] == 0) {
                     throw new ParameterException(INCORRECT_WHITELIST);
                 }

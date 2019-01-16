@@ -47,7 +47,7 @@ public final class StopForging extends APIServlet.APIRequestHandler {
             response.put("forgersCount", Generator.getGeneratorCount());
         } else {
             API.verifyPassword(req);
-            int count = Generator.stopForging();
+            int count = Generator.stopMining();
             response.put("stopped", count);
         }
         return response;

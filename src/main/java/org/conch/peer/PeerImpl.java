@@ -49,7 +49,7 @@ final class PeerImpl implements Peer {
     private volatile boolean useNATService;
     private volatile String announcedAddress;
     private volatile int port;
-    private volatile long bindAccountId;
+    private volatile String bindRsAccount;
     private volatile boolean shareAddress;
     private volatile Hallmark hallmark;
     private volatile String platform;
@@ -139,12 +139,13 @@ final class PeerImpl implements Peer {
     }
 
     @Override
-    public long getBindAccountId() {
-        return bindAccountId;
+    public String getBindRsAccount() {
+        return bindRsAccount;
     }
 
-    public void setBindAccountId(long bindAccountId) {
-        this.bindAccountId = bindAccountId;
+    @Override
+    public void setBindRsAccount(String bindRsAccount) {
+        this.bindRsAccount = bindRsAccount;
     }
 
     @Override
@@ -981,7 +982,7 @@ final class PeerImpl implements Peer {
         json.put("services", Long.toUnsignedString(services));
         json.put("blockchainState", state.ordinal());
         json.put("peerLoad",peerLoad.toJson());
-        json.put("bindAccountId",bindAccountId);
+        json.put("bindRsAccount", bindRsAccount);
         return json;
     }
 
@@ -1000,7 +1001,7 @@ final class PeerImpl implements Peer {
         shareAddress = Boolean.TRUE.equals(json.get("shareAddress"));
         analyzeHallmark((String) json.get("hallmark"));
         parsePeerLoad((JSONObject)json.get("peerLoad"));
-        setBindAccountId((Long)json.get("bindAccountId"));
+        setBindRsAccount((String)json.get("bindRsAccount"));
         return this;
     }
 }

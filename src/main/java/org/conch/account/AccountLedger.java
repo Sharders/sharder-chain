@@ -29,7 +29,6 @@ import org.conch.common.Constants;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
-import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;
 import org.conch.util.Logger;
@@ -79,7 +78,7 @@ public class AccountLedger {
             } else {
                 for (String account : ledgerAccounts) {
                     try {
-                        trackAccounts.add(Convert.parseAccountId(account));
+                        trackAccounts.add(Account.rsAccountToId(account));
                         Logger.logInfoMessage("Account ledger is tracking account " + account);
                     } catch (RuntimeException e) {
                         Logger.logErrorMessage("Account " + account + " is not valid; ignored");

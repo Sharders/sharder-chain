@@ -186,7 +186,7 @@ public final class ParameterParser {
             return 0;
         }
         try {
-            long value = Convert.parseAccountId(paramValue);
+            long value = Account.rsAccountToId(paramValue);
             if (value == 0) {
                 throw new ParameterException(incorrect(name));
             }
@@ -211,7 +211,7 @@ public final class ParameterParser {
                 if (paramValues[i] == null || paramValues[i].isEmpty()) {
                     throw new ParameterException(INCORRECT_ACCOUNT);
                 }
-                values[i] = Convert.parseAccountId(paramValues[i]);
+                values[i] = Account.rsAccountToId(paramValues[i]);
                 if (values[i] == 0) {
                     throw new ParameterException(INCORRECT_ACCOUNT);
                 }
@@ -472,7 +472,7 @@ public final class ParameterParser {
                 continue;
             }
             try {
-                Account account = Account.getAccount(Convert.parseAccountId(accountValue));
+                Account account = Account.getAccount(Account.rsAccountToId(accountValue));
                 if (account == null) {
                     throw new ParameterException(UNKNOWN_ACCOUNT);
                 }
