@@ -207,8 +207,8 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
     public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int CONCH_BV_BLOCK = isTestnetOrDevnet() ? 43000 : 43000;
-    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
-    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = isTestnetOrDevnet() ? 0 : 0;
+    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
+    public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
     public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
