@@ -1152,7 +1152,7 @@ public final class Peers {
                     continue;
                 }
 
-                //TODO storage if non storage client send to
+                //TODO[storage] storage if non storage client send to
 
                 if (!peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null
                         && peer.getBlockchainState() != Peer.BlockchainState.LIGHT_CLIENT) {
