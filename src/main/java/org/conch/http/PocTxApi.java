@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocTemplate;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -21,6 +20,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 public abstract class PocTxApi {
@@ -35,11 +35,11 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            String nodeTypeConfigJson = Https.getPostData(request);
-            Account account = ParameterParser.getSenderAccount(request);
             if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
                 throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
             }
+            String nodeTypeConfigJson = Https.getPostData(request);
+            Account account = ParameterParser.getSenderAccount(request);
             SystemInfo systemInfo = JSONObject.parseObject(nodeTypeConfigJson, SystemInfo.class);
             Attachment attachment = new PocTxBody.PocNodeConf(systemInfo.getIp(), systemInfo.getPort(), systemInfo);
             return createTransaction(request, account, 0, 0, attachment);
@@ -56,18 +56,18 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+            }
             String ip = Convert.emptyToNull(request.getParameter("ip"));
             String port = Convert.emptyToNull(request.getParameter("port"));
             String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
             String transactionFullHash = Convert.emptyToNull(request.getParameter("fullHash"));
             boolean includePhasingResult = Boolean.TRUE.toString().equalsIgnoreCase(request.getParameter("includePhasingResult"));
             List<org.json.simple.JSONObject> transactions;
-            List<org.json.simple.JSONObject> pocWeightTablesJson = new ArrayList<>();
+            List<org.json.simple.JSONObject> nodeConfigJson = new ArrayList<>();
             org.json.simple.JSONObject result = new org.json.simple.JSONObject();
-
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
 
             // 先根据ID和哈希查询交易
             boolean searchViaAddress = transactionIdString == null && transactionFullHash == null;
@@ -76,30 +76,30 @@ public abstract class PocTxApi {
                 if (searchViaAddress) {
                     // 获得所有的交易，然后匹配地址
                     transactions = GetTransaction.getTransactions(null, includePhasingResult);
-                    queryNodeTypeConfigTransactionsViaAddress(pocWeightTablesJson, ip, port, transactions);
+                    queryNodeTypeConfigTransactionsViaAddress(nodeConfigJson, ip, port, transactions);
                 }
             } else {
                 // 根据已查询到的交易，匹配地址
-                queryNodeTypeConfigTransactionsViaAddress(pocWeightTablesJson, ip, port, transactions);
+                queryNodeTypeConfigTransactionsViaAddress(nodeConfigJson, ip, port, transactions);
             }
-            result.put("data", JSONObject.toJSONString(pocWeightTablesJson));
+            result.put("data", JSONObject.toJSONString(nodeConfigJson));
             return result;
         }
 
-        private void queryNodeTypeConfigTransactionsViaAddress(List<org.json.simple.JSONObject> pocWeightTablesJson, String ip, String port, List<org.json.simple.JSONObject> transactions) {
+        private void queryNodeTypeConfigTransactionsViaAddress(List<org.json.simple.JSONObject> nodeConfigJson, String ip, String port, List<org.json.simple.JSONObject> transactions) {
             for (org.json.simple.JSONObject transaction : transactions) {
                 byte type = Byte.parseByte(String.valueOf(transaction.get("type")));
-                byte subType = Byte.parseByte(String.valueOf(transaction.get("subType")));
+                byte subType = Byte.parseByte(String.valueOf(transaction.get("subtype") == null ? 0 : transaction.get("subtype")));
                 if (TransactionType.TYPE_POC == type && PocTxWrapper.SUBTYPE_POC_NODE_CONF == subType) {
                     org.json.simple.JSONObject attachment = (org.json.simple.JSONObject) transaction.get("attachment");
-                    String attachmentIp = attachment.get("ip").toString();
-                    String attachmentPort = attachment.get("port").toString();
+                    String attachmentIp = String.valueOf(attachment.get("ip"));
+                    String attachmentPort = String.valueOf(attachment.get("port"));
                     boolean getAll = ip == null && port == null;
                     boolean getClearlyAddress = ip != null && port != null && ip.equalsIgnoreCase(attachmentIp) && port.equalsIgnoreCase(attachmentPort);
                     if (getAll || getClearlyAddress) {
                         attachment.put("fullHash", transaction.get("fullHash"));
                         attachment.put("transaction", transaction.get("transaction"));
-                        pocWeightTablesJson.add(attachment);
+                        nodeConfigJson.add(attachment);
                     }
                 }
             }
@@ -155,11 +155,12 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            String templateJson = Https.getPostData(request);
-            Account account = ParameterParser.getSenderAccount(request);
+
             if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
                 throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
             }
+            String templateJson = Https.getPostData(request);
+            Account account = ParameterParser.getSenderAccount(request);
             PocTemplate customPocTemp = JSONObject.parseObject(
                     templateJson,
                     PocTemplate.class
@@ -180,6 +181,9 @@ public abstract class PocTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
 
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+            }
             String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
             String transactionFullHash = Convert.emptyToNull(request.getParameter("fullHash"));
             boolean includePhasingResult = Boolean.TRUE.toString().equalsIgnoreCase(request.getParameter("includePhasingResult"));
@@ -187,9 +191,6 @@ public abstract class PocTxApi {
             org.json.simple.JSONObject result = new org.json.simple.JSONObject();
             long version = ParameterParser.getLong(request, "version", Long.MIN_VALUE, Long.MAX_VALUE, false);
 
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
             // 先根据交易ID和交易哈希查询
             List<org.json.simple.JSONObject> transactions = GetTransaction.getTransactions(transactionIdString, transactionFullHash, includePhasingResult);
             boolean searchViaVersion = transactionIdString == null && transactionFullHash == null;
@@ -210,7 +211,7 @@ public abstract class PocTxApi {
         private void queryPocTemplateTransactionsViaVersion(List<org.json.simple.JSONObject> pocWeightTablesJson, long version, List<org.json.simple.JSONObject> transactions) {
             for(org.json.simple.JSONObject transaction : transactions) {
                 byte type = Byte.parseByte(String.valueOf(transaction.get("type")));
-                byte subType = Byte.parseByte(String.valueOf(transaction.get("subtype")));
+                byte subType = Byte.parseByte(String.valueOf(transaction.get("subtype") == null ? 0 : transaction.get("subtype")));
                 if (TransactionType.TYPE_POC == type && PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == subType) {
                     org.json.simple.JSONObject attachment = (org.json.simple.JSONObject) transaction.get("attachment");
                     Long templateVersion = attachment.get("templateVersion") == null ? 0 : Long.parseLong(String.valueOf(attachment.get("templateVersion")));
@@ -249,16 +250,20 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            String senderIp = IpUtil.getSenderIp(request);
-            String foundationIP = IpUtil.getIp(Conch.getSharderFoundationURL());
 
-            if (foundationIP.equals(senderIp)){
-                String[] ips = request.getParameterValues("ips");
-                Attachment attachment = new Attachment.SharderOnlineRateCreate(ips);
-                return createTransaction(request, account, 0, 0, attachment);
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
             }
-           return null;
+            String onlineRateJson = Https.getPostData(request);
+            Account account = ParameterParser.getSenderAccount(request);
+            Map onlineRateMap = JSONObject.parseObject(onlineRateJson, Map.class);
+            String ip = String.valueOf(onlineRateMap.get("ip"));
+            String port = String.valueOf(onlineRateMap.get("port"));
+            String rate = String.valueOf(onlineRateMap.get("onlineRate"));
+            Integer onlineRate = Integer.parseInt(StringUtils.isEmpty(rate)||"null".equalsIgnoreCase(rate) ? "0" : rate);
+            Attachment attachment = new PocTxBody.PocOnlineRate(ip, port, onlineRate);
+
+            return createTransaction(request, account, 0, 0, attachment);
         }
     }
 
@@ -272,9 +277,53 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            //TODO
 
-            return null;
+            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+            }
+            String ip = Convert.emptyToNull(request.getParameter("ip"));
+            String port = Convert.emptyToNull(request.getParameter("port"));
+            String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
+            String transactionFullHash = Convert.emptyToNull(request.getParameter("fullHash"));
+            boolean includePhasingResult = Boolean.TRUE.toString().equalsIgnoreCase(request.getParameter("includePhasingResult"));
+            List<org.json.simple.JSONObject> transactions;
+            List<org.json.simple.JSONObject> onlineRateJson = new ArrayList<>();
+            org.json.simple.JSONObject result = new org.json.simple.JSONObject();
+
+            // 先根据ID和哈希查询交易
+            boolean searchViaAddress = transactionIdString == null && transactionFullHash == null;
+            transactions = GetTransaction.getTransactions(transactionIdString, transactionFullHash, includePhasingResult);
+            if (transactions == null) {
+                if (searchViaAddress) {
+                    // 获得所有的交易，然后匹配地址
+                    transactions = GetTransaction.getTransactions(null, includePhasingResult);
+                    queryOnlineRateTransactionsViaAddress(onlineRateJson, ip, port, transactions);
+                }
+            } else {
+                // 根据已查询到的交易，匹配地址
+                queryOnlineRateTransactionsViaAddress(onlineRateJson, ip, port, transactions);
+            }
+            result.put("data", JSONObject.toJSONString(onlineRateJson));
+            return result;
+        }
+
+        private void queryOnlineRateTransactionsViaAddress(List<org.json.simple.JSONObject> onlineRateJson, String ip, String port, List<org.json.simple.JSONObject> transactions) {
+            for(org.json.simple.JSONObject transaction : transactions) {
+                byte type = Byte.parseByte(String.valueOf(transaction.get("type")));
+                byte subType = Byte.parseByte(String.valueOf(transaction.get("subtype") == null ? 0 : transaction.get("subtype")));
+                if (TransactionType.TYPE_POC == type && PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == subType) {
+                    org.json.simple.JSONObject attachment = (org.json.simple.JSONObject) transaction.get("attachment");
+                    String attachmentIp = String.valueOf(attachment.get("ip"));
+                    String attachmentPort = String.valueOf(attachment.get("port"));
+                    boolean getAll = ip == null && port == null;
+                    boolean getClearlyAddress = ip != null && port != null && ip.equalsIgnoreCase(attachmentIp) && port.equalsIgnoreCase(attachmentPort);
+                    if (getAll || getClearlyAddress) {
+                        attachment.put("fullHash", transaction.get("fullHash"));
+                        attachment.put("transaction", transaction.get("transaction"));
+                        onlineRateJson.add(attachment);
+                    }
+                }
+            }
         }
 
         @Override
