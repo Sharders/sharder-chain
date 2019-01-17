@@ -88,28 +88,22 @@ public final class Constants {
     public static final long MAX_BALANCE_SS = 1000000000;
     public static final long ONE_SS = 100000000;
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
-
+    
+    /** another initial env => target: 6000, min-limit: 17, max-limit=22, base-gamma: 21 */
     public static final long INITIAL_BASE_TARGET = 153722867 * 8;
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
     public static final int BLOCK_GAP = getBlockGap();
 
-//    public static final long INITIAL_BASE_TARGET = 6000;
-//    public static final int MIN_BLOCKTIME_LIMIT = 17;
-//    public static final int MAX_BLOCKTIME_LIMIT = 22;
-//    public static final int BASE_TARGET_GAMMA = 21;
-
     public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), 720);
     public static final long MAX_BASE_TARGET = MAX_BALANCE_SS * INITIAL_BASE_TARGET;
     public static final long MAX_BASE_TARGET_2 = isTestnetOrDevnet() ? MAX_BASE_TARGET : INITIAL_BASE_TARGET * 50;
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
-
-//  public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnet ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 1440) : 1440;
-//  public static final int LEASING_DELAY = isTestnet ? Conch.getIntProperty("sharder.testnetLeasingDelay", 1440) : 1440;
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 3) : 10;
-    public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 10;
+    /** for the security, you can set the confirmations = 1440 */
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetGuaranteedBalanceConfirmations", 3) : 205;
+    public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
@@ -204,10 +198,7 @@ public final class Constants {
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
     
-    public static final int ALIAS_SYSTEM_BLOCK = 0;
     public static final int TRANSPARENT_FORGING_BLOCK = 0;
-    public static final int ARBITRARY_MESSAGES_BLOCK = 0;
-    public static final int TRANSPARENT_FORGING_BLOCK_2 = 0;
     public static final int TRANSPARENT_FORGING_BLOCK_DIRECT = 3000; //此节点数之前官方节点可直接挖矿
     public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
     public static final int TRANSPARENT_FORGING_BLOCK_5 = 0;
@@ -216,27 +207,16 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
     public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int CONCH_BV_BLOCK = isTestnetOrDevnet() ? 43000 : 43000;
-    public static final int FRACTIONAL_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
-    public static final int ASSET_EXCHANGE_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = isTestnetOrDevnet() ? NQT_BLOCK : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = isTestnetOrDevnet() ? 0 : 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
     public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    
-    /*** Move to check sum processor ***/
+
     public static final int DIGITAL_GOODS_STORE_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int MONETARY_SYSTEM_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int PHASING_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_16 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_17 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_18 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_19 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_20 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_21 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_22 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    /*** ***/
     
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
 

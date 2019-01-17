@@ -21,9 +21,6 @@ import java.util.Arrays;
  */
 public class CheckSumValidator {
 
-    public static final int DIGITAL_GOODS_STORE_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int MONETARY_SYSTEM_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int PHASING_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int CHECKSUM_BLOCK_16 = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int CHECKSUM_BLOCK_17 = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int CHECKSUM_BLOCK_18 = Constants.isTestnetOrDevnet() ? 0 : 0;
@@ -176,39 +173,39 @@ public class CheckSumValidator {
                             CHECKSUM_PHASING_BLOCK, Constants.MONETARY_SYSTEM_BLOCK, Constants.PHASING_BLOCK)) {
                         Conch.getBlockchainProcessor().popOffTo(Constants.MONETARY_SYSTEM_BLOCK);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_16) {
-                    if (!verifyChecksum(CHECKSUM_16, Constants.PHASING_BLOCK, Constants.CHECKSUM_BLOCK_16)) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_16) {
+                    if (!verifyChecksum(CHECKSUM_16, Constants.PHASING_BLOCK, CHECKSUM_BLOCK_16)) {
                         Conch.getBlockchainProcessor().popOffTo(Constants.PHASING_BLOCK);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_17) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_17) {
                     if (!verifyChecksum(
-                            CHECKSUM_17, Constants.CHECKSUM_BLOCK_16, Constants.CHECKSUM_BLOCK_17)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_16);
+                            CHECKSUM_17, CHECKSUM_BLOCK_16, CHECKSUM_BLOCK_17)) {
+                        Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_16);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_18) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_18) {
                     if (!verifyChecksum(
-                            CHECKSUM_18, Constants.CHECKSUM_BLOCK_17, Constants.CHECKSUM_BLOCK_18)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_17);
+                            CHECKSUM_18, CHECKSUM_BLOCK_17, CHECKSUM_BLOCK_18)) {
+                        Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_17);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_19) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_19) {
                     if (!verifyChecksum(
-                            CHECKSUM_19, Constants.CHECKSUM_BLOCK_18, Constants.CHECKSUM_BLOCK_19)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_18);
+                            CHECKSUM_19, CHECKSUM_BLOCK_18, CHECKSUM_BLOCK_19)) {
+                        Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_18);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_20) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_20) {
                     if (!verifyChecksum(
-                            CHECKSUM_20, Constants.CHECKSUM_BLOCK_19, Constants.CHECKSUM_BLOCK_20)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_19);
+                            CHECKSUM_20, CHECKSUM_BLOCK_19, CHECKSUM_BLOCK_20)) {
+                        Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_19);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_21) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_21) {
                     if (!verifyChecksum(
-                            CHECKSUM_21, Constants.CHECKSUM_BLOCK_20, Constants.CHECKSUM_BLOCK_21)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_20);
+                            CHECKSUM_21, CHECKSUM_BLOCK_20, CHECKSUM_BLOCK_21)) {
+                        Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_20);
                     }
-                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_22) {
+                } else if (block.getHeight() == CHECKSUM_BLOCK_22) {
                     if (!verifyChecksum(
-                            CHECKSUM_22, Constants.CHECKSUM_BLOCK_21, Constants.CHECKSUM_BLOCK_22)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_21);
+                            CHECKSUM_22, CHECKSUM_BLOCK_21, CHECKSUM_BLOCK_22)) {
+                        Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_21);
                     }
                 }
             };
@@ -218,8 +215,7 @@ public class CheckSumValidator {
         MessageDigest digest = Crypto.sha256();
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt =
-                     con.prepareStatement(
-                             "SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
+                     con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
             pstmt.setInt(1, fromHeight);
             pstmt.setInt(2, toHeight);
             try (DbIterator<TransactionImpl> iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt)) {
