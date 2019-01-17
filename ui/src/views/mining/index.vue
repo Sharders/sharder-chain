@@ -248,7 +248,7 @@
                         </h1>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_volume')}}</span>:
-                            <span>21/51</span>
+                            <span>{{miningList.length}}/{{maxPoolsNum}}</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.current_account')}}</span>:
@@ -256,11 +256,11 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>1000000 SS</span>
+                            <span>{{maxPoolinvestment/100000000}}SS</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>2880块(约24h)</span>
+                            <span>{{parseInt(maxForgeTime/avgBlocksTime)}}块（约{{maxForgeTime/60/60}}小时）</span>
                         </p>
                     </div>
                     <div class="pool-set">
@@ -268,7 +268,7 @@
                             <img src="../../assets/img/kuangchi_set.png">
                             <span>{{$t('mining.index.mining_setting')}}</span>
                         </h1>
-                        <div class="pool-data">
+<!--                        <div class="pool-data">
                             <p>
                                 <span class="strong">{{$t('mining.index.invest_ss')}}</span>
                                 <span class="user-input">
@@ -276,7 +276,7 @@
                                 </span>
                             </p>
                             <p>{{$t('mining.index.invest_ss_tip')}}</p>
-                        </div>
+                        </div>-->
                         <div class="pool-data">
                             <p>
                                 <span class="strong">{{$t('mining.index.income_distribution')}}</span>
@@ -316,6 +316,7 @@
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolinvestment: 50000000000000,
+                maxPoolsNum:51,
                 maxForgeTime:1 * 60 * 60,
                 options: [
                     {
@@ -346,56 +347,7 @@
                 forgeAssets:0,
                 rule:[],
                 avgBlocksTime:'',
-                miningList: [
-                    /* {
-                          serialNumber: "001",
-                          investmentTotal: 500000,
-                          currentInvestment: 180000,
-                          earnings: 1000,
-                          distribution: 80,
-                          remaining: 800,
-                      },
-                             {
-                                serialNumber: "002",
-                                investmentTotal: 500000,
-                                currentInvestment: 180000,
-                                earnings: 1000,
-                                distribution: 80,
-                                remaining: 800,
-                            },
-                            {
-                                serialNumber: "003",
-                                investmentTotal: 500000,
-                                currentInvestment: 180000,
-                                earnings: 1000,
-                                distribution: 80,
-                                remaining: 800,
-                            },
-                            {
-                                serialNumber: "004",
-                                investmentTotal: 500000,
-                                currentInvestment: 180000,
-                                earnings: 1000,
-                                distribution: 80,
-                                remaining: 800,
-                            },
-                            {
-                                serialNumber: "005",
-                                investmentTotal: 500000,
-                                currentInvestment: 180000,
-                                earnings: 1000,
-                                distribution: 80,
-                                remaining: 800,
-                            },
-                            {
-                                serialNumber: "006",
-                                investmentTotal: 500000,
-                                currentInvestment: 180000,
-                                earnings: 1000,
-                                distribution: 80,
-                                remaining: 800,
-                            },*/
-                ],
+                miningList: [],
                 rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [
                 /*    {
@@ -464,7 +416,7 @@
                 formData.append("secretPhrase",SSO.secretPhrase);
                 formData.append("deadline","1440");
                 formData.append("feeNQT","100000000");
-                formData.append("amount",_this.investment);
+                // formData.append("amount",_this.investment);
 
                 console.log("getAmount",50000000000000);
                 let rule = {

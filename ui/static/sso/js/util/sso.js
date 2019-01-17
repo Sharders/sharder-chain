@@ -654,7 +654,7 @@ var Sso = (function (NRS, $, undefined) {
                             NRS.lastProxyBlock = proxyBlocksResponse.blocks[0].block;
                             NRS.lastProxyBlockHeight = proxyBlocksResponse.blocks[0].height;
                             NRS.lastBlockHeight = NRS.lastProxyBlockHeight;
-                            NRS.incoming.updateDashboardBlocks(NRS.lastProxyBlockHeight - prevHeight);
+                            // NRS.incoming.updateDashboardBlocks(NRS.lastProxyBlockHeight - prevHeight);
                             NRS.updateDashboardLastBlock(proxyBlocksResponse.blocks[0]);
                             NRS.handleBlockchainStatus(response, callback);
                             // NRS.updateDashboardMessage();
@@ -1203,17 +1203,17 @@ var Sso = (function (NRS, $, undefined) {
         NRS.sendRequest("getPeers+", {
             "state": "CONNECTED"
         }, function (response) {
-            var connectedIndicator = $("#connected_indicator");
+            // var connectedIndicator = $("#connected_indicator");
             if (response.peers && response.peers.length) {
                 NRS.peerConnect = true;
-                connectedIndicator.addClass("connected");
-                connectedIndicator.find("span").html($.t("Connected")).attr("data-i18n", "sso.connected");
-                connectedIndicator.show();
+                console.log("服务器已连接");
             } else {
                 NRS.peerConnect = false;
-                connectedIndicator.removeClass("connected");
+                /*connectedIndicator.removeClass("connected");
                 connectedIndicator.find("span").html($.t("Not Connected")).attr("data-i18n", "sso.not_connected");
-                connectedIndicator.show();
+                connectedIndicator.show();*/
+                console.log("服务器未连接");
+
             }
         });
     };

@@ -100,10 +100,6 @@
                                     {{$t('mining.attribute.reward_distribution')}}{{typeof miningInfo.rule.level1 !== 'undefined' ?
                                      (1-miningInfo.rule.level1.forgepool.reward.max/1)*100 : (1-miningInfo.rule.level0.forgepool.reward.max/1)*100 }}%
                                 </button>
-                                <button class="info">
-                                    {{$t('mining.attribute.reward_distribution')}}{{}}
-                                </button>
-
                             </el-col>
                         </el-row>
                     </div>

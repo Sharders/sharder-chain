@@ -41,6 +41,7 @@
                     _this.$message.info(_this.$t('notification.login_no_input_error'));
                     return;
                 }
+                console.log(123213);
                 Login.login(true, _this.passphrase, _this, function () {
 /*
                     console.log(SSO);
@@ -52,10 +53,6 @@
 */
                     _this.$global.setEpochBeginning(_this).then(res=>{
                         _this.$store.state.isLogin = true;
-                        if(!_this.$store.state.isHubInit){
-                            _this.$router.push({path:'/login', query:{info:'register2Init'}});
-                            return;
-                        }
                         _this.$router.push("/account");
 
                     });
