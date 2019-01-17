@@ -1,12 +1,25 @@
 package org.conch.chain;
 
+import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.crypto.Crypto;
+import org.conch.db.Db;
+import org.conch.db.DbIterator;
+import org.conch.tx.TransactionImpl;
+import org.conch.util.Listener;
+import org.conch.util.Logger;
+
+import java.security.MessageDigest;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019/1/11
  */
-public class CheckSumProcessorImpl {
+public class CheckSumValidator {
 
     public static final int DIGITAL_GOODS_STORE_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int MONETARY_SYSTEM_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
@@ -127,96 +140,107 @@ public class CheckSumProcessorImpl {
                     40, 106, -48, 13, 30, -22, -122, 35, 22, 29, 2, -93, 94
             };
 
-//    // Checksum校验逻辑
-//    private final Listener<Block> checksumListener =
-//            block -> {
-//                if (block.getHeight() == Constants.TRANSPARENT_FORGING_BLOCK) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_TRANSPARENT_FORGING, 0, Constants.TRANSPARENT_FORGING_BLOCK)) {
-//                        popOffTo(0);
-//                    }
-//                } else if (block.getHeight() == Constants.NQT_BLOCK) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_NQT_BLOCK, Constants.TRANSPARENT_FORGING_BLOCK, Constants.NQT_BLOCK)) {
-//                        popOffTo(Constants.TRANSPARENT_FORGING_BLOCK);
-//                    }
-//                } else if (block.getHeight() == Constants.MONETARY_SYSTEM_BLOCK) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_MONETARY_SYSTEM_BLOCK,
-//                            Constants.NQT_BLOCK,
-//                            Constants.MONETARY_SYSTEM_BLOCK)) {
-//                        popOffTo(Constants.NQT_BLOCK);
-//                    }
-//                } else if (block.getHeight() == Constants.PHASING_BLOCK) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_PHASING_BLOCK, Constants.MONETARY_SYSTEM_BLOCK, Constants.PHASING_BLOCK)) {
-//                        popOffTo(Constants.MONETARY_SYSTEM_BLOCK);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_16) {
-//                    if (!verifyChecksum(CHECKSUM_16, Constants.PHASING_BLOCK, Constants.CHECKSUM_BLOCK_16)) {
-//                        popOffTo(Constants.PHASING_BLOCK);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_17) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_17, Constants.CHECKSUM_BLOCK_16, Constants.CHECKSUM_BLOCK_17)) {
-//                        popOffTo(Constants.CHECKSUM_BLOCK_16);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_18) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_18, Constants.CHECKSUM_BLOCK_17, Constants.CHECKSUM_BLOCK_18)) {
-//                        popOffTo(Constants.CHECKSUM_BLOCK_17);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_19) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_19, Constants.CHECKSUM_BLOCK_18, Constants.CHECKSUM_BLOCK_19)) {
-//                        popOffTo(Constants.CHECKSUM_BLOCK_18);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_20) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_20, Constants.CHECKSUM_BLOCK_19, Constants.CHECKSUM_BLOCK_20)) {
-//                        popOffTo(Constants.CHECKSUM_BLOCK_19);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_21) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_21, Constants.CHECKSUM_BLOCK_20, Constants.CHECKSUM_BLOCK_21)) {
-//                        popOffTo(Constants.CHECKSUM_BLOCK_20);
-//                    }
-//                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_22) {
-//                    if (!verifyChecksum(
-//                            CHECKSUM_22, Constants.CHECKSUM_BLOCK_21, Constants.CHECKSUM_BLOCK_22)) {
-//                        popOffTo(Constants.CHECKSUM_BLOCK_21);
-//                    }
-//                }
-//            };
-//
-//
-//    private boolean verifyChecksum(byte[] validChecksum, int fromHeight, int toHeight) {
-//        MessageDigest digest = Crypto.sha256();
-//        try (Connection con = Db.db.getConnection();
-//             PreparedStatement pstmt =
-//                     con.prepareStatement(
-//                             "SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
-//            pstmt.setInt(1, fromHeight);
-//            pstmt.setInt(2, toHeight);
-//            try (DbIterator<TransactionImpl> iterator = BlockchainProcessorImpl.getInstance().getTransactions(con, pstmt)) {
-//                while (iterator.hasNext()) {
-//                    digest.update(iterator.next().bytes());
-//                }
-//            }
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e.toString(), e);
-//        }
-//        byte[] checksum = digest.digest();
-//        if (validChecksum == null) {
-//            Logger.logMessage("Checksum calculated:\n" + Arrays.toString(checksum));
-//            return true;
-//        } else if (!Arrays.equals(checksum, validChecksum)) {
-//            Logger.logErrorMessage(
-//                    "Checksum failed at block " + blockchain.getHeight() + ": " + Arrays.toString(checksum));
-//            return false;
-//        } else {
-//            Logger.logMessage("Checksum passed at block " + blockchain.getHeight());
-//            return true;
-//        }
-//    }
+
+    private static final CheckSumValidator inst = new CheckSumValidator();
+
+    public static CheckSumValidator getInst(){
+        return inst;
+    }
+
+    public static Listener<Block> eventProcessor(){
+        return inst.checksumListener;
+    }
+    
+    // Checksum校验逻辑
+    private final Listener<Block> checksumListener =
+            block -> {
+                if (block.getHeight() == Constants.TRANSPARENT_FORGING_BLOCK) {
+                    if (!verifyChecksum(
+                            CHECKSUM_TRANSPARENT_FORGING, 0, Constants.TRANSPARENT_FORGING_BLOCK)) {
+                        Conch.getBlockchainProcessor().popOffTo(0);
+                    }
+                } else if (block.getHeight() == Constants.NQT_BLOCK) {
+                    if (!verifyChecksum(
+                            CHECKSUM_NQT_BLOCK, Constants.TRANSPARENT_FORGING_BLOCK, Constants.NQT_BLOCK)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.TRANSPARENT_FORGING_BLOCK);
+                    }
+                } else if (block.getHeight() == Constants.MONETARY_SYSTEM_BLOCK) {
+                    if (!verifyChecksum(
+                            CHECKSUM_MONETARY_SYSTEM_BLOCK,
+                            Constants.NQT_BLOCK,
+                            Constants.MONETARY_SYSTEM_BLOCK)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.NQT_BLOCK);
+                    }
+                } else if (block.getHeight() == Constants.PHASING_BLOCK) {
+                    if (!verifyChecksum(
+                            CHECKSUM_PHASING_BLOCK, Constants.MONETARY_SYSTEM_BLOCK, Constants.PHASING_BLOCK)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.MONETARY_SYSTEM_BLOCK);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_16) {
+                    if (!verifyChecksum(CHECKSUM_16, Constants.PHASING_BLOCK, Constants.CHECKSUM_BLOCK_16)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.PHASING_BLOCK);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_17) {
+                    if (!verifyChecksum(
+                            CHECKSUM_17, Constants.CHECKSUM_BLOCK_16, Constants.CHECKSUM_BLOCK_17)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_16);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_18) {
+                    if (!verifyChecksum(
+                            CHECKSUM_18, Constants.CHECKSUM_BLOCK_17, Constants.CHECKSUM_BLOCK_18)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_17);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_19) {
+                    if (!verifyChecksum(
+                            CHECKSUM_19, Constants.CHECKSUM_BLOCK_18, Constants.CHECKSUM_BLOCK_19)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_18);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_20) {
+                    if (!verifyChecksum(
+                            CHECKSUM_20, Constants.CHECKSUM_BLOCK_19, Constants.CHECKSUM_BLOCK_20)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_19);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_21) {
+                    if (!verifyChecksum(
+                            CHECKSUM_21, Constants.CHECKSUM_BLOCK_20, Constants.CHECKSUM_BLOCK_21)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_20);
+                    }
+                } else if (block.getHeight() == Constants.CHECKSUM_BLOCK_22) {
+                    if (!verifyChecksum(
+                            CHECKSUM_22, Constants.CHECKSUM_BLOCK_21, Constants.CHECKSUM_BLOCK_22)) {
+                        Conch.getBlockchainProcessor().popOffTo(Constants.CHECKSUM_BLOCK_21);
+                    }
+                }
+            };
+
+
+    private boolean verifyChecksum(byte[] validChecksum, int fromHeight, int toHeight) {
+        MessageDigest digest = Crypto.sha256();
+        try (Connection con = Db.db.getConnection();
+             PreparedStatement pstmt =
+                     con.prepareStatement(
+                             "SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
+            pstmt.setInt(1, fromHeight);
+            pstmt.setInt(2, toHeight);
+            try (DbIterator<TransactionImpl> iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt)) {
+                while (iterator.hasNext()) {
+                    digest.update(iterator.next().getBytes());
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+        byte[] checksum = digest.digest();
+        if (validChecksum == null) {
+            Logger.logMessage("Checksum calculated:\n" + Arrays.toString(checksum));
+            return true;
+        } else if (!Arrays.equals(checksum, validChecksum)) {
+            Logger.logErrorMessage(
+                    "Checksum failed at block " + Conch.getBlockchain().getHeight() + ": " + Arrays.toString(checksum));
+            return false;
+        } else {
+            Logger.logMessage("Checksum passed at block " + Conch.getBlockchain().getHeight());
+            return true;
+        }
+    }
 }
