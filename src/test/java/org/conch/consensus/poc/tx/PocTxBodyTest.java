@@ -1,5 +1,6 @@
 package org.conch.consensus.poc.tx;
 
+import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.util.Convert;
 
@@ -28,7 +29,8 @@ public class PocTxBodyTest {
     }
     
   public static void main(String[] args) throws ConchException.NotValidException {
-      defaultTemplate2BytesTest();
-      bytes2WeightTableTest();
+    //      defaultTemplate2BytesTest();
+    //      bytes2WeightTableTest();
+    System.out.println(Conch.getEpochTime());
   }
 }
