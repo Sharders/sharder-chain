@@ -24,7 +24,6 @@ package org.conch.util;
 import com.alibaba.fastjson.JSONObject;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.crypto.Crypto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -98,21 +97,6 @@ public final class Convert {
         }
     }
 
-    public static long parseAccountId(String account) {
-        if (account == null || (account = account.trim()).isEmpty()) {
-            return 0;
-        }
-        account = account.toUpperCase();
-        if (account.startsWith(Constants.ACCOUNT_PREFIX)) {
-            return Crypto.rsDecode(account.substring(4));
-        } else {
-            return Long.parseUnsignedLong(account);
-        }
-    }
-
-    public static String rsAccount(long accountId) {
-        return Constants.ACCOUNT_PREFIX + Crypto.rsEncode(accountId);
-    }
 
     public static long fullHashToId(byte[] hash) {
         if (hash == null || hash.length < 8) {

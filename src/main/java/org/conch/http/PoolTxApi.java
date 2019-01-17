@@ -3,6 +3,7 @@ package org.conch.http;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.Attachment;
@@ -32,12 +33,17 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
+            if(!PocProcessorImpl.isHubBind(account.getId()) && !Constants.isDevnet()) {
+                String errorDetail = "current account can't create sharder pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to hub";
+                Logger.logInfoMessage(errorDetail);
+                throw new ConchException.NotValidException(errorDetail);
+            }
+            
             int period = ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
                 rules = (JSONObject)(new JSONParser().parse(rule));
-
             } catch (Exception e) {
                 Logger.logErrorMessage("cant obtain rule when create forge pool");
             }
@@ -47,10 +53,10 @@ public abstract class PoolTxApi {
         }
     }
 
-    public static final class DestoryPoolTx extends CreateTransaction {
-        static final DestoryPoolTx instance = new DestoryPoolTx();
+    public static final class DestroyPoolTx extends CreateTransaction {
+        static final DestroyPoolTx instance = new DestroyPoolTx();
 
-        private DestoryPoolTx() {
+        private DestroyPoolTx() {
             super(new APITag[]{APITag.FORGING, APITag.CREATE_TRANSACTION}, "poolId");
         }
 

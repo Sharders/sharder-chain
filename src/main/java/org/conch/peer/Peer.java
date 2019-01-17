@@ -80,7 +80,7 @@ public interface Peer extends Comparable<Peer> {
         CORS(16),                       // API CORS enabled
         BAPI(32),                       // Business API access over http => watcher role
         STORAGE(64),                    // Off-chain data storage => Storer role
-        MINER(128),                     // Minting service => Miner role
+        MINER(128),                     // Proxy mining => Miner role
         NATER(256),                     // Nat service => Traversal role (TBD)
         PROVER(512);                    // Prove service => Prover role (TBD)
         private final long code;        // Service code - must be a power of 2
@@ -137,7 +137,9 @@ public interface Peer extends Comparable<Peer> {
 
     int getWeight();
     
-    long getBindAccountId();
+    String getBindRsAccount();
+    
+    void setBindRsAccount(String bindRsAccount);
 
     boolean shareAddress();
 

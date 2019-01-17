@@ -4290,41 +4290,4 @@ public interface Attachment extends Appendix {
             return storerId;
         }
     }
-
-    final class SharderOnlineRateCreate extends AbstractAttachment {
-
-        private final String[] ips;
-
-        public SharderOnlineRateCreate(String[] ips) {
-            this.ips = ips;
-        }
-
-        @Override
-        public int getMySize() {
-            return this.ips.length;
-        }
-
-        @Override
-        public void putMyBytes(ByteBuffer buffer) {
-            byte[][] ipBytes = new byte[this.ips.length][];
-            for (int i = 0; i < this.ips.length; i++) {
-                ipBytes[i] = Convert.toBytes(this.ips[i]);
-            }
-            buffer.put((byte) ipBytes.length);
-            for (byte[] ip : ipBytes) {
-                buffer.putShort((short) ip.length);
-                buffer.put(ip);
-            }
-        }
-
-        @Override
-        public void putMyJSON(JSONObject json) {
-            json.put("ips", ips);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return null;
-        }
-    }
 }

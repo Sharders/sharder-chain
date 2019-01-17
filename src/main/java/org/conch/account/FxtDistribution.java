@@ -28,7 +28,6 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.db.DerivedDbTable;
 import org.conch.tx.TransactionDb;
-import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.conch.util.Listener;
 import org.conch.util.Logger;
@@ -51,11 +50,11 @@ public final class FxtDistribution implements Listener<Block> {
 
     //FIXME[xy] check and modify following hard code
     public static final long FXT_ASSET_ID = Long.parseUnsignedLong(Constants.isTestnetOrDevnet() ? "861080501219231688" : "12422608354438203866");
-    public static final long FXT_ISSUER_ID = Convert.parseAccountId(Constants.isTestnetOrDevnet() ? "SSA-F8FG-RDWZ-GRW7-4GSK9" : "SSA-FQ28-G9SQ-BG8M-6V6QH");
+    public static final long FXT_ISSUER_ID = Account.rsAccountToId(Constants.isTestnetOrDevnet() ? "SSA-F8FG-RDWZ-GRW7-4GSK9" : "SSA-FQ28-G9SQ-BG8M-6V6QH");
 
     private static final BigInteger BALANCE_DIVIDER = BigInteger.valueOf(10000L * (DISTRIBUTION_END - DISTRIBUTION_START) / DISTRIBUTION_STEP);
     private static final String logAccount = Conch.getStringProperty("sharder.logFxtBalance");
-    private static final long logAccountId = Convert.parseAccountId(logAccount);
+    private static final long logAccountId = Account.rsAccountToId(logAccount);
     private static final String fxtJsonFile = Constants.isTestnetOrDevnet() ? "fxt-testnet.json" : "fxt.json";
     private static final boolean hasSnapshot = ClassLoader.getSystemResource(fxtJsonFile) != null;
 

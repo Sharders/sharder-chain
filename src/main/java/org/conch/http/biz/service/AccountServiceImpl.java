@@ -46,15 +46,15 @@ public class AccountServiceImpl implements AccountService {
         // Send a message to active account
         HashMap<String, String> params = new HashMap<>();
         params.put("recipientPublicKey", Crypto.getPublicKey(newAccountPassPhrase).toString());
-        params.put("recipient",Convert.rsAccount(recipientId));
-        params.put("message",  Convert.rsAccount(recipientId) + " was created and broadcast to the network");
+        params.put("recipient", org.conch.account.Account.rsAccount(recipientId));
+        params.put("message",  org.conch.account.Account.rsAccount(recipientId) + " was created and broadcast to the network");
         params.put("deadline","60");
         params.put("feeNQT","0");
         BizCoreProcess.createTransaction(params, senderAccount, recipientId, 0, Attachment.ARBITRARY_MESSAGE);
 
         Account account = new Account();
         account.setAccountID(Long.toUnsignedString(recipientId));
-        account.setAccountRS(Convert.rsAccount(recipientId));
+        account.setAccountRS(org.conch.account.Account.rsAccount(recipientId));
         account.setPassPhrase(newAccountPassPhrase);
         return account;
     }

@@ -1,7 +1,7 @@
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.common.ConchException;
-import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -278,7 +278,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         }
         //验证账户是否有效
         try {
-            long value = Convert.parseAccountId(account);
+            long value = Account.rsAccountToId(account);
             if (value == 0) {
                 throw new RuntimeException("account does not exist");
             }

@@ -155,7 +155,7 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    public static final String SYSTEM_INFO_REPORT_URL = Conch.getSharderFoundationURL() + "/bounties/SC/report";
+    public static final String SYSTEM_INFO_REPORT_URL = Conch.getSharderFoundationURL() + "/sc/peer/report";
     
     public static boolean readAndReport(){
         //提交系统配置信息

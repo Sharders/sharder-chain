@@ -105,6 +105,7 @@ public final class Conch {
     private static final Properties defaultProperties = new Properties();
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
     private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
+    private static final String UPGRADE_SERVER = "https://resource.sharder.io";
     
     
     public static String getSharderFoundationURL(){
@@ -704,28 +705,30 @@ public final class Conch {
             return;
         }
         
-        // [Hub] if owner bind the passphrase then start mine automatic
+        // [Hub Miner] if owner bind the passphrase then start mine automatic
         Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
         String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
         String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
         if (hubBind && hubBindPassPhrase != null) {
-            Generator hubGenerator = Generator.startMining(hubBindPassPhrase.trim());
-            if(hubGenerator != null && (hubGenerator.getAccountId() != Convert.parseAccountId(hubBindAddress))) {
+            Generator hubGenerator = Generator.ownerMining(hubBindPassPhrase.trim());
+            if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(hubBindAddress))) {
                 Generator.stopMining(hubBindPassPhrase.trim());
                 Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
             } else {
-                Logger.logInfoMessage("Account " + hubBindAddress + "started mining...");
+                Logger.logInfoMessage("Account " + hubBindAddress + " started mining...");
             }
-
-            // open miner service
-            Peers.checkAndSetOpeningServices(Lists.newArrayList(Peer.Service.MINER));
         }else {
-            // [Miner] if owner set the passphrase of mint then start mining
+            // [Normal Miner] if owner set the passphrase of mint then start mining
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
-                Generator bindGenerator = Generator.startMining(autoMintPR.trim());
-                Logger.logInfoMessage("Account " + Convert.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+                Generator bindGenerator = Generator.ownerMining(autoMintPR.trim());
+                Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
             }
+        }
+        
+        if(Generator.MAX_MINERS > 0) {
+            // open miner service
+            Peers.checkAndAddOpeningServices(Lists.newArrayList(Peer.Service.MINER));
         }
     }
 
@@ -834,7 +837,6 @@ public final class Conch {
 
     private Conch() {} // never
 
-    private static final String UPGRADE_SERVER = "https://resource.sharder.io";
 
     public static Thread fetchUpgradePackageThread(String version) {
         String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
@@ -957,7 +959,7 @@ public final class Conch {
     public static String getFullVersion(){
         return VERSION + STAGE;
     }
-   public static String getVersion(){
+    public static String getVersion(){
         return VERSION;
     }
 

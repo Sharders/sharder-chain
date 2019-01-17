@@ -26,7 +26,6 @@ import org.conch.common.ConchException;
 import org.conch.shuffle.Shuffling;
 import org.conch.shuffle.ShufflingParticipant;
 import org.conch.tx.Attachment;
-import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -57,7 +56,7 @@ public final class ShufflingProcess extends CreateTransaction {
             JSONObject response = new JSONObject();
             response.put("errorCode", 12);
             response.put("errorDescription", String.format("Account %s cannot process shuffling since shuffling assignee is %s",
-                    Convert.rsAccount(senderId), Convert.rsAccount(shuffling.getAssigneeAccountId())));
+                    Account.rsAccount(senderId), Account.rsAccount(shuffling.getAssigneeAccountId())));
             return JSON.prepare(response);
         }
         ShufflingParticipant participant = shuffling.getParticipant(senderId);
@@ -65,7 +64,7 @@ public final class ShufflingProcess extends CreateTransaction {
             JSONObject response = new JSONObject();
             response.put("errorCode", 13);
             response.put("errorDescription", String.format("Account %s is not a participant of shuffling %d",
-                    Convert.rsAccount(senderId), shuffling.getId()));
+                    Account.rsAccount(senderId), shuffling.getId()));
             return JSON.prepare(response);
         }
 

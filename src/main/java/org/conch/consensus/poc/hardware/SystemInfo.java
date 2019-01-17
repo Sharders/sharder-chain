@@ -10,25 +10,55 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  **/
 public class SystemInfo {
 
+    /**
+     * 节点ip
+     */
     private String ip;
 
+    /**
+     * 节点端口
+     */
     private String port;
 
-    private int core; // 几核
+    /**
+     * 几核
+     */
+    private int core;
 
-    private int averageMHz; // 平均兆赫
+    /**
+     * 平均兆赫
+     */
+    private int averageMHz;
 
-    private int memoryTotal; // 内存大小 （单位GB）
+    /**
+     * 内存大小 （单位GB）
+     */
+    private int memoryTotal;
 
-    private int hardDiskSize; // 硬盘大小 （单位GB）
+    /**
+     * 硬盘大小 （单位GB）
+     */
+    private int hardDiskSize;
 
-    private boolean hadPublicIp; // 是否有公网IP
+    /**
+     * 是否有公网IP
+     */
+    private boolean hadPublicIp;
 
-    private int bandWidth; // 公网ip带宽（Mbps），如果没有公网ip，这个值就是0
+    /**
+     *  公网ip带宽（Mbps），如果没有公网ip，这个值就是0
+     */
+    private int bandWidth;
 
-    private long tradePerformance; // 交易处理性能
+    /**
+     * 交易处理性能
+     */
+    private long tradePerformance;
 
-    private Long[] openServices; // 开启的服务列表
+    /**
+     * 开启的服务列表
+     */
+    private Long[] openServices;
 
     public String getIp() {
         return ip;
@@ -52,64 +82,72 @@ public class SystemInfo {
         return core;
     }
 
-    public void setCore(int core) {
+    public SystemInfo setCore(int core) {
         this.core = core;
+        return this;
     }
 
     public int getAverageMHz() {
         return averageMHz;
     }
 
-    public void setAverageMHz(int averageMHz) {
+    public SystemInfo setAverageMHz(int averageMHz) {
         this.averageMHz = averageMHz;
+        return this;
     }
 
     public int getMemoryTotal() {
         return memoryTotal;
     }
 
-    public void setMemoryTotal(int memoryTotal) {
+    public SystemInfo setMemoryTotal(int memoryTotal) {
         this.memoryTotal = memoryTotal;
+        return this;
     }
 
     public int getHardDiskSize() {
         return hardDiskSize;
     }
 
-    public void setHardDiskSize(int hardDiskSize) {
+    public SystemInfo setHardDiskSize(int hardDiskSize) {
         this.hardDiskSize = hardDiskSize;
+        return this;
     }
 
     public boolean isHadPublicIp() {
         return hadPublicIp;
     }
 
-    public void setHadPublicIp(boolean hadPublicIp) {
+    public SystemInfo setHadPublicIp(boolean hadPublicIp) {
         this.hadPublicIp = hadPublicIp;
+        return this;
     }
 
     public int getBandWidth() {
         return bandWidth;
     }
 
-    public void setBandWidth(int bandWidth) {
+    public SystemInfo setBandWidth(int bandWidth) {
         this.bandWidth = bandWidth;
+        return this;
     }
 
     public long getTradePerformance() {
         return tradePerformance;
     }
 
-    public void setTradePerformance(long tradePerformance) {
+    public SystemInfo setTradePerformance(long tradePerformance) {
         this.tradePerformance = tradePerformance;
+        return this;
     }
 
     public Long[] getOpenServices() {
         return openServices;
     }
 
-    public void setOpenServices(Long[] openServices) {
+    public SystemInfo setOpenServices(Long[] openServices) {
         this.openServices = openServices;
+        return this;
     }
 
     @Override

@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.asset.HoldingType;
 import org.conch.common.Constants;
-import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -485,7 +485,7 @@ public final class JSONResponses {
         response.put("errorCode", 5);
         response.put("errorDescription", "Unknown account");
         response.put("account", Long.toUnsignedString(id));
-        response.put("accountRS", Convert.rsAccount(id));
+        response.put("accountRS", Account.rsAccount(id));
         return JSON.prepare(response);
     }
 

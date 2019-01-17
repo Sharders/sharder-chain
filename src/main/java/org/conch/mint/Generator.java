@@ -29,8 +29,13 @@ import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
+import org.conch.peer.Peer;
+import org.conch.peer.Peers;
 import org.conch.tx.TransactionProcessorImpl;
-import org.conch.util.*;
+import org.conch.util.Listener;
+import org.conch.util.Listeners;
+import org.conch.util.Logger;
+import org.conch.util.ThreadPool;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -46,12 +51,12 @@ import java.util.concurrent.TimeUnit;
 public class Generator implements Comparable<Generator> {
 
     public enum Event {
-        GENERATION_DEADLINE, START_FORGING, STOP_FORGING
+        GENERATION_DEADLINE, START_MINING, STOP_MINING
     }
-
-    private static final int MAX_MINERS = Conch.getIntProperty("sharder.maxNumberOfForgers");
-    private static final byte[] fakeForgingPublicKey = Conch.getBooleanProperty("sharder.enableFakeForging") ?
-            Account.getPublicKey(Convert.parseAccountId(Conch.getStringProperty("sharder.fakeForgingAccount"))) : null;
+    
+    public static final int MAX_MINERS = Conch.getIntProperty("sharder.maxNumberOfMiners");
+    private static final byte[] fakeMiningPublicKey = Conch.getBooleanProperty("sharder.enableFakeMining") ?
+            Account.getPublicKey(Account.rsAccountToId(Conch.getStringProperty("sharder.fakeMiningAccount"))) : null;
 
     private static final Listeners<Generator,Event> listeners = new Listeners<>();
 
@@ -158,9 +163,9 @@ public class Generator implements Comparable<Generator> {
     }
     
     public synchronized static List<Long> getAndResetGenerationMissingMiners(){
-        List<Long> missingAccountds = Collections.unmodifiableList(generationMissingMinerIds);
+        List<Long> missingAccounts = Collections.unmodifiableList(generationMissingMinerIds);
         generationMissingMinerIds.clear();
-        return missingAccountds;
+        return missingAccounts;
     }
 
     static {
@@ -179,18 +184,43 @@ public class Generator implements Comparable<Generator> {
         return listeners.removeListener(listener, eventType);
     }
 
+    /**
+     * the owner of node start mining
+     * @param secretPhrase
+     * @return
+     */
+    public static Generator ownerMining(String secretPhrase) {
+        return startMining(secretPhrase,true);
+    }
+
+    /**
+     * normal accountS start mining
+     * @param secretPhrase
+     * @return
+     */
     public static Generator startMining(String secretPhrase) {
-        if (generators.size() >= MAX_MINERS) {
-            throw new RuntimeException("Cannot mint with more than " + MAX_MINERS + " accounts on the same node");
+        return startMining(secretPhrase,false);
+    }
+
+    private static Generator startMining(String secretPhrase, boolean isOwner) {
+        // if miner is not the owner of the node
+        if(!isOwner) {
+            if(!Peers.isOpenService(Peer.Service.MINER) || generators.size() >= MAX_MINERS) {
+                throw new RuntimeException("Cannot mint with more than " + MAX_MINERS + " accounts on this node");
+            }
+//            long accountId = Account.getId(secretPhrase);
+//            if(!PocProcessorImpl.isHubBind(accountId)) {
+//                Logger.logInfoMessage("Account[id=" + accountId  + "] is not be bind to hub");
+//            }
         }
+
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
-
         if (old != null) {
             Logger.logDebugMessage(old + " is already mining");
             return old;
         }
-        listeners.notify(generator, Event.START_FORGING);
+        listeners.notify(generator, Event.START_MINING);
         Logger.logDebugMessage(generator + " started");
         return generator;
     }
@@ -205,19 +235,19 @@ public class Generator implements Comparable<Generator> {
                 Conch.getBlockchain().updateUnlock();
             }
             Logger.logDebugMessage(generator + " stopped");
-            listeners.notify(generator, Event.STOP_FORGING);
+            listeners.notify(generator, Event.STOP_MINING);
         }
         return generator;
     }
 
-    public static int stopForging() {
+    public static int stopMining() {
         int count = generators.size();
-        Iterator<Generator> iter = generators.values().iterator();
-        while (iter.hasNext()) {
-            Generator generator = iter.next();
-            iter.remove();
+        Iterator<Generator> iterator = generators.values().iterator();
+        while (iterator.hasNext()) {
+            Generator generator = iterator.next();
+            iterator.remove();
             Logger.logDebugMessage(generator + " stopped");
-            listeners.notify(generator, Event.STOP_FORGING);
+            listeners.notify(generator, Event.STOP_MINING);
         }
         Conch.getBlockchain().updateLock();
         try {
@@ -281,12 +311,12 @@ public class Generator implements Comparable<Generator> {
                 || Constants.isOffline);
     }
 
-    public static boolean allowsFakeForging(byte[] publicKey) {
-        return Constants.isTestnetOrDevnet() && publicKey != null && Arrays.equals(publicKey, fakeForgingPublicKey);
+    public static boolean allowsFakeMining(byte[] publicKey) {
+        return Constants.isTestnetOrDevnet() && publicKey != null && Arrays.equals(publicKey, fakeMiningPublicKey);
     }
 
     public static BigInteger getHit(byte[] publicKey, Block block) {
-        if (allowsFakeForging(publicKey)) {
+        if (allowsFakeMining(publicKey)) {
             return BigInteger.ZERO;
         }
         if (block.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK) {
