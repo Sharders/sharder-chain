@@ -21,14 +21,13 @@ import java.util.Arrays;
  */
 public class CheckSumValidator {
 
-    public static final int CHECKSUM_BLOCK_16 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_17 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_18 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_19 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_20 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_21 = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int CHECKSUM_BLOCK_22 = Constants.isTestnetOrDevnet() ? 0 : 0;
-
+    public static final int CHECKSUM_BLOCK_16 = 0;
+    public static final int CHECKSUM_BLOCK_17 = 0;
+    public static final int CHECKSUM_BLOCK_18 = 0;
+    public static final int CHECKSUM_BLOCK_19 = 0;
+    public static final int CHECKSUM_BLOCK_20 = 0;
+    public static final int CHECKSUM_BLOCK_21 = 0;
+    public static final int CHECKSUM_BLOCK_22 = 0;
 
 
     private static final byte[] CHECKSUM_TRANSPARENT_FORGING =
