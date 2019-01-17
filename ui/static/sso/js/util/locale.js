@@ -27,7 +27,7 @@ var NRS = (function (NRS) {
 
     NRS.getLocale = function () {
         var lang;
-        if (NRS.settings && NRS.settings['regional_format'] != "default") {
+        if (NRS.settings !== {} && typeof NRS.settings['regional_format'] !== "undefined") {
             lang = NRS.settings['regional_format'];
         } else {
             lang = window.javaFxLanguage || window.navigator.userLanguage || window.navigator.language;
@@ -59,16 +59,19 @@ var NRS = (function (NRS) {
         }
         if (!currentLocale.lang || currentLocale.lang != lang) {
             currentLocale = {};
+            if(lang === 'default'){
+                lang = 'zh-CN'
+            }
             currentLocale.lang = lang;
             currentLocale.dateFormat = LOCALE_DATA[lang].dateFormat;
             currentLocale.decimal = LOCALE_DATA[lang].decimal;
             currentLocale.section = LOCALE_DATA[lang].section;
             currentLocale.displayName = LOCALE_DATA[lang].displayName;
-            // NRS.logConsole("Locale language: '" + currentLocale.lang +
-            //     "' date format: '" + currentLocale.dateFormat +
-            //     "' decimal separator: '" + currentLocale.decimal +
-            //     "' section separator: '" + currentLocale.section +
-            //     "' display name: '" + currentLocale.displayName + "'");
+            NRS.logConsole("Locale language: '" + currentLocale.lang +
+                "' date format: '" + currentLocale.dateFormat +
+                "' decimal separator: '" + currentLocale.decimal +
+                "' section separator: '" + currentLocale.section +
+                "' display name: '" + currentLocale.displayName + "'");
             console.warn("Locale language: '" + currentLocale.lang +
                 "' date format: '" + currentLocale.dateFormat +
                 "' decimal separator: '" + currentLocale.decimal +

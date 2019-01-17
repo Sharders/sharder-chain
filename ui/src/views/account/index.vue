@@ -606,7 +606,7 @@
 
             _this.getAccountTransactionList();
             _this.$global.setBlockchainState(_this).then(res=>{
-                _this.blockchainState = res;
+                _this.blockchainState = res.data;
             });
 
             SSO.getState();
@@ -1154,7 +1154,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data.unconfirmedTransactions);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1271,7 +1271,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data.unconfirmedTransactions);
                                 });
                             }else{
                                 console.log(res.data);

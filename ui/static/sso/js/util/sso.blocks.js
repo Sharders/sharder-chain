@@ -46,6 +46,9 @@ var NRS = (function(NRS, $) {
 			NRS.checkBlockHeight(NRS.blocks[0].height);
 			if (!NRS.state) {
 				//if no new blocks in 6 hours, show blockchain download progress..
+
+                console.log("if no new blocks in 6 hours, show blockchain download progress..");
+
 				var timeDiff = NRS.state.time - NRS.blocks[0].timestamp;
 				if (timeDiff > 60 * 60 * 18) {
 					if (timeDiff > 60 * 60 * 24 * 14) {
@@ -58,11 +61,13 @@ var NRS = (function(NRS, $) {
 						NRS.setStateInterval(10);
 					}
 					NRS.downloadingBlockchain = true;
-					$("#nrs_update_explanation").find("span").hide();
-					$("#nrs_update_explanation_wait").attr("style", "display: none !important");
-					$("#" +
+					console.log("正在下载区块链");
+
+					// $("#nrs_update_explanation").find("span").hide();
+					// $("#nrs_update_explanation_wait").attr("style", "display: none !important");
+					/*$("#" +
 						"downloading_blockchain, #nrs_update_explanation_blockchain_sync").show();
-					$("#show_console").hide();
+					$("#show_console").hide();*/
 					NRS.updateBlockchainDownloadProgress();
 				} else {
 					//continue with faster state intervals if we still haven't reached current block from within 1 hour
@@ -136,6 +141,8 @@ var NRS = (function(NRS, $) {
 		$(".nrs_current_block").empty().append(NRS.escapeRespStr(block.height));
 	};
 
+
+	//TODO Rewrite this piece of code logic
 	//we always update the dashboard page..
 
 	// NRS.incoming.updateDashboardBlocks = function(newBlocksCount) {

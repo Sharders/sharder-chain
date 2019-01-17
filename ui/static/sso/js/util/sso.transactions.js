@@ -39,11 +39,11 @@ var NRS = (function(NRS, $, undefined) {
 			transactions.sort(NRS.sortArray);
 		}
 		//Bug with popovers staying permanent when being open
-		$('div.popover').hide();
-		$('.td_transaction_phasing div.show_popover').popover('hide');
+		// $('div.popover').hide();
+		// $('.td_transaction_phasing div.show_popover').popover('hide');
 
 		//always refresh peers and unconfirmed transactions..
-		if (NRS.currentPage == "peers") {
+	/*	if (NRS.currentPage == "peers") {
 			NRS.incoming.peers();
 		} else if (NRS.currentPage == "transactions"
             && $('#transactions_type_navi').find('li.active a').attr('data-transaction-type') == "unconfirmed") {
@@ -54,10 +54,10 @@ var NRS = (function(NRS, $, undefined) {
 					NRS.incoming[NRS.currentPage](transactions);
 				}
 			}
-		}
+		}*/
 		if (!oldBlock || NRS.unconfirmedTransactionsChange) {
 			// always call incoming for messages to enable message notifications
-			NRS.incoming['messages'](transactions);
+			// NRS.incoming['messages'](transactions);
 			NRS.updateNotifications();
 			NRS.setPhasingNotifications();
 		}

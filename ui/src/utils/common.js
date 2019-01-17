@@ -42,7 +42,7 @@ export default {
                 }
             }).then(res => {
                 _this.blockchainState = res.data;
-                resolve(res.data);
+                resolve(res);
             });
         });
     },
@@ -61,7 +61,7 @@ export default {
                     account:account
                 }
             }).then(res => {
-                resolve(res.data);
+                resolve(res);
             });
         });
     },
@@ -80,7 +80,7 @@ export default {
                 }
             }).then(res => {
                 _this.peers = res.data;
-                resolve(res.data);
+                resolve(res);
                 // console.log(res.data);
                 // if (_this.isOpenConsole) {
                 //     console.log(res.data);
