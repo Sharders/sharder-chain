@@ -38,7 +38,7 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    public static SystemInfo file(SystemInfo systemInfo) throws Exception {
+    public static SystemInfo disk(SystemInfo systemInfo) throws Exception {
         Sigar sigar = new Sigar();
         FileSystem fsList[] = sigar.getFileSystemList();
         Long ypTotal = 0L;
@@ -164,7 +164,7 @@ public class GetNodeHardware {
         try {
             cpu(systemInfo);
             memory(systemInfo);
-            file(systemInfo);
+            disk(systemInfo);
             network(systemInfo);
             txPerformance(systemInfo);
             openingServices(systemInfo);
