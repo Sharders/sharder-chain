@@ -35,8 +35,10 @@
                         <span class="isLogin" v-else>{{accountRS}} | {{$t('header.secret_mode')}}</span>
                     </div>
                     <div class="navbar_pilotLamp">
-
-                        <el-tooltip class="item csp" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-if="accountInfo.errorDescription === 'Unknown account'">
+                        <el-tooltip class="item csp" content="请先初始化Hub" placement="bottom" effect="light" v-if="isHubInit">
+                            <div class="pilotLamp_circle notForging"></div>
+                        </el-tooltip>
+                        <el-tooltip class="item csp" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-else-if="accountInfo.errorDescription === 'Unknown account'">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
                         <el-tooltip class="item csp" :content="$t('header.forging_error_effective_balance')" placement="bottom" effect="light" v-else-if="accountInfo.effectiveBalanceSS === 0">
@@ -117,6 +119,7 @@
                 userConfig:[],
                 search_val: "",
                 isSearch:false,
+                isHubInit:this.$store.state.isHubInit,
                 selectLan:'',
                 selectLanValue:'',
                 language:[{
@@ -298,6 +301,7 @@
                 const _this = this;
                 if(_this.search_val !== ""){
                     _this.isSearch = true;
+
                 }else{
                     _this.$message({
                         showClose: true,
@@ -318,6 +322,7 @@
             isClose:function () {
                 const _this = this;
                 _this.isSearch = false;
+
             },
         },
         watch:{

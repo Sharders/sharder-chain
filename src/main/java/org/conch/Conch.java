@@ -699,7 +699,7 @@ public final class Conch {
      * Auto mining of Hub or Miner 
      */
     private static void autoMining(){
-        if(getBlockchain().getHeight() <= 0) {
+        if(getBlockchain().getHeight() < 0) {
             Logger.logWarningMessage("!!! current height <= 0, need syn blocks or wait genesis block be saved into db");
             Logger.logWarningMessage("!!! you can restart the client after genesis block created");
             return;
