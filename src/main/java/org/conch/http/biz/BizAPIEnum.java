@@ -42,7 +42,8 @@ public enum BizAPIEnum {
     GET_ACCOUNT_TXS("getAccountTxs",GetAccountTxs.instance),
     GET_TX_STATISTIC("getTxStatistics",GetTxStatistics.instance),
     GET_TX("getTx",GetTx.instance),
-    GET_BACKUP("getBackup",GetBackup.instance); //backup number
+    GET_BACKUP("getBackup",GetBackup.instance), //backup number
+    GET_BIZ_BLOCKS_NUM("getBizBlocksNum",GetBizBlockNum.instance);//
 
 
     private static final Map<String, BizAPIEnum> apiByName = new HashMap<>();
