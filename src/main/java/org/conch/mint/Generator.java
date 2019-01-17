@@ -396,15 +396,8 @@ public class Generator implements Comparable<Generator> {
     public String toString() {
         return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
     }
-
-
-
-    /**
-     * 1.设置最后一个区块
-     * 2.计算可用余额
-     * 3.计算hit和hitTime
-     */
-    private void setLastBlock(Block lastBlock) {
+    
+    protected void calAndSetHit(Block lastBlock) {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
 
@@ -417,15 +410,24 @@ public class Generator implements Comparable<Generator> {
 //            hit = BigInteger.ZERO;
 //            return;
 //        }
-        
+
         if (pocScore.signum() == 0) {
             hitTime = 0;
             hit = BigInteger.ZERO;
             return;
         }
-        
+
         hit = getHit(publicKey, lastBlock);
-        hitTime = getHitTime(pocScore, hit, lastBlock);
+        hitTime = getHitTime(pocScore, hit, lastBlock); 
+    }
+    
+    /**
+     * 1.设置最后一个区块
+     * 2.计算可用余额
+     * 3.计算hit和hitTime
+     */
+    private void setLastBlock(Block lastBlock) {
+        calAndSetHit(lastBlock);
         deadline = Math.max(hitTime - lastBlock.getTimestamp(), 0);
         listeners.notify(this, Event.GENERATION_DEADLINE);
     }
@@ -466,9 +468,10 @@ public class Generator implements Comparable<Generator> {
 
     /** Generator list has been initialized */
     private static boolean generatorsInitialized = false;
-
+    
+    /** 3days */
+    private static final int MAX_ACTIVE_GENERATOR_LIFECYCLE = 615;
     /**
-     * 读取最近10000块区块的历史锻造者作为活跃的锻造者
      * Return a list of generators for the next block.  The caller must hold the blockchain
      * read lock to ensure the integrity of the returned list.
      *
@@ -479,9 +482,11 @@ public class Generator implements Comparable<Generator> {
         Blockchain blockchain = Conch.getBlockchain();
         synchronized(activeGenerators) {
             if (!generatorsInitialized) {
-                activeGeneratorIds.addAll(BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - 10000)));
+                activeGeneratorIds.addAll(BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE)));
                 activeGeneratorIds.forEach(activeGeneratorId -> activeGenerators.add(new ActiveGenerator(activeGeneratorId)));
                 Logger.logDebugMessage(activeGeneratorIds.size() + " block generators found");
+                
+                // Active generator listener for block pushed
                 Conch.getBlockchainProcessor().addListener(block -> {
                     long generatorId = block.getGeneratorId();
                     synchronized(activeGenerators) {
@@ -491,27 +496,28 @@ public class Generator implements Comparable<Generator> {
                         }
                     }
                 }, BlockchainProcessor.Event.BLOCK_PUSHED);
+                
                 generatorsInitialized = true;
             }
 
             //根据最后的区块更新活跃锻造者的锻造信息
             long blockId = blockchain.getLastBlock().getId();
-            List<ActiveGenerator> curForgers = new ArrayList<>();
+            List<ActiveGenerator> curMiners = new ArrayList<>();
 
             //添加当前的合格锻造者到活跃锻造者池
             for(Generator generator : sortedMiners){
                 if(activeGeneratorIds.contains(generator.getAccountId())) {
                     continue;
                 }
-                ActiveGenerator activeForger = new ActiveGenerator(generator.getAccountId());
-                curForgers.add(activeForger);
+                ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
+                curMiners.add(activeMiner);
             }
 
             if (blockId != activeBlockId) {
                 activeBlockId = blockId;
                 Block lastBlock = blockchain.getLastBlock();
 
-                for(ActiveGenerator generator : curForgers) {
+                for(ActiveGenerator generator : curMiners) {
                     generator.setLastBlock(lastBlock);
                 }
 
@@ -522,7 +528,7 @@ public class Generator implements Comparable<Generator> {
 
             generatorList = new ArrayList<>();
             generatorList.addAll(activeGenerators);
-            generatorList.addAll(curForgers);
+            generatorList.addAll(curMiners);
             Collections.sort(generatorList);
         }
         return generatorList;
@@ -537,6 +543,13 @@ public class Generator implements Comparable<Generator> {
         public ActiveGenerator(long accountId) {
             this.accountId = accountId;
             this.hitTime = Long.MAX_VALUE;
+            this.hit = BigInteger.ZERO;;
+        }
+        
+        public ActiveGenerator(long accountId, long hitTime, BigInteger hit) {
+            this.accountId = accountId;
+            this.hitTime = hitTime;
+            this.hit = hit;
         }
 
         public long getEffectiveBalance() {
@@ -555,26 +568,8 @@ public class Generator implements Comparable<Generator> {
                     return;
                 }
             }
-            
-            int height = lastBlock.getHeight();
-            Account account = Account.getAccount(accountId, height);
-            if (account == null) {
-                hitTime = Long.MAX_VALUE;
-                return;
-            }
-            
-            effectiveBalance = PocScore.calEffectiveBalance(account,height);
-            pocScore = PocProcessorImpl.instance.calPocScore(account,height); 
-//            if (effectiveBalance.signum() == 0) {
-//                hitTime = Long.MAX_VALUE;
-//                return;
-//            }
-            if (pocScore.signum() == 0) {
-                hitTime = Long.MAX_VALUE;
-                return;
-            }
-            BigInteger hit = Generator.getHit(publicKey, lastBlock);
-            hitTime = Generator.getHitTime(pocScore, hit, lastBlock);
+
+            calAndSetHit(lastBlock);
         }
 
         @Override

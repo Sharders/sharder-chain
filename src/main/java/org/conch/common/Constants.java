@@ -222,7 +222,6 @@ public final class Constants {
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = isTestnetOrDevnet() ? 0 : 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
-    public static final int LAST_CHECKSUM_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     
