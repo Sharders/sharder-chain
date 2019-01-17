@@ -802,6 +802,7 @@ public final class Peers {
             Logger.logInfoMessage(detail);
 
         } catch (Exception e) {
+            e.printStackTrace();
             Logger.logDebugMessage("syn valid node thread interrupted");
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
@@ -822,7 +823,9 @@ public final class Peers {
             }
         }
 
-        if(hardwareTested) return;
+        if(hardwareTested) {
+            return;
+        }
 
         hardwareTested = GetNodeHardware.readAndReport();
     };

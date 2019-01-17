@@ -1,6 +1,7 @@
 package org.conch.consensus.poc.hardware;
 
 /**
+ * @author sorayu
  * @ClassName PerformanceCheckingUtil
  * @Description 性能测试类
  * @Version 1.0
@@ -18,7 +19,9 @@ public class PerformanceCheckingUtil {
         long index = 0;
         while(true){
             Math.sqrt(index);
-            if (System.currentTimeMillis() > endTime) break;
+            if (System.currentTimeMillis() > endTime) {
+                break;
+            }
             index++;
         }
         return index;
