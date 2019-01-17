@@ -768,11 +768,16 @@ public final class Peers {
 
     };
     
-    private static final String SC_PEERS_API =
-      Constants.isMainnet()
-          ? (Conch.getSharderFoundationURL() + "/sc/peer/list.ss")
-          : "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
-    private static Map<Integer, Map<Long, Peer>> accountPeerMap = new ConcurrentHashMap<>();
+    private static final String SC_PEERS_API = scPeerApiUrl();
+    
+    private static String scPeerApiUrl(){
+        if(Constants.isMainnet() || Constants.isTestnet()) {
+            return Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
+        } 
+        
+        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
+    }
+    
     private static final Runnable getHubPeerThread = () -> {
         try {
             String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
@@ -802,7 +807,7 @@ public final class Peers {
             Logger.logInfoMessage(detail);
 
         } catch (Exception e) {
-            Logger.logDebugMessage("syn valid node thread interrupted");
+            Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
