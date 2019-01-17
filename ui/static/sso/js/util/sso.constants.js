@@ -90,6 +90,7 @@ var NRS = (function (NRS, $) {
 
     NRS.processConstants = function (response, resolve) {
         if (response.genesisAccountId) {
+
             NRS.constants.SERVER = response;
             NRS.constants.VOTING_MODELS = response.votingModels;
             NRS.constants.MIN_BALANCE_MODELS = response.minBalanceModels;
@@ -108,9 +109,9 @@ var NRS = (function (NRS, $) {
             NRS.constants.DISABLED_APIS = response.disabledAPIs;
             NRS.constants.DISABLED_API_TAGS = response.disabledAPITags;
             NRS.constants.PEER_STATES = response.peerStates;
-            NRS.loadTransactionTypeConstants(response);
+            // NRS.loadTransactionTypeConstants(response);
             NRS.constants.PROXY_NOT_FORWARDED_REQUESTS = response.proxyNotForwardedRequests;
-            NRS.logConsole("done loading server constants");
+            // NRS.logConsole("done loading server constants");
             if (resolve) {
                 resolve();
             }

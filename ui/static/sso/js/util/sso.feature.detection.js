@@ -205,7 +205,8 @@ var NRS = (function (NRS) {
     };
 
     NRS.isInitializePlugins = function () {
-        return !NRS.isMobileApp();
+        // return !NRS.isMobileApp();
+        return false;
     };
 
     NRS.isShowRemoteWarning = function () {
