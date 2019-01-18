@@ -625,7 +625,6 @@ public final class Peers {
     private static final Runnable getMorePeersThread = new Runnable() {
 
         private final JSONStreamAware getPeersRequest;
-
         {
             JSONObject request = new JSONObject();
             request.put("requestType", "getPeers");
@@ -801,14 +800,11 @@ public final class Peers {
                         }
                     }
 
-                    String detail =
-                            "\n\rget peer info and update hub peer info [size="
-                                    + peerArrayJson.size()
-                                    + "]==================>\n\r";
+                    String detail = "\n\rget peer info and update hub peer info [size=" + peerArrayJson.size() + "]\n\r==================>\n\r";
                     Iterator iterator = peerArrayJson.iterator();
                     while (iterator.hasNext()) {
                         com.alibaba.fastjson.JSONObject peerJson =
-                                (com.alibaba.fastjson.JSONObject) iterator.next();
+                            (com.alibaba.fastjson.JSONObject) iterator.next();
 
                         String host = peerJson.getString("announcedAddress");
                         if (StringUtils.isEmpty(host)) {
@@ -899,9 +895,8 @@ public final class Peers {
             }
         }
 
-        ThreadPool.scheduleThread("GetHubPeer", Peers.getHubPeerThread, 20);
+        ThreadPool.scheduleThread("GetHubPeer", Peers.getHubPeerThread, 30, TimeUnit.MINUTES);
     }
-
 
     public static void init() {
         Init.init();
