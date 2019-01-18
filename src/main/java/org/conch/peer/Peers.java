@@ -777,57 +777,67 @@ public final class Peers {
         
         return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
     }
-    
-    private static final Runnable getHubPeerThread = () -> {
+
+  private static final Runnable getHubPeerThread =
+      () -> {
         try {
-            String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
-            com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
-            if(StringUtils.isEmpty(peersStr)){
-                Logger.logInfoMessage("peer list is null, wait for next round");
-                return;
-            }else {
-                if(peersStr.startsWith("[")){
-                    peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr); 
-                }else if(peersStr.startsWith("{")){
-                    peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
-                }
+          String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
+          com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
+          if (StringUtils.isEmpty(peersStr)) {
+            Logger.logInfoMessage("peer list is null, wait for next round");
+            return;
+          } else {
+            if (peersStr.startsWith("[")) {
+              peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
+            } else if (peersStr.startsWith("{")) {
+              peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
+            }
+          }
+
+          String detail =
+              "\n\rget peer info and update hub peer info [size="
+                  + peerArrayJson.size()
+                  + "]==================>\n\r";
+          Iterator iterator = peerArrayJson.iterator();
+          while (iterator.hasNext()) {
+            com.alibaba.fastjson.JSONObject peerJson =
+                (com.alibaba.fastjson.JSONObject) iterator.next();
+
+            String host = peerJson.getString("announcedAddress");
+            if (StringUtils.isEmpty(host)) {
+              host = peerJson.getString("address");
             }
 
-            String detail = "\n\rget peer info and update hub peer info [size=" + peerArrayJson.size() + "]==================>\n\r";
-            Iterator iterator = peerArrayJson.iterator();
-            while(iterator.hasNext()){
-                com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject)iterator.next();
-                
-                String host = peerJson.getString("announcedAddress");
-                if(StringUtils.isEmpty(host)) {
-                    host = peerJson.getString("address");
-                }
-                
-                String bindAddress = peerJson.getString("bindRs");
-                Peer peer = Peers.getPeer(host);
-                if(peer == null) {
-                    peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
-                    if (peer != null) {
-                        Peers.addPeer(peer, host);
-                        Peers.connectPeer(peer);
-                    }
-                    peer = Peers.getPeer(host);
-                    detail += "create a new hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
-                }else{
-                    detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r"; 
-                }
-                peer.setBindRsAccount(bindAddress);
+            String bindAddress = peerJson.getString("bindRs");
+            Peer peer = Peers.getPeer(host);
+            if (StringUtils.isEmpty(bindAddress)) {
+              detail += "can't process hub peer[host=" + host + "] which rs address is null\n\r";
+              continue;
             }
-            detail += "<================== hub peer info updated";
-            Logger.logInfoMessage(detail);
+
+            if (peer == null) {
+              peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
+              if (peer != null) {
+                Peers.addPeer(peer, host);
+                Peers.connectPeer(peer);
+              }
+              peer = Peers.getPeer(host);
+              detail += "create a new hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+            } else {
+              detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+            }
+            peer.setBindRsAccount(bindAddress);
+          }
+          detail += "<================== hub peer info updated";
+          Logger.logInfoMessage(detail);
         } catch (Exception e) {
-            Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
+          Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
         } catch (Throwable t) {
-            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-            System.exit(1);
+          Logger.logErrorMessage(
+              "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+          System.exit(1);
         }
-    };
-
+      };
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
