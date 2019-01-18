@@ -206,7 +206,7 @@ public class Generator implements Comparable<Generator> {
         // if miner is not the owner of the node
         if(!isOwner) {
             if(!Peers.isOpenService(Peer.Service.MINER) || generators.size() >= MAX_MINERS) {
-                throw new RuntimeException("The limit miners of this node is setting to" + MAX_MINERS + ", can't allow more miners!");
+                throw new RuntimeException("The limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
             }
 //            long accountId = Account.getId(secretPhrase);
 //            if(!PocProcessorImpl.isHubBind(accountId)) {

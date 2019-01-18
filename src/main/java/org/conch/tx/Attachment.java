@@ -239,7 +239,7 @@ public interface Attachment extends Appendix {
 
         public CoinBase(JSONObject attachmentData) {
             super(attachmentData);
-            this.coinBaseType = (CoinBaseType) attachmentData.get("coinBaseType");
+            this.coinBaseType = CoinBaseType.getType((String) attachmentData.get("coinBaseType"));
             this.creator = (Long) attachmentData.get("creator");
             this.generatorId = (Long) attachmentData.get("generatorId");
             this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
