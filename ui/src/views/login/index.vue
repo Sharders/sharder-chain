@@ -65,14 +65,11 @@
                     modifyMnemonicWord: '',
                     newPwd: '',
                     confirmPwd: ''
-                },
+                }
             };
         },
         created() {
             const _this = this;
-
-            let url = window.location.href;
-            let pathname = window.location.pathname;
 
             this.$global.getUserConfig(this).then(res=>{
 
@@ -210,6 +207,7 @@
                 }
                 else{
                     Login.login(_this.type, val, _this, function () {
+                        console.log("11");
                         _this.$global.setEpochBeginning(_this).then(res=>{
                             _this.$store.state.isLogin = true;
                             _this.$router.push("/account");

@@ -1769,35 +1769,38 @@ var Sso = (function (NRS, $, undefined) {
 
     NRS.updateBlockchainDownloadProgress = function () {
         debug("Check block chain download progess....");
-        var lastNumBlocks = 5000;
-        var downloadingBlockchain = $("#downloading_blockchain");
-        downloadingBlockchain.find(".last_num_blocks").html($.t("sso.last_num_blocks", {"blocks": lastNumBlocks}));
+        NRS.lastNumBlocks = 5000;
+
+        // var downloadingBlockchain = $("#downloading_blockchain");
+        // downloadingBlockchain.find(".last_num_blocks").html($.t("sso.last_num_blocks", {"blocks": lastNumBlocks}));
 
         debug("NRS.state.isLightClient=" + NRS.state.isLightClient + ",NRS.serverConnect=" + NRS.serverConnect + ",NRS.peerConnect=" + NRS.peerConnect);
-        if (NRS.state.isLightClient) {
-            downloadingBlockchain.find(".db_active").hide();
-            downloadingBlockchain.find(".db_halted").hide();
-            downloadingBlockchain.find(".db_light").show();
-        } else if (!NRS.serverConnect || !NRS.peerConnect) {
-            downloadingBlockchain.find(".db_active").hide();
-            downloadingBlockchain.find(".db_halted").show();
-            downloadingBlockchain.find(".db_light").hide();
-        } else {
-            downloadingBlockchain.find(".db_halted").hide();
-            downloadingBlockchain.find(".db_active").show();
-            downloadingBlockchain.find(".db_light").hide();
 
-            var percentageTotal = 0;
-            var blocksLeft;
-            var percentageLast = 0;
+        // if (NRS.state.isLightClient) {
+            // downloadingBlockchain.find(".db_active").hide();
+            // downloadingBlockchain.find(".db_halted").hide();
+            // downloadingBlockchain.find(".db_light").show();
+
+        // } else if (!NRS.serverConnect || !NRS.peerConnect) {
+            // downloadingBlockchain.find(".db_active").hide();
+            // downloadingBlockchain.find(".db_halted").show();
+            // downloadingBlockchain.find(".db_light").hide();
+        // } else {
+            // downloadingBlockchain.find(".db_halted").hide();
+            // downloadingBlockchain.find(".db_active").show();
+            // downloadingBlockchain.find(".db_light").hide();
+        if(!NRS.state.isLightClient && NRS.serverConnect && NRS.peerConnect){
+            var percentageTotal = 0;    //进度百分比
+            var blocksLeft;             //剩余区块数量
+            var percentageLast = 0;     //
             if (NRS.state.lastBlockchainFeederHeight && NRS.state.numberOfBlocks <= NRS.state.lastBlockchainFeederHeight) {
                 percentageTotal = parseInt(Math.round((NRS.state.numberOfBlocks / NRS.state.lastBlockchainFeederHeight) * 100), 10);
                 blocksLeft = NRS.state.lastBlockchainFeederHeight - NRS.state.numberOfBlocks;
-                if (blocksLeft <= lastNumBlocks && NRS.state.lastBlockchainFeederHeight > lastNumBlocks) {
-                    percentageLast = parseInt(Math.round(((lastNumBlocks - blocksLeft) / lastNumBlocks) * 100), 10);
+                if (blocksLeft <= NRS.lastNumBlocks && NRS.state.lastBlockchainFeederHeight > NRS.lastNumBlocks) {
+                    percentageLast = parseInt(Math.round(((NRS.lastNumBlocks - blocksLeft) / NRS.lastNumBlocks) * 100), 10);
                 }
             }
-            if (!blocksLeft || blocksLeft < parseInt(lastNumBlocks / 2)) {
+            if (!blocksLeft || blocksLeft < parseInt(NRS.lastNumBlocks / 2)) {
                 downloadingBlockchain.find(".db_progress_total").hide();
             } else {
                 downloadingBlockchain.find(".db_progress_total").show();
@@ -1806,7 +1809,7 @@ var Sso = (function (NRS, $, undefined) {
                     "percent": percentageTotal
                 }));
             }
-            if (!blocksLeft || blocksLeft >= (lastNumBlocks * 2) || NRS.state.lastBlockchainFeederHeight <= lastNumBlocks) {
+            if (!blocksLeft || blocksLeft >= (NRS.lastNumBlocks * 2) || NRS.state.lastBlockchainFeederHeight <= NRS.lastNumBlocks) {
                 downloadingBlockchain.find(".db_progress_last").hide();
             } else {
                 downloadingBlockchain.find(".db_progress_last").show();
