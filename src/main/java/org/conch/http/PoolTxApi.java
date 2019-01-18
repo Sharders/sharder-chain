@@ -33,8 +33,8 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
-            if(!PocProcessorImpl.isHubBind(account.getId()) && !Constants.isDevnet()) {
-                String errorDetail = "current account can't create sharder pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to hub";
+            if(!PocProcessorImpl.isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
+                String errorDetail = "current account can't create sharder pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }

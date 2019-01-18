@@ -38,7 +38,7 @@
                             <span>{{$t('account.send_message')}}</span>
                         </button>
                         
-                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS" @click="openHubSettingDialog">
+                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -56,6 +56,25 @@
                                 </svg>
                             </span>
                             <span>{{$t('account.hub_setting')}}</span>
+                        </button>
+                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && initHUb" @click="openHubInitDialog">
+                            <span class="icon">
+                                <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
+                                    <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-210.23,147l-0.07,0h0Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-363.68,147h-0.08Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-227.43,189.31l-0.09.08,0,0Z" transform="translate(382.82 -23.48)"/>
+                                    <path
+                                        d="M-287,81.4A32.6,32.6,0,0,0-319.61,114,32.63,32.63,0,0,0-287,146.6,32.64,32.64,0,0,0-254.37,114,32.63,32.63,0,0,0-287,81.4Zm0,51.2A18.64,18.64,0,0,1-305.61,114,18.63,18.63,0,0,1-287,95.4,18.64,18.64,0,0,1-268.37,114,18.66,18.66,0,0,1-287,132.6Z"
+                                        transform="translate(382.82 -23.48)"/>
+                                    <path
+                                        d="M-192,100.14a24.25,24.25,0,0,0-6.37-12.19,24.2,24.2,0,0,0-11.94-7l-2.08-.48a12.38,12.38,0,0,1-6.89-5.6A12.55,12.55,0,0,1-221,68.66a12.42,12.42,0,0,1,.24-2.45l0.62-1.85,0.1-.31a22.6,22.6,0,0,0,1-6.65,25.77,25.77,0,0,0-2-9.91,23.67,23.67,0,0,0-6.38-8.83h0c-0.81-.69-4.05-3.27-11.62-7.64l0,0a88.68,88.68,0,0,0-12.22-6.15h0a22.73,22.73,0,0,0-7.83-1.35A24.92,24.92,0,0,0-277.14,31l0,0-1.52,1.62A12.25,12.25,0,0,1-287,35.78a12.44,12.44,0,0,1-8.36-3.19L-296.78,31a24.82,24.82,0,0,0-18-7.57,22.73,22.73,0,0,0-7.84,1.35h0A87,87,0,0,0-334.88,31L-335,31a83.41,83.41,0,0,0-11.58,7.67,23.6,23.6,0,0,0-6.35,8.77,25.67,25.67,0,0,0-2,9.93A22.81,22.81,0,0,0-354,64v0l0.62,2a13,13,0,0,1,.27,2.63,12.39,12.39,0,0,1-1.68,6.25,12.41,12.41,0,0,1-6.89,5.6l-2,.46h0a24.24,24.24,0,0,0-11.91,6.91A24.16,24.16,0,0,0-382,100.19v0a84.4,84.4,0,0,0-.8,13.84c0,8.71.61,12.78,0.8,13.83a24.2,24.2,0,0,0,6.38,12.23A24.16,24.16,0,0,0-363.71,147l2,0.45a12.39,12.39,0,0,1,7,5.62v0a12.42,12.42,0,0,1,1.7,6.27,12.35,12.35,0,0,1-.28,2.62l-0.6,2a22.62,22.62,0,0,0-1,6.59,25.77,25.77,0,0,0,2,9.92,23.67,23.67,0,0,0,6.37,8.83l0,0a84,84,0,0,0,11.61,7.63,84.21,84.21,0,0,0,12.37,6.22,22.74,22.74,0,0,0,7.76,1.33A24.91,24.91,0,0,0-296.83,197l0,0,1.39-1.5a12.58,12.58,0,0,1,8.41-3.22,12.45,12.45,0,0,1,8.4,3.23l1.42,1.52,0,0a24.83,24.83,0,0,0,18,7.57,22.76,22.76,0,0,0,7.83-1.35h0A86.42,86.42,0,0,0-239.09,197l0,0a84.17,84.17,0,0,0,11.53-7.59,23.48,23.48,0,0,0,6.44-8.86,25.75,25.75,0,0,0,2-9.92,22.71,22.71,0,0,0-1-6.61l0,0.06-0.63-2.13a12.69,12.69,0,0,1-.27-2.62,12.2,12.2,0,0,1,1.66-6.18v0a12.45,12.45,0,0,1,7-5.65l2-.46a24.21,24.21,0,0,0,11.9-6.9A24.18,24.18,0,0,0-192,127.85h0a84.88,84.88,0,0,0,.8-13.82V114A86.79,86.79,0,0,0-192,100.14Zm-13.74,25.23a10.89,10.89,0,0,1-7.64,8l-2.5.58a26.46,26.46,0,0,0-15.46,12.19,26.35,26.35,0,0,0-2.82,19.37l0.77,2.57a10.89,10.89,0,0,1-3.11,10.61,72.25,72.25,0,0,1-9.53,6.19A76.54,76.54,0,0,1-256.19,190a10.87,10.87,0,0,1-10.75-2.6l-1.77-1.89A26.46,26.46,0,0,0-287,178.22a26.51,26.51,0,0,0-18.29,7.27l-1.77,1.89a10.87,10.87,0,0,1-10.75,2.6,73.91,73.91,0,0,1-10.11-5.17,73.79,73.79,0,0,1-9.56-6.19A11,11,0,0,1-340.57,168l0.74-2.47a26.46,26.46,0,0,0-2.82-19.47A26.39,26.39,0,0,0-358.1,133.9l-2.5-.58a10.84,10.84,0,0,1-7.63-8,74.14,74.14,0,0,1-.58-11.35,74.19,74.19,0,0,1,.58-11.35,10.88,10.88,0,0,1,7.63-8l2.57-.58a26.37,26.37,0,0,0,15.43-12.15,26.53,26.53,0,0,0,2.82-19.43l-0.77-2.54a10.86,10.86,0,0,1,3.11-10.58,72.75,72.75,0,0,1,9.53-6.22A76.66,76.66,0,0,1-317.79,38,10.86,10.86,0,0,1-307,40.57l1.8,1.93A26.42,26.42,0,0,0-287,49.78a26.34,26.34,0,0,0,18.19-7.21l1.86-2A10.88,10.88,0,0,1-256.2,38a78.92,78.92,0,0,1,10.1,5.16,73.52,73.52,0,0,1,9.56,6.19,10.92,10.92,0,0,1,3.11,10.61l-0.83,2.51a26.43,26.43,0,0,0,2.83,19.47A26.45,26.45,0,0,0-216.09,94l2.66,0.61a10.9,10.9,0,0,1,7.63,8,76.56,76.56,0,0,1,.62,11.38A74.19,74.19,0,0,1-205.76,125.37Z"
+                                        transform="translate(382.82 -23.48)"/>
+                                    <path d="M-296.8,31l0,0h0Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
+                                </svg>
+                            </span>
+                            <span>{{$t('login.init_hub')}}</span>
                         </button>
                     </div>
                 </div>
@@ -258,6 +277,58 @@
                 </div>
             </div>
         </div>
+        <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>{{$t('login.init_hub')}}</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <el-form label-position="left" :label-width="this.$i18n.locale === 'en'? '200px':'160px'">
+                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
+                        <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.sharder_account')">
+                        <el-input v-model="hubsetting.sharderAccount"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')">
+                        <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.address" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.port" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"  v-if="hubsetting.openPunchthrough">
+                        <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.public_ip_address')">
+                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
+                    </el-form-item>
+                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')">
+                        <el-input  v-model="hubsetting.SS_Address"></el-input>
+                        <!--<a @click="register"><span>创建账户</span></a>-->
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.enable_auto_mining')">
+                        <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
+                        <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.set_password')">
+                        <el-input type="password" v-model="hubsetting.newPwd"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.confirm_password')">
+                        <el-input type="password" v-model="hubsetting.confirmPwd"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div class="footer-btn">
+                    <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
+                </div>
+            </div>
+        </div>
         <!--view tranfer account dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
@@ -374,12 +445,17 @@
 
         </div>
 
+
+
         <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading"
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
         <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
         <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
+
+
+
 
 
     </div>
@@ -400,12 +476,15 @@
                 sendMessageDialog: false,
                 tranferAccountsDialog: false,
                 hubSettingDialog: false,
+                hubInitDialog:false,
+
 
                 tradingInfoDialog: false,
                 userInfoDialog:false,
                 accountInfoDialog: false,
                 adminPasswordDialog:false,
                 secretPhraseDialog:false,
+                initHUb:this.$store.state.isHubInit,
 
 
                 isShowName: true,
@@ -512,6 +591,9 @@
         },
         created(){
             const _this = this;
+
+            console.log("_this.initHUb",_this.initHUb);
+
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -522,24 +604,13 @@
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
             });
 
-            this.$global.getUserConfig(this).then(res=>{
-                if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
-                    _this.$store.state.userConfig = res;
-                    _this.userConfig = res;
-                    _this.$store.state.isHubInit = true;
-                }else{
-                    // if(_this.$route.query.info === 'register2Init'){
-                    //     _this.hubSettingDialog = true;
-                    //     _this.$store.state.mask = true;
-                    //     _this.hubsetting.SS_Address = SSO.accountRS;
-                    // }
-                }
-            });
-
             _this.getAccountTransactionList();
             _this.$global.setBlockchainState(_this).then(res=>{
-                _this.blockchainState = res;
+                _this.blockchainState = res.data;
             });
+
+            SSO.getState();
+
             _this.$global.getUserConfig(_this).then(res=>{
                 _this.hubsetting.address = res["sharder.NATServiceAddress"];
                 _this.hubsetting.port = res["sharder.NATServicePort"];
@@ -664,17 +735,21 @@
                 const _this = this;
                 params.append("adminPassword",adminPwd);
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
-                    _this.$message.success(_this.$t('notification.restart_success'));
+                    if(typeof res.data.errorDescription === "undefined"){
+                        _this.$message.error(res.data.errorDescription);
+                    }else{
+                        _this.$message.success(_this.$t('notification.restart_success'));
+                    }
                 }).catch(err => {
                     _this.$message.error(err);
                 });
             },
             verifyHubSettingInfo(){
                 const _this = this;
-                let params = new URLSearchParams();
+                let formData = new FormData();
 
                 if(_this.hubsetting.openPunchthrough){
-                    params.append("sharder.useNATService",true);
+                    formData.append("sharder.useNATService",true);
                     if(_this.hubsetting.address === '' ||
                         _this.hubsetting.port === '' ||
                         _this.hubsetting.clientSecretkey === ''){
@@ -684,13 +759,13 @@
                             _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         return false;
                     }else{
-                        params.append("sharder.NATServiceAddress",_this.hubsetting.address);
-                        params.append("sharder.NATServicePort",_this.hubsetting.port);
-                        params.append("sharder.NATClientKey",_this.hubsetting.clientSecretkey);
-                        params.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                        formData.append("sharder.NATServiceAddress",_this.hubsetting.address);
+                        formData.append("sharder.NATServicePort",_this.hubsetting.port);
+                        formData.append("sharder.NATClientKey",_this.hubsetting.clientSecretkey);
+                        formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
                     }
                 }else{
-                    params.append("sharder.useNATService",false);
+                    formData.append("sharder.useNATService",false);
                 }
 
                 if(_this.hubsetting.SS_Address !== ''){
@@ -699,34 +774,57 @@
                         _this.$message.warning(_this.$t('notification.hubsetting_account_address_error_format'));
                         return false;
                     }else{
-                        params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
-                        params.append("reBind",true);
+                        formData.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
+                        formData.append("reBind",true);
                     }
                 }else{
-                    params.append("reBind",false);
+                    formData.append("reBind",false);
                 }
 
                 if(_this.hubsetting.isOpenMining){
-                    params.append("sharder.HubBind",true);
+                    formData.append("sharder.HubBind",true);
                     if(_this.hubsetting.modifyMnemonicWord === ''){
                         _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
                         return false;
                     }
-                    params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
+                    formData.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
                 }else{
-                    params.append("sharder.HubBind",false);
+                    formData.append("sharder.HubBind",false);
                 }
-                params.append("restart",false);
+                formData.append("restart",false);
+                formData.append("sharder.disableAdminPassword",false);
+
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
                         _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
                         return false;
                     }else{
-                        params.append("newAdminPassword",_this.hubsetting.newPwd);
+                        formData.append("newAdminPassword",_this.hubsetting.newPwd);
                     }
                 }
-                return params;
+                return formData;
+            },
+            verifyHubSetting:function(){
+                const _this = this;
+                let formData = _this.verifyHubSettingInfo();
+                if(formData === false){
+                    return;
+                }else{
+                    formData.append("isInit",true);
+                }
+                this.$http.post('/sharder?requestType=reConfig', formData).then(res => {
+                    if(typeof res.data.errorDescription === 'undefined'){
+                        _this.$message.success(_this.$t('notification.restart_success'));
+                        _this.hubSettingDialog = false;
+                        this.$store.state.mask = false;
+                        this.$router.push("/login");
+                    }else{
+                        _this.$message.error(res.data.errorDescription);
+                    }
+                }).catch(err => {
+                    _this.$message.error(err);
+                });
             },
             checkSharder(){
                 const _this = this;
@@ -1056,7 +1154,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data.unconfirmedTransactions);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1173,7 +1271,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data.unconfirmedTransactions);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1232,8 +1330,11 @@
                 const _this = this;
                 _this.$store.state.mask = true;
                 _this.hubSettingDialog = true;
-                console.log(_this.hubsetting);
-
+            },
+            openHubInitDialog:function(){
+                const _this = this;
+                _this.$store.state.mask = true;
+                _this.hubInitDialog = true;
             },
             openTradingInfoDialog:function(trading){
                 this.trading = trading;
@@ -1295,6 +1396,7 @@
                 this.sendMessageDialog = false;
                 this.tranferAccountsDialog = false;
                 this.hubSettingDialog = false;
+                this.hubInitDialog = false;
                 this.tradingInfoDialog = false;
                 this.accountInfoDialog = false;
                 this.userInfoDialog = false;
@@ -1543,15 +1645,15 @@
                 },
                 deep: true
             },
-            hubsetting: {
-                handler:function(oldValue,newValue){
-                    const _this = this;
-                    if (_this.hubsetting.openPunchthrough) {
-                        _this.checkSharder();
-                    }
-                },
-                deep: true
-            },
+            // hubsetting: {
+            //     handler:function(oldValue,newValue){
+            //         const _this = this;
+            //         if (_this.hubsetting.openPunchthrough) {
+            //             _this.checkSharder();
+            //         }
+            //     },
+            //     deep: true
+            // },
             messageForm:{
                 handler:function(oldValue,newValue){
                     const _this = this;
@@ -1716,5 +1818,28 @@
         padding: 0;
         font-size: 13px;
         height: 20px;
+    }
+
+
+    .modal_hubSetting{
+        width: 800px!important;
+    }
+    .modal_hubSetting .modal-header .modal-title{
+        margin: 0!important;
+    }
+    .modal_hubSetting .modal-body{
+        padding: 20px 40px 60px!important;
+    }
+    .modal_hubSetting .modal-body .el-form{
+        margin-top: 20px!important;
+    }
+    /*.modal_hubSetting .modal-body .el-form .create_account .el-input{
+        width:450px;
+    }*/
+    .modal_hubSetting .modal-body .el-form .create_account a{
+        position: absolute;
+        right: 20px;
+        top: 0;
+        cursor: pointer;
     }
 </style>

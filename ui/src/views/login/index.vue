@@ -19,6 +19,7 @@
                 <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>
+        <!--<button @click="initHub">test init</button>-->
 <!--
         <div class="content_welcome" v-else>  &lt;!&ndash;Hub初始化&ndash;&gt;
             <el-col :span="24" class="welcome_info">
@@ -30,58 +31,7 @@
         </div>
 -->
 
-        <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
-            <div class="modal-header">
-                <h4 class="modal-title">
-                    <span>{{$t('login.init_hub')}}</span>
-                </h4>
-            </div>
-            <div class="modal-body">
-                <el-form label-position="left" :label-width="this.$i18n.locale === 'en'? '200px':'160px'">
-                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
-                        <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account')">
-                        <el-input v-model="hubsetting.sharderAccount"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account_password')">
-                        <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
-                        <el-input v-model="hubsetting.address" :disabled="true"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
-                        <el-input v-model="hubsetting.port" :disabled="true"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"  v-if="hubsetting.openPunchthrough">
-                        <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.public_ip_address')">
-                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
-                    </el-form-item>
-                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')">
-                        <el-input  v-model="hubsetting.SS_Address"></el-input>
-                        <a @click="register"><span>创建账户</span></a>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.enable_auto_mining')">
-                        <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
-                        <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.set_password')">
-                        <el-input type="password" v-model="hubsetting.newPwd"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.confirm_password')">
-                        <el-input type="password" v-model="hubsetting.confirmPwd"></el-input>
-                    </el-form-item>
-                </el-form>
-                <div class="footer-btn">
-                    <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeHub">{{$t('hubsetting.cancel')}}</button>
-                </div>
-            </div>
-        </div>
+
 
     </div>
 </template>
@@ -97,6 +47,8 @@
                 tabTitle: "key",
                 secretPhrase: "finish rant princess crimson cold forward such known lace built poetry ceiling",
                 account: "SSA-EF9Z-8J9G-LLHC-9VU5U",
+      /*          secretPhrase: "",
+                account: "SSA-____-____-____-_____",*/
                 type: 1,
                 userConfig:[],
                 hubSettingDialog:false,
@@ -121,26 +73,21 @@
 
             let url = window.location.href;
             let pathname = window.location.pathname;
-            console.log("~~~~~~~~~~~~~~~~~~~~~~", url.split(pathname)[0]);
 
+            this.$global.getUserConfig(this).then(res=>{
 
-
-            // this.$global.getUserConfig(this).then(res=>{
-            //     if(typeof res["sharder.HubBindAddress"] !== 'undefined'){
-            //         _this.$store.state.userConfig = res;
-            //         _this.userConfig = res;
-            //         _this.$store.state.isHubInit = true;
-            //     }else{
-            //         if(_this.$route.query.info === 'register2Init'){
-            //             _this.hubSettingDialog = true;
-            //             _this.$store.state.mask = true;
-            //             _this.hubsetting.SS_Address = SSO.accountRS;
-            //         }
-            //     }
-            // });
-
+                if(typeof res["sharder.HubBindAddress"] === 'undefined' || res["sharder.HubBindAddress"] === ""){
+                    console.log("HUbSetting is undefined");
+                    _this.$store.state.userConfig = res;
+                    _this.$store.state.isHubInit = true;
+                }else{
+                    _this.$store.state.userConfig = res;
+                    _this.$store.state.isHubInit = false;
+                }
+            });
+            SSO.init();
             this.$global.setBlockchainState(this).then(res=>{
-                if(typeof res.data.errorDescription === 'undefined'){
+                if(typeof res.errorDescription !== 'undefined'){
                     _this.$message.error(res.data)
                 }else{
                     //TODO  获取区块链
@@ -180,129 +127,95 @@
                     })
                 }
             },
-            initHub:function(){
-                this.$store.state.mask = true;
-                this.hubSettingDialog = true;
-            },
-            closeHub:function(){
-                this.$store.state.mask = false;
-                this.hubSettingDialog = false;
 
-                this.hubsetting = {
-                    openPunchthrough: true,
-                    sharderAccount: '',
-                    sharderPwd: '',
-                    address:'',
-                    port: '',
-                    clientSecretkey: '',
-                    publicAddress: '',
-                    SS_Address: '',
-                    isOpenMining: false,
-                    modifyMnemonicWord: '',
-                    newPwd: '',
-                    confirmPwd: ''
-                };
-            },
-            verifyHubSetting:function(){
-                const _this = this;
-                let params = _this.verifyHubSettingInfo();
-                if(params === false){
-                    return;
-                }else{
-                    params.append("isInit",true);
-                }
-                this.$http.post('/sharder?requestType=reConfig', params).then(res => {
-                    if(typeof res.data.errorDescription === 'undefined'){
-                        _this.$message.success(_this.$t('notification.restart_success'));
-                        _this.hubSettingDialog = false;
-                        this.$router.push("/login");
-                    }else{
-                        _this.$message.error(res.data.errorDescription);
-                    }
+
+/*
+            initHub:function(){
+                let _this = this;
+                let formData = new FormData();
+                formData.append("sharder.useNATService",true);
+                formData.append("sharder.NATServiceAddress","devnat.sharder.io");
+                formData.append("sharder.NATServicePort","8995");
+                formData.append("sharder.NATClientKey","d4dc126cf43f41439f6b149b51891762");
+                formData.append("sharder.myAddress", "devnat.sharder.io\\:8995");
+                formData.append("sharder.HubBindAddress","SSA-EF9Z-8J9G-LLHC-9VU5U");
+                formData.append("reBind",true);
+                formData.append("sharder.HubBind",true);
+                formData.append("sharder.HubBindPassPhrase","finish rant princess crimson cold forward such known lace built poetry ceiling");
+                formData.append("restart",false);
+                formData.append("sharder.disableAdminPassword",false);
+                formData.append("newAdminPassword","hubtesttest");
+                formData.append("isInit",true);
+
+
+                formData.append("sharder.useNATService",true);
+
+                this.$http.post('/sharder?requestType=reConfig', formData).then(res => {
+                    console.log("test init hub,", res.data);
                 }).catch(err => {
                     _this.$message.error(err);
                 });
-            },
-            verifyHubSettingInfo(){
-                const _this = this;
-                let params = new FormData();
+            },*/
+            /*          closeHub:function(){
+                          this.$store.state.mask = false;
+                          this.hubSettingDialog = false;
 
-                if(_this.hubsetting.openPunchthrough){
-                    params.append("sharder.useNATService",true);
-                    if(_this.hubsetting.address === '' ||
-                        _this.hubsetting.port === '' ||
-                        _this.hubsetting.clientSecretkey === ''){
-                        if(_this.hubsetting.sharderPwd === '')
-                            _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
-                        else
-                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
-                        return false;
-                    }else{
-                        params.append("sharder.NATServiceAddress",_this.hubsetting.address);
-                        params.append("sharder.NATServicePort",_this.hubsetting.port);
-                        params.append("sharder.NATClientKey",_this.hubsetting.clientSecretkey);
-                        params.append("sharder.myAddress", _this.hubsetting.publicAddress);
-                    }
-                }else{
-                    params.append("sharder.useNATService",false);
-                }
+                          this.hubsetting = {
+                              openPunchthrough: true,
+                              sharderAccount: '',
+                              sharderPwd: '',
+                              address:'',
+                              port: '',
+                              clientSecretkey: '',
+                              publicAddress: '',
+                              SS_Address: '',
+                              isOpenMining: false,
+                              modifyMnemonicWord: '',
+                              newPwd: '',
+                              confirmPwd: ''
+                          };
+                      },*/
 
-                if(_this.hubsetting.SS_Address !== ''){
-                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                    if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
-                        _this.$message.warning(_this.$t('notification.hubsetting_account_address_error_format'));
-                        return false;
-                    }else{
-                        params.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
-                        params.append("reBind",true);
-                    }
-                }else{
-                    params.append("reBind",false);
-                }
-
-                if(_this.hubsetting.isOpenMining){
-                    params.append("sharder.HubBind",true);
-                    if(_this.hubsetting.modifyMnemonicWord === ''){
-                        _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
-                        return false;
-                    }
-                    params.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
-                }else{
-                    params.append("sharder.HubBind",false);
-                }
-                params.append("restart",false);
-                params.append("sharder.disableAdminPassword",false);
-
-                if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
-                    if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
-                        _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
-                        return false;
-                    }else{
-                        params.append("newAdminPassword",_this.hubsetting.newPwd);
-                    }
-                }
-
-                return params;
-            },
             login: function () {
                 let _this = this;
                 let val = _this.getAccount();
+                console.log(val);
                 if (val === "") {
                     _this.$message.info(_this.$t('notification.login_no_input_error'));
                     return;
                 }
-                Login.login(_this.type, val, _this, function () {
-                    // console.log(SSO);
-                    // console.log("account", SSO.account);
-                    // console.log("accountInfo", SSO.accountInfo);
-                    // console.log("accountRS", SSO.accountRS);
-                    // console.log("publicKey", SSO.publicKey);
-                    // console.log("settings", SSO.settings);
-                    _this.$global.setEpochBeginning(_this).then(res=>{
-                        _this.$store.state.isLogin = true;
-                        _this.$router.push("/account");
+                if(_this.tabTitle === "account"){
+                    if(val === "SSA-____-____-____-_____" || val ===  "___-____-____-____-_____"){
+                        _this.$message.info(_this.$t('notification.login_no_input_error'));
+                        return;
+                    }
+                    this.$http.get('/sharder?requestType=getAccount', {
+                        params: {
+                            account: val,
+                        }
+                    }).then(function (res) {
+                        if(typeof res.data.errorDescription !== 'undefined'){
+                            _this.$message.error("无法找到您的帐户地址。");
+                        }else{
+                            Login.login(_this.type, val, _this, function () {
+                                _this.$global.setEpochBeginning(_this).then(res=>{
+                                    _this.$store.state.isLogin = true;
+                                    _this.$router.push("/account");
+                                });
+                            });
+                        }
+                    }).catch(function (err) {
+                        _this.$message.error(err);
                     });
-                });
+                }
+                else{
+                    Login.login(_this.type, val, _this, function () {
+                        _this.$global.setEpochBeginning(_this).then(res=>{
+                            _this.$store.state.isLogin = true;
+                            _this.$router.push("/account");
+                        });
+                    });
+                }
             },
             register: function () {
                 this.$store.state.mask = false;
@@ -363,27 +276,6 @@
         transition: .4s;
     }
 
-    .modal_hubSetting{
-        width: 800px!important;
-    }
-    .modal_hubSetting .modal-header .modal-title{
-        margin: 0!important;
-    }
-    .modal_hubSetting .modal-body{
-        padding: 20px 40px 60px!important;
-    }
-    .modal_hubSetting .modal-body .el-form{
-        margin-top: 20px!important;
-    }
-    .modal_hubSetting .modal-body .el-form .create_account .el-input{
-        width:450px;
-    }
-    .modal_hubSetting .modal-body .el-form .create_account a{
-        position: absolute;
-        right: 20px;
-        top: 0;
-        cursor: pointer;
-    }
     /*.en_login .modal_hubSetting .modal-body{*/
 
     /*}*/

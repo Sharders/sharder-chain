@@ -25,8 +25,6 @@ import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.db.*;
-import org.conch.db.*;
-import org.conch.db.*;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
@@ -100,6 +98,18 @@ public final class BlockchainImpl implements Blockchain {
     }
 
     @Override
+    public long countIncludeTypeBlocks(List<String> includeType){
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            return TransactionDb.countByBlockIncludeType(con, includeType);
+        } catch (SQLException e) {
+            DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    @Override
     public int getLastBlockTimestamp() {
         BlockImpl last = lastBlock.get();
         return last == null ? 0 : last.getTimestamp();
@@ -156,6 +166,7 @@ public final class BlockchainImpl implements Blockchain {
             throw new RuntimeException(e.toString(), e);
         }
     }
+
 
     @Override
     public DbIterator<BlockImpl> getBlocks(long accountId, int timestamp) {

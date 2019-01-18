@@ -281,9 +281,9 @@ var NRS = (function (NRS, $, undefined) {
 
     // id can be either account id or passphrase
     NRS.login = function (isPassphraseLogin, id, vue, callback, isAccountSwitch, isSavedPassphrase) {
-        // NRS.logConsole("login isPassphraseLogin = " + isPassphraseLogin +
-        //     ", isAccountSwitch = " + isAccountSwitch +
-        //     ", isSavedPassphrase = " + isSavedPassphrase);
+        NRS.logConsole("login isPassphraseLogin = " + isPassphraseLogin +
+            ", isAccountSwitch = " + isAccountSwitch +
+            ", isSavedPassphrase = " + isSavedPassphrase);
         // NRS.spinner.spin($("#center")[0]);
         // if (isPassphraseLogin && !isSavedPassphrase){
         //     var loginCheckPasswordLength = $("#login_check_password_length");
@@ -597,7 +597,7 @@ var NRS = (function (NRS, $, undefined) {
         $("body, html").removeClass("lockscreen");
         $("#login_error").html("").hide();
         $(document.documentElement).scrollTop = 0;
-        NRS.spinner.stop();
+        // NRS.spinner.stop();
     };
 
     NRS.logout = function (stopForging) {

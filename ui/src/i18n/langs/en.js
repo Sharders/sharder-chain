@@ -137,6 +137,7 @@ const en = {
         'search':"Search",
         'search_open':"Search By Account ID/Transaction ID/Block ID",
         'open_console':"Console running. Recording logs…",
+        'console':"console",
     },
     network:{
         'network_title':"Network Overview",

@@ -48,9 +48,8 @@ public final class FxtDistribution implements Listener<Block> {
     public static final int DISTRIBUTION_FREQUENCY = 720; // run processing every 720 blocks
     public static final int DISTRIBUTION_STEP = 60; // take snapshots every 60 blocks
 
-    //FIXME[xy] check and modify following hard code
-    public static final long FXT_ASSET_ID = Long.parseUnsignedLong(Constants.isTestnetOrDevnet() ? "861080501219231688" : "12422608354438203866");
-    public static final long FXT_ISSUER_ID = Account.rsAccountToId(Constants.isTestnetOrDevnet() ? "SSA-F8FG-RDWZ-GRW7-4GSK9" : "SSA-FQ28-G9SQ-BG8M-6V6QH");
+    public static final long FXT_ASSET_ID = -1L;
+    public static final long FXT_ISSUER_ID = -1L;
 
     private static final BigInteger BALANCE_DIVIDER = BigInteger.valueOf(10000L * (DISTRIBUTION_END - DISTRIBUTION_START) / DISTRIBUTION_STEP);
     private static final String logAccount = Conch.getStringProperty("sharder.logFxtBalance");
@@ -92,7 +91,8 @@ public final class FxtDistribution implements Listener<Block> {
     static {
         Conch.getBlockchainProcessor().addListener(new FxtDistribution(), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     }
-
+    
+    // close dividend distribution
     final static boolean fxtOpen = false;
     static int debugCount = 0;
     @Override

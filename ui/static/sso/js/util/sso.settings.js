@@ -459,6 +459,7 @@ var NRS = (function(NRS, $) {
 		}
 	};
 
+/*
 	NRS.createRegionalFormatSelect = function() {
 		// Build language select box for settings page, login
 		var $regionalFormatSelBoxes = $('select[name="regional_format"]');
@@ -470,6 +471,7 @@ var NRS = (function(NRS, $) {
 		}
 		$regionalFormatSelBoxes.val(NRS.settings["regional_format"]);
 	};
+*/
 
 	NRS.getSettings = function(isAccountSpecific) {
 		if (!NRS.account) {
@@ -478,7 +480,7 @@ var NRS = (function(NRS, $) {
 				NRS.settings["language"] = NRS.getStrItem("language");
 			}
 			NRS.createLangSelect();
-			NRS.createRegionalFormatSelect();
+			// NRS.createRegionalFormatSelect();
 			NRS.applySettings();
 		} else {
             async.waterfall([
@@ -495,7 +497,7 @@ var NRS = (function(NRS, $) {
 							});
 							NRS.settings = NRS.defaultSettings;
 						}
-						// NRS.logConsole("User settings for account " + NRS.convertNumericToRSAccountFormat(NRS.account));
+						NRS.logConsole("User settings for account " + NRS.convertNumericToRSAccountFormat(NRS.account));
 						console.warn("User settings for account " + NRS.convertNumericToRSAccountFormat(NRS.account));
 						for (var setting in NRS.defaultSettings) {
 							if (!NRS.defaultSettings.hasOwnProperty(setting)) {
@@ -506,7 +508,7 @@ var NRS = (function(NRS, $) {
 							if (setting.search("password") >= 0) {
 								value = new Array(value.length + 1).join('*');
 							}
-							// NRS.logConsole(setting + " = " + value + " [" + status + "]");
+							NRS.logConsole(setting + " = " + value + " [" + status + "]");
                             console.warn(setting + " = " + value + " [" + status + "]");
 						}
 						// NRS.applySettings();
@@ -541,7 +543,7 @@ var NRS = (function(NRS, $) {
 	};
 
 	NRS.applySettings = function(key) {
-	    if (!key || key == "language") {
+	    /*if (!key || key == "language") {
 			if ($.i18n.language != NRS.settings["language"]) {
 				$.i18n.changeLanguage(NRS.settings["language"], function() {
 					$("[data-i18n]").i18n();
@@ -550,7 +552,7 @@ var NRS = (function(NRS, $) {
 					NRS.setStrItem('i18next_lng', NRS.settings["language"]);
 				}
 			}
-		}
+		}*/
 
 		if (!key || key == "submit_on_enter") {
 			if (NRS.settings["submit_on_enter"] == "1") {
@@ -601,11 +603,11 @@ var NRS = (function(NRS, $) {
 			});
 		}
 
-		if (!key || key == "admin_password") {
+		/*if (!key || key == "admin_password") {
 			if (NRS.settings["admin_password"] != "") {
 				NRS.updateForgingStatus();
 			}
-		}
+		}*/
 	};
 
 	NRS.updateSettings = function(key, value) {

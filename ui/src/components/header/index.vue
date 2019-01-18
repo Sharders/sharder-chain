@@ -35,8 +35,10 @@
                         <span class="isLogin" v-else>{{accountRS}} | {{$t('header.secret_mode')}}</span>
                     </div>
                     <div class="navbar_pilotLamp">
-
-                        <el-tooltip class="item csp" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-if="accountInfo.errorDescription === 'Unknown account'">
+                        <el-tooltip class="item csp" content="请先初始化Hub" placement="bottom" effect="light" v-if="isHubInit">
+                            <div class="pilotLamp_circle notForging"></div>
+                        </el-tooltip>
+                        <el-tooltip class="item csp" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-else-if="accountInfo.errorDescription === 'Unknown account'">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
                         <el-tooltip class="item csp" :content="$t('header.forging_error_effective_balance')" placement="bottom" effect="light" v-else-if="accountInfo.effectiveBalanceSS === 0">
@@ -117,6 +119,7 @@
                 userConfig:[],
                 search_val: "",
                 isSearch:false,
+                isHubInit:this.$store.state.isHubInit,
                 selectLan:'',
                 selectLanValue:'',
                 language:[{
@@ -194,20 +197,23 @@
                 // if(_this.i%30 === 0){
                     _this.$global.setBlockchainState(_this).then(res=>{
                         _this.blockchainState = res;
-                        if(_this.$global.isOpenConsole){
+                        /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
-                        }
+                        }*/
+                        SSO.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res.data,res);
                     });
                     _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
                         _this.$store.state.unconfirmedTransactionsList = res;
-                        if(_this.$global.isOpenConsole){
+                        /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
-                        }
+                        }*/
+                        SSO.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res.data,res);
                     });
                     _this.$global.setPeers(_this).then(res=>{
-                        if(_this.$global.isOpenConsole){
+                        /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
-                        }
+                        }*/
+                        SSO.addToConsole("/sharder?requestType=getPeers",'GET',res.data,res);
                     });
                 // }
             },
@@ -269,18 +275,21 @@
                 _this.activeIndex = val;
             },
             goConsole: function () {
-                const _this = this;
-                _this.$global.newConsole = window.open("", "console", "width=750,height=400,menubar=no,scrollbars=yes,status=no,toolbar=no,resizable=yes");
+                // const _this = this;
+
+                SSO.showConsole(this);
+
+               /* _this.$global.newConsole = window.open("", "console", "width=750,height=400,menubar=no,scrollbars=yes,status=no,toolbar=no,resizable=yes");
                 $(_this.$global.newConsole.document.head).html("<title>CONSOLE</title><style type='text/css'>body { background:black; color:white; font-family:courier-new,courier;font-size:14px; } pre { font-size:14px; } #console { padding-top:15px; }</style>");
                 $(_this.$global.newConsole.document.body).html("<div style='position:fixed;top:0;left:0;right:0;padding:5px;background:#efefef;color:black;'>"+_this.$t('header.open_console')+"<div style='float:right;text-decoration:underline;color:blue;font-weight:bold;cursor:pointer;' onclick='document.getElementById(\"console\").innerHTML=\"\"'>clear</div></div><div id='console'></div>");
-
-                let loop = setInterval(function() {
+               */
+               /* let loop = setInterval(function() {
                     if(_this.$global.newConsole.closed) {
                         clearInterval(loop);
                         _this.$global.isOpenConsole = false;
                     }
-                }, 1000);
-                this.$global.isOpenConsole = true;
+                }, 1000);*/
+                // this.$global.isOpenConsole = true;
             },
             search_focus: function () {
                 const _this = this;
@@ -298,6 +307,7 @@
                 const _this = this;
                 if(_this.search_val !== ""){
                     _this.isSearch = true;
+
                 }else{
                     _this.$message({
                         showClose: true,
@@ -318,6 +328,7 @@
             isClose:function () {
                 const _this = this;
                 _this.isSearch = false;
+
             },
         },
         watch:{

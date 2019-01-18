@@ -440,7 +440,6 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     broadcastedTransactions.add((TransactionImpl) transaction);
                 }
             }
-            //
         } finally {
             BlockchainImpl.getInstance().writeUnlock();
         }
@@ -625,9 +624,11 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         if (Conch.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
             return;
         }
+        
         if (transactionsData == null || transactionsData.isEmpty()) {
             return;
         }
+        
         long arrivalTimestamp = System.currentTimeMillis();
         List<TransactionImpl> receivedTransactions = new ArrayList<>();
         List<TransactionImpl> sendToPeersTransactions = new ArrayList<>();
@@ -637,6 +638,12 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             try {
                 TransactionImpl transaction = TransactionImpl.parseTransaction((JSONObject) transactionData);
                 receivedTransactions.add(transaction);
+                
+                if (transaction.getAttachment() instanceof Attachment.CoinBase) {
+                    Logger.logWarningMessage("!!!Won't process broadcasted coinbase tx, coinbase tx just be generated in block generation[tx id=" + transaction.getStringId() + ", sender id=" + transaction.getSenderId() + "]");
+                    continue;
+                }
+                
                 if (getUnconfirmedTransaction(transaction.getDbKey()) != null || TransactionDb.hasTransaction(transaction.getId())) {
                     continue;
                 }
@@ -651,7 +658,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 }
                 addedUnconfirmedTransactions.add(transaction);
 
-                // TODO storage add storage tx handle and send a new backup tx
+                // TODO[storage] storage add storage tx handle and send a new backup tx
                 if (Constants.isStorageClient && Storer.getStorer() != null) {
                     if(StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
                         Transaction backupTransaction =  StorageTxProcessorImpl.getInstance().createBackupTransaction(transaction);
@@ -666,12 +673,15 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 exceptions.add(e);
             }
         }
+        
         if (sendToPeersTransactions.size() > 0) {
             Peers.sendToSomePeers(sendToPeersTransactions);
         }
+        
         if (addedUnconfirmedTransactions.size() > 0) {
             transactionListeners.notify(addedUnconfirmedTransactions, Event.ADDED_UNCONFIRMED_TRANSACTIONS);
         }
+        
         broadcastedTransactions.removeAll(receivedTransactions);
         if (!exceptions.isEmpty()) {
             throw new ConchException.NotValidException("Peer sends invalid transactions: " + exceptions.toString());

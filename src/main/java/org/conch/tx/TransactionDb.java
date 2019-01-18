@@ -33,6 +33,7 @@ import java.nio.ByteOrder;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class TransactionDb {
@@ -281,6 +282,47 @@ public final class TransactionDb {
                     + " does not pass validation!", e);
         }
     }
+
+    /**
+     * 统计包含交易类型的区块
+     * @param con
+     * @param typeList
+     * @return
+     */
+    public static Long countByBlockIncludeType(Connection con,List<String> typeList){
+        long count=0;
+        String sql="select count(distinct HEIGHT) block_count from TRANSACTION";
+        if(typeList!=null){
+            for (int i=0;i<typeList.size();i++) {
+                if(i==0){
+                    sql+=" where type in(";
+                }
+                sql+="?";
+                if(i==typeList.size()-1){
+                    sql+=")";
+                    continue;
+                }
+                if(i<typeList.size()){
+                    sql+=",";
+                }
+            }
+        }
+        try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+
+            for(int i=0;typeList != null && i<typeList.size();i++){
+                pstmt.setLong(i+1, Long.parseLong(typeList.get(i)));
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    count=rs.getLong("block_count");
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+        return count;
+    }
+
 
     public static List<PrunableTransaction> findPrunableTransactions(Connection con, int minTimestamp, int maxTimestamp) {
         List<PrunableTransaction> result = new ArrayList<>();

@@ -103,7 +103,7 @@ public class StorageTxProcessorImpl implements StorageTxProcessor {
         public void run() {
             long uploadTransaction = attachment.getUploadTransaction();
             long storerId = attachment.getStorerId();
-            //TODO storage add backup record into database table
+            //TODO[storage] storage add backup record into database table
             try {
                 Db.db.beginTransaction();
 
