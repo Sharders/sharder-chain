@@ -15,7 +15,7 @@
                     </div>
                     <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.unconfirmedBalanceNQT/100000000, 8)}} SS</p>
                     <div class="account_tool">
-                        <button class="common_btn imgBtn" @click="openTransferDialog">
+                        <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 162.5">
                                     <path
@@ -27,7 +27,7 @@
                             </span>
                             <span>{{$t('account.transfer')}}</span>
                         </button>
-                        <button class="common_btn imgBtn" @click="openSendMessageDialog">
+                        <button class="common_btn imgBtn writeBtn" @click="openSendMessageDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 171.43 137.08">
                                     <path class="cls-1"
@@ -38,7 +38,7 @@
                             <span>{{$t('account.send_message')}}</span>
                         </button>
                         
-                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
+                        <button class="common_btn imgBtn writeBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -1319,10 +1319,18 @@
                 });
             },
             openSendMessageDialog: function () {
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 this.$store.state.mask = true;
                 this.sendMessageDialog = true;
             },
             openTransferDialog: function () {
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 this.$store.state.mask = true;
                 this.tranferAccountsDialog = true;
             },
@@ -1369,6 +1377,10 @@
             },
             openSecretPhraseDialog:function(){
                 const _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 _this.userInfoDialog = false;
                 _this.secretPhraseDialog =true;
             },
@@ -1577,6 +1589,9 @@
                     _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
                     _this.totalSize = _this.accountTransactionList.length;
+
+                    console.log("_this.unconfirmedTransactionsList",_this.unconfirmedTransactionsList);
+                    console.log("_this.accountTransactionList",_this.accountTransactionList);
 
                     let list = [];
                     for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
@@ -1818,6 +1833,25 @@
         padding: 0;
         font-size: 13px;
         height: 20px;
+    }
+
+    .writeBtn{
+        background:#fff;
+        color:#493eda;
+        border: 1px solid #493eda;
+        svg {
+            fill: #493eda;
+        }
+        &:hover{
+            background: #493eda;
+            color:#fff;
+            border: none;
+            transition: .4s;
+            svg {
+                fill: #fff;
+                transition: .4s;
+            }
+        }
     }
 
 

@@ -787,8 +787,13 @@ public final class Peers {
             String detail = "get peer info and update hub peer info [size=" + peerArrayJson.size() + "]==================>\n\r";
             while(iterator.hasNext()){
                 com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject)iterator.next();
-                String host = peerJson.getString("host");
-                String bindAddress = peerJson.getString("bindAddress");
+                
+                String host = peerJson.getString("announcedAddress");
+                if(StringUtils.isEmpty(host)) {
+                    host = peerJson.getString("address");
+                }
+                
+                String bindAddress = peerJson.getString("bindRs");
                 Peer peer = Peers.getPeer(host);
                 if(peer == null) {
                     peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);

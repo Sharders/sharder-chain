@@ -404,6 +404,11 @@
         methods: {
             createPool() {
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
+
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
                     _this.isVisible('isCreatePool');
                     _this.$message.info(_this.$t('mining.index.insufficient_permissions'));
@@ -436,7 +441,7 @@
                 _this.$http.post('/sharder?requestType=createPool',formData).then(function (res) {
                   if(res.data.broadcasted){
                       _this.$message.success("创建成功！");
-/*
+                      /*
                       formData = new FormData();
                       let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
                       formData.append("period",period);

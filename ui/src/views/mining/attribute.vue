@@ -183,6 +183,10 @@
             miningExit() {
                 // this.miningMask('isExitPool');
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 this.$http.get('sharder?requestType=getBlockchainTransactions',{
                     params:{
@@ -220,6 +224,10 @@
             },
             miningDestory(){
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 formData.append("period","400");
                 formData.append("secretPhrase",SSO.secretPhrase);
@@ -241,6 +249,10 @@
             },
             miningJoin(){
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 formData.append("period","400");
                 formData.append("secretPhrase",SSO.secretPhrase);

@@ -6,7 +6,7 @@
                     <img src="../../assets/img/logo.svg"/>
                     <div>
                         <span>Sharder</span>
-                        <span>{{blockchainState.application}}{{$t('header.version')}}{{blockchainState.fullVersion}}</span>
+                        <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
                     </div>
                 </a>
             </div>
@@ -93,6 +93,12 @@
                 </div>
             </div>
         </div>
+        <!--
+        <div class="download_blocks_loading">
+            <p>正在下载区块链（100个剩余区块）</p>
+            <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="70"></el-progress>
+        </div>
+        -->
     </header>
 
 </template>
@@ -110,7 +116,7 @@
                 isRouter: true,
                 placeholder: this.$t('header.search'),
                 activeSearch: false,
-                blockchainState:this.$global.blockchainState,
+                blockchainStatus:this.$global.blockchainState,
                 secretPhrase:SSO.secretPhrase,
                 adminPassword:'',
                 accountRS:SSO.accountRS,
@@ -134,6 +140,7 @@
         },
         created(){
             const _this = this;
+
             let lang = this.$i18n.locale;
             if(typeof lang !== 'undefined'){
 
@@ -158,16 +165,12 @@
                 }
             }).then(res=>{
                 _this.accountInfo = res.data;
-                // console.log("accountInfo",_this.accountInfo);
             }).catch(err=>{
                 _this.$message.error(err);
                 console.error(err);
             });
             _this.$global.getUserConfig(_this).then(res=>{
                 _this.userConfig = res;
-
-                console.log("accountRS",_this.accountRS);
-                console.log("userConfig",_this.userConfig);
             });
 
             let formData = new FormData();
@@ -203,7 +206,7 @@
                         SSO.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res.data,res);
                     });
                     _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
-                        _this.$store.state.unconfirmedTransactionsList = res;
+                        _this.$store.state.unconfirmedTransactionsList = res.data;
                         /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
                         }*/
@@ -367,6 +370,25 @@
     .en_menu{
         .el-menu-item {
             font-size: 12px!important;
+        }
+    }
+    .download_blocks_loading{
+        display: block;
+        width: 330px;
+        height: 110px;
+        padding: 14px 26px 14px 13px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ebeef5;
+        position: fixed;
+        background-color: #fff;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        transition: opacity .3s,transform .3s,left .3s,right .3s,top .4s,bottom .3s;
+        overflow: hidden;
+        right: 20px;
+        top: 100px;
+        p{
+            margin-bottom: 10px;
         }
     }
 </style>

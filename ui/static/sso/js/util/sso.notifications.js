@@ -144,32 +144,32 @@ var NRS = (function(NRS, $, undefined) {
 		});
 	};
 
-	NRS.initNotificationCounts = function(time) {
-		var fromTS = time - 60 * 60 * 24 * 14;
-		NRS.sendRequest("getBlockchainTransactions+", {
-			"account": NRS.account,
-			"timestamp": fromTS,
-			"firstIndex": 0,
-			"lastIndex": 99
-		}, function(response) {
-			if (response.transactions && response.transactions.length) {
-				for (var i=0; i<response.transactions.length; i++) {
-					var t = response.transactions[i];
-					var subTypeDict = NRS.transactionTypes[t.type]["subTypes"][t.subtype];
-					if (t.recipient && t.recipient == NRS.account && subTypeDict["receiverPage"]) {
-						if (!subTypeDict["lastKnownTransaction"] || subTypeDict["lastKnownTransaction"].timestamp < t.timestamp) {
-							subTypeDict["lastKnownTransaction"] = t;
-						}
-						if (t.timestamp > subTypeDict["notificationTS"]) {
-							NRS.transactionTypes[t.type]["notificationCount"] += 1;
-							subTypeDict["notificationCount"] += 1;
-						}
-					}
-				}
-			}
-			// NRS.updateNotificationUI();
-		});
-	};
+	// NRS.initNotificationCounts = function(time) {
+	// 	var fromTS = time - 60 * 60 * 24 * 14;
+	// 	NRS.sendRequest("getBlockchainTransactions+", {
+	// 		"account": NRS.account,
+	// 		"timestamp": fromTS,
+	// 		"firstIndex": 0,
+	// 		"lastIndex": 99
+	// 	}, function(response) {
+	// 		if (response.transactions && response.transactions.length) {
+	// 			for (var i=0; i<response.transactions.length; i++) {
+	// 				var t = response.transactions[i];
+	// 				var subTypeDict = NRS.transactionTypes[t.type]["subTypes"][t.subtype];
+	// 				if (t.recipient && t.recipient == NRS.account && subTypeDict["receiverPage"]) {
+	// 					if (!subTypeDict["lastKnownTransaction"] || subTypeDict["lastKnownTransaction"].timestamp < t.timestamp) {
+	// 						subTypeDict["lastKnownTransaction"] = t;
+	// 					}
+	// 					if (t.timestamp > subTypeDict["notificationTS"]) {
+	// 						NRS.transactionTypes[t.type]["notificationCount"] += 1;
+	// 						subTypeDict["notificationCount"] += 1;
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 		// NRS.updateNotificationUI();
+	// 	});
+	// };
 
 	NRS.loadNotificationsFromTimestamps = function(time, tsDictString) {
 		var tsDict = {};
@@ -189,7 +189,7 @@ var NRS = (function(NRS, $, undefined) {
 				subTypeDict["notificationCount"] = 0;
 			});
 		});
-		NRS.initNotificationCounts(time);
+		// NRS.initNotificationCounts(time);
 		NRS.saveNotificationTimestamps();
 	};
 
