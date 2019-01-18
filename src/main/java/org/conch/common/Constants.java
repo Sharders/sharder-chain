@@ -335,4 +335,6 @@ public final class Constants {
 
         return Conch.getStringProperty("sharder.network");
     }
+
+    public static final String SHARDER_HUBBINDADDRESS = "sharder.HubBindAddress";
 }
