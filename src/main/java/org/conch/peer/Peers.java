@@ -781,10 +781,20 @@ public final class Peers {
     private static final Runnable getHubPeerThread = () -> {
         try {
             String peersStr = Https.httpRequest(SC_PEERS_API,"GET", null);
-            com.alibaba.fastjson.JSONArray peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
-            Iterator iterator = peerArrayJson.iterator();
-            
+            com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
+            if(StringUtils.isEmpty(peersStr)){
+                Logger.logInfoMessage("peer list is null, wait for next round");
+                return;
+            }else {
+                if(peersStr.startsWith("[")){
+                    peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr); 
+                }else if(peersStr.startsWith("{")){
+                    peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
+                }
+            }
+
             String detail = "get peer info and update hub peer info [size=" + peerArrayJson.size() + "]==================>\n\r";
+            Iterator iterator = peerArrayJson.iterator();
             while(iterator.hasNext()){
                 com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject)iterator.next();
                 
@@ -810,7 +820,6 @@ public final class Peers {
             }
             detail += "<================== hub peer info updated";
             Logger.logInfoMessage(detail);
-
         } catch (Exception e) {
             Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
         } catch (Throwable t) {
