@@ -1337,16 +1337,19 @@ public final class Account {
     public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
         Conch.getBlockchain().readLock();
         try {
-            int height = currentHeight - numberOfConfirmations;
-            if (height + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
-                    || height > Conch.getBlockchain().getHeight()) {
-                throw new IllegalArgumentException("Height " + height + " not available for guaranteed balance calculation");
+            int fromHeight = currentHeight - numberOfConfirmations;
+            if(fromHeight < 0){
+                fromHeight = 0;
+            } 
+            if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
+                    || fromHeight > Conch.getBlockchain().getHeight()) {
+                throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
             }
             try (Connection con = Db.db.getConnection();
                  PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
                          + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height <= ?")) {
                 pstmt.setLong(1, this.id);
-                pstmt.setInt(2, height);
+                pstmt.setInt(2, fromHeight);
                 pstmt.setInt(3, currentHeight);
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (!rs.next()) {

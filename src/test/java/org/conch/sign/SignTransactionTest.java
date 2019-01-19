@@ -23,6 +23,9 @@ package org.conch.sign;
 
 import org.conch.Conch;
 import org.conch.account.Account;
+import org.conch.chain.BlockImpl;
+import org.conch.common.ConchException;
+import org.conch.consensus.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -37,6 +40,12 @@ import java.util.List;
 
 public final class SignTransactionTest {
     
+    
+    public static void blockHash(BlockImpl block) throws ConchException.NotValidException {
+        System.out.println("block id=" + block.getId() + ", blockHash: " + Arrays.toString(Crypto.sha256().digest(block.bytes())));
+        System.out.println("block bytes: " + Arrays.toString(block.bytes()));
+        System.out.println("block payload hash: " + Arrays.toString(block.getPayloadHash()));
+    }
    
     public static void signTranscations(List<Transaction> transactions){
         MessageDigest digest = Crypto.sha256();
@@ -96,9 +105,11 @@ public final class SignTransactionTest {
         }
     }
     
-    
-    public static void main(String[] args) {
-       
+    public static void main(String[] args) throws ConchException.NotValidException {
+        System.out.println("genesis1=>");
+        blockHash(SharderGenesis.genesisBlock());
+        System.out.println("genesis2=>");
+        blockHash(SharderGenesis.genesisBlock());
     }
 
 }

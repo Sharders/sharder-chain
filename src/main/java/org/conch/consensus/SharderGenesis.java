@@ -19,9 +19,9 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * 海螺链的创世节点,按照如下方式分配初始资金=> 以下为测试数据.
- * @author  xy@ichaoj.com
- * @version 16/7/1
+ * Sharder Genesis 
+ * @author  xy@sharder.org 
+ * @date 01/19/2019
  */
 public class SharderGenesis {
 

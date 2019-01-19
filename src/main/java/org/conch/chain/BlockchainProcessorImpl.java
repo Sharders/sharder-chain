@@ -1325,7 +1325,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
       BlockImpl genesisBlock = SharderGenesis.genesisBlock();
-      Logger.logMessage("SharderGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()) + ",blockHash=" + Arrays.toString(Crypto.sha256().digest(genesisBlock.bytes())));
+      Logger.logMessage("SharderGenesis block[id=" + genesisBlock.getId() + ",signature=" + Arrays.toString(genesisBlock.getBlockSignature()) + ",blockHash=" + Arrays.toString(Crypto.sha256().digest(genesisBlock.bytes())));
       addBlock(genesisBlock);
       return true;
     } catch (ConchException.ValidationException e) {
