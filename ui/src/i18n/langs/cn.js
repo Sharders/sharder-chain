@@ -125,7 +125,7 @@ const cn = {
         'observation_mode':"观察模式",
         'secret_mode':"秘钥模式",
         'forging_error_new_account':"您不能挖矿，因为您的帐户还没有公钥。请完成一次交易或则使用密钥重新登录。",
-        'forging_error_effective_balance':"您的有效余额不足，不能挖矿。需要满足:有效余额经过10个区块确认并且至少达到1000SS。",
+        'forging_error_effective_balance':"您的有效余额不足，不能挖矿！",
         'forging_error_no_admin_password':"无法确定挖矿状态，请指定管理员密码",
         'forging_error_exceeds_account_volume':"不能拥有多个账户在同一节点挖矿,请使用关联账户重新登陆",
         'no_forging':"未挖矿",

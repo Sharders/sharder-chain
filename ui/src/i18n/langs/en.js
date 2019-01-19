@@ -125,7 +125,7 @@ const en = {
         'observation_mode':"Observe",
         'secret_mode':"Private",
         'forging_error_new_account':"You are not able to mine because your account does not have a public key. Please complete a transaction or login with your mnemonic phrase.",
-        'forging_error_effective_balance':"You are not able to mine because you did not meet the minimum effective balance. You must fulfill the following conditions: Your effective balance must have at least 10 confirmations and possess at least 1,000 SS.",
+        'forging_error_effective_balance':"You are not able to mint because you did not meet the minimum effective balance.",
         'forging_error_no_admin_password':"Unable to confirm mining status, please enter the hub password.",
         'forging_error_exceeds_account_volume':"Only a single account can mine on a single node, please login again with the relevant account.",
         'no_forging':"Not Mining",

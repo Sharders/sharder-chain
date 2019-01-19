@@ -1160,9 +1160,9 @@ final public class TransactionImpl implements Transaction {
         }else if(transactionType == TransactionType.TYPE_POC){
             feeMap.put(IS_FIXED,true);
             feeMap.put(FEE,1L);
+        }else {
+            feeMap.put(IS_FIXED,false);
         }
-        
-        feeMap.put(IS_FIXED,false);
         return feeMap;
     }
 

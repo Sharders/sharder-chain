@@ -612,7 +612,7 @@ public abstract class TransactionType {
                 }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
                     if(SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId()) ){
                         if(Constants.isDevnet()) {
-                            Logger.logDebugMessage("");
+                            Logger.logDebugMessage("add balance to genesis account in devnet[account id=" + senderAccount.getId() + ",amount=" + transaction.getAmountNQT() + "]");
                             senderAccount.addToBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
                         }else {
                             senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
