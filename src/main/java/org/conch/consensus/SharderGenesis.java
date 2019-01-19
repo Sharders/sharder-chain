@@ -99,6 +99,14 @@ public class SharderGenesis {
         return CREATOR_ID == accountId ? true : false;
     }
 
+    private static long genesisBlockAmount(){
+        long total = 0;
+        for(int i = 0 ; i < GENESIS_AMOUNTS.length; i++){
+            total += GENESIS_AMOUNTS[i] * Constants.ONE_SS;
+        }
+        return total;
+    }
+    
     private SharderGenesis() {}
 
 
@@ -162,24 +170,14 @@ public class SharderGenesis {
     }
 
     /**
-     * genesis transactions: 
+     * genesis block that include genesis transacations:
      * 1. coinbase tx for the genesis account
      * 2. default poc weight table tx
-     * @return
-     */
-    public static List<TransactionImpl> genesisTransactions() throws ConchException.NotValidException {
-        List<TransactionImpl> transactions = Lists.newArrayList();
-        transactions.addAll(coinbaseTxs());
-        transactions.add(defaultPocWeightTableTx());
-        return transactions;
-    }
-
-    /**
-     * genesis block
-     * @return
+     * @return genesis block
      */
     public static BlockImpl genesisBlock() throws ConchException.NotValidException {
-        List<TransactionImpl> transactions = genesisTransactions();
+        List<TransactionImpl> transactions = coinbaseTxs();
+        transactions.add(defaultPocWeightTableTx());
 
         Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
         MessageDigest digest = Crypto.sha256();
@@ -193,8 +191,8 @@ public class SharderGenesis {
                         -1,
                         0,
                         0,
-                        Constants.MAX_BALANCE_NQT,
                         0,
+                        genesisBlockAmount(),
                         transactions.size() * 128,
                         digest.digest(),
                         SharderGenesis.CREATOR_PUBLIC_KEY,

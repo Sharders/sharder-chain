@@ -1142,12 +1142,38 @@ final public class TransactionImpl implements Transaction {
         return type.isUnconfirmedDuplicate(this, duplicates);
     }
 
+    
+    
+    private static final String IS_FIXED = "isFixed";
+    private static final String FEE = "fee";
+    /**
+     * define fixed fee txs:
+     * TransactionType.TYPE_COIN_BASE -> 0 fee
+     * TransactionType.TYPE_COIN_POC -> 1 fee
+     * @return
+     */
+    private static com.alibaba.fastjson.JSONObject isFixedFee(byte transactionType){
+        com.alibaba.fastjson.JSONObject feeMap = new com.alibaba.fastjson.JSONObject();
+        if(transactionType == TransactionType.TYPE_COIN_BASE){
+            feeMap.put(IS_FIXED,true);
+            feeMap.put(FEE,0L);
+        }else if(transactionType == TransactionType.TYPE_POC){
+            feeMap.put(IS_FIXED,true);
+            feeMap.put(FEE,1L);
+        }
+        
+        feeMap.put(IS_FIXED,false);
+        return feeMap;
+    }
+
     public long getMinimumFeeNQT(int blockchainHeight) {
         long totalFee = 0;
         byte transactionType = this.getType().getType();
-        if(transactionType == TransactionType.TYPE_COIN_BASE){
-            return 0;
+        com.alibaba.fastjson.JSONObject feeMap = isFixedFee(transactionType);
+        if(feeMap.getBooleanValue(IS_FIXED)){
+            return feeMap.getLongValue(FEE);
         }
+        
         if(transactionType != TransactionType.TYPE_DATA && Constants.configFee.get(transactionType) == 0){
             for (Appendix.AbstractAppendix appendage : appendages) {
                 appendage.loadPrunable(this);

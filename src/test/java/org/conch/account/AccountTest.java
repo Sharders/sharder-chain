@@ -26,7 +26,7 @@ public class AccountTest {
     
     static {
         try {
-            transactions = Lists.newArrayList(SharderGenesis.genesisTransactions());
+            transactions = Lists.newArrayList(SharderGenesis.genesisBlock().getTransactions());
         } catch (ConchException.NotValidException e) {
             e.printStackTrace();
         }
