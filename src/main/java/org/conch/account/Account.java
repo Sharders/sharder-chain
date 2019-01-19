@@ -1024,9 +1024,10 @@ public final class Account {
 
         Conch.getBlockchainProcessor().addListener(block -> {
             int height = block.getHeight();
-            if (height < Constants.TRANSPARENT_FORGING_BLOCK_6) {
-                return;
-            }
+            //FIXME[effective_balance]
+//            if (height < Constants.TRANSPARENT_FORGING_BLOCK_6) {
+//                return;
+//            }
             List<AccountLease> changingLeases = new ArrayList<>();
             try (DbIterator<AccountLease> leases = getLeaseChangingAccounts(height)) {
                 while (leases.hasNext()) {
@@ -1232,12 +1233,15 @@ public final class Account {
     }
 
     public long getEffectiveBalanceSS(int height) {
-        if (height >= Constants.TRANSPARENT_FORGING_BLOCK_6) {
+        
+        //FIXME[effective_balance]
+//        if (height >= Constants.TRANSPARENT_FORGING_BLOCK_6) {
             if (this.publicKey == null) {
                 this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
             }
-
-           /**FIXME[rp-conch]
+            
+            //FIXME[rp-conch]
+            /**
             if (this.publicKey == null || this.publicKey.publicKey == null || this.publicKey.height == 0 || height - this.publicKey.height <= 1440) {
                 return 0; // cfb: Accounts with the public key revealed less than 1440 blocks ago are not allowed to generate blocks
             }
@@ -1246,20 +1250,20 @@ public final class Account {
             if (this.publicKey == null || this.publicKey.publicKey == null) {
                 return 0;
             }
-        }
-
-        if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
-            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {
-                return balanceNQT / Constants.ONE_SS;
-            }
-            long receivedInLastBlock = 0;
-            for (Transaction transaction : Conch.getBlockchain().getBlockAtHeight(height).getTransactions()) {
-                if (id == transaction.getRecipientId()) {
-                    receivedInLastBlock += transaction.getAmountNQT();
-                }
-            }
-            return (balanceNQT - receivedInLastBlock) / Constants.ONE_SS;
-        }
+//        }
+          //FIXME[block_direct]
+//        if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
+//            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {
+//                return balanceNQT / Constants.ONE_SS;
+//            }
+//            long receivedInLastBlock = 0;
+//            for (Transaction transaction : Conch.getBlockchain().getBlockAtHeight(height).getTransactions()) {
+//                if (id == transaction.getRecipientId()) {
+//                    receivedInLastBlock += transaction.getAmountNQT();
+//                }
+//            }
+//            return (balanceNQT - receivedInLastBlock) / Constants.ONE_SS;
+//        }
         Conch.getBlockchain().readLock();
         try {
             long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
