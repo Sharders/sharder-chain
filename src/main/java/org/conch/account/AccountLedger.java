@@ -393,6 +393,7 @@ public class AccountLedger {
         // TYPE_PAYMENT
             ORDINARY_PAYMENT(3, true),
             COIN_BASE(58, true),
+            //TODO sub type of coinbase definitions
         // TYPE_MESSAGING
             ACCOUNT_INFO(4, true),
             ALIAS_ASSIGNMENT(5, true),
@@ -453,7 +454,7 @@ public class AccountLedger {
             SHUFFLING_PROCESSING(52, true),
             SHUFFLING_CANCELLATION(53, true),
             SHUFFLING_DISTRIBUTION(54, true),
-        // TYPE_FORGE_POOL
+        // TYPE_SHARDER_POOL
             FORGE_POOL_CREATE(61, true),
             FORGE_POOL_DESTROY(62, true),
             FORGE_POOL_JOIN(63, true),

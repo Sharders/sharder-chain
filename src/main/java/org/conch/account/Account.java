@@ -1856,7 +1856,7 @@ public final class Account {
         }
     }
 
-    public void addToMiningBalanceNQT(long amountNQT) {
+    public void addToMintedBalanceNQT(long amountNQT) {
         if (amountNQT == 0) {
             return;
         }

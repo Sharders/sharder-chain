@@ -6,6 +6,7 @@ import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
@@ -209,46 +210,46 @@ public class SharderPoolProcessor implements Serializable {
                 .addListener(
                         block -> {
                             int height = block.getHeight();
-                            for (SharderPoolProcessor forgePool : sharderPools.values()) {
-                                forgePool.updateHeight = height;
-                                if (forgePool.consignors.size() == 0
-                                        && height - forgePool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
-                                    forgePool.destroySharderPool(height);
+                            for (SharderPoolProcessor sharderPool : sharderPools.values()) {
+                                sharderPool.updateHeight = height;
+                                if (sharderPool.consignors.size() == 0
+                                        && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
+                                    sharderPool.destroySharderPool(height);
                                     continue;
                                 }
-                                if (forgePool.endBlockNo == height) {
-                                    forgePool.destroySharderPool(height);
+                                if (sharderPool.endBlockNo == height) {
+                                    sharderPool.destroySharderPool(height);
                                     continue;
                                 }
-                                if (forgePool.startBlockNo == height) {
-                                    forgePool.state = State.WORKING;
+                                if (sharderPool.startBlockNo == height) {
+                                    sharderPool.state = State.WORKING;
                                     // TODO add to generator list
                                     continue;
                                 }
                                 // TODO auto destroy pool because the number or amount of pool is too small
-                                if (forgePool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height
-                                        && forgePool.consignors.size() == 0) {
-                                    forgePool.destroySharderPool(height);
+                                if (sharderPool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height
+                                        && sharderPool.consignors.size() == 0) {
+                                    sharderPool.destroySharderPool(height);
                                     continue;
                                 }
                                 // transaction is time out
-                                for (Consignor consignor : forgePool.consignors.values()) {
+                                for (Consignor consignor : sharderPool.consignors.values()) {
                                     long amount = consignor.validateHeight(height);
                                     if (amount != 0) {
-                                        forgePool.power -= amount;
+                                        sharderPool.power -= amount;
                                         Account.getAccount(consignor.getId())
                                                 .frozenBalanceAndUnconfirmedBalanceNQT(
                                                         AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
                                     }
                                 }
 
-                                if (forgePool.startBlockNo < height) {
-                                    forgePool.totalBlocks++;
+                                if (sharderPool.startBlockNo < height) {
+                                    sharderPool.totalBlocks++;
                                 }
-                                if (forgePool.totalBlocks == 0) {
-                                    forgePool.chance = 0;
+                                if (sharderPool.totalBlocks == 0) {
+                                    sharderPool.chance = 0;
                                 } else {
-                                    forgePool.chance = forgePool.historicalBlocks / forgePool.totalBlocks;
+                                    sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
                                 }
                             }
                             
@@ -263,11 +264,14 @@ public class SharderPoolProcessor implements Serializable {
                             
                             //unfreeze the reward
                             if (height > Constants.SHARDER_REWARD_DELAY) {
-                                Block past =
-                                        Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+                                Block past = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
                                 for (Transaction transaction : past.getTransactions()) {
-                                    if (transaction.getType() == TransactionType.CoinBase.ORDINARY) {
-                                        TransactionType.CoinBase.unFreezeForgeBalance(transaction);
+                                    Attachment attachment = transaction.getAttachment();
+                                    if(attachment instanceof Attachment.CoinBase){
+                                        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+                                        if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinbaseBody.getCoinBaseType()){
+                                            TransactionType.CoinBase.unFreezeMintBalance(transaction);
+                                        }
                                     }
                                 }
                             }

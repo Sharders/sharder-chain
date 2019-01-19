@@ -529,19 +529,19 @@ public abstract class TransactionType {
          * unfreeze mining balance use by pool, the caller of this method should be SharderPoolProcessor
          * @param transaction
          */
-        public static void unFreezeForgeBalance(Transaction transaction) {
+        public static void unFreezeMintBalance(Transaction transaction) {
             Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             Map<Long,Long> consignors = coinBase.getConsignors();
             if(consignors.size() == 0){
                 senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
-                senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
+                senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
             }else {
                 Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for(long id : rewardList.keySet()){
                     Account account = Account.getAccount(id);
                     account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
-                    account.addToForgedBalanceNQT(rewardList.get(id));
+                    account.addToMintedBalanceNQT(rewardList.get(id));
                 }
             }
         }
@@ -612,6 +612,7 @@ public abstract class TransactionType {
                 }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
                     if(SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId()) ){
                         if(Constants.isDevnet()) {
+                            Logger.logDebugMessage("");
                             senderAccount.addToBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
                         }else {
                             senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
@@ -3682,22 +3683,22 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //TODO unconfirmed transaction already has this kind of transaction
+                //FIXME[pool] unconfirmed transaction already has this kind of transaction
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = quit.getPoolId();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
-                if(forgePool == null){
-                    throw new ConchException.NotValidException("Sharder pool " + poolId + " doesn't exists");
+                SharderPoolProcessor sharderPool = SharderPoolProcessor.getSharderPool(poolId);
+                if(sharderPool == null){
+                    throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
                 }
-                if(!forgePool.hasSenderAndTransaction(transaction.getSenderId(),quit.getTxId())){
-                    throw new ConchException.NotValidException("The sharder pool doesn't have the transaction of sender,txId:"
+                if(!sharderPool.hasSenderAndTransaction(transaction.getSenderId(),quit.getTxId())){
+                    throw new ConchException.NotValidException("the sharder pool doesn't have the transaction of sender,txId:"
                             + quit.getTxId() + "poolId:" + poolId);
                 }
-                if (curHeight + Constants.SHARDER_POOL_DELAY > forgePool.getEndBlockNo()) {
-                    throw new ConchException.NotValidException("Forge pool will be destroyed at " + forgePool.getEndBlockNo() + " before transaction apply at " + curHeight);
+                if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
+                    throw new ConchException.NotValidException("sharder pool will be destroyed at " + sharderPool.getEndBlockNo() + " before transaction apply at " + curHeight);
                 }
-                if (!PoolRule.validateConsignor(SharderPoolProcessor.getSharderPool(poolId).getCreatorId(), quit, forgePool.getRule())) {
+                if (!PoolRule.validateConsignor(SharderPoolProcessor.getSharderPool(poolId).getCreatorId(), quit, sharderPool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
             }
@@ -3706,8 +3707,8 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = sharderPoolQuit.getPoolId();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
-                long amountNQT = forgePool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                SharderPoolProcessor sharderPool = SharderPoolProcessor.getSharderPool(poolId);
+                long amountNQT = sharderPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
                 if(amountNQT != -1){
                     senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
                 }
