@@ -1,5 +1,5 @@
 {
-    "name": "Sharder Client",
+    "name": "SharderClient",
     "version": "1.0.0",
     "description": "Sharder Client",
     "main": "src/index.js",
