@@ -206,7 +206,6 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
     public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
     public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    public static final int CONCH_BV_BLOCK = isTestnetOrDevnet() ? 43000 : 43000;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 

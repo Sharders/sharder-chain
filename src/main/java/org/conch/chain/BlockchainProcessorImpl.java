@@ -1927,11 +1927,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private int getBlockVersion(int previousBlockHeight) {
-    return previousBlockHeight < Constants.TRANSPARENT_FORGING_BLOCK
-        ? 1
-        : previousBlockHeight < Constants.NQT_BLOCK
-            ? 2
-            : previousBlockHeight < Constants.CONCH_BV_BLOCK ? 3 : 7;
+    return (previousBlockHeight < Constants.TRANSPARENT_FORGING_BLOCK) ? 1 : (previousBlockHeight < Constants.NQT_BLOCK) ? 2 : 3;
   }
 
   private int getTransactionVersion(int previousBlockHeight) {
