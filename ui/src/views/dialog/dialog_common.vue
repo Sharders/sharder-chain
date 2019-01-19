@@ -60,6 +60,10 @@
                                         <img src="../../assets/img/coinBase.svg"/>
                                         <span>CoinBase</span>
                                     </td>
+                                    <td v-else-if="transactions.type === 12">
+                                        <img src="../../assets/img/POC.svg"/>
+                                        <span>POC交易</span>
+                                    </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
                                     <td>{{transactions.feeNQT/100000000}}</td>
                                     <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)"><span>{{transactions.senderRS}}</span></td>
@@ -120,6 +124,9 @@
                             </td>
                             <td v-else-if="transactionInfo.type === 9">
                                 <span>CoinBase</span>
+                            </td>
+                            <td v-else-if="transactionInfo.type === 12">
+                                <span>POC交易</span>
                             </td>
                         </tr>
                         <tr>
@@ -207,7 +214,7 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
-                    <span >{{$t('dialog.block_info_title1')}}{{blockInfo.block}}{{$t('dialog.block_info_title2')}}</span>
+                    <span >{{$t('dialog.block_info_title1')}}{{blockInfo.block}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -254,6 +261,10 @@
                             <td v-else-if="transaction.type === 9">
                                 <img src="../../assets/img/coinBase.svg"/>
                                 <span>CoinBase</span>
+                            </td>
+                            <td v-else-if="transaction.type === 12">
+                                <img src="../../assets/img/POC.svg"/>
+                                <span>POC交易</span>
                             </td>
                             <td>{{transaction.amountNQT/100000000}}</td>
                             <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
@@ -308,6 +319,10 @@
                         <tr>
                             <th>{{$t('dialog.block_info_cumulative_difficulty')}}</th>
                             <td>{{blockInfo.cumulativeDifficulty}}</td>
+                        </tr>
+                        <tr>
+                            <th>区块编号</th>
+                            <td>{{blockInfo.block}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_block_height')}}</th>

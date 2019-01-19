@@ -63,9 +63,41 @@
                                     <td><span class="patch">{{peer.application}}&nbsp;{{peer.version}}</span></td>
                                     <td>{{peer.platform}}</td>
                                     <td class="linker tl pl30 ">
-                                        <el-tooltip class="item" placement="top" effect="light" v-for="service in peer.services" :content="service | getPeerServicesTooltip">
-                                            <a>{{service | getPeerServicesLabel}}</a>
-                                        </el-tooltip>
+                                        <div v-for="service in peer.services">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'HALLMARK'" content="标记节点">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PRUNABLE'" content="存储过期的可修改消息">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API'" content="API服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API_SSL'" content="API SSL服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'CORS'" content="启用CORS的API">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'BAPI'" content="商业API服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'STORAGE'" content="离线数据存储">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'MINER'" content="代理挖掘">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'NATER'" content="Nat服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PROVER'" content="证明服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+
+                                        </div>
+
+
                                     </td>
                                     <td>
                                         <button class="list_button w40" @click="openConnectPeer(peer.address)">{{$t('peers.link')}}</button>
@@ -550,10 +582,11 @@
             },
             addBlacklist:function(address){
                 const _this = this;
-                this.$http.post('sharder?requestType=blacklistPeer',{
-                        peer:address,
-                        adminPassword:_this.adminPassword
-                }).then(function (res) {
+                let formData = new FormData();
+                formData.append("peer",address);
+                formData.append("adminPassword",_this.adminPassword);
+
+                this.$http.post('sharder?requestType=blacklistPeer',formData).then(function (res) {
                     if(res.data){
                         _this.$message({
                             showClose: true,
@@ -574,10 +607,10 @@
             },
             addConnectPeer:function(address){
                 const _this = this;
-                this.$http.post('sharder?requestType=addPeer',{
-                        peer:address,
-                        adminPassword:_this.adminPassword
-                }).then(function (res) {
+                let formData = new FormData();
+                formData.append("peer",address);
+                formData.append("adminPassword",_this.adminPassword);
+                this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
                     if(res.data){
                         _this.$message({
                             showClose: true,
@@ -628,17 +661,6 @@
             getPeerServicesLabel:function (service) {
                 return service.substring(0, 1) + service.substring(service.length - 1);
             },
-            getPeerServicesTooltip:function (service) {
-                let s = service.substring(0, 1) + service.substring(service.length - 1);
-                if(s === 'AI')
-                    return this.$t('peers.API_service');
-                else if(s === 'CS')
-                    return this.$t('peers.core_service');
-                else if(s === 'BI')
-                    return this.$t('peers.business_API');
-                else if(s === 'SE')
-                    return this.$t('peers.Storage_service');
-            }
         },
         mounted () {
             this.drawPeers();

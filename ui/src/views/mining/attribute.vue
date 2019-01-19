@@ -263,7 +263,7 @@
                 formData.append("amount",_this.joinPool*100000000);
 
                 this.$http.post('/sharder?requestType=joinPool',formData).then(res=>{
-                    if(typeof res.data.errorDescription !== undefined){
+                    if(typeof res.data.errorDescription !== "undefined"){
                         console.log(res.data);
                         _this.$message.success("加入成功");
                         this.$store.state.mask = false;

@@ -3,34 +3,28 @@ const SERVER_API = "http://localhost:9215";
 // const SERVER_API_DEV = "47.107.188.3:8215";
 // const SERVER_API_DEV = "http://localhost:8215";
 // const SERVER_API_TEST = "http://localhost:8215";
-let SERVER_API_DEV = "http://localhost:9215";
+const SERVER_API_DEV = "http://localhost:9215";
 
 function getUrl() {
-    if (process.env.NODE_ENV === 'development') {
+    console.log("window.location.port",window.location.port);
+    if(window.location.port === '4000'){
         return SERVER_API_DEV;
-        // return '';
-    } else {
-        return SERVER_API;
+    }else{
+        return "";
     }
+    // if (process.env.NODE_ENV === 'development' ) {
+    //     return SERVER_API_DEV;
+    //     // return '';
+    // } else {
+    //     return "";
+    // }
 }
-/*
-function setUrl(url) {
-    if(url !== "" || typeof url !== 'undefined'){
-        SERVER_API_DEV = url;
-    }
-}*/
-/*
-
-function setUrl(url){
-    if(url !== null || url !== "")
-        SERVER_API_DEV = url;
-}
-*/
 
 const api = {
     apiUrl: getUrl(),
     sharderUrl: getUrl() + "/sharder",
 };
-// window.api = api;
+window.api = api;
+console.log("api.apiUrl",api.apiUrl);
+
 export default getUrl();
-// export default setUrl();

@@ -124,10 +124,16 @@
                             </thead>
                             <tbody>
                             <tr v-for="(block,index) in blocklist">
-                                <td><span>{{block.height}}</span></td>
+                                <td class=""><span>{{block.height}}</span></td>
                                 <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
-                                <td><span>{{block.totalAmountNQT/100000000}} SS</span></td>
-                                <td><span>{{block.totalFeeNQT/100000000}} SS</span></td>
+                                <td>
+                                    <span v-if="block.totalAmountNQT === '0'">-</span>
+                                    <span v-else>{{block.totalAmountNQT/100000000}} SS</span>
+                                </td>
+                                <td>
+                                    <span v-if="block.totalFeeNQT === '0'">-</span>
+                                    <span v-else>{{block.totalFeeNQT/100000000}} SS</span>
+                                </td>
                                 <td><span>{{block.numberOfTransactions}}</span></td>
                                 <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}
                                 </td>
@@ -568,7 +574,30 @@
             }
         },
         mounted() {
+            let _this = this;
             this.drawPeers();
+            setInterval(()=>{
+                this.$http.get('/sharder?requestType=getBlocks', {
+                    params: {
+                        firstIndex: (_this.currentPage - 1) * 10,
+                        lastIndex: _this.currentPage * 10 - 1
+                    }
+                }).then(function (res) {
+                    if (!res.data.errorDescription) {
+                        _this.blocklist = res.data.blocks;
+
+                        _this.newestHeight = res.data.blocks[0].height;
+                        _this.coinbaseCount = _this.newestHeight;
+                        _this.totalSize = res.data.blocks[0].height;
+                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                    } else {
+                        _this.$message.error(res.data.errorDescription);
+                    }
+
+                }).catch(function (err) {
+                    _this.$message.error(err);
+                });
+            },5000);
         },
     };
 </script>
