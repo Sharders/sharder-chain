@@ -101,6 +101,11 @@ var Sso = (function (NRS, $, undefined) {
     NRS.lastProxyBlockHeight = 0;
     // NRS.spinner = null;
 
+    NRS.isProgressTotalShow = false;
+    NRS.isProgressLastShow = false;
+    NRS.isBlockOutLeft = false;
+    NRS.isDownloadingState = "";
+
     var stateInterval;
     var stateIntervalSeconds = 30;
     var isScanning = false;
@@ -1769,58 +1774,66 @@ var Sso = (function (NRS, $, undefined) {
 
     NRS.updateBlockchainDownloadProgress = function () {
         debug("Check block chain download progess....");
-        NRS.lastNumBlocks = 5000;
+        var lastNumBlocks = 5000;
 
         // var downloadingBlockchain = $("#downloading_blockchain");
         // downloadingBlockchain.find(".last_num_blocks").html($.t("sso.last_num_blocks", {"blocks": lastNumBlocks}));
 
         debug("NRS.state.isLightClient=" + NRS.state.isLightClient + ",NRS.serverConnect=" + NRS.serverConnect + ",NRS.peerConnect=" + NRS.peerConnect);
 
-        // if (NRS.state.isLightClient) {
+        if (NRS.state.isLightClient) {
             // downloadingBlockchain.find(".db_active").hide();
             // downloadingBlockchain.find(".db_halted").hide();
             // downloadingBlockchain.find(".db_light").show();
-
-        // } else if (!NRS.serverConnect || !NRS.peerConnect) {
+            NRS.isDownloadingState = "isLightClient";
+        } else if (!NRS.serverConnect || !NRS.peerConnect) {
             // downloadingBlockchain.find(".db_active").hide();
             // downloadingBlockchain.find(".db_halted").show();
             // downloadingBlockchain.find(".db_light").hide();
-        // } else {
+            NRS.isDownloadingState = "isHalted";
+        } else {
+            NRS.isDownloadingState = "isActive";
             // downloadingBlockchain.find(".db_halted").hide();
             // downloadingBlockchain.find(".db_active").show();
             // downloadingBlockchain.find(".db_light").hide();
-        if(!NRS.state.isLightClient && NRS.serverConnect && NRS.peerConnect){
-            var percentageTotal = 0;    //进度百分比
-            var blocksLeft;             //剩余区块数量
-            var percentageLast = 0;     //
+        // if(!NRS.state.isLightClient && NRS.serverConnect && NRS.peerConnect){
+            NRS.percentageTotal = 0;    //进度百分比
+            NRS.blocksLeft = null;             //剩余区块数量
+            NRS.percentageLast = 0;     //
             if (NRS.state.lastBlockchainFeederHeight && NRS.state.numberOfBlocks <= NRS.state.lastBlockchainFeederHeight) {
-                percentageTotal = parseInt(Math.round((NRS.state.numberOfBlocks / NRS.state.lastBlockchainFeederHeight) * 100), 10);
-                blocksLeft = NRS.state.lastBlockchainFeederHeight - NRS.state.numberOfBlocks;
-                if (blocksLeft <= NRS.lastNumBlocks && NRS.state.lastBlockchainFeederHeight > NRS.lastNumBlocks) {
-                    percentageLast = parseInt(Math.round(((NRS.lastNumBlocks - blocksLeft) / NRS.lastNumBlocks) * 100), 10);
+                NRS.percentageTotal = parseInt(Math.round((NRS.state.numberOfBlocks / NRS.state.lastBlockchainFeederHeight) * 100), 10);
+                NRS.blocksLeft = NRS.state.lastBlockchainFeederHeight - NRS.state.numberOfBlocks;
+                if (NRS.blocksLeft <= lastNumBlocks && NRS.state.lastBlockchainFeederHeight > lastNumBlocks) {
+                    NRS.percentageLast = parseInt(Math.round(((lastNumBlocks - NRS.blocksLeft) / lastNumBlocks) * 100), 10);
                 }
             }
-            if (!blocksLeft || blocksLeft < parseInt(NRS.lastNumBlocks / 2)) {
-                downloadingBlockchain.find(".db_progress_total").hide();
+            if (!NRS.blocksLeft || NRS.blocksLeft < parseInt(lastNumBlocks / 2)) {
+                // downloadingBlockchain.find(".db_progress_total").hide();
+                NRS.isProgressTotalShow = false;
+
             } else {
-                downloadingBlockchain.find(".db_progress_total").show();
-                downloadingBlockchain.find(".db_progress_total .progress-bar").css("width", percentageTotal + "%");
-                downloadingBlockchain.find(".db_progress_total .sr-only").html($.t("sso.percent_complete", {
-                    "percent": percentageTotal
-                }));
+                NRS.isProgressTotalShow = true;
+                // downloadingBlockchain.find(".db_progress_total").show();
+                // downloadingBlockchain.find(".db_progress_total .progress-bar").css("width", NRS.percentageTotal + "%");
+                // downloadingBlockchain.find(".db_progress_total .sr-only").html($.t("sso.percent_complete", {
+                //     "percent": NRS.percentageTotal
+                // }));
             }
-            if (!blocksLeft || blocksLeft >= (NRS.lastNumBlocks * 2) || NRS.state.lastBlockchainFeederHeight <= NRS.lastNumBlocks) {
-                downloadingBlockchain.find(".db_progress_last").hide();
+            if (!NRS.blocksLeft || NRS.blocksLeft >= (lastNumBlocks * 2) || NRS.state.lastBlockchainFeederHeight <= lastNumBlocks) {
+                // downloadingBlockchain.find(".db_progress_last").hide();
+                NRS.isProgressLastShow = false;
             } else {
-                downloadingBlockchain.find(".db_progress_last").show();
-                downloadingBlockchain.find(".db_progress_last .progress-bar").css("width", percentageLast + "%");
-                downloadingBlockchain.find(".db_progress_last .sr-only").html($.t("sso.percent_complete", {
-                    "percent": percentageLast
-                }));
+                NRS.isProgressLastShow = true;
+                // downloadingBlockchain.find(".db_progress_last").show();
+                // downloadingBlockchain.find(".db_progress_last .progress-bar").css("width", NRS.percentageLast + "%");
+                // downloadingBlockchain.find(".db_progress_last .sr-only").html($.t("sso.percent_complete", {
+                //     "percent": NRS.percentageLast
+                // }));
             }
-            if (blocksLeft) {
-                downloadingBlockchain.find(".blocks_left_outer").show();
-                downloadingBlockchain.find(".blocks_left").html($.t("sso.blocks_left", {"numBlocks": blocksLeft}));
+            if (NRS.blocksLeft) {
+                NRS.isBlockOutLeft = true;
+                // downloadingBlockchain.find(".blocks_left_outer").show();
+                // downloadingBlockchain.find(".blocks_left").html($.t("sso.blocks_left", {"numBlocks": NRS.blocksLeft}));
             }
         }
     };

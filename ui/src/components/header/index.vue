@@ -93,12 +93,27 @@
                 </div>
             </div>
         </div>
-        <!--
-        <div class="download_blocks_loading">
-            <p>正在下载区块链（100个剩余区块）</p>
-            <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="70"></el-progress>
+        <div class="download_blocks_loading" v-if="isDownLoadingBlockchain">
+            <div class="download_blocks_loading_active" v-show="isDownloadingState === 'isActive'">
+                <div>
+                    <span>正在下载区块链</span>
+                    <span v-if="blocksLeft">（{{blocksLeft}}个剩余区块）</span>
+                </div>
+                <div class="download_blocks_progress_total" v-if="blocksLeft && blocksLeft >= 2500">
+                    <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="percentageTotal"></el-progress>
+                </div>
+                <div class="download_blocks_progress_last" v-if="blocksLeft && blocksLeft < 10000 && lastBlockchainFeederHeight > 5000">
+                    <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="percentageLast"></el-progress>
+                </div>
+            </div>
+            <div  v-show="isDownloadingState === 'isLightClient'">
+                <p>Light Client</p>
+                <p>区块还未完整下载</p>
+            </div>
+            <div  v-show="isDownloadingState === 'isHalted'">
+                <span>区块链下载中断，没有连接</span>
+            </div>
         </div>
-        -->
     </header>
 
 </template>
@@ -135,7 +150,16 @@
                     value:'en',
                     label:'English'
                 }],
-                i:0,
+
+                isDownLoadingBlockchain:SSO.downloadingBlockchain,
+                isDownloadingState:SSO.isDownloadingState,
+                isProgressTotalShow:SSO.isProgressTotalShow,
+                isProgressLastShow:SSO.isProgressLastShow,
+                isBlockOutLeft:SSO.isBlockOutLeft,
+                lastBlockchainFeederHeight:SSO.state.lastBlockchainFeederHeight,
+                percentageTotal:SSO.percentageTotal,
+                blocksLeft:SSO.blocksLeft,
+                percentageLast:SSO.percentageLast,
             };
         },
         created(){
@@ -187,14 +211,28 @@
                 _this.$message.error(err);
                 console.error(err);
             });
+
+
         },
         mounted(){
             let _this = this;
             setInterval(()=>{
                 _this.getData();
             },30000);
+            setInterval(()=>{
+                _this.isDownLoadingBlockchain = SSO.downloadingBlockchain;
+                _this.isDownloadingState = SSO.isDownloadingState,
+                    _this.isProgressTotalShow = SSO.isProgressTotalShow;
+                _this.isProgressLastShow = SSO.isProgressLastShow;
+                _this.isBlockOutLeft = SSO.isBlockOutLeft;
+                _this.lastBlockchainFeederHeight = SSO.state.lastBlockchainFeederHeight;
+                _this.percentageTotal = SSO.percentageTotal;
+                _this.blocksLeft = SSO.blocksLeft;
+                _this.percentageLast = SSO.percentageLast;
+            },1000);
         },
         methods: {
+
             getData:function(){
                 const _this = this;
                 // if(_this.i%30 === 0){
@@ -207,6 +245,7 @@
                     });
                     _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
                         _this.$store.state.unconfirmedTransactionsList = res.data;
+                        console.log("unconfirmedTransactionsList",res.data);
                         /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
                         }*/
@@ -346,8 +385,7 @@
                         _this.$store.commit('updateLang',language);
                         _this.selectLanValue = language;
                     }
-                }
-            }
+                }}
         },
     };
 </script>
@@ -387,6 +425,7 @@
         overflow: hidden;
         right: 20px;
         top: 100px;
+        z-index: 2;
         p{
             margin-bottom: 10px;
         }

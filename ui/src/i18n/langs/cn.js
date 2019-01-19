@@ -48,7 +48,7 @@ const cn = {
     account:{
         'account_title':"账户总览",
         'account_info':"账户详情",
-        'assets':"资产：",
+        'assets':"资产 ",
         'transfer':"转账",
         'send_message':"发送消息",
         'hub_setting':"HUB设置",
@@ -73,6 +73,7 @@ const cn = {
         'transaction_type_storage_service':"存储服务",
         'transaction_type_forge_pool':"矿池交易",
         'transaction_type_block_reward':"出块奖励",
+        'transaction_type_poc':"POC交易",
         'self':"您",
         'view_details':"查看详情",
     },
@@ -143,7 +144,7 @@ const cn = {
     network:{
         'network_title':"网络总览",
         'block_height':"区块高度",
-        'block_newest_time':"生成时间：",
+        'block_newest_time':"生成时间 ",
         'block_avg_transaction_volume':"区块平均交易数",
         'block_peers_volume':"节点数量",
         'miner_info':"矿工信息",
@@ -725,6 +726,7 @@ const cn = {
         'account_info_block_reward':"出块奖励",
         'account_info_data_storage':"数据存储",
         'account_info_forge_pool':"矿池交易",
+        'account_info_poc':"POC交易",
         'account_info_view_detail':"查看详情",
 
         'account_transaction_detail':"交易详情",
@@ -745,7 +747,7 @@ const cn = {
         'account_transaction_version':"版本：",
         'account_transaction_block_height':"区块高度",
 
-        'block_info_title1':"区块：",
+        'block_info_title1':"区块 ",
         'block_info_title2':" 信息",
         'block_info_all_transaction':"所有交易",
         'block_info_all_block_detail':"区块详情",

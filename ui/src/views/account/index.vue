@@ -132,12 +132,14 @@
                                     <td v-if="transaction.type === 6">{{$t('transaction.transaction_type_storage_service')}}</td>
                                     <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
                                     <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}</td>
+                                    <td v-if="transaction.type === 12">{{$t('transaction.transaction_type_poc')}}</td>
 
-                                    <td v-if="transaction.amountNQT === '0'">0 SS</td>
+                                    <td v-if="transaction.amountNQT === '0'">-</td>
                                     <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
                                     <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
 
-                                    <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
+                                    <td v-if="transaction.feeNQT === '0'">-</td>
+                                    <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                     <td class=" image_text w300">
                                         <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
@@ -571,6 +573,9 @@
                 },{
                     value:9,
                     label:this.$t('transaction.transaction_type_block_reward')
+                },{
+                    value:12,
+                    label:this.$t('transaction.transaction_type_poc')
                 }],
                 trading:'',
                 accountTransactionList:[],
@@ -605,6 +610,7 @@
             });
 
             _this.getAccountTransactionList();
+
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res.data;
             });
@@ -627,6 +633,7 @@
             }).catch(err=>{
                 console.log(err);
             });
+
         },
         methods: {
             drawBarchart: function (barchat) {
@@ -1154,7 +1161,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1264,14 +1271,13 @@
                         }
                     };
                     _this.$http.post('/sharder?requestType=sendMoney',formData, config).then(res=>{
-
                         if(typeof res.data.errorDescription === 'undefined'){
                             if(res.data.broadcasted){
                                 _this.$message.success(_this.$t('notification.transfer_success'));
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1307,7 +1313,6 @@
                     params.append("type",_this.selectType);
                 }
 
-
                 this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res) {
                     _this.accountTransactionList =res.data.transactions;
                     // console.log("_this.accountTransactionList",_this.accountTransactionList);
@@ -1318,6 +1323,7 @@
                     console.log(err);
                 });
             },
+
             openSendMessageDialog: function () {
                 if(SSO.downloadingBlockchain){
                     this.$message.warning("当前正在同步区块链，请稍后再试");
@@ -1538,7 +1544,7 @@
                 }
             },
             getDrawData(lists){
-                const _this = this;
+                let _this = this;
                 let j=0;
                 let k=0;
                 let barchat = {
@@ -1549,9 +1555,9 @@
                     xAxis:[],
                     series:[]
                 };
-                lists.forEach(function(value,index,array){
+                lists.every(function(value,index,array){
                     if(j>=5||k>=7){
-                        return;
+                        return false;
                     }
                     if(value.type === 9 || value.type === 0){
                         if(value.type === 0 && j<5){
@@ -1585,44 +1591,42 @@
             },
             getTotalList:function () {
                 const _this = this;
-                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions){
-                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
-                    _this.totalSize = _this.accountTransactionList.length;
+                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
-                    console.log("_this.unconfirmedTransactionsList",_this.unconfirmedTransactionsList);
-                    console.log("_this.accountTransactionList",_this.accountTransactionList);
+                _this.totalSize = _this.accountTransactionList.length;
 
-                    let list = [];
-                    for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
-                        if(_this.selectType === ''){
+                // console.log("_this.unconfirmedTransactionsList",_this.unconfirmedTransactionsList);
+                // console.log("_this.accountTransactionList",_this.accountTransactionList);
+
+                let list = [];
+                for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
+                    if(_this.selectType === ''){
+                        list.push(_this.unconfirmedTransactionsList[i]);
+                        _this.totalSize++;
+                    }else{
+                        if(_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0){
                             list.push(_this.unconfirmedTransactionsList[i]);
                             _this.totalSize++;
-                        }else{
-                            if(_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0){
-                                list.push(_this.unconfirmedTransactionsList[i]);
-                                _this.totalSize++;
-                            }else if(_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type){
-                                list.push(_this.unconfirmedTransactionsList[i]);
-                                _this.totalSize++;
-                            }else if(_this.selectType === 1.5 &&
-                                _this.unconfirmedTransactionsList[i].type === 1 &&
-                                _this.unconfirmedTransactionsList[i].subtype === 5){
-                                list.push(_this.unconfirmedTransactionsList[i]);
-                                _this.totalSize++;
-                            }
+                        }else if(_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type){
+                            list.push(_this.unconfirmedTransactionsList[i]);
+                            _this.totalSize++;
+                        }else if(_this.selectType === 1.5 &&
+                            _this.unconfirmedTransactionsList[i].type === 1 &&
+                            _this.unconfirmedTransactionsList[i].subtype === 5){
+                            list.push(_this.unconfirmedTransactionsList[i]);
+                            _this.totalSize++;
                         }
                     }
+                }
 
-                    for(let i = 0;i<_this.accountTransactionList.length;i++){
-                        list.push(_this.accountTransactionList[i]);
-                    }
-                    console.log("accountTransactionList",list);
-                    _this.accountTransactionList = list;
+                for(let i = 0;i<_this.accountTransactionList.length;i++){
+                    list.push(_this.accountTransactionList[i]);
+                }
+                _this.accountTransactionList = list;
 
-                    if(_this.selectType === '') {
-                        _this.getDrawData(_this.accountTransactionList);
-                    }
+                if(_this.selectType === '') {
+                    _this.getDrawData(_this.accountTransactionList);
                 }
             }
         },
@@ -1712,6 +1716,9 @@
                     },{
                         value:9,
                         label:this.$t('transaction.transaction_type_block_reward')
+                    },{
+                        value:12,
+                        label:this.$t('transaction.transaction_type_poc')
                     }]
                 },
                 deep:true
@@ -1719,6 +1726,10 @@
         },
         mounted() {
             const _this = this;
+
+            setInterval(()=>{
+                _this.getAccountTransactionList();
+            },2000);
 
             $('#receiver').on("blur",function() {
                 let receiver = _this.messageForm.receiver;

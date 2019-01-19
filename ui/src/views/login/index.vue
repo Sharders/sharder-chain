@@ -82,6 +82,7 @@
                     _this.$store.state.isHubInit = false;
                 }
             });
+
             SSO.init();
             this.$global.setBlockchainState(this).then(res=>{
                 if(typeof res.errorDescription !== 'undefined'){

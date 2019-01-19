@@ -742,7 +742,7 @@ const en = {
         'account_transaction_version':"Version：",
         'account_transaction_block_height':"Block Height",
 
-        'block_info_title1':"Block：",
+        'block_info_title1':"Block ",
         'block_info_title2':" information",
         'block_info_all_transaction':"All Transactions",
         'block_info_all_block_detail':"Block Details",
