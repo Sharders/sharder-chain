@@ -3,13 +3,19 @@ package org.conch.consensus;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.conch.account.Account;
+import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.crypto.Crypto;
 import org.conch.tx.Attachment;
+import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 
+import java.security.MessageDigest;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -95,18 +101,7 @@ public class SharderGenesis {
 
     private SharderGenesis() {}
 
-    /**
-     * genesis transactions: 
-     * 1. coinbase tx for the genesis account
-     * 2. default poc weight table tx
-     * @return
-     */
-    public static List<TransactionImpl> genesisTransactions() throws ConchException.NotValidException {
-        List<TransactionImpl> transactions = Lists.newArrayList();
-        transactions.addAll(coinbaseTxs());
-        transactions.add(defaultPocWeightTableTx());
-        return transactions;
-    }
+
     
     /**
      * original coinbase, initial supply of ss
@@ -164,6 +159,52 @@ public class SharderGenesis {
                 .ecBlockHeight(0)
                 .ecBlockId(0)
                 .build();
+    }
+
+    /**
+     * genesis transactions: 
+     * 1. coinbase tx for the genesis account
+     * 2. default poc weight table tx
+     * @return
+     */
+    public static List<TransactionImpl> genesisTransactions() throws ConchException.NotValidException {
+        List<TransactionImpl> transactions = Lists.newArrayList();
+        transactions.addAll(coinbaseTxs());
+        transactions.add(defaultPocWeightTableTx());
+        return transactions;
+    }
+
+    /**
+     * genesis block
+     * @return
+     */
+    public static BlockImpl genesisBlock() throws ConchException.NotValidException {
+        List<TransactionImpl> transactions = genesisTransactions();
+
+        Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
+        MessageDigest digest = Crypto.sha256();
+        for (TransactionImpl transaction : transactions) {
+            digest.update(transaction.bytes());
+        }
+
+        BlockImpl genesisBlock =
+                new BlockImpl(
+                        SharderGenesis.GENESIS_BLOCK_ID,
+                        -1,
+                        0,
+                        0,
+                        Constants.MAX_BALANCE_NQT,
+                        0,
+                        transactions.size() * 128,
+                        digest.digest(),
+                        SharderGenesis.CREATOR_PUBLIC_KEY,
+                        new byte[64],
+                        SharderGenesis.GENESIS_BLOCK_SIGNATURE,
+                        null,
+                        transactions);
+        genesisBlock.setPrevious(null);
+        
+        return genesisBlock;
     }
 }
 

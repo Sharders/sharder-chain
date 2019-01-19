@@ -1006,7 +1006,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     ThreadPool.runBeforeStart(
         () -> {
           alreadyInitialized = true;
-          if (addSharderGenesisBlock()) {
+          if (addGenesisBlock()) {
             scan(0, false);
           } else if (Conch.getBooleanProperty("sharder.forceScan")) {
             scan(0, Conch.getBooleanProperty("sharder.forceValidate"));
@@ -1179,7 +1179,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         scheduleScan(0, false);
         // BlockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
         BlockDb.deleteAll();
-        if (addSharderGenesisBlock()) {
+        if (addGenesisBlock()) {
           scan(0, false);
         }
       } finally {
@@ -1312,7 +1312,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
     
-  private boolean addSharderGenesisBlock() {
+  private boolean addGenesisBlock() {
     if (BlockDb.hasBlock(SharderGenesis.GENESIS_BLOCK_ID, 0)) {
       Logger.logMessage("Genesis block already in database");
       BlockImpl lastBlock = BlockDb.findLastBlock();
@@ -1324,32 +1324,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     
     Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
-      List<TransactionImpl> transactions = SharderGenesis.genesisTransactions();
-      
-      Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
-      MessageDigest digest = Crypto.sha256();
-      for (TransactionImpl transaction : transactions) {
-        digest.update(transaction.bytes());
-      }
-
-      BlockImpl genesisBlock =
-          new BlockImpl(
-              SharderGenesis.GENESIS_BLOCK_ID,
-              -1,
-              0,
-              0,
-              Constants.MAX_BALANCE_NQT,
-              0,
-              transactions.size() * 128,
-              digest.digest(),
-              SharderGenesis.CREATOR_PUBLIC_KEY,
-              new byte[64],
-              SharderGenesis.GENESIS_BLOCK_SIGNATURE,
-              null,
-              transactions);
-      Logger.logMessage("SharderGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()));
-
-      genesisBlock.setPrevious(null);
+      BlockImpl genesisBlock = SharderGenesis.genesisBlock();
+      Logger.logMessage("SharderGenesis block signature=" + Arrays.toString(genesisBlock.getBlockSignature()) + ",blockHash=" + Arrays.toString(Crypto.sha256().digest(genesisBlock.bytes())));
       addBlock(genesisBlock);
       return true;
     } catch (ConchException.ValidationException e) {
@@ -1479,6 +1455,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (block.getVersion() != getBlockVersion(previousLastBlock.getHeight())) {
       throw new BlockNotAcceptedException("Invalid version " + block.getVersion(), block);
     }
+    // time valid check
     if (block.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) {
       Logger.logWarningMessage(
           "Received block "
@@ -1501,6 +1478,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               + previousLastBlock.getTimestamp(),
           block);
     }
+    // previous block hash check
     if (block.getVersion() != 1
         && !Arrays.equals(
             Crypto.sha256().digest(previousLastBlock.bytes()), block.getPreviousBlockHash())) {
