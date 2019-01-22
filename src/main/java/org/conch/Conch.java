@@ -102,9 +102,9 @@ public final class Conch {
     private static final RuntimeMode runtimeMode;
     private static final DirProvider dirProvider;
 
-    private static final Properties defaultProperties = new Properties();
+    private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
-    private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
+    private static final String SHARDER_FOUNDATION_TEST_URL = "localhost";
     private static final String UPGRADE_SERVER = "https://resource.sharder.io";
     
     
@@ -217,7 +217,7 @@ public final class Conch {
         System.out.printf("Runtime mode %s\n", runtimeMode.getClass().getName());
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
-        loadProperties(defaultProperties, CONCH_DEFAULT_PROPERTIES, true);
+        loadProperties(DEFAULT_PROPERTIES, CONCH_DEFAULT_PROPERTIES, true);
 
         PresetParam.print();
         
@@ -258,7 +258,7 @@ public final class Conch {
         }
     }
 
-    private static final Properties properties = new Properties(defaultProperties);
+    private static final Properties properties = new Properties(DEFAULT_PROPERTIES);
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
@@ -269,11 +269,13 @@ public final class Conch {
         }
     }
 
-    // [NAT] useNATService and client configuration
+    /**
+     * [NAT] useNATService and client configuration
+     */
     static boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
-    static final String NATServiceAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.NATServiceAddress"));
-    static final int NATServicePort = Conch.getIntProperty("sharder.NATServicePort");
-    static final String NATClientKey = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
+    public static final String NAT_SERVICE_ADDRESS = Convert.emptyToNull(Conch.getStringProperty("sharder.NATServiceAddress"));
+    public static final int NAT_SERVICE_PORT = Conch.getIntProperty("sharder.NATServicePort");
+    static final String NAT_CLIENT_KEY = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
 
     public static boolean getUseNATService(){
         return useNATService;
@@ -291,9 +293,9 @@ public final class Conch {
                 
                 if(natCmdFile.exists()){
                     StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
-                    cmd.append(" -s ").append(NATServiceAddress == null?addressHost(myAddress):NATServiceAddress)
-                            .append(" -p ").append(NATServicePort)
-                            .append(" -k ").append(NATClientKey);
+                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
+                            .append(" -p ").append(NAT_SERVICE_PORT)
+                            .append(" -k ").append(NAT_CLIENT_KEY);
                     Process process = Runtime.getRuntime().exec(cmd.toString());
                     // any error message?
                     StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
@@ -325,18 +327,17 @@ public final class Conch {
 
     }
 
-    static String addressHost(String address) {
-        if (address == null) {
-            return null;
-        }
-        URI uri = addressURI(address);
-        return uri.getHost();
+    public static int addressPort(String address) {
+        return Optional.ofNullable(address).map(Conch::addressURI).map(URI::getPort).orElse(0);
+    }
+
+    public static String addressHost(String address) {
+        return Optional.ofNullable(address).map(Conch::addressURI).map(URI::getHost).orElse(null);
     }
 
     static URI addressURI(String address) {
         try {
-            URI uri = new URI("http://" + address);
-            return uri;
+            return new URI("http://" + address);
         } catch (URISyntaxException e) {
             return null;
         }
