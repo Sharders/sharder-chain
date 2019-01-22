@@ -1,24 +1,28 @@
 package org.conch.consensus.poc.hardware;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
- * @ClassName SystemInfo
- * @Description  系统信息对象
- * @Author 栗子
- * @Version 1.0
- **/
+ * 系统信息对象
+ * @author 栗子
+ */
 public class SystemInfo {
 
     /**
-     * 节点ip
+     * API用到的节点ip
      */
     private String ip;
 
     /**
-     * 节点端口
+     * API用到的节点端口
      */
     private String port;
+
+    /**
+     * 性能测试用，穿透服务地址或本机地址
+     */
+    private String address;
 
     /**
      * 几核
@@ -46,7 +50,7 @@ public class SystemInfo {
     private boolean hadPublicIp;
 
     /**
-     *  公网ip带宽（Mbps），如果没有公网ip，这个值就是0
+     * 公网ip带宽（Mbps），如果没有公网ip，这个值就是0
      */
     private int bandWidth;
 
@@ -59,6 +63,15 @@ public class SystemInfo {
      * 开启的服务列表
      */
     private Long[] openServices;
+
+    public String getAddress() {
+        return address;
+    }
+
+    public SystemInfo setAddress(String address) {
+        this.address = address;
+        return this;
+    }
 
     public String getIp() {
         return ip;
@@ -153,5 +166,13 @@ public class SystemInfo {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
+    }
+
+    public JSONObject toJsonObject() {
+        return JSONObject.parseObject(this.toJsonString());
+    }
+
+    public String toJsonString() {
+        return JSONObject.toJSONString(this);
     }
 }

@@ -778,13 +778,13 @@ public final class Peers {
 
     private static String scPeerApiUrl() {
         if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
+            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
         }
 
         return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
     }
 
-    private static final Runnable getHubPeerThread =
+    private static final Runnable GET_HUB_PEER_THREAD =
             () -> {
                 try {
                     String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
@@ -793,9 +793,9 @@ public final class Peers {
                         Logger.logInfoMessage("peer list is null, wait for next round");
                         return;
                     } else {
-                        if (peersStr.startsWith("[")) {
+                        if (peersStr.startsWith(Constants.BRACKET)) {
                             peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
-                        } else if (peersStr.startsWith("{")) {
+                        } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
                             peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
                         }
                     }
@@ -844,7 +844,7 @@ public final class Peers {
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
-    private static final Runnable hardwareTestingThread = () -> {
+    private static final Runnable HARDWARE_TESTING_THREAD = () -> {
         if (!sysInitialed) {
             Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
             try {
@@ -858,10 +858,7 @@ public final class Peers {
             return;
         }
 
-        // 初始化HUB，绑定账号后再进行测试：
-        if (Convert.emptyToNull(Conch.getStringProperty(Constants.SHARDER_HUBBINDADDRESS)) != null) {
-            hardwareTested = GetNodeHardware.readAndReport();
-        }
+        hardwareTested = GetNodeHardware.readAndReport();
     };
 
     static {
@@ -895,12 +892,12 @@ public final class Peers {
             }
         }
 
-        ThreadPool.scheduleThread("GetHubPeer", Peers.getHubPeerThread, 30, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("GetHubPeer", Peers.GET_HUB_PEER_THREAD, 30, TimeUnit.MINUTES);
     }
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.hardwareTestingThread, 5);
+        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 5);
     }
 
     public static void shutdown() {

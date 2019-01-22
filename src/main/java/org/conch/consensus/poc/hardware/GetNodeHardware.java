@@ -1,14 +1,17 @@
 package org.conch.consensus.poc.hardware;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
+import org.conch.common.Constants;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
-import org.conch.util.SendHttpRequest;
+import org.conch.util.RestfulHttpClient;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @ClassName GetNodeHardware
@@ -26,8 +29,7 @@ public class GetNodeHardware {
             CpuInfo info = infos[i];
             count += info.getMhz();
         }
-        systemInfo.setCore(infos.length);
-        systemInfo.setAverageMHz(count / infos.length);
+        systemInfo.setCore(infos.length).setAverageMHz(count / infos.length);
         return systemInfo;
     }
 
@@ -140,7 +142,7 @@ public class GetNodeHardware {
     
     private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
     public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
-        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(DEFAULT_TX_CHECKING_COUNT));
+        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(10));
         return systemInfo;
     }
     
@@ -155,11 +157,31 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    public static final String SYSTEM_INFO_REPORT_URL = Conch.getSharderFoundationURL() + "/sc/peer/report";
+    private static String scHardwareApiUrl() {
+        if (Constants.isMainnet() || Constants.isTestnet()) {
+            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
+        }
+
+        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
+    }
+
+    public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
     
     public static boolean readAndReport(){
         //提交系统配置信息
         SystemInfo systemInfo = new SystemInfo();
+        /*
+        汇报前需要检查是否使用了穿透服务（NAT）
+        若使用了NAT，则address设置为穿透服务的。
+        若没有使用NAT,则address设置为本机地址
+         */
+        boolean useNat = Conch.getUseNATService();
+        String myAddress = Conch.getMyAddress();
+        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
+        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
+        if (useNat) {
+            systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString());
+        }
         
         try {
             cpu(systemInfo);
@@ -168,19 +190,25 @@ public class GetNodeHardware {
             network(systemInfo);
             txPerformance(systemInfo);
             openingServices(systemInfo);
-            
-            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,systemInfo.toString());
+
+            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
+                    .post()
+                    .body(systemInfo)
+                    .request();
+            String result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS)).map(Object::toString).orElse("false");
             System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL  + "] ===>");
             System.out.println(systemInfo.toString());
-            System.out.println("<=== reported");
+            if (Boolean.TRUE.toString().equalsIgnoreCase(result)) {
+                System.out.println("<=== success to report hardware performance");
+                return true;
+            } else {
+                System.out.println("<=== failed to report hardware performance");
+                return false;
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
-        } catch(Throwable throwable){
-            throwable.printStackTrace();
-            return false;
         }
-
-        return true;
     }
 }
