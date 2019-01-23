@@ -407,6 +407,41 @@ public final class BlockchainImpl implements Blockchain {
         }
     }
 
+
+    /**
+     * 查询账户的收款付款交易记录
+     * @param accountId
+     * @param isFrom accountId是否是发送方
+     * @param from
+     * @param to
+     * @return
+     */
+    @Override
+    public DbIterator<TransactionImpl> getTransactions(long accountId, boolean isFrom,int from, int to) {
+        Connection con = null;
+        PreparedStatement pstmt;
+        try {
+            StringBuilder buf = new StringBuilder();
+            buf.append("SELECT transaction.* FROM transaction where type=0 ");
+            if (isFrom) {
+                buf.append("And sender_id = ? ");
+            } else {
+                buf.append("And recipient_id = ? ");
+            }
+            buf.append("ORDER BY block_timestamp DESC, transaction_index DESC");
+            buf.append(DbUtils.limitsClause(from, to));
+            con = Db.db.getConnection();
+            int i = 0;
+            pstmt = con.prepareStatement(buf.toString());
+            pstmt.setLong(++i,accountId);
+            DbUtils.setLimits(++i, pstmt, from, to);
+            return getTransactions(con, pstmt);
+        }catch (SQLException e) {
+            DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
     @Override
     public DbIterator<TransactionImpl> getTransactions(long accountId, byte type, byte subtype, int blockTimestamp,
                                                        boolean includeExpiredPrunable) {
