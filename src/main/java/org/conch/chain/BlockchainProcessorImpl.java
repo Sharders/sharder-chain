@@ -1325,7 +1325,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
       BlockImpl genesisBlock = SharderGenesis.genesisBlock();
-      Logger.logMessage("SharderGenesis block[id=" + genesisBlock.getId() + ",signature=" + Arrays.toString(genesisBlock.getBlockSignature()) + ",blockHash=" + Arrays.toString(Crypto.sha256().digest(genesisBlock.bytes())));
+      Logger.logMessage("SharderGenesis block[id=" + genesisBlock.getId() + ",block hash=" + Arrays.toString(Crypto.sha256().digest(genesisBlock.bytes())) +  "]=> " + genesisBlock.toString());
       addBlock(genesisBlock);
       return true;
     } catch (ConchException.ValidationException e) {
@@ -1480,10 +1480,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     // previous block hash check
     if (block.getVersion() != 1
-        && !Arrays.equals(
-            Crypto.sha256().digest(previousLastBlock.bytes()), block.getPreviousBlockHash())) {
-      throw new BlockNotAcceptedException("Previous block hash doesn't match", block);
+              && !Arrays.equals(
+              Crypto.sha256().digest(previousLastBlock.bytes()), block.getPreviousBlockHash())) {
+        throw new BlockNotAcceptedException("Previous block hash doesn't match", block);
     }
+
     if (block.getId() == 0L || BlockDb.hasBlock(block.getId(), previousLastBlock.getHeight())) {
       throw new BlockNotAcceptedException("Duplicate block or invalid id", block);
     }
