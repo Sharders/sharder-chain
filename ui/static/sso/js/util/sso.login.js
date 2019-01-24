@@ -428,25 +428,25 @@ var NRS = (function (NRS, $, undefined) {
                         }
                         // NRS.updateForgingTooltip($.t("forging_unknown_tooltip"));
                         // NRS.updateForgingStatus(isPassphraseLogin ? id : null);
-                        if (NRS.isForgingSafe() && isPassphraseLogin) {
-                            var forgingIndicator = $("#forging_indicator");
-                            NRS.sendRequest("startForging", {
-                                "secretPhrase": id
-                            }, function (response) {
-                                // if ("deadline" in response) {
-                                //     forgingIndicator.addClass("forging");
-                                //     forgingIndicator.find("span").html($.t("forging")).attr("data-i18n", "forging");
-                                //     NRS.forgingStatus = NRS.constants.FORGING;
-                                //     NRS.updateForgingTooltip(NRS.getForgingTooltip);
-                                // } else {
-                                //     forgingIndicator.removeClass("forging");
-                                //     forgingIndicator.find("span").html($.t("not_forging")).attr("data-i18n", "not_forging");
-                                //     NRS.forgingStatus = NRS.constants.NOT_FORGING;
-                                //     NRS.updateForgingTooltip(response.errorDescription);
-                                // }
-                                forgingIndicator.show();
-                            });
-                        }
+                        // if (NRS.isForgingSafe() && isPassphraseLogin) {
+                        //     var forgingIndicator = $("#forging_indicator");
+                        //     NRS.sendRequest("startForging", {
+                        //         "secretPhrase": id
+                        //     }, function (response) {
+                        //         // if ("deadline" in response) {
+                        //         //     forgingIndicator.addClass("forging");
+                        //         //     forgingIndicator.find("span").html($.t("forging")).attr("data-i18n", "forging");
+                        //         //     NRS.forgingStatus = NRS.constants.FORGING;
+                        //         //     NRS.updateForgingTooltip(NRS.getForgingTooltip);
+                        //         // } else {
+                        //         //     forgingIndicator.removeClass("forging");
+                        //         //     forgingIndicator.find("span").html($.t("not_forging")).attr("data-i18n", "not_forging");
+                        //         //     NRS.forgingStatus = NRS.constants.NOT_FORGING;
+                        //         //     NRS.updateForgingTooltip(response.errorDescription);
+                        //         // }
+                        //         forgingIndicator.show();
+                        //     });
+                        // }
                     }, isAccountSwitch);
                     // NRS.initSidebarMenu();
                     // NRS.unlock();

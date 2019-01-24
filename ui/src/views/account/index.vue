@@ -13,7 +13,7 @@
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span class="csp" @click="openUserInfoDialog">{{$t('account.account_info')}}</span>
                     </div>
-                    <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.unconfirmedBalanceNQT/100000000, 8)}} SS</p>
+                    <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -122,8 +122,8 @@
                             </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
-                                    <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
+                                <tr v-for="(transaction,index) in accountTransactionList">
+                                    <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
                                     <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
@@ -454,7 +454,6 @@
         <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
         <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
 
-
     </div>
 </template>
 <script>
@@ -568,6 +567,9 @@
                 },{
                     value:9,
                     label:this.$t('transaction.transaction_type_block_reward')
+                },{
+                    value:12,
+                    label:this.$t('transaction.transaction_type_poc')
                 }],
                 trading:'',
                 accountTransactionList:[],
@@ -588,6 +590,9 @@
         },
         created(){
             const _this = this;
+
+            console.log("_this.initHUb",_this.initHUb);
+
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -599,6 +604,9 @@
             });
 
             _this.getAccountTransactionList();
+            _this.getDrawData();
+
+
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res.data;
             });
@@ -621,6 +629,7 @@
             }).catch(err=>{
                 console.log(err);
             });
+
         },
         methods: {
             drawBarchart: function (barchat) {
@@ -685,8 +694,12 @@
                     yieldCurve.setOption(option, true);
                 }
             },
-            handleSizeChange(val) {},
-            handleCurrentChange(val) {},
+            handleSizeChange(val) {
+                this.getAccountTransactionList();
+            },
+            handleCurrentChange(val) {
+                this.getAccountTransactionList();
+            },
             updateHubVersion(adminPwd){
                 const _this = this;
                 this.$http.post('/sharder?requestType=upgradeClient', {
@@ -785,7 +798,7 @@
                 }else{
                     formData.append("sharder.HubBind",false);
                 }
-                formData.append("restart",true);
+                formData.append("restart",false);
                 formData.append("sharder.disableAdminPassword",false);
 
 
@@ -1148,7 +1161,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1206,7 +1219,7 @@
                         }
                     }
                     _this.accountInfo = res;
-                    if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
+                    if(_this.transfer.number > _this.accountInfo.effectiveBalanceSS){
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
@@ -1287,8 +1300,16 @@
                 let params = new URLSearchParams();
 
                 params.append("account",_this.accountInfo.accountRS);
-                // params.append("firstIndex",0);
-                // params.append("firstIndex",0);
+
+                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
+
+                let i = 0;
+                if(typeof _this.unconfirmedTransactionsList !== 'undefined'){
+                    i = _this.unconfirmedTransactionsList.length;
+                }
+
+                params.append("firstIndex",(_this.currentPage - 1) * 10);
+                params.append("lastIndex",_this.currentPage * 10 - 1 - i);
 
                 if(_this.selectType === 1.5){
                     params.append("type","1");
@@ -1301,15 +1322,16 @@
                 }
 
                 this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res) {
-                    _this.accountTransactionList =res.data.transactions;
-                    // console.log("_this.accountTransactionList",_this.accountTransactionList);
-                    _this.totalSize = _this.accountTransactionList.length;
-                    _this.unconfirmedTransactionsList = "";
+                    _this.accountTransactionList = res.data.transactions;
+                    _this.totalSize = res.data.count;
+
                     _this.getTotalList();
+
                 }).catch(function (err) {
                     console.log(err);
                 });
             },
+
             openSendMessageDialog: function () {
                 if(SSO.downloadingBlockchain){
                     this.$message.warning("当前正在同步区块链，请稍后再试");
@@ -1407,7 +1429,7 @@
 
                 const _this = this;
                 _this.messageForm.errorCode = false;
-                _this.messageForm.receiver =  "SSA";
+                _this.messageForm.receiver =  "SSA-____-____-____-_____";
                 _this.messageForm.message =  "";
                 _this.messageForm.isEncrypted =  false;
                 _this.messageForm.hasPublicKey = false;
@@ -1419,7 +1441,7 @@
                 _this.messageForm.fee = 1;
                 _this.file = null;
 
-                _this.transfer.receiver = "SSA";
+                _this.transfer.receiver = "SSA-____-____-____-_____";
                 _this.transfer.number = 0;
                 _this.transfer.fee = 1;
                 _this.transfer.hasMessage = false;
@@ -1429,8 +1451,6 @@
                 _this.transfer.hasPublicKey = false;
                 _this.transfer.receiverPublickey = "";
                 _this.transfer.errorCode = false;
-
-
 
                 _this.isShowName = true;
                 _this.temporaryName = "";
@@ -1447,7 +1467,6 @@
             setName:function(secretPhrase){
                 const _this = this;
                 let formData = new FormData();
-                console.log("dingwei");
                 formData.append("name",_this.temporaryName);
                 formData.append("secretPhrase",secretPhrase);
                 formData.append("deadline","1440");
@@ -1477,7 +1496,6 @@
                     showClose: true,
                     message: _this.$t('notification.clipboard_error'),
                     type: "error"
-
                 });
             },
             delFile:function(){
@@ -1529,7 +1547,7 @@
                     }
                 }
             },
-            getDrawData(lists){
+            getDrawData(){
                 let _this = this;
                 let j=0;
                 let k=0;
@@ -1541,49 +1559,63 @@
                     xAxis:[],
                     series:[]
                 };
-                lists.every(function(value,index,array){
-                    if(j>=5||k>=7){
-                        return false;
-                    }
-                    if(value.type === 9 || value.type === 0){
-                        if(value.type === 0 && j<5){
-                            j++;
-                            if(value.senderRS === SSO.accountRS){
-                                barchat.xAxis.push(_this.$t('account.payout'));
-                            }else{
-                                barchat.xAxis.push(_this.$t('account.income'));
-                            }
-                            barchat.series.push(value.amountNQT/100000000);
-                        }
-                        if(k<7 && value.senderRS !== SSO.accountRS){
-                            k++;
-                            yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
-                            yields.series.push(value.amountNQT/100000000);
-                        }
-                    }
 
+                let params = new URLSearchParams();
+                params.append("account",_this.accountInfo.accountRS);
+
+                params.append("firstIndex", '0');
+                params.append("lastIndex" , '4');
+
+                params.append("type","0");
+
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
+                    res.data.transactions.every(function (value, index,array) {
+                        if(value.senderRS === SSO.accountRS){
+                            barchat.xAxis.push(_this.$t('account.payout'));
+                        }else{
+                            barchat.xAxis.push(_this.$t('account.income'));
+                        }
+                        barchat.series.push(value.amountNQT/100000000);
+                    });
+                    for(;j !== 5;j++){
+                        barchat.xAxis.push("");
+                        barchat.series.push(0);
+                    }
+                    // for(;k !== 7;k++){
+                    //     yields.xAxis.push("");
+                    //     yields.series.push(0);
+                    // }
+                    this.drawBarchart(barchat);
+                    // this.drawYield(yields);
                 });
+                //
+                // lists.every(function(value,index,array){
+                //     if(j>=5||k>=7){
+                //         return false;
+                //     }
+                //     if(value.type === 9 || value.type === 0){
+                //         if(value.type === 0 && j<5){
+                //             j++;
+                //             if(value.senderRS === SSO.accountRS){
+                //                 barchat.xAxis.push(_this.$t('account.payout'));
+                //             }else{
+                //                 barchat.xAxis.push(_this.$t('account.income'));
+                //             }
+                //             barchat.series.push(value.amountNQT/100000000);
+                //         }
+                //         if(k<7 && value.senderRS !== SSO.accountRS){
+                //             k++;
+                //             yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                //             yields.series.push(value.amountNQT/100000000);
+                //         }
+                //     }
+                //
+                // });
 
-                for(;j !== 5;j++){
-                    barchat.xAxis.push("");
-                    barchat.series.push(0);
-                }
-                for(;k !== 7;k++){
-                    yields.xAxis.push("");
-                    yields.series.push(0);
-                }
-                this.drawBarchart(barchat);
-                this.drawYield(yields);
+
             },
             getTotalList:function () {
                 const _this = this;
-
-                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
-
-                _this.totalSize = _this.accountTransactionList.length;
-
-                // console.log("_this.unconfirmedTransactionsList",_this.unconfirmedTransactionsList);
-                // console.log("_this.accountTransactionList",_this.accountTransactionList);
 
                 let list = [];
                 for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
@@ -1612,7 +1644,7 @@
                 _this.accountTransactionList = list;
 
                 if(_this.selectType === '') {
-                    _this.getDrawData(_this.accountTransactionList);
+                    // _this.getDrawData(_this.accountTransactionList);
                 }
             }
         },
@@ -1675,7 +1707,7 @@
             },
             selectType:function () {
                 const _this = this;
-
+                _this.currentPage = 1;
                 _this.getAccountTransactionList();
             },
             getLang:{
@@ -1715,7 +1747,7 @@
 
             setInterval(()=>{
                 _this.getAccountTransactionList();
-            },2000);
+            },4000);
 
             $('#receiver').on("blur",function() {
                 let receiver = _this.messageForm.receiver;
