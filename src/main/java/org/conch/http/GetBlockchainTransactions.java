@@ -36,7 +36,7 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
     static final GetBlockchainTransactions instance = new GetBlockchainTransactions();
 
     private GetBlockchainTransactions() {
-        super(new APITag[] {APITag.ACCOUNTS, APITag.TRANSACTIONS}, "account", "timestamp", "type", "subtype",
+        super(new APITag[] {APITag.ACCOUNTS, APITag.TRANSACTIONS},  "account", "timestamp", "type", "subtype",
                 "firstIndex", "lastIndex", "numberOfConfirmations", "withMessage", "phasedOnly", "nonPhasedOnly",
                 "includeExpiredPrunable", "includePhasingResult", "executedOnly");
     }
@@ -69,7 +69,6 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
 
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
-
         JSONArray transactions = new JSONArray();
         try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getTransactions(accountId, numberOfConfirmations,
                 type, subtype, timestamp, withMessage, phasedOnly, nonPhasedOnly, firstIndex, lastIndex,
@@ -80,8 +79,10 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
             }
         }
 
+
         JSONObject response = new JSONObject();
         response.put("transactions", transactions);
+//        response.put("count", count);
         return response;
 
     }

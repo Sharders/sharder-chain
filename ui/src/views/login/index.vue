@@ -84,13 +84,6 @@
             });
 
             SSO.init();
-            this.$global.setBlockchainState(this).then(res=>{
-                if(typeof res.errorDescription !== 'undefined'){
-                    _this.$message.error(res.data)
-                }else{
-                    //TODO  获取区块链
-                }
-            });
         },
         methods: {
             getAccount() {

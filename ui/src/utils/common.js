@@ -36,12 +36,12 @@ export default {
     setBlockchainState(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getBlockchainStatus',{
-                params:{
-                    random:parseInt(new Date().getTime().toString())
-                }
-            }).then(res => {
-                _this.blockchainState = res.data;
+                _this.blockchainState =
+                    t.$http.get('/sharder?requestType=getBlockchainStatus',{
+                        params:{
+                            random:parseInt(new Date().getTime().toString())
+                        }
+                    }).then(res => {res.data;
                 resolve(res);
             });
         });
