@@ -37,7 +37,7 @@
                             </span>
                             <span>{{$t('account.send_message')}}</span>
                         </button>
-                        
+
                         <button class="common_btn imgBtn writeBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
@@ -447,17 +447,12 @@
 
         </div>
 
-
-
         <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading"
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
         <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
         <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
-
-
-
 
 
     </div>
@@ -573,9 +568,6 @@
                 },{
                     value:9,
                     label:this.$t('transaction.transaction_type_block_reward')
-                },{
-                    value:12,
-                    label:this.$t('transaction.transaction_type_poc')
                 }],
                 trading:'',
                 accountTransactionList:[],
@@ -596,9 +588,6 @@
         },
         created(){
             const _this = this;
-
-            console.log("_this.initHUb",_this.initHUb);
-
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -610,7 +599,6 @@
             });
 
             _this.getAccountTransactionList();
-
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res.data;
             });
@@ -633,7 +621,6 @@
             }).catch(err=>{
                 console.log(err);
             });
-
         },
         methods: {
             drawBarchart: function (barchat) {
@@ -1161,7 +1148,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1323,7 +1310,6 @@
                     console.log(err);
                 });
             },
-
             openSendMessageDialog: function () {
                 if(SSO.downloadingBlockchain){
                     this.$message.warning("当前正在同步区块链，请稍后再试");
