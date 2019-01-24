@@ -1,7 +1,7 @@
 <template>
     <div class="page-layout">
         <div class="page-layout-inner">
-            <!--<header-component />-->
+            <header-component />
             <main>
                 <div class="main-content">
                     <el-row class="container">
