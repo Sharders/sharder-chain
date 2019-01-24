@@ -229,7 +229,7 @@
                 _this.percentageTotal = SSO.percentageTotal;
                 _this.blocksLeft = SSO.blocksLeft;
                 _this.percentageLast = SSO.percentageLast;
-            },1000);
+            },2000);
         },
         methods: {
 

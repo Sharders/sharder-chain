@@ -10,9 +10,9 @@
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>{{$t('dialog.account_info_name')}}&nbsp</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>
+                    <!--<span>{{$t('dialog.account_info_name')}}&nbsp</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>-->
+                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span>
+                    <!--<span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>-->
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">

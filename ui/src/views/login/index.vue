@@ -208,7 +208,6 @@
                 }
                 else{
                     Login.login(_this.type, val, _this, function () {
-                        console.log("11");
                         _this.$global.setEpochBeginning(_this).then(res=>{
                             _this.$store.state.isLogin = true;
                             _this.$router.push("/account");
