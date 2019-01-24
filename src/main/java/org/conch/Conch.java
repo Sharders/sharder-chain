@@ -272,7 +272,7 @@ public final class Conch {
     /**
      * [NAT] useNATService and client configuration
      */
-    static boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
+    private static boolean useNATService = Conch.getBooleanProperty("sharder.useNATService");
     public static final String NAT_SERVICE_ADDRESS = Convert.emptyToNull(Conch.getStringProperty("sharder.NATServiceAddress"));
     public static final int NAT_SERVICE_PORT = Conch.getIntProperty("sharder.NATServicePort");
     static final String NAT_CLIENT_KEY = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
@@ -346,7 +346,7 @@ public final class Conch {
     public static void storePropertiesToFile(HashMap<String, String> parameters) {
 
         OutputStream output = null;
-        Properties userProperties = loadProperties(properties, CONCH_PROPERTIES, false);;
+        Properties userProperties = loadProperties(properties, CONCH_PROPERTIES, false);
         parameters.entrySet().forEach(map -> userProperties.setProperty(map.getKey(), map.getValue()));
         try {
             output = new FileOutputStream("conf/" + CONCH_PROPERTIES);

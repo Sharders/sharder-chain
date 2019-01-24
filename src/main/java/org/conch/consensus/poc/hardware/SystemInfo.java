@@ -5,7 +5,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * 系统信息对象
- * @author 栗子
+ * @author CloudSen
  */
 public class SystemInfo {
 
@@ -23,6 +23,11 @@ public class SystemInfo {
      * 性能测试用，穿透服务地址或本机地址
      */
     private String address;
+
+    /**
+     * 绑定的豆匣账号SSA-XXX
+     */
+    private String bindRs;
 
     /**
      * 几核
@@ -64,15 +69,6 @@ public class SystemInfo {
      */
     private Long[] openServices;
 
-    public String getAddress() {
-        return address;
-    }
-
-    public SystemInfo setAddress(String address) {
-        this.address = address;
-        return this;
-    }
-
     public String getIp() {
         return ip;
     }
@@ -88,6 +84,24 @@ public class SystemInfo {
 
     public SystemInfo setPort(String port) {
         this.port = port;
+        return this;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public SystemInfo setAddress(String address) {
+        this.address = address;
+        return this;
+    }
+
+    public String getBindRs() {
+        return bindRs;
+    }
+
+    public SystemInfo setBindRs(String bindRs) {
+        this.bindRs = bindRs;
         return this;
     }
 

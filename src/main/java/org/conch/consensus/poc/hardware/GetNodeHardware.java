@@ -24,7 +24,7 @@ public class GetNodeHardware {
     public static SystemInfo cpu(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         CpuInfo infos[] = sigar.getCpuInfoList();
-        int i,count = 0;
+        int i, count = 0;
         for (i = 0; i < infos.length; i++) {
             CpuInfo info = infos[i];
             count += info.getMhz();
@@ -36,7 +36,7 @@ public class GetNodeHardware {
     public static SystemInfo memory(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         Mem mem = sigar.getMem();
-        systemInfo.setMemoryTotal((int)(mem.getTotal() / 1024 / 1024 / 1024));
+        systemInfo.setMemoryTotal((int) (mem.getTotal() / 1024 / 1024 / 1024));
         return systemInfo;
     }
 
@@ -66,14 +66,14 @@ public class GetNodeHardware {
                     break;
             }
         }
-        int hdTotal = (int)((double)ypTotal / 1024L / 1024L);
-        if (hdTotal == 0){
-            for (int i = 0; i <fsList.length; i++) {
+        int hdTotal = (int) ((double) ypTotal / 1024L / 1024L);
+        if (hdTotal == 0) {
+            for (int i = 0; i < fsList.length; i++) {
                 FileSystem fs = fsList[i];
                 if (fs.getDirName().equals("/")) {
                     FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                     hdTotal = (int)((double)usage.getTotal() / 1024L / 1024L);
-                     break;
+                    hdTotal = (int) ((double) usage.getTotal() / 1024L / 1024L);
+                    break;
                 }
             }
         }
@@ -95,19 +95,19 @@ public class GetNodeHardware {
         final byte section5 = (byte) 0xC0;
         final byte section6 = (byte) 0xA8;
         switch (b0) {
-        case section1:
-            return false;
-        case section2:
-            if (b1 >= section3 && b1 <= section4) {
+            case section1:
                 return false;
-            }
-        case section5:
-            switch (b1) {
-            case section6:
-                return false;
-            }
-        default:
-            return true;
+            case section2:
+                if (b1 >= section3 && b1 <= section4) {
+                    return false;
+                }
+            case section5:
+                switch (b1) {
+                    case section6:
+                        return false;
+                }
+            default:
+                return true;
         }
     }
 
@@ -139,18 +139,19 @@ public class GetNodeHardware {
         systemInfo.setHadPublicIp(hadPublicIp);
         return systemInfo;
     }
-    
+
     private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
+
     public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
         systemInfo.setTradePerformance(PerformanceCheckingUtil.check(10));
         return systemInfo;
     }
-    
+
     public static SystemInfo openingServices(SystemInfo systemInfo) throws Exception {
         List<Peer.Service> services = Peers.getServices();
         Long[] serviceList = new Long[services.size()];
-        
-        for(int i = 0 ; i < services.size(); i++ ){
+
+        for (int i = 0; i < services.size(); i++) {
             serviceList[i] = services.get(i).getCode();
         }
         systemInfo.setOpenServices(serviceList);
@@ -158,16 +159,17 @@ public class GetNodeHardware {
     }
 
     private static String scHardwareApiUrl() {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
-        }
-
-        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
+//        if (Constants.isMainnet() || Constants.isTestnet()) {
+//            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
+//        }
+//
+//        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
+        return "http://localhost:8080//sc/peer/report.ss";
     }
 
     public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
-    
-    public static boolean readAndReport(){
+
+    public static boolean readAndReport() {
         //提交系统配置信息
         SystemInfo systemInfo = new SystemInfo();
         /*
@@ -179,10 +181,11 @@ public class GetNodeHardware {
         String myAddress = Conch.getMyAddress();
         String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
         Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
+        String bindRs = Optional.ofNullable(Conch.getStringProperty("sharder.HubBindAddress")).orElse("");
         if (useNat) {
-            systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString());
+            systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
         }
-        
+
         try {
             cpu(systemInfo);
             memory(systemInfo);
@@ -196,7 +199,7 @@ public class GetNodeHardware {
                     .body(systemInfo)
                     .request();
             String result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS)).map(Object::toString).orElse("false");
-            System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL  + "] ===>");
+            System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL + "] ===>");
             System.out.println(systemInfo.toString());
             if (Boolean.TRUE.toString().equalsIgnoreCase(result)) {
                 System.out.println("<=== success to report hardware performance");

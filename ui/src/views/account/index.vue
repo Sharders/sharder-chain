@@ -785,7 +785,7 @@
                 }else{
                     formData.append("sharder.HubBind",false);
                 }
-                formData.append("restart",false);
+                formData.append("restart",true);
                 formData.append("sharder.disableAdminPassword",false);
 
 
