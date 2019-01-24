@@ -159,12 +159,11 @@ public class GetNodeHardware {
     }
 
     private static String scHardwareApiUrl() {
-//        if (Constants.isMainnet() || Constants.isTestnet()) {
-//            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
-//        }
-//
-//        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
-        return "http://localhost:8080//sc/peer/report.ss";
+        if (Constants.isMainnet() || Constants.isTestnet()) {
+            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
+        }
+
+        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
     }
 
     public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
