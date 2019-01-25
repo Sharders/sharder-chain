@@ -237,6 +237,7 @@
                 console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+                console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
             }).catch(function (err) {
                 console.error("error", err);

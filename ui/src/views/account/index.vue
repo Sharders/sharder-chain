@@ -607,7 +607,7 @@
 
             _this.getAccountTransactionList();
             _this.getDrawData();
-
+            _this.getYieldData();
 
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res.data;
@@ -672,11 +672,29 @@
                         left: '15%',
                         right: '2%',
                         top: '10%',
-                        bottom: '15%',
+                        bottom: '30%',
                     },
                     tooltip: {
                         trigger: 'axis'
                     },
+                    dataZoom: [{
+                        type: 'inside',
+                        show:false,
+                        start: 80,
+                        end: 100
+                    }, {
+                        start: 0,
+                        end: 10,
+                        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '40%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        }
+                    }],
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
@@ -1564,15 +1582,11 @@
             getDrawData(){
                 let _this = this;
                 let j=0;
-                let k=0;
                 let barchat = {
                     xAxis:[],
                     series:[]
                 };
-                let yields = {
-                    xAxis:[],
-                    series:[]
-                };
+
                 let params = new URLSearchParams();
                 params.append("account",_this.accountInfo.accountRS);
 
@@ -1594,38 +1608,42 @@
                         barchat.xAxis.push("");
                         barchat.series.push(0);
                     }
-                    // for(;k !== 7;k++){
-                    //     yields.xAxis.push("");
-                    //     yields.series.push(0);
-                    // }
                     this.drawBarchart(barchat);
-                    // this.drawYield(yields);
                 });
-                //
-                // lists.every(function(value,index,array){
-                //     if(j>=5||k>=7){
-                //         return false;
-                //     }
-                //     if(value.type === 9 || value.type === 0){
-                //         if(value.type === 0 && j<5){
-                //             j++;
-                //             if(value.senderRS === SSO.accountRS){
-                //                 barchat.xAxis.push(_this.$t('account.payout'));
-                //             }else{
-                //                 barchat.xAxis.push(_this.$t('account.income'));
-                //             }
-                //             barchat.series.push(value.amountNQT/100000000);
-                //         }
-                //         if(k<7 && value.senderRS !== SSO.accountRS){
-                //             k++;
-                //             yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
-                //             yields.series.push(value.amountNQT/100000000);
-                //         }
-                //     }
-                //
-                // });
+            },
+            getYieldData(){
+                let _this = this;
+                let yields = {
+                    xAxis:[],
+                    series:[],
+                };
+                let assets = 0;
+                let params = new URLSearchParams();
+                params.append("account",_this.accountInfo.accountRS);
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
+                    if(typeof res.data.errorDescription === "undefined"){
+                        let info = res.data.transactions.reverse();
 
-
+                        info.forEach(function(value, index, array){
+                            if(value.type === 0){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                if(value.senderRS !== SSO.accountRS){
+                                    assets = assets + value.amountNQT/100000000;
+                                }else{
+                                    assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                                }
+                            }else if(value.type === 9){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                assets = assets + value.amountNQT/100000000;
+                            }else if(value.senderRS === SSO.accountRS){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                            }
+                            yields.series.push(assets);
+                        });
+                    }
+                    this.drawYield(yields);
+                });
             },
             getTotalList:function () {
                 const _this = this;

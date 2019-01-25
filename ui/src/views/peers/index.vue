@@ -54,17 +54,25 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(peer,index) in peersList" v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
-                                    <td class="image_text linker tl" v-if="peer.state === 1" @click="openInfo(peer.address)">
-                                        <span>
+                                    <td class="image_text linker tl" @click="openInfo(peer.address)">
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 0" content="无连接">
+                                            <span>
+                                                <img src="../../assets/img/error.svg"/>
+                                                <span>{{peer.address}}</span>
+                                            </span>
+                                        </el-tooltip>
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 1" content="已连接">
+                                            <span>
                                             <img src="../../assets/img/success.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
-                                    </td>
-                                    <td class="image_text linker tl" v-if="peer.state === 0" @click="openInfo(peer.address)">
-                                        <span>
-                                            <img src="../../assets/img/error.svg"/>
-                                            <span>{{peer.address}}</span>
-                                        </span>
+                                        </el-tooltip>
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 2" content="断开连接">
+                                            <span>
+                                                <img src="../../assets/img/error.svg"/>
+                                                <span>{{peer.address}}</span>
+                                            </span>
+                                        </el-tooltip>
                                     </td>
                                     <td>{{peer.downloadedVolume | formatByte}}</td>
                                     <td>{{peer.uploadedVolume | formatByte}}</td>
@@ -228,7 +236,9 @@
                             <th>{{$t('peers.latest_update')}}</th>
                             <td>{{$global.myFormatTime(peerInfo.lastUpdated,'YMDHMS')}}</td>
                             <th>{{$t('peers.status')}}</th>
-                            <td>{{peerInfo.state === 1 ? 'CONNECTED' : 'UNCONNECTED'}}</td>
+                            <td v-if="peerInfo.state === 0">NON_CONNECTED</td>
+                            <td v-else-if="peerInfo.state === 1">CONNECTED</td>
+                            <td v-else-if="peerInfo.state === 2">DISCONNECTED</td>
                         </tr>
                         <tr>
                             <th>{{$t('peers.blacklist')}}</th>
@@ -611,7 +621,7 @@
                 let _this = this;
                 _this.peersCount = data.length;
                 data.forEach(function(item){
-                    if(item.platform === 'Sharder Hub'){
+                    if(item.type === 4){
                         _this.activeHubCount++;
                     }
                     if(item.state === 1){
@@ -627,7 +637,7 @@
                 formData.append("feeNQT",0);
 
                 this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
-                    if(typeof res.data.errorDescription !== 'undefined'){
+                    if(typeof res.data.errorDescription === 'undefined'){
                         _this.$message.success("添加成功！");
 
                         _this.$global.setPeers(_this).then(res=>{
@@ -645,7 +655,7 @@
                 formData.append("adminPassword",_this.adminPassword);
 
                 this.$http.post('sharder?requestType=blacklistPeer',formData).then(function (res) {
-                    if(res.data){
+                    if(typeof res.data.errorDescription === 'undefined'){
                         _this.$message({
                             showClose: true,
                             message: this.$t('peers.join_blacklist_success1')+address+this.$t('peers.join_blacklist_success2'),
@@ -669,7 +679,7 @@
                 formData.append("peer",address);
                 formData.append("adminPassword",_this.adminPassword);
                 this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
-                    if(res.data){
+                    if(typeof res.data.errorDescription === 'undefined'){
                         _this.$message({
                             showClose: true,
                             message: this.$t('peers.join_link_peer_success1')+address+this.$t('peers.join_link_peer_success2'),

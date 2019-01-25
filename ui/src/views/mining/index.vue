@@ -544,8 +544,6 @@
             });
 
 
-
-            formData = new FormData();
             _this.$http.post('/sharder?requestType=getNextBlockGenerators',formData).then(function (res) {
                 if(typeof res.data.errorDescription !== "undefined"){
                     _this.$message.error(res.data.errorDescription);
