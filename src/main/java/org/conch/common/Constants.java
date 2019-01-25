@@ -245,6 +245,10 @@ public final class Constants {
     
     //Chain begin time
     static {
+        EPOCH_BEGINNING = conchLaunchedTime().getTimeInMillis();
+    }
+    
+    static Calendar conchLaunchedTime(){
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         calendar.set(Calendar.YEAR, 2016);
         calendar.set(Calendar.MONTH, Calendar.AUGUST);
@@ -252,8 +256,19 @@ public final class Constants {
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        EPOCH_BEGINNING = calendar.getTimeInMillis();
+        return calendar;
+    }
+    
+    static Calendar openTestnetLaunchedTime(){
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.set(Calendar.YEAR, 2019);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 1);
+        calendar.set(Calendar.MINUTE, 1);
+        calendar.set(Calendar.SECOND, 1);
+        calendar.set(Calendar.MILLISECOND, 1);
+        return calendar;
     }
 
     public static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";

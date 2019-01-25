@@ -26,10 +26,18 @@
 
             </div>
             <div class="block_list">
-                <p class="block_title">
+                <p>
+                    <span class="block_title fl">
                     <img src="../../assets/img/peerlist.svg"/>
                     <span>{{$t('peers.peer_list')}}</span>
+                </span>
+                    <span class="hrefbtn fr block_title csp">
+                    <a @click="openAddPeer">
+                        <span>添加节点</span>
+                    </a>
+                </span>
                 </p>
+                <span class="cb"></span>
                 <div class="list_table w br4">
                     <div class="list_content table_responsive data-loading">
                         <table class="table table-striped"  id="peers_table">
@@ -46,13 +54,13 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(peer,index) in peersList" v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
-                                    <td class="image_text linker" v-if="peer.state === 1" @click="openInfo(peer.address)">
+                                    <td class="image_text linker tl" v-if="peer.state === 1" @click="openInfo(peer.address)">
                                         <span>
                                             <img src="../../assets/img/success.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
                                     </td>
-                                    <td class="image_text linker" v-if="peer.state === 0" @click="openInfo(peer.address)">
+                                    <td class="image_text linker tl" v-if="peer.state === 0" @click="openInfo(peer.address)">
                                         <span>
                                             <img src="../../assets/img/error.svg"/>
                                             <span>{{peer.address}}</span>
@@ -160,6 +168,26 @@
                 </div>
             </div>
         </div>
+        <!--add peer-->
+        <div class="modal" id="add_peer_modal" v-show="addPeerDialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">添加节点</h4>
+                    </div>
+                    <div class="modal-body modal-peer">
+                        <p>地址：</p>
+                        <input v-model="addPeerAddress" type="text">
+                        <p class="mt10">管理密码：</p>
+                        <input v-model="adminPassword" type="password"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn" @click="addPeer(addPeerAddress,adminPassword)">添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfoDialog">
             <div class="modal-header">
@@ -238,6 +266,7 @@
                 blacklistDialog: false,
                 connectPeerDialog: false,
                 peerInfoDialog: false,
+                addPeerDialog:false,
                 //list列表
                 peersList:[],
                 //节点总览
@@ -254,11 +283,13 @@
                 blacklistPeer:'',
                 //连接节点
                 connectPeer:'',
-                adminPassword:''
+                adminPassword:'',
+                //加入节点
+                addPeerAddress:''
             };
         },
         created:function(){
-            const _this = this;
+            let _this = this;
 
             _this.peersList = _this.$global.peers.peers;
             _this.totalSize = _this.$global.peers.peers.length;
@@ -529,7 +560,7 @@
                 this.$router.push("/network");
             },
             openBlackDialog: function (address) {
-                const _this = this;
+                let _this = this;
                 this.closeDialog();
                 _this.blacklistPeer = address;
                 this.$store.state.mask = true;
@@ -539,21 +570,29 @@
                 this.$store.state.mask = false;
                 this.blacklistDialog = false;
                 this.connectPeerDialog = false;
+                this.addPeerDialog = false;
                 this.peerInfoDialog = false;
                 this.blacklist = '';
                 this.connectPeer = '';
                 this.adminPassword = '';
+                this.addPeerAddress = '';
 
             },
+            openAddPeer:function(){
+                let _this = this;
+                _this.closeDialog();
+                _this.$store.state.mask = true;
+                _this.addPeerDialog = true;
+            },
             openConnectPeer: function (address) {
-                const _this = this;
+                let _this = this;
                 this.closeDialog();
                 _this.connectPeer = address;
                 this.$store.state.mask = true;
                 this.connectPeerDialog = true;
             },
             openInfo: function (address) {
-                const _this = this;
+                let _this = this;
                 this.closeDialog();
                 _this.$http.get('/sharder?requestType=getPeer',{
                     params:{
@@ -569,7 +608,7 @@
                 this.peerInfoDialog = true;
             },
             getPeersInfo:function (data) {
-                const _this = this;
+                let _this = this;
                 _this.peersCount = data.length;
                 data.forEach(function(item){
                     if(item.platform === 'Sharder Hub'){
@@ -580,8 +619,27 @@
                     }
                 });
             },
+            addPeer:function(address,adminPassword){
+                let _this = this;
+                let formData = new FormData();
+                formData.append("peer",address);
+                formData.append("adminPassword",adminPassword);
+                formData.append("feeNQT",0);
+
+                this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
+                    if(typeof res.data.errorDescription !== 'undefined'){
+                        _this.$message.success("添加成功！");
+
+                        _this.$global.setPeers(_this).then(res=>{
+                            _this.peersList = res.data;
+                        });
+                    }else{
+                        _this.$message.error(res.data.errorDescription);
+                    }
+                })
+            },
             addBlacklist:function(address){
-                const _this = this;
+                let _this = this;
                 let formData = new FormData();
                 formData.append("peer",address);
                 formData.append("adminPassword",_this.adminPassword);
@@ -606,7 +664,7 @@
                 });
             },
             addConnectPeer:function(address){
-                const _this = this;
+                let _this = this;
                 let formData = new FormData();
                 formData.append("peer",address);
                 formData.append("adminPassword",_this.adminPassword);
@@ -670,4 +728,7 @@
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
     @import './style.scss';
+</style>
+<style scoped lang="scss" type="text/css">
+
 </style>

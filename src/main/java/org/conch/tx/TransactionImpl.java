@@ -21,6 +21,7 @@
 
 package org.conch.tx;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountRestrictions;
@@ -1199,6 +1200,11 @@ final public class TransactionImpl implements Transaction {
             return Constants.ONE_SS;
         }
         return Constants.configFee.get(size);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 
 }

@@ -6,7 +6,6 @@ const SERVER_API = "http://localhost:9215";
 const SERVER_API_DEV = "http://localhost:9215";
 
 function getUrl() {
-    console.log("window.location.port",window.location.port);
     if(window.location.port === '4000'){
         return SERVER_API_DEV;
     }else{
@@ -25,6 +24,5 @@ const api = {
     sharderUrl: getUrl() + "/sharder",
 };
 window.api = api;
-console.log("api.apiUrl",api.apiUrl);
 
 export default getUrl();

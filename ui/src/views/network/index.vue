@@ -124,7 +124,7 @@
                             </thead>
                             <tbody>
                             <tr v-for="(block,index) in blocklist">
-                                <td class=""><span>{{block.height}}</span></td>
+                                <td class="pl0"><span>{{block.height}}</span></td>
                                 <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
                                 <td>
                                     <span v-if="block.totalAmountNQT === '0'">-</span>

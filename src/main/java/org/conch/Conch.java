@@ -287,7 +287,6 @@ public final class Conch {
             Logger.logInfoMessage("Node joins the network via sharder official or 3rd part NAT|DDNS service");
         }
         try {
-
             if (useNATService) {
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
                 
@@ -304,26 +303,30 @@ public final class Conch {
                     // kick them off
                     errorGobbler.start();
                     outputGobbler.start();
-                    Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
-                    InputStreamReader isr = new InputStreamReader(findName.getInputStream());
-                    BufferedReader br = new BufferedReader(isr);
-                    if (br.readLine() == null){
-                        Logger.logInfoMessage("Open NAT Client Auto Start");
-                        Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
-                        Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+
+                    if(SystemUtils.IS_OS_UNIX) {
+                        Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
+                        InputStreamReader isr = new InputStreamReader(findName.getInputStream());
+                        BufferedReader br = new BufferedReader(isr);
+                        if (br.readLine() == null){
+                            Logger.logInfoMessage("Open NAT Client Auto Start");
+                            Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
+                            Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
+                        }
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
+                    }else if(SystemUtils.IS_OS_WINDOWS){
+                        //TODO windows support, set the as a msc.service
                     }
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
                     Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
                 }else{
                     Logger.logWarningMessage("!!! useNatService is true but command file not exist");
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             useNATService = false;
             Logger.logErrorMessage("NAT Client execute Error", e);
         }
-
 
     }
 

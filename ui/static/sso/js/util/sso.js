@@ -1206,19 +1206,17 @@ var Sso = (function (NRS, $, undefined) {
 
     /* Display connected state in Sidebar */
     NRS.checkConnected = function () {
-        NRS.sendRequest("getPeers+", {
+        NRS.sendRequest("getPeers", {
             "state": "CONNECTED"
         }, function (response) {
             // var connectedIndicator = $("#connected_indicator");
             if (response.peers && response.peers.length) {
                 NRS.peerConnect = true;
-                console.log("服务器已连接");
             } else {
                 NRS.peerConnect = false;
                 /*connectedIndicator.removeClass("connected");
                 connectedIndicator.find("span").html($.t("Not Connected")).attr("data-i18n", "sso.not_connected");
                 connectedIndicator.show();*/
-                console.log("服务器未连接");
 
             }
         });

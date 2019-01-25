@@ -395,6 +395,39 @@ public final class BlockchainImpl implements Blockchain {
     }
 
     @Override
+    public int getTransactionCountByAccount(long accountId, byte type,byte subtype){
+
+        StringBuilder buf = new StringBuilder();
+        buf.append("SELECT COUNT(*) FROM transaction WHERE (recipient_id = ? or sender_id = ?) ");
+        if(type >= 0){
+            buf.append("AND type = ? ");
+            if(subtype >= 0){
+                buf.append("AND subtype = ? ");
+            }
+        }
+        int i = 0;
+        try(Connection con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(buf.toString())){
+            pstmt.setLong(++i, accountId);
+            pstmt.setLong(++i, accountId);
+            if(type >= 0){
+                pstmt.setByte(++i, type);
+                if(subtype >= 0){
+                    pstmt.setInt(++i, subtype);
+                }
+            }
+            try(ResultSet rs = pstmt.executeQuery()){
+                rs.next();
+                return rs.getInt(1);
+            }catch (Exception e){
+                throw new RuntimeException(e.toString(),e);
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    @Override
     public DbIterator<TransactionImpl> getAllTransactions() {
         Connection con = null;
         try {

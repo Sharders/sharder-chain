@@ -40,6 +40,9 @@ public class SharderGenesis {
             48, 18, 15, -125, 97, -103, 106, -104, -125, -104, -33, 110, 99, -1, -79, -116, 25, 6, 73, 64, 34, 108, -33, 56, 107, -73, -60,
             17, 91, 104, -115, 67, -94, 3, -92
     };
+    public static final byte[] GENESIS_PAYLOAD_HASH = new byte[]{
+            -68, 29, 41, -120, -78, -7, -86, -93, -10, -89, -77, -46, 109, -49, 30, 72, -115, 77, 73, -19, -85, 125, -43, -13, -3, -44, -124, -62, 123, -68, 69, -81
+    };
 
     public static final int[] GENESIS_AMOUNTS = {
             50000000,
@@ -110,6 +113,43 @@ public class SharderGenesis {
     private SharderGenesis() {}
 
 
+    public static List<TransactionImpl> genesisTxs() throws ConchException.NotValidException {
+        List<TransactionImpl> transactions = coinbaseTxs();
+        transactions.add(defaultPocWeightTableTx());
+        Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
+        return transactions;
+    }
+
+    private static BlockImpl genesisBlock(boolean fixedPayloadHash) throws ConchException.NotValidException {
+        byte[] payloadHash = SharderGenesis.GENESIS_PAYLOAD_HASH;
+        List<TransactionImpl> transactions = genesisTxs();
+        if(!fixedPayloadHash) {
+            MessageDigest digest = Crypto.sha256();
+            for (TransactionImpl transaction : transactions) {
+                digest.update(transaction.bytes());
+            }
+            payloadHash = digest.digest();
+        }
+
+        BlockImpl genesisBlock =
+                new BlockImpl(
+                        SharderGenesis.GENESIS_BLOCK_ID,
+                        -1,
+                        0,
+                        0,
+                        genesisBlockAmount(),
+                        0,
+                        transactions.size() * 128,
+                        payloadHash,
+                        SharderGenesis.CREATOR_PUBLIC_KEY,
+                        new byte[64],
+                        SharderGenesis.GENESIS_BLOCK_SIGNATURE,
+                        null,
+                        transactions);
+        genesisBlock.setPrevious(null);
+
+        return genesisBlock;
+    }
     
     /**
      * original coinbase, initial supply of ss
@@ -168,41 +208,16 @@ public class SharderGenesis {
                 .ecBlockId(0)
                 .build();
     }
-
+    
     /**
-     * genesis block that include genesis transacations:
+     * genesis block that include genesis transacations:`
      * 1. coinbase tx for the genesis account
      * 2. default poc weight table tx
      * @return genesis block
      */
     public static BlockImpl genesisBlock() throws ConchException.NotValidException {
-        List<TransactionImpl> transactions = coinbaseTxs();
-        transactions.add(defaultPocWeightTableTx());
-
-        Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
-        MessageDigest digest = Crypto.sha256();
-        for (TransactionImpl transaction : transactions) {
-            digest.update(transaction.bytes());
-        }
-
-        BlockImpl genesisBlock =
-                new BlockImpl(
-                        SharderGenesis.GENESIS_BLOCK_ID,
-                        -1,
-                        0,
-                        0,
-                        genesisBlockAmount(),
-                        0,
-                        transactions.size() * 128,
-                        digest.digest(),
-                        SharderGenesis.CREATOR_PUBLIC_KEY,
-                        new byte[64],
-                        SharderGenesis.GENESIS_BLOCK_SIGNATURE,
-                        null,
-                        transactions);
-        genesisBlock.setPrevious(null);
-        
-        return genesisBlock;
+        return genesisBlock(true);
     }
+    
 }
 
