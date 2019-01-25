@@ -12,9 +12,16 @@
                 <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
                     <ul>
-                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number', {number:newestBlock.height})}}</li>
-                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</li>
-                        <li>{{$t('mining.index.my_income')}}{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}} SS</li>
+                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
+                            {number:newestBlock.height})}}
+                        </li>
+                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}}
+                            SS
+                        </li>
+                        <li>
+                            {{$t('mining.index.my_income')}}{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}}
+                            SS
+                        </li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
                             <span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>
@@ -28,8 +35,12 @@
                     </div>
                 </div>
                 <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
-                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">{{$t('mining.index.join_friends')}}</div>
-                <div class="rule-description" @click="$router.push({name: 'rule-description'})">{{$t('mining.index.rule_description')}}</div>
+                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
+                    {{$t('mining.index.join_friends')}}
+                </div>
+                <div class="rule-description" @click="$router.push({name: 'rule-description'})">
+                    {{$t('mining.index.rule_description')}}
+                </div>
                 <div class="my-mining create" @click="$router.push({name: 'my-mining'})">
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
@@ -46,12 +57,13 @@
             </span>
             </div>
             <div class="mining-list">
-                <h5 >
+                <h5>
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
                     </div>
-                    <el-select v-model="value" :placeholder="$t('mining.index.sort')" v-if="miningList !== undefined && miningList.length >0">
+                    <el-select v-model="value" :placeholder="$t('mining.index.sort')"
+                               v-if="miningList !== undefined && miningList.length >0">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -63,7 +75,7 @@
                 <div class="mining-list-info">
                     <el-row :gutter="10">
                         <el-col :span="8" v-show="miningList.length !== 0" v-for="(mining,index) in miningList">
-                            <div class="grid-content" >
+                            <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
                                     <p>{{mining.power/100000000}}/{{maxPoolinvestment/100000000}}</p>
@@ -87,13 +99,13 @@
                                 </div>
                             </div>
                         </el-col>
-                        <div v-show="miningList.length === 0" class="mining-list-null" >
+                        <div v-show="miningList.length === 0" class="mining-list-null">
                             暂时没有任何矿池
                         </div>
                     </el-row>
                 </div>
             </div>
-            <div class="mining-paging"  v-if="miningList !== undefined && miningList.length > 0">
+            <div class="mining-paging" v-if="miningList !== undefined && miningList.length > 0">
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
@@ -230,7 +242,8 @@
                         </tr>
                     </table>
                     <div class="my-assets">
-                        {{$t('mining.index.my_assets')}}100000 SS | {{$t('mining.index.sort')}}98 {{$t('mining.index.unit_ming')}}
+                        {{$t('mining.index.my_assets')}}100000 SS | {{$t('mining.index.sort')}}98
+                        {{$t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -268,27 +281,31 @@
                             <img src="../../assets/img/kuangchi_set.png">
                             <span>{{$t('mining.index.mining_setting')}}</span>
                         </h1>
-<!--                        <div class="pool-data">
-                            <p>
-                                <span class="strong">{{$t('mining.index.invest_ss')}}</span>
-                                <span class="user-input">
-                                    <el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>
-                                </span>
-                            </p>
-                            <p>{{$t('mining.index.invest_ss_tip')}}</p>
-                        </div>-->
+                        <!--                        <div class="pool-data">
+                                                    <p>
+                                                        <span class="strong">{{$t('mining.index.invest_ss')}}</span>
+                                                        <span class="user-input">
+                                                            <el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>
+                                                        </span>
+                                                    </p>
+                                                    <p>{{$t('mining.index.invest_ss_tip')}}</p>
+                                                </div>-->
                         <div class="pool-data">
                             <p>
                                 <span class="strong">{{$t('mining.index.income_distribution')}}</span>
                                 <span class="user-input slider">
-                                    <el-slider v-model="incomeDistribution" :min="rule.forgepool.reward.min | getPercentage" :max="rule.forgepool.reward.max | getPercentage"></el-slider>
+                                    <el-slider v-model="incomeDistribution"
+                                               :min="rule.forgepool.reward.min | getPercentage"
+                                               :max="rule.forgepool.reward.max | getPercentage"></el-slider>
                                 </span>
                             </p>
                             <p>{{$t('mining.index.income_distribution_tip')}}</p>
                         </div>
                         <div class="pool-bth">
-                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}</button>
-                            <button class="immediately-create" @click="createPool()">{{$t('mining.index.create_now')}}</button>
+                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}
+                            </button>
+                            <button class="immediately-create" @click="createPool()">{{$t('mining.index.create_now')}}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -298,7 +315,8 @@
         <div class="menu" style="display: none">
             <el-radio-group v-model="tabMenu" class="title">
                 <el-radio-button label="mining" class="btn miner">{{$t('mining.index.mine')}}</el-radio-button>
-                <el-radio-button label="personal" class="btn personal">{{$t('mining.index.personal_center')}}</el-radio-button>
+                <el-radio-button label="personal" class="btn personal">{{$t('mining.index.personal_center')}}
+                </el-radio-button>
             </el-radio-group>
         </div>
     </div>
@@ -316,8 +334,8 @@
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolinvestment: 50000000000000,
-                maxPoolsNum:51,
-                maxForgeTime:1 * 60 * 60,
+                maxPoolsNum: 51,
+                maxForgeTime: 1 * 60 * 60,
                 options: [
                     {
                         value: 'default',
@@ -341,70 +359,70 @@
                 setname: '',
                 incomeDistribution: 0,
                 investment: '',
-                newestBlock:[],
-                newestBlockCreator:'',
-                totalAssets:0,
-                forgeAssets:0,
-                rule:[],
-                avgBlocksTime:'',
+                newestBlock: [],
+                newestBlockCreator: '',
+                totalAssets: 0,
+                forgeAssets: 0,
+                rule: [],
+                avgBlocksTime: '',
                 miningList: [],
                 rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [
-                /*    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    },
-                    {
-                        account: "SSA-92HT-CNBE-YADN-B4JPW",
-                        assets: 1000000
-                    }*/
+                    /*    {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        },
+                        {
+                            account: "SSA-92HT-CNBE-YADN-B4JPW",
+                            assets: 1000000
+                        }*/
                 ],
                 accountInfo: SSO.accountInfo,
 
                 totalSize: 10,
             }
         },
-        computed:{
-            getLang:function(){
+        computed: {
+            getLang: function () {
                 return this.$store.state.currentLang;
             }
         },
         methods: {
             createPool() {
                 let _this = this;
-                if(SSO.downloadingBlockchain){
+                if (SSO.downloadingBlockchain) {
                     this.$message.warning("当前正在同步区块链，请稍后再试");
                     return;
                 }
@@ -416,61 +434,61 @@
                 }
 
                 let formData = new FormData();
-                let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
-                formData.append("period",period);
-                formData.append("secretPhrase",SSO.secretPhrase);
-                formData.append("deadline","1440");
-                formData.append("feeNQT","100000000");
+                let period = parseInt(_this.maxForgeTime / _this.avgBlocksTime).toString();
+                formData.append("period", period);
+                formData.append("secretPhrase", SSO.secretPhrase);
+                formData.append("deadline", "1440");
+                formData.append("feeNQT", "100000000");
                 // formData.append("amount",_this.investment);
 
-                console.log("getAmount",50000000000000);
+                console.log("getAmount", 50000000000000);
                 let rule = {
-                    'forgepool':{
-                      'reward': _this.incomeDistribution/100,
-                      'number':_this.rule.forgepool.number.max-1,
+                    'forgepool': {
+                        'reward': _this.incomeDistribution / 100,
+                        'number': _this.rule.forgepool.number.max - 1,
                     },
-                    "rule":{
-                        "totalBlocks":0
+                    "rule": {
+                        "totalBlocks": 0
                     },
-                    'consignor':{
-                        'amount':50000000000000
+                    'consignor': {
+                        'amount': 50000000000000
                     },
                 };
-                formData.append("rule",JSON.stringify(rule));
+                formData.append("rule", JSON.stringify(rule));
 
-                _this.$http.post('/sharder?requestType=createPool',formData).then(function (res) {
-                  if(res.data.broadcasted){
-                      _this.$message.success("创建成功！");
-                      /*
-                      formData = new FormData();
-                      let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
-                      formData.append("period",period);
-                      formData.append("secretPhrase",SSO.secretPhrase);
-                      formData.append("deadline","1440");
-                      formData.append("feeNQT","100000000");
+                _this.$http.post('/sharder?requestType=createPool', formData).then(function (res) {
+                    if (res.data.broadcasted) {
+                        _this.$message.success("创建成功！");
+                        /*
+                        formData = new FormData();
+                        let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
+                        formData.append("period",period);
+                        formData.append("secretPhrase",SSO.secretPhrase);
+                        formData.append("deadline","1440");
+                        formData.append("feeNQT","100000000");
 
-                      formData.append("poolId",_this.mining.poolId);
-                      formData.append("amount",_this.investment);
+                        formData.append("poolId",_this.mining.poolId);
+                        formData.append("amount",_this.investment);
 
-                      _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
-                      });*/
-                      _this.isVisible('isCreatePool');
+                        _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
+                        });*/
+                        _this.isVisible('isCreatePool');
 
-                  }else{
-                      _this.$message.error(res.data.errorDescription);
-                  }
+                    } else {
+                        _this.$message.error(res.data.errorDescription);
+                    }
                 }).catch(function (err) {
-                  console.log(err);
+                    console.log(err);
                 });
 
             },
             poolAttribute(mining) {
 
-                this.$router.push({name: "mining-attribute", params: {mining:mining, newestBlock:this.newestBlock}});
+                this.$router.push({name: "mining-attribute", params: {mining: mining, newestBlock: this.newestBlock}});
             },
             isVisible(val) {
 
-                if(val === "isCreatePool" && this.rule === null){
+                if (val === "isCreatePool" && this.rule === null) {
                     this.$message.error("您还未拥有创建矿池的权限");
                     return;
                 }
@@ -489,16 +507,103 @@
                     shell: "account",
                     token: window.token,
                 }, "authorizationLogin").then(value => {
-                    console.info("value",value);
-                    if (!value.success){
-                        console.log("验证签名：",value.success);
+                    console.info("authorizationLogin ", value);
+                    if (!value.success) {
+                        console.log("验证签名：", value.success);
                         history.back(-1);
                         return;
                     }
-                    console.log("account:",value.data.account);
-                    Login.login(0, value.data.account, _this, function () {
+                    SSO.secretPhrase = value.data.secretPhrase;
+                    Login.login(1, value.data.secretPhrase, _this, function () {
                         _this.$store.state.isLogin = true;
+                        _this.loginAfter();
+
                     });
+                });
+            },
+            loginAfter() {
+                let _this = this;
+
+                let formData = new FormData();
+                formData.append("creatorId", SSO.account);
+                this.$http.post('/sharder?requestType=getPoolRule', formData).then(res => {
+
+                    if (typeof res.data.errorDescription !== 'undefined') {
+                        _this.rule = null;
+                    } else {
+                        _this.rule = res.data;
+                    }
+                    console.log("getRule", _this.rule.forgepool.reward.max);
+                }).catch(err => {
+                    console.log(err);
+                });
+
+
+                formData = new FormData();
+                // formData.append("createId",SSO.account);
+                _this.$http.post('/sharder?requestType=getPools', formData).then(function (res) {
+                    if (typeof res.data.errorDescription !== "undefined") {
+                        _this.$message.error(res.data.errorDescription);
+                        return;
+                    }
+                    console.log(res.data);
+                    _this.miningList = res.data.pools;
+                    _this.totalSize = _this.miningList.length;
+
+                }).catch(function (err) {
+                    console.log(err);
+                });
+
+
+                formData = new FormData();
+                _this.$http.post('/sharder?requestType=getNextBlockGenerators', formData).then(function (res) {
+                    if (typeof res.data.errorDescription !== "undefined") {
+                        _this.$message.error(res.data.errorDescription);
+                        return;
+                    }
+                    console.log("getNextBlockGenerators", res.data);
+
+                    _this.newestBlock = res.data;
+                    _this.newestBlockCreator = res.data.generators[0].accountRS;
+
+                }).catch(function (err) {
+                    console.log(err);
+                });
+
+                this.$http.get('/sharder?requestType=getBlocks', {
+                    params: {
+                        firstIndex: 0,
+                        lastIndex: 9
+                    }
+                }).then(function (res) {
+                    if (!res.data.errorDescription) {
+                        let len = res.data.blocks.length;
+                        _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.data.blocks[0].timestamp, res.data.blocks[len - 1].timestamp, len);
+                        console.log("avgBlocksTime", _this.avgBlocksTime);
+                    } else {
+                        _this.$message.error(res.data.errorDescription);
+                    }
+                }).catch(function (err) {
+                    _this.$message.error(err);
+                });
+
+                this.$http.get('/sharder?requestType=getAccount', {
+                    params: {
+                        account: SSO.accountRS,
+                        includeLessors: true,
+                        includeAssets: true,
+                        includeEffectiveBalance: true,
+                        includeCurrencies: true,
+
+                    }
+                }).then(function (res) {
+                    if (typeof res.data.errorDescription !== "undefined") {
+                        _this.$message.error(res.data.errorDescription);
+                        return;
+                    }
+                    _this.accountInfo = res.data;
+                }).catch(function (err) {
+
                 });
             },
         },
@@ -509,96 +614,15 @@
             let _this = this;
             if (!_this.$store.state.isLogin) {
                 window.token = window.location.search.substring(1 + "token".length);
-                console.info("token",token);
+                console.info("token", token);
                 _this.account();
+            } else {
+                _this.loginAfter();
             }
-
-            formData = new FormData();
-            formData.append("creatorId",SSO.account);
-            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
-
-                if(typeof res.data.errorDescription !== 'undefined'){
-                    _this.rule = null;
-                }else{
-                    _this.rule = res.data;
-                }
-                console.log("getRule",_this.rule.forgepool.reward.max);
-            }).catch(err=>{
-                console.log(err);
-            });
-
-
-            let formData = new FormData();
-            // formData.append("createId",SSO.account);
-            _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
-                if(typeof res.data.errorDescription !== "undefined"){
-                    _this.$message.error(res.data.errorDescription);
-                    return;
-                }
-                console.log(res.data);
-                _this.miningList = res.data.pools;
-                _this.totalSize = _this.miningList.length;
-
-            }).catch(function (err) {
-                console.log(err);
-            });
-
-
-
-            formData = new FormData();
-            _this.$http.post('/sharder?requestType=getNextBlockGenerators',formData).then(function (res) {
-                if(typeof res.data.errorDescription !== "undefined"){
-                    _this.$message.error(res.data.errorDescription);
-                    return;
-                }
-                console.log("getNextBlockGenerators",res.data);
-
-                _this.newestBlock = res.data;
-                _this.newestBlockCreator = res.data.generators[0].accountRS;
-
-            }).catch(function (err) {
-                console.log(err);
-            });
-
-            this.$http.get('/sharder?requestType=getBlocks', {
-                params: {
-                    firstIndex: 0,
-                    lastIndex: 9
-                }
-            }).then(function (res) {
-                if (!res.data.errorDescription) {
-                    let len = res.data.blocks.length;
-                    _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.data.blocks[0].timestamp, res.data.blocks[len-1].timestamp,len);
-                    console.log("avgBlocksTime",_this.avgBlocksTime);
-                } else {
-                    _this.$message.error(res.data.errorDescription);
-                }
-            }).catch(function (err) {
-                _this.$message.error(err);
-            });
-
-            this.$http.get('/sharder?requestType=getAccount', {
-                params: {
-                    account:SSO.accountRS,
-                    includeLessors: true,
-                    includeAssets: true,
-                    includeEffectiveBalance: true,
-                    includeCurrencies: true,
-
-                }
-            }).then(function (res) {
-                if(typeof res.data.errorDescription !== "undefined"){
-                    _this.$message.error(res.data.errorDescription);
-                    return;
-                }
-                _this.accountInfo = res.data;
-            }).catch(function(err){
-
-            });
         },
-        watch:{
-            getLang:{
-                handler:function(oldValue,newValue){
+        watch: {
+            getLang: {
+                handler: function (oldValue, newValue) {
                     const _this = this;
                     _this.options = [
                         {
@@ -619,11 +643,11 @@
                         }
                     ];
                 },
-                deep:true
+                deep: true
             }
         },
-        filters:{
-            getPercentage:function (val) {
+        filters: {
+            getPercentage: function (val) {
                 return parseFloat(val) * 100;
             }
         }
@@ -643,7 +667,6 @@
         width: 1200px !important;
         margin: auto;
     }
-
 
 
     .el-select-dropdown__item.selected, .el-pager li.active {
@@ -745,11 +768,12 @@
     .mining-back:hover {
         color: #513ac8aa;
     }
+
     .mining-list .el-select .el-input .el-select__caret {
         top: 0 !important;
     }
 
-    .en_mining .title .el-radio-button__inner{
+    .en_mining .title .el-radio-button__inner {
         width: 140px;
         padding: 12px 25px;
     }
@@ -893,7 +917,7 @@
         height: 14px;
     }
 
-    .mining-list .mining-list-null{
+    .mining-list .mining-list-null {
         text-align: center;
         margin-top: 20px;
     }
@@ -990,11 +1014,12 @@
     }
 
 
-    .en_mining .state .state-info{
+    .en_mining .state .state-info {
         width: 160px;
         font-size: 12px;
     }
-    .en_mining .state .state-info p:last-child{
+
+    .en_mining .state .state-info p:last-child {
         margin-top: 5px;
     }
 </style>
@@ -1092,14 +1117,16 @@
         background-color: #513ac8aa;
     }
 
-    .en_mining .content-left span.strong{
-        font-size:24px;
+    .en_mining .content-left span.strong {
+        font-size: 24px;
     }
-    .en_mining .reward-content-div .content-right button{
+
+    .en_mining .reward-content-div .content-right button {
         padding: 0;
     }
-    .en_mining .reward .reward-title{
-        font-size:14px;
+
+    .en_mining .reward .reward-title {
+        font-size: 14px;
         text-align: left;
         padding: 10px 20px;
     }
@@ -1281,8 +1308,8 @@
         background-color: #513ac810;
     }
 
-    .en_mining .pool-data .strong{
-        font-size:12px;
+    .en_mining .pool-data .strong {
+        font-size: 12px;
     }
 </style>
 <!--钱包内置兼容-->
@@ -1393,15 +1420,14 @@
         }
 
         .mining .mining-content .state .state-info {
-            /*width: 130px;*/
-            height: 45px;
+            left: calc(50% - 70px);
             font-size: 12px;
-            position: relative;
-            top: 80px;
-            text-align: center;
+            position: absolute;
+            top: 100px;
         }
+
         .en_mining .mining-content .state .state-info {
-            height:60px;
+            height: 60px;
             width: 130px;
         }
 
@@ -1409,7 +1435,7 @@
             margin-left: 15px;
         }
 
-        .ranking-content .ranking-table{
+        .ranking-content .ranking-table {
             font-size: 12px;
         }
 
@@ -1689,6 +1715,15 @@
             border-bottom-right-radius: 6px;
             text-align: center;
             color: #fff;
+        }
+
+        .main-content .mining-notice .notice-img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .main-content .mining-notice .notice-info {
+            font-size: 10px;
         }
 
     }
