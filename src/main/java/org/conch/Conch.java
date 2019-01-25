@@ -118,20 +118,17 @@ public final class Conch {
      */
     public static class PresetParam {
         public static final int DEFAULT_PEER_PORT=3218;
-        public static final int DEFAULT_UI_SERVER_PORT=2875;
         public static final int DEFAULT_API_PORT=8215;
         public static final int DEFAULT_API_SSL_PORT=8217;
         
         public Constants.Network network;
         public int peerPort;
-        public int uiServerPort;
         public int apiPort;
         public int apiSSLPort;
 
-        public PresetParam(Constants.Network network, int peerPort, int uiServerPort, int apiPort, int apiSSLPort) {
+        public PresetParam(Constants.Network network, int peerPort, int apiPort, int apiSSLPort) {
             this.network = network;
             this.peerPort = peerPort;
-            this.uiServerPort = uiServerPort;
             this.apiPort = apiPort;
             this.apiSSLPort = apiSSLPort;
         }
@@ -140,9 +137,9 @@ public final class Conch {
         static {
             //preset params
             presetMap.clear();
-            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 2875, 9215, 9217));
-            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 8218, 2875, 8215, 8217));
-            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 2875, 3215, 3217));
+            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 9215, 9217));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 8218, 8215, 8217));
+            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 3215, 3217));
         }
         
         public static void print(){
@@ -159,11 +156,11 @@ public final class Conch {
             PresetParam presetParam = presetMap.get(network);
             return presetParam != null ?  presetParam.peerPort : DEFAULT_PEER_PORT;
         }
-        
-        public static int getUiPort(Constants.Network network){
-            PresetParam presetParam = presetMap.get(network);
-            return presetParam != null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
-        }
+//        
+//        public static int getUiPort(Constants.Network network){
+//            PresetParam presetParam = presetMap.get(network);
+//            return presetParam != null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
+//        }
         
         public static int getApiPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
@@ -186,10 +183,10 @@ public final class Conch {
         return PresetParam.getPeerPort(Constants.getNetwork());
     }
     
-    public static int getUiPort(){
-//        return Conch.getIntProperty("sharder.uiServerPort");
-        return PresetParam.getUiPort(Constants.getNetwork());
-    }
+//    public static int getUiPort(){
+////        return Conch.getIntProperty("sharder.uiServerPort");
+//        return PresetParam.getUiPort(Constants.getNetwork());
+//    }
     
     public static int getApiPort(){
 //        return Conch.getIntProperty("sharder.apiServerPort");
