@@ -70,8 +70,8 @@
                                     <td>{{peer.uploadedVolume | formatByte}}</td>
                                     <td><span class="patch">{{peer.application}}&nbsp;{{peer.version}}</span></td>
                                     <td>{{peer.platform}}</td>
-                                    <td class="linker tl pl30 ">
-                                        <div v-for="service in peer.services">
+                                    <td class="linker ">
+                                        <span v-for="service in peer.services">
                                             <el-tooltip class="item" placement="top" effect="light" v-if="service === 'HALLMARK'" content="标记节点">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
@@ -103,7 +103,7 @@
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
 
-                                        </div>
+                                        </span>
 
 
                                     </td>

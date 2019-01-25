@@ -1759,8 +1759,12 @@
         mounted() {
             const _this = this;
 
-            setInterval(()=>{
-                _this.getAccountTransactionList();
+            let periodicTransactions = setInterval(()=>{
+                if(_this.$route.path === '/account'){
+                    _this.getAccountTransactionList();
+                }else{
+                    clearInterval(periodicTransactions);
+                }
             },4000);
 
             $('#receiver').on("blur",function() {

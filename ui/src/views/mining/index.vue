@@ -513,7 +513,7 @@
                 _this.account();
             }
 
-            formData = new FormData();
+            let formData = new FormData();
             formData.append("creatorId",SSO.account);
             this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
 
@@ -528,7 +528,7 @@
             });
 
 
-            let formData = new FormData();
+            formData = new FormData();
             // formData.append("createId",SSO.account);
             _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
                 if(typeof res.data.errorDescription !== "undefined"){
@@ -579,7 +579,7 @@
 
             this.$http.get('/sharder?requestType=getAccount', {
                 params: {
-                    account:SSO.accountRS,
+                    account:SSO.account,
                     includeLessors: true,
                     includeAssets: true,
                     includeEffectiveBalance: true,
