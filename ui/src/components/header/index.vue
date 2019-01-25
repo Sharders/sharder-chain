@@ -131,7 +131,7 @@
                 isRouter: true,
                 placeholder: this.$t('header.search'),
                 activeSearch: false,
-                blockchainStatus:this.$global.blockchainState,
+                blockchainStatus:"",
                 secretPhrase:SSO.secretPhrase,
                 adminPassword:'',
                 accountRS:SSO.accountRS,
@@ -211,8 +211,6 @@
                 _this.$message.error(err);
                 console.error(err);
             });
-
-
         },
         mounted(){
             let _this = this;
@@ -237,7 +235,7 @@
                 const _this = this;
                 // if(_this.i%30 === 0){
                     _this.$global.setBlockchainState(_this).then(res=>{
-                        _this.blockchainState = res;
+                        _this.blockchainStatus = res.data;
                         /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
                         }*/
@@ -374,9 +372,6 @@
             },
         },
         watch:{
-            blockchainState:function (res) {
-                // console.log(res);
-            },
             selectLan:function (language) {
                 const _this = this;
                 for(let i=0;i<_this.language.length;i++){

@@ -143,7 +143,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination" v-if="totalSize > pageSize">
+                    <div class="list_pagination">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -218,10 +218,12 @@
                     console.log("blocklist", _this.blocklist);
                     // _this.calcAverageAmount(res);
 
-                    _this.newestHeight = res.data.blocks[0].height;
-                    _this.coinbaseCount = _this.newestHeight;
-                    _this.totalSize = res.data.blocks[0].height;
-                    _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                    if(_this.currentPage === 1){
+                        _this.totalSize = res.data.blocks[0].height;
+                        _this.coinbaseCount = _this.newestHeight;
+                        _this.newestHeight = res.data.blocks[0].height;
+                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                    }
                 } else {
                     _this.$message.error(res.data.errorDescription);
                 }
@@ -235,6 +237,7 @@
                 console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+                console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
             }).catch(function (err) {
                 console.error("error", err);
@@ -576,27 +579,33 @@
         mounted() {
             let _this = this;
             this.drawPeers();
-            setInterval(()=>{
-                this.$http.get('/sharder?requestType=getBlocks', {
-                    params: {
-                        firstIndex: (_this.currentPage - 1) * 10,
-                        lastIndex: _this.currentPage * 10 - 1
-                    }
-                }).then(function (res) {
-                    if (!res.data.errorDescription) {
-                        _this.blocklist = res.data.blocks;
+            let periodicBlocks = setInterval(()=>{
+                if(_this.$route.path === '/network'){
+                    this.$http.get('/sharder?requestType=getBlocks', {
+                        params: {
+                            firstIndex: (_this.currentPage - 1) * 10,
+                            lastIndex: _this.currentPage * 10 - 1
+                        }
+                    }).then(function (res) {
+                        if (!res.data.errorDescription) {
+                            _this.blocklist = res.data.blocks;
 
-                        _this.newestHeight = res.data.blocks[0].height;
-                        _this.coinbaseCount = _this.newestHeight;
-                        _this.totalSize = res.data.blocks[0].height;
-                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
-                    } else {
-                        _this.$message.error(res.data.errorDescription);
-                    }
+                            if(_this.currentPage === 1){
+                                _this.totalSize = res.data.blocks[0].height;
+                                _this.coinbaseCount = _this.newestHeight;
+                                _this.newestHeight = res.data.blocks[0].height;
+                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                            }
+                        } else {
+                            _this.$message.error(res.data.errorDescription);
+                        }
 
-                }).catch(function (err) {
-                    _this.$message.error(err);
-                });
+                    }).catch(function (err) {
+                        _this.$message.error(err);
+                    });
+                }else{
+                    clearInterval(periodicBlocks);
+                }
             },5000);
         },
     };
