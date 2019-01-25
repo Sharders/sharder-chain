@@ -106,21 +106,21 @@ public final class Conch {
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
     private static final String SHARDER_FOUNDATION_TEST_URL = "localhost";
     private static final String UPGRADE_SERVER = "https://resource.sharder.io";
-    
-    
-    public static String getSharderFoundationURL(){
+
+
+    public static String getSharderFoundationURL() {
         return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
-    } 
-    
+    }
+
     /**
      * Preset parameters
      */
     public static class PresetParam {
-        public static final int DEFAULT_PEER_PORT=3218;
-        public static final int DEFAULT_UI_SERVER_PORT=2875;
-        public static final int DEFAULT_API_PORT=8215;
-        public static final int DEFAULT_API_SSL_PORT=8217;
-        
+        public static final int DEFAULT_PEER_PORT = 3218;
+        public static final int DEFAULT_UI_SERVER_PORT = 2875;
+        public static final int DEFAULT_API_PORT = 8215;
+        public static final int DEFAULT_API_SSL_PORT = 8217;
+
         public Constants.Network network;
         public int peerPort;
         public int uiServerPort;
@@ -135,75 +135,77 @@ public final class Conch {
             this.apiSSLPort = apiSSLPort;
         }
 
-        private static Map<Constants.Network,PresetParam> presetMap = new ConcurrentHashMap<>();
+        private static Map<Constants.Network, PresetParam> presetMap = new ConcurrentHashMap<>();
+
         static {
             //preset params
             presetMap.clear();
-            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET,9218,9875,9215,9217));
-            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET,3218,2875,8215,8217));
+            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 9875, 9215, 9217));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 3218, 2875, 8215, 8217));
         }
-        
-        public static void print(){
-            if(presetMap == null || presetMap.size() == 0)  System.out.println("preset param map is null, nothing is preset!");
+
+        public static void print() {
+            if (presetMap == null || presetMap.size() == 0)
+                System.out.println("preset param map is null, nothing is preset!");
 
             Set<Constants.Network> networkSet = presetMap.keySet();
             System.out.println("preset param as following:");
-            for(Constants.Network network : networkSet){
+            for (Constants.Network network : networkSet) {
                 System.out.println(presetMap.get(network).toString());
             }
         }
-        
-        public static int getPeerPort(Constants.Network network){
+
+        public static int getPeerPort(Constants.Network network) {
             PresetParam presetParam = presetMap.get(network);
-            return presetParam != null ?  presetParam.peerPort : DEFAULT_PEER_PORT;
+            return presetParam != null ? presetParam.peerPort : DEFAULT_PEER_PORT;
         }
-        
-        public static int getUiPort(Constants.Network network){
+
+        public static int getUiPort(Constants.Network network) {
             PresetParam presetParam = presetMap.get(network);
-            return presetParam != null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
+            return presetParam != null ? presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
         }
-        
-        public static int getApiPort(Constants.Network network){
+
+        public static int getApiPort(Constants.Network network) {
             PresetParam presetParam = presetMap.get(network);
-            return presetParam != null ?  presetParam.apiPort : DEFAULT_API_PORT;
+            return presetParam != null ? presetParam.apiPort : DEFAULT_API_PORT;
         }
-        
-        public static int getApiSSLPort(Constants.Network network){
+
+        public static int getApiSSLPort(Constants.Network network) {
             PresetParam presetParam = presetMap.get(network);
-            return presetParam != null ?  presetParam.apiSSLPort : DEFAULT_API_SSL_PORT;
+            return presetParam != null ? presetParam.apiSSLPort : DEFAULT_API_SSL_PORT;
         }
-        
+
         @Override
         public String toString() {
             return ToStringBuilder.reflectionToString(this);
         }
     }
-    
-    public static int getPeerPort(){
-        if(Constants.isDevnet()) return PresetParam.getPeerPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getPeerPort(Constants.Network.TESTNET);
-        
+
+    public static int getPeerPort() {
+        if (Constants.isDevnet()) return PresetParam.getPeerPort(Constants.Network.DEVNET);
+        if (Constants.isTestnet()) return PresetParam.getPeerPort(Constants.Network.TESTNET);
+
         return Conch.getIntProperty("sharder.peerServerPort");
     }
-    
-    public static int getUiPort(){
-        if(Constants.isDevnet()) return PresetParam.getUiPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getUiPort(Constants.Network.TESTNET);
-        
+
+    public static int getUiPort() {
+        if (Constants.isDevnet()) return PresetParam.getUiPort(Constants.Network.DEVNET);
+        if (Constants.isTestnet()) return PresetParam.getUiPort(Constants.Network.TESTNET);
+
         return Conch.getIntProperty("sharder.uiServerPort");
     }
-    
-    public static int getApiPort(){
-        if(Constants.isDevnet()) return PresetParam.getApiPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getApiPort(Constants.Network.TESTNET);
-        
+
+    public static int getApiPort() {
+        if (Constants.isDevnet()) return PresetParam.getApiPort(Constants.Network.DEVNET);
+        if (Constants.isTestnet()) return PresetParam.getApiPort(Constants.Network.TESTNET);
+
         return Conch.getIntProperty("sharder.apiServerPort");
     }
-    
-    public static int getApiSSLPort(){
-        if(Constants.isDevnet()) return PresetParam.getApiSSLPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getApiSSLPort(Constants.Network.TESTNET);
-        
+
+    public static int getApiSSLPort() {
+        if (Constants.isDevnet()) return PresetParam.getApiSSLPort(Constants.Network.DEVNET);
+        if (Constants.isTestnet()) return PresetParam.getApiSSLPort(Constants.Network.TESTNET);
+
         return Conch.getIntProperty("sharder.apiServerSSLPort");
     }
 
@@ -220,11 +222,11 @@ public final class Conch {
         loadProperties(DEFAULT_PROPERTIES, CONCH_DEFAULT_PROPERTIES, true);
 
         PresetParam.print();
-        
+
     }
 
 
-    public static String getMyAddress(){
+    public static String getMyAddress() {
         return myAddress;
     }
 
@@ -277,7 +279,7 @@ public final class Conch {
     public static final int NAT_SERVICE_PORT = Conch.getIntProperty("sharder.NATServicePort");
     static final String NAT_CLIENT_KEY = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
 
-    public static boolean getUseNATService(){
+    public static boolean getUseNATService() {
         return useNATService;
     }
 
@@ -289,10 +291,9 @@ public final class Conch {
         try {
             if (useNATService) {
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
-                
-                if(natCmdFile.exists()){
+                if (natCmdFile.exists()) {
                     StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
-                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
+                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null ? addressHost(myAddress) : NAT_SERVICE_ADDRESS)
                             .append(" -p ").append(NAT_SERVICE_PORT)
                             .append(" -k ").append(NAT_CLIENT_KEY);
                     Process process = Runtime.getRuntime().exec(cmd.toString());
@@ -304,22 +305,22 @@ public final class Conch {
                     errorGobbler.start();
                     outputGobbler.start();
 
-                    if(SystemUtils.IS_OS_UNIX) {
+                    if (SystemUtils.IS_OS_UNIX) {
                         Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
                         InputStreamReader isr = new InputStreamReader(findName.getInputStream());
                         BufferedReader br = new BufferedReader(isr);
-                        if (br.readLine() == null){
+                        if (br.readLine() == null) {
                             Logger.logInfoMessage("Open NAT Client Auto Start");
                             Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
                         }
                         Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
-                    }else if(SystemUtils.IS_OS_WINDOWS){
+                    } else if (SystemUtils.IS_OS_WINDOWS) {
                         //TODO windows support, set the as a msc.service
                     }
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
                     Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
-                }else{
+                } else {
                     Logger.logWarningMessage("!!! useNatService is true but command file not exist");
                 }
             }
@@ -327,7 +328,7 @@ public final class Conch {
             useNATService = false;
             Logger.logErrorMessage("NAT Client execute Error", e);
         }
-
+        useNATService =true;
     }
 
     public static int addressPort(String address) {
@@ -354,7 +355,7 @@ public final class Conch {
         try {
             output = new FileOutputStream("conf/" + CONCH_PROPERTIES);
             LocalDateTime now = LocalDateTime.now();
-            userProperties.store(output , "Updated by HubConfig Manager " + now.toString());
+            userProperties.store(output, "Updated by HubConfig Manager " + now.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -401,7 +402,7 @@ public final class Conch {
                         System.out.printf("Creating dir %s\n", homeDir);
                         try {
                             Files.createDirectory(Paths.get(homeDir));
-                        } catch(Exception e) {
+                        } catch (Exception e) {
                             if (!(e instanceof NoSuchFileException)) {
                                 throw e;
                             }
@@ -429,7 +430,7 @@ public final class Conch {
                     throw new IllegalArgumentException("Error loading " + propertiesFile, e);
                 }
             }
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             e.printStackTrace(); // make sure we log this exception
             throw e;
         }
@@ -474,7 +475,7 @@ public final class Conch {
 
     public static String getStringProperty(String name, String defaultValue, boolean doNotLog) {
         String value = properties.getProperty(name);
-        if (value != null && ! "".equals(value)) {
+        if (value != null && !"".equals(value)) {
             Logger.logMessage(name + " = \"" + (doNotLog ? "{not logged}" : value) + "\"");
             return value;
         } else {
@@ -524,7 +525,7 @@ public final class Conch {
     }
 
     public static Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline, Attachment attachment) {
-        return new TransactionImpl.BuilderImpl((byte)1, senderPublicKey, amountNQT, feeNQT, deadline, (Attachment.AbstractAttachment)attachment);
+        return new TransactionImpl.BuilderImpl((byte) 1, senderPublicKey, amountNQT, feeNQT, deadline, (Attachment.AbstractAttachment) attachment);
     }
 
     public static Transaction.Builder newTransactionBuilder(byte[] transactionBytes) throws ConchException.NotValidException {
@@ -600,10 +601,10 @@ public final class Conch {
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
-                
+
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
-                
+
                 Account.init();
                 AccountRestrictions.init();
                 AccountLedger.init();
@@ -654,27 +655,28 @@ public final class Conch {
                     setTime(new Time.FasterTime(Math.max(getEpochTime(), Conch.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
                     Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
                 }
-                
+
                 try {
                     secureRandomInitThread.join(10000);
-                } catch (InterruptedException ignore) {}
-                
+                } catch (InterruptedException ignore) {
+                }
+
                 testSecureRandom();
                 autoMining();
-                
+
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
-                
+
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
-                
+
                 if (isDesktopApplicationEnabled()) launchDesktopApplication();
-                
+
                 if (Constants.isTestnet()) Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
-                
+
                 if (Constants.isDevnet()) Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
 
 
@@ -695,64 +697,65 @@ public final class Conch {
             initialized = true;
         }
 
-        private Init() {} // never
+        private Init() {
+        } // never
 
     }
 
     /**
-     * Auto mining of Hub or Miner 
+     * Auto mining of Hub or Miner
      */
-    private static void autoMining(){
-        if(getBlockchain().getHeight() < 0) {
+    private static void autoMining() {
+        if (getBlockchain().getHeight() < 0) {
             Logger.logWarningMessage("!!! current height <= 0, need syn blocks or wait genesis block be saved into db");
             Logger.logWarningMessage("!!! you can restart the client after genesis block created");
             return;
         }
-        
+
         // [Hub Miner] if owner bind the passphrase then start mine automatic
         Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
         String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
         String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
         if (hubBind && hubBindPassPhrase != null) {
             Generator hubGenerator = Generator.ownerMining(hubBindPassPhrase.trim());
-            if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(hubBindAddress))) {
+            if (hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(hubBindAddress))) {
                 Generator.stopMining(hubBindPassPhrase.trim());
                 Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
             } else {
                 Logger.logInfoMessage("Account " + hubBindAddress + " started mining...");
             }
-        }else {
+        } else {
             // [Normal Miner] if owner set the passphrase of mint then start mining
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
-            if(autoMintPR != null) {
+            if (autoMintPR != null) {
                 Generator bindGenerator = Generator.ownerMining(autoMintPR.trim());
                 Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
             }
         }
-        
-        if(Generator.MAX_MINERS > 0) {
+
+        if (Generator.MAX_MINERS > 0) {
             // open miner service
             Peers.checkAndAddOpeningServices(Lists.newArrayList(Peer.Service.MINER));
         }
     }
 
     private static void setSystemProperties() {
-      // Override system settings that the user has define in sharder.properties file.
-      String[] systemProperties = new String[] {
-        "socksProxyHost",
-        "socksProxyPort",
-      };
+        // Override system settings that the user has define in sharder.properties file.
+        String[] systemProperties = new String[]{
+                "socksProxyHost",
+                "socksProxyPort",
+        };
 
-      for (String propertyName : systemProperties) {
-        String propertyValue;
-        if ((propertyValue = getStringProperty(propertyName)) != null) {
-          System.setProperty(propertyName, propertyValue);
+        for (String propertyName : systemProperties) {
+            String propertyValue;
+            if ((propertyValue = getStringProperty(propertyName)) != null) {
+                System.setProperty(propertyName, propertyValue);
+            }
         }
-      }
     }
 
     private static void logSystemProperties() {
-        String[] loggedProperties = new String[] {
+        String[] loggedProperties = new String[]{
                 "java.version",
                 "java.vm.version",
                 "java.vm.name",
@@ -796,7 +799,8 @@ public final class Conch {
                 throw new RuntimeException("SecureRandom implementation too slow!!! " +
                         "Install haveged if on linux, or set sharder.useStrongSecureRandom=false.");
             }
-        } catch (InterruptedException ignore) {}
+        } catch (InterruptedException ignore) {
+        }
     }
 
     public static String getProcessId() {
@@ -839,11 +843,12 @@ public final class Conch {
         runtimeMode.launchDesktopApplication();
     }
 
-    private Conch() {} // never
+    private Conch() {
+    } // never
 
 
     public static Thread fetchUpgradePackageThread(String version) {
-        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
+        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version + ".zip";
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         Thread fetchUpgradePackageThread = new Thread(
@@ -867,7 +872,7 @@ public final class Conch {
     }
 
     public static void fetchUpgradePackage(String version) throws IOException {
-        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
+        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version + ".zip";
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         if (!archive.exists()) {
@@ -879,19 +884,21 @@ public final class Conch {
             // TODO[Enh] support windows command
             Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
         } catch (Exception e) {
-            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);
+            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/", e);
         }
     }
 
     public static String fetchLastestHubVersion() throws IOException {
         String url = UPGRADE_SERVER + "/sharder-hub/release/lastest-version";
-        return Https.httpRequest(url,"GET", null);
+        return Https.httpRequest(url, "GET", null);
     }
 
     // [NAT] init HubConfig or reconfiged restart the application itself
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
+
     /**
      * Restart the current Java application
+     *
      * @param runBeforeRestart some code to be run before restarting
      * @throws IOException
      */
@@ -943,7 +950,7 @@ public final class Conch {
                 }
             });
             // execute some custom code before restarting
-            if (runBeforeRestart!= null) {
+            if (runBeforeRestart != null) {
                 runBeforeRestart.run();
             }
             // exit
@@ -958,12 +965,14 @@ public final class Conch {
     /**
      * Full version format is : version number - stage
      * e.g. 0.0.1-Beta or 0.0.1-Alpha
+     *
      * @return
      */
-    public static String getFullVersion(){
+    public static String getFullVersion() {
         return VERSION + STAGE;
     }
-    public static String getVersion(){
+
+    public static String getVersion() {
         return VERSION;
     }
 
