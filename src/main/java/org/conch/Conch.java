@@ -110,8 +110,9 @@ public final class Conch {
     
     public static String getSharderFoundationURL(){
         return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
-    } 
-    
+    }
+
+
     /**
      * Preset parameters
      */
@@ -139,8 +140,9 @@ public final class Conch {
         static {
             //preset params
             presetMap.clear();
-            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET,9218,9875,9215,9217));
-            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET,3218,2875,8215,8217));
+            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 2875, 9215, 9217));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 8218, 2875, 8215, 8217));
+            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 2875, 3215, 3217));
         }
         
         public static void print(){
@@ -180,31 +182,23 @@ public final class Conch {
     }
     
     public static int getPeerPort(){
-        if(Constants.isDevnet()) return PresetParam.getPeerPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getPeerPort(Constants.Network.TESTNET);
-        
-        return Conch.getIntProperty("sharder.peerServerPort");
+//        return Conch.getIntProperty("sharder.peerServerPort");
+        return PresetParam.getPeerPort(Constants.getNetwork());
     }
     
     public static int getUiPort(){
-        if(Constants.isDevnet()) return PresetParam.getUiPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getUiPort(Constants.Network.TESTNET);
-        
-        return Conch.getIntProperty("sharder.uiServerPort");
+//        return Conch.getIntProperty("sharder.uiServerPort");
+        return PresetParam.getUiPort(Constants.getNetwork());
     }
     
     public static int getApiPort(){
-        if(Constants.isDevnet()) return PresetParam.getApiPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getApiPort(Constants.Network.TESTNET);
-        
-        return Conch.getIntProperty("sharder.apiServerPort");
+//        return Conch.getIntProperty("sharder.apiServerPort");
+        return PresetParam.getApiPort(Constants.getNetwork());
     }
     
     public static int getApiSSLPort(){
-        if(Constants.isDevnet()) return PresetParam.getApiSSLPort(Constants.Network.DEVNET);
-        if(Constants.isTestnet()) return PresetParam.getApiSSLPort(Constants.Network.TESTNET);
-        
-        return Conch.getIntProperty("sharder.apiServerSSLPort");
+//        return Conch.getIntProperty("sharder.apiServerSSLPort");
+        return PresetParam.getApiSSLPort(Constants.getNetwork());
     }
 
 
