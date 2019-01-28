@@ -188,15 +188,6 @@ public final class BlockImpl implements Block {
         }
     }
 
-    //just for genesis block
-    public BlockImpl(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
-              byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
-        this(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
-       generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
-        this.id= blockId;
-    }
-
-
     public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
               byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id,
@@ -219,6 +210,15 @@ public final class BlockImpl implements Block {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 generatorId, generationSignature, blockSignature, previousBlockHash,cumulativeDifficulty,baseTarget,nextBlockId,height,id,blockTransactions);
         this.extension = extension;
+    }
+
+    //just for genesis block
+    public static BlockImpl newGenesisBlock(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+                     byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
+        BlockImpl block = new BlockImpl(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
+                generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
+        block.id= blockId;
+        return block;
     }
 
     @Override

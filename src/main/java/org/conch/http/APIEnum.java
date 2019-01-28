@@ -225,7 +225,7 @@ public enum APIEnum {
     SIGN_TRANSACTION("signTransaction", SignTransaction.instance),
     START_FORGING("startForging", StartForging.instance),
     STOP_FORGING("stopMining", StopForging.instance),
-    GET_FORGING("getForging", GetForging.instance),
+    GET_FORGING("getForging", GetMiners.instance),
     TRANSFER_ASSET("transferAsset", TransferAsset.instance),
     TRANSFER_CURRENCY("transferCurrency", TransferCurrency.instance),
     CAN_DELETE_CURRENCY("canDeleteCurrency", CanDeleteCurrency.instance),

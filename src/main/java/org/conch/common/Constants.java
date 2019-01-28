@@ -333,14 +333,16 @@ public final class Constants {
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
     
+    private static int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap"));
     private static int getBlockGapSeconds(){
-        int gap = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap"));
+        int gap = blockGapInProperties;
         if(gap < 1) gap = 1;
         // convert to second
         return (gap - 1) * 60;
     }
-    
-    
+
+
+    private static String networkInProperties = Conch.getStringProperty("sharder.network");
     /**
      * Read network definition from environment firstly.
      * Then read the definition from properties file.
@@ -351,7 +353,7 @@ public final class Constants {
         String networkInEnv = System.getProperty(RuntimeEnvironment.NETWORK_ARG);
         if (StringUtils.isNotBlank(networkInEnv)) return networkInEnv;
 
-        return Conch.getStringProperty("sharder.network");
+        return networkInProperties;
     }
 
     public static final String SHARDER_HUB_BINDADDRESS = "sharder.HubBindAddress";

@@ -73,6 +73,7 @@ public class PocProcessorImpl implements PocProcessor {
      * @return
      */
     static BigInteger getPocScore(int height,long accountId) {
+      if(height < 0) height = 0;
       if (!scoreMap.containsKey(accountId)) {
         if(Conch.getBlockchain().getHeight() < height) {
           synPocTxNow = true;

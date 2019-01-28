@@ -131,8 +131,7 @@ public class SharderGenesis {
             payloadHash = digest.digest();
         }
 
-        BlockImpl genesisBlock =
-                new BlockImpl(
+        BlockImpl genesisBlock = BlockImpl.newGenesisBlock(
                         SharderGenesis.GENESIS_BLOCK_ID,
                         -1,
                         0,

@@ -35,11 +35,11 @@ import static org.conch.http.JSONResponses.NOT_FORGING;
 import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 
-public final class GetForging extends APIServlet.APIRequestHandler {
+public final class GetMiners extends APIServlet.APIRequestHandler {
 
-    static final GetForging instance = new GetForging();
+    static final GetMiners instance = new GetMiners();
 
-    private GetForging() {
+    private GetMiners() {
         super(new APITag[] {APITag.FORGING}, "secretPhrase", "adminPassword");
     }
 
@@ -62,6 +62,7 @@ public final class GetForging extends APIServlet.APIRequestHandler {
             API.verifyPassword(req);
             JSONObject response = new JSONObject();
             JSONArray generators = new JSONArray();
+            //TODO mark the type of generator based on node type
             Generator.getSortedMiners().forEach(generator -> generators.add(JSONData.generator(generator, elapsedTime)));
             response.put("generators", generators);
             return response;

@@ -531,7 +531,7 @@ public final class Conch {
     }
 
     /**
-     * @return 当前时间距离创世的秒数
+     * @return current time - beginning time (unit is second)
      */
     public static int getEpochTime() {
         return time.getTime();
