@@ -223,7 +223,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
                     </div>
                 </div>
             </div>
@@ -274,11 +274,12 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
                     </div>
                 </div>
             </div>
         </div>
+        <!--view hub init setting dialog-->
         <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
             <div class="modal-header">
                 <h4 class="modal-title">
@@ -326,12 +327,12 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
-        <!--view tranfer account dialog-->
+        <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
@@ -387,8 +388,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
@@ -818,9 +819,8 @@
                 }else{
                     formData.append("sharder.HubBind",false);
                 }
-                formData.append("restart",false);
                 formData.append("sharder.disableAdminPassword",false);
-
+                formData.append("restart",true);
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
@@ -834,20 +834,33 @@
             },
             verifyHubSetting:function(){
                 const _this = this;
-                let formData = _this.verifyHubSettingInfo();
+                let formData = new FormData();
+                formData.append("username",_this.hubsetting.sharderAccount);
+                formData.append("password",_this.hubsetting.sharderPwd);
+                _this.$http.post('/bounties/hubDirectory/check/confirm.ss',formData).then(res2 => {
+                    if(typeof res2.data.errorDescription === 'undefined') {
+                        _this.hubSettingDialog = false;
+                        _this.$store.state.mask = false;
+                        _this.$router.push("/login");
+                    }else{
+                        _this.$message.error(res2.data.errorDescription);
+                    }
+                });
+                formData = _this.verifyHubSettingInfo();
                 if(formData === false){
                     return;
                 }else{
                     formData.append("isInit",true);
+
                 }
-                this.$http.post('/sharder?requestType=reConfig', formData).then(res => {
-                    if(typeof res.data.errorDescription === 'undefined'){
+                this.$http.post('/sharder?requestType=reConfig', formData).then(res1 => {
+                    if(typeof res1.data.errorDescription === 'undefined'){
                         _this.$message.success(_this.$t('notification.restart_success'));
-                        _this.hubSettingDialog = false;
-                        this.$store.state.mask = false;
-                        this.$router.push("/login");
+
+                        formData = new FormData();
+
                     }else{
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res1.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -1900,31 +1913,14 @@
         height: 20px;
     }
 
-    .writeBtn{
-        background:#fff;
-        color:#493eda;
-        border: 1px solid #493eda;
-        svg {
-            fill: #493eda;
-        }
-        &:hover{
-            background: #493eda;
-            color:#fff;
-            border: none;
-            transition: .4s;
-            svg {
-                fill: #fff;
-                transition: .4s;
-            }
-        }
-    }
+
 
 
     .modal_hubSetting{
         width: 800px!important;
     }
     .modal_hubSetting .modal-header .modal-title{
-        margin: 0!important;
+        /*margin: 0!important;*/
     }
     .modal_hubSetting .modal-body{
         padding: 20px 40px 60px!important;

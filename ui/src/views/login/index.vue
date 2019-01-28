@@ -11,7 +11,7 @@
                        :placeholder="$t('login.login_placeholder')"/>
                 <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
                               mask="AAA-****-****-****-*****" :placeholder="$t('login.sharder_account')" />
-                <el-button class="common_btn" @click="login">{{$t('login.login')}}</el-button>
+                <el-button class="common_btn writeBtn" @click="login">{{$t('login.login')}}</el-button>
             </el-col>
 
             <el-col :span="24">
