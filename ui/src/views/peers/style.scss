@@ -31,7 +31,12 @@
                 }
             }
             &:nth-child(6){
-                width: 100px;
+                width: 100%;
+                display: inline-block;
+                line-height: 40px;
+                >span{
+                    display: inline-block;
+                }
             }
         }
     }

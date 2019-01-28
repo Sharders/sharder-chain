@@ -168,22 +168,23 @@ public class GetNodeHardware {
 
     public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
 
+    /**
+     * 汇报性能测试，以及更新节点信息中的绑定用户
+     * <p>
+     * 汇报前需要检查是否使用了穿透服务（NAT）
+     * 若使用了NAT，则address设置为穿透服务的。
+     * 若没有使用NAT,则address设置为本机地址
+     *
+     * @return true成功，false失败
+     */
     public static boolean readAndReport() {
-        //提交系统配置信息
+        boolean result = false;
         SystemInfo systemInfo = new SystemInfo();
-        /*
-        汇报前需要检查是否使用了穿透服务（NAT）
-        若使用了NAT，则address设置为穿透服务的。
-        若没有使用NAT,则address设置为本机地址
-         */
-        boolean useNat = Conch.getUseNATService();
         String myAddress = Conch.getMyAddress();
         String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
         Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
         String bindRs = Optional.ofNullable(Conch.HUB_BIND_ADDRESS).orElse("");
-        if (useNat) {
-            systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
-        }
+        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
 
         try {
             cpu(systemInfo);
@@ -193,23 +194,37 @@ public class GetNodeHardware {
             txPerformance(systemInfo);
             openingServices(systemInfo);
 
-            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
-                    .post()
-                    .body(systemInfo)
-                    .request();
-            String result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS)).map(Object::toString).orElse("false");
-            System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL + "] ===>");
-            System.out.println(systemInfo.toString());
-            if (Boolean.TRUE.toString().equalsIgnoreCase(result)) {
-                System.out.println("<=== success to report hardware performance");
-                return true;
-            } else {
-                System.out.println("<=== failed to report hardware performance");
-                return false;
-            }
+            result = hardwareReport(systemInfo);
 
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("<=== failed to report hardware performance");
+            return false;
+        }
+    }
+
+    /**
+     * 性能测试报告
+     *
+     * @param systemInfo 性能信息
+     * @return true报告成功，false失败
+     * @throws IOException 请求异常
+     */
+    private static Boolean hardwareReport(SystemInfo systemInfo) throws IOException {
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
+                .post()
+                .body(systemInfo)
+                .request();
+        Boolean result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS))
+                .map(Object::toString).map(Boolean::valueOf).orElse(Boolean.FALSE);
+        System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL + "] ===>");
+        System.out.println(systemInfo.toString());
+        if (result) {
+            System.out.println("<=== success to report hardware performance");
+            return true;
+        } else {
+            System.out.println("<=== failed to report hardware performance");
             return false;
         }
     }

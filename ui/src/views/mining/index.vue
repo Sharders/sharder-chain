@@ -524,9 +524,9 @@
             loginAfter() {
                 let _this = this;
 
-                let formData = new FormData();
-                formData.append("creatorId", SSO.account);
-                this.$http.post('/sharder?requestType=getPoolRule', formData).then(res => {
+            formData = new FormData();
+            formData.append("creatorId",SSO.account);
+            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
 
                     if (typeof res.data.errorDescription !== 'undefined') {
                         _this.rule = null;
@@ -539,16 +539,16 @@
                 });
 
 
-                formData = new FormData();
-                // formData.append("createId",SSO.account);
-                _this.$http.post('/sharder?requestType=getPools', formData).then(function (res) {
-                    if (typeof res.data.errorDescription !== "undefined") {
-                        _this.$message.error(res.data.errorDescription);
-                        return;
-                    }
-                    console.log(res.data);
-                    _this.miningList = res.data.pools;
-                    _this.totalSize = _this.miningList.length;
+            formData = new FormData();
+            // formData.append("createId",SSO.account);
+            _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
+                if(typeof res.data.errorDescription !== "undefined"){
+                    _this.$message.error(res.data.errorDescription);
+                    return;
+                }
+                console.log(res.data);
+                _this.miningList = res.data.pools;
+                _this.totalSize = _this.miningList.length;
 
                 }).catch(function (err) {
                     console.log(err);
@@ -587,13 +587,13 @@
                     _this.$message.error(err);
                 });
 
-                this.$http.get('/sharder?requestType=getAccount', {
-                    params: {
-                        account: SSO.accountRS,
-                        includeLessors: true,
-                        includeAssets: true,
-                        includeEffectiveBalance: true,
-                        includeCurrencies: true,
+            this.$http.get('/sharder?requestType=getAccount', {
+                params: {
+                    account:SSO.account,
+                    includeLessors: true,
+                    includeAssets: true,
+                    includeEffectiveBalance: true,
+                    includeCurrencies: true,
 
                     }
                 }).then(function (res) {

@@ -223,7 +223,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
                     </div>
                 </div>
             </div>
@@ -274,11 +274,12 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
                     </div>
                 </div>
             </div>
         </div>
+        <!--view hub init setting dialog-->
         <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
             <div class="modal-header">
                 <h4 class="modal-title">
@@ -326,12 +327,12 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
-        <!--view tranfer account dialog-->
+        <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
@@ -387,8 +388,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
@@ -535,6 +536,7 @@
                 blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     account:'',
+                    name:'',
                     accountRS:SSO.accountRS,
                     balanceNQT:0,              //账户余额
                     effectiveBalanceSS:0,      //可用余额
@@ -601,13 +603,14 @@
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
                 _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
+                _this.accountInfo.name = res.name;
             });
 
             console.log("mingchengshi:",_this.accountInfo.name);
 
             _this.getAccountTransactionList();
             _this.getDrawData();
-
+            _this.getYieldData();
 
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res.data;
@@ -631,6 +634,8 @@
             }).catch(err=>{
                 console.log(err);
             });
+
+
 
         },
         methods: {
@@ -672,11 +677,29 @@
                         left: '15%',
                         right: '2%',
                         top: '10%',
-                        bottom: '15%',
+                        bottom: '30%',
                     },
                     tooltip: {
                         trigger: 'axis'
                     },
+                    dataZoom: [{
+                        type: 'inside',
+                        show:false,
+                        start: 80,
+                        end: 100
+                    }, {
+                        start: 0,
+                        end: 10,
+                        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '40%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        }
+                    }],
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
@@ -800,9 +823,8 @@
                 }else{
                     formData.append("sharder.HubBind",false);
                 }
-                formData.append("restart",false);
                 formData.append("sharder.disableAdminPassword",false);
-
+                formData.append("restart",true);
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
@@ -816,20 +838,33 @@
             },
             verifyHubSetting:function(){
                 const _this = this;
-                let formData = _this.verifyHubSettingInfo();
+                let formData = new FormData();
+                formData.append("username",_this.hubsetting.sharderAccount);
+                formData.append("password",_this.hubsetting.sharderPwd);
+                _this.$http.post('/bounties/hubDirectory/check/confirm.ss',formData).then(res2 => {
+                    if(typeof res2.data.errorDescription === 'undefined') {
+                        _this.hubSettingDialog = false;
+                        _this.$store.state.mask = false;
+                        _this.$router.push("/login");
+                    }else{
+                        _this.$message.error(res2.data.errorDescription);
+                    }
+                });
+                formData = _this.verifyHubSettingInfo();
                 if(formData === false){
                     return;
                 }else{
                     formData.append("isInit",true);
+
                 }
-                this.$http.post('/sharder?requestType=reConfig', formData).then(res => {
-                    if(typeof res.data.errorDescription === 'undefined'){
+                this.$http.post('/sharder?requestType=reConfig', formData).then(res1 => {
+                    if(typeof res1.data.errorDescription === 'undefined'){
                         _this.$message.success(_this.$t('notification.restart_success'));
-                        _this.hubSettingDialog = false;
-                        this.$store.state.mask = false;
-                        this.$router.push("/login");
+
+                        formData = new FormData();
+
                     }else{
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res1.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -1564,15 +1599,11 @@
             getDrawData(){
                 let _this = this;
                 let j=0;
-                let k=0;
                 let barchat = {
                     xAxis:[],
                     series:[]
                 };
-                let yields = {
-                    xAxis:[],
-                    series:[]
-                };
+
                 let params = new URLSearchParams();
                 params.append("account",_this.accountInfo.accountRS);
 
@@ -1594,38 +1625,42 @@
                         barchat.xAxis.push("");
                         barchat.series.push(0);
                     }
-                    // for(;k !== 7;k++){
-                    //     yields.xAxis.push("");
-                    //     yields.series.push(0);
-                    // }
                     this.drawBarchart(barchat);
-                    // this.drawYield(yields);
                 });
-                //
-                // lists.every(function(value,index,array){
-                //     if(j>=5||k>=7){
-                //         return false;
-                //     }
-                //     if(value.type === 9 || value.type === 0){
-                //         if(value.type === 0 && j<5){
-                //             j++;
-                //             if(value.senderRS === SSO.accountRS){
-                //                 barchat.xAxis.push(_this.$t('account.payout'));
-                //             }else{
-                //                 barchat.xAxis.push(_this.$t('account.income'));
-                //             }
-                //             barchat.series.push(value.amountNQT/100000000);
-                //         }
-                //         if(k<7 && value.senderRS !== SSO.accountRS){
-                //             k++;
-                //             yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
-                //             yields.series.push(value.amountNQT/100000000);
-                //         }
-                //     }
-                //
-                // });
+            },
+            getYieldData(){
+                let _this = this;
+                let yields = {
+                    xAxis:[],
+                    series:[],
+                };
+                let assets = 0;
+                let params = new URLSearchParams();
+                params.append("account",_this.accountInfo.accountRS);
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
+                    if(typeof res.data.errorDescription === "undefined"){
+                        let info = res.data.transactions.reverse();
 
-
+                        info.forEach(function(value, index, array){
+                            if(value.type === 0){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                if(value.senderRS !== SSO.accountRS){
+                                    assets = assets + value.amountNQT/100000000;
+                                }else{
+                                    assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                                }
+                            }else if(value.type === 9){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                assets = assets + value.amountNQT/100000000;
+                            }else if(value.senderRS === SSO.accountRS){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                            }
+                            yields.series.push(assets);
+                        });
+                    }
+                    this.drawYield(yields);
+                });
             },
             getTotalList:function () {
                 const _this = this;
@@ -1759,8 +1794,12 @@
         mounted() {
             const _this = this;
 
-            setInterval(()=>{
-                _this.getAccountTransactionList();
+            let periodicTransactions = setInterval(()=>{
+                if(_this.$route.path === '/account'){
+                    _this.getAccountTransactionList();
+                }else{
+                    clearInterval(periodicTransactions);
+                }
             },4000);
 
             $('#receiver').on("blur",function() {
@@ -1878,31 +1917,14 @@
         height: 20px;
     }
 
-    .writeBtn{
-        background:#fff;
-        color:#493eda;
-        border: 1px solid #493eda;
-        svg {
-            fill: #493eda;
-        }
-        &:hover{
-            background: #493eda;
-            color:#fff;
-            border: none;
-            transition: .4s;
-            svg {
-                fill: #fff;
-                transition: .4s;
-            }
-        }
-    }
+
 
 
     .modal_hubSetting{
         width: 800px!important;
     }
     .modal_hubSetting .modal-header .modal-title{
-        margin: 0!important;
+        /*margin: 0!important;*/
     }
     .modal_hubSetting .modal-body{
         padding: 20px 40px 60px!important;
