@@ -897,7 +897,7 @@ public final class Peers {
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 5);
+        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 30);
     }
 
     public static void shutdown() {

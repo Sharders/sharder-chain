@@ -21,6 +21,7 @@ import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
 import java.io.File;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class PocProcessorImpl implements PocProcessor {
    * PocHolder is a singleton to hold the score map.
    * This map stored in the memory, changed by the poc txs.
    */
-  public static class PocHolder {
+  public static class PocHolder implements Serializable {
     
     static PocHolder inst = new PocHolder();
     // poc score map
@@ -61,8 +62,8 @@ public class PocProcessorImpl implements PocProcessor {
     private PocHolder(){}
     
     
-    static void _defaultPocScore(long accountId){
-      scoreMapping(new PocScore(accountId,-1));  
+    static void _defaultPocScore(long accountId,int height){
+      scoreMapping(new PocScore(accountId,height));  
     }
     
     /**
@@ -76,7 +77,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(Conch.getBlockchain().getHeight() < height) {
           synPocTxNow = true;
         }
-        _defaultPocScore(accountId);
+        _defaultPocScore(accountId,height);
       }
 
       PocScore pocScore = scoreMap.get(accountId);
@@ -110,8 +111,6 @@ public class PocProcessorImpl implements PocProcessor {
       
       return hasPocWeightTable ? PocScore.PocCalculator.pocWeightTable : PocTxBody.PocWeightTable.defaultPocWeightTable();
     }
-    
-    
  
   }
 
@@ -274,6 +273,7 @@ public class PocProcessorImpl implements PocProcessor {
    * @param block
    */
   private static void savePocHolder(Block block){
+      Logger.logWarningMessage("save PocHoder into local disk[" + LOCAL_STORAGE_POC_HOLDER + "]");
       DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
   }
   
