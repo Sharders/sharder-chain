@@ -1349,35 +1349,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         long nextHitTime = Generator.getNextHitTime(previousLastBlock.getId(), curTime);
         if (nextHitTime > 0 && block.getTimestamp() > nextHitTime + 1) {
-          String msg =
-              "Rejecting block "
-                  + block.getStringId()
-                  + " at height "
-                  + previousLastBlock.getHeight()
-                  + " block timestamp "
-                  + block.getTimestamp()
-                  + " next hit time "
-                  + nextHitTime
-                  + " current time "
-                  + curTime;
+          String msg ="Rejecting block " + block.getStringId() + " at height " + previousLastBlock.getHeight() + " block timestamp " + block.getTimestamp() + " next hit time "
+                  + nextHitTime + " current time " + curTime;
           Logger.logDebugMessage(msg);
-          Generator.setDelay(-Constants.FORGING_SPEEDUP);
+          Generator.setDelay(-Constants.MINING_SPEEDUP);
           throw new BlockOutOfOrderException(msg, block);
         }
 
         Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
         List<TransactionImpl> validPhasedTransactions = new ArrayList<>();
         List<TransactionImpl> invalidPhasedTransactions = new ArrayList<>();
-        validatePhasedTransactions(
-            previousLastBlock.getHeight(),
-            validPhasedTransactions,
-            invalidPhasedTransactions,
-            duplicates);
-        validateTransactions(
-            block,
-            previousLastBlock,
-            curTime,
-            duplicates);
+        
+        validatePhasedTransactions(previousLastBlock.getHeight(),validPhasedTransactions,invalidPhasedTransactions,duplicates);
+        validateTransactions(block,previousLastBlock,curTime,duplicates);
 
         block.setPrevious(previousLastBlock);
         blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
@@ -1488,13 +1472,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (block.getId() == 0L || BlockDb.hasBlock(block.getId(), previousLastBlock.getHeight())) {
       throw new BlockNotAcceptedException("Duplicate block or invalid id", block);
     }
-    if (!block.verifyGenerationSignature()
-        && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
+    if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
-      long generatorBalance =
-          generatorAccount == null ? 0 : generatorAccount.getEffectiveBalanceSS();
-      throw new BlockNotAcceptedException(
-          "Generation signature verification failed, effective balance " + generatorBalance, block);
+      long generatorBalance = generatorAccount == null ? 0 : generatorAccount.getEffectiveBalanceSS();
+      throw new BlockNotAcceptedException("Generation signature verification failed, effective balance " + generatorBalance, block);
     }
     if (!block.verifyBlockSignature()) {
       throw new BlockNotAcceptedException("Block signature verification failed", block);

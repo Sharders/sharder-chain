@@ -65,7 +65,7 @@ public class Generator implements Comparable<Generator> {
     private static volatile List<Generator> sortedMiners = null;
     private static volatile List<Long> generationMissingMinerIds = Lists.newArrayList();
     private static long lastBlockId;
-    private static int delayTime = Constants.FORGING_DELAY;
+    private static int delayTime = Constants.MINING_DELAY;
     
     private static final Runnable generateBlocksThread = new Runnable() {
 
@@ -280,7 +280,7 @@ public class Generator implements Comparable<Generator> {
         try {
             if (lastBlockId == Generator.lastBlockId && sortedMiners != null) {
                 for (Generator generator : sortedMiners) {
-                    if (generator.getHitTime() >= curTime - Constants.FORGING_DELAY) {
+                    if (generator.getHitTime() >= curTime - Constants.MINING_DELAY) {
                         return generator.getHitTime();
                     }
                 }
@@ -307,7 +307,6 @@ public class Generator implements Comparable<Generator> {
         boolean elapsed = Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 3600;
         return hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
         
-        //FIXME[hit]
 //        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
 //        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 421));
 //        BigInteger target = prevTarget.add(effectiveBaseTarget);
@@ -449,7 +448,7 @@ public class Generator implements Comparable<Generator> {
         while (true) {
             try {
                 BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, timestamp);
-                setDelay(Constants.FORGING_DELAY);
+                setDelay(Constants.MINING_DELAY);
                 return true;
             } catch (BlockchainProcessor.TransactionNotAcceptedException e) {
                 // the bad transaction has been expunged, try again

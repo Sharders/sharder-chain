@@ -107,9 +107,9 @@ public final class Constants {
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
-//    public static final int FORGING_DELAY = 600; // 内测阶段设为10分钟延迟
-    public static final int FORGING_DELAY = Conch.getIntProperty("sharder.miningDelay");
-    public static final int FORGING_SPEEDUP = Conch.getIntProperty("sharder.miningSpeedup");
+//    public static final int MINING_DELAY = 600; // 内测阶段设为10分钟延迟
+    public static final int MINING_DELAY = Conch.getIntProperty("sharder.miningDelay");
+    public static final int MINING_SPEEDUP = Conch.getIntProperty("sharder.miningSpeedup");
 
     public static final byte MAX_PHASING_VOTE_TRANSACTIONS = 10;
     public static final byte MAX_PHASING_WHITELIST_SIZE = 10;
@@ -206,8 +206,6 @@ public final class Constants {
     //FIXME[effective_balance]
 //    public static final int TRANSPARENT_FORGING_BLOCK_6 = isTestnetOrDevnet() ? 0 : 0;
     public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
-    //FIXME[hit]
-//    public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
 
     //FIXME[checksum]
     public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;

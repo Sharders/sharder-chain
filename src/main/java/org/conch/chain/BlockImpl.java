@@ -497,12 +497,9 @@ public final class BlockImpl implements Block {
             return Generator.verifyHit(hit, BigInteger.valueOf(effectiveBalance), previousBlock, timestamp) || isKnownBadBlock(this.getId());
 
         } catch (RuntimeException e) {
-
             Logger.logMessage("Error verifying block generation signature", e);
             return false;
-
         }
-
     }
     
     // known bad blocks
