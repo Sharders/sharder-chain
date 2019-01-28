@@ -107,8 +107,8 @@ public final class Conch {
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
     private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
     private static final String UPGRADE_SERVER = "https://resource.sharder.io";
-    
-    
+
+
     public static String getSharderFoundationURL(){
         return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
     }
@@ -124,7 +124,7 @@ public final class Conch {
         public static final int DEFAULT_PEER_PORT=3218;
         public static final int DEFAULT_API_PORT=8215;
         public static final int DEFAULT_API_SSL_PORT=8217;
-        
+
         public Constants.Network network;
         public int peerPort;
         public int apiPort;
@@ -145,7 +145,7 @@ public final class Conch {
             presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 8218, 8215, 8217));
             presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 3215, 3217));
         }
-        
+
         public static void print(){
             if(presetMap == null || presetMap.size() == 0)  System.out.println("preset param map is null, nothing is preset!");
 
@@ -155,27 +155,27 @@ public final class Conch {
                 System.out.println(presetMap.get(network).toString());
             }
         }
-        
+
         public static int getPeerPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
             return presetParam != null ?  presetParam.peerPort : DEFAULT_PEER_PORT;
         }
-//        
+//
 //        public static int getUiPort(Constants.Network network){
 //            PresetParam presetParam = presetMap.get(network);
 //            return presetParam != null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
 //        }
-        
+
         public static int getApiPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
             return presetParam != null ?  presetParam.apiPort : DEFAULT_API_PORT;
         }
-        
+
         public static int getApiSSLPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
             return presetParam != null ?  presetParam.apiSSLPort : DEFAULT_API_SSL_PORT;
         }
-        
+
         @Override
         public String toString() {
             return ToStringBuilder.reflectionToString(this);
