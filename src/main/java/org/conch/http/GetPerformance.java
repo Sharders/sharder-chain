@@ -42,7 +42,9 @@ public final class GetPerformance extends APIServlet.APIRequestHandler {
         String senderIp = IpUtil.getSenderIp(request);
         String foundationIp = IpUtil.getIp(Conch.getSharderFoundationURL());
         
-        if (!foundationIp.equals(senderIp)) return null;
+        if (!foundationIp.equals(senderIp)) {
+            return null;
+        }
         
         Integer time = Integer.parseInt(request.getParameter("time"));
         JSONObject response = new JSONObject();
