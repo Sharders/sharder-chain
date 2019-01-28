@@ -2,7 +2,7 @@ package org.conch.db;
 
 import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.tx.TransactionDb;
 
 import java.math.BigInteger;

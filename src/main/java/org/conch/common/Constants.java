@@ -333,12 +333,12 @@ public final class Constants {
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
     
-    private static int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap"));
+    //default gap of mainnet & testnet is 7 min
+    private static int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
     private static int getBlockGapSeconds(){
-        int gap = blockGapInProperties;
-        if(gap < 1) gap = 1;
+        int gap = blockGapInProperties > 0 ? blockGapInProperties : 0;
         // convert to second
-        return (gap - 1) * 60;
+        return gap * 60;
     }
 
 
@@ -355,8 +355,6 @@ public final class Constants {
 
         return networkInProperties;
     }
-
-    public static final String SHARDER_HUB_BINDADDRESS = "sharder.HubBindAddress";
 
     public static final String SUCCESS = "success";
 

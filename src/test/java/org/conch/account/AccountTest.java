@@ -1,9 +1,10 @@
 package org.conch.account;
 
 import com.google.common.collect.Lists;
+import org.conch.base.BaseTest;
 import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
@@ -16,24 +17,27 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.lang.System.exit;
+
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019/1/10
  */
-public class AccountTest {
+public class AccountTest extends BaseTest {
     static BlockImpl previousBlock = null;
     static List<TransactionImpl> transactions;
     
-    static {
-        try {
-            transactions = Lists.newArrayList(SharderGenesis.genesisBlock().getTransactions());
-        } catch (ConchException.NotValidException e) {
-            e.printStackTrace();
+    
+    static void accountSignInfo(String secretPhrase){
+        // init genesis txs
+        if(transactions == null){
+            try {
+                transactions = Lists.newArrayList(SharderGenesis.genesisBlock().getTransactions());
+            } catch (ConchException.NotValidException e) {
+                e.printStackTrace();
+            }
         }
-    }
-    
-    
-    static void accountInfo(String secretPhrase){
+        
         final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
         MessageDigest digest = Crypto.sha256();
 
@@ -41,36 +45,22 @@ public class AccountTest {
             digest.update(transaction.bytes());
         }
       
-        
         byte[] payloadHash = digest.digest();
         if(previousBlock != null){
-            byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.bytes());
             digest.update(previousBlock.getGenerationSignature());
         }
        
         byte[] generationSignature = digest.digest(publicKey);
-
-        System.out.println("account summary >>");
-        System.out.println("publicKey[byte]=" + Arrays.toString(publicKey));
-        System.out.println("publicKey[hex]=" + Convert.toHexString(publicKey));
+        System.out.println("accountsign summary >>");
         System.out.println("generationSignature[byte]=" + Arrays.toString(generationSignature));
         System.out.println("generationSignature[hex]=" + Convert.toHexString(generationSignature));
         System.out.println("payloadHash=" + payloadHash);
+        exit(0);
     }
 
     public static void main(String[] args) throws IOException {
-        String secretPhrase = "";
-        
-        System.out.println("Input the secret phrase >>");
-        Console console = System.console();
-        if (console == null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-                secretPhrase = reader.readLine();
-            }
-        } else {
-            secretPhrase = new String(console.readPassword("Secret phrase: "));
-        }
-        
-        accountInfo(secretPhrase);
+        String secretPhrase = getSpFromConsole();
+        accountInfoPrint(secretPhrase);
+//        accountSignInfo(secretPhrase);
     }
 }

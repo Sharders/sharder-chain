@@ -22,7 +22,7 @@
 package org.conch.tools;
 
 import org.conch.common.Constants;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.util.Convert;
 
 import java.io.BufferedReader;

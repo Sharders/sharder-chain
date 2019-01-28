@@ -382,9 +382,7 @@ public class Generator implements Comparable<Generator> {
     private String secretPhrase;
     private volatile long deadline;
 
-    protected Generator() {
-        
-    }
+    protected Generator() {}
     
     private Generator(String secretPhrase) {
         this.secretPhrase = secretPhrase;
@@ -436,7 +434,6 @@ public class Generator implements Comparable<Generator> {
     protected void calAndSetHit(Block lastBlock) {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
-
 
         effectiveBalance = PocScore.calEffectiveBalance(account,height);
 
@@ -597,8 +594,6 @@ public class Generator implements Comparable<Generator> {
             return effectiveBalance.longValue();
         }
 
-  
-
         public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {
@@ -609,7 +604,6 @@ public class Generator implements Comparable<Generator> {
                     return;
                 }
             }
-
             calAndSetHit(lastBlock);
         }
 

@@ -23,6 +23,7 @@ package org.conch;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
@@ -690,6 +691,10 @@ public final class Conch {
 
     }
 
+    // Hub setting
+    public static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
+    public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
+    public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
     /**
      * Auto mining of Hub or Miner 
      */
@@ -701,16 +706,13 @@ public final class Conch {
         }
         
         // [Hub Miner] if owner bind the passphrase then start mine automatic
-        Boolean hubBind = Conch.getBooleanProperty("sharder.HubBind");
-        String hubBindAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindAddress"));
-        String hubBindPassPhrase = Convert.emptyToNull(Conch.getStringProperty("sharder.HubBindPassPhrase", "", true));
-        if (hubBind && hubBindPassPhrase != null) {
-            Generator hubGenerator = Generator.ownerMining(hubBindPassPhrase.trim());
-            if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(hubBindAddress))) {
-                Generator.stopMining(hubBindPassPhrase.trim());
-                Logger.logInfoMessage("Account" + hubBindAddress + " is not same with Generator's passphrase");
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            Generator hubGenerator = Generator.ownerMining(HUB_BIND_PR);
+            if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(HUB_BIND_ADDRESS))) {
+                Generator.stopMining(HUB_BIND_PR);
+                Logger.logInfoMessage("Account" + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
             } else {
-                Logger.logInfoMessage("Account " + hubBindAddress + " started mining...");
+                Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " started mining...");
             }
         }else {
             // [Normal Miner] if owner set the passphrase of mint then start mining

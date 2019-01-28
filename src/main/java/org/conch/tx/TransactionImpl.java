@@ -31,7 +31,7 @@ import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
 import org.conch.util.Convert;
