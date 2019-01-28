@@ -273,7 +273,7 @@ public class PocProcessorImpl implements PocProcessor {
    * @param block
    */
   private static void savePocHolder(Block block){
-      Logger.logDebugMessage("save PocHolder into local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
+//      Logger.logDebugMessage("save PocHolder into local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
       DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
   }
   

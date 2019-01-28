@@ -298,8 +298,13 @@ public class Generator implements Comparable<Generator> {
     public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
+            Logger.logDebugMessage("this generator missing the generation turn because the elapsed time <=0");
+            return false;
+        }else if(elapsedTime < Constants.BLOCK_GAP_SECONDS){
+            Logger.logDebugMessage("this generator is in the block gap because the elapsed time < block gap[" + Constants.BLOCK_GAP_SECONDS + "]");
             return false;
         }
+        
         BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(pocScore);
         BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.BLOCK_GAP_SECONDS - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);

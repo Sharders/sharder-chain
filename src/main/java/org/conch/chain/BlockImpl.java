@@ -26,6 +26,7 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
@@ -474,9 +475,13 @@ public final class BlockImpl implements Block {
                 return false;
             }
 
-            Account account = Account.getAccount(getGeneratorId());
-            long effectiveBalance = account == null ? 0 : account.getEffectiveBalanceSS();
-            if (effectiveBalance <= 0) {
+            BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),height);
+//            Account account = Account.getAccount(getGeneratorId());
+//            long effectiveBalance = (account == null) ? 0 : account.getEffectiveBalanceSS();
+//            if (effectiveBalance <= 0) {
+//                return false;
+//            }
+            if (pocScore.signum() <= 0) {
                 return false;
             }
 
@@ -494,7 +499,7 @@ public final class BlockImpl implements Block {
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             
-            return Generator.verifyHit(hit, BigInteger.valueOf(effectiveBalance), previousBlock, timestamp) || isKnownBadBlock(this.getId());
+            return Generator.verifyHit(hit, pocScore, previousBlock, timestamp) || isKnownBadBlock(this.getId());
 
         } catch (RuntimeException e) {
             Logger.logMessage("Error verifying block generation signature", e);
