@@ -36,27 +36,35 @@ public class PocScore {
     BigInteger blockMissScore = BigInteger.ZERO;
     // 分叉收敛惩罚分
     BigInteger bcScore = BigInteger.ZERO;
-    
-    // height : { accountId : pocScore }
-    Map<Integer,Map<Long,BigInteger>> historySocore = new ConcurrentHashMap<>();
-    
+
     public PocScore(Long accountId,int height){
         this.accountId = accountId;
         this.height = height;
         this.ssScore = _calBalance(accountId,height);
+        ssScoreCal();
+    }
+
+    public PocScore(int height, PocScore another){
+        this.accountId = another.accountId;
+        this.ssScore = another.ssScore;
+        this.nodeTypeScore = another.nodeTypeScore;
+        this.serverScore = another.serverScore;
+        this.hardwareScore = another.hardwareScore;
+        this.networkScore = another.networkScore;
+        this.performanceScore = another.performanceScore;
+        this.onlineRateScore = another.onlineRateScore;
+        this.blockMissScore = another.blockMissScore;
+        this.bcScore = another.bcScore;
+        this.height = height;
     }
 
     public BigInteger total(){
         return ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
     }
     
-    public BigInteger getTotal(int height,Long accountId){
-        Map<Long,BigInteger> map = historySocore.get(height);
-        if(map == null) return BigInteger.ZERO;
-        BigInteger score = map.get(accountId);
-        return score !=null ? score : BigInteger.ZERO;
+    public void ssScoreCal(){
+        PocCalculator.ssHoldCal(this);
     }
-    
     
     public void nodeConfCal(PocTxBody.PocNodeConf nodeConf){
         PocCalculator.nodeConfCal(this,nodeConf);
@@ -75,23 +83,10 @@ public class PocScore {
     }
 
     /**
-     * record current poc score into history
-     */
-    private void _recordHistoryScore(){
-        Map<Long,BigInteger> map = historySocore.get(height);
-        if(map == null) map = new HashMap<>();
-
-        map.put(accountId,total());
-        
-        historySocore.put(height,map);
-    }
-
-    /**
      * replace the attributes of poc 
      * @param another 
      */
     public void synScoreFrom(PocScore another){
-        _recordHistoryScore();
         this.ssScore = another.ssScore;
         this.nodeTypeScore = another.nodeTypeScore;
         this.serverScore = another.serverScore;
@@ -102,6 +97,7 @@ public class PocScore {
         this.blockMissScore = another.blockMissScore;
         this.bcScore = another.bcScore;
     }
+    
 
     /**
      * effective balance is pool balance if the miner own a sharder pool 
@@ -155,6 +151,10 @@ public class PocScore {
             lastHeight = height;
         }
 
+        static void ssHoldCal(PocScore pocScore) {
+            pocScore.ssScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.SS_HOLD.getValue()).multiply(pocScore.ssScore);
+        }
+        
         static void nodeTypeCal(PocScore pocScore,PocTxBody.PocNodeType nodeType) {
             BigInteger typeScore = BigInteger.ZERO;
             if (nodeType.getType().equals(Peer.Type.FOUNDATION)) {

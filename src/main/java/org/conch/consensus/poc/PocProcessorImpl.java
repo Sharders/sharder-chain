@@ -23,6 +23,7 @@ import org.conch.util.ThreadPool;
 import java.io.File;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,9 +43,12 @@ public class PocProcessorImpl implements PocProcessor {
   public static class PocHolder implements Serializable {
     
     static PocHolder inst = new PocHolder();
-    // poc score map
+    
     // accountId : pocScore
     static Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    // height : { accountId : pocScore }
+    static Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
+    
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
     static Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
@@ -82,8 +86,15 @@ public class PocProcessorImpl implements PocProcessor {
       }
 
       PocScore pocScore = scoreMap.get(accountId);
+      //newest poc score when query height is bigger than last height of poc score 
       if(pocScore.height <= height) {
           return pocScore.total();
+      }else{
+        //get from history
+        pocScore = getHistoryPocScore(height, accountId);
+        if(pocScore != null) {
+          return pocScore.total();
+        }
       }
       
       return BigInteger.ZERO;
@@ -98,10 +109,37 @@ public class PocProcessorImpl implements PocProcessor {
        if(scoreMap.containsKey(pocScore.accountId)) {
           _pocScore = scoreMap.get(pocScore.accountId);
           _pocScore.synScoreFrom(pocScore);
+          recordHistoryScore(pocScore);
        }
        
        scoreMap.put(pocScore.accountId,_pocScore);
        lastHeight = pocScore.height > lastHeight ? pocScore.height : lastHeight;
+    }
+
+    static BigInteger getTotal(int height,Long accountId){
+      Map<Long,PocScore> map = historyScore.get(height);
+      if(map == null) return BigInteger.ZERO;
+      PocScore score = map.get(accountId);
+      return score !=null ? score.total() : BigInteger.ZERO;
+    }
+
+    /**
+     * record current poc score into history
+     */
+    static void recordHistoryScore(PocScore pocScore){
+      Map<Long,PocScore> map = historyScore.get(pocScore.height);
+      if(map == null) map = new HashMap<>();
+
+      map.put(pocScore.accountId,new PocScore(pocScore.height, pocScore));
+
+      historyScore.put(pocScore.height,map);
+    }
+
+    public static PocScore getHistoryPocScore(int height,long accountId){
+        if(!historyScore.containsKey(height)) { 
+          return null;
+        }
+        return historyScore.get(height).get(accountId);
     }
     
     static PocTxBody.PocWeightTable getPocWeightTable(){
@@ -143,6 +181,8 @@ public class PocProcessorImpl implements PocProcessor {
 
   static {
     Conch.getBlockchainProcessor().addListener(PocProcessorImpl::savePocHolder, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+
+    Account.addListener(PocProcessorImpl::accountBalanceChanged, Account.Event.BALANCE);
     
     loadExistPocHolder();
   }
@@ -277,6 +317,11 @@ public class PocProcessorImpl implements PocProcessor {
 //      Logger.logDebugMessage("save PocHolder into local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
       DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
   }
+
+  private static void accountBalanceChanged(Account account){
+    //TODO height gt from event or other ways
+    balanceChangedProcess(-1,account);
+  }
   
   private static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
     Peer peer = Peers.getPeer(ip);
@@ -406,6 +451,24 @@ public class PocProcessorImpl implements PocProcessor {
       pocScoreToUpdate.blockMissCal(pocBlockMissing);
       PocHolder.scoreMapping(pocScoreToUpdate);
     }
+    return true;
+  }
+  
+  /**
+   * process the balance of account changed
+   * @param height block height that included this tx
+   * @param account which balance is changed
+   * @return
+   */
+  private static boolean balanceChangedProcess(int height, Account account){
+    if(account == null) {
+      return false;
+    }
+
+    long accountId = account.getId();
+    PocScore pocScoreToUpdate = new PocScore(accountId,height);
+    pocScoreToUpdate.ssScoreCal();
+    PocHolder.scoreMapping(pocScoreToUpdate);
     return true;
   }
   
