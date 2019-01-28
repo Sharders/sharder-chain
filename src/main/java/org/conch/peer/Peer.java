@@ -69,7 +69,12 @@ public interface Peer extends Comparable<Peer> {
     }
 
     enum State {
-        NON_CONNECTED, CONNECTED, DISCONNECTED
+        /**
+         *
+         */
+        NON_CONNECTED,
+        CONNECTED,
+        DISCONNECTED
     }
     
     enum Service {
