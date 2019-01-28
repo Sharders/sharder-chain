@@ -28,8 +28,11 @@
                     minRows: 4,
                     maxRows: 4
                 },
-                passphrase:''
+                passphrase:this.$route.params.passPhrase
             };
+        },
+        created:function(){
+            console.log("~~~~~~~~~~~~",this.passphrase);
         },
         methods: {
             cancel: function () {

@@ -227,7 +227,7 @@
                 this.passPhrase = phraseWords.join(" ");
             },
             enter: function () {
-                this.$router.push("/enter",{params:{passPhrase:this.passPhrase}});
+                this.$router.push({name:"/enter",params:{passPhrase: this.passPhrase}});
             }
         },
         created: function () {
