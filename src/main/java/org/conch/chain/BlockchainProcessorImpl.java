@@ -1414,10 +1414,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       try (DbIterator<TransactionImpl> phasedTransactions =
           PhasingPoll.getFinishingTransactions(height + 1)) {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
-          if (height > Constants.SHUFFLING_BLOCK
-              && PhasingPoll.getResult(phasedTransaction.getId()) != null) {
+          if (height > Constants.SHUFFLING_BLOCK && PhasingPoll.getResult(phasedTransaction.getId()) != null) {
             continue;
           }
+          
           try {
             phasedTransaction.validate();
             if (!phasedTransaction.attachmentIsDuplicate(duplicates, false)) {
@@ -1711,58 +1711,48 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
       }
       if (block.getHeight() > Constants.SHUFFLING_BLOCK) {
-        SortedSet<TransactionImpl> possiblyApprovedTransactions =
-            new TreeSet<>(finishingTransactionsComparator);
-        block
-            .getTransactions()
-            .forEach(
-                transaction -> {
-                  PhasingPoll.getLinkedPhasedTransactions(transaction.fullHash())
-                      .forEach(
-                          phasedTransaction -> {
-                            if (phasedTransaction.getPhasing().getFinishHeight()
-                                > block.getHeight()) {
-                              possiblyApprovedTransactions.add((TransactionImpl) phasedTransaction);
-                            }
-                          });
-                  if (transaction.getType() == TransactionType.Messaging.PHASING_VOTE_CASTING
-                      && !transaction.attachmentIsPhased()) {
-                    Attachment.MessagingPhasingVoteCasting voteCasting =
-                        (Attachment.MessagingPhasingVoteCasting) transaction.getAttachment();
-                    voteCasting
-                        .getTransactionFullHashes()
-                        .forEach(
-                            hash -> {
-                              PhasingPoll phasingPoll =
-                                  PhasingPoll.getPoll(Convert.fullHashToId(hash));
-                              if (phasingPoll.allowEarlyFinish()
-                                  && phasingPoll.getFinishHeight() > block.getHeight()) {
-                                possiblyApprovedTransactions.add(
-                                    TransactionDb.findTransaction(phasingPoll.getId()));
-                              }
-                            });
-                  }
+        SortedSet<TransactionImpl> possiblyApprovedTransactions = new TreeSet<>(finishingTransactionsComparator);
+        block.getTransactions().forEach(
+            transaction -> {
+              PhasingPoll.getLinkedPhasedTransactions(transaction.fullHash()).forEach(
+                  phasedTransaction -> {
+                    if (phasedTransaction.getPhasing().getFinishHeight() > block.getHeight()) {
+                      possiblyApprovedTransactions.add((TransactionImpl) phasedTransaction);
+                    }
+              });
+              
+              if (transaction.getType() == TransactionType.Messaging.PHASING_VOTE_CASTING && !transaction.attachmentIsPhased()) {
+                Attachment.MessagingPhasingVoteCasting voteCasting = (Attachment.MessagingPhasingVoteCasting) transaction.getAttachment();
+                voteCasting.getTransactionFullHashes().forEach(
+                    hash -> {
+                      PhasingPoll phasingPoll =
+                          PhasingPoll.getPoll(Convert.fullHashToId(hash));
+                      if (phasingPoll.allowEarlyFinish()
+                          && phasingPoll.getFinishHeight() > block.getHeight()) {
+                        possiblyApprovedTransactions.add(
+                            TransactionDb.findTransaction(phasingPoll.getId()));
+                      }
                 });
+              }
+              
+        });
+        
         validPhasedTransactions.forEach(
             phasedTransaction -> {
               if (phasedTransaction.getType() == TransactionType.Messaging.PHASING_VOTE_CASTING) {
-                PhasingPoll.PhasingPollResult result =
-                    PhasingPoll.getResult(phasedTransaction.getId());
+                PhasingPoll.PhasingPollResult result = PhasingPoll.getResult(phasedTransaction.getId());
                 if (result != null && result.isApproved()) {
-                  Attachment.MessagingPhasingVoteCasting phasingVoteCasting =
-                      (Attachment.MessagingPhasingVoteCasting) phasedTransaction.getAttachment();
-                  phasingVoteCasting
-                      .getTransactionFullHashes()
-                      .forEach(
-                          hash -> {
-                            PhasingPoll phasingPoll =
-                                PhasingPoll.getPoll(Convert.fullHashToId(hash));
-                            if (phasingPoll.allowEarlyFinish()
-                                && phasingPoll.getFinishHeight() > block.getHeight()) {
-                              possiblyApprovedTransactions.add(
-                                  TransactionDb.findTransaction(phasingPoll.getId()));
-                            }
-                          });
+                  Attachment.MessagingPhasingVoteCasting phasingVoteCasting = (Attachment.MessagingPhasingVoteCasting) phasedTransaction.getAttachment();
+                  phasingVoteCasting.getTransactionFullHashes().forEach(
+                      hash -> {
+                        PhasingPoll phasingPoll =
+                            PhasingPoll.getPoll(Convert.fullHashToId(hash));
+                        if (phasingPoll.allowEarlyFinish()
+                            && phasingPoll.getFinishHeight() > block.getHeight()) {
+                          possiblyApprovedTransactions.add(
+                              TransactionDb.findTransaction(phasingPoll.getId()));
+                        }
+                  });
                 }
               }
             });
@@ -1773,23 +1763,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   transaction.validate();
                   transaction.getPhasing().tryCountVotes(transaction, duplicates);
                 } catch (ConchException.ValidationException e) {
-                  Logger.logDebugMessage(
-                      "At height "
-                          + block.getHeight()
-                          + " phased transaction "
-                          + transaction.getStringId()
-                          + " no longer passes validation: "
-                          + e.getMessage()
-                          + ", cannot finish early");
+                  Logger.logDebugMessage("At height "+ block.getHeight() + " phased transaction " + transaction.getStringId() + " no longer passes validation: " + e.getMessage() + ", cannot finish early");
                 }
               }
             });
       }
       blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
       if (block.getTransactions().size() > 0) {
-        TransactionProcessorImpl.getInstance()
-            .notifyListeners(
-                block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
+        TransactionProcessorImpl.getInstance().notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
       }
       AccountLedger.commitEntries();
     } finally {
@@ -1815,33 +1796,20 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
       }
       if (commonBlock.getHeight() < getMinRollbackHeight()) {
-        Logger.logMessage(
-            "Rollback to height "
-                + commonBlock.getHeight()
-                + " not supported, will do a full rescan");
+        Logger.logMessage("Rollback to height " + commonBlock.getHeight() + " not supported, will do a full rescan");
         popOffWithRescan(commonBlock.getHeight() + 1);
         return Collections.emptyList();
       }
       if (!blockchain.hasBlock(commonBlock.getId())) {
-        Logger.logDebugMessage(
-            "Block " + commonBlock.getStringId() + " not found in blockchain, nothing to pop off");
+        Logger.logDebugMessage("Block " + commonBlock.getStringId() + " not found in blockchain, nothing to pop off");
         return Collections.emptyList();
       }
       List<BlockImpl> poppedOffBlocks = new ArrayList<>();
       try {
         BlockImpl block = blockchain.getLastBlock();
         block.loadTransactions();
-        Logger.logDebugMessage(
-            "Rollback from block "
-                + block.getStringId()
-                + " at height "
-                + block.getHeight()
-                + " to "
-                + commonBlock.getStringId()
-                + " at "
-                + commonBlock.getHeight());
-        while (block.getId() != commonBlock.getId()
-            && block.getId() != SharderGenesis.GENESIS_BLOCK_ID) {
+        Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight() + " to " + commonBlock.getStringId() + " at " + commonBlock.getHeight());
+        while (block.getId() != commonBlock.getId() && block.getId() != SharderGenesis.GENESIS_BLOCK_ID) {
           poppedOffBlocks.add(block);
           block = popLastBlock();
         }
@@ -1851,8 +1819,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         Db.db.clearCache();
         Db.db.commitTransaction();
       } catch (RuntimeException e) {
-        Logger.logErrorMessage(
-            "Error popping off to " + commonBlock.getHeight() + ", " + e.toString());
+        Logger.logErrorMessage("Error popping off to " + commonBlock.getHeight() + ", " + e.toString());
         Db.db.rollbackTransaction();
         BlockImpl lastBlock = BlockDb.findLastBlock();
         blockchain.setLastBlock(lastBlock);

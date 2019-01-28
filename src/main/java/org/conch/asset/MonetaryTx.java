@@ -176,8 +176,7 @@ public abstract class MonetaryTx extends TransactionType {
 
         @Override
         public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
-                    && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
+            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
         }
 
         @Override
