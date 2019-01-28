@@ -536,6 +536,7 @@
                 blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     account:'',
+                    name:'',
                     accountRS:SSO.accountRS,
                     balanceNQT:0,              //账户余额
                     effectiveBalanceSS:0,      //可用余额
@@ -602,6 +603,7 @@
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
                 _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
+                _this.accountInfo.name = res.name;
             });
 
             console.log("mingchengshi:",_this.accountInfo.name);
@@ -632,6 +634,8 @@
             }).catch(err=>{
                 console.log(err);
             });
+
+
 
         },
         methods: {

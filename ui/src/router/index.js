@@ -40,6 +40,7 @@ export const routes = [
             },
             {
                 path: "/enter",
+                name:"Enter",
                 component: Enter
             }
         ]
