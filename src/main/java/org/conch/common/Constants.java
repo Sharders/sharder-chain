@@ -94,7 +94,7 @@ public final class Constants {
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
-    public static final int BLOCK_GAP = getBlockGap();
+    public static final int BLOCK_GAP_SECONDS = getBlockGapSeconds();
 
     public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), 720);
     public static final long MAX_BASE_TARGET = MAX_BALANCE_SS * INITIAL_BASE_TARGET;
@@ -205,9 +205,12 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_5 = 0;
 
     //FIXME[effective_balance]
-    public static final int TRANSPARENT_FORGING_BLOCK_6 = isTestnetOrDevnet() ? 0 : 0;
+//    public static final int TRANSPARENT_FORGING_BLOCK_6 = isTestnetOrDevnet() ? 0 : 0;
     public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
-    public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
+    //FIXME[hit]
+//    public static final int TRANSPARENT_FORGING_BLOCK_8 = isTestnetOrDevnet() ? 0 : 0;
+
+    //FIXME[checksum]
     public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
@@ -333,10 +336,11 @@ public final class Constants {
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
     
-    private static int getBlockGap(){
+    private static int getBlockGapSeconds(){
         int gap = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap") : Conch.getIntProperty("sharder.blockGap"));
         if(gap < 1) gap = 1;
-        return gap;
+        // convert to second
+        return (gap - 1) * 60;
     }
     
     

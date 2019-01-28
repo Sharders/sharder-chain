@@ -1510,11 +1510,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
 
-  private void validateTransactions(
-      BlockImpl block,
-      BlockImpl previousLastBlock,
-      int curTime,
-      Map<TransactionType, Map<String, Integer>> duplicates) throws BlockNotAcceptedException {
+  private void validateTransactions(BlockImpl block,BlockImpl previousLastBlock,int curTime,Map<TransactionType, Map<String, Integer>> duplicates) throws BlockNotAcceptedException {
     long payloadLength = 0;
     long calculatedTotalAmount = 0;
     long calculatedTotalFee = 0;
@@ -1530,18 +1526,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
       
       if (transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) {
-        throw new BlockOutOfOrderException(
-            "Invalid transaction timestamp: "
-                + transaction.getTimestamp()
-                + ", current time is "
-                + curTime,
-            block);
+        throw new BlockOutOfOrderException("Invalid transaction timestamp: " + transaction.getTimestamp() + ", current time is " + curTime, block);
       }
       
       if (!transaction.verifySignature()) {
-        throw new TransactionNotAcceptedException(
-            "Transaction signature verification failed at height " + previousLastBlock.getHeight(),
-            transaction);
+        throw new TransactionNotAcceptedException("Transaction signature verification failed at height " + previousLastBlock.getHeight(), transaction);
       }
       
       
@@ -1559,10 +1548,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
       
       if (TransactionDb.hasTransaction(transaction.getId(), previousLastBlock.getHeight())) {
-        throw new TransactionNotAcceptedException(
-                "Transaction is already in the blockchain", transaction);
+        throw new TransactionNotAcceptedException("Transaction is already in the blockchain", transaction);
       }
-      
+      //FIXME[checksum]
       if (transaction.referencedTransactionFullHash() != null) {
         if ((previousLastBlock.getHeight() < Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK
                 && !TransactionDb.hasTransaction(

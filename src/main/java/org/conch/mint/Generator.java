@@ -301,14 +301,22 @@ public class Generator implements Comparable<Generator> {
             return false;
         }
         BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(pocScore);
-        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - (Constants.BLOCK_GAP - 1) * 60 -1));
+        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.BLOCK_GAP_SECONDS - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
-        return hit.compareTo(target) < 0
-                && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
-                || hit.compareTo(prevTarget) >= 0
-//                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 3600)
-                || (Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 300)
-                || Constants.isOffline);
+        // check the elapsed time(in second) after previous block generated
+        boolean elapsed = Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 3600;
+        return hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
+        
+        //FIXME[hit]
+//        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
+//        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 421));
+//        BigInteger target = prevTarget.add(effectiveBaseTarget);
+//        return hit.compareTo(target) < 0
+//                && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
+//                || hit.compareTo(prevTarget) >= 0
+////                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 3600)
+//                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 300)
+//                || Constants.isOffline);
     }
 
     public static boolean allowsFakeMining(byte[] publicKey) {
@@ -335,8 +343,7 @@ public class Generator implements Comparable<Generator> {
 //    }
 
     public static long getHitTime(BigInteger pocScore, BigInteger hit, Block block) {
-        return block.getTimestamp()
-                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + (Constants.BLOCK_GAP - 1) * 60;
+        return block.getTimestamp() + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + Constants.BLOCK_GAP_SECONDS;
     }
 
 

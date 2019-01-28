@@ -493,7 +493,7 @@ public final class BlockImpl implements Block {
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
-
+            //TODO
             return Generator.verifyHit(hit, BigInteger.valueOf(effectiveBalance), previousBlock, timestamp)
                     || (this.height < Constants.TRANSPARENT_FORGING_BLOCK_5 && Arrays.binarySearch(badBlocks, this.getId()) >= 0);
 
@@ -592,7 +592,8 @@ public final class BlockImpl implements Block {
             }
         } else if (previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - (Constants.BLOCK_GAP - 1) * 60;
+//            int blocktimeAverage = (this.timestamp - block.timestamp) / 3;
+            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.BLOCK_GAP_SECONDS;
             if (blocktimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
