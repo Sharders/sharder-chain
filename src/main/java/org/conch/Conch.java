@@ -105,7 +105,7 @@ public final class Conch {
 
     private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
-    private static final String SHARDER_FOUNDATION_TEST_URL = "localhost";
+    private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
     private static final String UPGRADE_SERVER = "https://resource.sharder.io";
     
     
@@ -113,6 +113,9 @@ public final class Conch {
         return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
     }
 
+    public static String getNetworkType() {
+        return Constants.isMainnet() ? "beta" : Constants.isTestnet() ? "alpha" : "dev";
+    }
 
     /**
      * Preset parameters
@@ -178,22 +181,22 @@ public final class Conch {
             return ToStringBuilder.reflectionToString(this);
         }
     }
-    
+
     public static int getPeerPort(){
 //        return Conch.getIntProperty("sharder.peerServerPort");
         return PresetParam.getPeerPort(Constants.getNetwork());
     }
-    
+
 //    public static int getUiPort(){
 ////        return Conch.getIntProperty("sharder.uiServerPort");
 //        return PresetParam.getUiPort(Constants.getNetwork());
 //    }
-    
+
     public static int getApiPort(){
 //        return Conch.getIntProperty("sharder.apiServerPort");
         return PresetParam.getApiPort(Constants.getNetwork());
     }
-    
+
     public static int getApiSSLPort(){
 //        return Conch.getIntProperty("sharder.apiServerSSLPort");
         return PresetParam.getApiSSLPort(Constants.getNetwork());
@@ -212,7 +215,7 @@ public final class Conch {
         loadProperties(DEFAULT_PROPERTIES, CONCH_DEFAULT_PROPERTIES, true);
 
         PresetParam.print();
-        
+
     }
 
 
@@ -281,7 +284,7 @@ public final class Conch {
         try {
             if (useNATService) {
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
-                
+
                 if(natCmdFile.exists()){
                     StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
                     cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
@@ -592,10 +595,10 @@ public final class Conch {
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
-                
+
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
-                
+
                 Account.init();
                 AccountRestrictions.init();
                 AccountLedger.init();
@@ -646,27 +649,27 @@ public final class Conch {
                     setTime(new Time.FasterTime(Math.max(getEpochTime(), Conch.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
                     Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
                 }
-                
+
                 try {
                     secureRandomInitThread.join(10000);
                 } catch (InterruptedException ignore) {}
-                
+
                 testSecureRandom();
                 autoMining();
-                
+
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
-                
+
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
-                
+
                 if (isDesktopApplicationEnabled()) launchDesktopApplication();
-                
+
                 if (Constants.isTestnet()) Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
-                
+
                 if (Constants.isDevnet()) Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
 
 
@@ -696,7 +699,7 @@ public final class Conch {
     public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
     public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
     /**
-     * Auto mining of Hub or Miner 
+     * Auto mining of Hub or Miner
      */
     private static void autoMining(){
         if(getBlockchain().getHeight() < 0) {
@@ -704,7 +707,7 @@ public final class Conch {
             Logger.logWarningMessage("!!! you can restart the client after genesis block created");
             return;
         }
-        
+
         // [Hub Miner] if owner bind the passphrase then start mine automatic
         if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
             Generator hubGenerator = Generator.ownerMining(HUB_BIND_PR);
@@ -722,7 +725,7 @@ public final class Conch {
                 Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
             }
         }
-        
+
         if(Generator.MAX_MINERS > 0) {
             // open miner service
             Peers.checkAndAddOpeningServices(Lists.newArrayList(Peer.Service.MINER));
