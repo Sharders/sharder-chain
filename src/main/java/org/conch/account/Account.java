@@ -1024,10 +1024,7 @@ public final class Account {
 
         Conch.getBlockchainProcessor().addListener(block -> {
             int height = block.getHeight();
-            //FIXME[effective_balance]
-//            if (height < Constants.TRANSPARENT_FORGING_BLOCK_6) {
-//                return;
-//            }
+
             List<AccountLease> changingLeases = new ArrayList<>();
             try (DbIterator<AccountLease> leases = getLeaseChangingAccounts(height)) {
                 while (leases.hasNext()) {
@@ -1234,8 +1231,6 @@ public final class Account {
 
     public long getEffectiveBalanceSS(int height) {
         
-        //FIXME[effective_balance]
-//        if (height >= Constants.TRANSPARENT_FORGING_BLOCK_6) {
             if (this.publicKey == null) {
                 this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
             }
@@ -1250,7 +1245,6 @@ public final class Account {
             if (this.publicKey == null || this.publicKey.publicKey == null) {
                 return 0;
             }
-//        }
           //FIXME[block_direct]
 //        if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
 //            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {

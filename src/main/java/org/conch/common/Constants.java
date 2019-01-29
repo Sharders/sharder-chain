@@ -203,8 +203,6 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_DIRECT = 3000; 
     public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
 
-    //FIXME[effective_balance]
-//    public static final int TRANSPARENT_FORGING_BLOCK_6 = isTestnetOrDevnet() ? 0 : 0;
     public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
 
     //FIXME[checksum]

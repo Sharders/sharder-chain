@@ -87,18 +87,20 @@ public final class FxtDistribution implements Listener<Block> {
     };
 
     public static void init() {}
-
-    static {
-        Conch.getBlockchainProcessor().addListener(new FxtDistribution(), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
-    }
-    
     // close dividend distribution
     final static boolean fxtOpen = false;
+    
+    static {
+        if(fxtOpen) {
+            Conch.getBlockchainProcessor().addListener(new FxtDistribution(), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+        }
+    }
+
     static int debugCount = 0;
     @Override
     public void notify(Block block) {
         if(!fxtOpen){
-            if(debugCount++ < 3) Logger.logDebugMessage("Close FXT Distributing Now");
+            if(debugCount++ < 2) Logger.logDebugMessage("Close FXT Distributing Now");
             return;
         }
 

@@ -177,12 +177,20 @@ public class PocProcessorImpl implements PocProcessor {
    
     return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
   }
-  
+
+  private static final String LOCAL_STORAGE_POC_HOLDER = "PocHolder";
 
   static {
-    Conch.getBlockchainProcessor().addListener(PocProcessorImpl::savePocHolder, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
-
-    Account.addListener(PocProcessorImpl::accountBalanceChanged, Account.Event.BALANCE);
+    // new block -> persistence poc holder (save the poc holder to disk)
+    Conch.getBlockchainProcessor().addListener((Block block) -> {
+      DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+    }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+    
+    // balance changed -> ss hold score re-calculate
+    Account.addListener((Account account) -> {
+      //TODO height get from event or other ways
+      balanceChangedProcess(-1,account);
+    }, Account.Event.BALANCE);
     
     loadExistPocHolder();
   }
@@ -307,22 +315,6 @@ public class PocProcessorImpl implements PocProcessor {
     
   }
   
-  private static final String LOCAL_STORAGE_POC_HOLDER = "PocHolder";
-
-  /**
-   * save the poc holder to disk
-   * @param block
-   */
-  private static void savePocHolder(Block block){
-//      Logger.logDebugMessage("save PocHolder into local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
-      DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
-  }
-
-  private static void accountBalanceChanged(Account account){
-    //TODO height gt from event or other ways
-    balanceChangedProcess(-1,account);
-  }
-  
   private static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
     Peer peer = Peers.getPeer(ip);
     if(StringUtils.isEmpty(ip)){
@@ -361,6 +353,18 @@ public class PocProcessorImpl implements PocProcessor {
     }
     bindAccountMap.put(peerBindAccountId,ip);
   }
+
+
+  private static PocScore getPocScoreByPeer(int height, String ip){
+    Peer peer = Peers.getPeer(ip);
+    if(peer == null) {
+      synPeerList.add(ip);
+      return null;
+    }
+
+    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
+    return new PocScore(peerBindAccountId,height);
+  }
   
 
   /**
@@ -373,26 +377,21 @@ public class PocProcessorImpl implements PocProcessor {
     if(pocNodeType == null || StringUtils.isEmpty(pocNodeType.getIp())) {
         return false;
     }
-    
-    Peer peer = Peers.getPeer(pocNodeType.getIp());
-    
-    if(peer == null) {
-      synPeerList.add(pocNodeType.getIp());
+
+    PocScore pocScoreToUpdate = getPocScoreByPeer(height, pocNodeType.getIp());
+    if(pocScoreToUpdate == null) {
       return false;
     }
-    
-    _updateCertifiedNodes(pocNodeType.getIp(),pocNodeType.getType(),height);
-    
-    // re-calculate poc score
-    long accountId = Account.rsAccountToId(peer.getBindRsAccount());
-    PocScore pocScoreToUpdate = new PocScore(accountId,height);
     pocScoreToUpdate.nodeTypeCal(pocNodeType);
 
     PocHolder.scoreMapping(pocScoreToUpdate);
+
+    _updateCertifiedNodes(pocNodeType.getIp(),pocNodeType.getType(),height);
     
     return true;
   }
 
+  
   /**
    * process the node conf tx of poc series
    * @param height block height that included this tx
@@ -400,15 +399,11 @@ public class PocProcessorImpl implements PocProcessor {
    * @return
    */
   public static boolean nodeConfTxProcess(int height,PocTxBody.PocNodeConf pocNodeConf){
-    Peer peer = Peers.getPeer(pocNodeConf.getIp());
-
-    if(peer == null) {
-      synPeerList.add(pocNodeConf.getIp());
+    PocScore pocScoreToUpdate = getPocScoreByPeer(height, pocNodeConf.getIp());
+    if(pocScoreToUpdate == null) {
       return false;
     }
     
-    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
-    PocScore pocScoreToUpdate = new PocScore(peerBindAccountId,height);
     pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
     PocHolder.scoreMapping(pocScoreToUpdate);
@@ -424,13 +419,11 @@ public class PocProcessorImpl implements PocProcessor {
   public static boolean onlineRateTxProcess(int height,PocTxBody.PocOnlineRate onlineRate){
     Peer peer = Peers.getPeer(onlineRate.getIp());
 
-    if(peer == null) {
-      synPeerList.add(onlineRate.getIp());
+    PocScore pocScoreToUpdate = getPocScoreByPeer(height, onlineRate.getIp());
+    if(pocScoreToUpdate == null) {
       return false;
     }
     
-    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
-    PocScore pocScoreToUpdate = new PocScore(peerBindAccountId,height);
     pocScoreToUpdate.onlineRateCal(peer.getType(),onlineRate);
 
     PocHolder.scoreMapping(pocScoreToUpdate);
