@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import org.conch.Conch;
+import org.conch.common.ConchException;
 import org.conch.consensus.poc.hardware.PerformanceCheckingUtil;
 import org.conch.util.IpUtil;
 import org.json.simple.JSONObject;
@@ -29,21 +30,22 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-public final class GetPerformance extends APIServlet.APIRequestHandler {
+/**
+ * @author CloudSen
+ */
+public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequestHandler {
 
-    static final GetPerformance instance = new GetPerformance();
+    static final GetNodeConfigPerformanceTestResult instance = new GetNodeConfigPerformanceTestResult();
 
-    private GetPerformance() {
+    private GetNodeConfigPerformanceTestResult() {
         super(new APITag[] {APITag.TEST}, "time");
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request) {
-        String senderIp = IpUtil.getSenderIp(request);
-        String foundationIp = IpUtil.getIp(Conch.getSharderFoundationURL());
-        
-        if (!foundationIp.equals(senderIp)) {
-            return null;
+    protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+
+        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL()))  {
+            throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!");
         }
         
         Integer time = Integer.parseInt(request.getParameter("time"));
