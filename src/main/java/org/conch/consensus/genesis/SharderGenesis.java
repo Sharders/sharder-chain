@@ -32,14 +32,10 @@ public class SharderGenesis {
             79, 123, -18, -57, -99, 10, -34, 75, -48, -72, -25, 96, -53, -63, -1, 43
     };
     public static final byte[] CREATOR_SIGNATURES = {
-            -36, 27, -52, -114, -28, 115, -4, -120, 50, -66, -107, 70, -54, -95, 61, -14,
-            79, 123, -18, -57, -99, 10, -34, 75, -48, -72, -25, 96, -53, -63, -1, 43
+            -79, 103, -74, -56, -6, 72, -57, -20, 59, 14, 92, 111, -116, 61, 7, -106, 38, 43, -105, 82, -112, -30, 55, -111, 3, 81, -15, 89, 5, -5, 20, 14, 58, -44, 
+            122, 99, 123, 119, 54, 66, -19, -107, 71, -115, -89, -55, -27, 121, -122, 12, 31, -126, -98, -91, 92, -88, 48, 30, 43, 80, 94, 90, 98, -109
     };
-    //    poc weight tx signature
-    //    {
-    //            -31,-20,-91,-48,-18,-86,94,-100,-98,93,-47,61,60,-72,-45,91,85,-98,88,36,19,-128,46,-58,-124,81,96,84,21,121,-101,9,107,-7,41,
-    //            -93,61,23,55,-64,109,127,67,-44,-44,43,-114,-82,-47,-111,45,123,-48,115,11,50,86,-79,127,-125,-16,49,-73,-36
-    //    };
+
     public static final byte[] GENESIS_BLOCK_SIGNATURE = new byte[]{
             58, 75, 72, 28, -115, 20, 91, 112, 87, 33, -23, 20, -40, -74, -108, 73, 52, 111, 94, 0, 87, 23, 22, 86, -91, 89, -37, 84, 29,
             48, 18, 15, -125, 97, -103, 106, -104, -125, -104, -33, 110, 99, -1, -79, -116, 25, 6, 73, 64, 34, 108, -33, 56, 107, -73, -60,
@@ -106,10 +102,10 @@ public class SharderGenesis {
             }
             payloadHash = digest.digest();
         }
-
+        int blockVersion = -1;
         BlockImpl genesisBlock = BlockImpl.newGenesisBlock(
                         SharderGenesis.GENESIS_BLOCK_ID,
-                        -1,
+                        blockVersion,
                         0,
                         0,
                         genesisBlockAmount(),
@@ -185,7 +181,7 @@ public class SharderGenesis {
     }
     
     /**
-     * genesis block that include genesis transacations:`
+     * genesis block that include genesis transactions:
      * 1. coinbase tx for the genesis account
      * 2. default poc weight table tx
      * @return genesis block

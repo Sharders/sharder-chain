@@ -373,7 +373,9 @@ public final class BlockImpl implements Block {
         json.put("payloadHash", Convert.toHexString(payloadHash));
         json.put("generatorPublicKey", Convert.toHexString(getGeneratorPublicKey()));
         json.put("generationSignature", Convert.toHexString(generationSignature));
-        json.put("previousBlockHash", Convert.toHexString(previousBlockHash));
+        if (version > 1) {
+            json.put("previousBlockHash", Convert.toHexString(previousBlockHash));
+        }
         json.put("blockSignature", Convert.toHexString(blockSignature));
         JSONArray transactionsData = new JSONArray();
         getTransactions().forEach(transaction -> transactionsData.add(transaction.getJSONObject()));
@@ -418,19 +420,26 @@ public final class BlockImpl implements Block {
 
     public byte[] bytes() {
         if (bytes == null) {
-            ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (8 + 8) + 4 + 32 + 32 + (32 + 32) + (blockSignature != null ? 64 : 0));
+            ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + (blockSignature != null ? 64 : 0));
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             buffer.putInt(version);
             buffer.putInt(timestamp);
             buffer.putLong(previousBlockId);
             buffer.putInt(getTransactions().size());
-            buffer.putLong(totalAmountNQT);
-            buffer.putLong(totalFeeNQT);
+            if (version < 3) {
+                buffer.putInt((int) (totalAmountNQT / Constants.ONE_SS));
+                buffer.putInt((int) (totalFeeNQT / Constants.ONE_SS));
+            } else {
+                buffer.putLong(totalAmountNQT);
+                buffer.putLong(totalFeeNQT);
+            }
             buffer.putInt(payloadLength);
             buffer.put(payloadHash);
             buffer.put(getGeneratorPublicKey());
             buffer.put(generationSignature);
-            buffer.put(previousBlockHash);
+            if (version > 1) {
+                buffer.put(previousBlockHash);
+            }
             if (blockSignature != null) {
                 buffer.put(blockSignature);
             }

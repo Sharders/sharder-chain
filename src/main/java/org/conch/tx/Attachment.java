@@ -49,13 +49,16 @@ import java.util.*;
 public interface Attachment extends Appendix {
 
     TransactionType getTransactionType();
-    
+
+    /**
+     * poc serial txs version must be set to 1
+     */
     abstract class TxBodyBase extends AbstractAttachment {
         public TxBodyBase() {
         }
 
         public TxBodyBase(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
+            super(buffer, (byte)1);
         }
 
         public TxBodyBase(JSONObject attachmentData) {
@@ -63,7 +66,7 @@ public interface Attachment extends Appendix {
         }
 
         public TxBodyBase(int version) {
-            super(version);
+            super(1);
         }
     }
 

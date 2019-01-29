@@ -22,15 +22,13 @@
 package org.conch.http;
 
 import org.conch.Conch;
+import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Convert;
-import org.conch.util.ThreadPool;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
 
 public final class UpgradeClient extends APIServlet.APIRequestHandler {
 
@@ -51,7 +49,7 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
             return response;
         }
         try {
-            Conch.fetchUpgradePackage(version);
+            ClientUpgradeTool.fetchUpgradePackage(version);
             if (restart) {
                 Conch.restartApplication(null);
             }

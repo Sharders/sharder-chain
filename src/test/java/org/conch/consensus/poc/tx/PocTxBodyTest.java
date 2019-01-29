@@ -24,7 +24,7 @@ public class PocTxBodyTest {
     }
     
     static void bytes2WeightTableTest() throws ConchException.NotValidException {
-        PocTxBody.PocWeightTable weightTable = new PocTxBody.PocWeightTable(ByteBuffer.wrap(Convert.toBytes(byteStr)),(byte)0);
+        PocTxBody.PocWeightTable weightTable = new PocTxBody.PocWeightTable(ByteBuffer.wrap(Convert.toBytes(byteStr)),(byte)1);
         System.out.println(weightTable.toString());
     }
     

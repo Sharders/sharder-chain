@@ -305,9 +305,9 @@ public interface PocTxBody  {
             bocSpeedTemplate.put(DeviceLevels.BAD.getLevel(), BigInteger.valueOf(pocTemplate.getBadBocSpeedScore())); 
             bocSpeedTemplate.put(DeviceLevels.MIDDLE.getLevel(), BigInteger.valueOf(pocTemplate.getMiddleBocSpeedScore())); 
 
-            Long version = pocTemplate.getVersion();
+            Long weightTableVersion = pocTemplate.getVersion();
 
-            return new PocWeightTable(weightMap,nodeTypeTP,serverOpenTP,hardwareConfigTP,networkConfigTP,txPerformanceTP,onlineRateMap,blockingMissTemplate,bocSpeedTemplate,version);
+            return new PocWeightTable(weightMap,nodeTypeTP,serverOpenTP,hardwareConfigTP,networkConfigTP,txPerformanceTP,onlineRateMap,blockingMissTemplate,bocSpeedTemplate,weightTableVersion);
         }
 
         /**
@@ -322,22 +322,23 @@ public interface PocTxBody  {
             return pocWeightTableBuilder(new PocTemplate());
         }
         
-        
-        public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTemplate, Map<Long, BigInteger> serverOpenTemplate, Map<Integer, BigInteger> hardwareConfigTemplate, Map<Integer, BigInteger> networkConfigTemplate, Map<Integer, BigInteger> txPerformanceTemplate, Map<Peer.Type, Map<Integer, BigInteger>> onlineRateTemplate, Map<Integer, BigInteger> generationMissingTemplate, Map<Integer, BigInteger> bocSpeedTemplate, Long version) {
-            super(0);
+        // tx version must be set to 1
+        public PocWeightTable(Map<String, BigInteger> weightMap, Map<Integer, BigInteger> nodeTypeTP, Map<Long, BigInteger> serverOpenTP, Map<Integer, BigInteger> hardwareConfigTP, 
+                              Map<Integer, BigInteger> networkConfigTP, Map<Integer, BigInteger> txPerformanceTP, Map<Peer.Type, Map<Integer, BigInteger>> onlineRateTP, 
+                              Map<Integer, BigInteger> generationMissTP, Map<Integer, BigInteger> bocSpeedTP, Long weightTableVersion) {
+            super(1);
             this.weightMap = weightMap;
-            this.nodeTypeTemplate = nodeTypeTemplate;
-            this.serverOpenTemplate = serverOpenTemplate;
-            this.hardwareConfigTemplate = hardwareConfigTemplate;
-            this.networkConfigTemplate = networkConfigTemplate;
-            this.txPerformanceTemplate = txPerformanceTemplate;
-            this.onlineRateTemplate = onlineRateTemplate;
-            this.generationMissingTemplate = generationMissingTemplate;
-            this.bocSpeedTemplate = bocSpeedTemplate;
-            this.weightTableVersion = version;
+            this.nodeTypeTemplate = nodeTypeTP;
+            this.serverOpenTemplate = serverOpenTP;
+            this.hardwareConfigTemplate = hardwareConfigTP;
+            this.networkConfigTemplate = networkConfigTP;
+            this.txPerformanceTemplate = txPerformanceTP;
+            this.onlineRateTemplate = onlineRateTP;
+            this.generationMissingTemplate = generationMissTP;
+            this.bocSpeedTemplate = bocSpeedTP;
+            this.weightTableVersion = weightTableVersion;
         }
 
-    
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
             this.weightTableVersion = buffer.getLong();
@@ -366,7 +367,6 @@ public interface PocTxBody  {
             bocSpeedTemplate = (Map<Integer, BigInteger>) attachmentData.get("bocSpeedTemplate");
              
         }
-        
 
         @Override
         public int getMySize() {
