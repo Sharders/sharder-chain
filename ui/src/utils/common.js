@@ -187,6 +187,23 @@ export default {
 
     },
     /**
+     * IP 数组 查询 坐标
+     */
+    byIPtoCoordinates(params) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://sharder.org/api/front/coordinates/ip");
+        xhr.setRequestHeader("content-type", "application/json;charset=UTF-8");
+        return new Promise(function (resolve, reject) {
+            xhr.onload = function () {
+                resolve(xhr.response);
+            };
+            xhr.onerror = function (error) {
+                reject(error);
+            };
+            xhr.send(JSON.stringify(params));
+        });
+    },
+    /**
      * 获取用户配置
      * @param t
      * @returns {Promise<any>}
