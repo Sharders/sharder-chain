@@ -24,8 +24,8 @@ package org.conch.consensus.poc.tx;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocCalculator;
 import org.conch.consensus.poc.PocProcessorImpl;
-import org.conch.consensus.poc.PocScore;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -107,7 +107,7 @@ public abstract class PocTxWrapper extends TransactionType {
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           PocTxBody.PocWeightTable pocWeight = (PocTxBody.PocWeightTable) transaction.getAttachment();
-          PocScore.PocCalculator.setCurWeightTable(pocWeight, transaction.getHeight());
+          PocCalculator.inst.setCurWeightTable(pocWeight, transaction.getHeight());
         }
 
         @Override

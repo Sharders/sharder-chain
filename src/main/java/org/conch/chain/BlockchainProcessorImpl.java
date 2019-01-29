@@ -1537,20 +1537,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 previousLastBlock.getHeight()))
                 || (previousLastBlock.getHeight() >= Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK
                 && !hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
-          throw new TransactionNotAcceptedException(
-                  "Missing or invalid referenced transaction "
-                          + transaction.getReferencedTransactionFullHash(),
-                  transaction);
+          throw new TransactionNotAcceptedException("Missing or invalid referenced transaction "
+                          + transaction.getReferencedTransactionFullHash(),transaction);
         }
       }
       
       if (transaction.getVersion() != getTransactionVersion(previousLastBlock.getHeight())) {
-        throw new TransactionNotAcceptedException(
-                "Invalid transaction version "
-                        + transaction.getVersion()
-                        + " at height "
-                        + previousLastBlock.getHeight(),
-                transaction);
+        throw new TransactionNotAcceptedException("Invalid transaction version "+ transaction.getVersion()+ " at height "
+                        + previousLastBlock.getHeight(),transaction);
       }
       
       if (transaction.getId() == 0L) {
@@ -1845,7 +1839,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private int getTransactionVersion(int previousBlockHeight) {
-    return previousBlockHeight < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1;
+    return previousBlockHeight < Constants.POC_BLOCK_HEIGHT ? 0 : 1;
   }
 
   public SortedSet<UnconfirmedTransaction> selectUnconfirmedTransactions(
@@ -1877,8 +1871,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             || payloadLength + transactionLength > Constants.MAX_PAYLOAD_LENGTH) {
           continue;
         }
-        if (unconfirmedTransaction.getVersion()
-            != getTransactionVersion(previousBlock.getHeight())) {
+        if (unconfirmedTransaction.getVersion() != getTransactionVersion(previousBlock.getHeight())) {
           continue;
         }
         if (blockTimestamp > 0

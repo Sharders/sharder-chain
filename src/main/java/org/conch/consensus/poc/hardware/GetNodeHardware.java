@@ -3,6 +3,7 @@ package org.conch.consensus.poc.hardware;
 import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.RestfulHttpClient;
@@ -184,7 +185,7 @@ public class GetNodeHardware {
         String myAddress = Conch.getMyAddress();
         String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
         Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
-        String bindRs = Optional.ofNullable(Conch.HUB_BIND_ADDRESS).orElse("");
+        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
         systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
 
         try {

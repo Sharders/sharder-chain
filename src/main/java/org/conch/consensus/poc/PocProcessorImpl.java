@@ -1,7 +1,6 @@
 package org.conch.consensus.poc;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -21,7 +20,6 @@ import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
 import java.io.File;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -35,124 +33,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class PocProcessorImpl implements PocProcessor {
 
-
-  /** 
-   * PocHolder is a singleton to hold the score map.
-   * This map stored in the memory, changed by the poc txs.
-   */
-  public static class PocHolder implements Serializable {
-    
-    static PocHolder inst = new PocHolder();
-    
-    // accountId : pocScore
-    static Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
-    // height : { accountId : pocScore }
-    static Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
-    
-    // certified miner: foundation node,sharder hub, community node
-    // height : <bindAccountId,peer>
-    static Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
-    // peerType : <bindAccountId,peerIp> 
-    static Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
-    
-    static int lastHeight = -1;
-  
-    static {
-      certifiedBindAccountMap.put(Peer.Type.HUB,Maps.newConcurrentMap());
-      certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
-      certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
-    }
-    
-    private PocHolder(){}
-    
-    
-    static void _defaultPocScore(long accountId,int height){
-      scoreMapping(new PocScore(accountId,height));  
-    }
-    
-    /**
-     * get the poc score of the specified height
-     * @param height 
-     * @param accountId 
-     * @return
-     */
-    static BigInteger getPocScore(int height,long accountId) {
-      if(height < 0) height = 0;
-      if (!scoreMap.containsKey(accountId)) {
-        if(Conch.getBlockchain().getHeight() < height) {
-          synPocTxNow = true;
-        }
-        _defaultPocScore(accountId,height);
-      }
-
-      PocScore pocScore = scoreMap.get(accountId);
-      //newest poc score when query height is bigger than last height of poc score 
-      if(pocScore.height <= height) {
-          return pocScore.total();
-      }else{
-        //get from history
-        pocScore = getHistoryPocScore(height, accountId);
-        if(pocScore != null) {
-          return pocScore.total();
-        }
-      }
-      
-      return BigInteger.ZERO;
-    }
-
-    /**
-     * update the poc score of account
-     * @param pocScore a poc score object
-     */
-    static synchronized void scoreMapping(PocScore pocScore){
-       PocScore _pocScore = pocScore;
-       if(scoreMap.containsKey(pocScore.accountId)) {
-          _pocScore = scoreMap.get(pocScore.accountId);
-          _pocScore.synScoreFrom(pocScore);
-          recordHistoryScore(pocScore);
-       }
-       
-       scoreMap.put(pocScore.accountId,_pocScore);
-       lastHeight = pocScore.height > lastHeight ? pocScore.height : lastHeight;
-    }
-
-    static BigInteger getTotal(int height,Long accountId){
-      Map<Long,PocScore> map = historyScore.get(height);
-      if(map == null) return BigInteger.ZERO;
-      PocScore score = map.get(accountId);
-      return score !=null ? score.total() : BigInteger.ZERO;
-    }
-
-    /**
-     * record current poc score into history
-     */
-    static void recordHistoryScore(PocScore pocScore){
-      Map<Long,PocScore> map = historyScore.get(pocScore.height);
-      if(map == null) map = new HashMap<>();
-
-      map.put(pocScore.accountId,new PocScore(pocScore.height, pocScore));
-
-      historyScore.put(pocScore.height,map);
-    }
-
-    public static PocScore getHistoryPocScore(int height,long accountId){
-        if(!historyScore.containsKey(height)) { 
-          return null;
-        }
-        return historyScore.get(height).get(accountId);
-    }
-    
-    static PocTxBody.PocWeightTable getPocWeightTable(){
-      boolean hasPocWeightTable = true;
-      if(scoreMap == null || PocScore.PocCalculator.pocWeightTable == null) {
-          hasPocWeightTable = false;
-      }
-      
-      return hasPocWeightTable ? PocScore.PocCalculator.pocWeightTable : PocTxBody.PocWeightTable.defaultPocWeightTable();
-    }
- 
-  }
-
   public static PocProcessorImpl instance = getOrCreate();
 
   private PocProcessorImpl() {}
@@ -162,37 +42,48 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   public static boolean isCertifiedPeerBind(long accountId){
-    boolean hubBindAccount = PocHolder.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
-    boolean communityBindAccount = PocHolder.certifiedBindAccountMap.get(Peer.Type.COMMUNITY).containsKey(accountId);
-    boolean foundationBindAccount = PocHolder.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).containsKey(accountId);
+    boolean hubBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
+    boolean communityBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.COMMUNITY).containsKey(accountId);
+    boolean foundationBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).containsKey(accountId);
     return hubBindAccount || communityBindAccount || foundationBindAccount;
   }
 
   public static boolean isHubBind(long accountId){
-    return PocHolder.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
+    return PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
   }
   
   public static boolean isHubBind(long accountId, String peerIp){
-    String bindPeerIp = PocHolder.certifiedBindAccountMap.get(Peer.Type.HUB).get(accountId);
+    String bindPeerIp = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).get(accountId);
    
     return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
   }
 
   private static final String LOCAL_STORAGE_POC_HOLDER = "PocHolder";
+  private static final String LOCAL_STORAGE_POC_CALCULATOR = "PocCalculator";
   
   private static Map<Long,Account> balanceChangedMap = new HashMap<>();
   static {
-    // new block
+    // new block accepted
     Conch.getBlockchainProcessor().addListener((Block block) -> {
       // ss hold score re-calculate
       // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
-      for(Account account : balanceChangedMap.values()){
-        balanceChangedProcess(block.getHeight(),account);
+      boolean someAccountBalanceChanged = balanceChangedMap.size() > 0;
+      if(someAccountBalanceChanged) {
+        for(Account account : balanceChangedMap.values()){
+          balanceChangedProcess(block.getHeight(),account);
+        }
+        balanceChangedMap.clear();
       }
-      balanceChangedMap.clear();
-
-      //save the poc holder to disk
-      DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+      
+      Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
+      boolean blockContainPocTxs = containPoc == null ? false : containPoc;
+      
+      //save to disk when poc score changed case of contains poc txs in block or account balance changed
+      if(someAccountBalanceChanged || blockContainPocTxs) {
+        //save the poc holder and calculator to disk
+        DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+        DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
+      }
     }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     
     // balance changed
@@ -214,6 +105,11 @@ public class PocProcessorImpl implements PocProcessor {
     if (file.exists()) {
       PocHolder.inst = (PocHolder) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
     } 
+    
+    File calculatorFile = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR));
+    if (calculatorFile.exists()) {
+      PocCalculator.inst = (PocCalculator) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
+    } 
 
     //if no disk backup, read the poc txs from history blocks
     if(PocHolder.lastHeight <= Conch.getBlockchain().getHeight()) {
@@ -228,7 +124,7 @@ public class PocProcessorImpl implements PocProcessor {
 
   @Override
   public PocTxBody.PocWeightTable getPocWeightTable(Long version) {
-    return PocHolder.getPocWeightTable();
+    return PocHolder.inst.getPocWeightTable();
   }
 
   public static void init() {
@@ -245,7 +141,7 @@ public class PocProcessorImpl implements PocProcessor {
         Thread.sleep(10 * 60 * 1000);
       }
       
-      int fromHeight = (PocHolder.lastHeight <= -1) ? 0 : PocHolder.lastHeight;
+      int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
       int toHeight = BlockchainImpl.getInstance().getHeight();
 
 
@@ -264,6 +160,11 @@ public class PocProcessorImpl implements PocProcessor {
       System.exit(1);
     }
   };
+  
+  public static void notifySynTxNow(){
+    synPocTxNow = true;
+  }
+  
   
   private static volatile List<String> synPeerList = Lists.newArrayList();
   private static final Runnable peerSynThread = () -> {
@@ -294,8 +195,6 @@ public class PocProcessorImpl implements PocProcessor {
     }
   };
 
-  
-
   private static void pocSeriesTxProcess(Block block) {
     //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
     Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
@@ -318,7 +217,8 @@ public class PocProcessorImpl implements PocProcessor {
       }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
         blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
       }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
-        PocScore.PocCalculator.setCurWeightTable((PocTxBody.PocWeightTable)tx.getAttachment(),block.getHeight());
+        PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
+        PocCalculator.inst.setCurWeightTable(weightTable,block.getHeight());
       }
     }
     
@@ -341,19 +241,19 @@ public class PocProcessorImpl implements PocProcessor {
     peer.setType(type);
 
     // update certified nodes
-    Map<Long, Peer> peerMap = PocHolder.certifiedMinerPeerMap.get(height);
+    Map<Long, Peer> peerMap = PocHolder.inst.certifiedMinerPeerMap.get(height);
     if(peerMap == null) {
         peerMap = new ConcurrentHashMap<>();
     }
     peerMap.put(peerBindAccountId,peer);
-    PocHolder.certifiedMinerPeerMap.put(height,peerMap);
+    PocHolder.inst.certifiedMinerPeerMap.put(height,peerMap);
     
     //update peer bind account by peer type
-    if(!PocHolder.certifiedBindAccountMap.containsKey(type)) {
-      PocHolder.certifiedBindAccountMap.put(type,new ConcurrentHashMap<>());
+    if(!PocHolder.inst.certifiedBindAccountMap.containsKey(type)) {
+      PocHolder.inst.certifiedBindAccountMap.put(type,new ConcurrentHashMap<>());
     }
     
-    Map<Long, String> bindAccountMap = PocHolder.certifiedBindAccountMap.get(type);
+    Map<Long, String> bindAccountMap = PocHolder.inst.certifiedBindAccountMap.get(type);
     if(bindAccountMap.containsKey(peerBindAccountId)) {
       String peerIp = bindAccountMap.get(peerBindAccountId);
       if(!ip.equalsIgnoreCase(peerIp)) {
@@ -393,7 +293,7 @@ public class PocProcessorImpl implements PocProcessor {
     }
     pocScoreToUpdate.nodeTypeCal(pocNodeType);
 
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.inst.scoreMapping(pocScoreToUpdate);
 
     _updateCertifiedNodes(pocNodeType.getIp(),pocNodeType.getType(),height);
     
@@ -415,7 +315,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.inst.scoreMapping(pocScoreToUpdate);
     return true;
   }
 
@@ -435,7 +335,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     pocScoreToUpdate.onlineRateCal(peer.getType(),onlineRate);
 
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.inst.scoreMapping(pocScoreToUpdate);
     return true;
   }
 
@@ -451,7 +351,7 @@ public class PocProcessorImpl implements PocProcessor {
     for(Long missAccountId : missAccountIds){
       PocScore pocScoreToUpdate = new PocScore(missAccountId,height);
       pocScoreToUpdate.blockMissCal(pocBlockMissing);
-      PocHolder.scoreMapping(pocScoreToUpdate);
+      PocHolder.inst.scoreMapping(pocScoreToUpdate);
     }
     return true;
   }
@@ -469,7 +369,7 @@ public class PocProcessorImpl implements PocProcessor {
     long accountId = account.getId();
     PocScore pocScoreToUpdate = new PocScore(accountId,height);
     pocScoreToUpdate.ssScoreCal();
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.inst.scoreMapping(pocScoreToUpdate);
     return true;
   }
   

@@ -21,9 +21,6 @@
 
 package org.conch;
 
-import com.google.common.collect.Lists;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
@@ -54,7 +51,6 @@ import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
-import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
 import org.conch.shuffle.Shuffling;
@@ -76,7 +72,6 @@ import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -654,8 +649,6 @@ public final class Conch {
                 } catch (InterruptedException ignore) {}
 
                 testSecureRandom();
-                autoMining();
-
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
@@ -691,44 +684,6 @@ public final class Conch {
 
         private Init() {} // never
 
-    }
-
-    // Hub setting
-    public static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
-    public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
-    public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
-    /**
-     * Auto mining of Hub or Miner
-     */
-    private static void autoMining(){
-        if(getBlockchain().getHeight() <= 0) {
-            Logger.logWarningMessage("!!! current height <= 0, need syn blocks or wait genesis block be saved into db");
-            Logger.logWarningMessage("!!! you can restart the client after genesis block created");
-            return;
-        }
-
-        // [Hub Miner] if owner bind the passphrase then start mine automatic
-        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
-            Generator hubGenerator = Generator.ownerMining(HUB_BIND_PR);
-            if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(HUB_BIND_ADDRESS))) {
-                Generator.stopMining(HUB_BIND_PR);
-                Logger.logInfoMessage("Account" + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
-            } else {
-                Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " started mining...");
-            }
-        }else {
-            // [Normal Miner] if owner set the passphrase of mint then start mining
-            String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
-            if(autoMintPR != null) {
-                Generator bindGenerator = Generator.ownerMining(autoMintPR.trim());
-                Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
-            }
-        }
-
-        if(Generator.MAX_MINERS > 0) {
-            // open miner service
-            Peers.checkAndAddOpeningServices(Lists.newArrayList(Peer.Service.MINER));
-        }
     }
 
     private static void setSystemProperties() {
