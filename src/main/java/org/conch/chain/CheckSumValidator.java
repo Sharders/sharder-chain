@@ -143,33 +143,34 @@ public class CheckSumValidator {
         return inst;
     }
 
+    /**
+     * validate checksum after Event.BLOCK_SCANNED or Event.BLOCK_PUSHED
+     * @return
+     */
     public static Listener<Block> eventProcessor(){
         return inst.checksumListener;
     }
     
-    // Checksum校验逻辑
+    // pop off to previous right height when checksum validation failed
     private final Listener<Block> checksumListener =
             block -> {
                 if (block.getHeight() == Constants.TRANSPARENT_FORGING_BLOCK) {
-                    if (!verifyChecksum(
-                            CHECKSUM_TRANSPARENT_FORGING, 0, Constants.TRANSPARENT_FORGING_BLOCK)) {
+                    //TODO[checksum]
+                    if (!verifyChecksum(CHECKSUM_TRANSPARENT_FORGING, 0, Constants.TRANSPARENT_FORGING_BLOCK)) {
                         Conch.getBlockchainProcessor().popOffTo(0);
                     }
                 } else if (block.getHeight() == Constants.NQT_BLOCK) {
-                    if (!verifyChecksum(
-                            CHECKSUM_NQT_BLOCK, Constants.TRANSPARENT_FORGING_BLOCK, Constants.NQT_BLOCK)) {
+                    //TODO[checksum-NQT]
+                    if (!verifyChecksum(CHECKSUM_NQT_BLOCK, Constants.TRANSPARENT_FORGING_BLOCK, Constants.NQT_BLOCK)) {
                         Conch.getBlockchainProcessor().popOffTo(Constants.TRANSPARENT_FORGING_BLOCK);
                     }
                 } else if (block.getHeight() == Constants.MONETARY_SYSTEM_BLOCK) {
-                    if (!verifyChecksum(
-                            CHECKSUM_MONETARY_SYSTEM_BLOCK,
-                            Constants.NQT_BLOCK,
-                            Constants.MONETARY_SYSTEM_BLOCK)) {
+                    //FIXME[checksum-NQT]
+                    if (!verifyChecksum(CHECKSUM_MONETARY_SYSTEM_BLOCK,Constants.NQT_BLOCK,Constants.MONETARY_SYSTEM_BLOCK)) {
                         Conch.getBlockchainProcessor().popOffTo(Constants.NQT_BLOCK);
                     }
                 } else if (block.getHeight() == Constants.PHASING_BLOCK) {
-                    if (!verifyChecksum(
-                            CHECKSUM_PHASING_BLOCK, Constants.MONETARY_SYSTEM_BLOCK, Constants.PHASING_BLOCK)) {
+                    if (!verifyChecksum(CHECKSUM_PHASING_BLOCK, Constants.MONETARY_SYSTEM_BLOCK, Constants.PHASING_BLOCK)) {
                         Conch.getBlockchainProcessor().popOffTo(Constants.MONETARY_SYSTEM_BLOCK);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_16) {
@@ -177,33 +178,27 @@ public class CheckSumValidator {
                         Conch.getBlockchainProcessor().popOffTo(Constants.PHASING_BLOCK);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_17) {
-                    if (!verifyChecksum(
-                            CHECKSUM_17, CHECKSUM_BLOCK_16, CHECKSUM_BLOCK_17)) {
+                    if (!verifyChecksum(CHECKSUM_17, CHECKSUM_BLOCK_16, CHECKSUM_BLOCK_17)) {
                         Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_16);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_18) {
-                    if (!verifyChecksum(
-                            CHECKSUM_18, CHECKSUM_BLOCK_17, CHECKSUM_BLOCK_18)) {
+                    if (!verifyChecksum(CHECKSUM_18, CHECKSUM_BLOCK_17, CHECKSUM_BLOCK_18)) {
                         Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_17);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_19) {
-                    if (!verifyChecksum(
-                            CHECKSUM_19, CHECKSUM_BLOCK_18, CHECKSUM_BLOCK_19)) {
+                    if (!verifyChecksum(CHECKSUM_19, CHECKSUM_BLOCK_18, CHECKSUM_BLOCK_19)) {
                         Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_18);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_20) {
-                    if (!verifyChecksum(
-                            CHECKSUM_20, CHECKSUM_BLOCK_19, CHECKSUM_BLOCK_20)) {
+                    if (!verifyChecksum(CHECKSUM_20, CHECKSUM_BLOCK_19, CHECKSUM_BLOCK_20)) {
                         Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_19);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_21) {
-                    if (!verifyChecksum(
-                            CHECKSUM_21, CHECKSUM_BLOCK_20, CHECKSUM_BLOCK_21)) {
+                    if (!verifyChecksum(CHECKSUM_21, CHECKSUM_BLOCK_20, CHECKSUM_BLOCK_21)) {
                         Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_20);
                     }
                 } else if (block.getHeight() == CHECKSUM_BLOCK_22) {
-                    if (!verifyChecksum(
-                            CHECKSUM_22, CHECKSUM_BLOCK_21, CHECKSUM_BLOCK_22)) {
+                    if (!verifyChecksum(CHECKSUM_22, CHECKSUM_BLOCK_21, CHECKSUM_BLOCK_22)) {
                         Conch.getBlockchainProcessor().popOffTo(CHECKSUM_BLOCK_21);
                     }
                 }
@@ -213,8 +208,7 @@ public class CheckSumValidator {
     private boolean verifyChecksum(byte[] validChecksum, int fromHeight, int toHeight) {
         MessageDigest digest = Crypto.sha256();
         try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt =
-                     con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
+             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
             pstmt.setInt(1, fromHeight);
             pstmt.setInt(2, toHeight);
             try (DbIterator<TransactionImpl> iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt)) {
@@ -230,8 +224,7 @@ public class CheckSumValidator {
             Logger.logMessage("Checksum calculated:\n" + Arrays.toString(checksum));
             return true;
         } else if (!Arrays.equals(checksum, validChecksum)) {
-            Logger.logErrorMessage(
-                    "Checksum failed at block " + Conch.getBlockchain().getHeight() + ": " + Arrays.toString(checksum));
+            Logger.logErrorMessage("Checksum failed at block " + Conch.getBlockchain().getHeight() + ": " + Arrays.toString(checksum));
             return false;
         } else {
             Logger.logMessage("Checksum passed at block " + Conch.getBlockchain().getHeight());

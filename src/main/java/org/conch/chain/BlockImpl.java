@@ -373,9 +373,7 @@ public final class BlockImpl implements Block {
         json.put("payloadHash", Convert.toHexString(payloadHash));
         json.put("generatorPublicKey", Convert.toHexString(getGeneratorPublicKey()));
         json.put("generationSignature", Convert.toHexString(generationSignature));
-        if (version > 1) {
-            json.put("previousBlockHash", Convert.toHexString(previousBlockHash));
-        }
+        json.put("previousBlockHash", Convert.toHexString(previousBlockHash));
         json.put("blockSignature", Convert.toHexString(blockSignature));
         JSONArray transactionsData = new JSONArray();
         getTransactions().forEach(transaction -> transactionsData.add(transaction.getJSONObject()));
@@ -396,7 +394,7 @@ public final class BlockImpl implements Block {
             byte[] generatorPublicKey = Convert.parseHexString((String) blockData.get("generatorPublicKey"));
             byte[] generationSignature = Convert.parseHexString((String) blockData.get("generationSignature"));
             byte[] blockSignature = Convert.parseHexString((String) blockData.get("blockSignature"));
-            byte[] previousBlockHash = version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
+            byte[] previousBlockHash = Convert.parseHexString((String) blockData.get("previousBlockHash"));
             List<TransactionImpl> blockTransactions = new ArrayList<>();
             for (Object transactionData : (JSONArray) blockData.get("transactions")) {
                 blockTransactions.add(TransactionImpl.parseTransaction((JSONObject) transactionData));
@@ -420,26 +418,19 @@ public final class BlockImpl implements Block {
 
     public byte[] bytes() {
         if (bytes == null) {
-            ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + (blockSignature != null ? 64 : 0));
+            ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (8 + 8) + 4 + 32 + 32 + (32 + 32) + (blockSignature != null ? 64 : 0));
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             buffer.putInt(version);
             buffer.putInt(timestamp);
             buffer.putLong(previousBlockId);
             buffer.putInt(getTransactions().size());
-            if (version < 3) {
-                buffer.putInt((int) (totalAmountNQT / Constants.ONE_SS));
-                buffer.putInt((int) (totalFeeNQT / Constants.ONE_SS));
-            } else {
-                buffer.putLong(totalAmountNQT);
-                buffer.putLong(totalFeeNQT);
-            }
+            buffer.putLong(totalAmountNQT);
+            buffer.putLong(totalFeeNQT);
             buffer.putInt(payloadLength);
             buffer.put(payloadHash);
             buffer.put(getGeneratorPublicKey());
             buffer.put(generationSignature);
-            if (version > 1) {
-                buffer.put(previousBlockHash);
-            }
+            buffer.put(previousBlockHash);
             if (blockSignature != null) {
                 buffer.put(blockSignature);
             }
@@ -457,7 +448,7 @@ public final class BlockImpl implements Block {
     private boolean checkSignature() {
         if (! hasValidSignature) {
             byte[] data = Arrays.copyOf(bytes(), bytes.length - 64);
-            hasValidSignature = blockSignature != null && Crypto.verify(blockSignature, data, getGeneratorPublicKey(), version >= 3);
+            hasValidSignature = blockSignature != null && Crypto.verify(blockSignature, data, getGeneratorPublicKey(), true);
         }
         return hasValidSignature;
     }
@@ -469,10 +460,6 @@ public final class BlockImpl implements Block {
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
-            }
-
-            if (version == 1 && !Crypto.verify(generationSignature, previousBlock.generationSignature, getGeneratorPublicKey(), false)) {
-                return false;
             }
 
             BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),height);
@@ -487,14 +474,10 @@ public final class BlockImpl implements Block {
 
             MessageDigest digest = Crypto.sha256();
             byte[] generationSignatureHash;
-            if (version == 1) {
-                generationSignatureHash = digest.digest(generationSignature);
-            } else {
-                digest.update(previousBlock.generationSignature);
-                generationSignatureHash = digest.digest(getGeneratorPublicKey());
-                if (!Arrays.equals(generationSignature, generationSignatureHash)) {
-                    return false;
-                }
+            digest.update(previousBlock.generationSignature);
+            generationSignatureHash = digest.digest(getGeneratorPublicKey());
+            if (!Arrays.equals(generationSignature, generationSignatureHash)) {
+                return false;
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});

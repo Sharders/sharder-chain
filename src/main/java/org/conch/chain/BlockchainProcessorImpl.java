@@ -1463,9 +1463,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           block);
     }
     // previous block hash check
-    if (block.getVersion() != 1
-              && !Arrays.equals(
-              Crypto.sha256().digest(previousLastBlock.bytes()), block.getPreviousBlockHash())) {
+    if (!Arrays.equals(Crypto.sha256().digest(previousLastBlock.bytes()), block.getPreviousBlockHash())) {
         throw new BlockNotAcceptedException("Previous block hash doesn't match", block);
     }
 
@@ -1840,9 +1838,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockchain.writeUnlock();
     }
   }
-
+  
   private int getBlockVersion(int previousBlockHeight) {
-    return (previousBlockHeight < Constants.TRANSPARENT_FORGING_BLOCK) ? 1 : (previousBlockHeight < Constants.NQT_BLOCK) ? 2 : 3;
+    // open testnet default version is 3, means poc txs opened
+    return (previousBlockHeight < Constants.POC_BLOCK_HEIGHT) ? 2 : 3;
   }
 
   private int getTransactionVersion(int previousBlockHeight) {
@@ -2301,12 +2300,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   validateTransactions(currentBlock, blockchain.getLastBlock(), curTime, duplicates);
                   for (TransactionImpl transaction : currentBlock.getTransactions()) {
                     byte[] transactionBytes = transaction.bytes();
+                    //TODO[checksum-NQT]
                     if (currentBlock.getHeight() > Constants.NQT_BLOCK
-                        && !Arrays.equals(
-                            transactionBytes,
-                            TransactionImpl.newTransactionBuilder(transactionBytes)
-                                .build()
-                                .bytes())) {
+                        && !Arrays.equals(transactionBytes,TransactionImpl.newTransactionBuilder(transactionBytes).build().bytes())) {
                       throw new ConchException.NotValidException(
                           "Transaction bytes cannot be parsed back to the same transaction: "
                               + transaction.getJSONObject().toJSONString());

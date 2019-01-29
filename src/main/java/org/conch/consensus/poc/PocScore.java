@@ -219,7 +219,6 @@ public class PocScore {
                 performanceScore =pocWeightTable.getTxPerformanceTemplate().get(PocTxBody.DeviceLevels.BAD.getLevel());
             }
             pocScore.performanceScore = pocWeightTable.getWeightMap().get(PocTxBody.WeightTableOptions.TX_PERFORMANCE.getValue()).multiply(performanceScore.multiply(POINT_SYSTEM_CONVERSION_RATE)).divide(PERCENT_DIVISOR);
-
         }
 
         static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {

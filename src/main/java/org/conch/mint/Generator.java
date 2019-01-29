@@ -345,9 +345,6 @@ public class Generator implements Comparable<Generator> {
         if (allowsFakeMining(publicKey)) {
             return BigInteger.ZERO;
         }
-        if (block.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK) {
-            throw new IllegalArgumentException("Not supported below Transparent Forging Block");
-        }
 
         MessageDigest digest = Crypto.sha256();
         digest.update(block.getGenerationSignature());

@@ -200,6 +200,7 @@ public final class Constants {
 
     
     public static final int TRANSPARENT_FORGING_BLOCK = 0;
+    public static final int POC_BLOCK_HEIGHT = 0;
     public static final int TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT = Integer.MAX_VALUE;
 
     //FIXME[checksum]
@@ -210,8 +211,9 @@ public final class Constants {
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
     public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-
-    public static final int DIGITAL_GOODS_STORE_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
+    
+    //not opened yet
+    public static final int DIGITAL_GOODS_STORE_BLOCK = Integer.MAX_VALUE;
     public static final int MONETARY_SYSTEM_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
     public static final int PHASING_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
     
