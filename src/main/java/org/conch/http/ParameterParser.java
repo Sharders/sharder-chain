@@ -70,7 +70,7 @@ public final class ParameterParser {
             if (isMandatory) {
                 throw new ParameterException(missing(name));
             }
-            return 0;
+            return -1;
         }
         try {
             byte value = Byte.parseByte(paramValue);
@@ -100,6 +100,10 @@ public final class ParameterParser {
         } catch (RuntimeException e) {
             throw new ParameterException(incorrect(name, String.format("value %s is not numeric", paramValue)));
         }
+    }
+
+    public static boolean getBoolean(HttpServletRequest req, String name){
+        return Boolean.parseBoolean(req.getParameter(name));
     }
 
     public static long getLong(HttpServletRequest req, String name, long min, long max,

@@ -42,28 +42,40 @@ public final class GetAccountTxs extends APIServlet.APIRequestHandler {
     public static final GetAccountTxs instance = new GetAccountTxs();
 
     private GetAccountTxs() {
-        super(new APITag[] {APITag.BIZ}, "account","firstIndex", "lastIndex");
+        super(new APITag[] {APITag.BIZ}, "account","firstIndex", "lastIndex","type","isFrom","isTo");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
 
         long accountId = ParameterParser.getAccountId(req, true);
+        boolean isFrom = ParameterParser.getBoolean(req,"isFrom");
+        boolean isTo = ParameterParser.getBoolean(req,"isTo");
         int timestamp = ParameterParser.getTimestamp(req);
         int numberOfConfirmations = ParameterParser.getNumberOfConfirmations(req);
 
-        byte type = -1;
+        byte type = ParameterParser.getByte(req,"type",(byte)-1,(byte)9,false);
         byte subtype = -1;
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray transactions = new JSONArray();
-        try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getTransactions(accountId, numberOfConfirmations,
-                type, subtype, timestamp, false, false, false, firstIndex, lastIndex,
-                false, false)) {
-            while (iterator.hasNext()) {
-                Transaction transaction = iterator.next();
-                transactions.add(JSONData.transaction(transaction, false));
+        // one ture,one false
+        if((!isFrom && isTo) || (isFrom && !isTo)){
+            try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getTransactions(accountId,isFrom,firstIndex, lastIndex)) {
+                while (iterator.hasNext()) {
+                    Transaction transaction = iterator.next();
+                    transactions.add(JSONData.transaction(transaction, false));
+                }
+            }
+        }else{
+            try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getTransactions(accountId, numberOfConfirmations,
+                    type, subtype, timestamp, false, false, false, firstIndex, lastIndex,
+                    false, false)) {
+                while (iterator.hasNext()) {
+                    Transaction transaction = iterator.next();
+                    transactions.add(JSONData.transaction(transaction, false));
+                }
             }
         }
 

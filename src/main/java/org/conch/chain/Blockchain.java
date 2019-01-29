@@ -23,6 +23,7 @@ package org.conch.chain;
 
 import org.conch.db.*;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
 import org.conch.util.Filter;
 
 import java.sql.Connection;
@@ -88,6 +89,8 @@ public interface Blockchain {
     int getTransactionCountByAccount(long accountId, byte type, byte subtype);
 
     DbIterator<? extends Transaction> getAllTransactions();
+
+    DbIterator<TransactionImpl> getTransactions(long accountId, boolean isFrom, int from, int to);
 
     DbIterator<? extends Transaction> getTransactions(long accountId, byte type, byte subtype, int blockTimestamp,
                                                       boolean includeExpiredPrunable);
