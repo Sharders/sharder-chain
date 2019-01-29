@@ -76,6 +76,7 @@ public final class Constants {
         }
     }
 
+    private static String networkInProperties = Conch.getStringProperty("sharder.network");
     private static String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
@@ -335,8 +336,6 @@ public final class Constants {
         return gap * 60;
     }
 
-
-    private static String networkInProperties = Conch.getStringProperty("sharder.network");
     /**
      * Read network definition from environment firstly.
      * Then read the definition from properties file.
