@@ -1424,7 +1424,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                if (Conch.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
+                if (Conch.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT) {
                     throw new ConchException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Conch.getBlockchain().getHeight());
                 }
                 Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();

@@ -199,11 +199,7 @@ public final class Constants {
 
     
     public static final int TRANSPARENT_FORGING_BLOCK = 0;
-    //FIXME[block_direct]
-    public static final int TRANSPARENT_FORGING_BLOCK_DIRECT = 3000; 
-    public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
-
-    public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
+    public static final int TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT = Integer.MAX_VALUE;
 
     //FIXME[checksum]
     public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;

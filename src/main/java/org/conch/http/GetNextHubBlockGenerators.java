@@ -62,7 +62,7 @@ public final class GetNextHubBlockGenerators extends APIServlet.APIRequestHandle
         */
 
         Block curBlock = Conch.getBlockchain().getLastBlock();
-        if (curBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
+        if (curBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT) {
             return JSONResponses.FEATURE_NOT_AVAILABLE;
         }
 

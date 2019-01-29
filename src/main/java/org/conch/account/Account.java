@@ -1230,34 +1230,22 @@ public final class Account {
     }
 
     public long getEffectiveBalanceSS(int height) {
-        
-            if (this.publicKey == null) {
-                this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
-            }
-            
-            //FIXME[rp-conch]
-            /**
-            if (this.publicKey == null || this.publicKey.publicKey == null || this.publicKey.height == 0 || height - this.publicKey.height <= 1440) {
-                return 0; // cfb: Accounts with the public key revealed less than 1440 blocks ago are not allowed to generate blocks
-            }
-            **/
+   
+        if (this.publicKey == null) {
+            this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
+        }
 
-            if (this.publicKey == null || this.publicKey.publicKey == null) {
-                return 0;
-            }
-          //FIXME[block_direct]
-//        if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
-//            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {
-//                return balanceNQT / Constants.ONE_SS;
-//            }
-//            long receivedInLastBlock = 0;
-//            for (Transaction transaction : Conch.getBlockchain().getBlockAtHeight(height).getTransactions()) {
-//                if (id == transaction.getRecipientId()) {
-//                    receivedInLastBlock += transaction.getAmountNQT();
-//                }
-//            }
-//            return (balanceNQT - receivedInLastBlock) / Constants.ONE_SS;
-//        }
+        //FIXME[rp-conch]
+        /**
+         if (this.publicKey == null || this.publicKey.publicKey == null || this.publicKey.height == 0 || height - this.publicKey.height <= 1440) {
+         return 0; // cfb: Accounts with the public key revealed less than 1440 blocks ago are not allowed to generate blocks
+         }
+         **/
+
+        if (this.publicKey == null || this.publicKey.publicKey == null) {
+            return 0;
+        }
+        
         Conch.getBlockchain().readLock();
         try {
             long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
