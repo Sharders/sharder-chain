@@ -235,7 +235,7 @@ public abstract class StorageTx extends TransactionType {
             // Transfer storage reward to storer who process the storage tx
             Account backupAccount = Account.getAccount(transaction.getSenderId());
             backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), storeFee);
-            backupAccount.addToForgedBalanceNQT(storeFee);
+            backupAccount.addToMintedBalanceNQT(storeFee);
         }
 
         @Override

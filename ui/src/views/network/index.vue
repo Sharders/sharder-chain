@@ -124,10 +124,16 @@
                             </thead>
                             <tbody>
                             <tr v-for="(block,index) in blocklist">
-                                <td><span>{{block.height}}</span></td>
+                                <td class="pl0"><span>{{block.height}}</span></td>
                                 <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
-                                <td><span>{{block.totalAmountNQT/100000000}} SS</span></td>
-                                <td><span>{{block.totalFeeNQT/100000000}} SS</span></td>
+                                <td>
+                                    <span v-if="block.totalAmountNQT === '0'">-</span>
+                                    <span v-else>{{block.totalAmountNQT/100000000}} SS</span>
+                                </td>
+                                <td>
+                                    <span v-if="block.totalFeeNQT === '0'">-</span>
+                                    <span v-else>{{block.totalFeeNQT/100000000}} SS</span>
+                                </td>
                                 <td><span>{{block.numberOfTransactions}}</span></td>
                                 <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}
                                 </td>
@@ -137,7 +143,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination" v-if="totalSize > pageSize">
+                    <div class="list_pagination">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -212,10 +218,12 @@
                     console.log("blocklist", _this.blocklist);
                     // _this.calcAverageAmount(res);
 
-                    _this.newestHeight = res.data.blocks[0].height;
-                    _this.coinbaseCount = _this.newestHeight;
-                    _this.totalSize = res.data.blocks[0].height;
-                    _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                    if(_this.currentPage === 1){
+                        _this.totalSize = res.data.blocks[0].height;
+                        _this.coinbaseCount = _this.newestHeight;
+                        _this.newestHeight = res.data.blocks[0].height;
+                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                    }
                 } else {
                     _this.$message.error(res.data.errorDescription);
                 }
@@ -229,6 +237,7 @@
                 console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+                console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
             }).catch(function (err) {
                 console.error("error", err);
@@ -568,7 +577,36 @@
             }
         },
         mounted() {
+            let _this = this;
             this.drawPeers();
+            let periodicBlocks = setInterval(()=>{
+                if(_this.$route.path === '/network'){
+                    this.$http.get('/sharder?requestType=getBlocks', {
+                        params: {
+                            firstIndex: (_this.currentPage - 1) * 10,
+                            lastIndex: _this.currentPage * 10 - 1
+                        }
+                    }).then(function (res) {
+                        if (!res.data.errorDescription) {
+                            _this.blocklist = res.data.blocks;
+
+                            if(_this.currentPage === 1){
+                                _this.totalSize = res.data.blocks[0].height;
+                                _this.coinbaseCount = _this.newestHeight;
+                                _this.newestHeight = res.data.blocks[0].height;
+                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                            }
+                        } else {
+                            _this.$message.error(res.data.errorDescription);
+                        }
+
+                    }).catch(function (err) {
+                        _this.$message.error(err);
+                    });
+                }else{
+                    clearInterval(periodicBlocks);
+                }
+            },5000);
         },
     };
 </script>

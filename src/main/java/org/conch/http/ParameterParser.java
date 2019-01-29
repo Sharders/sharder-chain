@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.Alias;
@@ -408,10 +409,11 @@ public final class ParameterParser {
 
     public static String getSecretPhrase(HttpServletRequest req, boolean isMandatory) throws ParameterException {
         String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
-        if (secretPhrase == null && isMandatory) {
+        boolean missingSP = StringUtils.isEmpty(secretPhrase) || "undefined".equalsIgnoreCase(secretPhrase);
+        if (missingSP && isMandatory) {
             throw new ParameterException(MISSING_SECRET_PHRASE);
         }
-        return secretPhrase;
+        return missingSP ? null : secretPhrase;
     }
 
     public static byte[] getPublicKey(HttpServletRequest req) throws ParameterException {

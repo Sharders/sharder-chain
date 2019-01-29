@@ -13,9 +13,9 @@
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span class="csp" @click="openUserInfoDialog">{{$t('account.account_info')}}</span>
                     </div>
-                    <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.unconfirmedBalanceNQT/100000000, 8)}} SS</p>
+                    <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
                     <div class="account_tool">
-                        <button class="common_btn imgBtn" @click="openTransferDialog">
+                        <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 162.5">
                                     <path
@@ -27,7 +27,7 @@
                             </span>
                             <span>{{$t('account.transfer')}}</span>
                         </button>
-                        <button class="common_btn imgBtn" @click="openSendMessageDialog">
+                        <button class="common_btn imgBtn writeBtn" @click="openSendMessageDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 171.43 137.08">
                                     <path class="cls-1"
@@ -37,8 +37,8 @@
                             </span>
                             <span>{{$t('account.send_message')}}</span>
                         </button>
-                        
-                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
+
+                        <button class="common_btn imgBtn writeBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -122,8 +122,8 @@
                             </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(transaction,index) in accountTransactionList" v-if="index>=(currentPage-1)*pageSize && index <= currentPage*pageSize -1">
-                                    <td>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
+                                <tr v-for="(transaction,index) in accountTransactionList">
+                                    <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
                                     <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
@@ -132,12 +132,14 @@
                                     <td v-if="transaction.type === 6">{{$t('transaction.transaction_type_storage_service')}}</td>
                                     <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
                                     <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}</td>
+                                    <td v-if="transaction.type === 12">{{$t('transaction.transaction_type_poc')}}</td>
 
-                                    <td v-if="transaction.amountNQT === '0'">0 SS</td>
+                                    <td v-if="transaction.amountNQT === '0'">-</td>
                                     <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
                                     <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
 
-                                    <td>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
+                                    <td v-if="transaction.feeNQT === '0'">-</td>
+                                    <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                     <td class=" image_text w300">
                                         <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
@@ -221,7 +223,7 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
                     </div>
                 </div>
             </div>
@@ -272,11 +274,12 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
                     </div>
                 </div>
             </div>
         </div>
+        <!--view hub init setting dialog-->
         <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
             <div class="modal-header">
                 <h4 class="modal-title">
@@ -324,12 +327,12 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
-        <!--view tranfer account dialog-->
+        <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
             <div class="modal-header">
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
@@ -385,8 +388,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
-                    <button class="common_btn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
         </div>
@@ -445,18 +448,12 @@
 
         </div>
 
-
-
         <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading"
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
 
         <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
         <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
-
-
-
-
 
     </div>
 </template>
@@ -539,6 +536,7 @@
                 blockchainState:this.$global.blockchainState,
                 accountInfo:{
                     account:'',
+                    name:'',
                     accountRS:SSO.accountRS,
                     balanceNQT:0,              //账户余额
                     effectiveBalanceSS:0,      //可用余额
@@ -571,6 +569,9 @@
                 },{
                     value:9,
                     label:this.$t('transaction.transaction_type_block_reward')
+                },{
+                    value:12,
+                    label:this.$t('transaction.transaction_type_poc')
                 }],
                 trading:'',
                 accountTransactionList:[],
@@ -602,11 +603,17 @@
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
                 _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
+                _this.accountInfo.name = res.name;
             });
 
+            console.log("mingchengshi:",_this.accountInfo.name);
+
             _this.getAccountTransactionList();
+            _this.getDrawData();
+            _this.getYieldData();
+
             _this.$global.setBlockchainState(_this).then(res=>{
-                _this.blockchainState = res;
+                _this.blockchainState = res.data;
             });
 
             SSO.getState();
@@ -627,6 +634,9 @@
             }).catch(err=>{
                 console.log(err);
             });
+
+
+
         },
         methods: {
             drawBarchart: function (barchat) {
@@ -667,11 +677,29 @@
                         left: '15%',
                         right: '2%',
                         top: '10%',
-                        bottom: '15%',
+                        bottom: '30%',
                     },
                     tooltip: {
                         trigger: 'axis'
                     },
+                    dataZoom: [{
+                        type: 'inside',
+                        show:false,
+                        start: 80,
+                        end: 100
+                    }, {
+                        start: 0,
+                        end: 10,
+                        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                        handleSize: '40%',
+                        handleStyle: {
+                            color: '#fff',
+                            shadowBlur: 3,
+                            shadowColor: 'rgba(0, 0, 0, 0.6)',
+                            shadowOffsetX: 2,
+                            shadowOffsetY: 2
+                        }
+                    }],
                     xAxis: {
                         type: 'category',
                         boundaryGap: false,
@@ -691,8 +719,12 @@
                     yieldCurve.setOption(option, true);
                 }
             },
-            handleSizeChange(val) {},
-            handleCurrentChange(val) {},
+            handleSizeChange(val) {
+                this.getAccountTransactionList();
+            },
+            handleCurrentChange(val) {
+                this.getAccountTransactionList();
+            },
             updateHubVersion(adminPwd){
                 const _this = this;
                 this.$http.post('/sharder?requestType=upgradeClient', {
@@ -791,9 +823,8 @@
                 }else{
                     formData.append("sharder.HubBind",false);
                 }
-                formData.append("restart",false);
                 formData.append("sharder.disableAdminPassword",false);
-
+                formData.append("restart",true);
 
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
@@ -807,20 +838,33 @@
             },
             verifyHubSetting:function(){
                 const _this = this;
-                let formData = _this.verifyHubSettingInfo();
+                let formData = new FormData();
+                formData.append("username",_this.hubsetting.sharderAccount);
+                formData.append("password",_this.hubsetting.sharderPwd);
+                _this.$http.post('/bounties/hubDirectory/check/confirm.ss',formData).then(res2 => {
+                    if(typeof res2.data.errorDescription === 'undefined') {
+                        _this.hubSettingDialog = false;
+                        _this.$store.state.mask = false;
+                        _this.$router.push("/login");
+                    }else{
+                        _this.$message.error(res2.data.errorDescription);
+                    }
+                });
+                formData = _this.verifyHubSettingInfo();
                 if(formData === false){
                     return;
                 }else{
                     formData.append("isInit",true);
+
                 }
-                this.$http.post('/sharder?requestType=reConfig', formData).then(res => {
-                    if(typeof res.data.errorDescription === 'undefined'){
+                this.$http.post('/sharder?requestType=reConfig', formData).then(res1 => {
+                    if(typeof res1.data.errorDescription === 'undefined'){
                         _this.$message.success(_this.$t('notification.restart_success'));
-                        _this.hubSettingDialog = false;
-                        this.$store.state.mask = false;
-                        this.$router.push("/login");
+
+                        formData = new FormData();
+
                     }else{
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res1.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -1154,7 +1198,7 @@
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1212,7 +1256,7 @@
                         }
                     }
                     _this.accountInfo = res;
-                    if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
+                    if(_this.transfer.number > _this.accountInfo.effectiveBalanceSS){
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
@@ -1264,14 +1308,13 @@
                         }
                     };
                     _this.$http.post('/sharder?requestType=sendMoney',formData, config).then(res=>{
-
                         if(typeof res.data.errorDescription === 'undefined'){
                             if(res.data.broadcasted){
                                 _this.$message.success(_this.$t('notification.transfer_success'));
                                 resolve(res.data);
                                 _this.closeDialog();
                                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.unconfirmedTransactions);
+                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
                                 });
                             }else{
                                 console.log(res.data);
@@ -1294,8 +1337,16 @@
                 let params = new URLSearchParams();
 
                 params.append("account",_this.accountInfo.accountRS);
-                // params.append("firstIndex",0);
-                // params.append("firstIndex",0);
+
+                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
+
+                let i = 0;
+                if(typeof _this.unconfirmedTransactionsList !== 'undefined'){
+                    i = _this.unconfirmedTransactionsList.length;
+                }
+
+                params.append("firstIndex",(_this.currentPage - 1) * 10);
+                params.append("lastIndex",_this.currentPage * 10 - 1 - i);
 
                 if(_this.selectType === 1.5){
                     params.append("type","1");
@@ -1307,22 +1358,42 @@
                     params.append("type",_this.selectType);
                 }
 
+                this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res1) {
+                    _this.accountTransactionList = res1.data.transactions;
 
-                this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res) {
-                    _this.accountTransactionList =res.data.transactions;
-                    // console.log("_this.accountTransactionList",_this.accountTransactionList);
-                    _this.totalSize = _this.accountTransactionList.length;
-                    _this.unconfirmedTransactionsList = "";
+                    params.delete("firstIndex");
+                    params.delete("lastIndex");
+                    _this.$http.get('/sharder?requestType=getBlockchainTransactionsCount',{params}).then(function(res2){
+
+                        if(typeof res2.data.errorDescription === "undefined"){
+                            _this.totalSize = res2.data.count;
+                        }else{
+                            _this.$message.error(res2.data.errorCode);
+                        }
+                    }).catch(err=>{
+                        _this.$message.error(err);
+                    });
                     _this.getTotalList();
+                    _this.getDrawData();
+
                 }).catch(function (err) {
-                    console.log(err);
+                    _this.$message.error(err);
                 });
             },
+
             openSendMessageDialog: function () {
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 this.$store.state.mask = true;
                 this.sendMessageDialog = true;
             },
             openTransferDialog: function () {
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 this.$store.state.mask = true;
                 this.tranferAccountsDialog = true;
             },
@@ -1369,6 +1440,10 @@
             },
             openSecretPhraseDialog:function(){
                 const _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 _this.userInfoDialog = false;
                 _this.secretPhraseDialog =true;
             },
@@ -1403,7 +1478,7 @@
 
                 const _this = this;
                 _this.messageForm.errorCode = false;
-                _this.messageForm.receiver =  "SSA";
+                _this.messageForm.receiver =  "SSA-____-____-____-_____";
                 _this.messageForm.message =  "";
                 _this.messageForm.isEncrypted =  false;
                 _this.messageForm.hasPublicKey = false;
@@ -1415,7 +1490,7 @@
                 _this.messageForm.fee = 1;
                 _this.file = null;
 
-                _this.transfer.receiver = "SSA";
+                _this.transfer.receiver = "SSA-____-____-____-_____";
                 _this.transfer.number = 0;
                 _this.transfer.fee = 1;
                 _this.transfer.hasMessage = false;
@@ -1425,8 +1500,6 @@
                 _this.transfer.hasPublicKey = false;
                 _this.transfer.receiverPublickey = "";
                 _this.transfer.errorCode = false;
-
-
 
                 _this.isShowName = true;
                 _this.temporaryName = "";
@@ -1443,7 +1516,6 @@
             setName:function(secretPhrase){
                 const _this = this;
                 let formData = new FormData();
-                console.log("dingwei");
                 formData.append("name",_this.temporaryName);
                 formData.append("secretPhrase",secretPhrase);
                 formData.append("deadline","1440");
@@ -1473,7 +1545,6 @@
                     showClose: true,
                     message: _this.$t('notification.clipboard_error'),
                     type: "error"
-
                 });
             },
             delFile:function(){
@@ -1525,89 +1596,104 @@
                     }
                 }
             },
-            getDrawData(lists){
-                const _this = this;
+            getDrawData(){
+                let _this = this;
                 let j=0;
-                let k=0;
                 let barchat = {
                     xAxis:[],
                     series:[]
                 };
+
+                let params = new URLSearchParams();
+                params.append("account",_this.accountInfo.accountRS);
+
+                params.append("firstIndex", '0');
+                params.append("lastIndex" , '4');
+
+                params.append("type","0");
+
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
+                    res.data.transactions.forEach(function (value, index,array) {
+                        if(value.senderRS === SSO.accountRS){
+                            barchat.xAxis.push(_this.$t('account.payout'));
+                        }else{
+                            barchat.xAxis.push(_this.$t('account.income'));
+                        }
+                        barchat.series.push(value.amountNQT/100000000);
+                    });
+                    for(;j !== 5;j++){
+                        barchat.xAxis.push("");
+                        barchat.series.push(0);
+                    }
+                    this.drawBarchart(barchat);
+                });
+            },
+            getYieldData(){
+                let _this = this;
                 let yields = {
                     xAxis:[],
-                    series:[]
+                    series:[],
                 };
-                lists.forEach(function(value,index,array){
-                    if(j>=5||k>=7){
-                        return;
-                    }
-                    if(value.type === 9 || value.type === 0){
-                        if(value.type === 0 && j<5){
-                            j++;
-                            if(value.senderRS === SSO.accountRS){
-                                barchat.xAxis.push(_this.$t('account.payout'));
-                            }else{
-                                barchat.xAxis.push(_this.$t('account.income'));
+                let assets = 0;
+                let params = new URLSearchParams();
+                params.append("account",_this.accountInfo.accountRS);
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
+                    if(typeof res.data.errorDescription === "undefined"){
+                        let info = res.data.transactions.reverse();
+
+                        info.forEach(function(value, index, array){
+                            if(value.type === 0){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                if(value.senderRS !== SSO.accountRS){
+                                    assets = assets + value.amountNQT/100000000;
+                                }else{
+                                    assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                                }
+                            }else if(value.type === 9){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                assets = assets + value.amountNQT/100000000;
+                            }else if(value.senderRS === SSO.accountRS){
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
                             }
-                            barchat.series.push(value.amountNQT/100000000);
-                        }
-                        if(k<7 && value.senderRS !== SSO.accountRS){
-                            k++;
-                            yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
-                            yields.series.push(value.amountNQT/100000000);
-                        }
+                            yields.series.push(assets);
+                        });
                     }
-
+                    this.drawYield(yields);
                 });
-
-                for(;j !== 5;j++){
-                    barchat.xAxis.push("");
-                    barchat.series.push(0);
-                }
-                for(;k !== 7;k++){
-                    yields.xAxis.push("");
-                    yields.series.push(0);
-                }
-                this.drawBarchart(barchat);
-                this.drawYield(yields);
             },
             getTotalList:function () {
                 const _this = this;
-                if(_this.unconfirmedTransactionsList !== _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions){
-                    _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
+                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
-                    _this.totalSize = _this.accountTransactionList.length;
-
-                    let list = [];
-                    for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
-                        if(_this.selectType === ''){
+                let list = [];
+                for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
+                    if(_this.selectType === ''){
+                        list.push(_this.unconfirmedTransactionsList[i]);
+                        _this.totalSize++;
+                    }else{
+                        if(_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0){
                             list.push(_this.unconfirmedTransactionsList[i]);
                             _this.totalSize++;
-                        }else{
-                            if(_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0){
-                                list.push(_this.unconfirmedTransactionsList[i]);
-                                _this.totalSize++;
-                            }else if(_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type){
-                                list.push(_this.unconfirmedTransactionsList[i]);
-                                _this.totalSize++;
-                            }else if(_this.selectType === 1.5 &&
-                                _this.unconfirmedTransactionsList[i].type === 1 &&
-                                _this.unconfirmedTransactionsList[i].subtype === 5){
-                                list.push(_this.unconfirmedTransactionsList[i]);
-                                _this.totalSize++;
-                            }
+                        }else if(_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type){
+                            list.push(_this.unconfirmedTransactionsList[i]);
+                            _this.totalSize++;
+                        }else if(_this.selectType === 1.5 &&
+                            _this.unconfirmedTransactionsList[i].type === 1 &&
+                            _this.unconfirmedTransactionsList[i].subtype === 5){
+                            list.push(_this.unconfirmedTransactionsList[i]);
+                            _this.totalSize++;
                         }
                     }
+                }
 
-                    for(let i = 0;i<_this.accountTransactionList.length;i++){
-                        list.push(_this.accountTransactionList[i]);
-                    }
-                    console.log("accountTransactionList",list);
-                    _this.accountTransactionList = list;
+                for(let i = 0;i<_this.accountTransactionList.length;i++){
+                    list.push(_this.accountTransactionList[i]);
+                }
+                _this.accountTransactionList = list;
 
-                    if(_this.selectType === '') {
-                        _this.getDrawData(_this.accountTransactionList);
-                    }
+                if(_this.selectType === '') {
+                    // _this.getDrawData();
                 }
             }
         },
@@ -1670,7 +1756,7 @@
             },
             selectType:function () {
                 const _this = this;
-
+                _this.currentPage = 1;
                 _this.getAccountTransactionList();
             },
             getLang:{
@@ -1697,6 +1783,9 @@
                     },{
                         value:9,
                         label:this.$t('transaction.transaction_type_block_reward')
+                    },{
+                        value:12,
+                        label:this.$t('transaction.transaction_type_poc')
                     }]
                 },
                 deep:true
@@ -1704,6 +1793,14 @@
         },
         mounted() {
             const _this = this;
+
+            let periodicTransactions = setInterval(()=>{
+                if(_this.$route.path === '/account'){
+                    _this.getAccountTransactionList();
+                }else{
+                    clearInterval(periodicTransactions);
+                }
+            },4000);
 
             $('#receiver').on("blur",function() {
                 let receiver = _this.messageForm.receiver;
@@ -1821,11 +1918,13 @@
     }
 
 
+
+
     .modal_hubSetting{
         width: 800px!important;
     }
     .modal_hubSetting .modal-header .modal-title{
-        margin: 0!important;
+        /*margin: 0!important;*/
     }
     .modal_hubSetting .modal-body{
         padding: 20px 40px 60px!important;

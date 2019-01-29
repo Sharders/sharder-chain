@@ -27,7 +27,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.*;
@@ -1024,9 +1024,10 @@ public final class Account {
 
         Conch.getBlockchainProcessor().addListener(block -> {
             int height = block.getHeight();
-            if (height < Constants.TRANSPARENT_FORGING_BLOCK_6) {
-                return;
-            }
+            //FIXME[effective_balance]
+//            if (height < Constants.TRANSPARENT_FORGING_BLOCK_6) {
+//                return;
+//            }
             List<AccountLease> changingLeases = new ArrayList<>();
             try (DbIterator<AccountLease> leases = getLeaseChangingAccounts(height)) {
                 while (leases.hasNext()) {
@@ -1232,12 +1233,15 @@ public final class Account {
     }
 
     public long getEffectiveBalanceSS(int height) {
-        if (height >= Constants.TRANSPARENT_FORGING_BLOCK_6) {
+        
+        //FIXME[effective_balance]
+//        if (height >= Constants.TRANSPARENT_FORGING_BLOCK_6) {
             if (this.publicKey == null) {
                 this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
             }
-
-           /**FIXME[rp-conch]
+            
+            //FIXME[rp-conch]
+            /**
             if (this.publicKey == null || this.publicKey.publicKey == null || this.publicKey.height == 0 || height - this.publicKey.height <= 1440) {
                 return 0; // cfb: Accounts with the public key revealed less than 1440 blocks ago are not allowed to generate blocks
             }
@@ -1246,20 +1250,20 @@ public final class Account {
             if (this.publicKey == null || this.publicKey.publicKey == null) {
                 return 0;
             }
-        }
-
-        if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
-            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {
-                return balanceNQT / Constants.ONE_SS;
-            }
-            long receivedInLastBlock = 0;
-            for (Transaction transaction : Conch.getBlockchain().getBlockAtHeight(height).getTransactions()) {
-                if (id == transaction.getRecipientId()) {
-                    receivedInLastBlock += transaction.getAmountNQT();
-                }
-            }
-            return (balanceNQT - receivedInLastBlock) / Constants.ONE_SS;
-        }
+//        }
+          //FIXME[block_direct]
+//        if (height <= Constants.TRANSPARENT_FORGING_BLOCK_DIRECT) {
+//            if (Arrays.binarySearch(SharderGenesis.GENESIS_RECIPIENTS, id) >= 0) {
+//                return balanceNQT / Constants.ONE_SS;
+//            }
+//            long receivedInLastBlock = 0;
+//            for (Transaction transaction : Conch.getBlockchain().getBlockAtHeight(height).getTransactions()) {
+//                if (id == transaction.getRecipientId()) {
+//                    receivedInLastBlock += transaction.getAmountNQT();
+//                }
+//            }
+//            return (balanceNQT - receivedInLastBlock) / Constants.ONE_SS;
+//        }
         Conch.getBlockchain().readLock();
         try {
             long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
@@ -1333,16 +1337,19 @@ public final class Account {
     public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
         Conch.getBlockchain().readLock();
         try {
-            int height = currentHeight - numberOfConfirmations;
-            if (height + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
-                    || height > Conch.getBlockchain().getHeight()) {
-                throw new IllegalArgumentException("Height " + height + " not available for guaranteed balance calculation");
+            int fromHeight = currentHeight - numberOfConfirmations;
+            if(fromHeight < 0){
+                fromHeight = 0;
+            } 
+            if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
+                    || fromHeight > Conch.getBlockchain().getHeight()) {
+                throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
             }
             try (Connection con = Db.db.getConnection();
                  PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
                          + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height <= ?")) {
                 pstmt.setLong(1, this.id);
-                pstmt.setInt(2, height);
+                pstmt.setInt(2, fromHeight);
                 pstmt.setInt(3, currentHeight);
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (!rs.next()) {
@@ -1705,7 +1712,7 @@ public final class Account {
         this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
         this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
         this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
-        //FIXME Remove addToGuaranteedBalanceNQT if unused
+        //FIXME[pool] Remove addToGuaranteedBalanceNQT if unused
         addToGuaranteedBalanceNQT(amountNQT);
 
         checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
@@ -1748,50 +1755,70 @@ public final class Account {
     }
 
     public void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
-        if (amountNQT == 0 && feeNQT == 0) {
-            return;
-        }
-        long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
-        this.balanceNQT = Math.addExact(this.balanceNQT, totalAmountNQT);
-        addToGuaranteedBalanceNQT(totalAmountNQT);
-        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
-        save();
-        listeners.notify(this, Event.BALANCE);
-        if (AccountLedger.mustLogEntry(this.id, false)) {
-            if (feeNQT != 0) {
-                AccountLedger.logEntry(new AccountLedger.LedgerEntry(AccountLedger.LedgerEvent.TRANSACTION_FEE, eventId, this.id,
-                        AccountLedger.LedgerHolding.CONCH_BALANCE, null, feeNQT, this.balanceNQT - amountNQT));
-            }
-            if (amountNQT != 0) {
-                AccountLedger.logEntry(new AccountLedger.LedgerEntry(event, eventId, this.id,
-                        AccountLedger.LedgerHolding.CONCH_BALANCE, null, amountNQT, this.balanceNQT));
-            }
-        }
+        addBalance(event,eventId,amountNQT,feeNQT,Event.BALANCE);
     }
 
     public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
     }
 
-    public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+    /**
+     * internal method to add balance or unconfirmed balance.
+     * different logic between balance and unconfirmed balance only is: whether add the guaranteed balance
+     * @param event 
+     * @param eventId 
+     * @param amountNQT
+     * @param feeNQT
+     * @param balanceEvent Event.BALANCE or Event.UNCONFIRMED_BALANCE
+     */
+    private void addBalance(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT, Event balanceEvent){
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
+        
         long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
-        this.unconfirmedBalanceNQT = Math.addExact(this.unconfirmedBalanceNQT, totalAmountNQT);
+        if(Event.BALANCE == balanceEvent){
+            this.balanceNQT = Math.addExact(this.balanceNQT, totalAmountNQT);
+            //add the guaranteed balance
+            addToGuaranteedBalanceNQT(totalAmountNQT);
+        }else if(Event.UNCONFIRMED_BALANCE == balanceEvent){
+            this.unconfirmedBalanceNQT = Math.addExact(this.unconfirmedBalanceNQT, totalAmountNQT);
+        }
         checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
         save();
-        listeners.notify(this, Event.UNCONFIRMED_BALANCE);
-        if (AccountLedger.mustLogEntry(this.id, true)) {
+
+        listeners.notify(this, balanceEvent);
+
+        boolean isUnconfirmed = false;
+        // balance before accept the transfer amount
+        long preBalance = 0;
+        // balance after accept the transfer amount
+        long postBalance = 0;
+        AccountLedger.LedgerHolding holdingType = null;
+        if(Event.BALANCE == balanceEvent){
+            preBalance = this.balanceNQT - amountNQT;
+            postBalance = this.balanceNQT;
+            holdingType = AccountLedger.LedgerHolding.CONCH_BALANCE;
+            isUnconfirmed = false;
+        }else if(Event.UNCONFIRMED_BALANCE == balanceEvent){
+            preBalance = this.unconfirmedBalanceNQT - amountNQT;
+            postBalance = this.unconfirmedBalanceNQT;
+            holdingType = AccountLedger.LedgerHolding.UNCONFIRMED_CONCH_BALANCE;
+            isUnconfirmed = true;
+        }
+        if (AccountLedger.mustLogEntry(this.id, isUnconfirmed)) {
             if (feeNQT != 0) {
                 AccountLedger.logEntry(new AccountLedger.LedgerEntry(AccountLedger.LedgerEvent.TRANSACTION_FEE, eventId, this.id,
-                        AccountLedger.LedgerHolding.UNCONFIRMED_CONCH_BALANCE, null, feeNQT, this.unconfirmedBalanceNQT - amountNQT));
+                        holdingType, null, feeNQT, preBalance));
             }
             if (amountNQT != 0) {
-                AccountLedger.logEntry(new AccountLedger.LedgerEntry(event, eventId, this.id,
-                        AccountLedger.LedgerHolding.UNCONFIRMED_CONCH_BALANCE, null, amountNQT, this.unconfirmedBalanceNQT));
+                AccountLedger.logEntry(new AccountLedger.LedgerEntry(event, eventId, this.id, holdingType, null, amountNQT, postBalance));
             }
         }
+    }
+
+    public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+        addBalance(event,eventId,amountNQT,feeNQT,Event.UNCONFIRMED_BALANCE);
     }
 
     public void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
@@ -1832,7 +1859,7 @@ public final class Account {
         }
     }
 
-    public void addToForgedBalanceNQT(long amountNQT) {
+    public void addToMintedBalanceNQT(long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
@@ -1841,6 +1868,7 @@ public final class Account {
     }
 
     private static void checkBalance(long accountId, long confirmed, long unconfirmed) {
+        //FIXME[genesis] remove if following check uncorrected
         if (accountId == SharderGenesis.CREATOR_ID) {
             return;
         }

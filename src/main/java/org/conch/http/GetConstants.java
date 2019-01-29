@@ -24,7 +24,7 @@ package org.conch.http;
 import org.conch.asset.HoldingType;
 import org.conch.asset.token.CurrencyType;
 import org.conch.common.Constants;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.crypto.HashFunction;
 import org.conch.mint.CurrencyMinting;
 import org.conch.peer.Peer;

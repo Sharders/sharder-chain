@@ -21,20 +21,17 @@
 
 package org.conch.http;
 
-import com.sun.istack.internal.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainImpl;
 import org.conch.db.DbIterator;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
-import org.conch.tx.TransactionProcessorImpl;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +45,7 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
         super(new APITag[]{APITag.TRANSACTIONS}, "transaction", "fullHash", "includePhasingResult");
     }
 
-    public static List<JSONObject> getTransactions(@Nullable List<JSONObject> transactions, Boolean includePhasingResult) {
+    public static List<JSONObject> getTransactions(List<JSONObject> transactions, Boolean includePhasingResult) {
         Transaction transaction;
         if (transactions == null) {
             transactions = new ArrayList<>();

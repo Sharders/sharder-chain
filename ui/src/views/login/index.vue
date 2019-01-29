@@ -11,7 +11,7 @@
                        :placeholder="$t('login.login_placeholder')"/>
                 <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
                               mask="AAA-****-****-****-*****" :placeholder="$t('login.sharder_account')" />
-                <el-button class="common_btn" @click="login">{{$t('login.login')}}</el-button>
+                <el-button class="common_btn writeBtn" @click="login">{{$t('login.login')}}</el-button>
             </el-col>
 
             <el-col :span="24">
@@ -65,14 +65,11 @@
                     modifyMnemonicWord: '',
                     newPwd: '',
                     confirmPwd: ''
-                },
+                }
             };
         },
         created() {
             const _this = this;
-
-            let url = window.location.href;
-            let pathname = window.location.pathname;
 
             this.$global.getUserConfig(this).then(res=>{
 
@@ -86,13 +83,7 @@
                 }
             });
 
-            this.$global.setBlockchainState(this).then(res=>{
-                if(typeof res.errorDescription !== 'undefined'){
-                    _this.$message.error(res.data)
-                }else{
-                    //TODO  获取区块链
-                }
-            });
+            SSO.init();
         },
         methods: {
             getAccount() {

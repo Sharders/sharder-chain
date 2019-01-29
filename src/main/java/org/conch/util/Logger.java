@@ -353,9 +353,10 @@ public final class Logger {
             StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
             String className = caller.getClassName();
             int index = className.lastIndexOf('.');
-            if (index != -1)
+            if (index != -1) {
                 className = className.substring(index+1);
-            logMessage = className + "." + caller.getMethodName() + ": " + logMessage;
+            }
+            logMessage = className + "." + caller.getMethodName() + "#" + caller.getLineNumber() + ": " + logMessage;
         }
         //
         // Format the stack trace if enabled

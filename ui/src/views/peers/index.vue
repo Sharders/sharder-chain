@@ -26,10 +26,18 @@
 
             </div>
             <div class="block_list">
-                <p class="block_title">
+                <p>
+                    <span class="block_title fl">
                     <img src="../../assets/img/peerlist.svg"/>
                     <span>{{$t('peers.peer_list')}}</span>
+                </span>
+                    <span class="hrefbtn fr block_title csp">
+                    <a @click="openAddPeer">
+                        <span>添加节点</span>
+                    </a>
+                </span>
                 </p>
+                <span class="cb"></span>
                 <div class="list_table w br4">
                     <div class="list_content table_responsive data-loading">
                         <table class="table table-striped"  id="peers_table">
@@ -46,26 +54,66 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(peer,index) in peersList" v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
-                                    <td class="image_text linker" v-if="peer.state === 1" @click="openInfo(peer.address)">
-                                        <span>
+                                    <td class="image_text linker tl" @click="openInfo(peer.address)">
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 0" content="无连接">
+                                            <span>
+                                                <img src="../../assets/img/error.svg"/>
+                                                <span>{{peer.address}}</span>
+                                            </span>
+                                        </el-tooltip>
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 1" content="已连接">
+                                            <span>
                                             <img src="../../assets/img/success.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
-                                    </td>
-                                    <td class="image_text linker" v-if="peer.state === 0" @click="openInfo(peer.address)">
-                                        <span>
-                                            <img src="../../assets/img/error.svg"/>
-                                            <span>{{peer.address}}</span>
-                                        </span>
+                                        </el-tooltip>
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 2" content="断开连接">
+                                            <span>
+                                                <img src="../../assets/img/error.svg"/>
+                                                <span>{{peer.address}}</span>
+                                            </span>
+                                        </el-tooltip>
                                     </td>
                                     <td>{{peer.downloadedVolume | formatByte}}</td>
                                     <td>{{peer.uploadedVolume | formatByte}}</td>
                                     <td><span class="patch">{{peer.application}}&nbsp;{{peer.version}}</span></td>
                                     <td>{{peer.platform}}</td>
-                                    <td class="linker tl pl30 ">
-                                        <el-tooltip class="item" placement="top" effect="light" v-for="service in peer.services" :content="service | getPeerServicesTooltip">
-                                            <a>{{service | getPeerServicesLabel}}</a>
-                                        </el-tooltip>
+                                    <td class="linker ">
+                                        <span v-for="service in peer.services">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'HALLMARK'" content="标记节点">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PRUNABLE'" content="存储过期的可修改消息">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API'" content="API服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API_SSL'" content="API SSL服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'CORS'" content="启用CORS的API">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'BAPI'" content="商业API服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'STORAGE'" content="离线数据存储">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'MINER'" content="代理挖掘">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'NATER'" content="Nat服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PROVER'" content="证明服务">
+                                                <a>{{service | getPeerServicesLabel}}</a>
+                                            </el-tooltip>
+
+                                        </span>
+
+
                                     </td>
                                     <td>
                                         <button class="list_button w40" @click="openConnectPeer(peer.address)">{{$t('peers.link')}}</button>
@@ -128,6 +176,26 @@
                 </div>
             </div>
         </div>
+        <!--add peer-->
+        <div class="modal" id="add_peer_modal" v-show="addPeerDialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">添加节点</h4>
+                    </div>
+                    <div class="modal-body modal-peer">
+                        <p>地址：</p>
+                        <input v-model="addPeerAddress" type="text">
+                        <p class="mt10">管理密码：</p>
+                        <input v-model="adminPassword" type="password"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn" @click="addPeer(addPeerAddress,adminPassword)">添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfoDialog">
             <div class="modal-header">
@@ -168,7 +236,9 @@
                             <th>{{$t('peers.latest_update')}}</th>
                             <td>{{$global.myFormatTime(peerInfo.lastUpdated,'YMDHMS')}}</td>
                             <th>{{$t('peers.status')}}</th>
-                            <td>{{peerInfo.state === 1 ? 'CONNECTED' : 'UNCONNECTED'}}</td>
+                            <td v-if="peerInfo.state === 0">NON_CONNECTED</td>
+                            <td v-else-if="peerInfo.state === 1">CONNECTED</td>
+                            <td v-else-if="peerInfo.state === 2">DISCONNECTED</td>
                         </tr>
                         <tr>
                             <th>{{$t('peers.blacklist')}}</th>
@@ -206,6 +276,7 @@
                 blacklistDialog: false,
                 connectPeerDialog: false,
                 peerInfoDialog: false,
+                addPeerDialog:false,
                 //list列表
                 peersList:[],
                 //节点总览
@@ -222,11 +293,13 @@
                 blacklistPeer:'',
                 //连接节点
                 connectPeer:'',
-                adminPassword:''
+                adminPassword:'',
+                //加入节点
+                addPeerAddress:''
             };
         },
         created:function(){
-            const _this = this;
+            let _this = this;
 
             _this.peersList = _this.$global.peers.peers;
             _this.totalSize = _this.$global.peers.peers.length;
@@ -497,7 +570,7 @@
                 this.$router.push("/network");
             },
             openBlackDialog: function (address) {
-                const _this = this;
+                let _this = this;
                 this.closeDialog();
                 _this.blacklistPeer = address;
                 this.$store.state.mask = true;
@@ -507,21 +580,29 @@
                 this.$store.state.mask = false;
                 this.blacklistDialog = false;
                 this.connectPeerDialog = false;
+                this.addPeerDialog = false;
                 this.peerInfoDialog = false;
                 this.blacklist = '';
                 this.connectPeer = '';
                 this.adminPassword = '';
+                this.addPeerAddress = '';
 
             },
+            openAddPeer:function(){
+                let _this = this;
+                _this.closeDialog();
+                _this.$store.state.mask = true;
+                _this.addPeerDialog = true;
+            },
             openConnectPeer: function (address) {
-                const _this = this;
+                let _this = this;
                 this.closeDialog();
                 _this.connectPeer = address;
                 this.$store.state.mask = true;
                 this.connectPeerDialog = true;
             },
             openInfo: function (address) {
-                const _this = this;
+                let _this = this;
                 this.closeDialog();
                 _this.$http.get('/sharder?requestType=getPeer',{
                     params:{
@@ -537,10 +618,10 @@
                 this.peerInfoDialog = true;
             },
             getPeersInfo:function (data) {
-                const _this = this;
+                let _this = this;
                 _this.peersCount = data.length;
                 data.forEach(function(item){
-                    if(item.platform === 'Sharder Hub'){
+                    if(item.type === 4){
                         _this.activeHubCount++;
                     }
                     if(item.state === 1){
@@ -548,13 +629,33 @@
                     }
                 });
             },
+            addPeer:function(address,adminPassword){
+                let _this = this;
+                let formData = new FormData();
+                formData.append("peer",address);
+                formData.append("adminPassword",adminPassword);
+                formData.append("feeNQT",0);
+
+                this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
+                    if(typeof res.data.errorDescription === 'undefined'){
+                        _this.$message.success("添加成功！");
+
+                        _this.$global.setPeers(_this).then(res=>{
+                            _this.peersList = res.data;
+                        });
+                    }else{
+                        _this.$message.error(res.data.errorDescription);
+                    }
+                })
+            },
             addBlacklist:function(address){
-                const _this = this;
-                this.$http.post('sharder?requestType=blacklistPeer',{
-                        peer:address,
-                        adminPassword:_this.adminPassword
-                }).then(function (res) {
-                    if(res.data){
+                let _this = this;
+                let formData = new FormData();
+                formData.append("peer",address);
+                formData.append("adminPassword",_this.adminPassword);
+
+                this.$http.post('sharder?requestType=blacklistPeer',formData).then(function (res) {
+                    if(typeof res.data.errorDescription === 'undefined'){
                         _this.$message({
                             showClose: true,
                             message: this.$t('peers.join_blacklist_success1')+address+this.$t('peers.join_blacklist_success2'),
@@ -573,12 +674,12 @@
                 });
             },
             addConnectPeer:function(address){
-                const _this = this;
-                this.$http.post('sharder?requestType=addPeer',{
-                        peer:address,
-                        adminPassword:_this.adminPassword
-                }).then(function (res) {
-                    if(res.data){
+                let _this = this;
+                let formData = new FormData();
+                formData.append("peer",address);
+                formData.append("adminPassword",_this.adminPassword);
+                this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
+                    if(typeof res.data.errorDescription === 'undefined'){
                         _this.$message({
                             showClose: true,
                             message: this.$t('peers.join_link_peer_success1')+address+this.$t('peers.join_link_peer_success2'),
@@ -628,17 +729,6 @@
             getPeerServicesLabel:function (service) {
                 return service.substring(0, 1) + service.substring(service.length - 1);
             },
-            getPeerServicesTooltip:function (service) {
-                let s = service.substring(0, 1) + service.substring(service.length - 1);
-                if(s === 'AI')
-                    return this.$t('peers.API_service');
-                else if(s === 'CS')
-                    return this.$t('peers.core_service');
-                else if(s === 'BI')
-                    return this.$t('peers.business_API');
-                else if(s === 'SE')
-                    return this.$t('peers.Storage_service');
-            }
         },
         mounted () {
             this.drawPeers();
@@ -648,4 +738,7 @@
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
     @import './style.scss';
+</style>
+<style scoped lang="scss" type="text/css">
+
 </style>

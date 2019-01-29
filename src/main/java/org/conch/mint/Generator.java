@@ -65,7 +65,7 @@ public class Generator implements Comparable<Generator> {
     private static volatile List<Generator> sortedMiners = null;
     private static volatile List<Long> generationMissingMinerIds = Lists.newArrayList();
     private static long lastBlockId;
-    private static int delayTime = Constants.FORGING_DELAY;
+    private static int delayTime = Constants.MINING_DELAY;
     
     private static final Runnable generateBlocksThread = new Runnable() {
 
@@ -80,7 +80,7 @@ public class Generator implements Comparable<Generator> {
 
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
-                        //等待更新了最新的区块信息才开始锻造
+                        //wait for last known block
                         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
                             return;
                         }
@@ -206,7 +206,7 @@ public class Generator implements Comparable<Generator> {
         // if miner is not the owner of the node
         if(!isOwner) {
             if(!Peers.isOpenService(Peer.Service.MINER) || generators.size() >= MAX_MINERS) {
-                throw new RuntimeException("Cannot mint with more than " + MAX_MINERS + " accounts on this node");
+                throw new RuntimeException("The limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
             }
 //            long accountId = Account.getId(secretPhrase);
 //            if(!PocProcessorImpl.isHubBind(accountId)) {
@@ -280,7 +280,7 @@ public class Generator implements Comparable<Generator> {
         try {
             if (lastBlockId == Generator.lastBlockId && sortedMiners != null) {
                 for (Generator generator : sortedMiners) {
-                    if (generator.getHitTime() >= curTime - Constants.FORGING_DELAY) {
+                    if (generator.getHitTime() >= curTime - Constants.MINING_DELAY) {
                         return generator.getHitTime();
                     }
                 }
@@ -295,26 +295,52 @@ public class Generator implements Comparable<Generator> {
         Generator.delayTime = delay;
     }
 
+    /**
+     * check the generate turn
+     * @param hit
+     * @param pocScore
+     * @param previousBlock
+     * @param timestamp
+     * @return
+     */
     public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
+            Logger.logDebugMessage("this generator missing the generation turn because the elapsed time <=0");
+            return false;
+        }else if(elapsedTime < Constants.BLOCK_GAP_SECONDS){
+            Logger.logDebugMessage("this generator is in the block gap because the elapsed time < block gap[" + Constants.BLOCK_GAP_SECONDS + "]");
             return false;
         }
+        
         BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(pocScore);
-        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - (Constants.BLOCK_GAP - 1) * 60 -1));
+        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.BLOCK_GAP_SECONDS - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
-        return hit.compareTo(target) < 0
-                && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
-                || hit.compareTo(prevTarget) >= 0
-//                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 3600)
-                || (Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 300)
-                || Constants.isOffline);
+        // check the elapsed time(in second) after previous block generated
+        boolean elapsed = Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 3600;
+        return hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
+        
+//        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
+//        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 421));
+//        BigInteger target = prevTarget.add(effectiveBaseTarget);
+//        return hit.compareTo(target) < 0
+//                && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
+//                || hit.compareTo(prevTarget) >= 0
+////                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 3600)
+//                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 300)
+//                || Constants.isOffline);
     }
 
     public static boolean allowsFakeMining(byte[] publicKey) {
         return Constants.isTestnetOrDevnet() && publicKey != null && Arrays.equals(publicKey, fakeMiningPublicKey);
     }
 
+    /**
+     * calculate the hit of generator
+     * @param publicKey the public key of the generator
+     * @param block the last block
+     * @return
+     */
     public static BigInteger getHit(byte[] publicKey, Block block) {
         if (allowsFakeMining(publicKey)) {
             return BigInteger.ZERO;
@@ -334,9 +360,15 @@ public class Generator implements Comparable<Generator> {
 //                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(effectiveBalance)).longValue();
 //    }
 
+    /**
+     * calculate the hit time of the generator
+     * @param pocScore poc score of the generator. you can see the: org.conch.consensus.poc.PocScore.PocCalculator
+     * @param hit the hit of the generator
+     * @param block  the last block
+     * @return
+     */
     public static long getHitTime(BigInteger pocScore, BigInteger hit, Block block) {
-        return block.getTimestamp()
-                + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + (Constants.BLOCK_GAP - 1) * 60;
+        return block.getTimestamp() + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + Constants.BLOCK_GAP_SECONDS;
     }
 
 
@@ -350,9 +382,7 @@ public class Generator implements Comparable<Generator> {
     private String secretPhrase;
     private volatile long deadline;
 
-    protected Generator() {
-        
-    }
+    protected Generator() {}
     
     private Generator(String secretPhrase) {
         this.secretPhrase = secretPhrase;
@@ -396,11 +426,14 @@ public class Generator implements Comparable<Generator> {
     public String toString() {
         return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
     }
-    
+
+    /**
+     * calculate the poc score and set the hit
+     * @param lastBlock
+     */
     protected void calAndSetHit(Block lastBlock) {
         int height = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, height);
-
 
         effectiveBalance = PocScore.calEffectiveBalance(account,height);
 
@@ -411,7 +444,7 @@ public class Generator implements Comparable<Generator> {
 //            return;
 //        }
 
-        if (pocScore.signum() == 0) {
+        if (pocScore.signum() <= 0) {
             hitTime = 0;
             hit = BigInteger.ZERO;
             return;
@@ -442,7 +475,7 @@ public class Generator implements Comparable<Generator> {
         while (true) {
             try {
                 BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, timestamp);
-                setDelay(Constants.FORGING_DELAY);
+                setDelay(Constants.MINING_DELAY);
                 return true;
             } catch (BlockchainProcessor.TransactionNotAcceptedException e) {
                 // the bad transaction has been expunged, try again
@@ -453,6 +486,11 @@ public class Generator implements Comparable<Generator> {
         }
     }
 
+    /**
+     * 
+     * @param generationLimit the time when the generator need mint the block
+     * @return 
+     */
     private int getTimestamp(int generationLimit) {
         return (generationLimit - hitTime > 3600) ? generationLimit : (int)hitTime + 1;
     }
@@ -556,8 +594,6 @@ public class Generator implements Comparable<Generator> {
             return effectiveBalance.longValue();
         }
 
-  
-
         public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {
@@ -568,7 +604,6 @@ public class Generator implements Comparable<Generator> {
                     return;
                 }
             }
-
             calAndSetHit(lastBlock);
         }
 

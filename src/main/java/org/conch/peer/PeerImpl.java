@@ -930,6 +930,7 @@ final class PeerImpl implements Peer {
                 && blockchainState == Peer.BlockchainState.UP_TO_DATE;
     }
 
+    @Override
     public StringBuilder getPeerApiUri() {
         StringBuilder uri = new StringBuilder();
         if (providesService(Peer.Service.API_SSL)) {

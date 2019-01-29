@@ -341,6 +341,7 @@ var NRS = (function (NRS, $, undefined) {
         }
         // NRS.logConsole("Send request " + requestType + " to url " + url);
         console.info("Send request " + requestType + " to url " + url);
+
         $.ajax({
             url:window.api.apiUrl + url,
             crossDomain: true,

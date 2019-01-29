@@ -36,13 +36,13 @@ export default {
     setBlockchainState(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getBlockchainStatus',{
-                params:{
-                    random:parseInt(new Date().getTime().toString())
-                }
-            }).then(res => {
-                _this.blockchainState = res.data;
-                resolve(res.data);
+                _this.blockchainState =
+                    t.$http.get('/sharder?requestType=getBlockchainStatus',{
+                        params:{
+                            random:parseInt(new Date().getTime().toString())
+                        }
+                    }).then(res => {res.data;
+                resolve(res);
             });
         });
     },
@@ -61,7 +61,7 @@ export default {
                     account:account
                 }
             }).then(res => {
-                resolve(res.data);
+                resolve(res);
             });
         });
     },
@@ -80,7 +80,7 @@ export default {
                 }
             }).then(res => {
                 _this.peers = res.data;
-                resolve(res.data);
+                resolve(res);
                 // console.log(res.data);
                 // if (_this.isOpenConsole) {
                 //     console.log(res.data);

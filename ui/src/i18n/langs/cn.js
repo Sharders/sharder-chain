@@ -48,7 +48,7 @@ const cn = {
     account:{
         'account_title':"账户总览",
         'account_info':"账户详情",
-        'assets':"资产：",
+        'assets':"资产 ",
         'transfer':"转账",
         'send_message':"发送消息",
         'hub_setting':"HUB设置",
@@ -73,6 +73,7 @@ const cn = {
         'transaction_type_storage_service':"存储服务",
         'transaction_type_forge_pool':"矿池交易",
         'transaction_type_block_reward':"出块奖励",
+        'transaction_type_poc':"POC交易",
         'self':"您",
         'view_details':"查看详情",
     },
@@ -125,7 +126,7 @@ const cn = {
         'observation_mode':"观察模式",
         'secret_mode':"秘钥模式",
         'forging_error_new_account':"您不能挖矿，因为您的帐户还没有公钥。请完成一次交易或则使用密钥重新登录。",
-        'forging_error_effective_balance':"您的有效余额不足，不能挖矿。需要满足:有效余额经过10个区块确认并且至少达到1000SS。",
+        'forging_error_effective_balance':"您的有效余额不足，不能挖矿！",
         'forging_error_no_admin_password':"无法确定挖矿状态，请指定管理员密码",
         'forging_error_exceeds_account_volume':"不能拥有多个账户在同一节点挖矿,请使用关联账户重新登陆",
         'no_forging':"未挖矿",
@@ -137,11 +138,13 @@ const cn = {
         'search':"搜索",
         'search_open':"输入账户ID/交易ID/区块ID进行搜索",
         'open_console':"打开控制台。日志记录开始......",
+        'console':"控制台",
+
     },
     network:{
         'network_title':"网络总览",
         'block_height':"区块高度",
-        'block_newest_time':"生成时间：",
+        'block_newest_time':"生成时间 ",
         'block_avg_transaction_volume':"区块平均交易数",
         'block_peers_volume':"节点数量",
         'miner_info':"矿工信息",
@@ -723,6 +726,7 @@ const cn = {
         'account_info_block_reward':"出块奖励",
         'account_info_data_storage':"数据存储",
         'account_info_forge_pool':"矿池交易",
+        'account_info_poc':"POC交易",
         'account_info_view_detail':"查看详情",
 
         'account_transaction_detail':"交易详情",
@@ -743,7 +747,7 @@ const cn = {
         'account_transaction_version':"版本：",
         'account_transaction_block_height':"区块高度",
 
-        'block_info_title1':"区块：",
+        'block_info_title1':"区块 ",
         'block_info_title2':" 信息",
         'block_info_all_transaction':"所有交易",
         'block_info_all_block_detail':"区块详情",

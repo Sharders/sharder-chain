@@ -30,6 +30,9 @@ import org.json.simple.JSONStreamAware;
 
 import java.util.Arrays;
 
+/**
+ * a response tool in json format
+ */
 public final class JSONResponses {
 
     public static final JSONStreamAware INCORRECT_ALIAS = incorrect("alias");

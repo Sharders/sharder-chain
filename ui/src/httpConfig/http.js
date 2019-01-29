@@ -3,7 +3,7 @@
  */
 import axios from "axios";
 import apiURL from "./api.js";
-// import Qs from 'qs';
+import Qs from 'qs';
 
 import cookie from "../../static/sso/js/cookie.js";
 

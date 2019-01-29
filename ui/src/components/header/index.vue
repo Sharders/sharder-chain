@@ -6,7 +6,7 @@
                     <img src="../../assets/img/logo.svg"/>
                     <div>
                         <span>Sharder</span>
-                        <span>{{blockchainState.application}}{{$t('header.version')}}{{blockchainState.fullVersion}}</span>
+                        <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
                     </div>
                 </a>
             </div>
@@ -93,6 +93,27 @@
                 </div>
             </div>
         </div>
+        <div class="download_blocks_loading" v-if="isDownLoadingBlockchain">
+            <div class="download_blocks_loading_active" v-show="isDownloadingState === 'isActive'">
+                <div>
+                    <span>正在下载区块链</span>
+                    <span v-if="blocksLeft">（{{blocksLeft}}个剩余区块）</span>
+                </div>
+                <div class="download_blocks_progress_total" v-if="blocksLeft && blocksLeft >= 2500">
+                    <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="percentageTotal"></el-progress>
+                </div>
+                <div class="download_blocks_progress_last" v-if="blocksLeft && blocksLeft < 10000 && lastBlockchainFeederHeight > 5000">
+                    <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="percentageLast"></el-progress>
+                </div>
+            </div>
+            <div  v-show="isDownloadingState === 'isLightClient'">
+                <p>Light Client</p>
+                <p>区块还未完整下载</p>
+            </div>
+            <div  v-show="isDownloadingState === 'isHalted'">
+                <span>区块链下载中断，没有连接</span>
+            </div>
+        </div>
     </header>
 
 </template>
@@ -110,7 +131,7 @@
                 isRouter: true,
                 placeholder: this.$t('header.search'),
                 activeSearch: false,
-                blockchainState:this.$global.blockchainState,
+                blockchainStatus:"",
                 secretPhrase:SSO.secretPhrase,
                 adminPassword:'',
                 accountRS:SSO.accountRS,
@@ -129,11 +150,21 @@
                     value:'en',
                     label:'English'
                 }],
-                i:0,
+
+                isDownLoadingBlockchain:SSO.downloadingBlockchain,
+                isDownloadingState:SSO.isDownloadingState,
+                isProgressTotalShow:SSO.isProgressTotalShow,
+                isProgressLastShow:SSO.isProgressLastShow,
+                isBlockOutLeft:SSO.isBlockOutLeft,
+                lastBlockchainFeederHeight:SSO.state.lastBlockchainFeederHeight,
+                percentageTotal:SSO.percentageTotal,
+                blocksLeft:SSO.blocksLeft,
+                percentageLast:SSO.percentageLast,
             };
         },
         created(){
             const _this = this;
+
             let lang = this.$i18n.locale;
             if(typeof lang !== 'undefined'){
 
@@ -158,16 +189,12 @@
                 }
             }).then(res=>{
                 _this.accountInfo = res.data;
-                // console.log("accountInfo",_this.accountInfo);
             }).catch(err=>{
                 _this.$message.error(err);
                 console.error(err);
             });
             _this.$global.getUserConfig(_this).then(res=>{
                 _this.userConfig = res;
-
-                console.log("accountRS",_this.accountRS);
-                console.log("userConfig",_this.userConfig);
             });
 
             let formData = new FormData();
@@ -190,27 +217,43 @@
             setInterval(()=>{
                 _this.getData();
             },30000);
+            setInterval(()=>{
+                _this.isDownLoadingBlockchain = SSO.downloadingBlockchain;
+                _this.isDownloadingState = SSO.isDownloadingState,
+                    _this.isProgressTotalShow = SSO.isProgressTotalShow;
+                _this.isProgressLastShow = SSO.isProgressLastShow;
+                _this.isBlockOutLeft = SSO.isBlockOutLeft;
+                _this.lastBlockchainFeederHeight = SSO.state.lastBlockchainFeederHeight;
+                _this.percentageTotal = SSO.percentageTotal;
+                _this.blocksLeft = SSO.blocksLeft;
+                _this.percentageLast = SSO.percentageLast;
+            },2000);
         },
         methods: {
+
             getData:function(){
                 const _this = this;
                 // if(_this.i%30 === 0){
                     _this.$global.setBlockchainState(_this).then(res=>{
-                        _this.blockchainState = res;
-                        if(_this.$global.isOpenConsole){
+                        _this.blockchainStatus = res.data;
+                        /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
-                        }
+                        }*/
+                        SSO.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res.data,res);
                     });
                     _this.$global.setUnconfirmedTransactions(_this,SSO.account).then(res=>{
-                        _this.$store.state.unconfirmedTransactionsList = res;
-                        if(_this.$global.isOpenConsole){
+                        _this.$store.state.unconfirmedTransactionsList = res.data;
+                        console.log("unconfirmedTransactionsList",res.data);
+                        /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
-                        }
+                        }*/
+                        SSO.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res.data,res);
                     });
                     _this.$global.setPeers(_this).then(res=>{
-                        if(_this.$global.isOpenConsole){
+                        /*if(_this.$global.isOpenConsole){
                             _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
-                        }
+                        }*/
+                        SSO.addToConsole("/sharder?requestType=getPeers",'GET',res.data,res);
                     });
                 // }
             },
@@ -272,18 +315,21 @@
                 _this.activeIndex = val;
             },
             goConsole: function () {
-                const _this = this;
-                _this.$global.newConsole = window.open("", "console", "width=750,height=400,menubar=no,scrollbars=yes,status=no,toolbar=no,resizable=yes");
+                // const _this = this;
+
+                SSO.showConsole(this);
+
+               /* _this.$global.newConsole = window.open("", "console", "width=750,height=400,menubar=no,scrollbars=yes,status=no,toolbar=no,resizable=yes");
                 $(_this.$global.newConsole.document.head).html("<title>CONSOLE</title><style type='text/css'>body { background:black; color:white; font-family:courier-new,courier;font-size:14px; } pre { font-size:14px; } #console { padding-top:15px; }</style>");
                 $(_this.$global.newConsole.document.body).html("<div style='position:fixed;top:0;left:0;right:0;padding:5px;background:#efefef;color:black;'>"+_this.$t('header.open_console')+"<div style='float:right;text-decoration:underline;color:blue;font-weight:bold;cursor:pointer;' onclick='document.getElementById(\"console\").innerHTML=\"\"'>clear</div></div><div id='console'></div>");
-
-                let loop = setInterval(function() {
+               */
+               /* let loop = setInterval(function() {
                     if(_this.$global.newConsole.closed) {
                         clearInterval(loop);
                         _this.$global.isOpenConsole = false;
                     }
-                }, 1000);
-                this.$global.isOpenConsole = true;
+                }, 1000);*/
+                // this.$global.isOpenConsole = true;
             },
             search_focus: function () {
                 const _this = this;
@@ -326,9 +372,6 @@
             },
         },
         watch:{
-            blockchainState:function (res) {
-                // console.log(res);
-            },
             selectLan:function (language) {
                 const _this = this;
                 for(let i=0;i<_this.language.length;i++){
@@ -337,8 +380,7 @@
                         _this.$store.commit('updateLang',language);
                         _this.selectLanValue = language;
                     }
-                }
-            }
+                }}
         },
     };
 </script>
@@ -361,6 +403,26 @@
     .en_menu{
         .el-menu-item {
             font-size: 12px!important;
+        }
+    }
+    .download_blocks_loading{
+        display: block;
+        width: 330px;
+        height: 110px;
+        padding: 14px 26px 14px 13px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ebeef5;
+        position: fixed;
+        background-color: #fff;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        transition: opacity .3s,transform .3s,left .3s,right .3s,top .4s,bottom .3s;
+        overflow: hidden;
+        right: 20px;
+        top: 100px;
+        z-index: 2;
+        p{
+            margin-bottom: 10px;
         }
     }
 </style>

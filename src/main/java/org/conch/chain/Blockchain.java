@@ -86,6 +86,8 @@ public interface Blockchain {
 
     int getTransactionCount();
 
+    int getTransactionCountByAccount(long accountId, byte type, byte subtype);
+
     DbIterator<? extends Transaction> getAllTransactions();
 
     DbIterator<TransactionImpl> getTransactions(long accountId, boolean isFrom, int from, int to);

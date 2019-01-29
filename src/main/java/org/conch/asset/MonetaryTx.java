@@ -30,7 +30,7 @@ import org.conch.asset.token.CurrencyTransfer;
 import org.conch.asset.token.CurrencyType;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.market.ExchangeRequest;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.CurrencyMinting;
@@ -176,8 +176,7 @@ public abstract class MonetaryTx extends TransactionType {
 
         @Override
         public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
-                    && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
+            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
         }
 
         @Override

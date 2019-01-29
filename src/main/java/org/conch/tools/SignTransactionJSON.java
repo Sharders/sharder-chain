@@ -34,7 +34,8 @@ import java.io.*;
 
 public final class SignTransactionJSON {
 
-    public static void main(String[] args) {
+
+    public static void signTranscationFile(String[] args){
         try {
             Logger.setLevel(Logger.Level.ERROR);
             if (args.length == 0 || args.length > 2) {
@@ -81,6 +82,10 @@ public final class SignTransactionJSON {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    public static void main(String[] args) {
+        signTranscationFile(args);
     }
 
 }

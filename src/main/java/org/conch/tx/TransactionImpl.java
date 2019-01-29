@@ -21,6 +21,7 @@
 
 package org.conch.tx;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountRestrictions;
@@ -30,7 +31,7 @@ import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.SharderGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
 import org.conch.util.Convert;
@@ -506,15 +507,23 @@ final public class TransactionImpl implements Transaction {
             if (signature == null) {
                 throw new IllegalStateException("Transaction is not signed yet");
             }
-            if (useNQT()) {
-                byte[] data = zeroSignature(getBytes());
-                byte[] signatureHash = Crypto.sha256().digest(signature);
-                MessageDigest digest = Crypto.sha256();
-                digest.update(data);
-                fullHash = digest.digest(signatureHash);
-            } else {
-                fullHash = Crypto.sha256().digest(bytes());
-            }
+            
+            byte[] data = zeroSignature(getBytes());
+            byte[] signatureHash = Crypto.sha256().digest(signature);
+            MessageDigest digest = Crypto.sha256();
+            digest.update(data);
+            fullHash = digest.digest(signatureHash);
+            
+            //[NQT]
+//            if (useNQT()) {
+//                byte[] data = zeroSignature(getBytes());
+//                byte[] signatureHash = Crypto.sha256().digest(signature);
+//                MessageDigest digest = Crypto.sha256();
+//                digest.update(data);
+//                fullHash = digest.digest(signatureHash);
+//            } else {
+//                fullHash = Crypto.sha256().digest(bytes());
+//            }
             BigInteger bigInteger = new BigInteger(1, new byte[] {fullHash[7], fullHash[6], fullHash[5], fullHash[4], fullHash[3], fullHash[2], fullHash[1], fullHash[0]});
             id = bigInteger.longValue();
             stringId = bigInteger.toString();
@@ -627,23 +636,34 @@ final public class TransactionImpl implements Transaction {
                 buffer.putShort(deadline);
                 buffer.put(getSenderPublicKey());
                 buffer.putLong(type.canHaveRecipient() ? recipientId : SharderGenesis.CREATOR_ID);
-                if (useNQT()) {
-                    buffer.putLong(amountNQT);
-                    buffer.putLong(feeNQT);
-                    if (referencedTransactionFullHash != null) {
-                        buffer.put(referencedTransactionFullHash);
-                    } else {
-                        buffer.put(new byte[32]);
-                    }
+                
+               
+                buffer.putLong(amountNQT);
+                buffer.putLong(feeNQT);
+                if (referencedTransactionFullHash != null) {
+                    buffer.put(referencedTransactionFullHash);
                 } else {
-                    buffer.putInt((int) (amountNQT / Constants.ONE_SS));
-                    buffer.putInt((int) (feeNQT / Constants.ONE_SS));
-                    if (referencedTransactionFullHash != null) {
-                        buffer.putLong(Convert.fullHashToId(referencedTransactionFullHash));
-                    } else {
-                        buffer.putLong(0L);
-                    }
+                    buffer.put(new byte[32]);
                 }
+                
+                //[NQT]
+//                if (useNQT()) {
+//                    buffer.putLong(amountNQT);
+//                    buffer.putLong(feeNQT);
+//                    if (referencedTransactionFullHash != null) {
+//                        buffer.put(referencedTransactionFullHash);
+//                    } else {
+//                        buffer.put(new byte[32]);
+//                    }
+//                } else {
+//                    buffer.putInt((int) (amountNQT / Constants.ONE_SS));
+//                    buffer.putInt((int) (feeNQT / Constants.ONE_SS));
+//                    if (referencedTransactionFullHash != null) {
+//                        buffer.putLong(Convert.fullHashToId(referencedTransactionFullHash));
+//                    } else {
+//                        buffer.putLong(0L);
+//                    }
+//                }
                 buffer.put(signature != null ? signature : new byte[64]);
                 if (version > 0) {
                     buffer.putInt(getFlags());
@@ -910,7 +930,9 @@ final public class TransactionImpl implements Transaction {
 
     private boolean checkSignature() {
         if (!hasValidSignature) {
-            hasValidSignature = signature != null && Crypto.verify(signature, zeroSignature(getBytes()), getSenderPublicKey(), useNQT());
+            //[NQT]
+//            hasValidSignature = signature != null && Crypto.verify(signature, zeroSignature(getBytes()), getSenderPublicKey(), useNQT());
+            hasValidSignature = signature != null && Crypto.verify(signature, zeroSignature(getBytes()), getSenderPublicKey(),true);
         }
         return hasValidSignature;
     }
@@ -928,15 +950,19 @@ final public class TransactionImpl implements Transaction {
         return fullSize;
     }
 
-    private int signatureOffset() {
-        return 1 + 1 + 4 + 2 + 32 + 8 + (useNQT() ? 8 + 8 + 32 : 4 + 4 + 8);
+    //[NQT]
+//    private int signatureOffset() {
+//        return 1 + 1 + 4 + 2 + 32 + 8 + (useNQT() ? 8 + 8 + 32 : 4 + 4 + 8);
+//    }
+    private int signatureOffset() { 
+        return 1 + 1 + 4 + 2 + 32 + 8 + (8 + 8 + 32 );
     }
 
-    private boolean useNQT() {
-        return this.height > Constants.NQT_BLOCK
-                && (this.timestamp > (Constants.isTestnetOrDevnet() ? 12908200 : 14271000)
-                || Conch.getBlockchain().getHeight() >= Constants.NQT_BLOCK);
-    }
+//    private boolean useNQT() {
+//        return this.height > Constants.NQT_BLOCK
+//                && (this.timestamp > (Constants.isTestnetOrDevnet() ? 12908200 : 14271000)
+//                || Conch.getBlockchain().getHeight() >= Constants.NQT_BLOCK);
+//    }
 
     private byte[] zeroSignature(byte[] data) {
         int start = signatureOffset();
@@ -1117,12 +1143,38 @@ final public class TransactionImpl implements Transaction {
         return type.isUnconfirmedDuplicate(this, duplicates);
     }
 
+    
+    
+    private static final String IS_FIXED = "isFixed";
+    private static final String FEE = "fee";
+    /**
+     * define fixed fee txs:
+     * TransactionType.TYPE_COIN_BASE -> 0 fee
+     * TransactionType.TYPE_COIN_POC -> 1 fee
+     * @return
+     */
+    private static com.alibaba.fastjson.JSONObject isFixedFee(byte transactionType){
+        com.alibaba.fastjson.JSONObject feeMap = new com.alibaba.fastjson.JSONObject();
+        if(transactionType == TransactionType.TYPE_COIN_BASE){
+            feeMap.put(IS_FIXED,true);
+            feeMap.put(FEE,0L);
+        }else if(transactionType == TransactionType.TYPE_POC){
+            feeMap.put(IS_FIXED,true);
+            feeMap.put(FEE,1L);
+        }else {
+            feeMap.put(IS_FIXED,false);
+        }
+        return feeMap;
+    }
+
     public long getMinimumFeeNQT(int blockchainHeight) {
         long totalFee = 0;
         byte transactionType = this.getType().getType();
-        if(transactionType == TransactionType.TYPE_COIN_BASE){
-            return 0;
+        com.alibaba.fastjson.JSONObject feeMap = isFixedFee(transactionType);
+        if(feeMap.getBooleanValue(IS_FIXED)){
+            return feeMap.getLongValue(FEE);
         }
+        
         if(transactionType != TransactionType.TYPE_DATA && Constants.configFee.get(transactionType) == 0){
             for (Appendix.AbstractAppendix appendage : appendages) {
                 appendage.loadPrunable(this);
@@ -1148,6 +1200,11 @@ final public class TransactionImpl implements Transaction {
             return Constants.ONE_SS;
         }
         return Constants.configFee.get(size);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 
 }

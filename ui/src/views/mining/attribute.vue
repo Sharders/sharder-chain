@@ -183,6 +183,10 @@
             miningExit() {
                 // this.miningMask('isExitPool');
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 this.$http.get('sharder?requestType=getBlockchainTransactions',{
                     params:{
@@ -220,6 +224,10 @@
             },
             miningDestory(){
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 formData.append("period","400");
                 formData.append("secretPhrase",SSO.secretPhrase);
@@ -241,6 +249,10 @@
             },
             miningJoin(){
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 formData.append("period","400");
                 formData.append("secretPhrase",SSO.secretPhrase);
@@ -251,7 +263,8 @@
                 formData.append("amount",_this.joinPool*100000000);
 
                 this.$http.post('/sharder?requestType=joinPool',formData).then(res=>{
-                    if(typeof res.data.errorDescription !== undefined){
+
+                    if(typeof res.data.errorDescription === "undefined"){
                         console.log(res.data);
                         _this.$message.success("加入成功");
                         this.$store.state.mask = false;

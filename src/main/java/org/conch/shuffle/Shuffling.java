@@ -726,13 +726,13 @@ public final class Shuffling {
             for (int i = 0; i < 3; i++) {
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(block.getHeight() - i - 1).getGeneratorId());
                 previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
-                previousGeneratorAccount.addToForgedBalanceNQT(fee);
+                previousGeneratorAccount.addToMintedBalanceNQT(fee);
                 Logger.logDebugMessage("Shuffling penalty %f SS awarded to miner at height %d", ((double)fee) / Constants.ONE_SS, block.getHeight() - i - 1);
             }
             fee = Constants.SHUFFLING_DEPOSIT_NQT - 3 * fee;
             Account blockGeneratorAccount = Account.getAccount(block.getGeneratorId());
             blockGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
-            blockGeneratorAccount.addToForgedBalanceNQT(fee);
+            blockGeneratorAccount.addToMintedBalanceNQT(fee);
             Logger.logDebugMessage("Shuffling penalty %f SS awarded to miner at height %d", ((double)fee) / Constants.ONE_SS, block.getHeight());
         }
         setStage(Stage.CANCELLED, blamedAccountId, (short)0);
