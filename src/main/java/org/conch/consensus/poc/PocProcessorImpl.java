@@ -179,17 +179,27 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   private static final String LOCAL_STORAGE_POC_HOLDER = "PocHolder";
-
+  
+  private static Map<Long,Account> balanceChangedMap = new HashMap<>();
   static {
-    // new block -> persistence poc holder (save the poc holder to disk)
+    // new block
     Conch.getBlockchainProcessor().addListener((Block block) -> {
+      // ss hold score re-calculate
+      // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
+      for(Account account : balanceChangedMap.values()){
+        balanceChangedProcess(block.getHeight(),account);
+      }
+      balanceChangedMap.clear();
+
+      //save the poc holder to disk
       DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
     }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     
-    // balance changed -> ss hold score re-calculate
+    // balance changed
     Account.addListener((Account account) -> {
-      //TODO height get from event or other ways
-      balanceChangedProcess(-1,account);
+      if(!balanceChangedMap.containsKey(account.getId())) {
+        balanceChangedMap.put(account.getId(), account);
+      }
     }, Account.Event.BALANCE);
     
     loadExistPocHolder();
@@ -209,7 +219,6 @@ public class PocProcessorImpl implements PocProcessor {
     if(PocHolder.lastHeight <= Conch.getBlockchain().getHeight()) {
         synPocTxNow = true;
     }
-
   }
   
   @Override
@@ -457,7 +466,6 @@ public class PocProcessorImpl implements PocProcessor {
     if(account == null) {
       return false;
     }
-
     long accountId = account.getId();
     PocScore pocScoreToUpdate = new PocScore(accountId,height);
     pocScoreToUpdate.ssScoreCal();
