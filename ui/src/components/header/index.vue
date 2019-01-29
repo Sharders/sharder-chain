@@ -24,7 +24,7 @@
                 <div class="navbar_search">
                     <div>
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
-                               :placeholder="placeholder" type="text" name="search" v-model="search_val"
+                               :placeholder="placeholder" type="text" v-model="search_val"
                                @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
                         <img src="../../assets/img/search.svg" @click="search_keydown"/>
                     </div>
