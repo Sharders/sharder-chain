@@ -22,7 +22,6 @@
 package org.conch.chain;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
@@ -509,7 +508,7 @@ public final class BlockImpl implements Block {
         Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
         generatorAccount.apply(getGeneratorPublicKey());
         long totalBackFees = 0;
-        if (this.height > Constants.SHUFFLING_BLOCK) {
+        if (this.height > Constants.SHUFFLING_BLOCK_HEIGHT) {
             long[] backFees = new long[3];
             for (TransactionImpl transaction : getTransactions()) {
                 long[] fees = transaction.getBackFees();
@@ -562,7 +561,7 @@ public final class BlockImpl implements Block {
 
     private void calculateBaseTarget(BlockImpl previousBlock) {
         long prevBaseTarget = previousBlock.baseTarget;
-        if (previousBlock.getHeight() <= Constants.SHUFFLING_BLOCK) {
+        if (previousBlock.getHeight() <= Constants.SHUFFLING_BLOCK_HEIGHT) {
             baseTarget = BigInteger.valueOf(prevBaseTarget)
                     .multiply(BigInteger.valueOf(this.timestamp - previousBlock.timestamp))
                     .divide(BigInteger.valueOf(60)).longValue();
