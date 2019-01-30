@@ -76,8 +76,8 @@ public final class Constants {
         }
     }
 
-    private static String networkInProperties = Conch.getStringProperty("sharder.network");
-    private static String NetworkDef = loadNetworkDefinition();
+    private static final String networkInProperties = Conch.getStringProperty("sharder.network");
+    private static final String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
@@ -95,7 +95,6 @@ public final class Constants {
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
-    public static final int BLOCK_GAP_SECONDS = getBlockGapSeconds();
 
     public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), 720);
     public static final long MAX_BASE_TARGET = MAX_BALANCE_SS * INITIAL_BASE_TARGET;
@@ -198,25 +197,21 @@ public final class Constants {
     public static final int MAX_STORED_DATA_CHANNEL_LENGTH = 100;
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
-    
-    public static final int TRANSPARENT_FORGING_BLOCK = 0;
     public static final int POC_BLOCK_HEIGHT = 0;
-    public static final int TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT = Integer.MAX_VALUE;
-
-    //FIXME[checksum]
-    public static final int NQT_BLOCK = isTestnetOrDevnet() ? 0 : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
-    public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; //封闭内测块高度
+    public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    public static final int SHUFFLING_BLOCK = isTestnetOrDevnet() ? 0 : 0;
-    
+
     //not opened yet
+    public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
     public static final int DIGITAL_GOODS_STORE_BLOCK = Integer.MAX_VALUE;
-    public static final int MONETARY_SYSTEM_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
-    public static final int PHASING_BLOCK = Constants.isTestnetOrDevnet() ? 0 : 0;
-    
+    public static final int TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT = Integer.MAX_VALUE;
+    public static final int MONETARY_SYSTEM_BLOCK = Integer.MAX_VALUE;
+
+    public static final int SHUFFLING_BLOCK_HEIGHT = isTestnetOrDevnet() ? 0 : 0;
+  
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
 
     public static final int[] MIN_VERSION = new int[] {0, 0, 1};
@@ -228,7 +223,8 @@ public final class Constants {
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
     public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix，SSA: Sharder Storage Account
 
-    public static final long EPOCH_BEGINNING;
+    //chain begin time
+    public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
     public static final int SHARDER_POOL_DELAY = 10; //transaction become effective
@@ -239,32 +235,26 @@ public final class Constants {
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
     
-    
-    //Chain begin time
-    static {
-        EPOCH_BEGINNING = conchLaunchedTime().getTimeInMillis();
-    }
-    
-    static Calendar conchLaunchedTime(){
+    // conch chain begin time
+
+    /**
+     * chain begin time
+     * @param index 0: conch chain, 1: testnet of sharder, otherwise is mainnet of sharder
+     * @return
+     */
+    static Calendar launchedTime(int index){
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        calendar.set(Calendar.YEAR, 2016);
-        calendar.set(Calendar.MONTH, Calendar.AUGUST);
-        calendar.set(Calendar.DAY_OF_MONTH, 16);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        return calendar;
-    }
-    
-    static Calendar openTestnetLaunchedTime(){
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        calendar.set(Calendar.YEAR, 2019);
-        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 1);
-        calendar.set(Calendar.MINUTE, 1);
-        calendar.set(Calendar.SECOND, 1);
-        calendar.set(Calendar.MILLISECOND, 1);
+        int year = index == 0 ? 2016 : (index == 1 ? 2019 : 2019);
+        int month = index == 0 ? Calendar.AUGUST : (index == 1 ? Calendar.JANUARY : Calendar.SEPTEMBER);
+        int day = index == 0 ? 16 : (index == 1 ? 1 : 9);
+        int hms = index == 0 ? 8 : (index == 1 ? 1 : 9);
+        
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.HOUR_OF_DAY, hms);
+        calendar.set(Calendar.MINUTE, hms);
+        calendar.set(Calendar.SECOND, hms);
         return calendar;
     }
 
@@ -331,9 +321,14 @@ public final class Constants {
     }
     
     //default gap of mainnet & testnet is 7 min
-    private static int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
-    private static int getBlockGapSeconds(){
-        int gap = blockGapInProperties > 0 ? blockGapInProperties : 0;
+    private static final int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
+
+    /**
+     * interval between two block generation, the min is 1min
+     * @return generation gap in seconds
+     */
+    public static int getBlockGapSeconds(){
+        int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
         // convert to second
         return gap * 60;
     }

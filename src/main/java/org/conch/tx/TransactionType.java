@@ -400,7 +400,7 @@ public abstract class TransactionType {
     }
 
     public int getBaselineFeeHeight() {
-        return Constants.SHUFFLING_BLOCK;
+        return Constants.SHUFFLING_BLOCK_HEIGHT;
     }
 
     public int getNextFeeHeight() {
@@ -766,7 +766,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && Alias.getAlias(((Attachment.MessagingAliasAssignment) transaction.getAttachment()).getAliasName()) == null
                         && isDuplicate(Messaging.ALIAS_ASSIGNMENT, "", duplicates, true);
             }
@@ -1158,7 +1158,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && isDuplicate(Messaging.POLL_CREATION, getName(), duplicates, true);
             }
 
@@ -1510,7 +1510,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && isDuplicate(Messaging.ACCOUNT_INFO, getName(), duplicates, true);
             }
 
@@ -1769,7 +1769,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(final Transaction transaction, final Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && !isSingletonIssuance(transaction)
                         && isDuplicate(ColoredCoins.ASSET_ISSUANCE, getName(), duplicates, true);
             }
@@ -1860,7 +1860,7 @@ public abstract class TransactionType {
                         || attachment.getAssetId() == 0) {
                     throw new ConchException.NotValidException("Invalid asset transfer amount or comment: " + attachment.getJSONObject());
                 }
-                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID && attachment.getFinishValidationHeight(transaction) > Constants.SHUFFLING_BLOCK) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID && attachment.getFinishValidationHeight(transaction) > Constants.SHUFFLING_BLOCK_HEIGHT) {
                     throw new ConchException.NotValidException("Asset transfer to Genesis no longer allowed, "
                             + "use asset delete attachment instead");
                 }
@@ -2321,7 +2321,7 @@ public abstract class TransactionType {
                             + " blocks before " + attachment.getFinishValidationHeight(transaction));
                 }
                 Asset asset;
-                if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+                if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
                     asset = Asset.getAsset(attachment.getAssetId(), attachment.getHeight());
                 } else {
                     asset = Asset.getAsset(attachment.getAssetId());
@@ -2472,7 +2472,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && isDuplicate(DigitalGoods.LISTING, getName(), duplicates, true);
             }
 
@@ -3095,9 +3095,8 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid effective balance leasing period: " + attachment.getPeriod());
                 }
                 byte[] recipientPublicKey = Account.getPublicKey(transaction.getRecipientId());
-                if (recipientPublicKey == null && Conch.getBlockchain().getHeight() > Constants.PHASING_BLOCK) {
-                    throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "
-                            + " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
+                if (recipientPublicKey == null && Conch.getBlockchain().getHeight() > Constants.PHASING_BLOCK_HEIGHT) {
+                    throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "+ " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Leasing to Genesis account not allowed");

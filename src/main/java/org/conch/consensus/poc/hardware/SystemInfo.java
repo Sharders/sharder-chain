@@ -69,6 +69,11 @@ public class SystemInfo {
      */
     private Long[] openServices;
 
+    /**
+     * 当前网络类型 dev,alpha,beta
+     */
+    private String networkType;
+
     public String getIp() {
         return ip;
     }
@@ -174,6 +179,15 @@ public class SystemInfo {
 
     public SystemInfo setOpenServices(Long[] openServices) {
         this.openServices = openServices;
+        return this;
+    }
+
+    public String getNetworkType() {
+        return networkType;
+    }
+
+    public SystemInfo setNetworkType(String networkType) {
+        this.networkType = networkType;
         return this;
     }
 

@@ -24,18 +24,17 @@ public class DiskStorageUtil {
             oos.writeObject(o);
             oos.close();
         } catch (Exception e) {
-            Logger.logErrorMessage("save file failed[" + fileName + "]" + e.toString());
+            Logger.logErrorMessage("save file failed[" + fileName + "]",e);
         }
     }
 
     public static Object getObjFromFile(String fileName) {
         try {
-            ObjectInputStream ois =
-                    new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
             Object object = ois.readObject();
             return object;
         } catch (Exception e) {
-            Logger.logErrorMessage("failed to read file [" + fileName + "]" + e.toString());
+            Logger.logErrorMessage("failed to read file [" + fileName + "]" ,e);
             return null;
         }
     }

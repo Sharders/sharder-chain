@@ -23,35 +23,45 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.common.ConchException;
-import org.conch.consensus.poc.hardware.PerformanceCheckingUtil;
+import org.conch.consensus.poc.hardware.GetNodeHardware;
+import org.conch.peer.Peers;
 import org.conch.util.IpUtil;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 /**
+ * 引导远程请求节点，进行配置性能测试接口
  * @author CloudSen
  */
 public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequestHandler {
 
-    static final GetNodeConfigPerformanceTestResult instance = new GetNodeConfigPerformanceTestResult();
+    static final GetNodeConfigPerformanceTestResult INSTANCE = new GetNodeConfigPerformanceTestResult();
+    private static final String TEST_SUCCESS = "性能测试成功";
+    private static final String TEST_FAILED = "性能测试失败";
 
     private GetNodeConfigPerformanceTestResult() {
-        super(new APITag[] {APITag.TEST}, "time");
+        super(new APITag[]{APITag.TEST}, "time");
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+    protected JSONStreamAware processRequest(HttpServletRequest request) {
 
-        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL()))  {
-            throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!");
+        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+            String msg = "Exception: Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!";
+            System.out.println(msg);
+            return ResultUtil.error500(msg);
         }
-        
-        Integer time = Integer.parseInt(request.getParameter("time"));
-        JSONObject response = new JSONObject();
-        response.put("executeCount", PerformanceCheckingUtil.check(time));
-        return response;
+
+        Integer time = Optional.ofNullable(request.getParameter("time")).map(Integer::valueOf).orElse(Peers.DEFAULT_TX_CHECKING_COUNT);
+        // 开始节点配置性能测试，并将结果报告给引导节点
+        boolean success = GetNodeHardware.readAndReport(time);
+        if (success) {
+            return ResultUtil.ok(TEST_SUCCESS);
+        } else {
+            return ResultUtil.failed(TEST_FAILED);
+        }
     }
 
 }

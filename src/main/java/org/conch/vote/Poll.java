@@ -166,7 +166,7 @@ public final class Poll extends AbstractPoll {
         if (Poll.isPollsProcessing) {
             Conch.getBlockchainProcessor().addListener(block -> {
                 int height = block.getHeight();
-                if (height >= Constants.PHASING_BLOCK) {
+                if (height >= Constants.PHASING_BLOCK_HEIGHT) {
                     Poll.checkPolls(height);
                 }
             }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);

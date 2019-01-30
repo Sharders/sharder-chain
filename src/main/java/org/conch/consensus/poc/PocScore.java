@@ -6,13 +6,14 @@ import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2018/12/29
  */
-public class PocScore {
+public class PocScore implements Serializable {
     Long accountId;
     int height;
     // SS持有得分

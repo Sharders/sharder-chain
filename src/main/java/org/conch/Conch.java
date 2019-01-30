@@ -37,6 +37,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbBackup;
@@ -590,6 +591,7 @@ public final class Conch {
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
 
+                PocProcessorImpl.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
 

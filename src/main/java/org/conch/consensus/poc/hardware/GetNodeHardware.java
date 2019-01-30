@@ -142,10 +142,8 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
-
-    public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
-        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(DEFAULT_TX_CHECKING_COUNT));
+    public static SystemInfo txPerformance(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(executeTime));
         return systemInfo;
     }
 
@@ -161,12 +159,10 @@ public class GetNodeHardware {
     }
 
     private static String scHardwareApiUrl() {
-//        if (Constants.isMainnet() || Constants.isTestnet()) {
-//            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss?networkType=" + Conch.getNetworkType();
-//        }
-//
-//        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss?networkType=dev";
-        return "http://localhost:8080//sc/peer/report.ss?networkType=dev";
+        if (Constants.isMainnet() || Constants.isTestnet()) {
+            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss?networkType=" + Conch.getNetworkType();
+        }
+        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss?networkType=dev";
     }
 
     public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
@@ -178,9 +174,10 @@ public class GetNodeHardware {
      * 若使用了NAT，则address设置为穿透服务的。
      * 若没有使用NAT,则address设置为本机地址
      *
+     * @param executeTime 性能测试时间，单位秒, 为空使用默认值
      * @return true成功，false失败
      */
-    public static boolean readAndReport() {
+    public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
         String myAddress = Conch.getMyAddress();
         String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
@@ -189,7 +186,7 @@ public class GetNodeHardware {
         systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
 
         try {
-            return report(read(systemInfo));
+            return report(read(systemInfo, executeTime));
         } catch (Exception e) {
             System.out.println("<=== failed to report hardware performance, local error");
             e.printStackTrace();
@@ -197,13 +194,14 @@ public class GetNodeHardware {
         }
     }
 
-    private static SystemInfo read(SystemInfo systemInfo) throws Exception {
+    private static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
-        txPerformance(systemInfo);
+        txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
+        systemInfo.setNetworkType(Conch.getNetworkType());
         return systemInfo;
     }
 

@@ -176,7 +176,7 @@ public abstract class MonetaryTx extends TransactionType {
 
         @Override
         public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
+            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
         }
 
         @Override
@@ -506,7 +506,7 @@ public abstract class MonetaryTx extends TransactionType {
                     || attachment.getTotalSellLimit() < attachment.getInitialSellSupply()) {
                 throw new ConchException.NotValidException("Initial supplies must not exceed total limits");
             }
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
                 if (attachment.getTotalBuyLimit() == 0 && attachment.getTotalSellLimit() == 0) {
                     throw new ConchException.NotValidException("Total buy and sell limits cannot be both 0");
                 }
