@@ -14,9 +14,9 @@ import java.util.Map;
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
-public class PocCalculator  implements Serializable {
+public class PocCalculator implements Serializable {
     
-    public static PocCalculator inst = new PocCalculator();
+    static PocCalculator inst = new PocCalculator();
     
     // poc score converter: 10 -> 500000000
     private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(50000000L);
@@ -25,24 +25,24 @@ public class PocCalculator  implements Serializable {
     private static final BigInteger PERCENT_DIVISOR = BigInteger.valueOf(100L);
 
     // default weight table
-    private static volatile PocTxBody.PocWeightTable pocWeightTable = PocTxBody.PocWeightTable.defaultPocWeightTable();
+    private volatile PocTxBody.PocWeightTable pocWeightTable = PocTxBody.PocWeightTable.defaultPocWeightTable();
 
-    static volatile int lastHeight = -1;
+    volatile int lastHeight = -1;
 
     public static void setCurWeightTable(PocTxBody.PocWeightTable weightTable, int height) {
-        pocWeightTable = weightTable;
-        lastHeight = height;
+        inst.pocWeightTable = weightTable;
+        inst.lastHeight = height;
     }
 
     public static PocTxBody.PocWeightTable getCurWeightTable(){
-        if(pocWeightTable == null) {
-            pocWeightTable = PocTxBody.PocWeightTable.defaultPocWeightTable();
+        if(inst.pocWeightTable == null) {
+            inst.pocWeightTable = PocTxBody.PocWeightTable.defaultPocWeightTable();
         }
-        return pocWeightTable;
+        return inst.pocWeightTable;
     }
     
     private static BigInteger getWeight(PocTxBody.WeightTableOptions weightTableOptions){
-        return BigInteger.valueOf(pocWeightTable.getWeightMap().get(weightTableOptions.getValue()).longValue());
+        return BigInteger.valueOf(inst.pocWeightTable.getWeightMap().get(weightTableOptions.getValue()).longValue());
     }
 
     static void ssHoldCal(PocScore pocScore) {
@@ -52,7 +52,7 @@ public class PocCalculator  implements Serializable {
     
     
     private static BigInteger predefineNodeTypeLevel(Peer.Type peerType){
-       return BigInteger.valueOf(pocWeightTable.getNodeTypeTemplate().get(peerType.getCode()).longValue());
+       return BigInteger.valueOf(inst.pocWeightTable.getNodeTypeTemplate().get(peerType.getCode()).longValue());
     }
     static void nodeTypeCal(PocScore pocScore,PocTxBody.PocNodeType nodeType) {
         BigInteger typeScore = BigInteger.ZERO;
@@ -72,15 +72,15 @@ public class PocCalculator  implements Serializable {
     }
 
     private static BigInteger predefineHardwareLevel(PocTxBody.DeviceLevels deviceLevels){
-        return BigInteger.valueOf(pocWeightTable.getHardwareConfigTemplate().get(deviceLevels.getLevel()).longValue());
+        return BigInteger.valueOf(inst.pocWeightTable.getHardwareConfigTemplate().get(deviceLevels.getLevel()).longValue());
     }
 
     private static BigInteger predefineNetworkLevel(PocTxBody.DeviceLevels deviceLevels){
-        return BigInteger.valueOf(pocWeightTable.getNetworkConfigTemplate().get(deviceLevels.getLevel()).longValue());
+        return BigInteger.valueOf(inst.pocWeightTable.getNetworkConfigTemplate().get(deviceLevels.getLevel()).longValue());
     }
 
     private static BigInteger predefinePerformanceLevel(PocTxBody.DeviceLevels deviceLevels){
-        return BigInteger.valueOf(pocWeightTable.getTxPerformanceTemplate().get(deviceLevels.getLevel()).longValue());
+        return BigInteger.valueOf(inst.pocWeightTable.getTxPerformanceTemplate().get(deviceLevels.getLevel()).longValue());
     }
 
     static void nodeConfCal(PocScore pocScore, PocTxBody.PocNodeConf nodeConf) {
@@ -91,7 +91,7 @@ public class PocCalculator  implements Serializable {
         if (openedServices != null && openedServices.length > 0) {
 
             for (Long serviceCode : openedServices) {
-                BigInteger _scorePreDefined = BigInteger.valueOf(pocWeightTable.getServerOpenTemplate().get(serviceCode).longValue());
+                BigInteger _scorePreDefined = BigInteger.valueOf(inst.pocWeightTable.getServerOpenTemplate().get(serviceCode).longValue());
                 if(_scorePreDefined == null) continue;
                 serverScore = serverScore.add(_scorePreDefined);
             }
@@ -135,7 +135,7 @@ public class PocCalculator  implements Serializable {
     }
 
     private static BigInteger predefineOnlineRateLevel(Peer.Type peerType,PocTxBody.OnlineStatusDef statusDef){
-        return BigInteger.valueOf(pocWeightTable.getOnlineRateTemplate().get(peerType.getCode()).get(statusDef.getValue()));
+        return BigInteger.valueOf(inst.pocWeightTable.getOnlineRateTemplate().get(peerType.getCode()).get(statusDef.getValue()));
     }
     static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
         BigInteger onlineRateScore = BigInteger.ZERO;
@@ -177,7 +177,7 @@ public class PocCalculator  implements Serializable {
     static Map<Long,Integer> missBlockMap = new HashMap<>();
     
     private static BigInteger predefineblockMissLevel(PocTxBody.DeviceLevels deviceLevels){
-        return BigInteger.valueOf(pocWeightTable.getGenerationMissingTemplate().get(deviceLevels.getLevel()).longValue());
+        return BigInteger.valueOf(inst.pocWeightTable.getGenerationMissingTemplate().get(deviceLevels.getLevel()).longValue());
     }
     
     static void blockMissCal(PocScore pocScore,PocTxBody.PocGenerationMissing blockMiss) {

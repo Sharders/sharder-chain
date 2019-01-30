@@ -76,8 +76,8 @@ public final class Constants {
         }
     }
 
-    private static String networkInProperties = Conch.getStringProperty("sharder.network");
-    private static String NetworkDef = loadNetworkDefinition();
+    private static final String networkInProperties = Conch.getStringProperty("sharder.network");
+    private static final String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
@@ -95,7 +95,6 @@ public final class Constants {
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
-    public static final int BLOCK_GAP_SECONDS = getBlockGapSeconds();
 
     public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), 720);
     public static final long MAX_BASE_TARGET = MAX_BALANCE_SS * INITIAL_BASE_TARGET;
@@ -331,9 +330,14 @@ public final class Constants {
     }
     
     //default gap of mainnet & testnet is 7 min
-    private static int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
-    private static int getBlockGapSeconds(){
-        int gap = blockGapInProperties > 0 ? blockGapInProperties : 0;
+    private static final int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
+
+    /**
+     * interval between two block generation, the min is 1min
+     * @return generation gap in seconds
+     */
+    public static int getBlockGapSeconds(){
+        int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
         // convert to second
         return gap * 60;
     }

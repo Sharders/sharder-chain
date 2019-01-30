@@ -107,7 +107,7 @@ public abstract class PocTxWrapper extends TransactionType {
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           PocTxBody.PocWeightTable pocWeight = (PocTxBody.PocWeightTable) transaction.getAttachment();
-          PocCalculator.inst.setCurWeightTable(pocWeight, transaction.getHeight());
+          PocCalculator.setCurWeightTable(pocWeight, transaction.getHeight());
         }
 
         @Override

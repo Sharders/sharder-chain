@@ -9,11 +9,10 @@ import org.conch.tx.Attachment;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.math.BigInteger;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -152,7 +151,7 @@ public interface PocTxBody  {
         }
     }
 
-    final class PocWeightTable extends Attachment.TxBodyBase {
+    final class PocWeightTable extends Attachment.TxBodyBase implements Serializable {
 
         private Map<String, Integer> weightMap;
         private Map<Integer, Integer> nodeTypeTemplate;
@@ -340,15 +339,15 @@ public interface PocTxBody  {
         public PocWeightTable(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
             this.weightTableVersion = buffer.getLong();
-            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.generationMissingTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
-            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),Map.class);
+            this.weightMap = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.nodeTypeTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.serverOpenTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.hardwareConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.networkConfigTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.txPerformanceTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.onlineRateTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.generationMissingTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
+            this.bocSpeedTemplate = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), Map.class);
         }
 
         public PocWeightTable(JSONObject attachmentData) {

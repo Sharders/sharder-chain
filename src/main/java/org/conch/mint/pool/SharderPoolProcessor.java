@@ -175,8 +175,8 @@ public class SharderPoolProcessor implements Serializable {
         forgePool.historicalIncome += incom;
     }
 
-    private static final String LOCAL_STOAGE_SHARDER_POOLS = "SharderPools";
-    private static final String LOCAL_STOAGE_DESTROYED_POOLS = "DestroyedPools";
+    private static final String LOCAL_STOAGE_SHARDER_POOLS = "StoredSharderPools";
+    private static final String LOCAL_STOAGE_DESTROYED_POOLS = "StoredDestroyedPools";
 
     static {
         File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STOAGE_SHARDER_POOLS));

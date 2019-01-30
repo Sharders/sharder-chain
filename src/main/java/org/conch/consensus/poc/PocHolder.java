@@ -1,11 +1,8 @@
 package org.conch.consensus.poc;
 
 import com.google.common.collect.Maps;
-import org.conch.Conch;
-import org.conch.common.ConchException;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
-
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -24,22 +21,22 @@ public class PocHolder implements Serializable {
     static PocHolder inst = new PocHolder();
 
     // accountId : pocScore
-    static Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
     // height : { accountId : pocScore }
-    static Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
+    Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
 
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
-    static Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
+    Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
     // peerType : <bindAccountId,peerIp> 
-    static Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
+    Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
 
-    static int lastHeight = -1;
+    int lastHeight = -1;
 
     static {
-        certifiedBindAccountMap.put(Peer.Type.HUB,Maps.newConcurrentMap());
-        certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
-        certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
+        inst.certifiedBindAccountMap.put(Peer.Type.HUB,Maps.newConcurrentMap());
+        inst.certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
+        inst.certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
     }
 
     private PocHolder(){}
@@ -57,12 +54,12 @@ public class PocHolder implements Serializable {
      */
     static BigInteger getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
-        if (!scoreMap.containsKey(accountId)) {
+        if (!inst.scoreMap.containsKey(accountId)) {
             PocProcessorImpl.instance.notifySynTxNow();
             _defaultPocScore(accountId,height);
         }
 
-        PocScore pocScore = scoreMap.get(accountId);
+        PocScore pocScore = inst.scoreMap.get(accountId);
         //newest poc score when query height is bigger than last height of poc score 
         if(pocScore.height <= height) {
             return pocScore.total();
@@ -82,18 +79,18 @@ public class PocHolder implements Serializable {
      */
     static synchronized void scoreMapping(PocScore pocScore){
         PocScore _pocScore = pocScore;
-        if(scoreMap.containsKey(pocScore.accountId)) {
-            _pocScore = scoreMap.get(pocScore.accountId);
+        if(inst.scoreMap.containsKey(pocScore.accountId)) {
+            _pocScore = inst.scoreMap.get(pocScore.accountId);
             _pocScore.synScoreFrom(pocScore);
             recordHistoryScore(pocScore);
         }
 
-        scoreMap.put(pocScore.accountId,_pocScore);
-        lastHeight = pocScore.height > lastHeight ? pocScore.height : lastHeight;
+        inst.scoreMap.put(pocScore.accountId,_pocScore);
+        inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
     }
 
     static BigInteger getTotal(int height,Long accountId){
-        Map<Long,PocScore> map = historyScore.get(height);
+        Map<Long,PocScore> map = inst.historyScore.get(height);
         if(map == null) return BigInteger.ZERO;
         PocScore score = map.get(accountId);
         return score !=null ? score.total() : BigInteger.ZERO;
@@ -103,19 +100,19 @@ public class PocHolder implements Serializable {
      * record current poc score into history
      */
     static void recordHistoryScore(PocScore pocScore){
-        Map<Long,PocScore> map = historyScore.get(pocScore.height);
+        Map<Long,PocScore> map = inst.historyScore.get(pocScore.height);
         if(map == null) map = new HashMap<>();
 
         map.put(pocScore.accountId,new PocScore(pocScore.height, pocScore));
 
-        historyScore.put(pocScore.height,map);
+        inst.historyScore.put(pocScore.height,map);
     }
 
     static PocScore getHistoryPocScore(int height,long accountId){
-        if(!historyScore.containsKey(height)) {
+        if(!inst.historyScore.containsKey(height)) {
             return null;
         }
-        return historyScore.get(height).get(accountId);
+        return inst.historyScore.get(height).get(accountId);
     }
 
     static PocTxBody.PocWeightTable getPocWeightTable(){

@@ -58,8 +58,8 @@ public class PocProcessorImpl implements PocProcessor {
     return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
   }
 
-  private static final String LOCAL_STORAGE_POC_HOLDER = "PocHolder";
-  private static final String LOCAL_STORAGE_POC_CALCULATOR = "PocCalculator";
+  private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
+  private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
   
   private static Map<Long,Account> balanceChangedMap = new HashMap<>();
   static {
@@ -81,8 +81,7 @@ public class PocProcessorImpl implements PocProcessor {
       //save to disk when poc score changed case of contains poc txs in block or account balance changed
       if(someAccountBalanceChanged || blockContainPocTxs) {
         //save the poc holder and calculator to disk
-        DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
-        DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
+        saveToDisk();
       }
     }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     
@@ -92,27 +91,37 @@ public class PocProcessorImpl implements PocProcessor {
         balanceChangedMap.put(account.getId(), account);
       }
     }, Account.Event.BALANCE);
-    
-    loadExistPocHolder();
+
+    loadFromDisk();
+  }
+
+  /**
+   * save the poc holder and calculator to disk
+   */
+  private static void saveToDisk() {
+    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+    DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
   }
 
   /**
    * load the poc holder backup from local disk
    */
-  private static void loadExistPocHolder() {
+  private static void loadFromDisk() {
     // read the disk backup
     File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER));
     if (file.exists()) {
+      Logger.logInfoMessage("load exist poc holder instance from local disk[" + file.getPath() + "]");
       PocHolder.inst = (PocHolder) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
     } 
     
     File calculatorFile = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR));
     if (calculatorFile.exists()) {
+      Logger.logInfoMessage("load exist poc calculator instance from local disk[" + file.getPath() + "]");
       PocCalculator.inst = (PocCalculator) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
     } 
 
     //if no disk backup, read the poc txs from history blocks
-    if(PocHolder.lastHeight <= Conch.getBlockchain().getHeight()) {
+    if(PocHolder.inst != null && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
         synPocTxNow = true;
     }
   }
@@ -137,7 +146,7 @@ public class PocProcessorImpl implements PocProcessor {
     try {
       
       if(!synPocTxNow) {
-        Logger.logInfoMessage("No needs to syn now, sleep 10 minutes...");
+        Logger.logInfoMessage("No needs to syn poc serial txs now, sleep 10 minutes...");
         Thread.sleep(10 * 60 * 1000);
       }
       
