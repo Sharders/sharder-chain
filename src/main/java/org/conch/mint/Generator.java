@@ -309,13 +309,13 @@ public class Generator implements Comparable<Generator> {
         if (elapsedTime <= 0) {
             Logger.logDebugMessage("this generator missing the generation turn because the elapsed time <=0");
             return false;
-        }else if(elapsedTime < Constants.BLOCK_GAP_SECONDS){
-            Logger.logDebugMessage("this generator is in the block gap because the elapsed time < block gap[" + Constants.BLOCK_GAP_SECONDS + "]");
+        }else if(elapsedTime < Constants.getBlockGapSeconds()){
+            Logger.logDebugMessage("this generator is in the block gap because the elapsed time < block gap[" + Constants.getBlockGapSeconds() + "]");
             return false;
         }
         
         BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(pocScore);
-        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.BLOCK_GAP_SECONDS - 1));
+        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.getBlockGapSeconds() - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
         // check the elapsed time(in second) after previous block generated
         boolean elapsed = Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 3600;
@@ -366,7 +366,7 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     public static long getHitTime(BigInteger pocScore, BigInteger hit, Block block) {
-        return block.getTimestamp() + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + Constants.BLOCK_GAP_SECONDS;
+        return block.getTimestamp() + hit.divide(BigInteger.valueOf(block.getBaseTarget()).multiply(pocScore)).longValue() + Constants.getBlockGapSeconds();
     }
 
 
@@ -430,12 +430,12 @@ public class Generator implements Comparable<Generator> {
      * @param lastBlock
      */
     protected void calAndSetHit(Block lastBlock) {
-        int height = lastBlock.getHeight();
-        Account account = Account.getAccount(accountId, height);
+        int lastHeight = lastBlock.getHeight();
+        Account account = Account.getAccount(accountId, lastHeight);
 
-        effectiveBalance = PocScore.calEffectiveBalance(account,height);
+        effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
 
-        pocScore = PocProcessorImpl.instance.calPocScore(account,height);
+        pocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
 
         if (pocScore.signum() <= 0) {
             hitTime = 0;

@@ -22,6 +22,7 @@
 package org.conch.chain;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
@@ -471,12 +472,7 @@ public final class BlockImpl implements Block {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
 
-            BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),height);
-//            Account account = Account.getAccount(getGeneratorId());
-//            long effectiveBalance = (account == null) ? 0 : account.getEffectiveBalanceSS();
-//            if (effectiveBalance <= 0) {
-//                return false;
-//            }
+            BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
             if (pocScore.signum() <= 0) {
                 return false;
             }
@@ -589,7 +585,7 @@ public final class BlockImpl implements Block {
         } else if (previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
 //            int blocktimeAverage = (this.timestamp - block.timestamp) / 3;
-            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.BLOCK_GAP_SECONDS;
+            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.getBlockGapSeconds();
             if (blocktimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
