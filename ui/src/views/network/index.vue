@@ -125,7 +125,7 @@
                             <tbody>
                             <tr v-for="(block,index) in blocklist">
                                 <td class="pl0"><span>{{block.height}}</span></td>
-                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
+                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span></td>
                                 <td>
                                     <span v-if="block.totalAmountNQT === '0'">-</span>
                                     <span v-else>{{block.totalAmountNQT/100000000}} SS</span>
@@ -185,7 +185,8 @@
                 transactionDialog: false,
                 accountInfo: [],
 
-                testPeersList:[],
+                peersLocationList:{},
+                peersTimeList:[],
 
                 //list列表
                 blocklist: [],
@@ -224,7 +225,7 @@
                         _this.totalSize = res.data.blocks[0].height;
                         _this.coinbaseCount = _this.newestHeight;
                         _this.newestHeight = res.data.blocks[0].height;
-                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS',true);
                     }
                 } else {
                     _this.$message.error(res.data.errorDescription);
@@ -237,10 +238,20 @@
                 _this.peerNum = res.data.peers.length;
 
                 _this.$global.byIPtoCoordinates(res.data.peers).then(res1=>{
-
-                    let jsonObj = JSON.parse(res1);
-                    for(let i = 0;i<jsonObj.length;i++){
-                        _this.testPeersList[i] = jsonObj[i];
+                    let json = JSON.parse(res1);
+                    for(let i of Object.keys(json)){
+                        if(json[i]["X"] !== "" && json[i]["X"] !== "0"
+                            && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
+                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])){
+                            let arr = [];
+                            arr.push(json[i]["Y"]);
+                            arr.push(json[i]["X"]);
+                            _this.peersLocationList[i] = arr;
+                            arr = [];
+                            arr.push(i);
+                            arr.push(_this.$global.myFormatTime(json[i]["time"],"HMS",false));
+                            _this.peersTimeList.push(arr);
+                        }
                     }
                     _this.drawPeers();
                 });
@@ -270,119 +281,32 @@
                 this.getBlockList(val);
             },
             turn2peers: function () {
-                this.$router.push("/network/peers");
+                this.$router.push({
+                    name:"peers",
+                    params:{
+                        peersLocationList:this.peersLocationList,
+                        peersTimeList:this.peersTimeList
+                    }
+                });
             },
             drawPeers: function () {
                 let _this = this;
                 const myChart = echarts.init(document.getElementById("peers-map"));
-
-                const geoCoordMap = _this.testPeersList;
-                const rawData = [
-                    ["Amsterdam", 101.6],
-                    ["Athens", 62.6],
-                    ["Auckland", 77.9],
-                    ["Bangkok", 26.4],
-                    ["Barcelona", 79.7],
-                    ["Beijing", 28.2],
-                    ["Berlin", 109.7],
-                    ["Bogotá", 41.4],
-                    ["Bratislava", 51.3],
-                    ["Brussels", 107.5],
-                    ["Budapest", 35.5],
-                    ["Buenos Aires", 42.9],
-                    ["Bucharest", 37.1],
-                    ["Caracas", 21.9],
-                    ["Chicago", 105.3],
-                    ["Delhi", 23],
-                    ["Doha", 38.8],
-                    ["Dubai", 63.5],
-                    ["Dublin", 101.9],
-                    ["Frankfurt", 102.2],
-                    ["Geneva", 116],
-                    ["Helsinki", 93],
-                    ["Hong Kong", 58.5],
-                    ["Istanbul", 39],
-                    ["Jakarta", 14.7],
-                    ["Johannesburg", 80.6],
-                    ["Cairo", 26.2],
-                    ["Kiev", 19.5],
-                    ["Copenhagen", 122],
-                    ["Kuala Lumpur", 41.1],
-                    ["Lima", 43.6],
-                    ["Lisbon", 65.3],
-                    ["Ljubljana", 57.5],
-                    ["London", 91.2],
-                    ["Los Angeles", 113.8],
-                    ["Luxembourg", 111.6],
-                    ["Lyon", 81.8],
-                    ["Madrid", 83.6],
-                    ["Milan", 88.2],
-                    ["Manama", 56.4],
-                    ["Manila", 19.2],
-                    ["Mexico City", 26.8],
-                    ["Miami", 106.2],
-                    ["Montreal", 93.1],
-                    ["Moscow", 45.1],
-                    ["Mumbai", 24.9],
-                    ["Munich", 108.3],
-                    ["Nairobi", 21.4],
-                    ["New York", 100],
-                    ["Nicosia", 95],
-                    ["Oslo", 102.7],
-                    ["Paris", 94.8],
-                    ["Prague", 45.1],
-                    ["Riga", 44.3],
-                    ["Rio de Janeiro", 44.4],
-                    ["Rome", 69.6],
-                    ["Santiago de Chile", 42.8],
-                    ["São Paulo", 48.7],
-                    ["Seoul", 80.8],
-                    ["Shanghai", 37.2],
-                    ["Singapore", 50.8],
-                    ["Sofia", 32.6],
-                    ["Stockholm", 90.2],
-                    ["Sydney", 112.5],
-                    ["Taipei", 52],
-                    ["Tallinn", 47.9],
-                    ["Tel Aviv", 57],
-                    ["Tokyo", 84.7],
-                    ["Toronto", 103.4],
-                    ["Vilnius", 42.6],
-                    ["Warsaw", 44.3],
-                    ["Vienna", 100.6],
-                    ["Zurich", 119.1]
-                ];
-
                 function makeMapData(rawData) {
                     const mapData = [];
-                    console.log("!!!!!!!@#$#@!!!!!!!!!!!!!!!");
-                    // for (let i = 0; i < rawData.length; i++) {
-                    //     const geoCoord = geoCoordMap[rawData[i][0]];
-                    //     if (geoCoord) {
-                    //         mapData.push({
-                    //             name: rawData[i][0],
-                    //             value: geoCoord.concat(rawData[i].slice(1))
-                    //         });
-                    //     }
-                    // }
-                    for(let i = 0;i < geoCoordMap.length; i++){
-                        mapData.push({
-                            name:geoCoordMap[i][0],
-                            value:JSON.parse(geoCoordMap[i][1]),
-                        })
+                    for (let i = 0; i < rawData.length; i++) {
+                        const geoCoord = _this.peersLocationList[rawData[i][0]];
+                        if (geoCoord) {
+                            mapData.push({
+                                name: rawData[i][0],
+                                value: geoCoord
+                            });
+                        }
                     }
                     return mapData;
                 }
 
                 const option = {
-                    tooltip: {
-                        trigger: "item",
-                        formatter: function (params) {
-                            let value = (params.value + "").split(".");
-                            value = value[0].replace(/(\d{1,3})(?=(?:\d{3})+(?!\d))/g, "$1,") + "." + value[1];
-                            return params.seriesName + "<br/>" + params.name + " : " + value;
-                        }
-                    },
                     geo: {
                         map: "world",
                         silent: true,
@@ -402,7 +326,7 @@
                         top: 0,
                         bottom: 0,
                         right: 0,
-                        roam: true
+                        roam: false
                     },
                     parallel: {
                         top: 0,
@@ -418,7 +342,7 @@
                             nameGap: 20,
                             splitNumber: 3,
                             tooltip: {
-                                show: true
+                                show: false
                             },
                             axisLine: {
                                 show: true,
@@ -442,7 +366,7 @@
                             type: "scatter",
                             coordinateSystem: "geo",
                             symbolSize: 8,
-                            data: makeMapData(rawData),
+                            data: makeMapData(_this.peersTimeList),
                             activeOpacity: 1,
                             label: {
                                 normal: {
@@ -538,7 +462,7 @@
                                 _this.totalSize = res.data.blocks[0].height;
                                 _this.coinbaseCount = _this.newestHeight;
                                 _this.newestHeight = res.data.blocks[0].height;
-                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS',true);
                             }
                         } else {
                             _this.$message.error(res.data.errorDescription);
