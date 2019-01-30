@@ -1,5 +1,6 @@
 package org.conch.account;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import org.conch.base.BaseTest;
 import org.conch.chain.BlockImpl;
@@ -58,9 +59,17 @@ public class AccountTest extends BaseTest {
         exit(0);
     }
 
+    public static void getAccountInfoViaBindRS(String bindRs) {
+        long accountId = Account.rsAccountToId(bindRs);
+        Account account = Account.getAccount(accountId);
+        System.out.println("account info is :" + JSONObject.toJSONString(account));
+        System.out.println("public key is:" + Convert.toString(Account.getPublicKey(accountId), false));
+    }
+
     public static void main(String[] args) throws IOException {
         String secretPhrase = getSpFromConsole();
         accountInfoPrint(secretPhrase);
 //        accountSignInfo(secretPhrase);
+        getAccountInfoViaBindRS("SSA-EF9Z-8J9G-LLHC-9VU5U");
     }
 }
