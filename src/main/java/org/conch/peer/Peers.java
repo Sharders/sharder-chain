@@ -844,6 +844,7 @@ public final class Peers {
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
+    public static final int DEFAULT_TX_CHECKING_COUNT = 10;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
         if (!sysInitialed) {
             Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
@@ -858,7 +859,7 @@ public final class Peers {
             return;
         }
 
-        hardwareTested = GetNodeHardware.readAndReport();
+        hardwareTested = GetNodeHardware.readAndReport(DEFAULT_TX_CHECKING_COUNT);
     };
 
     static {
