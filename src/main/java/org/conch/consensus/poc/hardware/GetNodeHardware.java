@@ -142,10 +142,8 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
-
-    public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
-        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(DEFAULT_TX_CHECKING_COUNT));
+    public static SystemInfo txPerformance(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(executeTime));
         return systemInfo;
     }
 
