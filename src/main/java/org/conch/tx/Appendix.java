@@ -143,7 +143,7 @@ public interface Appendix {
 
         @Override
         public int getBaselineFeeHeight() {
-            return Constants.SHUFFLING_BLOCK;
+            return Constants.SHUFFLING_BLOCK_HEIGHT;
         }
 
         @Override
@@ -286,7 +286,7 @@ public interface Appendix {
 
         @Override
         public void validate(Transaction transaction) throws ConchException.ValidationException {
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && message.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
+            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT && message.length > Constants.MAX_ARBITRARY_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Invalid arbitrary message length: " + message.length);
             }
         }
@@ -550,7 +550,7 @@ public interface Appendix {
 
         @Override
         public void validate(Transaction transaction) throws ConchException.ValidationException {
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && getEncryptedDataLength() > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
+            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT && getEncryptedDataLength() > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
                 throw new ConchException.NotValidException("Max encrypted message length exceeded");
             }
             if (encryptedData != null) {
@@ -1345,7 +1345,7 @@ public interface Appendix {
                     if (Convert.emptyToNull(hash) == null || hash.length != 32) {
                         throw new ConchException.NotValidException("Invalid linkedFullHash " + Convert.toHexString(hash));
                     }
-                    if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+                    if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
                         if (!linkedTransactionIds.add(Convert.fullHashToId(hash))) {
                             throw new ConchException.NotValidException("Duplicate linked transaction ids");
                         }
@@ -1438,7 +1438,7 @@ public interface Appendix {
         }
 
         public void countVotes(TransactionImpl transaction) {
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK && PhasingPoll.getResult(transaction.getId()) != null) {
+            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT && PhasingPoll.getResult(transaction.getId()) != null) {
                 return;
             }
             PhasingPoll poll = PhasingPoll.getPoll(transaction.getId());

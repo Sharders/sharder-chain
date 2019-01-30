@@ -637,7 +637,7 @@ public final class BlockchainImpl implements Blockchain {
         List<TransactionImpl> result = new ArrayList<>();
         readLock();
         try {
-            if (getHeight() >= Constants.PHASING_BLOCK) {
+            if (getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
                 try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(getHeight() + 1)) {
                     for (TransactionImpl phasedTransaction : phasedTransactions) {
                         try {

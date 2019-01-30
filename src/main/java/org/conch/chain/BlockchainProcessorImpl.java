@@ -27,9 +27,7 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
-import org.conch.consensus.poc.PocHolder;
 import org.conch.consensus.poc.PocProcessorImpl;
-import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
@@ -1328,7 +1326,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     Logger.logMessage("SharderGenesis block not in database, starting from scratch");
     try {
       BlockImpl genesisBlock = SharderGenesis.genesisBlock();
-      Logger.logMessage("SharderGenesis block[id=" + genesisBlock.getId() + ",block hash=" + Arrays.toString(Crypto.sha256().digest(genesisBlock.bytes())) +  "]=> " + genesisBlock.toString());
+      Logger.logInfoMessage("SharderGenesis block[id=" + genesisBlock.getId() + ",generator=" + genesisBlock.getGeneratorId() + ",baseTarget=" + genesisBlock.getBaseTarget() + ",amount=" + genesisBlock.getTotalAmountNQT() + ",fee=" + genesisBlock.getTotalFeeNQT());
       addBlock(genesisBlock);
       return true;
     } catch (ConchException.ValidationException e) {
@@ -1392,16 +1390,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     blockListeners.notify(block, Event.BLOCK_PUSHED);
   }
 
-  private void validatePhasedTransactions(
-      int height,
-      List<TransactionImpl> validPhasedTransactions,
-      List<TransactionImpl> invalidPhasedTransactions,
-      Map<TransactionType, Map<String, Integer>> duplicates) {
-    if (height >= Constants.PHASING_BLOCK) {
+  private void validatePhasedTransactions(int height,List<TransactionImpl> validPhasedTransactions,List<TransactionImpl> invalidPhasedTransactions,Map<TransactionType, Map<String, Integer>> duplicates) {
+    if (height >= Constants.PHASING_BLOCK_HEIGHT) {
       try (DbIterator<TransactionImpl> phasedTransactions =
           PhasingPoll.getFinishingTransactions(height + 1)) {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
-          if (height > Constants.SHUFFLING_BLOCK && PhasingPoll.getResult(phasedTransaction.getId()) != null) {
+          if (height > Constants.SHUFFLING_BLOCK_HEIGHT && PhasingPoll.getResult(phasedTransaction.getId()) != null) {
             continue;
           }
           
@@ -1410,23 +1404,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (!phasedTransaction.attachmentIsDuplicate(duplicates, false)) {
               validPhasedTransactions.add(phasedTransaction);
             } else {
-              Logger.logDebugMessage(
-                  "At height "
-                      + height
-                      + " phased transaction "
-                      + phasedTransaction.getStringId()
-                      + " is duplicate, will not apply");
+              Logger.logDebugMessage("At height " + height + " phased transaction " + phasedTransaction.getStringId() + " is duplicate, will not apply");
               invalidPhasedTransactions.add(phasedTransaction);
             }
           } catch (ConchException.ValidationException e) {
-            Logger.logDebugMessage(
-                "At height "
-                    + height
-                    + " phased transaction "
-                    + phasedTransaction.getStringId()
-                    + " no longer passes validation: "
-                    + e.getMessage()
-                    + ", will not apply");
+            Logger.logDebugMessage("At height " + height + " phased transaction " + phasedTransaction.getStringId() + " no longer passes validation: " + e.getMessage() + ", will not apply");
             invalidPhasedTransactions.add(phasedTransaction);
           }
         }
@@ -1434,8 +1416,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
 
-  private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime)
-      throws BlockNotAcceptedException {
+  private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException {
     if (previousLastBlock.getId() != block.getPreviousBlockId()) {
       throw new BlockOutOfOrderException("Previous block id doesn't match", block);
     }
@@ -1445,25 +1426,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // time valid check
     if (block.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT) {
       Logger.logWarningMessage(
-          "Received block "
-              + block.getStringId()
-              + " from the future, timestamp "
-              + block.getTimestamp()
-              + " generator "
-              + Long.toUnsignedString(block.getGeneratorId())
-              + " current time "
-              + curTime
-              + ", system clock may be off");
-      throw new BlockOutOfOrderException(
-          "Invalid timestamp: " + block.getTimestamp() + " current time is " + curTime, block);
+          "Received block " + block.getStringId() + " from the future, timestamp " + block.getTimestamp() + " generator " + Long.toUnsignedString(block.getGeneratorId())
+              + " current time " + curTime + ", system clock may be off");
+      throw new BlockOutOfOrderException("Invalid timestamp: " + block.getTimestamp() + " current time is " + curTime, block);
     }
     if (block.getTimestamp() <= previousLastBlock.getTimestamp()) {
-      throw new BlockNotAcceptedException(
-          "Block timestamp "
-              + block.getTimestamp()
-              + " is before previous block timestamp "
-              + previousLastBlock.getTimestamp(),
-          block);
+      throw new BlockNotAcceptedException("Block timestamp " + block.getTimestamp() + " is before previous block timestamp " + previousLastBlock.getTimestamp(), block);
     }
     // previous block hash check
     if (!Arrays.equals(Crypto.sha256().digest(previousLastBlock.bytes()), block.getPreviousBlockHash())) {
@@ -1547,8 +1515,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
       
       if (transaction.getVersion() != getTransactionVersion(previousLastBlock.getHeight())) {
-        throw new TransactionNotAcceptedException("Invalid transaction version "+ transaction.getVersion()+ " at height "
-                        + previousLastBlock.getHeight(),transaction);
+        throw new TransactionNotAcceptedException("Invalid transaction version "+ transaction.getVersion()+ " at height " + previousLastBlock.getHeight(),transaction);
       }
       
       if (transaction.getId() == 0L) {
@@ -1687,7 +1654,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           throw new TransactionNotAcceptedException(e, transaction);
         }
       }
-      if (block.getHeight() > Constants.SHUFFLING_BLOCK) {
+      if (block.getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
         SortedSet<TransactionImpl> possiblyApprovedTransactions = new TreeSet<>(finishingTransactionsComparator);
         block.getTransactions().forEach(
             transaction -> {
@@ -1986,7 +1953,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public void generateBlock(String secretPhrase, int blockTimestamp) throws BlockNotAcceptedException {
 
     Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
-    if (blockchain.getHeight() >= Constants.PHASING_BLOCK) {
+    if (blockchain.getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
       try (DbIterator<TransactionImpl> phasedTransactions =
           PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
@@ -2272,53 +2239,39 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 dbId = rs.getLong("db_id");
                 currentBlock = BlockDb.loadBlock(con, rs, true);
                 currentBlock.loadTransactions();
-                if (currentBlock.getId() != currentBlockId
-                    || currentBlock.getHeight() > blockchain.getHeight() + 1) {
+                if (currentBlock.getId() != currentBlockId || currentBlock.getHeight() > blockchain.getHeight() + 1) {
                   throw new ConchException.NotValidException("Database blocks in the wrong order!");
                 }
                 Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
                 List<TransactionImpl> validPhasedTransactions = new ArrayList<>();
                 List<TransactionImpl> invalidPhasedTransactions = new ArrayList<>();
-                validatePhasedTransactions(
-                    blockchain.getHeight(),
-                    validPhasedTransactions,
-                    invalidPhasedTransactions,
-                    duplicates);
+                validatePhasedTransactions(blockchain.getHeight(),validPhasedTransactions,invalidPhasedTransactions,duplicates);
+                
                 if (validate && currentBlockId != SharderGenesis.GENESIS_BLOCK_ID) {
                   int curTime = Conch.getEpochTime();
                   validate(currentBlock, blockchain.getLastBlock(), curTime);
                   byte[] blockBytes = currentBlock.bytes();
-                  JSONObject blockJSON =
-                      (JSONObject) JSONValue.parse(currentBlock.getJSONObject().toJSONString());
+                  JSONObject blockJSON = (JSONObject) JSONValue.parse(currentBlock.getJSONObject().toJSONString());
                   if (!Arrays.equals(blockBytes, BlockImpl.parseBlock(blockJSON).bytes())) {
-                    throw new ConchException.NotValidException(
-                        "Block JSON cannot be parsed back to the same block");
+                    throw new ConchException.NotValidException("Block JSON cannot be parsed back to the same block");
                   }
                   validateTransactions(currentBlock, blockchain.getLastBlock(), curTime, duplicates);
                   for (TransactionImpl transaction : currentBlock.getTransactions()) {
                     byte[] transactionBytes = transaction.bytes();
-                    //TODO[checksum-NQT]
-                    if (currentBlock.getHeight() > Constants.NQT_BLOCK
-                        && !Arrays.equals(transactionBytes,TransactionImpl.newTransactionBuilder(transactionBytes).build().bytes())) {
+                    if (!Arrays.equals(transactionBytes,TransactionImpl.newTransactionBuilder(transactionBytes).build().bytes())) {
                       throw new ConchException.NotValidException(
-                          "Transaction bytes cannot be parsed back to the same transaction: "
-                              + transaction.getJSONObject().toJSONString());
+                          "Transaction bytes cannot be parsed back to the same transaction: "+ transaction.getJSONObject().toJSONString());
                     }
-                    JSONObject transactionJSON =
-                        (JSONObject) JSONValue.parse(transaction.getJSONObject().toJSONString());
-                    if (!Arrays.equals(
-                        transactionBytes,
-                        TransactionImpl.newTransactionBuilder(transactionJSON).build().bytes())) {
-                      throw new ConchException.NotValidException(
-                          "Transaction JSON cannot be parsed back to the same transaction: "
-                              + transaction.getJSONObject().toJSONString());
+                    JSONObject transactionJSON = (JSONObject) JSONValue.parse(transaction.getJSONObject().toJSONString());
+                    if (!Arrays.equals(transactionBytes,TransactionImpl.newTransactionBuilder(transactionJSON).build().bytes())) {
+                      throw new ConchException.NotValidException("Transaction JSON cannot be parsed back to the same transaction: "+ transaction.getJSONObject().toJSONString());
                     }
                   }
                 }
+                
                 blockListeners.notify(currentBlock, Event.BEFORE_BLOCK_ACCEPT);
                 blockchain.setLastBlock(currentBlock);
-                accept(
-                    currentBlock, validPhasedTransactions, invalidPhasedTransactions, duplicates);
+                accept(currentBlock, validPhasedTransactions, invalidPhasedTransactions, duplicates);
                 currentBlockId = currentBlock.getNextBlockId();
                 Db.db.clearCache();
                 Db.db.commitTransaction();
