@@ -145,7 +145,7 @@ public class GetNodeHardware {
     private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
 
     public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
-        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(10));
+        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(DEFAULT_TX_CHECKING_COUNT));
         return systemInfo;
     }
 
@@ -172,7 +172,7 @@ public class GetNodeHardware {
     public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
 
     /**
-     * 汇报性能测试，以及更新节点信息中的绑定用户
+     * 每次开机时，获取节点配置，并主动汇报，以及更新绑定用户
      * <p>
      * 汇报前需要检查是否使用了穿透服务（NAT）
      * 若使用了NAT，则address设置为穿透服务的。
@@ -189,28 +189,32 @@ public class GetNodeHardware {
         systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
 
         try {
-            cpu(systemInfo);
-            memory(systemInfo);
-            disk(systemInfo);
-            network(systemInfo);
-            txPerformance(systemInfo);
-            openingServices(systemInfo);
-            return hardwareReport(systemInfo);
+            return report(read(systemInfo));
         } catch (Exception e) {
+            System.out.println("<=== failed to report hardware performance, local error");
             e.printStackTrace();
-            System.out.println("<=== failed to report hardware performance");
             return false;
         }
     }
 
+    private static SystemInfo read(SystemInfo systemInfo) throws Exception {
+        cpu(systemInfo);
+        memory(systemInfo);
+        disk(systemInfo);
+        network(systemInfo);
+        txPerformance(systemInfo);
+        openingServices(systemInfo);
+        return systemInfo;
+    }
+
     /**
-     * 性能测试报告
+     * 报告节点配置
      *
      * @param systemInfo 性能信息
      * @return true报告成功，false失败
      * @throws IOException 请求异常
      */
-    private static Boolean hardwareReport(SystemInfo systemInfo) throws IOException {
+    private static Boolean report(SystemInfo systemInfo) throws IOException {
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
                 .post()
                 .body(systemInfo)
@@ -223,7 +227,7 @@ public class GetNodeHardware {
             System.out.println("<=== success to report hardware performance");
             return true;
         } else {
-            System.out.println("<=== failed to report hardware performance");
+            System.out.println("<=== failed to report hardware performance, remote error");
             return false;
         }
     }
