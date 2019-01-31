@@ -22,11 +22,19 @@
                     </div>
                 </div>
             </div>
-            <div class="mb20 fl">
-                <p class="block_title">
-                    <img src="../../assets/img/miner.svg"/>
-                    <span>{{$t('network.miner_info')}}</span>
+            <div class="block_peers mb20 fl">
+                <p>
+                    <span class="block_title fl">
+                        <img src="../../assets/img/miner.svg"/>
+                        <span>{{$t('network.miner_info')}}</span>
+                    </span>
+                    <span class="hrefbtn fr block_title csp mr5">
+                        <a @click="openMinerList">
+                            <span>矿工列表</span>
+                        </a>
+                    </span>
                 </p>
+                <span class="cb"></span>
                 <div class="whf xs_section_fa">
                     <div class="xs_section br4">
                         <div>
@@ -156,6 +164,40 @@
                 </div>
             </div>
         </div>
+        <div class="modal w700" id="miner_list" v-show="minerlistDialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">矿工名单</h4>
+                    </div>
+                    <div class="modal-body modal-miner">
+                        <el-table
+                            :data="minerlist"
+                            :height="550"
+                            border
+                            style="width: 100%">
+                            <el-table-column
+                                prop="accountRS"
+                                label="账户"
+                                width="250">
+                            </el-table-column>
+                            <el-table-column
+                                sortable
+                                prop="effectiveBalanceSS"
+                                label="SS"
+                                width="150">
+                            </el-table-column>
+                            <el-table-column
+                                prop="hitTime"
+                                :formatter="dateFormat"
+                                label="挖矿时间">
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+            </div>
+        </div>
         <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight"
                       :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
     </div>
@@ -185,8 +227,15 @@
                 transactionDialog: false,
                 accountInfo: [],
 
+                minerlistDialog:false,
+                minerlist:[],
+                minerlistHeight: 590,
+
+
                 peersLocationList:{},
                 peersTimeList:[],
+
+
 
                 //list列表
                 blocklist: [],
@@ -261,6 +310,9 @@
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
                 console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
+                _this.minerlist = res.data.generators;
+
+                console.log("miners:",_this.minerlist);
             }).catch(function (err) {
                 console.error("error", err);
             });
@@ -288,6 +340,15 @@
                         peersTimeList:this.peersTimeList
                     }
                 });
+            },
+            openMinerList:function(){
+                let _this = this;
+                this.$store.state.mask = true;
+                this.minerlistDialog = true;
+            },
+            closeDialog:function(){
+                this.$store.state.mask = false;
+                this.minerlistDialog = false;
             },
             drawPeers: function () {
                 let _this = this;
@@ -432,7 +493,7 @@
                 _this.accountInfo = accountInfo;
                 _this.transactionDialog = true;
 
-                console.log("accountInfo", accountInfo);
+                // console.log("accountInfo", accountInfo);
                 _this.accountInfoDialog = false;
             },
             isClose() {
@@ -443,6 +504,9 @@
                 _this.blockInfoHeight = -1;
                 _this.generatorRS = '';
 
+            },
+            dateFormat(val) {
+                return this.$global.myFormatTime(val.hitTime,"YMDHMS",true);
             }
         },
         mounted() {

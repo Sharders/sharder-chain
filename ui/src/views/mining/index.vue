@@ -441,7 +441,7 @@
                 formData.append("feeNQT", "100000000");
                 // formData.append("amount",_this.investment);
 
-                console.log("getAmount", 50000000000000);
+                // console.log("getAmount", 50000000000000);
                 let rule = {
                     'forgepool': {
                         'reward': _this.incomeDistribution / 100,
@@ -524,7 +524,7 @@
             loginAfter() {
                 let _this = this;
 
-            formData = new FormData();
+            let formData = new FormData();
             formData.append("creatorId",SSO.account);
             this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
 
@@ -606,9 +606,6 @@
 
                 });
             },
-        },
-        mounted: function () {
-            let _this = this;
         },
         created: function () {
             let _this = this;

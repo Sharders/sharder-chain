@@ -28,14 +28,14 @@
             <div class="block_list">
                 <p>
                     <span class="block_title fl">
-                    <img src="../../assets/img/peerlist.svg"/>
-                    <span>{{$t('peers.peer_list')}}</span>
-                </span>
+                        <img src="../../assets/img/peerlist.svg"/>
+                        <span>{{$t('peers.peer_list')}}</span>
+                    </span>
                     <span class="hrefbtn fr block_title csp">
-                    <a @click="openAddPeer">
-                        <span>添加节点</span>
-                    </a>
-                </span>
+                        <a @click="openAddPeer">
+                            <span>添加节点</span>
+                        </a>
+                    </span>
                 </p>
                 <span class="cb"></span>
                 <div class="list_table w br4">

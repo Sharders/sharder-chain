@@ -117,7 +117,7 @@ export default {
 
         let date = parseInt(value + '000');
         if(hasEpochBeginning){
-            date = date +  + _this.epochBeginning;
+            date = date + _this.epochBeginning;
         }
         data.setTime(date);
         let year = data.getFullYear();
