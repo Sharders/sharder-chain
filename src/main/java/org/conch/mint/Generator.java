@@ -22,6 +22,7 @@
 package org.conch.mint;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -62,8 +63,45 @@ public class Generator implements Comparable<Generator> {
     private static final Collection<Generator> allGenerators = Collections.unmodifiableCollection(generators.values());
     private static volatile List<Generator> sortedMiners = null;
     private static volatile List<Long> generationMissingMinerIds = Lists.newArrayList();
+    private static volatile Set<Long> blackedGenerators = Sets.newConcurrentHashSet();
     private static long lastBlockId;
     private static int delayTime = Constants.MINING_DELAY;
+    
+    
+    private static class MinerPrinter {
+        static int count = 0;
+        static boolean debug = true;
+        private static String generatorSummary = reset();
+
+        private static final String splitter = "\n\r";
+
+        static private String appendSplitter(String str, boolean appendEnd) {
+            str = splitter + str ;
+            if(appendEnd) {
+                str += splitter;
+            }
+            return str;
+        }
+        static String reset(){
+            String generatorSummary = appendSplitter("--------------Active Miners-------------",false);
+            generatorSummary += appendSplitter("Local bind account[rs=" + HUB_BIND_ADDRESS + "]",false);
+            return generatorSummary;
+        }
+        static void putin(Generator generator){
+            generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore 
+                    + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+        }
+
+        static void print(){
+            if(!debug || (count++  <= 100)) return;
+           
+            Logger.logDebugMessage(generatorSummary);
+            count=0;
+        }
+        
+    }
+   
+    
     
     private static final Runnable generateBlocksThread = new Runnable() {
 
@@ -73,7 +111,6 @@ public class Generator implements Comparable<Generator> {
         public void run() {
             try {
                 try {
-
                     autoMining();
                     
                     BlockchainImpl.getInstance().updateLock();
@@ -108,9 +145,9 @@ public class Generator implements Comparable<Generator> {
                             List<Generator> forgers = new ArrayList<>();
                             for (Generator generator : generators.values()) {
                                 generator.setLastBlock(lastBlock);
-//                                if (generator.effectiveBalance.signum() > 0) {
                                 if (generator.pocScore.signum() > 0) {
                                     forgers.add(generator);
+                                    MinerPrinter.putin(generator);
                                 }
                             }
 
@@ -128,7 +165,7 @@ public class Generator implements Comparable<Generator> {
                                 logged = true;
                             }
                         }
-
+                        MinerPrinter.print();
                         // generationMissingMinerIds.clear();
                         for (Generator generator : sortedMiners) {
                             if(generator.getHitTime() > generationLimit) {
@@ -155,7 +192,19 @@ public class Generator implements Comparable<Generator> {
         }
 
     };
+    
+    public static void blackGenerator(long generatorId){
+        blackedGenerators.add(generatorId);
+    }
 
+    /**
+     * generator is not in the black list and it be bind to a certified node
+     * @param generatorId
+     * @return
+     */
+    public static boolean isValid(long generatorId){
+        return PocProcessorImpl.isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
+    }
 
     public static boolean hasGenerationMissingAccount(){
         return generationMissingMinerIds.size() > 0;
@@ -458,7 +507,7 @@ public class Generator implements Comparable<Generator> {
         listeners.notify(this, Event.GENERATION_DEADLINE);
     }
 
-    boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException {
+    boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());

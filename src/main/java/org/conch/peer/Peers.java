@@ -21,11 +21,13 @@
 
 package org.conch.peer;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
@@ -314,9 +316,8 @@ public final class Peers {
 
         final List<String> defaultPeers = loadPeersSetting();
 
-        wellKnownPeers = Collections.unmodifiableList(Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.testnetPeers")
-                : Conch.getStringListProperty("sharder.wellKnownPeers"));
-
+        wellKnownPeers = parseWellknownPeers();
+        
         List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
         if (knownBlacklistedPeersList.isEmpty()) {
             knownBlacklistedPeers = Collections.emptySet();
@@ -409,6 +410,20 @@ public final class Peers {
             Logger.logDebugMessage("Known peers: " + peers.size());
         });
 
+    }
+    
+    private static List<String> parseWellknownPeers(){
+        List<String> peers = Constants.isMainnet() ? Conch.getStringListProperty("sharder.wellKnownPeers") : Conch.getStringListProperty("sharder.testnetPeers");
+        
+        List<String> hosts = Lists.newArrayList();
+        for(String peerStr : peers){
+            String[] peerArray = peerStr.split("#");
+            String host = peerArray[0];
+            String type = peerArray[1];
+            hosts.add(host);
+            //TODO[valid-node] consider add these wellknown peers into certified node list
+        }
+        return Collections.unmodifiableList(hosts);
     }
 
 
