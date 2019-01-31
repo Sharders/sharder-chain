@@ -160,9 +160,9 @@ public class GetNodeHardware {
 
     private static String scHardwareApiUrl() {
         if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss?networkType=" + Conch.getNetworkType();
+            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
         }
-        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss?networkType=dev";
+        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
     }
 
     public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
@@ -183,7 +183,7 @@ public class GetNodeHardware {
         String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
         Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
         String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
-        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip + ":" + port.toString()).setBindRs(bindRs);
+        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
 
         try {
             return report(read(systemInfo, executeTime));

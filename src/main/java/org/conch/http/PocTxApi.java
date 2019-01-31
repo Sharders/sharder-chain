@@ -40,6 +40,7 @@ public abstract class PocTxApi {
             }
             String nodeTypeConfigJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
+            String bindRs = request.getParameter("bindRs");
             SystemInfo systemInfo = JSONObject.parseObject(nodeTypeConfigJson, SystemInfo.class);
             Attachment attachment = new PocTxBody.PocNodeConf(systemInfo.getIp(), systemInfo.getPort(), systemInfo);
             return createTransaction(request, account, 0, 0, attachment);
