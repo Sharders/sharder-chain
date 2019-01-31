@@ -37,7 +37,7 @@
                             <table class="table">
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo">
-                                    <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS')}}</td>
+                                    <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</td>
                                     <td v-if="transactions.type === 0">
                                         <img src="../../assets/img/pay.svg"/>
                                         <span>{{$t('dialog.account_info_payment')}}</span>
@@ -156,13 +156,13 @@
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
                             <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}</td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                             <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
+                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
@@ -237,7 +237,7 @@
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
-                            <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
+                            <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</td>
 
                             </td>
                             <td v-if="transaction.type === 0">
@@ -418,13 +418,13 @@
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
                         <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}</td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                         <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>

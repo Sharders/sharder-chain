@@ -123,7 +123,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(transaction,index) in accountTransactionList">
-                                    <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS')}}</td>
+                                    <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS',true)}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}</td>
                                     <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
                                     <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
@@ -1643,17 +1643,17 @@
 
                         info.forEach(function(value, index, array){
                             if(value.type === 0){
-                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
                                 if(value.senderRS !== SSO.accountRS){
                                     assets = assets + value.amountNQT/100000000;
                                 }else{
                                     assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
                                 }
                             }else if(value.type === 9){
-                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
                                 assets = assets + value.amountNQT/100000000;
                             }else if(value.senderRS === SSO.accountRS){
-                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD"));
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
                                 assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
                             }
                             yields.series.push(assets);

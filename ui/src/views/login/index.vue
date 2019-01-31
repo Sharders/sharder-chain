@@ -74,7 +74,7 @@
             this.$global.getUserConfig(this).then(res=>{
 
                 if(typeof res["sharder.HubBindAddress"] === 'undefined' || res["sharder.HubBindAddress"] === ""){
-                    console.log("HUbSetting is undefined");
+                    // console.log("HUbSetting is undefined");
                     _this.$store.state.userConfig = res;
                     _this.$store.state.isHubInit = true;
                 }else{

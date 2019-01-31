@@ -27,7 +27,7 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.join_time')}}</p>
-                                    <p class="strong">{{miningInfo.timestamp === 0 ? '未加入':$global.myFormatTime(miningInfo.timestamp,'YMDHMS')}}</p>
+                                    <p class="strong">{{miningInfo.timestamp === 0 ? '未加入':$global.myFormatTime(miningInfo.timestamp,'YMDHMS',true)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
