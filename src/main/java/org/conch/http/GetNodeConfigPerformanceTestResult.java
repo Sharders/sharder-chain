@@ -22,7 +22,6 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.common.ConchException;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.peer.Peers;
 import org.conch.util.IpUtil;
@@ -33,6 +32,7 @@ import java.util.Optional;
 
 /**
  * 引导远程请求节点，进行配置性能测试接口
+ *
  * @author CloudSen
  */
 public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequestHandler {

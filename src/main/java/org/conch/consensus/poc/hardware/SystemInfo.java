@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 public class SystemInfo {
 
     /**
-     * API用到的节点ip
+     * 性能测试用，穿透服务地址或本机地址
      */
     private String ip;
 
@@ -19,9 +19,6 @@ public class SystemInfo {
      */
     private String port;
 
-    /**
-     * 性能测试用，穿透服务地址或本机地址
-     */
     private String address;
 
     /**
