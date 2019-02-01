@@ -31,19 +31,25 @@ import java.util.Set;
 public interface Peer extends Comparable<Peer> {
     //peer type
     enum Type {
-        BOX(5),
-        HUB(4),
-        NORMAL(3),
-        COMMUNITY(2),
-        FOUNDATION(1);
+        BOX(5,"Sharder Box"),
+        HUB(4,"Sharder Hub"),
+        NORMAL(3, "Normal Node"),
+        COMMUNITY(2, "Community Node"),
+        FOUNDATION(1, "Foundation Node");
         private final int code;
+        private final String name;
 
-        Type(int code) {
+        Type(int code, String name) {
             this.code = code;
+            this.name = name;
         }
 
         public int getCode() {
             return code;
+        }
+        
+        public String getName() {
+            return name;
         }
 
         public static Type getByCode(int code) {

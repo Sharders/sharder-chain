@@ -29,6 +29,7 @@ import org.conch.asset.token.*;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.Token;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
@@ -1010,6 +1011,7 @@ public final class JSONData {
         response.put("deadline", deadline);
         response.put("hitTime", generator.getHitTime());
         response.put("remaining", Math.max(deadline - elapsedTime, 0));
+        response.put("bindPeerType", PocProcessorImpl.bindPeerType(generator.getAccountId()).getName());
         return response;
     }
 

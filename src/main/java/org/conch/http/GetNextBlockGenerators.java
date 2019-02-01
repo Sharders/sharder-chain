@@ -25,6 +25,7 @@ import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.Blockchain;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.mint.Generator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -97,6 +98,7 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
                 resp.put("pocScore", generator.getPocScore());
                 resp.put("hitTime", generator.getHitTime());
                 resp.put("deadline", (int)generator.getHitTime() - lastBlock.getTimestamp());
+                resp.put("bindPeerType", PocProcessorImpl.bindPeerType(generator.getAccountId()).getName());
                 generators.add(resp);
                 if (generators.size() == limit) {
                     break;

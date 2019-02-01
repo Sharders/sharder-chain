@@ -62,7 +62,6 @@ public final class GetMiners extends APIServlet.APIRequestHandler {
             API.verifyPassword(req);
             JSONObject response = new JSONObject();
             JSONArray generators = new JSONArray();
-            //TODO mark the type of generator based on node type
             Generator.getSortedMiners().forEach(generator -> generators.add(JSONData.generator(generator, elapsedTime)));
             response.put("generators", generators);
             return response;

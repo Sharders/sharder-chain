@@ -41,6 +41,18 @@ public class PocProcessorImpl implements PocProcessor {
     return instance != null ? instance : new PocProcessorImpl();
   }
 
+  /**
+   * get bind peer type
+   * @param accountId
+   * @return
+   */
+  public static Peer.Type bindPeerType(long accountId){
+    if(PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId)) return Peer.Type.HUB;
+    if(PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.COMMUNITY).containsKey(accountId)) return Peer.Type.COMMUNITY;
+    if(PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).containsKey(accountId)) return Peer.Type.FOUNDATION;
+    return Peer.Type.NORMAL;
+  }
+
   public static boolean isCertifiedPeerBind(long accountId){
     boolean hubBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
     boolean communityBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.COMMUNITY).containsKey(accountId);
