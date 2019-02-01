@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
@@ -31,7 +32,6 @@ import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionProcessor;
-import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -979,7 +979,7 @@ class EventListener implements Runnable, AsyncListener, TransactionalDb.Transact
             public void notify(AccountLedger.LedgerEntry entry) {
                 if (entry.getAccountId() == accountId || accountId == 0)
                     dispatch(new PendingEvent(String.format("Ledger.%s.%s",
-                                event.name(), Convert.rsAccount(entry.getAccountId())),
+                                event.name(), Account.rsAccount(entry.getAccountId())),
                                 Long.toUnsignedString(entry.getLedgerId())));
             }
         }

@@ -21,7 +21,7 @@
 
 package org.conch.http;
 
-import org.conch.Conch;
+import org.conch.tools.ClientUpgradeTool;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -40,7 +40,7 @@ public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
-            response.put("version", Conch.fetchLastestHubVersion());
+            response.put("version", ClientUpgradeTool.fetchLastHubVersion());
         } catch (IOException e) {
             response.put("error", e.getMessage());
         }

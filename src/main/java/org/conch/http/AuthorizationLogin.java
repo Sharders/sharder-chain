@@ -1,11 +1,13 @@
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.common.ConchException;
-import org.conch.util.Convert;
+import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -15,7 +17,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
     /**
      * 授权有效期(毫秒)
      */
-    private static final int AUTH_TIME = 10 * 1000;
+    private static final int AUTH_TIME = 120 * 1000;
     /**
      * 授权码长度
      */
@@ -24,7 +26,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
     /**
      * 用于保存token的队列;
      */
-    private static HashMap<String, Object> hashMap = new HashMap<>();
+    public static HashMap<String, Object> hashMap = new HashMap<>();
 
     enum Shell {
         /**
@@ -43,6 +45,10 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
          * 账户列表
          */
         ACCOUNT_LIST("accountList"),
+        /**
+         * secretPhrase 信息
+         */
+        SECRET_PHRASE("secretPhrase"),
         /**
          * 获得账户列表
          */
@@ -74,6 +80,9 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+        if (!allowRequest(request)) {
+            return null;
+        }
         String shell = request.getParameter("shell");
         if (Shell.BINDING_ACCOUNT.getValue().equalsIgnoreCase(shell)) {
             return bindingAccount(request);
@@ -96,8 +105,58 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         if (Shell.ACCOUNT.getValue().equalsIgnoreCase(shell)) {
             return tokenToAccount(request);
         }
+        if (Shell.SECRET_PHRASE.getValue().equalsIgnoreCase(shell)) {
+            return secretPhrase(request);
+        }
         return null;
     }
+
+    /**
+     * 判断请求者的域名
+     *
+     * @param request
+     * @return
+     */
+    private boolean allowRequest(HttpServletRequest request) {
+        String serverName = request.getServerName();
+        ArrayList<String> serverNameList = new ArrayList<>();
+        serverNameList.add("localhost");
+        serverNameList.add("127.0.0.1");
+        serverNameList.add("sharder.org");
+        serverNameList.add("test.sharder.org");
+        return serverNameList.contains(serverName);
+    }
+
+    private JSONObject secretPhrase(HttpServletRequest request) {
+        JSONObject json = new JSONObject();
+        String token = request.getParameter("token");
+        String secretPhrase = request.getParameter("secretPhrase");
+        if (token == null || secretPhrase == null) {
+            json.put("memo", "token or secretPhrase cannot be null");
+            json.put("success", false);
+            return json;
+        }
+        try {
+            HashMap<String, Object> map = (HashMap<String, Object>) hashMap.get(token);
+            if (System.currentTimeMillis() - (long) map.get("time") > AUTH_TIME) {
+                throw new RuntimeException("token invalid");
+            }
+            hashMap.remove(token);
+        } catch (Exception e) {
+            json.put("memo", "token overdue");
+            json.put("success", false);
+            return json;
+        }
+        String tt = generateToken(AUTH_CODE_NUM);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("secretPhrase", secretPhrase);
+        hashMap.put("time", System.currentTimeMillis());
+        hashMapAdd(tt, hashMap);
+        json.put("token", tt);
+        json.put("success", true);
+        return json;
+    }
+
 
     private JSONObject getBindingAccount(HttpServletRequest request) {
         JSONObject json = new JSONObject();
@@ -153,10 +212,10 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
             Map<String, String[]> parameterMap = request.getParameterMap();
             HashMap<String, Object> map = new HashMap<>();
             for (String key : parameterMap.keySet()) {
-                if (key.contains("accountList") && key.contains("[addr]")) {
+                if (key.contains("accountList") && key.contains("[account]")) {
                     map.put(key, parameterMap.get(key));
                 }
-                if (key.contains("accountList") && key.contains("[TSS]")) {
+                if (key.contains("accountList") && key.contains("[assets]")) {
                     map.put(key, parameterMap.get(key));
                 }
             }
@@ -278,7 +337,7 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         }
         //验证账户是否有效
         try {
-            long value = Convert.parseAccountId(account);
+            long value = Account.rsAccountToId(account);
             if (value == 0) {
                 throw new RuntimeException("account does not exist");
             }
@@ -349,12 +408,15 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
      */
     private JSONObject verifySignature(HttpServletRequest request, JSONObject json) {
         String message = request.getParameter("message");
+        String publicKey = request.getParameter("publicKey");
+        String signature = request.getParameter("validation");
         try {
             //验证签名得到用户,公钥和时间存入json;
+            if (Crypto.verify(signature.getBytes(), message.getBytes(), publicKey.getBytes(), true)) {
+                throw new RuntimeException();
+            }
             HashMap<String, Object> map = new HashMap<>();
             map.put("time", System.currentTimeMillis());
-            map.put("account", "SSA-TPLD-BHYH-DF2B-GAU6P");
-            map.put("publicKey", "publicKey publicKey publicKey publicKey publicKey publicKey");
             //生成授权token
             String token = generateToken(AUTH_CODE_NUM);
             //保存全局

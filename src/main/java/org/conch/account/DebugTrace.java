@@ -30,7 +30,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.db.DbIterator;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Exchange;
@@ -43,7 +43,6 @@ import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionProcessor;
-import org.conch.util.Convert;
 import org.conch.util.Logger;
 
 import java.io.*;
@@ -68,7 +67,7 @@ public final class DebugTrace {
                 accountIds.clear();
                 break;
             }
-            accountIds.add(Convert.parseAccountId(accountId));
+            accountIds.add(Account.rsAccountToId(accountId));
         }
         final DebugTrace debugTrace = addDebugTrace(accountIds, logName);
         Conch.getBlockchainProcessor().addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);
@@ -236,7 +235,7 @@ public final class DebugTrace {
             }
             long recipientId = transaction.getRecipientId();
             if (transaction.getAmountNQT() > 0 && recipientId == 0) {
-                recipientId = ConchGenesis.CREATOR_ID;
+                recipientId = SharderGenesis.CREATOR_ID;
             }
             if (include(recipientId)) {
                 log(getValues(recipientId, transaction, true, true, true));
@@ -503,7 +502,7 @@ public final class DebugTrace {
             return Collections.emptyMap();
         }
         long totalBackFees = 0;
-        if (block.getHeight() > Constants.SHUFFLING_BLOCK) {
+        if (block.getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
             long[] backFees = new long[3];
             for (Transaction transaction : block.getTransactions()) {
                 long[] fees = ((TransactionImpl)transaction).getBackFees();

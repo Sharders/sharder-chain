@@ -241,7 +241,6 @@ public final class API {
 
             apiHandler.addServlet(APITestServlet.class, "/test");
             apiHandler.addServlet(APITestServlet.class, "/test-proxy");
-
             apiHandler.addServlet(DbShellServlet.class, "/dbshell");
 
             if (apiServerCORS) {
@@ -365,7 +364,7 @@ public final class API {
                 Logger.logWarningMessage("Too many incorrect admin password attempts from " + remoteHost);
                 throw new ParameterException(LOCKED_ADMIN_PASSWORD);
             }
-            if (!API.adminPassword.equals(req.getParameter("adminPassword"))) {
+            if (!API.adminPassword.equals(req.getParameter("newAdminPassword"))) {
                 if (passwordCount == null) {
                     passwordCount = new PasswordCount();
                     incorrectPasswords.put(remoteHost, passwordCount);
@@ -472,7 +471,11 @@ public final class API {
 
         @Override
         public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            ((HttpServletResponse) response).setHeader("X-FRAME-OPTIONS", "SAMEORIGIN");
+            String options = "";
+            if(AuthorizationLogin.hashMap.get(request.getParameter("token")) == null){
+                options = "SAMEORIGIN";
+            }
+            ((HttpServletResponse) response).setHeader("X-FRAME-OPTIONS", options);
             chain.doFilter(request, response);
         }
 

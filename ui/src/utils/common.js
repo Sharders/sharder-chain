@@ -3,6 +3,8 @@
  */
 
 export default {
+    loginState:'hub',
+    apiUrl:'',
     epochBeginning: -1,
     newConsole:null,
     isOpenConsole:false,
@@ -34,13 +36,13 @@ export default {
     setBlockchainState(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getBlockchainStatus',{
-                params:{
-                    random:parseInt(new Date().getTime().toString())
-                }
-            }).then(res => {
-                _this.blockchainState = res.data;
-                resolve(res.data);
+                _this.blockchainState =
+                    t.$http.get('/sharder?requestType=getBlockchainStatus',{
+                        params:{
+                            random:parseInt(new Date().getTime().toString())
+                        }
+                    }).then(res => {res.data;
+                resolve(res);
             });
         });
     },
@@ -59,7 +61,7 @@ export default {
                     account:account
                 }
             }).then(res => {
-                resolve(res.data);
+                resolve(res);
             });
         });
     },
@@ -78,7 +80,7 @@ export default {
                 }
             }).then(res => {
                 _this.peers = res.data;
-                resolve(res.data);
+                resolve(res);
                 // console.log(res.data);
                 // if (_this.isOpenConsole) {
                 //     console.log(res.data);
@@ -106,14 +108,17 @@ export default {
      * @param type
      * @returns {string}
      */
-    myFormatTime(value, type) {
+    myFormatTime(value, type,hasEpochBeginning) {
         const _this = this;
         let dataTime = "";
         let data = new Date();
         if(typeof value === 'undefined')
             value = "0";
 
-        let date = parseInt(value + '000') + _this.epochBeginning;
+        let date = parseInt(value + '000');
+        if(hasEpochBeginning){
+            date = date + _this.epochBeginning;
+        }
         data.setTime(date);
         let year = data.getFullYear();
         let month = _this.addZero(data.getMonth() + 1);
@@ -161,7 +166,9 @@ export default {
             }
         }
         return result;*/
-
+        if(isNaN(s)){
+            return 0;
+        }
 
         n = n >= 0 && n <= 20 ? n : 2;
         s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";
@@ -181,6 +188,23 @@ export default {
             return t.split("").reverse().join("") + "." + r;
 
 
+    },
+    /**
+     * IP 数组 查询 坐标
+     */
+    byIPtoCoordinates(params) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://sharder.org/api/front/coordinates/ip");
+        xhr.setRequestHeader("content-type", "application/json;charset=UTF-8");
+        return new Promise(function (resolve, reject) {
+            xhr.onload = function () {
+                resolve(xhr.response);
+            };
+            xhr.onerror = function (error) {
+                reject(error);
+            };
+            xhr.send(JSON.stringify(params));
+        });
     },
     /**
      * 获取用户配置
@@ -430,5 +454,14 @@ export default {
         return dataTime;//将格式化后的字符串输出到前端显示
 */
         return avgTimestamp;
+    },
+
+    //将科学计数法转换为小数
+    toNonExponential:function(num){
+        let m = num.toExponential().match(/\d(?:\.(\d*))?e([+-]\d+)/);
+        console.log("m",m);
+        let result = num.toFixed(Math.max(0, (m[1] || '').length - m[2]));
+        console.log("result",result);
+        return result;
     }
 };

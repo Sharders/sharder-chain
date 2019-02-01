@@ -30,7 +30,7 @@ import org.conch.asset.token.CurrencyTransfer;
 import org.conch.asset.token.CurrencyType;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.market.ExchangeRequest;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.CurrencyMinting;
@@ -176,8 +176,7 @@ public abstract class MonetaryTx extends TransactionType {
 
         @Override
         public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
-                    && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
+            return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT && isDuplicate(CURRENCY_ISSUANCE, getName(), duplicates, true);
         }
 
         @Override
@@ -414,7 +413,7 @@ public abstract class MonetaryTx extends TransactionType {
             if (attachment.getUnits() <= 0) {
                 throw new ConchException.NotValidException("Invalid currency transfer: " + attachment.getJSONObject());
             }
-            if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+            if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                 throw new ConchException.NotValidException("Currency transfer to genesis account not allowed");
             }
             Currency currency = Currency.getCurrency(attachment.getCurrencyId());
@@ -507,7 +506,7 @@ public abstract class MonetaryTx extends TransactionType {
                     || attachment.getTotalSellLimit() < attachment.getInitialSellSupply()) {
                 throw new ConchException.NotValidException("Initial supplies must not exceed total limits");
             }
-            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
                 if (attachment.getTotalBuyLimit() == 0 && attachment.getTotalSellLimit() == 0) {
                     throw new ConchException.NotValidException("Total buy and sell limits cannot be both 0");
                 }

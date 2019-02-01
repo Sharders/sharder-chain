@@ -281,9 +281,9 @@ var NRS = (function (NRS, $, undefined) {
 
     // id can be either account id or passphrase
     NRS.login = function (isPassphraseLogin, id, vue, callback, isAccountSwitch, isSavedPassphrase) {
-        // NRS.logConsole("login isPassphraseLogin = " + isPassphraseLogin +
-        //     ", isAccountSwitch = " + isAccountSwitch +
-        //     ", isSavedPassphrase = " + isSavedPassphrase);
+        NRS.logConsole("login isPassphraseLogin = " + isPassphraseLogin +
+            ", isAccountSwitch = " + isAccountSwitch +
+            ", isSavedPassphrase = " + isSavedPassphrase);
         // NRS.spinner.spin($("#center")[0]);
         // if (isPassphraseLogin && !isSavedPassphrase){
         //     var loginCheckPasswordLength = $("#login_check_password_length");
@@ -428,25 +428,25 @@ var NRS = (function (NRS, $, undefined) {
                         }
                         // NRS.updateForgingTooltip($.t("forging_unknown_tooltip"));
                         // NRS.updateForgingStatus(isPassphraseLogin ? id : null);
-                        if (NRS.isForgingSafe() && isPassphraseLogin) {
-                            var forgingIndicator = $("#forging_indicator");
-                            NRS.sendRequest("startForging", {
-                                "secretPhrase": id
-                            }, function (response) {
-                                // if ("deadline" in response) {
-                                //     forgingIndicator.addClass("forging");
-                                //     forgingIndicator.find("span").html($.t("forging")).attr("data-i18n", "forging");
-                                //     NRS.forgingStatus = NRS.constants.FORGING;
-                                //     NRS.updateForgingTooltip(NRS.getForgingTooltip);
-                                // } else {
-                                //     forgingIndicator.removeClass("forging");
-                                //     forgingIndicator.find("span").html($.t("not_forging")).attr("data-i18n", "not_forging");
-                                //     NRS.forgingStatus = NRS.constants.NOT_FORGING;
-                                //     NRS.updateForgingTooltip(response.errorDescription);
-                                // }
-                                forgingIndicator.show();
-                            });
-                        }
+                        // if (NRS.isForgingSafe() && isPassphraseLogin) {
+                        //     var forgingIndicator = $("#forging_indicator");
+                        //     NRS.sendRequest("startForging", {
+                        //         "secretPhrase": id
+                        //     }, function (response) {
+                        //         // if ("deadline" in response) {
+                        //         //     forgingIndicator.addClass("forging");
+                        //         //     forgingIndicator.find("span").html($.t("forging")).attr("data-i18n", "forging");
+                        //         //     NRS.forgingStatus = NRS.constants.FORGING;
+                        //         //     NRS.updateForgingTooltip(NRS.getForgingTooltip);
+                        //         // } else {
+                        //         //     forgingIndicator.removeClass("forging");
+                        //         //     forgingIndicator.find("span").html($.t("not_forging")).attr("data-i18n", "not_forging");
+                        //         //     NRS.forgingStatus = NRS.constants.NOT_FORGING;
+                        //         //     NRS.updateForgingTooltip(response.errorDescription);
+                        //         // }
+                        //         forgingIndicator.show();
+                        //     });
+                        // }
                     }, isAccountSwitch);
                     // NRS.initSidebarMenu();
                     // NRS.unlock();
@@ -597,7 +597,7 @@ var NRS = (function (NRS, $, undefined) {
         $("body, html").removeClass("lockscreen");
         $("#login_error").html("").hide();
         $(document.documentElement).scrollTop = 0;
-        NRS.spinner.stop();
+        // NRS.spinner.stop();
     };
 
     NRS.logout = function (stopForging) {

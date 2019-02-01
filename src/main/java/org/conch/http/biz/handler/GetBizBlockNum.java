@@ -19,35 +19,42 @@
  *
  */
 
-package org.conch.http;
+package org.conch.http.biz.handler;
 
 import org.conch.Conch;
-import org.conch.consensus.poc.hardware.PerformanceCheckingUtil;
-import org.conch.util.IpUtil;
+import org.conch.http.*;
+import org.conch.util.Convert;
+import org.h2.util.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
-public final class GetPerformance extends APIServlet.APIRequestHandler {
+public final class GetBizBlockNum extends APIServlet.APIRequestHandler {
 
-    static final GetPerformance instance = new GetPerformance();
+    public static final GetBizBlockNum instance = new GetBizBlockNum();
 
-    private GetPerformance() {
-        super(new APITag[] {APITag.TEST}, "time");
+    private GetBizBlockNum() {
+        super(new APITag[] {APITag.BIZ},  "includeTypes");
     }
 
     @Override
-    protected JSONStreamAware processRequest(HttpServletRequest request) {
-        String senderIp = IpUtil.getSenderIp(request);
-        String foundationIp = IpUtil.getIp(Conch.getSharderFoundationURL());
-        
-        if (!foundationIp.equals(senderIp)) return null;
-        
-        Integer time = Integer.parseInt(request.getParameter("time"));
+    protected JSONStreamAware processRequest(HttpServletRequest req){
+        long count=0;
+        String includeType  = Convert.emptyToNull(req.getParameter("includeTypes"));
+        if(includeType!=null){
+            List<String> typeList = Arrays.asList(StringUtils.arraySplit(includeType, ',', true));
+            count = Conch.getBlockchain().countIncludeTypeBlocks(typeList);
+        }
         JSONObject response = new JSONObject();
-        response.put("executeCount", PerformanceCheckingUtil.check(time));
+        response.put("count", count);
         return response;
     }
 
+    @Override
+    protected boolean allowRequiredBlockParameters() {
+        return false;
+    }
 }

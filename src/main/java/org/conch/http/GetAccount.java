@@ -23,7 +23,7 @@ package org.conch.http;
 
 import org.conch.account.Account;
 import org.conch.common.ConchException;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -87,7 +87,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
                     while (lessors.hasNext()) {
                         Account lessor = lessors.next();
                         lessorIds.add(Long.toUnsignedString(lessor.getId()));
-                        lessorIdsRS.add(Convert.rsAccount(lessor.getId()));
+                        lessorIdsRS.add(Account.rsAccount(lessor.getId()));
                         lessorInfo.add(JSONData.lessor(lessor, includeEffectiveBalance));
                     }
                     response.put("lessors", lessorIds);

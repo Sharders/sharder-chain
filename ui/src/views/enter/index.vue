@@ -6,7 +6,7 @@
         </el-col>
 
         <el-col :span="24" class="input">
-            <el-input type="textarea" :autosize=notAutoSize v-model="passphrase"></el-input>
+            <el-input type="textarea" :autosize=notAutoSize v-model="confirmPassphrase"></el-input>
         </el-col>
 
         <el-col :span="24">
@@ -28,8 +28,11 @@
                     minRows: 4,
                     maxRows: 4
                 },
-                passphrase:''
+                passphrase:this.$route.params.passPhrase,
+                confirmPassphrase:''
             };
+        },
+        created:function(){
         },
         methods: {
             cancel: function () {
@@ -37,8 +40,12 @@
             },
             enter: function () {
                 let _this = this;
-                if (_this.passphrase === "") {
+                if (_this.confirmPassphrase === "") {
                     _this.$message.info(_this.$t('notification.login_no_input_error'));
+                    return;
+                }
+                if(_this.confirmPassphrase !== _this.passPhrase){
+                    _this.$message.error("您输入的密钥不正确，请再试一次 ！");
                     return;
                 }
                 Login.login(true, _this.passphrase, _this, function () {
@@ -52,10 +59,6 @@
 */
                     _this.$global.setEpochBeginning(_this).then(res=>{
                         _this.$store.state.isLogin = true;
-                        if(!_this.$store.state.isHubInit){
-                            _this.$router.push({path:'/login', query:{info:'register2Init'}});
-                            return;
-                        }
                         _this.$router.push("/account");
 
                     });

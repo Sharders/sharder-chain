@@ -178,6 +178,14 @@ public class APITestServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+        
+        // call this uri should set the 'adminPassword' parameter to authorize
+        try {
+            API.verifyPassword(req);
+        } catch (ParameterException e) {
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         try (PrintWriter writer = resp.getWriter()) {
             writer.print(header1);

@@ -21,7 +21,6 @@
 
 package org.conch.http;
 
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
@@ -35,11 +34,11 @@ import static org.conch.http.JSONResponses.NOT_FORGING;
 import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 
-public final class GetForging extends APIServlet.APIRequestHandler {
+public final class GetMiners extends APIServlet.APIRequestHandler {
 
-    static final GetForging instance = new GetForging();
+    static final GetMiners instance = new GetMiners();
 
-    private GetForging() {
+    private GetMiners() {
         super(new APITag[] {APITag.FORGING}, "secretPhrase", "adminPassword");
     }
 
@@ -47,7 +46,7 @@ public final class GetForging extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
 
         String secretPhrase = ParameterParser.getSecretPhrase(req, false);
-        int elapsedTime = Conch.getEpochTime() - Conch.getBlockchain().getLastBlock().getTimestamp();
+        boolean loadPoolInfo = ParameterParser.getBoolean(req, "loadPoolInfo");
         if (secretPhrase != null) {
             Account account = Account.getAccount(Crypto.getPublicKey(secretPhrase));
             if (account == null) {
@@ -57,12 +56,12 @@ public final class GetForging extends APIServlet.APIRequestHandler {
             if (generator == null) {
                 return NOT_FORGING;
             }
-            return JSONData.generator(generator, elapsedTime);
+            return generator.toJson(loadPoolInfo);
         } else {
             API.verifyPassword(req);
             JSONObject response = new JSONObject();
             JSONArray generators = new JSONArray();
-            Generator.getSortedForgers().forEach(generator -> generators.add(JSONData.generator(generator, elapsedTime)));
+            Generator.getSortedMiners().forEach(generator -> generators.add(generator.toJson(loadPoolInfo)));
             response.put("generators", generators);
             return response;
         }

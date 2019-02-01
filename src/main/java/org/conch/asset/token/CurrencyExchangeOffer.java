@@ -27,7 +27,6 @@ import org.conch.account.AccountLedger;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.db.*;
-import org.conch.db.*;
 import org.conch.market.Exchange;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -184,7 +183,7 @@ public abstract class CurrencyExchangeOffer {
     public static void exchangeSSForCurrency(Transaction transaction, Account account, final long currencyId, final long rateNQT, final long units) {
         List<CurrencyExchangeOffer> currencySellOffers = getAvailableSellOffers(currencyId, rateNQT);
 
-        if (Conch.getBlockchain().getHeight() < Constants.SHUFFLING_BLOCK) {
+        if (Conch.getBlockchain().getHeight() < Constants.SHUFFLING_BLOCK_HEIGHT) {
             long totalUnits = 0;
             long totalAmountNQT = Math.multiplyExact(units, rateNQT);
             long remainingAmountNQT = totalAmountNQT;

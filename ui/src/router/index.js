@@ -40,6 +40,7 @@ export const routes = [
             },
             {
                 path: "/enter",
+                name:"Enter",
                 component: Enter
             }
         ]
@@ -114,6 +115,7 @@ export const routes = [
             },
             {
                 path: "/network/peers",
+                name:"peers",
                 component: Peers
             }
         ]

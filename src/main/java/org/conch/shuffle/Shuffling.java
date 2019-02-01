@@ -164,7 +164,7 @@ public final class Shuffling {
 
     static {
         Conch.getBlockchainProcessor().addListener(block -> {
-            if (block.getHeight() < Constants.SHUFFLING_BLOCK || block.getTransactions().size() == Constants.MAX_NUMBER_OF_TRANSACTIONS
+            if (block.getHeight() < Constants.SHUFFLING_BLOCK_HEIGHT || block.getTransactions().size() == Constants.MAX_NUMBER_OF_TRANSACTIONS
                     || block.getPayloadLength() > Constants.MAX_PAYLOAD_LENGTH - Constants.MIN_TRANSACTION_SIZE) {
                 return;
             }
@@ -726,13 +726,13 @@ public final class Shuffling {
             for (int i = 0; i < 3; i++) {
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(block.getHeight() - i - 1).getGeneratorId());
                 previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
-                previousGeneratorAccount.addToForgedBalanceNQT(fee);
+                previousGeneratorAccount.addToMintedBalanceNQT(fee);
                 Logger.logDebugMessage("Shuffling penalty %f SS awarded to miner at height %d", ((double)fee) / Constants.ONE_SS, block.getHeight() - i - 1);
             }
             fee = Constants.SHUFFLING_DEPOSIT_NQT - 3 * fee;
             Account blockGeneratorAccount = Account.getAccount(block.getGeneratorId());
             blockGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
-            blockGeneratorAccount.addToForgedBalanceNQT(fee);
+            blockGeneratorAccount.addToMintedBalanceNQT(fee);
             Logger.logDebugMessage("Shuffling penalty %f SS awarded to miner at height %d", ((double)fee) / Constants.ONE_SS, block.getHeight());
         }
         setStage(Stage.CANCELLED, blamedAccountId, (short)0);

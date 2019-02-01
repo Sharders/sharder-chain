@@ -29,11 +29,13 @@ import org.conch.asset.token.*;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.Token;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
 import org.conch.market.*;
 import org.conch.mint.Generator;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
 import org.conch.shuffle.Shuffler;
@@ -1003,16 +1005,6 @@ public final class JSONData {
         return json;
     }
 
-    static JSONObject generator(Generator generator, int elapsedTime) {
-        JSONObject response = new JSONObject();
-        long deadline = generator.getDeadline();
-        putAccount(response, "account", generator.getAccountId());
-        response.put("deadline", deadline);
-        response.put("hitTime", generator.getHitTime());
-        response.put("remaining", Math.max(deadline - elapsedTime, 0));
-        return response;
-    }
-
     static JSONObject accountMonitor(FundingMonitor monitor, boolean includeMonitoredAccounts) {
         JSONObject json = new JSONObject();
         json.put("holdingType", monitor.getHoldingType().getCode());
@@ -1144,7 +1136,7 @@ public final class JSONData {
 
     public static void putAccount(JSONObject json, String name, long accountId) {
         json.put(name, Long.toUnsignedString(accountId));
-        json.put(name + "RS", Convert.rsAccount(accountId));
+        json.put(name + "RS", Account.rsAccount(accountId));
     }
 
     private static void putCurrencyInfo(JSONObject json, long currencyId) {

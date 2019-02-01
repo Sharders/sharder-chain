@@ -4,8 +4,10 @@
     client.accountInfo = {};
     global.SSO = global.client;
 
+    require("./util/sso.console")
     require("./util/sso.constants");
     require("./util/sso");
+    require("./util/sso.blocks");
     require("./util/sso.forms");
     require("./util/sso.sitebuild");
     require("./util/sso.server");

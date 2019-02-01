@@ -23,6 +23,7 @@ package org.conch.chain;
 
 import org.conch.common.ConchException;
 import org.conch.db.DerivedDbTable;
+import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
@@ -91,6 +92,31 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
         @Override
         public String getMessage() {
             return block == null ? super.getMessage() : super.getMessage() + ", block " + block.getStringId() + " " + block.getJSONObject().toJSONString();
+        }
+
+    }
+
+    class GeneratorNotAcceptedException extends ConchException {
+
+        private final long generatoId;
+
+        public GeneratorNotAcceptedException(String message, long generatoId) {
+            super(message);
+            this.generatoId = generatoId;
+        }
+
+        public GeneratorNotAcceptedException(Throwable cause, long generatoId) {
+            super(cause);
+            this.generatoId = generatoId;
+        }
+        
+        public long getGeneratoId(){
+            return this.generatoId;
+        }
+
+        @Override
+        public String getMessage() {
+            return super.getMessage() + ", generator[" + generatoId + "]";
         }
 
     }

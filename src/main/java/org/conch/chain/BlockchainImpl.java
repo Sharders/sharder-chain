@@ -25,8 +25,6 @@ import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.db.*;
-import org.conch.db.*;
-import org.conch.db.*;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
@@ -100,6 +98,18 @@ public final class BlockchainImpl implements Blockchain {
     }
 
     @Override
+    public long countIncludeTypeBlocks(List<String> includeType){
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            return TransactionDb.countByBlockIncludeType(con, includeType);
+        } catch (SQLException e) {
+            DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    @Override
     public int getLastBlockTimestamp() {
         BlockImpl last = lastBlock.get();
         return last == null ? 0 : last.getTimestamp();
@@ -156,6 +166,7 @@ public final class BlockchainImpl implements Blockchain {
             throw new RuntimeException(e.toString(), e);
         }
     }
+
 
     @Override
     public DbIterator<BlockImpl> getBlocks(long accountId, int timestamp) {
@@ -384,6 +395,39 @@ public final class BlockchainImpl implements Blockchain {
     }
 
     @Override
+    public int getTransactionCountByAccount(long accountId, byte type,byte subtype){
+
+        StringBuilder buf = new StringBuilder();
+        buf.append("SELECT COUNT(*) FROM transaction WHERE (recipient_id = ? or sender_id = ?) ");
+        if(type >= 0){
+            buf.append("AND type = ? ");
+            if(subtype >= 0){
+                buf.append("AND subtype = ? ");
+            }
+        }
+        int i = 0;
+        try(Connection con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(buf.toString())){
+            pstmt.setLong(++i, accountId);
+            pstmt.setLong(++i, accountId);
+            if(type >= 0){
+                pstmt.setByte(++i, type);
+                if(subtype >= 0){
+                    pstmt.setInt(++i, subtype);
+                }
+            }
+            try(ResultSet rs = pstmt.executeQuery()){
+                rs.next();
+                return rs.getInt(1);
+            }catch (Exception e){
+                throw new RuntimeException(e.toString(),e);
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    @Override
     public DbIterator<TransactionImpl> getAllTransactions() {
         Connection con = null;
         try {
@@ -391,6 +435,41 @@ public final class BlockchainImpl implements Blockchain {
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction ORDER BY db_id ASC");
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
+            DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+
+    /**
+     * 查询账户的收款付款交易记录
+     * @param accountId
+     * @param isFrom accountId是否是发送方
+     * @param from
+     * @param to
+     * @return
+     */
+    @Override
+    public DbIterator<TransactionImpl> getTransactions(long accountId, boolean isFrom,int from, int to) {
+        Connection con = null;
+        PreparedStatement pstmt;
+        try {
+            StringBuilder buf = new StringBuilder();
+            buf.append("SELECT transaction.* FROM transaction where type=0 ");
+            if (isFrom) {
+                buf.append("And sender_id = ? ");
+            } else {
+                buf.append("And recipient_id = ? ");
+            }
+            buf.append("ORDER BY block_timestamp DESC, transaction_index DESC");
+            buf.append(DbUtils.limitsClause(from, to));
+            con = Db.db.getConnection();
+            int i = 0;
+            pstmt = con.prepareStatement(buf.toString());
+            pstmt.setLong(++i,accountId);
+            DbUtils.setLimits(++i, pstmt, from, to);
+            return getTransactions(con, pstmt);
+        }catch (SQLException e) {
             DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
@@ -558,7 +637,7 @@ public final class BlockchainImpl implements Blockchain {
         List<TransactionImpl> result = new ArrayList<>();
         readLock();
         try {
-            if (getHeight() >= Constants.PHASING_BLOCK) {
+            if (getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
                 try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(getHeight() + 1)) {
                     for (TransactionImpl phasedTransaction : phasedTransactions) {
                         try {

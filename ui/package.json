@@ -1,7 +1,7 @@
 {
-    "name": "Sharder-Client",
+    "name": "SharderClient",
     "version": "1.0.0",
-    "description": "Sharder-Client",
+    "description": "Sharder Client",
     "main": "src/index.js",
     "scripts": {
         "test": "testcafe all tests/index.js --app \"npm run dev\" --app-init-delay 10000",

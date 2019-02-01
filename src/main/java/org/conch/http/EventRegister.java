@@ -21,9 +21,9 @@
 
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.http.EventListener.EventListenerException;
 import org.conch.http.EventListener.EventRegistration;
-import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -189,7 +189,7 @@ public class EventRegister extends APIServlet.APIRequestHandler {
                 if (parts[0].equals("Ledger")) {
                     if (parts.length == 3) {
                         try {
-                            accountId = Convert.parseAccountId(parts[2]);
+                            accountId = Account.rsAccountToId(parts[2]);
                         } catch (RuntimeException e) {
                             return incorrectEvent;
                         }

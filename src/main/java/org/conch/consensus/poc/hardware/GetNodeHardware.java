@@ -1,14 +1,19 @@
 package org.conch.consensus.poc.hardware;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
+import org.conch.common.Constants;
+import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
-import org.conch.util.SendHttpRequest;
+import org.conch.util.RestfulHttpClient;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @ClassName GetNodeHardware
@@ -21,24 +26,23 @@ public class GetNodeHardware {
     public static SystemInfo cpu(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         CpuInfo infos[] = sigar.getCpuInfoList();
-        int i,count = 0;
+        int i, count = 0;
         for (i = 0; i < infos.length; i++) {
             CpuInfo info = infos[i];
             count += info.getMhz();
         }
-        systemInfo.setCore(infos.length);
-        systemInfo.setAverageMHz(count / infos.length);
+        systemInfo.setCore(infos.length).setAverageMHz(count / infos.length);
         return systemInfo;
     }
 
     public static SystemInfo memory(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         Mem mem = sigar.getMem();
-        systemInfo.setMemoryTotal((int)(mem.getTotal() / 1024 / 1024 / 1024));
+        systemInfo.setMemoryTotal((int) (mem.getTotal() / 1024 / 1024 / 1024));
         return systemInfo;
     }
 
-    public static SystemInfo file(SystemInfo systemInfo) throws Exception {
+    public static SystemInfo disk(SystemInfo systemInfo) throws Exception {
         Sigar sigar = new Sigar();
         FileSystem fsList[] = sigar.getFileSystemList();
         Long ypTotal = 0L;
@@ -64,14 +68,14 @@ public class GetNodeHardware {
                     break;
             }
         }
-        int hdTotal = (int)((double)ypTotal / 1024L / 1024L);
-        if (hdTotal == 0){
-            for (int i = 0; i <fsList.length; i++) {
+        int hdTotal = (int) ((double) ypTotal / 1024L / 1024L);
+        if (hdTotal == 0) {
+            for (int i = 0; i < fsList.length; i++) {
                 FileSystem fs = fsList[i];
                 if (fs.getDirName().equals("/")) {
                     FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                     hdTotal = (int)((double)usage.getTotal() / 1024L / 1024L);
-                     break;
+                    hdTotal = (int) ((double) usage.getTotal() / 1024L / 1024L);
+                    break;
                 }
             }
         }
@@ -93,19 +97,19 @@ public class GetNodeHardware {
         final byte section5 = (byte) 0xC0;
         final byte section6 = (byte) 0xA8;
         switch (b0) {
-        case section1:
-            return false;
-        case section2:
-            if (b1 >= section3 && b1 <= section4) {
+            case section1:
                 return false;
-            }
-        case section5:
-            switch (b1) {
-            case section6:
-                return false;
-            }
-        default:
-            return true;
+            case section2:
+                if (b1 >= section3 && b1 <= section4) {
+                    return false;
+                }
+            case section5:
+                switch (b1) {
+                    case section6:
+                        return false;
+                }
+            default:
+                return true;
         }
     }
 
@@ -137,50 +141,92 @@ public class GetNodeHardware {
         systemInfo.setHadPublicIp(hadPublicIp);
         return systemInfo;
     }
-    
-    private static final int DEFAULT_TX_CHECKING_COUNT = 1000;
-    public static SystemInfo txPerformance(SystemInfo systemInfo) throws Exception {
-        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(DEFAULT_TX_CHECKING_COUNT));
+
+    public static SystemInfo txPerformance(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        systemInfo.setTradePerformance(PerformanceCheckingUtil.check(executeTime));
         return systemInfo;
     }
-    
+
     public static SystemInfo openingServices(SystemInfo systemInfo) throws Exception {
         List<Peer.Service> services = Peers.getServices();
         Long[] serviceList = new Long[services.size()];
-        
-        for(int i = 0 ; i < services.size(); i++ ){
+
+        for (int i = 0; i < services.size(); i++) {
             serviceList[i] = services.get(i).getCode();
         }
         systemInfo.setOpenServices(serviceList);
         return systemInfo;
     }
 
-    public static final String SYSTEM_INFO_REPORT_URL = Conch.getSharderFoundationURL() + "/bounties/SC/report";
-    
-    public static boolean readAndReport(){
-        //提交系统配置信息
+    private static String scHardwareApiUrl() {
+        if (Constants.isMainnet() || Constants.isTestnet()) {
+            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
+        }
+        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
+    }
+
+    public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
+
+    /**
+     * 每次开机时，获取节点配置，并主动汇报，以及更新绑定用户
+     * <p>
+     * 汇报前需要检查是否使用了穿透服务（NAT）
+     * 若使用了NAT，则address设置为穿透服务的。
+     * 若没有使用NAT,则address设置为本机地址
+     *
+     * @param executeTime 性能测试时间，单位秒, 为空使用默认值
+     * @return true成功，false失败
+     */
+    public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
-        
+        String myAddress = Conch.getMyAddress();
+        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
+        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
+        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
+        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
+
         try {
-            cpu(systemInfo);
-            memory(systemInfo);
-            file(systemInfo);
-            network(systemInfo);
-            txPerformance(systemInfo);
-            openingServices(systemInfo);
-            
-            SendHttpRequest.sendGet(SYSTEM_INFO_REPORT_URL,systemInfo.toString());
-            System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL  + "] ===>");
-            System.out.println(systemInfo.toString());
-            System.out.println("<=== reported");
+            return report(read(systemInfo, executeTime));
         } catch (Exception e) {
+            System.out.println("<=== failed to report hardware performance, local error");
             e.printStackTrace();
             return false;
-        } catch(Throwable throwable){
-            throwable.printStackTrace();
+        }
+    }
+
+    private static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        cpu(systemInfo);
+        memory(systemInfo);
+        disk(systemInfo);
+        network(systemInfo);
+        txPerformance(systemInfo, executeTime);
+        openingServices(systemInfo);
+        systemInfo.setNetworkType(Conch.getNetworkType());
+        return systemInfo;
+    }
+
+    /**
+     * 报告节点配置
+     *
+     * @param systemInfo 性能信息
+     * @return true报告成功，false失败
+     * @throws IOException 请求异常
+     */
+    private static Boolean report(SystemInfo systemInfo) throws IOException {
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
+                .post()
+                .body(systemInfo)
+                .request();
+        Boolean result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS))
+                .map(Object::toString).map(Boolean::valueOf).orElse(Boolean.FALSE);
+        System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL + "] ===>");
+        System.out.println(systemInfo.toString());
+        if (result) {
+            System.out.println("<=== success to report hardware performance");
+            return true;
+        } else {
+            System.out.println("<=== failed to report hardware performance, remote error");
             return false;
         }
-
-        return true;
     }
 }

@@ -1,53 +1,86 @@
-# Sharder Chain #
+# Sharder #
 
 ## What is Sharder ##
-- Sharder chain is the first sharder pool that impl the sharder storage protocol.
-- Sharder chain is the middle network of mutil chain in the sharder network.
-- More features will be added: sharder account, trade mode, smart contract and so on.
+- Sharder is a blockchain-based multi-chain storage Network.
 
-## Install & Run client ##
-   - Download source code from [Github](https://github.com/Sharders/sharder-chain) or download [Clients-Coming soon](http://sharder.org/cos/client/downloads) directlly.
-   - *Install JDK1.8*: [General](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), [Ubuntu](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html), [Debian](http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html), [FreeBSD](pkg install openjdk8)
-   - Run client: Unix: `./start.sh`, Mac: `./start.sh`, Window: `run.bat`
+## Project Structure ##
+Java project，UI uses the vue.
+
+    sharder-chain           // project root 
+        |- classes/         // compiled class files 
+        |- conf/            // configuration files 
+        |- lib/             // 3rd or required library 
+        |- html/            // compiled html file of ui 
+        |- logs/            // logs 
+        |- sharder_*_db/    // database of sharder-chain
+        |- src/             // source code of sharder-chain
+        |- ui/              // source code of ui
+        |- run.sh           // shell for linux and osx 
+        |- run.bat          // bat for windows 
+        |- 3RD-PARTY-LICENSES  
+        |- LICENSE 
+        |- README.md 
+NOTE：If you specify the compilation folder manually, you must set the compilation folder as above classes folder under the project root.  
+
+## Run Sharder client ##
+- TODO
 
 ## Start mine ##
-Mine will open soon!
+Please read the [MINER-GUIDE.md](./MINER-GUIDE.md)
 
 ## Follow us ##
   - Website: https://sharder.org
-  - Telegram: https://t.me/sharder_talk
   - Twitter: @SharderChain
+  - Telegram: https://t.me/sharder_talk
   - Medium: https://medium.com/@SharderChain
-  - Facebook: https://www.facebook.com/SharderFoundation
-  - Reddit: https://www.reddit.com/r/Sharder_Official
   - Github: https://github.com/Sharders/sharder-chain
-  - QQ group: 578367251
   - Wechat: supersharder
-
 ----
 
-# 豆匣链(Sharder Chain) #
+# 豆匣 #
 
-## 豆匣链是什么? ##
-- 豆匣链是第一个部署了豆匣存储协议的商用区块链网络即0号豆匣池。
-- 豆匣链在豆匣协议中充当了多链结构的中间锚定网络，类似于传统通信网络中的骨干节点。
-- 会持续增加新特性:豆匣账户，交易模型，智能合约等。
+## 豆匣是什么? ##
+- 豆匣是多链架构区块链存储网络。
 
-## 安装和运行豆匣客户端 ##
- - 从[Github](https://github.com/Sharders/sharder-chain)上获取源代码或则下载[客户端-待开放](http://sharder.org/cos/client/downloads) 
- - *安装JDK1.8*: [General](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), [Ubuntu](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html), [Debian](http://www.webupd8.org/2014/03/how-to-install-oracle-java-8-in-debian.html), [FreeBSD](pkg install openjdk8)
- - 运行客户端: Unix: `./start.sh`, Mac: `./start.sh`, Window: `run.bat`
+## 工程说明 ##
+Java工程，UI使用vue。
 
-## 开始挖矿 ##
-  暂未开放
+    sharder-chain           // 工程根目录 
+        |- classes/         // 编译后的源文件 
+        |- conf/            // 配置文件
+        |- lib/             // 第三方或则依赖的代码库
+        |- html/            // 编译后的UI文件
+        |- logs/            // 日志 
+        |- sharder_*_db/    // 数据库
+        |- src/             // 源代码
+        |- ui/              // UI源代码
+        |- run.sh           // linux和osx操作系统的启动脚本 
+        |- run.bat          // windows操作系统的启动脚本
+        |- 3RD-PARTY-LICENSES  
+        |- LICENSE 
+        |- README.md 
+注意：如果你手动指定编译目录的话，需要将编译目录设置到上面的classes文件夹，否则run.sh和run.bat无法正常运行。
+
+## 运行豆匣客户端 ##
+你可以采用下面两种方式运行豆匣客户端：
+* 方式一
+    
+        1. 在[官网](https://sharder.org)下载对应操作系统的客户端
+        2. 安装豆匣客户端
+        3. 运行豆匣客户端
+* 方式二
+    
+        1. 将本工程克隆到本地磁盘
+        2. 在conf/sharder.properties设置连入的网络`sharder.network=$NETWORK`。$NETWORK可以设置为`Testnet`或`Mainnet`，默认值为`Testnet`。
+        3. 运行org.conch.Conch的main方法
+
+## 开始挖矿 
+请阅读[MINER-GUIDE.md](./MINER-GUIDE.md)
 
 ## 关注我们 ##
   - 官方网站: https://sharder.org
-  - Telegram: https://t.me/sharder_talk
   - Twitter: @SharderChain
+  - Telegram: https://t.me/sharder_talk
   - Medium: https://medium.com/@SharderChain
-  - Facebook: https://www.facebook.com/SharderFoundation
-  - Reddit: https://www.reddit.com/r/Sharder_Official
   - Github: https://github.com/Sharders/sharder-chain
-  - QQ群: 578367251
   - 微信: 豆匣咨讯

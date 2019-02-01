@@ -24,7 +24,6 @@ package org.conch.addons;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.util.Convert;
 import org.conch.util.Logger;
 
 public final class Demo implements AddOn {
@@ -32,7 +31,7 @@ public final class Demo implements AddOn {
     @Override
     public void init() {
         Conch.getBlockchainProcessor().addListener(block -> Logger.logInfoMessage("Block " + block.getStringId()
-                + " has been forged by account " + Convert.rsAccount(block.getGeneratorId()) + " having effective balance of "
+                + " has been forged by account " + Account.rsAccount(block.getGeneratorId()) + " having effective balance of "
                 + Account.getAccount(block.getGeneratorId()).getEffectiveBalanceSS()),
                 BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
     }

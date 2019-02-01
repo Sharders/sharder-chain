@@ -21,10 +21,12 @@
 
 package org.conch.chain;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
@@ -186,15 +188,6 @@ public final class BlockImpl implements Block {
         }
     }
 
-    //just for genesis block
-    public BlockImpl(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
-              byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
-        this(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
-       generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
-        this.id= blockId;
-    }
-
-
     public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
               byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id,
@@ -217,6 +210,15 @@ public final class BlockImpl implements Block {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 generatorId, generationSignature, blockSignature, previousBlockHash,cumulativeDifficulty,baseTarget,nextBlockId,height,id,blockTransactions);
         this.extension = extension;
+    }
+
+    //just for genesis block
+    public static BlockImpl newGenesisBlock(long blockId,int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
+                     byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
+        BlockImpl block = new BlockImpl(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
+                generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
+        block.id= blockId;
+        return block;
     }
 
     @Override
@@ -394,7 +396,7 @@ public final class BlockImpl implements Block {
             byte[] generatorPublicKey = Convert.parseHexString((String) blockData.get("generatorPublicKey"));
             byte[] generationSignature = Convert.parseHexString((String) blockData.get("generationSignature"));
             byte[] blockSignature = Convert.parseHexString((String) blockData.get("blockSignature"));
-            byte[] previousBlockHash = version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
+            byte[] previousBlockHash = Convert.parseHexString((String) blockData.get("previousBlockHash"));
             List<TransactionImpl> blockTransactions = new ArrayList<>();
             for (Object transactionData : (JSONArray) blockData.get("transactions")) {
                 blockTransactions.add(TransactionImpl.parseTransaction((JSONObject) transactionData));
@@ -455,7 +457,7 @@ public final class BlockImpl implements Block {
     private boolean checkSignature() {
         if (! hasValidSignature) {
             byte[] data = Arrays.copyOf(bytes(), bytes.length - 64);
-            hasValidSignature = blockSignature != null && Crypto.verify(blockSignature, data, getGeneratorPublicKey(), version >= 3);
+            hasValidSignature = blockSignature != null && Crypto.verify(blockSignature, data, getGeneratorPublicKey(), true);
         }
         return hasValidSignature;
     }
@@ -469,54 +471,44 @@ public final class BlockImpl implements Block {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
 
-            if (version == 1 && !Crypto.verify(generationSignature, previousBlock.generationSignature, getGeneratorPublicKey(), false)) {
-                return false;
-            }
-
-            Account account = Account.getAccount(getGeneratorId());
-            long effectiveBalance = account == null ? 0 : account.getEffectiveBalanceSS();
-            if (effectiveBalance <= 0) {
+            BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            if (pocScore.signum() <= 0) {
                 return false;
             }
 
             MessageDigest digest = Crypto.sha256();
             byte[] generationSignatureHash;
-            if (version == 1) {
-                generationSignatureHash = digest.digest(generationSignature);
-            } else {
-                digest.update(previousBlock.generationSignature);
-                generationSignatureHash = digest.digest(getGeneratorPublicKey());
-                if (!Arrays.equals(generationSignature, generationSignatureHash)) {
-                    return false;
-                }
+            digest.update(previousBlock.generationSignature);
+            generationSignatureHash = digest.digest(getGeneratorPublicKey());
+            if (!Arrays.equals(generationSignature, generationSignatureHash)) {
+                return false;
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
-
-            return Generator.verifyHit(hit, BigInteger.valueOf(effectiveBalance), previousBlock, timestamp)
-                    || (this.height < Constants.TRANSPARENT_FORGING_BLOCK_5 && Arrays.binarySearch(badBlocks, this.getId()) >= 0);
+            
+            return Generator.verifyHit(hit, pocScore, previousBlock, timestamp) || isKnownBadBlock(this.getId());
 
         } catch (RuntimeException e) {
-
             Logger.logMessage("Error verifying block generation signature", e);
             return false;
-
         }
-
     }
-
-    private static final long[] badBlocks = new long[] {
-            5113090348579089956L, 8032405266942971936L, 7702042872885598917L, -407022268390237559L, -3320029330888410250L,
-            -6568770202903512165L, 4288642518741472722L, 5315076199486616536L, -6175599071600228543L};
+    
+    // known bad blocks
+    private static final long[] knownBadBlocks = new long[] {};
     static {
-        Arrays.sort(badBlocks);
+        Arrays.sort(knownBadBlocks);
+    }
+    
+    static boolean isKnownBadBlock(long blockId){
+        return Arrays.binarySearch(knownBadBlocks, blockId) >= 0;
     }
 
     public void apply() {
         Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
         generatorAccount.apply(getGeneratorPublicKey());
         long totalBackFees = 0;
-        if (this.height > Constants.SHUFFLING_BLOCK) {
+        if (this.height > Constants.SHUFFLING_BLOCK_HEIGHT) {
             long[] backFees = new long[3];
             for (TransactionImpl transaction : getTransactions()) {
                 long[] fees = transaction.getBackFees();
@@ -532,14 +524,14 @@ public final class BlockImpl implements Block {
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
                 Logger.logDebugMessage("Back fees %f SS to miner at height %d", ((double)backFees[i])/Constants.ONE_SS, this.height - i - 1);
                 previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
-                previousGeneratorAccount.addToForgedBalanceNQT(backFees[i]);
+                previousGeneratorAccount.addToMintedBalanceNQT(backFees[i]);
             }
         }
         if (totalBackFees != 0) {
             Logger.logDebugMessage("Fee reduced by %f SS at height %d", ((double)totalBackFees)/Constants.ONE_SS, this.height);
         }
         generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
-        generatorAccount.addToForgedBalanceNQT(totalFeeNQT - totalBackFees);
+        generatorAccount.addToMintedBalanceNQT(totalFeeNQT - totalBackFees);
     }
 
     public void setPrevious(BlockImpl block) {
@@ -569,7 +561,7 @@ public final class BlockImpl implements Block {
 
     private void calculateBaseTarget(BlockImpl previousBlock) {
         long prevBaseTarget = previousBlock.baseTarget;
-        if (previousBlock.getHeight() <= Constants.SHUFFLING_BLOCK) {
+        if (previousBlock.getHeight() <= Constants.SHUFFLING_BLOCK_HEIGHT) {
             baseTarget = BigInteger.valueOf(prevBaseTarget)
                     .multiply(BigInteger.valueOf(this.timestamp - previousBlock.timestamp))
                     .divide(BigInteger.valueOf(60)).longValue();
@@ -591,7 +583,8 @@ public final class BlockImpl implements Block {
             }
         } else if (previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - (Constants.BLOCK_GAP - 1) * 60;
+//            int blocktimeAverage = (this.timestamp - block.timestamp) / 3;
+            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.getBlockGapSeconds();
             if (blocktimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
@@ -610,6 +603,10 @@ public final class BlockImpl implements Block {
         cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
     }
 
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
 
 
 //    public void setExtension(String extension) {

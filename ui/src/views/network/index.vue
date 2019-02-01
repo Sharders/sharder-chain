@@ -22,11 +22,19 @@
                     </div>
                 </div>
             </div>
-            <div class="mb20 fl">
-                <p class="block_title">
-                    <img src="../../assets/img/miner.svg"/>
-                    <span>{{$t('network.miner_info')}}</span>
+            <div class="block_peers mb20 fl">
+                <p>
+                    <span class="block_title fl">
+                        <img src="../../assets/img/miner.svg"/>
+                        <span>{{$t('network.miner_info')}}</span>
+                    </span>
+                    <span class="hrefbtn fr block_title csp mr5">
+                        <a @click="openMinerList">
+                            <span>矿工列表</span>
+                        </a>
+                    </span>
                 </p>
+                <span class="cb"></span>
                 <div class="whf xs_section_fa">
                     <div class="xs_section br4">
                         <div>
@@ -124,10 +132,16 @@
                             </thead>
                             <tbody>
                             <tr v-for="(block,index) in blocklist">
-                                <td><span>{{block.height}}</span></td>
-                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS')}}</span></td>
-                                <td><span>{{block.totalAmountNQT/100000000}} SS</span></td>
-                                <td><span>{{block.totalFeeNQT/100000000}} SS</span></td>
+                                <td class="pl0"><span>{{block.height}}</span></td>
+                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span></td>
+                                <td>
+                                    <span v-if="block.totalAmountNQT === '0'">-</span>
+                                    <span v-else>{{block.totalAmountNQT/100000000}} SS</span>
+                                </td>
+                                <td>
+                                    <span v-if="block.totalFeeNQT === '0'">-</span>
+                                    <span v-else>{{block.totalFeeNQT/100000000}} SS</span>
+                                </td>
                                 <td><span>{{block.numberOfTransactions}}</span></td>
                                 <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}
                                 </td>
@@ -137,7 +151,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="list_pagination" v-if="totalSize > pageSize">
+                    <div class="list_pagination">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -146,6 +160,40 @@
                             layout="total, prev, pager, next, jumper"
                             :total="totalSize">
                         </el-pagination>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal w700" id="miner_list" v-show="minerlistDialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" @click="closeDialog">X</button>
+                        <h4 class="modal-title">矿工名单</h4>
+                    </div>
+                    <div class="modal-body modal-miner">
+                        <el-table
+                            :data="minerlist"
+                            :height="550"
+                            border
+                            style="width: 100%">
+                            <el-table-column
+                                prop="accountRS"
+                                label="账户"
+                                width="250">
+                            </el-table-column>
+                            <el-table-column
+                                sortable
+                                prop="effectiveBalanceSS"
+                                label="SS"
+                                width="150">
+                            </el-table-column>
+                            <el-table-column
+                                prop="hitTime"
+                                :formatter="dateFormat"
+                                label="挖矿时间">
+                            </el-table-column>
+                        </el-table>
                     </div>
                 </div>
             </div>
@@ -178,6 +226,16 @@
                 transactionId: '',
                 transactionDialog: false,
                 accountInfo: [],
+
+                minerlistDialog:false,
+                minerlist:[],
+                minerlistHeight: 590,
+
+
+                peersLocationList:{},
+                peersTimeList:[],
+
+
 
                 //list列表
                 blocklist: [],
@@ -212,10 +270,12 @@
                     console.log("blocklist", _this.blocklist);
                     // _this.calcAverageAmount(res);
 
-                    _this.newestHeight = res.data.blocks[0].height;
-                    _this.coinbaseCount = _this.newestHeight;
-                    _this.totalSize = res.data.blocks[0].height;
-                    _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS');
+                    if(_this.currentPage === 1){
+                        _this.totalSize = res.data.blocks[0].height;
+                        _this.coinbaseCount = _this.newestHeight;
+                        _this.newestHeight = res.data.blocks[0].height;
+                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS',true);
+                    }
                 } else {
                     _this.$message.error(res.data.errorDescription);
                 }
@@ -225,11 +285,34 @@
             });
             this.$http.get('/sharder?requestType=getPeers').then(function (res) {
                 _this.peerNum = res.data.peers.length;
+
+                _this.$global.byIPtoCoordinates(res.data.peers).then(res1=>{
+                    let json = JSON.parse(res1);
+                    for(let i of Object.keys(json)){
+                        if(json[i]["X"] !== "" && json[i]["X"] !== "0"
+                            && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
+                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])){
+                            let arr = [];
+                            arr.push(json[i]["Y"]);
+                            arr.push(json[i]["X"]);
+                            _this.peersLocationList[i] = arr;
+                            arr = [];
+                            arr.push(i);
+                            arr.push(_this.$global.myFormatTime(json[i]["time"],"HMS",false));
+                            _this.peersTimeList.push(arr);
+                        }
+                    }
+                    _this.drawPeers();
+                });
             }).catch(function (err) {
                 console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+                console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
+                _this.minerlist = res.data.generators;
+
+                console.log("miners:",_this.minerlist);
             }).catch(function (err) {
                 console.error("error", err);
             });
@@ -250,170 +333,34 @@
                 this.getBlockList(val);
             },
             turn2peers: function () {
-                this.$router.push("/network/peers");
+                this.$router.push({
+                    name:"peers",
+                    params:{
+                        peersLocationList:this.peersLocationList,
+                        peersTimeList:this.peersTimeList
+                    }
+                });
+            },
+            openMinerList:function(){
+                let _this = this;
+                this.$store.state.mask = true;
+                this.minerlistDialog = true;
+            },
+            closeDialog:function(){
+                this.$store.state.mask = false;
+                this.minerlistDialog = false;
             },
             drawPeers: function () {
+                let _this = this;
                 const myChart = echarts.init(document.getElementById("peers-map"));
-
-                const geoCoordMap = {
-                    "Amsterdam": [4.895168, 52.370216],
-                    "Athens": [-83.357567, 33.951935],
-                    "Auckland": [174.763332, -36.84846],
-                    "Bangkok": [100.501765, 13.756331],
-                    "Barcelona": [2.173403, 41.385064],
-                    "Beijing": [116.407395, 39.904211],
-                    "Berlin": [13.404954, 52.520007],
-                    "Bogotá": [-74.072092, 4.710989],
-                    "Bratislava": [17.107748, 48.148596],
-                    "Brussels": [4.35171, 50.85034],
-                    "Budapest": [19.040235, 47.497912],
-                    "Buenos Aires": [-58.381559, -34.603684],
-                    "Bucharest": [26.102538, 44.426767],
-                    "Caracas": [-66.903606, 10.480594],
-                    "Chicago": [-87.629798, 41.878114],
-                    "Delhi": [77.209021, 28.613939],
-                    "Doha": [51.53104, 25.285447],
-                    "Dubai": [55.270783, 25.204849],
-                    "Dublin": [-6.26031, 53.349805],
-                    "Frankfurt": [8.682127, 50.110922],
-                    "Geneva": [6.143158, 46.204391],
-                    "Helsinki": [24.938379, 60.169856],
-                    "Hong Kong": [114.109497, 22.396428],
-                    "Istanbul": [28.978359, 41.008238],
-                    "Jakarta": [106.845599, -6.208763],
-                    "Johannesburg": [28.047305, -26.204103],
-                    "Cairo": [31.235712, 30.04442],
-                    "Kiev": [30.5234, 50.4501],
-                    "Copenhagen": [12.568337, 55.676097],
-                    "Kuala Lumpur": [101.686855, 3.139003],
-                    "Lima": [-77.042793, -12.046374],
-                    "Lisbon": [-9.139337, 38.722252],
-                    "Ljubljana": [14.505751, 46.056947],
-                    "London": [-0.127758, 51.507351],
-                    "Los Angeles": [-118.243685, 34.052234],
-                    "Luxembourg": [6.129583, 49.815273],
-                    "Lyon": [4.835659, 45.764043],
-                    "Madrid": [-3.70379, 40.416775],
-                    "Milan": [9.185924, 45.465422],
-                    "Manama": [50.58605, 26.228516],
-                    "Manila": [120.984219, 14.599512],
-                    "Mexico City": [-99.133208, 19.432608],
-                    "Miami": [-80.19179, 25.76168],
-                    "Montreal": [-73.567256, 45.501689],
-                    "Moscow": [37.6173, 55.755826],
-                    "Mumbai": [72.877656, 19.075984],
-                    "Munich": [11.581981, 48.135125],
-                    "Nairobi": [36.821946, -1.292066],
-                    "New York": [-74.005941, 40.712784],
-                    "Nicosia": [33.382276, 35.185566],
-                    "Oslo": [10.752245, 59.913869],
-                    "Paris": [2.352222, 48.856614],
-                    "Prague": [14.4378, 50.075538],
-                    "Riga": [24.105186, 56.949649],
-                    "Rio de Janeiro": [-43.172896, -22.906847],
-                    "Rome": [12.496366, 41.902783],
-                    "Santiago de Chile": [-70.669265, -33.44889],
-                    "São Paulo": [-46.633309, -23.55052],
-                    "Seoul": [126.977969, 37.566535],
-                    "Shanghai": [121.473701, 31.230416],
-                    "Singapore": [103.819836, 1.352083],
-                    "Sofia": [23.321868, 42.697708],
-                    "Stockholm": [18.068581, 59.329323],
-                    "Sydney": [151.209296, -33.86882],
-                    "Taipei": [121.565418, 25.032969],
-                    "Tallinn": [24.753575, 59.436961],
-                    "Tel Aviv": [34.781768, 32.0853],
-                    "Tokyo": [139.691706, 35.689487],
-                    "Toronto": [-79.383184, 43.653226],
-                    "Vilnius": [25.279651, 54.687156],
-                    "Warsaw": [21.012229, 52.229676],
-                    "Vienna": [16.373819, 48.208174],
-                    "Zurich": [8.541694, 47.376887]
-                };
-                const rawData = [
-                    ["Amsterdam", 101.6],
-                    ["Athens", 62.6],
-                    ["Auckland", 77.9],
-                    ["Bangkok", 26.4],
-                    ["Barcelona", 79.7],
-                    ["Beijing", 28.2],
-                    ["Berlin", 109.7],
-                    ["Bogotá", 41.4],
-                    ["Bratislava", 51.3],
-                    ["Brussels", 107.5],
-                    ["Budapest", 35.5],
-                    ["Buenos Aires", 42.9],
-                    ["Bucharest", 37.1],
-                    ["Caracas", 21.9],
-                    ["Chicago", 105.3],
-                    ["Delhi", 23],
-                    ["Doha", 38.8],
-                    ["Dubai", 63.5],
-                    ["Dublin", 101.9],
-                    ["Frankfurt", 102.2],
-                    ["Geneva", 116],
-                    ["Helsinki", 93],
-                    ["Hong Kong", 58.5],
-                    ["Istanbul", 39],
-                    ["Jakarta", 14.7],
-                    ["Johannesburg", 80.6],
-                    ["Cairo", 26.2],
-                    ["Kiev", 19.5],
-                    ["Copenhagen", 122],
-                    ["Kuala Lumpur", 41.1],
-                    ["Lima", 43.6],
-                    ["Lisbon", 65.3],
-                    ["Ljubljana", 57.5],
-                    ["London", 91.2],
-                    ["Los Angeles", 113.8],
-                    ["Luxembourg", 111.6],
-                    ["Lyon", 81.8],
-                    ["Madrid", 83.6],
-                    ["Milan", 88.2],
-                    ["Manama", 56.4],
-                    ["Manila", 19.2],
-                    ["Mexico City", 26.8],
-                    ["Miami", 106.2],
-                    ["Montreal", 93.1],
-                    ["Moscow", 45.1],
-                    ["Mumbai", 24.9],
-                    ["Munich", 108.3],
-                    ["Nairobi", 21.4],
-                    ["New York", 100],
-                    ["Nicosia", 95],
-                    ["Oslo", 102.7],
-                    ["Paris", 94.8],
-                    ["Prague", 45.1],
-                    ["Riga", 44.3],
-                    ["Rio de Janeiro", 44.4],
-                    ["Rome", 69.6],
-                    ["Santiago de Chile", 42.8],
-                    ["São Paulo", 48.7],
-                    ["Seoul", 80.8],
-                    ["Shanghai", 37.2],
-                    ["Singapore", 50.8],
-                    ["Sofia", 32.6],
-                    ["Stockholm", 90.2],
-                    ["Sydney", 112.5],
-                    ["Taipei", 52],
-                    ["Tallinn", 47.9],
-                    ["Tel Aviv", 57],
-                    ["Tokyo", 84.7],
-                    ["Toronto", 103.4],
-                    ["Vilnius", 42.6],
-                    ["Warsaw", 44.3],
-                    ["Vienna", 100.6],
-                    ["Zurich", 119.1]
-                ];
-
                 function makeMapData(rawData) {
                     const mapData = [];
                     for (let i = 0; i < rawData.length; i++) {
-                        const geoCoord = geoCoordMap[rawData[i][0]];
+                        const geoCoord = _this.peersLocationList[rawData[i][0]];
                         if (geoCoord) {
                             mapData.push({
                                 name: rawData[i][0],
-                                value: geoCoord.concat(rawData[i].slice(1))
+                                value: geoCoord
                             });
                         }
                     }
@@ -421,14 +368,6 @@
                 }
 
                 const option = {
-                    tooltip: {
-                        trigger: "item",
-                        formatter: function (params) {
-                            let value = (params.value + "").split(".");
-                            value = value[0].replace(/(\d{1,3})(?=(?:\d{3})+(?!\d))/g, "$1,") + "." + value[1];
-                            return params.seriesName + "<br/>" + params.name + " : " + value;
-                        }
-                    },
                     geo: {
                         map: "world",
                         silent: true,
@@ -448,7 +387,7 @@
                         top: 0,
                         bottom: 0,
                         right: 0,
-                        roam: true
+                        roam: false
                     },
                     parallel: {
                         top: 0,
@@ -464,7 +403,7 @@
                             nameGap: 20,
                             splitNumber: 3,
                             tooltip: {
-                                show: true
+                                show: false
                             },
                             axisLine: {
                                 show: true,
@@ -484,11 +423,11 @@
                     },
                     series: [
                         {
-                            name: "Prices and Earnings 2012",
+                            name: "节点",
                             type: "scatter",
                             coordinateSystem: "geo",
                             symbolSize: 8,
-                            data: makeMapData(rawData),
+                            data: makeMapData(_this.peersTimeList),
                             activeOpacity: 1,
                             label: {
                                 normal: {
@@ -554,7 +493,7 @@
                 _this.accountInfo = accountInfo;
                 _this.transactionDialog = true;
 
-                console.log("accountInfo", accountInfo);
+                // console.log("accountInfo", accountInfo);
                 _this.accountInfoDialog = false;
             },
             isClose() {
@@ -565,10 +504,41 @@
                 _this.blockInfoHeight = -1;
                 _this.generatorRS = '';
 
+            },
+            dateFormat(val) {
+                return this.$global.myFormatTime(val.hitTime,"YMDHMS",true);
             }
         },
         mounted() {
-            this.drawPeers();
+            let _this = this;
+            let periodicBlocks = setInterval(()=>{
+                if(_this.$route.path === '/network'){
+                    this.$http.get('/sharder?requestType=getBlocks', {
+                        params: {
+                            firstIndex: (_this.currentPage - 1) * 10,
+                            lastIndex: _this.currentPage * 10 - 1
+                        }
+                    }).then(function (res) {
+                        if (!res.data.errorDescription) {
+                            _this.blocklist = res.data.blocks;
+
+                            if(_this.currentPage === 1){
+                                _this.totalSize = res.data.blocks[0].height;
+                                _this.coinbaseCount = _this.newestHeight;
+                                _this.newestHeight = res.data.blocks[0].height;
+                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS',true);
+                            }
+                        } else {
+                            _this.$message.error(res.data.errorDescription);
+                        }
+
+                    }).catch(function (err) {
+                        _this.$message.error(err);
+                    });
+                }else{
+                    clearInterval(periodicBlocks);
+                }
+            },5000);
         },
     };
 </script>

@@ -71,7 +71,7 @@ public class PoolRule implements Serializable {
 
     public static int getLevel(long creatorId) {
         SharderPoolProcessor poolProcessor =
-                SharderPoolProcessor.newSharderPoolFromDestroyed(creatorId);
+                SharderPoolProcessor.newPoolFromDestroyed(creatorId);
         if (poolProcessor == null) {
             return 0;
         }
@@ -277,7 +277,7 @@ public class PoolRule implements Serializable {
     public static Map<Long, Long> getRewardMap(
             Long creator, Long poolId, Long amount, Map<Long, Long> map) {
         Map<Long, Long> result = new HashMap<>();
-        SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPoolFromAll(creator, poolId);
+        SharderPoolProcessor forgePool = SharderPoolProcessor.getPoolFromAll(creator, poolId);
         int level = forgePool.getLevel();
         Map<String, Object> ruleMap =
                 (Map<String, Object>)

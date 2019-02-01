@@ -24,7 +24,6 @@ package org.conch.util;
 import com.alibaba.fastjson.JSONObject;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.crypto.Crypto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -98,21 +97,6 @@ public final class Convert {
         }
     }
 
-    public static long parseAccountId(String account) {
-        if (account == null || (account = account.trim()).isEmpty()) {
-            return 0;
-        }
-        account = account.toUpperCase();
-        if (account.startsWith(Constants.ACCOUNT_PREFIX)) {
-            return Crypto.rsDecode(account.substring(4));
-        } else {
-            return Long.parseUnsignedLong(account);
-        }
-    }
-
-    public static String rsAccount(long accountId) {
-        return Constants.ACCOUNT_PREFIX + Crypto.rsEncode(accountId);
-    }
 
     public static long fullHashToId(byte[] hash) {
         if (hash == null || hash.length < 8) {
@@ -237,12 +221,11 @@ public final class Convert {
         return bytes;
     }
 
-    public static int countJsonBytes(Map map){
-        return toBytes(JSONObject.toJSONString(map)).length;
+    public static int countJsonBytes(Object obj){
+        return toBytes(JSONObject.toJSONString(obj)).length;
     }
 
     public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws ConchException.NotValidException {
-        
         if (numBytes > 3 * maxLength) {
             throw new ConchException.NotValidException("Max parameter length exceeded");
         }
@@ -260,6 +243,10 @@ public final class Convert {
     
     public static int writeMap(ByteBuffer buffer, Map map) {
         return writeString(buffer,JSONObject.toJSONString(map));
+    }
+    
+    public static int writeList(ByteBuffer buffer, List list) {
+        return writeString(buffer,JSONObject.toJSONString(list));
     }
     
     public static int writeMapArray(ByteBuffer buffer, List<Map> mapArray) {

@@ -13,9 +13,9 @@
                     </div>
                     <div class="pool-state">
                         <h1>{{$t('mining.attribute.mining')}}</h1>
-                        <h1>{{$t('mining.attribute.mining_current_number1')}}<span class="number">5689</span>{{$t('mining.attribute.mining_current_number2')}}</h1>
+                        <h1>{{$t('mining.attribute.mining_current_number1')}}<span class="number">{{newestBlock.height}}</span>{{$t('mining.attribute.mining_current_number2')}}</h1>
                     </div>
-                    <div class="earnings">{{$t('mining.attribute.income')}}+{{miningInfo.income}}SS</div>
+                    <div class="earnings">{{$t('mining.attribute.income')}}+{{miningInfo.income/100000000}}SS</div>
                 </div>
                 <div class="my-info">
                     <h1>
@@ -27,32 +27,33 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.join_time')}}</p>
-                                    <p class="strong"></p>
+                                    <p class="strong">{{miningInfo.timestamp === 0 ? '未加入':$global.myFormatTime(miningInfo.timestamp,'YMDHMS',true)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.investing_diamonds')}}</p>
-                                    <p class="strong">{{miningInfo.currentInvestment}}</p>
+                                    <p class="strong">{{miningInfo.currentInvestment/100000000}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.gain_profit')}}</p>
-                                    <p class="strong">{{miningInfo.income}} SS</p>
+                                    <p class="strong">{{miningInfo.income/100000000}} SS</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.remaining_mining_time')}}</p>
-                                    <p class="strong">600块(约12h)</p>
+                                    <p class="strong">{{miningInfo.startBlockNo > newestBlock.height ? miningInfo.endBlockNo - miningInfo.startBlockNo : miningInfo.endBlockNo - newestBlock.height}}</p>
                                 </button>
                             </el-col>
                         </el-row>
                     </div>
                     <div class="attribute-btn">
                         <button class="join" @click="miningMask('isJoinPool')">{{$t('mining.attribute.investing_diamonds')}}</button>
-                        <button v-if="myAccount !== miningInfo.accountId" class="exit" @click="miningMask('isExitPool')">{{$t('mining.attribute.exit_pool')}}</button>
+                        <button v-if="myAccount !== miningInfo.account
+" class="exit" @click="miningMask('isExitPool')">{{$t('mining.attribute.exit_pool')}}</button>
                         <button v-else class="exit" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.destroy_pool')}}</button>
                     </div>
                 </div>
@@ -86,17 +87,18 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.capacity')}}{{miningInfo.currentInvestment}}/{{miningInfo.investmentTotal}}
+                                    {{$t('mining.attribute.capacity')}}{{miningInfo.currentInvestment/100000000}}/{{miningInfo.investmentTotal/100000000}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_income')}}{{miningInfo.income}}
+                                    {{$t('mining.attribute.pool_income')}}{{miningInfo.income/100000000}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.reward_distribution')}}{{miningInfo.distribution}}%
+                                    {{$t('mining.attribute.reward_distribution')}}{{typeof miningInfo.rule.level1 !== 'undefined' ?
+                                     (1-miningInfo.rule.level1.forgepool.reward.max/1)*100 : (1-miningInfo.rule.level0.forgepool.reward.max/1)*100 }}%
                                 </button>
                             </el-col>
                         </el-row>
@@ -152,23 +154,28 @@
         name: "attribute",
         data() {
             return {
-                mining: this.$route.params,
+                mining: this.$route.params.mining,
+                newestBlock: this.$route.params.newestBlock,
                 isAttribute: false,
                 isJoinPool: false,
                 isExitPool: false,
                 isDestroyPool:false,
-                joinPool: '',
-                myAccount:SSO.account,
+                joinRSPool: '',
+                myAccount:SSO.accountRS,
                 miningInfo:{
                     account:'',
                     accountId:"",
                     amount:0,
                     poolId:'',
                     currentInvestment:0,
-                    investmentTotal:500000,
+                    investmentTotal:50000000000000,
                     income:0,
                     distribution:0,
-                    chance:0
+                    chance:0,
+                    timestamp:0,
+                    startBlockNo:0,
+                    endBlockNo:0,
+                    rule:""
                 }
             }
         },
@@ -176,6 +183,10 @@
             miningExit() {
                 // this.miningMask('isExitPool');
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 this.$http.get('sharder?requestType=getBlockchainTransactions',{
                     params:{
@@ -183,6 +194,9 @@
                         type:8
                     }
                 }).then(res=>{
+                    if(typeof res.data.errorDescription !== "undefined"){
+                        _this.$message.error(res.data.errorDescription);
+                    }
                     res.data.transactions.forEach(function (element) {
                         if(element.attachment.poolId === _this.miningInfo.poolId){
                             formData.append("txId",element.transaction);
@@ -193,6 +207,10 @@
                             formData.append("deadline","1440");
                             formData.append("feeNQT","100000000");
                             _this.$http.post('/sharder?requestType=quitPool',formData).then(res=>{
+                                if(typeof res.data.errorDescription !== "undefined"){
+                                    _this.$message.error(res.data.errorDescription);
+                                    return;
+                                }
                                 _this.$store.state.mask = false;
                                 _this.isExitPool = false;
                             }).catch(err=>{
@@ -206,6 +224,10 @@
             },
             miningDestory(){
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 formData.append("period","400");
                 formData.append("secretPhrase",SSO.secretPhrase);
@@ -214,6 +236,10 @@
 
                 formData.append("poolId", _this.miningInfo.poolId);
                 this.$http.post('sharder?requestType=destroyPool', formData).then(res=>{
+                    if(typeof res.data.errorDescription !== "undefined"){
+                        _this.$message.error(res.data.errorDescription);
+                        return;
+                    }
                     console.log(res.data);
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
@@ -223,6 +249,10 @@
             },
             miningJoin(){
                 let _this = this;
+                if(SSO.downloadingBlockchain){
+                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return;
+                }
                 let formData = new FormData();
                 formData.append("period","400");
                 formData.append("secretPhrase",SSO.secretPhrase);
@@ -230,10 +260,11 @@
                 formData.append("feeNQT","100000000");
 
                 formData.append("poolId",_this.mining.poolId);
-                formData.append("amount",_this.joinPool);
+                formData.append("amount",_this.joinPool*100000000);
 
                 this.$http.post('/sharder?requestType=joinPool',formData).then(res=>{
-                    if(typeof res.data.errorDescription !== undefined){
+
+                    if(typeof res.data.errorDescription === "undefined"){
                         console.log(res.data);
                         _this.$message.success("加入成功");
                         this.$store.state.mask = false;
@@ -259,6 +290,11 @@
             let formData = new FormData();
             formData.append("poolId", _this.mining.poolId);
 
+            console.log("newestBlock",_this.newestBlock);
+
+
+
+
             this.$http.post('/sharder?requestType=getPoolInfo',formData).then(res=>{
                 if(res.data.errorDescription !== undefined){
                     _this.$message.error(res.data.errorDescription);
@@ -266,26 +302,60 @@
                     }
                     history.back(-1);
                 }else{
-                    _this.miningInfo.amount = res.data.number+1;
+                    _this.miningInfo.amount = res.data.number;
                     _this.miningInfo.poolId = res.data.poolId;
                     _this.miningInfo.currentInvestment = res.data.power;
                     _this.miningInfo.accountId = res.data.creatorID;
                     _this.miningInfo.income = res.data.historicalIncome;
                     _this.miningInfo.chance = res.data.chance;
+                    _this.miningInfo.startBlockNo = res.data.startBlockNo;
+                    _this.miningInfo.endBlockNo = res.data.endBlockNo;
+                    _this.miningInfo.rule = res.data.rule;
+
+                    console.log("miningInfo.accountId",_this.miningInfo.accountId);
+                    console.log("myAccount",_this.myAccount);
 
                     _this.$http.get('/sharder?requestType=getAccount',{
                         params: {
                             account:res.data.creatorID
                         }
                     }).then(res=>{
+                        if(typeof res.data.errorDescription !== "undefined"){
+                            _this.$message.error(res.data.errorDescription);
+                            return;
+                        }
                         _this.miningInfo.account = res.data.accountRS;
                     }).catch(err=>{
 
+                    });
+
+                    this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                        params:{
+                            account:_this.myAccount,
+                            type:8,
+                            subtype:2,
+                        }
+                    }).then(function (res) {
+                        if(typeof res.data.errorDescription !== "undefined"){
+                            _this.$message.error(res.data.errorDescription);
+                            return;
+                        }
+                        res.data.transactions.forEach(function (element) {
+                            console.log(element.attachment.poolId);
+                            console.log(_this.miningInfo.poolId);
+                            if(element.attachment.poolId === _this.miningInfo.poolId){
+                                _this.miningInfo.timestamp = element.timestamp;
+                            }
+                        });
+                    }).catch(function (err) {
+                        console.log(err);
                     });
                 }
             }).catch(err=>{
               console.log(err);
             });
+
+
         }
     }
 </script>

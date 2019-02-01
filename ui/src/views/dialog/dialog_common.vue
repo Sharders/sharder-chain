@@ -10,9 +10,11 @@
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>{{$t('dialog.account_info_name')}}&nbsp</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>
+                    <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{$t('dialog.account_info_name')}}&nbsp</span>
+                    <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
+                    <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span>
+                    <!--<span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>-->
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -35,7 +37,7 @@
                             <table class="table">
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo">
-                                    <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS')}}</td>
+                                    <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</td>
                                     <td v-if="transactions.type === 0">
                                         <img src="../../assets/img/pay.svg"/>
                                         <span>{{$t('dialog.account_info_payment')}}</span>
@@ -59,6 +61,10 @@
                                     <td v-else-if="transactions.type === 9">
                                         <img src="../../assets/img/coinBase.svg"/>
                                         <span>CoinBase</span>
+                                    </td>
+                                    <td v-else-if="transactions.type === 12">
+                                        <img src="../../assets/img/POC.svg"/>
+                                        <span>POC交易</span>
                                     </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
                                     <td>{{transactions.feeNQT/100000000}}</td>
@@ -121,6 +127,9 @@
                             <td v-else-if="transactionInfo.type === 9">
                                 <span>CoinBase</span>
                             </td>
+                            <td v-else-if="transactionInfo.type === 12">
+                                <span>POC交易</span>
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
@@ -147,13 +156,13 @@
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
                             <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}</td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                             <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
+                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
@@ -207,7 +216,7 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
-                    <span >{{$t('dialog.block_info_title1')}}{{blockInfo.block}}{{$t('dialog.block_info_title2')}}</span>
+                    <span >{{$t('dialog.block_info_title1')}}{{blockInfo.block}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -228,7 +237,7 @@
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
-                            <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS')}}</td>
+                            <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</td>
 
                             </td>
                             <td v-if="transaction.type === 0">
@@ -254,6 +263,10 @@
                             <td v-else-if="transaction.type === 9">
                                 <img src="../../assets/img/coinBase.svg"/>
                                 <span>CoinBase</span>
+                            </td>
+                            <td v-else-if="transaction.type === 12">
+                                <img src="../../assets/img/POC.svg"/>
+                                <span>POC交易</span>
                             </td>
                             <td>{{transaction.amountNQT/100000000}}</td>
                             <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
@@ -308,6 +321,10 @@
                         <tr>
                             <th>{{$t('dialog.block_info_cumulative_difficulty')}}</th>
                             <td>{{blockInfo.cumulativeDifficulty}}</td>
+                        </tr>
+                        <tr>
+                            <th>区块编号</th>
+                            <td>{{blockInfo.block}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_block_height')}}</th>
@@ -401,13 +418,13 @@
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
                         <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS')}}</td>
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}</td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                         <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS')}}</td>
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>

@@ -29,7 +29,6 @@ import org.conch.common.Constants;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
-import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;
 import org.conch.util.Logger;
@@ -79,7 +78,7 @@ public class AccountLedger {
             } else {
                 for (String account : ledgerAccounts) {
                     try {
-                        trackAccounts.add(Convert.parseAccountId(account));
+                        trackAccounts.add(Account.rsAccountToId(account));
                         Logger.logInfoMessage("Account ledger is tracking account " + account);
                     } catch (RuntimeException e) {
                         Logger.logErrorMessage("Account " + account + " is not valid; ignored");
@@ -394,6 +393,7 @@ public class AccountLedger {
         // TYPE_PAYMENT
             ORDINARY_PAYMENT(3, true),
             COIN_BASE(58, true),
+            //TODO sub type of coinbase definitions
         // TYPE_MESSAGING
             ACCOUNT_INFO(4, true),
             ALIAS_ASSIGNMENT(5, true),
@@ -454,7 +454,7 @@ public class AccountLedger {
             SHUFFLING_PROCESSING(52, true),
             SHUFFLING_CANCELLATION(53, true),
             SHUFFLING_DISTRIBUTION(54, true),
-        // TYPE_FORGE_POOL
+        // TYPE_SHARDER_POOL
             FORGE_POOL_CREATE(61, true),
             FORGE_POOL_DESTROY(62, true),
             FORGE_POOL_JOIN(63, true),

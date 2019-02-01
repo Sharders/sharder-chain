@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.conch.account.Account;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -45,7 +46,7 @@ public final class RSConvert extends APIServlet.APIRequestHandler {
             return MISSING_ACCOUNT;
         }
         try {
-            long accountId = Convert.parseAccountId(accountValue);
+            long accountId = Account.rsAccountToId(accountValue);
             if (accountId == 0) {
                 return INCORRECT_ACCOUNT;
             }

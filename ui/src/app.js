@@ -1,7 +1,7 @@
 import Vue from "vue";
 import {sync} from "vuex-router-sync";
 import Element from "element-ui";
-import App from "components/App";
+import App from "components/app";
 import {router} from "./router";
 import axios from "./httpConfig/http.js";
 import store from "./store";
@@ -30,6 +30,13 @@ function passage(path) {
 }
 
 router.beforeEach((to, from, next) => {
+    // console.info(to);
+    let redirect = to.query['redirect'];
+    if (passage(redirect)) {
+        next(redirect + "?token" + to.query['token']);
+        return;
+    }
+
     if (passage(to.path)) {
         next();
         return;

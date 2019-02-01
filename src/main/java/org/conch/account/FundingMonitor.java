@@ -28,7 +28,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -135,7 +135,7 @@ public final class FundingMonitor {
         this.threshold = threshold;
         this.interval = interval;
         this.accountId = accountId;
-        this.accountName = Convert.rsAccount(accountId);
+        this.accountName = Account.rsAccount(accountId);
         this.secretPhrase = secretPhrase;
         this.publicKey = Crypto.getPublicKey(secretPhrase);
     }
@@ -318,7 +318,7 @@ public final class FundingMonitor {
                 monitorInterval = (int)getValue(jsonValue.get("interval"), monitorInterval);
             } catch (IllegalArgumentException | ParseException exc) {
                 String errorMessage = String.format("Account %s, property '%s', value '%s' is not valid",
-                            Convert.rsAccount(accountId), monitor.property, propertyValue);
+                        Account.rsAccount(accountId), monitor.property, propertyValue);
                 throw new IllegalArgumentException(errorMessage, exc);
             }
         }
@@ -755,7 +755,7 @@ public final class FundingMonitor {
                 throw new IllegalArgumentException("Minimum fund interval is " + MIN_FUND_INTERVAL);
             }
             this.accountId = accountId;
-            this.accountName = Convert.rsAccount(accountId);
+            this.accountName = Account.rsAccount(accountId);
             this.monitor = monitor;
             this.amount = amount;
             this.threshold = threshold;
@@ -980,7 +980,7 @@ public final class FundingMonitor {
                     }
                 }
             } catch (Exception exc) {
-                Logger.logErrorMessage("Unable to process SET_PROPERTY event for account " + Convert.rsAccount(accountId), exc);
+                Logger.logErrorMessage("Unable to process SET_PROPERTY event for account " + Account.rsAccount(accountId), exc);
             }
         }
     }

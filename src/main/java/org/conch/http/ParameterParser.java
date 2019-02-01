@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.Alias;
@@ -69,7 +70,7 @@ public final class ParameterParser {
             if (isMandatory) {
                 throw new ParameterException(missing(name));
             }
-            return 0;
+            return -1;
         }
         try {
             byte value = Byte.parseByte(paramValue);
@@ -99,6 +100,10 @@ public final class ParameterParser {
         } catch (RuntimeException e) {
             throw new ParameterException(incorrect(name, String.format("value %s is not numeric", paramValue)));
         }
+    }
+
+    public static boolean getBoolean(HttpServletRequest req, String name){
+        return Boolean.parseBoolean(req.getParameter(name));
     }
 
     public static long getLong(HttpServletRequest req, String name, long min, long max,
@@ -186,7 +191,7 @@ public final class ParameterParser {
             return 0;
         }
         try {
-            long value = Convert.parseAccountId(paramValue);
+            long value = Account.rsAccountToId(paramValue);
             if (value == 0) {
                 throw new ParameterException(incorrect(name));
             }
@@ -211,7 +216,7 @@ public final class ParameterParser {
                 if (paramValues[i] == null || paramValues[i].isEmpty()) {
                     throw new ParameterException(INCORRECT_ACCOUNT);
                 }
-                values[i] = Convert.parseAccountId(paramValues[i]);
+                values[i] = Account.rsAccountToId(paramValues[i]);
                 if (values[i] == 0) {
                     throw new ParameterException(INCORRECT_ACCOUNT);
                 }
@@ -404,10 +409,11 @@ public final class ParameterParser {
 
     public static String getSecretPhrase(HttpServletRequest req, boolean isMandatory) throws ParameterException {
         String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
-        if (secretPhrase == null && isMandatory) {
+        boolean missingSP = StringUtils.isEmpty(secretPhrase) || "undefined".equalsIgnoreCase(secretPhrase);
+        if (missingSP && isMandatory) {
             throw new ParameterException(MISSING_SECRET_PHRASE);
         }
-        return secretPhrase;
+        return missingSP ? null : secretPhrase;
     }
 
     public static byte[] getPublicKey(HttpServletRequest req) throws ParameterException {
@@ -472,7 +478,7 @@ public final class ParameterParser {
                 continue;
             }
             try {
-                Account account = Account.getAccount(Convert.parseAccountId(accountValue));
+                Account account = Account.getAccount(Account.rsAccountToId(accountValue));
                 if (account == null) {
                     throw new ParameterException(UNKNOWN_ACCOUNT);
                 }

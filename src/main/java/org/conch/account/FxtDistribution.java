@@ -28,7 +28,6 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.db.DerivedDbTable;
 import org.conch.tx.TransactionDb;
-import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.conch.util.Listener;
 import org.conch.util.Logger;
@@ -49,13 +48,12 @@ public final class FxtDistribution implements Listener<Block> {
     public static final int DISTRIBUTION_FREQUENCY = 720; // run processing every 720 blocks
     public static final int DISTRIBUTION_STEP = 60; // take snapshots every 60 blocks
 
-    //FIXME[xy] check and modify following hard code
-    public static final long FXT_ASSET_ID = Long.parseUnsignedLong(Constants.isTestnetOrDevnet() ? "861080501219231688" : "12422608354438203866");
-    public static final long FXT_ISSUER_ID = Convert.parseAccountId(Constants.isTestnetOrDevnet() ? "SSA-F8FG-RDWZ-GRW7-4GSK9" : "SSA-FQ28-G9SQ-BG8M-6V6QH");
+    public static final long FXT_ASSET_ID = -1L;
+    public static final long FXT_ISSUER_ID = -1L;
 
     private static final BigInteger BALANCE_DIVIDER = BigInteger.valueOf(10000L * (DISTRIBUTION_END - DISTRIBUTION_START) / DISTRIBUTION_STEP);
     private static final String logAccount = Conch.getStringProperty("sharder.logFxtBalance");
-    private static final long logAccountId = Convert.parseAccountId(logAccount);
+    private static final long logAccountId = Account.rsAccountToId(logAccount);
     private static final String fxtJsonFile = Constants.isTestnetOrDevnet() ? "fxt-testnet.json" : "fxt.json";
     private static final boolean hasSnapshot = ClassLoader.getSystemResource(fxtJsonFile) != null;
 
@@ -89,17 +87,20 @@ public final class FxtDistribution implements Listener<Block> {
     };
 
     public static void init() {}
-
+    // close dividend distribution
+    final static boolean fxtOpen = false;
+    
     static {
-        Conch.getBlockchainProcessor().addListener(new FxtDistribution(), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+        if(fxtOpen) {
+            Conch.getBlockchainProcessor().addListener(new FxtDistribution(), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+        }
     }
 
-    final static boolean fxtOpen = false;
     static int debugCount = 0;
     @Override
     public void notify(Block block) {
         if(!fxtOpen){
-            if(debugCount++ < 3) Logger.logDebugMessage("Close FXT Distributing Now");
+            if(debugCount++ < 2) Logger.logDebugMessage("Close FXT Distributing Now");
             return;
         }
 

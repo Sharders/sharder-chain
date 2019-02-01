@@ -50,12 +50,15 @@ public interface Attachment extends Appendix {
 
     TransactionType getTransactionType();
 
+    /**
+     * poc serial txs version must be set to 1
+     */
     abstract class TxBodyBase extends AbstractAttachment {
         public TxBodyBase() {
         }
 
         public TxBodyBase(ByteBuffer buffer, byte transactionVersion) {
-            super(buffer, transactionVersion);
+            super(buffer, (byte)1);
         }
 
         public TxBodyBase(JSONObject attachmentData) {
@@ -63,51 +66,8 @@ public interface Attachment extends Appendix {
         }
 
         public TxBodyBase(int version) {
-            super(version);
+            super(1);
         }
-
-//        public static Attachment.AbstractAttachment newObj(Class clazz, ByteBuffer buffer, byte transactionVersion) {
-//            Method method = null;
-//            try {
-//
-//                method = clazz.getDeclaredMethod("inst", ByteBuffer.class, byte.class);
-//                
-//                if(method != null)
-//                return (Attachment.AbstractAttachment) method.invoke(buffer, transactionVersion);
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
-//
-//        public static Attachment.AbstractAttachment newObj(Class clazz, JSONObject attachmentData) {
-//            Method method = null;
-//            try {
-//                method = clazz.getDeclaredMethod("inst", JSONObject.class);
-//
-//                if(method != null)
-//                return (Attachment.AbstractAttachment) method.invoke(attachmentData);
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
-//
-//        public static Attachment.AbstractAttachment newObj(Class clazz, int version) {
-//            Method method = null;
-//            try {
-//                method = clazz.getDeclaredMethod("inst", int.class);
-//
-//                if(method != null)
-//                return (Attachment.AbstractAttachment) method.invoke(version);
-//
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            return null;
-//        }
     }
 
     abstract class AbstractAttachment extends Appendix.AbstractAppendix implements Attachment {
@@ -242,8 +202,9 @@ public interface Attachment extends Appendix {
     };
 
     final class CoinBase extends AbstractAttachment {
+        
         public enum CoinBaseType {
-            POOL, SINGLE, BLOCKING_REWARD, FOUNDING_TX, X_REWARD, SPECIAL_LOGIC;
+            BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC;
 
             public static CoinBaseType getType(String name) {
                 for (CoinBaseType type : CoinBaseType.values()) {
@@ -256,8 +217,10 @@ public interface Attachment extends Appendix {
         }
 
         private final CoinBaseType coinBaseType;
-        private final long creator; //transaction creator
-        private final long generatorId; //by pool or account
+        //transaction creator
+        private final long creator; 
+        //by pool or account
+        private final long generatorId; 
         private final Map<Long, Long> consignors;
 
         public CoinBase(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
@@ -279,12 +242,19 @@ public interface Attachment extends Appendix {
 
         public CoinBase(JSONObject attachmentData) {
             super(attachmentData);
-            this.coinBaseType = (CoinBaseType) attachmentData.get("coinBaseType");
+            this.coinBaseType = CoinBaseType.getType((String) attachmentData.get("coinBaseType"));
             this.creator = (Long) attachmentData.get("creator");
             this.generatorId = (Long) attachmentData.get("generatorId");
             this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
         }
 
+        /**
+         * The coinbase tx that used to issue the coins when block generated
+         * @param coinBaseType see org.conch.tx.Attachment.CoinBase.CoinBaseType
+         * @param creator  account id of creator
+         * @param generatorId the pool id/ creator id when type is Block Reward; the recipient id when type is Genesis.
+         * @param consignors pool joiner's map contains joiner id and reward amount
+         */
         public CoinBase(CoinBaseType coinBaseType, long creator, long generatorId, Map<Long, Long> consignors) {
             this.coinBaseType = coinBaseType;
             this.creator = creator;
@@ -4321,43 +4291,6 @@ public interface Attachment extends Appendix {
 
         public long getStorerId() {
             return storerId;
-        }
-    }
-
-    final class SharderOnlineRateCreate extends AbstractAttachment {
-
-        private final String[] ips;
-
-        public SharderOnlineRateCreate(String[] ips) {
-            this.ips = ips;
-        }
-
-        @Override
-        public int getMySize() {
-            return this.ips.length;
-        }
-
-        @Override
-        public void putMyBytes(ByteBuffer buffer) {
-            byte[][] ipBytes = new byte[this.ips.length][];
-            for (int i = 0; i < this.ips.length; i++) {
-                ipBytes[i] = Convert.toBytes(this.ips[i]);
-            }
-            buffer.put((byte) ipBytes.length);
-            for (byte[] ip : ipBytes) {
-                buffer.putShort((short) ip.length);
-                buffer.put(ip);
-            }
-        }
-
-        @Override
-        public void putMyJSON(JSONObject json) {
-            json.put("ips", ips);
-        }
-
-        @Override
-        public TransactionType getTransactionType() {
-            return null;
         }
     }
 }

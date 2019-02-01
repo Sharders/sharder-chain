@@ -1,5 +1,6 @@
 package org.conch.consensus.poc.tx;
 
+import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.util.Convert;
 
@@ -23,12 +24,13 @@ public class PocTxBodyTest {
     }
     
     static void bytes2WeightTableTest() throws ConchException.NotValidException {
-        PocTxBody.PocWeightTable weightTable = new PocTxBody.PocWeightTable(ByteBuffer.wrap(Convert.toBytes(byteStr)),(byte)0);
+        PocTxBody.PocWeightTable weightTable = new PocTxBody.PocWeightTable(ByteBuffer.wrap(Convert.toBytes(byteStr)),(byte)1);
         System.out.println(weightTable.toString());
     }
     
   public static void main(String[] args) throws ConchException.NotValidException {
-      defaultTemplate2BytesTest();
-      bytes2WeightTableTest();
+    //      defaultTemplate2BytesTest();
+    //      bytes2WeightTableTest();
+    System.out.println(Conch.getEpochTime());
   }
 }

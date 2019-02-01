@@ -35,7 +35,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.ConchGenesis;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Order;
@@ -288,7 +288,7 @@ public abstract class TransactionType {
             }
             long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
             if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT
-                    && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
+                    && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY))) {
                 return false;
             }
             senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, -feeNQT);
@@ -400,7 +400,7 @@ public abstract class TransactionType {
     }
 
     public int getBaselineFeeHeight() {
-        return Constants.SHUFFLING_BLOCK;
+        return Constants.SHUFFLING_BLOCK_HEIGHT;
     }
 
     public int getNextFeeHeight() {
@@ -435,10 +435,13 @@ public abstract class TransactionType {
 
         @Override
         public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            if (recipientAccount == null) {
-                Account.getAccount(ConchGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
-                        transaction.getId(), transaction.getAmountNQT());
-            }
+            // closed follow logic and use the coinbase tx to replace it 
+            // coinbase tx you can see org.conch.tx.TransactionType.CoinBase#applyByType
+            // - 2019.01.14 Ben
+//            if (recipientAccount == null) {
+//                Account.getAccount(SharderGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
+//                        transaction.getId(), transaction.getAmountNQT());
+//            }
         }
 
         @Override
@@ -522,19 +525,23 @@ public abstract class TransactionType {
             return true;
         }
 
-        public static void unFreezeForgeBalance(Transaction transaction) {
+        /**
+         * unfreeze mining balance use by pool, the caller of this method should be SharderPoolProcessor
+         * @param transaction
+         */
+        public static void unFreezeMintBalance(Transaction transaction) {
             Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             Map<Long,Long> consignors = coinBase.getConsignors();
             if(consignors.size() == 0){
-                senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
-                senderAccount.addToForgedBalanceNQT(transaction.getAmountNQT());
+                senderAccount.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
+                senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
             }else {
                 Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for(long id : rewardList.keySet()){
                     Account account = Account.getAccount(id);
-                    account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
-                    account.addToForgedBalanceNQT(rewardList.get(id));
+                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
+                    account.addToMintedBalanceNQT(rewardList.get(id));
                 }
             }
         }
@@ -570,33 +577,58 @@ public abstract class TransactionType {
             public boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
                 return isDuplicate(CoinBase.ORDINARY, "OrdinaryCoinBase", duplicates, true);
             }
-
-            @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
-                Map<Long,Long> consignors = coinBase.getConsignors();
-                long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
-                if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
-                        && !SharderPoolProcessor.getSharderPool(id).validateConsignorsAmountMap(consignors)) {
-                    throw new ConchException.NotValidException("Allocation rule is wrong");
+            
+            private void validateByType(Transaction transaction) throws ConchException.NotValidException {
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+                if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()){
+                    Map<Long,Long> consignors = coinBase.getConsignors();
+                    long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
+                    if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
+                            && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
+                        throw new ConchException.NotValidException("allocation rule is wrong");
+                    }  
+                }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
+                    if(!SharderGenesis.isGenesisCreator(coinBase.getCreator())){
+                        throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");  
+                    }
+                }
+            }
+            
+            private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+                if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()){
+                    Map<Long,Long> consignors = coinBase.getConsignors();
+                    if(consignors.size() == 0){
+                        senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                        senderAccount.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
+                    }else {
+                        Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
+                        for(long id : rewardList.keySet()){
+                            Account account = Account.getAccount(id);
+                            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
+                            account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
+                        }
+                    }
+                }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
+                    if(SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId()) ){
+                        if(Constants.isDevnet()) {
+                            Logger.logDebugMessage("add balance to genesis account in devnet[account id=" + senderAccount.getId() + ",amount=" + transaction.getAmountNQT() + "]");
+                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
+                        }else {
+                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
+                        }
+                    }
                 }
             }
 
             @Override
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                validateByType(transaction);
+            }
+
+            @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
-                Map<Long,Long> consignors = coinBase.getConsignors();
-                if(consignors.size() == 0){
-                    senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                    senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                }else {
-                    Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
-                    for(long id : rewardList.keySet()){
-                        Account account = Account.getAccount(id);
-                        account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
-                        account.frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
-                    }
-                }
+                applyByType(transaction,senderAccount,recipientAccount);
             }
         };
 
@@ -658,7 +690,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID && Conch.getBlockchain().getHeight() > Constants.MONETARY_SYSTEM_BLOCK) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID && Conch.getBlockchain().getHeight() > Constants.MONETARY_SYSTEM_BLOCK) {
                     throw new ConchException.NotValidException("Sending messages to Genesis not allowed.");
                 }
             }
@@ -734,7 +766,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && Alias.getAlias(((Attachment.MessagingAliasAssignment) transaction.getAttachment()).getAliasName()) == null
                         && isDuplicate(Messaging.ALIAS_ASSIGNMENT, "", duplicates, true);
             }
@@ -827,7 +859,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid alias sell price: " + priceNQT);
                 }
                 if (priceNQT == 0) {
-                    if (ConchGenesis.CREATOR_ID == transaction.getRecipientId()) {
+                    if (SharderGenesis.CREATOR_ID == transaction.getRecipientId()) {
                         throw new ConchException.NotValidException("Transferring aliases to Genesis account not allowed");
                     } else if (transaction.getRecipientId() == 0) {
                         throw new ConchException.NotValidException("Missing alias transfer recipient");
@@ -839,7 +871,7 @@ public abstract class TransactionType {
                 } else if (alias.getAccountId() != transaction.getSenderId()) {
                     throw new ConchException.NotCurrentlyValidException("Alias doesn't belong to sender: " + aliasName);
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Selling alias to Genesis not allowed");
                 }
             }
@@ -1126,7 +1158,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && isDuplicate(Messaging.POLL_CREATION, getName(), duplicates, true);
             }
 
@@ -1392,7 +1424,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                if (Conch.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
+                if (Conch.getBlockchain().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT) {
                     throw new ConchException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Conch.getBlockchain().getHeight());
                 }
                 Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
@@ -1478,7 +1510,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && isDuplicate(Messaging.ACCOUNT_INFO, getName(), duplicates, true);
             }
 
@@ -1545,7 +1577,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Setting Genesis account properties not allowed");
                 }
             }
@@ -1613,7 +1645,7 @@ public abstract class TransactionType {
                 if (transaction.getAmountNQT() != 0) {
                     throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Deleting Genesis account properties not allowed");
                 }
             }
@@ -1737,7 +1769,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(final Transaction transaction, final Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && !isSingletonIssuance(transaction)
                         && isDuplicate(ColoredCoins.ASSET_ISSUANCE, getName(), duplicates, true);
             }
@@ -1804,7 +1836,7 @@ public abstract class TransactionType {
                 Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
                 senderAccount.addToAssetBalanceQNT(getLedgerEvent(), transaction.getId(), attachment.getAssetId(),
                         -attachment.getQuantityQNT());
-                if (recipientAccount.getId() == ConchGenesis.CREATOR_ID) {
+                if (recipientAccount.getId() == SharderGenesis.CREATOR_ID) {
                     Asset.deleteAsset(transaction, attachment.getAssetId(), attachment.getQuantityQNT());
                 } else {
                     recipientAccount.addToAssetAndUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
@@ -1828,7 +1860,7 @@ public abstract class TransactionType {
                         || attachment.getAssetId() == 0) {
                     throw new ConchException.NotValidException("Invalid asset transfer amount or comment: " + attachment.getJSONObject());
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID && attachment.getFinishValidationHeight(transaction) > Constants.SHUFFLING_BLOCK) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID && attachment.getFinishValidationHeight(transaction) > Constants.SHUFFLING_BLOCK_HEIGHT) {
                     throw new ConchException.NotValidException("Asset transfer to Genesis no longer allowed, "
                             + "use asset delete attachment instead");
                 }
@@ -2289,7 +2321,7 @@ public abstract class TransactionType {
                             + " blocks before " + attachment.getFinishValidationHeight(transaction));
                 }
                 Asset asset;
-                if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK) {
+                if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT) {
                     asset = Asset.getAsset(attachment.getAssetId(), attachment.getHeight());
                 } else {
                     asset = Asset.getAsset(attachment.getAssetId());
@@ -2440,7 +2472,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean isBlockDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
-                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK
+                return Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT
                         && isDuplicate(DigitalGoods.LISTING, getName(), duplicates, true);
             }
 
@@ -3063,11 +3095,10 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid effective balance leasing period: " + attachment.getPeriod());
                 }
                 byte[] recipientPublicKey = Account.getPublicKey(transaction.getRecipientId());
-                if (recipientPublicKey == null && Conch.getBlockchain().getHeight() > Constants.PHASING_BLOCK) {
-                    throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "
-                            + " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
+                if (recipientPublicKey == null && Conch.getBlockchain().getHeight() > Constants.PHASING_BLOCK_HEIGHT) {
+                    throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "+ " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
                 }
-                if (transaction.getRecipientId() == ConchGenesis.CREATOR_ID) {
+                if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Leasing to Genesis account not allowed");
                 }
             }
@@ -3497,11 +3528,11 @@ public abstract class TransactionType {
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO unconfirmed transaction already has this kind of transaction
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(destroy.getPoolId());
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if(forgePool == null){
                     throw new ConchException.NotValidException("Sharder pool " + destroy.getPoolId() + " doesn't exists");
                 }
-                if (transaction.getSenderId() != SharderPoolProcessor.getSharderPool(destroy.getPoolId()).getCreatorId()) {
+                if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
                     throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " +
                             forgePool.getCreatorId());
                 }
@@ -3520,7 +3551,7 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(destroy.getPoolId());
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 forgePool.destroySharderPool(curHeight);
             }
 
@@ -3537,7 +3568,7 @@ public abstract class TransactionType {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
                 //Balance and genesis creator check
                 if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT
-                        && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), ConchGenesis.CREATOR_PUBLIC_KEY))) {
+                        && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY))) {
                     return false;
                 }
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, 0);
@@ -3576,7 +3607,7 @@ public abstract class TransactionType {
                 //TODO unconfirmed transaction already has this kind of transaction double spend
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(join.getPoolId());
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
                 if(forgePool == null){
                     throw new ConchException.NotValidException("Sharder pool doesn't exists");
                 }
@@ -3587,7 +3618,7 @@ public abstract class TransactionType {
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
                     throw new ConchException.NotValidException("Sharder pool will be destroyed at " + endHeight + " before transaction apply at " + curHeight);
                 }
-                if (!PoolRule.validateConsignor(SharderPoolProcessor.getSharderPool(join.getPoolId()).getCreatorId(), join, forgePool.getRule())) {
+                if (!PoolRule.validateConsignor(SharderPoolProcessor.getPool(join.getPoolId()).getCreatorId(), join, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
 
@@ -3605,7 +3636,7 @@ public abstract class TransactionType {
                 long poolId = forgePoolJoin.getPoolId();
                 long transactionId = transaction.getId();
                 senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
+                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
                 height = height > forgePool.getStartBlockNo() ? height : forgePool.getStartBlockNo();
                 forgePool.addOrUpdateConsignor(senderAccount.getId(),transaction.getId(),height,height + forgePoolJoin.getPeriod(),amountNQT);
             }
@@ -3651,22 +3682,21 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //TODO unconfirmed transaction already has this kind of transaction
+                //FIXME[pool] unconfirmed transaction already has this kind of transaction
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = quit.getPoolId();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
-                if(forgePool == null){
-                    throw new ConchException.NotValidException("Sharder pool " + poolId + " doesn't exists");
+                SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
+                if(sharderPool == null){
+                    throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
                 }
-                if(!forgePool.hasSenderAndTransaction(transaction.getSenderId(),quit.getTxId())){
-                    throw new ConchException.NotValidException("The sharder pool doesn't have the transaction of sender,txId:"
-                            + quit.getTxId() + "poolId:" + poolId);
+                if(!sharderPool.hasSenderAndTransaction(transaction.getSenderId(),quit.getTxId())){
+                    throw new ConchException.NotValidException("the sharder pool doesn't have the transaction of sender,txId:" + quit.getTxId() + "poolId:" + poolId);
                 }
-                if (curHeight + Constants.SHARDER_POOL_DELAY > forgePool.getEndBlockNo()) {
-                    throw new ConchException.NotValidException("Forge pool will be destroyed at " + forgePool.getEndBlockNo() + " before transaction apply at " + curHeight);
+                if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
+                    throw new ConchException.NotValidException("sharder pool will be destroyed at " + sharderPool.getEndBlockNo() + " before transaction apply at " + curHeight);
                 }
-                if (!PoolRule.validateConsignor(SharderPoolProcessor.getSharderPool(poolId).getCreatorId(), quit, forgePool.getRule())) {
+                if (!PoolRule.validateConsignor(SharderPoolProcessor.getPool(poolId).getCreatorId(), quit, sharderPool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
             }
@@ -3675,10 +3705,10 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = sharderPoolQuit.getPoolId();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
-                long amountNQT = forgePool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
+                long amountNQT = sharderPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
                 if(amountNQT != -1){
-                    senderAccount.frozenBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
+                    senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
                 }
             }
 

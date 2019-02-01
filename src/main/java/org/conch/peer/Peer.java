@@ -31,19 +31,25 @@ import java.util.Set;
 public interface Peer extends Comparable<Peer> {
     //peer type
     enum Type {
-        BOX(5),
-        HUB(4),
-        NORMAL(3),
-        COMMUNITY(2),
-        FOUNDATION(1);
+        BOX(5,"Sharder Box"),
+        HUB(4,"Sharder Hub"),
+        NORMAL(3, "Normal Node"),
+        COMMUNITY(2, "Community Node"),
+        FOUNDATION(1, "Foundation Node");
         private final int code;
+        private final String name;
 
-        Type(int code) {
+        Type(int code, String name) {
             this.code = code;
+            this.name = name;
         }
 
         public int getCode() {
             return code;
+        }
+        
+        public String getName() {
+            return name;
         }
 
         public static Type getByCode(int code) {
@@ -69,7 +75,12 @@ public interface Peer extends Comparable<Peer> {
     }
 
     enum State {
-        NON_CONNECTED, CONNECTED, DISCONNECTED
+        /**
+         *
+         */
+        NON_CONNECTED,
+        CONNECTED,
+        DISCONNECTED
     }
     
     enum Service {
@@ -80,7 +91,7 @@ public interface Peer extends Comparable<Peer> {
         CORS(16),                       // API CORS enabled
         BAPI(32),                       // Business API access over http => watcher role
         STORAGE(64),                    // Off-chain data storage => Storer role
-        MINER(128),                     // Minting service => Miner role
+        MINER(128),                     // Proxy mining => Miner role
         NATER(256),                     // Nat service => Traversal role (TBD)
         PROVER(512);                    // Prove service => Prover role (TBD)
         private final long code;        // Service code - must be a power of 2
@@ -137,7 +148,9 @@ public interface Peer extends Comparable<Peer> {
 
     int getWeight();
     
-    long getBindAccountId();
+    String getBindRsAccount();
+    
+    void setBindRsAccount(String bindRsAccount);
 
     boolean shareAddress();
 
