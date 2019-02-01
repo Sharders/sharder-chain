@@ -115,6 +115,7 @@ export const routes = [
             },
             {
                 path: "/network/peers",
+                name:"peers",
                 component: Peers
             }
         ]

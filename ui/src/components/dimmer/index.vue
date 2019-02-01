@@ -10,7 +10,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" type="text/scss">
 .dimmer {
     position: fixed;
     top: 0!important;

@@ -4,4 +4,4 @@ if [ -x jre/bin/java ]; then
 else
     JAVA=java
 fi
-${JAVA} -cp classes:lib/*:conf:addons/classes:addons/lib/* org.conch.Conch
+${JAVA} -cp classes:lib/*:conf:addons/classes:addons/lib/* -Dsharder.runtime.mode=desktop org.conch.Conch

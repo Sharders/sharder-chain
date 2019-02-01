@@ -108,14 +108,17 @@ export default {
      * @param type
      * @returns {string}
      */
-    myFormatTime(value, type) {
+    myFormatTime(value, type,hasEpochBeginning) {
         const _this = this;
         let dataTime = "";
         let data = new Date();
         if(typeof value === 'undefined')
             value = "0";
 
-        let date = parseInt(value + '000') + _this.epochBeginning;
+        let date = parseInt(value + '000');
+        if(hasEpochBeginning){
+            date = date + _this.epochBeginning;
+        }
         data.setTime(date);
         let year = data.getFullYear();
         let month = _this.addZero(data.getMonth() + 1);
