@@ -3691,8 +3691,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
                 }
                 if(!sharderPool.hasSenderAndTransaction(transaction.getSenderId(),quit.getTxId())){
-                    throw new ConchException.NotValidException("the sharder pool doesn't have the transaction of sender,txId:"
-                            + quit.getTxId() + "poolId:" + poolId);
+                    throw new ConchException.NotValidException("the sharder pool doesn't have the transaction of sender,txId:" + quit.getTxId() + "poolId:" + poolId);
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
                     throw new ConchException.NotValidException("sharder pool will be destroyed at " + sharderPool.getEndBlockNo() + " before transaction apply at " + curHeight);

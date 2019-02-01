@@ -281,8 +281,7 @@ public final class Conch {
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
 
                 if(natCmdFile.exists()){
-                    StringBuilder cmd = new StringBuilder("cmd /c");
-                    cmd.append(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
+                    StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "cmd /c nat_client.exe" : "./nat_client");
                     cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
                             .append(" -p ").append(NAT_SERVICE_PORT)
                             .append(" -k ").append(NAT_CLIENT_KEY);
