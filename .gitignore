@@ -5,7 +5,7 @@
 classes
 out
 contrib
-*.bat
+# *.bat
 jre
 
 package-lock.json

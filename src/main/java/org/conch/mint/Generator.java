@@ -22,6 +22,8 @@
 package org.conch.mint;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -30,7 +32,7 @@ import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
-import org.conch.db.DbIterator;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.TransactionProcessorImpl;
@@ -62,8 +64,44 @@ public class Generator implements Comparable<Generator> {
     private static final Collection<Generator> allGenerators = Collections.unmodifiableCollection(generators.values());
     private static volatile List<Generator> sortedMiners = null;
     private static volatile List<Long> generationMissingMinerIds = Lists.newArrayList();
+    private static volatile Set<Long> blackedGenerators = Sets.newConcurrentHashSet();
     private static long lastBlockId;
     private static int delayTime = Constants.MINING_DELAY;
+    
+    
+    private static class MinerPrinter {
+        static int count = 0;
+        static boolean debug = true;
+        private static String generatorSummary = reset();
+
+        private static final String splitter = "\n\r";
+
+        static private String appendSplitter(String str, boolean appendEnd) {
+            str = splitter + str ;
+            if(appendEnd) {
+                str += splitter;
+            }
+            return str;
+        }
+        static String reset(){
+            String generatorSummary = appendSplitter("--------------Active Miners-------------",false);
+            generatorSummary += appendSplitter("Local bind account[rs=" + HUB_BIND_ADDRESS + "]",false);
+            count=0;
+            return generatorSummary;
+        }
+        static void putin(Generator generator){
+            generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore 
+                    + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+        }
+
+        static void print(){
+            if(!debug || (count++  <= 100)) return;
+           
+            Logger.logDebugMessage(generatorSummary);
+            generatorSummary = reset();
+        }
+        
+    }
     
     private static final Runnable generateBlocksThread = new Runnable() {
 
@@ -73,7 +111,6 @@ public class Generator implements Comparable<Generator> {
         public void run() {
             try {
                 try {
-
                     autoMining();
                     
                     BlockchainImpl.getInstance().updateLock();
@@ -108,9 +145,9 @@ public class Generator implements Comparable<Generator> {
                             List<Generator> forgers = new ArrayList<>();
                             for (Generator generator : generators.values()) {
                                 generator.setLastBlock(lastBlock);
-//                                if (generator.effectiveBalance.signum() > 0) {
                                 if (generator.pocScore.signum() > 0) {
                                     forgers.add(generator);
+                                    MinerPrinter.putin(generator);
                                 }
                             }
 
@@ -128,7 +165,7 @@ public class Generator implements Comparable<Generator> {
                                 logged = true;
                             }
                         }
-
+                        MinerPrinter.print();
                         // generationMissingMinerIds.clear();
                         for (Generator generator : sortedMiners) {
                             if(generator.getHitTime() > generationLimit) {
@@ -155,13 +192,25 @@ public class Generator implements Comparable<Generator> {
         }
 
     };
+    
+    public static void blackGenerator(long generatorId){
+        blackedGenerators.add(generatorId);
+    }
 
+    /**
+     * generator is not in the black list and it be bind to a certified node
+     * @param generatorId
+     * @return
+     */
+    public static boolean isValid(long generatorId){
+        return PocProcessorImpl.isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
+    }
 
     public static boolean hasGenerationMissingAccount(){
         return generationMissingMinerIds.size() > 0;
     }
     
-    public synchronized static List<Long> getAndResetGenerationMissingMiners(){
+    public synchronized static List<Long> getAndResetMissingMiners(){
         List<Long> missingAccounts = Collections.unmodifiableList(generationMissingMinerIds);
         generationMissingMinerIds.clear();
         return missingAccounts;
@@ -412,7 +461,6 @@ public class Generator implements Comparable<Generator> {
     public long getHitTime() {
         return hitTime;
     }
-
     
     @Override
     public int compareTo(Generator g) {
@@ -423,6 +471,23 @@ public class Generator implements Comparable<Generator> {
     @Override
     public String toString() {
         return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
+    }
+
+    public JSONObject toJson(boolean loadPoolInfo) {
+        int elapsedTime = Conch.getEpochTime() - Conch.getBlockchain().getLastBlock().getTimestamp();
+        JSONObject json = new JSONObject();
+        json.put("account", Long.toUnsignedString(accountId));
+        json.put("accountRS", Account.rsAccount(accountId));
+        json.put("effectiveBalanceSS",  effectiveBalance);
+        json.put("pocScore", pocScore);
+        json.put("deadline", deadline);
+        json.put("hitTime", hitTime);
+        json.put("remaining", Math.max(deadline - elapsedTime, 0));
+        json.put("bindPeerType", PocProcessorImpl.bindPeerType(accountId).getName());
+        if(loadPoolInfo) {
+            json.put("bindPeerType", SharderPoolProcessor.getPoolJSON(accountId));
+        }
+        return json;
     }
 
     /**
@@ -448,9 +513,7 @@ public class Generator implements Comparable<Generator> {
     }
     
     /**
-     * 1.设置最后一个区块
-     * 2.计算可用余额
-     * 3.计算hit和hitTime
+     * - cal poc score, hit, hitTime base the last block
      */
     private void setLastBlock(Block lastBlock) {
         calAndSetHit(lastBlock);
@@ -458,7 +521,15 @@ public class Generator implements Comparable<Generator> {
         listeners.notify(this, Event.GENERATION_DEADLINE);
     }
 
-    boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException {
+    /**
+     * mint the block
+     * @param lastBlock
+     * @param generationLimit
+     * @return
+     * @throws BlockchainProcessor.BlockNotAcceptedException
+     * @throws BlockchainProcessor.GeneratorNotAcceptedException
+     */
+    boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
@@ -487,15 +558,11 @@ public class Generator implements Comparable<Generator> {
     private int getTimestamp(int generationLimit) {
         return (generationLimit - hitTime > 3600) ? generationLimit : (int)hitTime + 1;
     }
-
-    /** Active block generators */
-    private static final Set<Long> activeGeneratorIds = new HashSet<>();
-
+    
+    private static Map<Long,ActiveGenerator> activeGeneratorMp = Maps.newConcurrentMap();
+    
     /** Active block identifier */
     private static long activeBlockId;
-
-    /** Sorted list of generators for the next block */
-    private static final List<ActiveGenerator> activeGenerators = new ArrayList<>();
 
     /** Generator list has been initialized */
     private static boolean generatorsInitialized = false;
@@ -511,19 +578,18 @@ public class Generator implements Comparable<Generator> {
     public static List<ActiveGenerator> getNextGenerators() {
         List<ActiveGenerator> generatorList;
         Blockchain blockchain = Conch.getBlockchain();
-        synchronized(activeGenerators) {
+        synchronized(activeGeneratorMp) {
             if (!generatorsInitialized) {
-                activeGeneratorIds.addAll(BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE)));
-                activeGeneratorIds.forEach(activeGeneratorId -> activeGenerators.add(new ActiveGenerator(activeGeneratorId)));
-                Logger.logDebugMessage(activeGeneratorIds.size() + " block generators found");
+                Set<Long> generatorIds = BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE));
+                generatorIds.forEach(generatorId -> activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId)));
+                Logger.logDebugMessage(activeGeneratorMp.size() + " generators found");
                 
                 // Active generator listener for block pushed
                 Conch.getBlockchainProcessor().addListener(block -> {
                     long generatorId = block.getGeneratorId();
-                    synchronized(activeGenerators) {
-                        if (!activeGeneratorIds.contains(generatorId)) {
-                            activeGeneratorIds.add(generatorId);
-                            activeGenerators.add(new ActiveGenerator(generatorId));
+                    synchronized(activeGeneratorMp) {
+                        if (!activeGeneratorMp.containsKey(generatorId)) {
+                            activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId));
                         }
                     }
                 }, BlockchainProcessor.Event.BLOCK_PUSHED);
@@ -531,35 +597,25 @@ public class Generator implements Comparable<Generator> {
                 generatorsInitialized = true;
             }
 
-            //根据最后的区块更新活跃锻造者的锻造信息
-            long blockId = blockchain.getLastBlock().getId();
+            Block lastBlock = blockchain.getLastBlock();
             List<ActiveGenerator> curMiners = new ArrayList<>();
-
-            //添加当前的合格锻造者到活跃锻造者池
+            //add active miners of local node 
             for(Generator generator : sortedMiners){
-                if(activeGeneratorIds.contains(generator.getAccountId())) {
+                if(activeGeneratorMp.containsKey(generator.getAccountId())) {
                     continue;
                 }
                 ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
                 curMiners.add(activeMiner);
             }
 
-            if (blockId != activeBlockId) {
-                activeBlockId = blockId;
-                Block lastBlock = blockchain.getLastBlock();
-
-                for(ActiveGenerator generator : curMiners) {
-                    generator.setLastBlock(lastBlock);
-                }
-
-                for (ActiveGenerator generator : activeGenerators) {
-                    generator.setLastBlock(lastBlock);
-                }
+            if (lastBlock.getId() != activeBlockId) {
+                activeBlockId = lastBlock.getId();
+                curMiners.forEach(generator -> generator.setLastBlock(lastBlock));
+                activeGeneratorMp.forEach((id, generator)-> generator.setLastBlock(lastBlock));
             }
 
-            generatorList = new ArrayList<>();
-            generatorList.addAll(activeGenerators);
-            generatorList.addAll(curMiners);
+            generatorList = Lists.newArrayList(curMiners);
+            generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
         }
         return generatorList;

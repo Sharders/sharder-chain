@@ -118,11 +118,11 @@ public abstract class PoolTxApi {
             String cid = Convert.emptyToNull(request.getParameter("creatorId"));
 
             if(cid == null){
-                return SharderPoolProcessor.getSharderPoolsFromNow();
+                return SharderPoolProcessor.getPoolsFromNow();
             }else{
                 long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
 
-                return SharderPoolProcessor.getSharderPoolsFromNowAndDestroy(creatorId);
+                return SharderPoolProcessor.getPoolsFromNowAndDestroy(creatorId);
             }
 
         }
@@ -148,14 +148,14 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            SharderPoolProcessor forgePool = SharderPoolProcessor.getSharderPool(poolId);
+            SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
             if (forgePool == null) {
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 1);
                 response.put("errorDescription", "sharder pool doesn't exists");
                 return JSON.prepare(response);
             } else {
-                return forgePool.toJSonObject();
+                return forgePool.toJsonObject();
             }
         }
 

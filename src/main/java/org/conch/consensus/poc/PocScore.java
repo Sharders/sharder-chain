@@ -111,8 +111,8 @@ public class PocScore implements Serializable {
         if (account == null) return balance;
         
         long id = SharderPoolProcessor.ownOnePool(accountId);
-        if (id != -1 && SharderPoolProcessor.getSharderPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-            balance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getSharderPool(id).getPower() / Constants.ONE_SS, 0))
+        if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+            balance = BigInteger.valueOf(Math.max(SharderPoolProcessor.getPool(id).getPower() / Constants.ONE_SS, 0))
                     .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
         }else {
             balance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));

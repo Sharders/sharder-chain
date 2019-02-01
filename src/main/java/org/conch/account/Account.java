@@ -1687,50 +1687,76 @@ public final class Account {
         }
     }
 
-    public void frozenBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
-        if (amountNQT == 0) {
-            return;
-        }
-        this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
-        this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
-        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
-        //FIXME[pool] Remove addToGuaranteedBalanceNQT if unused
-        addToGuaranteedBalanceNQT(amountNQT);
-
-        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
-        if (this.frozenBalanceNQT < 0) {
-            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
-        }
-        save();
+    /**
+     * - add frozen balance
+     * - sub balance
+     * - sub unconfirmed balance
+     * - add guaranteed balance 
+     * @param event
+     * @param eventId
+     * @param amountNQT
+     */
+    public void frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        frozen(event,eventId,amountNQT,true);
     }
 
+    /**
+     * - add frozen balance
+     * - sub balance
+     * - add guaranteed balance 
+     * @param event
+     * @param eventId
+     * @param amountNQT
+     */
     public void frozenBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
-        if (amountNQT == 0) {
-            return;
-        }
-        this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
-        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
-        addToGuaranteedBalanceNQT(amountNQT);
-        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
-        if (this.frozenBalanceNQT < 0) {
-            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
-        }
-        save();
+        frozen(event,eventId,amountNQT,false);
     }
 
-    //add frozen balance
+    /**
+     * - add frozen balance
+     * @param event
+     * @param eventId
+     * @param amountNQT
+     */
     public void frozenNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
         this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
         //addToGuaranteedBalanceNQT(amountNQT);
+        checkAndSave();
+    }
+
+    /**
+     * internal method used to record frozen, unconfirmed, guaranteed balance
+     * @param event
+     * @param eventId
+     * @param amountNQT
+     * @param subUnconfirmed
+     */
+    private void frozen(AccountLedger.LedgerEvent event, long eventId, long amountNQT, boolean subUnconfirmed){
+        if (amountNQT == 0) {
+            return;
+        }
+        this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
+        if(subUnconfirmed) {
+            this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
+        }
+        this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
+        addToGuaranteedBalanceNQT(amountNQT);
+
+        checkAndSave();
+    }
+    
+    private void checkAndSave() throws DoubleSpendingException {
         checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
         if (this.frozenBalanceNQT < 0) {
             throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
         }
         save();
     }
+
+
 
     public void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceNQT(event, eventId, amountNQT, 0);
@@ -1850,7 +1876,6 @@ public final class Account {
     }
 
     private static void checkBalance(long accountId, long confirmed, long unconfirmed) {
-        //FIXME[genesis] remove if following check uncorrected
         if (accountId == SharderGenesis.CREATOR_ID) {
             return;
         }
@@ -1914,7 +1939,6 @@ public final class Account {
         this.addToBalanceNQT(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, -totalDividend);
         AssetDividend.addAssetDividend(transactionId, attachment, totalDividend, numAccounts);
     }
-
 
     @Override
     public String toString() {

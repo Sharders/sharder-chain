@@ -8,6 +8,7 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.crypto.Crypto;
+import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
@@ -133,28 +134,61 @@ public class SharderGenesis {
         try{
             long genesisCreatorId = Account.getId(SharderGenesis.CREATOR_PUBLIC_KEY);
             for(GenesisRecipient genesisRecipient : GenesisRecipient.recipients){
-                TransactionImpl transaction =
-                new TransactionImpl.BuilderImpl(
+                transactions.add(new TransactionImpl.BuilderImpl(
                         (byte) 1,
                         genesisRecipient.publicKey,
                         genesisRecipient.amount * Constants.ONE_SS,
                         0,
                         (short) 0,
                         new Attachment.CoinBase(
-                            Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, genesisRecipient.id, Maps.newHashMap()))
-                    .timestamp(0)
-                    .recipientId(genesisRecipient.id)
-                    .signature(genesisRecipient.signature)
-                    .height(0)
-                    .ecBlockHeight(0)
-                    .ecBlockId(0)
-                    .build();
-                transactions.add(transaction);
+                                Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, genesisRecipient.id, Maps.newHashMap()))
+                        .timestamp(0)
+                        .recipientId(genesisRecipient.id)
+                        .signature(genesisRecipient.signature)
+                        .height(0)
+                        .ecBlockHeight(0)
+                        .ecBlockId(0)
+                        .build());
             }
         }catch (ConchException.NotValidException e) {
             e.printStackTrace();
         }
 
+        return transactions;
+    }
+
+    /**
+     * default node type tx for known peers
+     * @return node-type txs
+     */
+    private static List<TransactionImpl> nodeTypeTxs() {
+        List<TransactionImpl> transactions = Lists.newArrayList();
+
+        // nodeType txs
+        try{
+            int knownPeerCount = 0;
+            for(int i = 0; i < knownPeerCount; i++){
+                String peer= "";
+                Peer.Type type = null;
+
+                Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeType(peer,type);
+                transactions.add(new TransactionImpl.BuilderImpl(
+                        (byte) 0,
+                        SharderGenesis.CREATOR_PUBLIC_KEY,
+                        0,
+                        0,
+                        (short) 0,
+                        attachment)
+                        .timestamp(0)
+                        .signature(SharderGenesis.CREATOR_SIGNATURES)
+                        .height(0)
+                        .ecBlockHeight(0)
+                        .ecBlockId(0)
+                        .build());
+            }
+        }catch (ConchException.NotValidException e) {
+            e.printStackTrace();
+        }
         return transactions;
     }
 
@@ -179,6 +213,7 @@ public class SharderGenesis {
                 .ecBlockId(0)
                 .build();
     }
+
     
     /**
      * genesis block that include genesis transactions:
