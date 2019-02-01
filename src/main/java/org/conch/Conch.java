@@ -278,12 +278,13 @@ public final class Conch {
         }
         try {
             if (useNATService) {
-                File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
-
+                String clientName = SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client";
+                String commandPrefix = SystemUtils.IS_OS_WINDOWS ? "cmd /c " : "";
+                File natCmdFile = new File(clientName);
                 if(natCmdFile.exists()){
-                    StringBuilder cmd = new StringBuilder("cmd /c");
-                    cmd.append(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "./nat_client");
-                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
+                    StringBuilder cmd = new StringBuilder(commandPrefix)
+                            .append(clientName)
+                            .append(" -s ").append(Optional.ofNullable(NAT_SERVICE_ADDRESS).orElse(addressHost(myAddress)))
                             .append(" -p ").append(NAT_SERVICE_PORT)
                             .append(" -k ").append(NAT_CLIENT_KEY);
                     Process process = Runtime.getRuntime().exec(cmd.toString());
