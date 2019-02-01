@@ -13,6 +13,7 @@ const en = {
         'register_tip':"Don't have an account? Click here to create one!",
         'welcome_tip':"Welcome to Sharder",
         'init_hub':"Initialize Hub",
+        'nat_server':"NAT Server",
     },
     hubsetting: {
         'enable_nat_traversal':"Enable Nat Traversal",
