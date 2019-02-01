@@ -76,6 +76,7 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
+        boolean loadPoolInfo = ParameterParser.getBoolean(req, "loadPoolInfo");
         JSONObject response = new JSONObject();
         int limit = Math.max(1, ParameterParser.getInt(req, "limit", 1, Integer.MAX_VALUE, false));
         Blockchain blockchain = Conch.getBlockchain();
@@ -92,14 +93,7 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
                 if (generator.getHitTime() > Integer.MAX_VALUE) {
                     break;
                 }
-                JSONObject resp = new JSONObject();
-                JSONData.putAccount(resp, "account", generator.getAccountId());
-                resp.put("effectiveBalanceSS", generator.getEffectiveBalance());
-                resp.put("pocScore", generator.getPocScore());
-                resp.put("hitTime", generator.getHitTime());
-                resp.put("deadline", (int)generator.getHitTime() - lastBlock.getTimestamp());
-                resp.put("bindPeerType", PocProcessorImpl.bindPeerType(generator.getAccountId()).getName());
-                generators.add(resp);
+                generators.add(generator.toJson(loadPoolInfo));
                 if (generators.size() == limit) {
                     break;
                 }

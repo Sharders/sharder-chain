@@ -35,6 +35,7 @@ import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
 import org.conch.market.*;
 import org.conch.mint.Generator;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
 import org.conch.shuffle.Shuffler;
@@ -1002,17 +1003,6 @@ public final class JSONData {
         json.put("blockTimestamp", transaction.getBlockTimestamp());
         json.put("transactionIndex", transaction.getIndex());
         return json;
-    }
-
-    static JSONObject generator(Generator generator, int elapsedTime) {
-        JSONObject response = new JSONObject();
-        long deadline = generator.getDeadline();
-        putAccount(response, "account", generator.getAccountId());
-        response.put("deadline", deadline);
-        response.put("hitTime", generator.getHitTime());
-        response.put("remaining", Math.max(deadline - elapsedTime, 0));
-        response.put("bindPeerType", PocProcessorImpl.bindPeerType(generator.getAccountId()).getName());
-        return response;
     }
 
     static JSONObject accountMonitor(FundingMonitor monitor, boolean includeMonitoredAccounts) {

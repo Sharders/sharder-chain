@@ -31,7 +31,7 @@ import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
-import org.conch.db.DbIterator;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.TransactionProcessorImpl;
@@ -472,6 +472,23 @@ public class Generator implements Comparable<Generator> {
     @Override
     public String toString() {
         return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
+    }
+
+    public JSONObject toJson(boolean loadPoolInfo) {
+        int elapsedTime = Conch.getEpochTime() - Conch.getBlockchain().getLastBlock().getTimestamp();
+        JSONObject json = new JSONObject();
+        json.put("account", Long.toUnsignedString(accountId));
+        json.put("accountRS", Account.rsAccount(accountId));
+        json.put("effectiveBalanceSS",  effectiveBalance);
+        json.put("pocScore", pocScore);
+        json.put("deadline", deadline);
+        json.put("hitTime", hitTime);
+        json.put("remaining", Math.max(deadline - elapsedTime, 0));
+        json.put("bindPeerType", PocProcessorImpl.bindPeerType(accountId).getName());
+        if(loadPoolInfo) {
+            json.put("bindPeerType", SharderPoolProcessor.getPoolJSON(accountId));
+        }
+        return json;
     }
 
     /**

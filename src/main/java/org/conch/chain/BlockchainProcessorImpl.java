@@ -1994,7 +1994,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
         poolId = blockCreatorId;
       } else {
-        map = SharderPoolProcessor.getSharderPool(poolId).getConsignorsAmountMap();
+        map = SharderPoolProcessor.getPool(poolId).getConsignorsAmountMap();
       }
       
       // transaction version=1, deadline=10,timestamp=blockTimestamp
