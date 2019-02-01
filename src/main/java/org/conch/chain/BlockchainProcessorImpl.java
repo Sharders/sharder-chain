@@ -2026,7 +2026,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             0,
                             0,
                             (short) 10,
-                            new PocTxBody.PocGenerationMissing(Generator.getAndResetGenerationMissingMiners()))
+                            new PocTxBody.PocGenerationMissing(Generator.getAndResetMissingMiners()))
                             .timestamp(blockTimestamp)
                             .recipientId(0)
                             .build(secretPhrase);

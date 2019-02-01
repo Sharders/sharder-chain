@@ -25,7 +25,6 @@ import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.Blockchain;
 import org.conch.common.ConchException;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.mint.Generator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

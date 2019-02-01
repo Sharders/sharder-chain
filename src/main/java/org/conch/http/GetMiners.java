@@ -21,7 +21,6 @@
 
 package org.conch.http;
 
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
