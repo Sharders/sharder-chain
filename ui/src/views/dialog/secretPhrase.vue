@@ -17,7 +17,6 @@
         </div>
     </div>
 </template>
-
 <script>
     export default {
         name: "secretPhrase",
@@ -52,11 +51,5 @@
                 }
             }
         }
-
     }
-
 </script>
-
-<style scoped>
-
-</style>
