@@ -677,12 +677,9 @@
                 _this.blockInfo = [];
                 _this.tabTitle = "account";
                 _this.$emit('isClose', false);
-
-
             }
         },
         watch:{
-
             blockInfoOpen:function (val) {
                 const _this = this;
                 if(val) {
@@ -751,7 +748,6 @@
                 const _this = this;
                 _this.searchVal = _this.searchValue;
                 if(val){
-                    // _this.httpGetAccountInfo(_this.searchValue);
                     _this.httpGetAccountInfo(_this.searchVal).then(function (res) {
                         if(res === 'success'){
                             _this.$store.state.mask = true;

@@ -37,7 +37,6 @@
                             </span>
                             <span>{{$t('account.send_message')}}</span>
                         </button>
-
                         <button class="common_btn imgBtn writeBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
@@ -153,7 +152,6 @@
                                         <span class="linker" v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                               v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
-
                                     </td>
                                     <td  v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
                                     <td  v-else>-</td>
@@ -340,7 +338,6 @@
                 <h4 class="modal-title">
                     <span>{{$t('hubsetting.title')}}</span>
                 </h4>
-
             </div>
             <div class="modal-body">
                 <div class="version_info">
@@ -445,16 +442,12 @@
                     </tbody>
                 </table>
             </div>
-
         </div>
-
         <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading"
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
-
         <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
         <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
-
     </div>
 </template>
 <script>
@@ -462,7 +455,6 @@
     import dialogCommon from "../dialog/dialog_common";
     import adminPwd from "../dialog/adminPwd";
     import secretPhrase from "../dialog/secretPhrase";
-
     export default {
         name: "Network",
         components: {echarts,dialogCommon,adminPwd,secretPhrase,
@@ -475,14 +467,12 @@
                 hubSettingDialog: false,
                 hubInitDialog:false,
 
-
                 tradingInfoDialog: false,
                 userInfoDialog:false,
                 accountInfoDialog: false,
                 adminPasswordDialog:false,
                 secretPhraseDialog:false,
                 initHUb:this.$store.state.isHubInit,
-
 
                 isShowName: true,
                 generatorRS:'',
@@ -587,14 +577,11 @@
                 params:[],
                 temporaryName:'',
                 ssPublickey:SSO.publicKey
-
             };
         },
         created(){
             const _this = this;
-
             console.log("_this.initHUb",_this.initHUb);
-
             _this.getAccount(_this.accountInfo.accountRS).then(res=>{
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -605,19 +592,14 @@
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
                 _this.accountInfo.name = res.name;
             });
-
             console.log("mingchengshi:",_this.accountInfo.name);
-
             _this.getAccountTransactionList();
             _this.getDrawData();
             _this.getYieldData();
-
             _this.$global.setBlockchainState(_this).then(res=>{
                 _this.blockchainState = res.data;
             });
-
             SSO.getState();
-
             _this.$global.getUserConfig(_this).then(res=>{
                 _this.hubsetting.address = res["sharder.NATServiceAddress"];
                 _this.hubsetting.port = res["sharder.NATServicePort"];
@@ -627,16 +609,12 @@
             });
             _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res=>{
                 _this.latesetVersion = res.data.version;
-
                 let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
 
                 _this.isUpdate = bool;
             }).catch(err=>{
                 console.log(err);
             });
-
-
-
         },
         methods: {
             drawBarchart: function (barchat) {
@@ -749,7 +727,6 @@
                     _this.$message.success(_this.$t('notification.restart_success'));
                 }).catch(err => {
                     _this.$message.error(err);
-
                 });
             },
             resettingHub(adminPwd){
@@ -779,7 +756,6 @@
             verifyHubSettingInfo(){
                 const _this = this;
                 let formData = new FormData();
-
                 if(_this.hubsetting.openPunchthrough){
                     formData.append("sharder.useNATService",true);
                     if(_this.hubsetting.address === '' ||
@@ -799,7 +775,6 @@
                 }else{
                     formData.append("sharder.useNATService",false);
                 }
-
                 if(_this.hubsetting.SS_Address !== ''){
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
@@ -812,7 +787,6 @@
                 }else{
                     formData.append("reBind",false);
                 }
-
                 if(_this.hubsetting.isOpenMining){
                     formData.append("sharder.HubBind",true);
                     if(_this.hubsetting.modifyMnemonicWord === ''){
@@ -855,14 +829,11 @@
                     return;
                 }else{
                     formData.append("isInit",true);
-
                 }
                 this.$http.post('/sharder?requestType=reConfig', formData).then(res1 => {
                     if(typeof res1.data.errorDescription === 'undefined'){
                         _this.$message.success(_this.$t('notification.restart_success'));
-
                         formData = new FormData();
-
                     }else{
                         _this.$message.error(res1.data.errorDescription);
                     }
@@ -901,11 +872,9 @@
                             includeAssets: true,
                             includeEffectiveBalance: true,
                             includeCurrencies: true,
-
                         }
                     }).then(function (res) {
                         resolve(res.data);
-                        // console.log(_this.accountInfo);
                     }).catch(function (err) {
                         console.log(err);
                     });
@@ -916,29 +885,19 @@
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
-
-
                 _this.getAccount(SSO.account).then(res=>{
                     if(res.errorDescription === "Unknown account"){
                         _this.$message.warning(_this.$t('notification.new_account_warning'));
                         return;
                     }
                 });
-
                 if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                     _this.messageForm.receiver === "___-____-____-____-_____"){
                     formData.append("recipient", "");
                 }else{
                     formData.append("recipient",  _this.messageForm.receiver);
                     formData.append("recipientPublicKey",  _this.messageForm.publicKey);
-
                 }
-
-
-                // if(_this.messageForm.errorCode){
-                //     _this.$message.warning(_this.$t('notification.null_information_warning'));
-                //     return;
-                // }
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
                 formData.append("phasingHashedSecret", '');
@@ -948,9 +907,7 @@
                 formData.append("feeNQT", '0');
                 formData.append("publicKey", SSO.publicKey);
                 formData.append("deadline", '1440');
-
                 if(_this.messageForm.isEncrypted){
-
                     if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                         _this.messageForm.receiver === "___-____-____-____-_____"){
                         _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
@@ -975,7 +932,6 @@
                             formData.append("encryptedMessageFile", res.file);
                             formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
                             _this.sendMessage(formData);
-
                         });
                     }else{
                         encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
@@ -985,7 +941,6 @@
                         formData.append("messageToEncryptIsText", 'true');
                         formData.append("encryptedMessageIsPrunable", 'true');
                         _this.sendMessage(formData);
-
                     }
                 }else{
                     if(_this.messageForm.isFile) {
@@ -1069,10 +1024,8 @@
                                 _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                                 return;
                             }
-
                             options.account = _this.transfer.receiver;
                             options.publicKey = _this.transfer.receiverPublickey;
-
                             encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
                             formData.append("encrypt_message",'1');
                             formData.append("encryptedMessageData", encrypted.message);
@@ -1080,14 +1033,11 @@
                             formData.append("messageToEncryptIsText", 'true');
                             formData.append("encryptedMessageIsPrunable", 'true');
                             // _this.sendMessage(formData);
-
                         }else{
                             formData.append("message",_this.transfer.message);
                             formData.append("messageIsText","true");
                         }
                     }
-
-
                     _this.sendTransfer(formData);
                 });
             },
@@ -1116,22 +1066,16 @@
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
-
                 if(_this.messageForm.hasPublicKey){
                     if(_this.messageForm.publicKey === ""){
                         _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                         return;
                     }
                 }
-/*                if(_this.messageForm.errorCode){
-                    _this.$message.warning(_this.$t('notification.null_information_warning'));
-                    return;
-                }*/
                 if(_this.messageForm.password === ''){
                     _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                     return;
                 }
-
                 formData.append("recipient",_this.messageForm.receiver);
                 formData.append("recipientPublicKey",_this.messageForm.publicKey);
                 formData.append("phased", 'false');
@@ -1177,7 +1121,6 @@
                             formData.append("encryptedMessageFile", res.file);
                             formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
                             _this.sendMessage(formData);
-
                         });
                     }
                 }
@@ -1223,11 +1166,6 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-/*                if(_this.transfer.errorCode){
-                    _this.$message.warning(_this.$t('notification.null_information_warning'));
-                    return;
-                }*/
-
                 if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____" ||
                     _this.transfer.receiver === "SSA" ||
@@ -1260,12 +1198,10 @@
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
-
                     if(_this.transfer.password === ""){
                         _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
-
                     formData.append("recipient",_this.transfer.receiver);
                     formData.append("recipientPublicKey",_this.transfer.receiverPublickey);
                     formData.append("deadline","1440");
@@ -1289,8 +1225,6 @@
                             formData.append("encryptedMessageNonce", encrypted.nonce);
                             formData.append("messageToEncryptIsText", 'true');
                             formData.append("encryptedMessageIsPrunable", 'true');
-                            // _this.sendMessage(formData);
-
                         }else{
                             formData.append("message",_this.transfer.message);
                             formData.append("messageIsText","true");
@@ -1426,7 +1360,6 @@
             openAdminDialog:function(title){
                 const _this = this;
                 _this.adminPasswordTitle = title;
-
                 if(title === 'reConfig'){
                     let info = _this.verifyHubSettingInfo();
                     if(info === false){
@@ -1537,7 +1470,6 @@
                         _this.isShowName = true;
                     }
                 })
-
             },
             copyError: function () {
                 const _this = this;
@@ -1574,10 +1506,8 @@
                 _this.blockInfoDialog = false;
                 _this.adminPasswordDialog = false;
                 _this.secretPhraseDialog = false;
-
                 _this.isShowName = true;
                 _this.temporaryName = '';
-
             },
             versionCompare(current, latest){
                 let currentPre = parseFloat(current);
@@ -1603,15 +1533,11 @@
                     xAxis:[],
                     series:[]
                 };
-
                 let params = new URLSearchParams();
                 params.append("account",_this.accountInfo.accountRS);
-
                 params.append("firstIndex", '0');
                 params.append("lastIndex" , '4');
-
                 params.append("type","0");
-
                 _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
                     res.data.transactions.forEach(function (value, index,array) {
                         if(value.senderRS === SSO.accountRS){
@@ -1640,7 +1566,6 @@
                 _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
                     if(typeof res.data.errorDescription === "undefined"){
                         let info = res.data.transactions.reverse();
-
                         info.forEach(function(value, index, array){
                             if(value.type === 0){
                                 yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
@@ -1686,7 +1611,6 @@
                         }
                     }
                 }
-
                 for(let i = 0;i<_this.accountTransactionList.length;i++){
                     list.push(_this.accountTransactionList[i]);
                 }
@@ -1731,15 +1655,6 @@
                 },
                 deep: true
             },
-            // hubsetting: {
-            //     handler:function(oldValue,newValue){
-            //         const _this = this;
-            //         if (_this.hubsetting.openPunchthrough) {
-            //             _this.checkSharder();
-            //         }
-            //     },
-            //     deep: true
-            // },
             messageForm:{
                 handler:function(oldValue,newValue){
                     const _this = this;
@@ -1814,7 +1729,6 @@
                         _this.$message.warning(_this.$t('notification.account_is_self'));
                         _this.messageForm.errorCode = true;
                     }
-
                     _this.getAccount(receiver).then(res=>{
                         console.log(res);
                         if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey === "") {
@@ -1833,7 +1747,6 @@
                             _this.messageForm.errorCode = false;
                             _this.messageForm.hasPublicKey = false;
                             _this.messageForm.publicKey = res.publicKey;
-
                         }
                     });
                 }
@@ -1850,7 +1763,6 @@
                         _this.$message.warning(_this.$t('notification.unknown_account'));
                         _this.transfer.errorCode = true;
                     }
-
                     _this.getAccount(receiver).then(res=>{
                         console.log(res);
                         if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey === "") {
@@ -1876,8 +1788,6 @@
             });
         },
     };
-
-
 </script>
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
@@ -1905,7 +1815,6 @@
             top: 40px;
         }
     }
-
     .calculate_fee{
         background-color: #493eda;
         color: #fff;
@@ -1916,10 +1825,6 @@
         font-size: 13px;
         height: 20px;
     }
-
-
-
-
     .modal_hubSetting{
         width: 800px!important;
     }
