@@ -13,6 +13,7 @@ const cn = {
         'register_tip':"没有账户? 创建账户",
         'welcome_tip':"欢迎来到豆匣链",
         'init_hub':"初始化HUB",
+        'nat_server':"穿透服务",
     },
     hubsetting: {
         'enable_nat_traversal':"启动内网穿透服务:",

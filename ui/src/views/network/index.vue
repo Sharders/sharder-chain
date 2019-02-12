@@ -202,17 +202,14 @@
                       :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
     </div>
 </template>
-
 <script>
     import echarts from "echarts";
     import world from "echarts-worldmap";
     import dialogCommon from "../dialog/dialog_common";
 
-
     export default {
         name: "Network",
         components: {echarts, world, dialogCommon},
-
         data() {
             return {
                 tabTitle: "account",
@@ -231,11 +228,8 @@
                 minerlist:[],
                 minerlistHeight: 590,
 
-
                 peersLocationList:{},
                 peersTimeList:[],
-
-
 
                 //list列表
                 blocklist: [],
@@ -285,8 +279,15 @@
             });
             this.$http.get('/sharder?requestType=getPeers').then(function (res) {
                 _this.peerNum = res.data.peers.length;
+                let arr = [];
+                for(let p of res.data.peers){
+                    let ip = p.split(":")[0];
+                    if(arr.indexOf(ip) === -1){
+                        arr.push(ip);
+                    }
+                }
 
-                _this.$global.byIPtoCoordinates(res.data.peers).then(res1=>{
+                _this.$global.byIPtoCoordinates(arr).then(res1=>{
                     let json = JSON.parse(res1);
                     for(let i of Object.keys(json)){
                         if(json[i]["X"] !== "" && json[i]["X"] !== "0"
@@ -366,7 +367,6 @@
                     }
                     return mapData;
                 }
-
                 const option = {
                     geo: {
                         map: "world",
@@ -448,10 +448,8 @@
                         }
                     ]
                 };
-
                 myChart.setOption(option);
             },
-
             getBlockList(currentPage) {
                 const _this = this;
                 this.$http.get('/sharder?requestType=getBlocks', {
@@ -467,14 +465,6 @@
                     return null;
                 });
             },
-            /*calcAverageAmount(res) {
-                const _this = this;
-                let num = 0;
-                res.data.blocks.forEach(function (item) {
-                    num += parseInt(item.totalAmountNQT/100000000);
-                });
-                _this.averageAmount = num / 10;
-            },*/
             openBlockInfo(height) {
                 const _this = this;
                 _this.blockInfoHeight = height;
@@ -503,7 +493,6 @@
                 _this.blockInfoDialog = false;
                 _this.blockInfoHeight = -1;
                 _this.generatorRS = '';
-
             },
             dateFormat(val) {
                 return this.$global.myFormatTime(val.hitTime,"YMDHMS",true);
