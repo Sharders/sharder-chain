@@ -37,7 +37,8 @@
                             </span>
                             <span>{{$t('account.send_message')}}</span>
                         </button>
-                        <button class="common_btn imgBtn writeBtn" v-if="typeof(secretPhrase) !== 'undefined' && hubsetting.SS_Address === accountInfo.accountRS && !initHUb" @click="openHubSettingDialog">
+                        <!-- already set sharder.HubBindAddress and using secretPhrase to login and ss address is matching，then display HubSetting button -->
+                        <button class="common_btn imgBtn writeBtn" v-if="whetherShowHubSettingBtn()" @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -56,8 +57,8 @@
                             </span>
                             <span>{{$t('account.hub_setting')}}</span>
                         </button>
-                        <!-- 用户没有配置sharder.HubBindAddress 且 用秘钥登录 且 节点类型为Hub时，显示初始化hub按钮 -->
-                        <button class="common_btn imgBtn" v-if="typeof(secretPhrase) !== 'undefined' && initHUb && nodeType === 'Hub'" @click="openHubInitDialog">
+                        <!-- not set sharder.HubBindAddress and using secretPhrase to login and node type is Hub, then display HubInit button -->
+                        <button class="common_btn imgBtn" v-if="whetherShowHubInitBtn()" @click="openHubInitDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -76,8 +77,8 @@
                             </span>
                             <span>{{$t('login.init_hub')}}</span>
                         </button>
-                        <!-- sharder.useNATService不为true，且节点类型为normal时，显示穿透服务按钮-->
-                        <button class="common_btn imgBtn" v-if="!useNATService && nodeType === 'NORMAL'" @click="">
+                        <!-- sharder.useNATService is not true and node type is Normal, then display NAT service register button -->
+                        <button class="common_btn imgBtn" v-if="whetherShowNATServiceRegisterBtn()" @click="openHubInitDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -848,6 +849,8 @@
                     }else{
                         _this.$message.error(res2.data.errorDescription);
                     }
+                }).catch(err => {
+                    _this.$message.error(err);
                 });
                 formData = _this.verifyHubSettingInfo();
                 if(formData === false){
@@ -1644,6 +1647,17 @@
                 if(_this.selectType === '') {
                     // _this.getDrawData();
                 }
+            },
+            whetherShowHubSettingBtn() {
+                return typeof(this.secretPhrase) !== 'undefined'
+                    && this.hubsetting.SS_Address === this.accountInfo.accountRS
+                    && !this.initHUb
+            },
+            whetherShowHubInitBtn() {
+                return typeof(this.secretPhrase) !== 'undefined' && this.initHUb && this.nodeType === 'Hub'
+            },
+            whetherShowNATServiceRegisterBtn() {
+                return !this.useNATService && this.nodeType === 'Normal';
             }
         },
         computed:{
