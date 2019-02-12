@@ -838,30 +838,35 @@
             },
             verifyHubSetting:function(){
                 const _this = this;
-                let formData = new FormData();
-                formData.append("username",_this.hubsetting.sharderAccount);
-                formData.append("password",_this.hubsetting.sharderPwd);
-                _this.$http.post('/bounties/hubDirectory/check/confirm.ss',formData).then(res2 => {
+                let confirmFormData = new FormData();
+                let reConfigFormData = new FormData();
+                // check page value first
+                reConfigFormData = _this.verifyHubSettingInfo();
+                if(reConfigFormData === false){
+                    return;
+                }else{
+                    reConfigFormData.append("isInit", true);
+                }
+                // and then confirm settings, save TSS address and real address to operate system
+                confirmFormData.append("username", _this.hubsetting.sharderAccount);
+                confirmFormData.append("password", _this.hubsetting.sharderPwd);
+                confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
+                confirmFormData.append("nodeType", _this.nodeType);
+                _this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss',confirmFormData).then(res2 => {
                     if(typeof res2.data.errorDescription === 'undefined') {
-                        _this.hubSettingDialog = false;
-                        _this.$store.state.mask = false;
-                        _this.$router.push("/login");
+                        _this.$message.success(_this.$t('hubsetting.update_hub_setting_success'));
                     }else{
                         _this.$message.error(res2.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
                 });
-                formData = _this.verifyHubSettingInfo();
-                if(formData === false){
-                    return;
-                }else{
-                    formData.append("isInit",true);
-                }
-                this.$http.post('/sharder?requestType=reConfig', formData).then(res1 => {
+                // finally reconfigure hub and create new sharder.properties file
+                this.$http.post('/sharder?requestType=reConfig', reConfigFormData).then(res1 => {
                     if(typeof res1.data.errorDescription === 'undefined'){
                         _this.$message.success(_this.$t('notification.restart_success'));
-                        formData = new FormData();
+                        reConfigFormData = new FormData();
+                        _this.$router.push("/restart");
                     }else{
                         _this.$message.error(res1.data.errorDescription);
                     }
@@ -875,7 +880,7 @@
                 if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
                     formData.append("username",_this.hubsetting.sharderAccount);
                     formData.append("password",_this.hubsetting.sharderPwd);
-                    _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',formData).then(res=>{
+                    _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss',formData).then(res=>{
                         if(res.data.status === 'success'){
                             _this.hubsetting.address = res.data.data.natServiceAddress;
                             _this.hubsetting.port = res.data.data.natServicePort;
