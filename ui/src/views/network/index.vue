@@ -180,18 +180,24 @@
                             <el-table-column
                                 prop="accountRS"
                                 label="账户"
-                                width="250">
+                                width="220">
+                            </el-table-column>
+                            <el-table-column
+                                prop="bindPeerType"
+                                label="类型"
+                                >
                             </el-table-column>
                             <el-table-column
                                 sortable
                                 prop="effectiveBalanceSS"
                                 label="SS"
-                                width="150">
+                                >
                             </el-table-column>
                             <el-table-column
                                 prop="hitTime"
                                 :formatter="dateFormat"
-                                label="挖矿时间">
+                                label="挖矿时间"
+                                width="160">
                             </el-table-column>
                         </el-table>
                     </div>
@@ -535,3 +541,8 @@
     /*@import '~scss_vars';*/
     @import './style.scss';
 </style>
+<!--<style scoped>-->
+    <!--.modal.w700{-->
+        <!--width: 960px!important;-->
+    <!--}-->
+<!--</style>-->
