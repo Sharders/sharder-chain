@@ -38,6 +38,7 @@ const en = {
         'reset_mnemonic_phrase':"Change Mnemonic Phrase:",
         'reset_password':"Reset Hub Password:",
         'cancel':"Cancel",
+        'update_hub_setting_success': "Success to update Hub Settings",
     },
     register:{
         'register_title':"Your mnemonic phrase has been generated:",
@@ -770,7 +771,7 @@ const en = {
         'hubsetting_sharder_account_no_permission':"Please contact an admin for hub settings",
         'hubsetting_account_address_error_format':"SS address format error",
         'hubsetting_no_mnemonic_word':"Your mnemonic phrase must be entered to start a pool",
-        'hubsetting_inconsistent_password':"Password does not match",
+        'hubsetting_inconsistent_password':"Admin Passwords Don't Match",
         'new_account_warning':"You have a new account, please deposit some SS",
         'null_information_warning':"Please confirm whether all required fields are filled in",
         'sendmessage_null_account':"Please enter recipient’s account ID",
@@ -808,6 +809,9 @@ const en = {
         'enter_tip':"Your mnemonic phrase is very important! In order to be sure that you have saved it, please enter your mnemonic phrase below:",
         'enter_cancel':"Cancel",
         'enter_client':"Enter",
+    },
+    restart: {
+        'restarting': "Hub is restarting，please wait...",
     },
     ...enLocale
 };

@@ -38,6 +38,7 @@ const cn = {
         'reset_mnemonic_phrase':"改绑助记词",
         'reset_password':"重设管理员密码",
         'cancel':"取消",
+        'update_hub_setting_success': "成功更新穿透服务配置信息",
     },
     register:{
         'register_title':"已为您生成账户密钥",
@@ -775,7 +776,7 @@ const cn = {
         'hubsetting_sharder_account_no_permission':"请联系管理员获取Hub设置",
         'hubsetting_account_address_error_format':"关联SS地址格式错误！",
         'hubsetting_no_mnemonic_word':"开启矿池必须填写助记词！",
-        'hubsetting_inconsistent_password':"密码不一致！",
+        'hubsetting_inconsistent_password':"两次输入的管理员密码不一致！",
         'new_account_warning':"您有一个全新的帐户，请先给它充值。",
         'null_information_warning':"请检查是否还有未填的信息",
         'sendmessage_null_account':"请输入接收者账户ID",
@@ -813,6 +814,9 @@ const cn = {
         'enter_tip':"您的密钥非常重要！为确保您已保存它, 请填写上一步生生成的密钥：",
         'enter_cancel':"取消",
         'enter_client':"进入客户端",
+    },
+    restart: {
+        'restarting': "正在重启，请稍等......",
     },
     ...zhLocale
 };
