@@ -79,7 +79,7 @@
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
                                     <p>{{mining.power/100000000}}/{{maxPoolinvestment/100000000}}</p>
-                                    <el-progress :percentage="(mining.power/100000000/maxPoolinvestment/100000000)*100"
+                                    <el-progress :percentage="(mining.power/100000000)/(maxPoolinvestment/100000000)*100"
                                                  :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
