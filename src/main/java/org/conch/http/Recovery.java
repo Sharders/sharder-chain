@@ -53,7 +53,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             JSONData.putException(response, e);
         }
         if (restart) {
-            Conch.restartApplication(null);
+            new Thread(() -> Conch.restartApplication(null)).start();
         }
         return response;
     }

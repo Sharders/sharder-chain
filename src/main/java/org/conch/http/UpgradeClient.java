@@ -51,7 +51,7 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
         try {
             ClientUpgradeTool.fetchUpgradePackage(version);
             if (restart) {
-                Conch.restartApplication(null);
+                new Thread(() -> Conch.restartApplication(null)).start();
             }
             response.put("upgraded", true);
         } catch (IOException e) {
