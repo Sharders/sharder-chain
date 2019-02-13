@@ -242,8 +242,8 @@
                         </tr>
                     </table>
                     <div class="my-assets">
-                        {{$t('mining.index.my_assets')}}100000 SS | {{$t('mining.index.sort')}}98
-                        {{$t('mining.index.unit_ming')}}
+                        {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS
+                        | {{$t('mining.index.sort')}} 98 {{$t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
