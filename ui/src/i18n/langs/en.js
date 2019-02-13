@@ -18,7 +18,7 @@ const en = {
     hubsetting: {
         'enable_nat_traversal':"Enable Nat Traversal",
         'sharder_account':"Sharder Account:",
-        'sharder_account_password':"Sharder Account Password:",
+        'sharder_account_password':"Sharder Password:",
         'nat_traversal_address':"NAT Traversal Address:",
         'nat_traversal_port':"NAT Traversal Port:",
         'nat_traversal_clent_privateKey':"NAT Traversal Client Private key:",
@@ -812,6 +812,14 @@ const en = {
     },
     restart: {
         'restarting': "Hub is restarting，please wait...",
+    },
+    rules: {
+        mustRequired: 'Required Field',
+        onlyNonNegativeInteger: 'Must Be Non-negative Integer',
+        onlyInteger: 'Must Be Integer',
+        plz_input_admin_pwd: 'Please Input Admin Password',
+        plz_input_admin_pwd_again: 'Please Input Admin Password Once Again',
+        inconsistent_admin_password: 'Admin Passwords Do Not Match',
     },
     ...enLocale
 };

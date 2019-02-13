@@ -816,7 +816,15 @@ const cn = {
         'enter_client':"进入客户端",
     },
     restart: {
-        'restarting': "正在重启，请稍等......",
+        'restarting': "正在重启，1分钟后自动刷新，请稍等......",
+    },
+    rules: {
+        mustRequired: '此项必填',
+        onlyNonNegativeInteger: '只能输入非负整数',
+        onlyInteger: '只能输入整数',
+        plz_input_admin_pwd: '请输入管理员密码',
+        plz_input_admin_pwd_again: '请再次输入管理员密码',
+        inconsistent_admin_password:"两次输入的管理员密码不一致！",
     },
     ...zhLocale
 };
