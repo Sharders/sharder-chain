@@ -307,14 +307,15 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :label-width="this.$i18n.locale === 'en'? '200px':'160px'">
+                <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
+                         :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account')">
+                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account_password')">
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
@@ -329,7 +330,7 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')">
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
-                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')">
+                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
                         <el-input  v-model="hubsetting.SS_Address"></el-input>
                         <!--<a @click="register"><span>创建账户</span></a>-->
                     </el-form-item>
@@ -339,10 +340,10 @@
                     <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
                         <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.set_password')">
+                    <el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">
                         <el-input type="password" v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.confirm_password')">
+                    <el-form-item :label="$t('hubsetting.confirm_password')" prop="confirmPwd">
                         <el-input type="password" v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
@@ -477,11 +478,14 @@
     import dialogCommon from "../dialog/dialog_common";
     import adminPwd from "../dialog/adminPwd";
     import secretPhrase from "../dialog/secretPhrase";
+    import rules from "../../utils/rules";
     export default {
         name: "Network",
         components: {echarts,dialogCommon,adminPwd,secretPhrase,
             "masked-input": require("vue-masked-input").default},
         data () {
+            const required = rules.required(this.$t('rules.mustRequired'));
+            const validateSSAddress = rules.ssAddress(this.$t('notification.hubsetting_account_address_error_format'));
             return {
                 //dialog
                 sendMessageDialog: false,
@@ -600,7 +604,42 @@
                 adminPasswordTitle:'',
                 params:[],
                 temporaryName:'',
-                ssPublickey:SSO.publicKey
+                ssPublickey:SSO.publicKey,
+
+                hubInitSettingRules: {
+                    sharderAccount: [required],
+                    sharderPwd: [required],
+                    SS_Address: [validateSSAddress],
+                    newPwd: [
+                        {
+                            validator:(rule, value, callback) => {
+                                if (value) {
+                                    if (this.hubsetting.confirmPwd) {
+                                        this.$refs['initForm'].validateField('confirmPwd');
+                                    }
+                                    callback();
+                                } else {
+                                    callback(new Error(this.$t('rules.plz_input_admin_pwd')));
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                    confirmPwd: [
+                        {
+                            validator:(rule, value, callback) => {
+                                if (!value) {
+                                    callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
+                                } else if (value !== this.hubsetting.newPwd) {
+                                    callback(new Error(this.$t('rules.inconsistent_admin_password')));
+                                } else {
+                                    callback();
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                },
             };
         },
         created(){
@@ -847,28 +886,51 @@
                 }else{
                     reConfigFormData.append("isInit", true);
                 }
-                // and then confirm settings, save TSS address and real address to operate system
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
                 confirmFormData.append("nodeType", _this.nodeType);
-                _this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss',confirmFormData).then(res2 => {
-                    if(typeof res2.data.errorDescription === 'undefined') {
-                        _this.$message.success(_this.$t('hubsetting.update_hub_setting_success'));
+                _this.$refs['initForm'].validate((valid) => {
+                    if (valid) {
+                        // and then confirm settings, save real address to operate system
+                        this.hubSettingsConfirm(confirmFormData);
+                        // in the same time, reconfigure hub and create a new sharder.properties file
+                        this.reconfigure(reConfigFormData);
+                        // auto flash
+                        this.autoRefresh();
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            autoRefresh() {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 60000);
+            },
+            hubSettingsConfirm(data) {
+                let _this = this;
+                this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check/confirm.ss',data).then(res2 => {
+                    if(!res2.data.errorDescription) {
+                        console.log('update hub setting success');
                     }else{
-                        _this.$message.error(res2.data.errorDescription);
+                        _this.$message.error(JSON.stringify(res2));
                     }
                 }).catch(err => {
                     _this.$message.error(err);
                 });
-                // finally reconfigure hub and create new sharder.properties file
-                this.$http.post('/sharder?requestType=reConfig', reConfigFormData).then(res1 => {
-                    if(typeof res1.data.errorDescription === 'undefined'){
-                        _this.$message.success(_this.$t('notification.restart_success'));
+            },
+            reconfigure(data) {
+                let _this = this;
+                this.$http.post('/sharder?requestType=reConfig', data).then(res1 => {
+                    if(!res1.data.errorDescription && !res1.errorDescription){
+                        _this.$message.success(_this.$t('restart.restarting'));
                         reConfigFormData = new FormData();
-                        _this.$router.push("/restart");
+                        _this.$router.push("/login");
                     }else{
-                        _this.$message.error(res1.data.errorDescription);
+                        let msg = res1.data.errorDescription ? res1.data.errorDescription :
+                            (res1.errorDescription ? res1.errorDescription : 'error');
+                        _this.$message.error(msg);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -880,7 +942,7 @@
                 if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
                     formData.append("username",_this.hubsetting.sharderAccount);
                     formData.append("password",_this.hubsetting.sharderPwd);
-                    _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss',formData).then(res=>{
+                    _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',formData).then(res=>{
                         if(res.data.status === 'success'){
                             _this.hubsetting.address = res.data.data.natServiceAddress;
                             _this.hubsetting.port = res.data.data.natServicePort;
@@ -1880,6 +1942,9 @@
     }
     .modal_hubSetting .modal-body .el-form{
         margin-top: 20px!important;
+    }
+    .modal_hubSetting .modal-body .el-form .el-form-item{
+        margin-top: 15px!important;
     }
     /*.modal_hubSetting .modal-body .el-form .create_account .el-input{
         width:450px;
