@@ -26,7 +26,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
@@ -62,7 +65,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
         Conch.storePropertiesToFile(map);
         if (restart) {
-            Conch.restartApplication(null);
+            new Thread(() -> Conch.restartApplication(null)).start();
         }
         response.put("reconfiged", true);
         return response;
