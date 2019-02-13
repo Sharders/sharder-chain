@@ -786,9 +786,9 @@
             },
             restartHub(adminPwd){
                 const _this = this;
-                this.$http.post('/sharder?requestType=restart', {
-                    adminPassword: adminPwd
-                }).then(res => {
+                let data = new FormData();
+                data.append("adminPassword", adminPwd);
+                this.$http.post('/sharder?requestType=restart', data).then(res => {
                     _this.$message.success(_this.$t('notification.restart_success'));
                 }).catch(err => {
                     _this.$message.error(err);
