@@ -5,20 +5,22 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
+                    <span>{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{$t('dialog.account_info_name')}}&nbsp</span>
-                    <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
+                    <span
+                        v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
                     <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span>
                     <!--<span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>-->
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
-                        <el-radio-button label="account" class="btn">{{$t('dialog.account_info_total_transaction')}}</el-radio-button>
+                        <el-radio-button label="account" class="btn">{{$t('dialog.account_info_total_transaction')}}
+                        </el-radio-button>
                     </el-radio-group>
 
                     <div v-if="tabTitle === 'account'" class="account_list">
@@ -68,8 +70,11 @@
                                     </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
                                     <td>{{transactions.feeNQT/100000000}}</td>
-                                    <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)"><span>{{transactions.senderRS}}</span></td>
-                                    <td class="linker" @click="openTransactionDialog(transactions.transaction)">{{$t('dialog.account_info_view_detail')}}</td>
+                                    <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)"><span>{{transactions.senderRS}}</span>
+                                    </td>
+                                    <td class="linker" @click="openTransactionDialog(transactions.transaction)">
+                                        {{$t('dialog.account_info_view_detail')}}
+                                    </td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -83,7 +88,7 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
+                    <span>{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -94,7 +99,9 @@
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
-                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">{{$t('dialog.account_transaction_return')}}</button>
+                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">
+                        {{$t('dialog.account_transaction_return')}}
+                    </button>
                     <div class="cb"></div>
                     <table class="table">
                         <tbody>
@@ -104,7 +111,9 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
-                            <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">{{transactionInfo.transactionIndex}}</td>
+                            <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">
+                                {{transactionInfo.transactionIndex}}
+                            </td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
@@ -138,8 +147,12 @@
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender')}}</th>
                             <td v-if="transactionInfo.type === 9"></td>
-                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}</td>
-                            <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">
+                                {{transactionInfo.senderRS}}
+                            </td>
+                            <td v-else-if="$store.state.account === transactionInfo.senderRS">
+                                {{$t('dialog.account_transaction_own')}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_amount')}}</th>
@@ -147,22 +160,32 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
-                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
-                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
+                                {{transactionInfo.senderRS}}
+                            </td>
+                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
+                                {{$t('dialog.account_transaction_own')}}
+                            </td>
+                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">
+                                {{$t('dialog.account_transaction_own')}}
+                            </td>
                             <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
+                                {{transactionInfo.recipientRS}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
                             <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}</td>
+                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}
+                            </td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                             <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}</td>
+                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
@@ -174,7 +197,8 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_confirm')}}</th>
-                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}</td>
+                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}
+                            </td>
                             <td v-else>-</td>
                         </tr>
                         <tr>
@@ -188,16 +212,28 @@
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender')}}</th>
                             <td v-if="transactionInfo.type === 9"></td>
-                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}</td>
-                            <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">
+                                {{transactionInfo.sender}}
+                            </td>
+                            <td v-else-if="$store.state.account === transactionInfo.senderRS">
+                                {{$t('dialog.account_transaction_own')}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
-                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
-                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
+                                {{transactionInfo.senderRS}}
+                            </td>
+                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
+                                {{$t('dialog.account_transaction_own')}}
+                            </td>
+                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">
+                                {{$t('dialog.account_transaction_own')}}
+                            </td>
                             <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
+                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
+                                {{transactionInfo.recipientRS}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_block_height')}}</th>
@@ -216,13 +252,16 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
-                    <span >{{$t('dialog.block_info_title1')}}{{blockInfo.block}}</span>
+                    <span>{{$t('dialog.block_info_title1')}}{{blockInfo.block}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <el-radio-group v-model="tabTitle" class="title">
-                    <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}</el-radio-button>
-                    <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}</el-radio-button>
+                    <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}
+                    </el-radio-button>
+                    <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}
+                    </el-radio-button>
+                    <el-radio-button label="pocInfo" class="btn">POC权重表</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
@@ -238,8 +277,6 @@
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
                             <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</td>
-
-                            </td>
                             <td v-if="transaction.type === 0">
                                 <img src="../../assets/img/pay.svg"/>
                                 <span>{{$t('dialog.account_info_payment')}}</span>
@@ -272,14 +309,20 @@
                             <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
                             <td v-else></td>
                             <td v-if="transaction.type === 9">CoinBase</td>
-                            <td class="linker" v-else @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}</td>
-                            <td class="linker" v-if="transaction.type === 9" @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}</td>
-                            <td class="linker" v-else @click="openAccountInfo(transaction.recipientRS)">{{transaction.recipientRS}}</td>
+                            <td class="linker" v-else @click="openAccountInfo(transaction.senderRS)">
+                                {{transaction.senderRS}}
+                            </td>
+                            <td class="linker" v-if="transaction.type === 9"
+                                @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}
+                            </td>
+                            <td class="linker" v-else @click="openAccountInfo(transaction.recipientRS)">
+                                {{transaction.recipientRS}}
+                            </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
-                <div v-else-if="tabTitle === 'blockInfo'" class="blockInfo">
+                <div v-if="tabTitle === 'blockInfo'" class="blockInfo">
                     <table class="table">
                         <tbody>
                         <tr>
@@ -336,16 +379,72 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_mining')}}</th>
-                            <td class="linker" @click="openAccountInfo(blockInfo.generatorRS)">{{blockInfo.generatorRS}}</td>
+                            <td class="linker" @click="openAccountInfo(blockInfo.generatorRS)">
+                                {{blockInfo.generatorRS}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_previous_block')}}</th>
-                            <td class="linker" @click="openBlockInfo(blockInfo.previousBlock)">{{blockInfo.previousBlock}}</td>
+                            <td class="linker" @click="openBlockInfo(blockInfo.previousBlock)">
+                                {{blockInfo.previousBlock}}
+                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_next_block')}}</th>
-                            <td class="linker" v-if="blockInfo.nextBlock" @click="openBlockInfo(blockInfo.nextBlock)">{{blockInfo.nextBlock}}</td>
+                            <td class="linker" v-if="blockInfo.nextBlock" @click="openBlockInfo(blockInfo.nextBlock)">
+                                {{blockInfo.nextBlock}}
+                            </td>
                             <td v-else></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <th>bocSpeedTemplate</th>
+                            <td>{{pocInfo.bocSpeedTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>generationMissingTemplate</th>
+                            <td>{{pocInfo.generationMissingTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>hardwareConfigTemplate</th>
+                            <td>{{pocInfo.hardwareConfigTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>networkConfigTemplate</th>
+                            <td>{{pocInfo.networkConfigTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>nodeTypeTemplate</th>
+                            <td>{{pocInfo.nodeTypeTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>onlineRateTemplate</th>
+                            <td>{{pocInfo.onlineRateTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>serverOpenTemplate</th>
+                            <td>{{pocInfo.serverOpenTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>templateVersion</th>
+                            <td>{{pocInfo.templateVersion}}</td>
+                        </tr>
+                        <tr>
+                            <th>txPerformanceTemplate</th>
+                            <td>{{pocInfo.txPerformanceTemplate}}</td>
+                        </tr>
+                        <tr>
+                            <th>version.pocWeightTable</th>
+                            <td>{{pocInfo['version.pocWeightTable']}}</td>
+                        </tr>
+                        <tr>
+                            <th>weightMap</th>
+                            <td>{{pocInfo.weightMap}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -357,7 +456,7 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span >{{$t('dialog.account_transaction_detail')}}</span>
+                    <span>{{$t('dialog.account_transaction_detail')}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -369,7 +468,9 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
-                        <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">{{transactionInfo.transactionIndex}}</td>
+                        <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">
+                            {{transactionInfo.transactionIndex}}
+                        </td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
@@ -400,8 +501,11 @@
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender')}}</th>
                         <td v-if="transactionInfo.type === 9"></td>
-                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}</td>
-                        <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}
+                        </td>
+                        <td v-else-if="$store.state.account === transactionInfo.senderRS">
+                            {{$t('dialog.account_transaction_own')}}
+                        </td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_amount')}}</th>
@@ -409,22 +513,32 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.senderRS}}</td>
-                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
-                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
+                            {{transactionInfo.senderRS}}
+                        </td>
+                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
+                            {{$t('dialog.account_transaction_own')}}
+                        </td>
+                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">
+                            {{$t('dialog.account_transaction_own')}}
+                        </td>
                         <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipientRS}}</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
+                            {{transactionInfo.recipientRS}}
+                        </td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
                         <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}</td>
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}
+                        </td>
                         <td v-else>-</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_timestamp')}}</th>
                         <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}</td>
+                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
+                        </td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
@@ -450,16 +564,27 @@
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender')}}</th>
                         <td v-if="transactionInfo.type === 9"></td>
-                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}</td>
-                        <td v-else-if="$store.state.account === transactionInfo.senderRS">{{$t('dialog.account_transaction_own')}}</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}
+                        </td>
+                        <td v-else-if="$store.state.account === transactionInfo.senderRS">
+                            {{$t('dialog.account_transaction_own')}}
+                        </td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">{{transactionInfo.sender}}</td>
-                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
-                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">{{$t('dialog.account_transaction_own')}}</td>
+                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
+                            {{transactionInfo.sender}}
+                        </td>
+                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
+                            {{$t('dialog.account_transaction_own')}}
+                        </td>
+                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">
+                            {{$t('dialog.account_transaction_own')}}
+                        </td>
                         <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">{{transactionInfo.recipient}}</td>
+                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
+                            {{transactionInfo.recipient}}
+                        </td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_height')}}</th>
@@ -481,47 +606,47 @@
         props: {
             accountInfoOpen: Boolean,
             blockInfoOpen: Boolean,
-            tradingInfoOpen:Boolean,
+            tradingInfoOpen: Boolean,
 
-            isSearch:Boolean,
-            searchValue:'',
-            generatorRS:'',
-            trading:'',
-            height:'',
+            isSearch: Boolean,
+            searchValue: '',
+            generatorRS: '',
+            trading: '',
+            height: '',
         },
-        data(){
-            return{
-                tabTitle:'account',
+        data() {
+            return {
+                tabTitle: 'account',
                 accountInfoDialog: this.accountInfoOpen,
-                accountInfo:[],
-                accountTransactionInfo:[],
+                accountInfo: [],
+                accountTransactionInfo: [],
 
-                accountTransactionDialog:false,
-                transactionInfo:[],
-                transaction:'',
-                accountRS:this.generatorRS,
-                searchVal:'',
+                accountTransactionDialog: false,
+                transactionInfo: [],
+                transaction: '',
+                accountRS: this.generatorRS,
+                searchVal: '',
                 blockInfoDialog: this.blockInfoOpen,
-                blockInfo:[],
-
-                tradingInfoDialog:this.tradingInfoOpen,
+                blockInfo: [],
+                pocInfo: {},
+                tradingInfoDialog: this.tradingInfoOpen,
             }
         },
-        methods:{
-            httpGetAccountInfo(accountID){
+        methods: {
+            httpGetAccountInfo(accountID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
 
-                    _this.$http.get('/sharder?requestType=getAccount',{
+                    _this.$http.get('/sharder?requestType=getAccount', {
                         params: {
-                            account:accountID
+                            account: accountID
                         }
                     }).then(function (res) {
-                        if(!res.data.errorDescription){
+                        if (!res.data.errorDescription) {
                             _this.accountInfo = res.data;
-                            _this.$http.get('/sharder?requestType=getBlockchainTransactions',{
+                            _this.$http.get('/sharder?requestType=getBlockchainTransactions', {
                                 params: {
-                                    account:accountID
+                                    account: accountID
                                 }
                             }).then(function (res) {
                                 _this.accountTransactionInfo = res.data.transactions;
@@ -529,7 +654,7 @@
                                 resolve(err);
                             });
                             resolve("success");
-                        }else{
+                        } else {
                             resolve(res.data.errorDescription);
                         }
                     }).catch(function (err) {
@@ -537,21 +662,21 @@
                     });
                 })
             },
-            httpGetBlockInfo(height,BlockID){
+            httpGetBlockInfo(height, BlockID) {
                 const _this = this;
-                return new Promise((resolve, reject) =>{
-                    _this.$http.get('/sharder?requestType=getBlock',{
+                return new Promise((resolve, reject) => {
+                    _this.$http.get('/sharder?requestType=getBlock', {
                         params: {
-                            height:height,
-                            block:BlockID,
-                            includeTransactions:true,
+                            height: height,
+                            block: BlockID,
+                            includeTransactions: true,
                         }
                     }).then(function (res) {
-                        if(!res.data.errorDescription){
+                        if (!res.data.errorDescription) {
                             _this.blockInfo = res.data;
 
                             resolve("success");
-                        }else{
+                        } else {
                             resolve(res.data.errorDescription);
                         }
                     }).catch(function (err) {
@@ -559,18 +684,18 @@
                     });
                 });
             },
-            httpGetTradingInfo(tradingID){
+            httpGetTradingInfo(tradingID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
-                    this.$http.get('/sharder?requestType=getTransaction',{
-                        params:{
-                            transaction:tradingID
+                    this.$http.get('/sharder?requestType=getTransaction', {
+                        params: {
+                            transaction: tradingID
                         }
                     }).then(function (res) {
-                        if(!res.data.errorDescription){
+                        if (!res.data.errorDescription) {
                             _this.transactionInfo = res.data;
                             resolve("success");
-                        }else{
+                        } else {
                             resolve(res.data.errorDescription);
                         }
                     }).catch(function (err) {
@@ -578,10 +703,10 @@
                     });
                 })
             },
-            checkAccountInfo(account){
+            checkAccountInfo(account) {
                 const _this = this;
-                _this.httpGetAccountInfo(account).then(res =>{
-                    if(res !== "success"){
+                _this.httpGetAccountInfo(account).then(res => {
+                    if (res !== "success") {
                         _this.$emit('isClose', false);
                         _this.$message({
                             showClose: true,
@@ -591,17 +716,17 @@
                     }
                 });
             },
-            openTransactionDialog(transaction){
+            openTransactionDialog(transaction) {
                 const _this = this;
-                _this.httpGetTradingInfo(transaction).then(res =>{
-                    if(res !== "success"){
+                _this.httpGetTradingInfo(transaction).then(res => {
+                    if (res !== "success") {
                         _this.$emit('isClose', false);
                         _this.$message({
                             showClose: true,
                             message: res,
                             type: "error"
                         });
-                    }else{
+                    } else {
                         _this.$store.state.mask = true;
                         _this.accountInfoDialog = false;
                         _this.blockInfoDialog = false;
@@ -609,34 +734,34 @@
                     }
                 });
             },
-            openAccountInfo:function(accountRS){
+            openAccountInfo: function (accountRS) {
                 const _this = this;
-                if(accountRS){
-                    _this.httpGetAccountInfo(accountRS).then(res =>{
-                        if(res !== "success"){
+                if (accountRS) {
+                    _this.httpGetAccountInfo(accountRS).then(res => {
+                        if (res !== "success") {
                             _this.$emit('isClose', false);
                             _this.$message({
                                 showClose: true,
                                 message: res,
                                 type: "error"
                             });
-                        }else{
+                        } else {
                             _this.$store.state.mask = true;
                             _this.accountTransactionDialog = false;
                             _this.blockInfoDialog = false;
                             _this.accountInfoDialog = true;
                         }
                     });
-                }else{
-                    _this.httpGetAccountInfo(_this.accountRS).then(res =>{
-                        if(res !== "success"){
+                } else {
+                    _this.httpGetAccountInfo(_this.accountRS).then(res => {
+                        if (res !== "success") {
                             _this.$emit('isClose', false);
                             _this.$message({
                                 showClose: true,
                                 message: res,
                                 type: "error"
                             });
-                        }else{
+                        } else {
                             _this.$store.state.mask = true;
                             _this.accountTransactionDialog = false;
                             _this.blockInfoDialog = false;
@@ -645,17 +770,17 @@
                     });
                 }
             },
-            openBlockInfo:function(blockId){
+            openBlockInfo: function (blockId) {
                 const _this = this;
-                _this.httpGetBlockInfo('',blockId).then(res =>{
-                    if(res !== "success"){
+                _this.httpGetBlockInfo('', blockId).then(res => {
+                    if (res !== "success") {
                         _this.$emit('isClose', false);
                         _this.$message({
                             showClose: true,
                             message: res,
                             type: "error"
                         });
-                    }else{
+                    } else {
                         _this.$store.state.mask = true;
                         _this.accountTransactionDialog = false;
                         _this.accountInfoDialog = false;
@@ -679,10 +804,25 @@
                 _this.$emit('isClose', false);
             }
         },
-        watch:{
-            blockInfoOpen:function (val) {
+        created() {
+            let _this = this;
+            _this.$global.fetch("GET", {
+                height: 0,
+                includeTransactions: true
+            }, "getBlock").then(res => {
+                for (let t of res.transactions) {
+                    if (t.type === 12) {
+                        _this.pocInfo = t.attachment;
+                        console.info("POCPOCPOCPOCPOCPOCPOCPOCPOC", _this.pocInfo);
+                        break;
+                    }
+                }
+            });
+        },
+        watch: {
+            blockInfoOpen: function (val) {
                 const _this = this;
-                if(val) {
+                if (val) {
                     _this.httpGetBlockInfo(_this.height, '').then(res => {
                         if (res !== "success") {
                             _this.$emit('isClose', false);
@@ -701,9 +841,9 @@
                     });
                 }
             },
-            accountInfoOpen:function (val) {
+            accountInfoOpen: function (val) {
                 const _this = this;
-                if(val) {
+                if (val) {
                     _this.httpGetAccountInfo(_this.generatorRS).then(res => {
                         if (res !== "success") {
                             _this.$emit('isClose', false);
@@ -725,7 +865,7 @@
             },
             tradingInfoOpen: function (val) {
                 const _this = this;
-                if(val) {
+                if (val) {
                     _this.httpGetTradingInfo(_this.trading).then(res => {
                         if (res !== "success") {
                             _this.$emit('isClose', false);
@@ -747,32 +887,32 @@
             isSearch: function (val) {
                 const _this = this;
                 _this.searchVal = _this.searchValue;
-                if(val){
+                if (val) {
                     _this.httpGetAccountInfo(_this.searchVal).then(function (res) {
-                        if(res === 'success'){
+                        if (res === 'success') {
                             _this.$store.state.mask = true;
                             _this.accountInfoDialog = true;
                             _this.blockInfoDialog = false;
                             _this.accountTransactionDialog = false;
                             _this.tradingInfoDialog = false;
                             _this.accountRS = _this.searchVal;
-                        }else{
-                            _this.httpGetBlockInfo('',_this.searchVal).then(function (res) {
-                                if(res === 'success') {
+                        } else {
+                            _this.httpGetBlockInfo('', _this.searchVal).then(function (res) {
+                                if (res === 'success') {
                                     _this.$store.state.mask = true;
                                     _this.blockInfoDialog = true;
                                     _this.accountInfoDialog = false;
                                     _this.accountTransactionDialog = false;
                                     _this.tradingInfoDialog = false;
-                                }else{
+                                } else {
                                     _this.httpGetTradingInfo(_this.searchVal).then(function (res) {
-                                        if(res === 'success') {
+                                        if (res === 'success') {
                                             _this.$store.state.mask = true;
                                             _this.tradingInfoDialog = true;
                                             _this.blockInfoDialog = false;
                                             _this.accountTransactionDialog = false;
                                             _this.accountInfoDialog = false;
-                                        }else{
+                                        } else {
                                             _this.$message({
                                                 showClose: true,
                                                 message: _this.$t('notification.search_null_info_error'),
@@ -783,7 +923,7 @@
                                 }
                             });
                         }
-                    }).catch(err =>{
+                    }).catch(err => {
                         console.log(err);
                     });
                     _this.$emit('isClose', false);
@@ -794,63 +934,75 @@
 </script>
 
 <style scoped type="text/scss" lang="scss">
-    #block_info{
-        .modal-body{
-            margin: 30px 20px 40px!important;
-            .title{
+    #block_info {
+        .modal-body {
+            margin: 30px 20px 40px !important;
+
+            .title {
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner,
                 .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
                     background-color: #493eda;
                 }
+
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
                     color: #fff;
                 }
+
                 .el-radio-button__inner:hover {
                     color: #493eda;
                 }
             }
 
-            .account_list{
-                .table{
+            .account_list {
+                .table {
                     border: none !important;
-                    word-break:break-all;
+                    word-break: break-all;
                     margin-top: 33px;
-                    td{
+
+                    td {
                         border: none !important;
                         text-align: center;
                         line-height: 40px;
                         font-size: 12px;
                         padding: 0;
-                        img{
-                            width:12px;
+
+                        img {
+                            width: 12px;
                             vertical-align: middle;
                         }
-                        span{
+
+                        span {
                             vertical-align: middle;
                         }
                     }
-                    th{
+
+                    th {
                         border: none !important;
                     }
-                    .linker{
-                        color:#493eda;
+
+                    .linker {
+                        color: #493eda;
                         cursor: pointer;
-                        a{
+
+                        a {
                             margin: 0 6px;
                         }
                     }
                 }
             }
-            .blockInfo{
-                .table{
-                    word-break:break-all;
+
+            .blockInfo {
+                .table {
+                    word-break: break-all;
                     margin-top: 20px;
-                    th{
+
+                    th {
                         width: 160px;
                     }
-                    td{
+
+                    td {
                         width: 1100px;
-                        padding:0 60px;
+                        padding: 0 60px;
                         line-height: 40px;
                     }
                 }
@@ -858,92 +1010,114 @@
         }
     }
 
-    #account_info{
-        .modal-header{
+    #account_info {
+        .modal-header {
             padding: 0 20px 0 40px;
         }
-        .modal-body{
-            margin:0;
-            .account_preInfo{
+
+        .modal-body {
+            margin: 0;
+
+            .account_preInfo {
                 background: #f4f7fd;
                 width: 100%;
                 padding-left: 41px;
                 height: 60px;
-                span{
+
+                span {
                     line-height: 60px;
                     font-size: 16px;
-                    color:#333;
+                    color: #333;
                 }
             }
-            .account_allInfo{
+
+            .account_allInfo {
                 margin: 20px;
+
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner,
                 .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
                     background-color: #493eda;
                 }
+
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
                     color: #fff;
                 }
+
                 .el-radio-button__inner:hover {
                     color: #493eda;
                 }
-                .account_list{
+
+                .account_list {
                     max-height: 510px;
-                    .table{
+
+                    .table {
                         border: none !important;
-                        word-break:break-all;
+                        word-break: break-all;
                         margin-top: 33px;
-                        tr{
-                            height:40px;
-                            &:nth-child(even){
+
+                        tr {
+                            height: 40px;
+
+                            &:nth-child(even) {
                                 background: #f4f7fc;
                             }
                         }
-                        td{
+
+                        td {
                             border: none !important;
                             width: 190px;
                             text-align: center;
                             line-height: 40px;
                             font-size: 12px;
                             padding: 0;
-                            &:nth-child(5){
+
+                            &:nth-child(5) {
                                 width: 205px;
                             }
-                            img{
-                                width:12px;
+
+                            img {
+                                width: 12px;
                                 vertical-align: middle;
                             }
-                            span{
+
+                            span {
                                 vertical-align: middle;
                             }
                         }
-                        th{
+
+                        th {
                             border: none !important;
                             width: 190px;
                             padding: 0;
                             text-align: center;
                             font-weight: bold;
-                            &:nth-child(5){
+
+                            &:nth-child(5) {
                                 width: 205px;
                             }
 
                         }
-                        .linker{
-                            color:#493eda;
+
+                        .linker {
+                            color: #493eda;
                             cursor: pointer;
-                            a{
+
+                            a {
                                 margin: 0 6px;
                             }
                         }
-                        .gutter{
+
+                        .gutter {
                             width: 16px;
                             padding: 0;
                         }
                     }
-                    .table_body{
+
+                    .table_body {
                         overflow: auto;
                         max-height: 450px;
-                        .table{
+
+                        .table {
                             margin-top: 0;
                         }
                     }
@@ -953,48 +1127,57 @@
         }
     }
 
-    #account_transaction{
+    #account_transaction {
         top: 20px;
-        .modal-header{
+
+        .modal-header {
             padding: 0 40px;
             border-bottom: none;
         }
-        .modal-body{
-            margin:0;
-            .account_preInfo{
+
+        .modal-body {
+            margin: 0;
+
+            .account_preInfo {
                 background: #f4f7fd;
                 width: 100%;
                 padding-left: 41px;
                 height: 60px;
-                span{
+
+                span {
                     line-height: 60px;
                     font-size: 16px;
-                    color:#333;
+                    color: #333;
                 }
             }
-            .account_transactionInfo{
+
+            .account_transactionInfo {
                 margin: 0 30px 20px;
-                p{
+
+                p {
                     line-height: 80px;
                     font-size: 17px;
                     font-weight: bold;
                     margin-left: 11px;
                     color: #000;
                 }
-                button{
+
+                button {
                     margin: 20px 0;
                     padding: 0 20px;
                     height: 40px;
                 }
-                .table{
-                    word-break:break-all;
+
+                .table {
+                    word-break: break-all;
                     //margin-top: 20px;
-                    th{
-                        width:160px;
+                    th {
+                        width: 160px;
                     }
-                    td{
-                        width:1140px;
-                        padding:0 60px;
+
+                    td {
+                        width: 1140px;
+                        padding: 0 60px;
                         line-height: 40px;
                     }
                 }
@@ -1002,15 +1185,17 @@
         }
     }
 
-    #trading_info{
+    #trading_info {
         top: 80px;
-        .table{
-            td{
+
+        .table {
+            td {
                 width: 980px;
                 padding: 0 60px;
             }
-            th{
-                width:160px;
+
+            th {
+                width: 160px;
             }
         }
     }
