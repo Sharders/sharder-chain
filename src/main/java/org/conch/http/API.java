@@ -360,11 +360,12 @@ public final class API {
         String remoteHost = req.getRemoteHost();
         synchronized(incorrectPasswords) {
             PasswordCount passwordCount = incorrectPasswords.get(remoteHost);
+            String password = Optional.ofNullable(req.getParameter("newAdminPassword")).orElse(req.getParameter("adminPassword"));
             if (passwordCount != null && passwordCount.count >= 3 && now - passwordCount.time < 60*60) {
                 Logger.logWarningMessage("Too many incorrect admin password attempts from " + remoteHost);
                 throw new ParameterException(LOCKED_ADMIN_PASSWORD);
             }
-            if (!API.adminPassword.equals(req.getParameter("newAdminPassword"))) {
+            if (!API.adminPassword.equals(password)) {
                 if (passwordCount == null) {
                     passwordCount = new PasswordCount();
                     incorrectPasswords.put(remoteHost, passwordCount);
