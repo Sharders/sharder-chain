@@ -836,18 +836,15 @@ public final class Conch {
             }
             // execute the command in a shutdown hook, to be sure that all the
             // resources have been disposed before restarting the application
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        shutdown();
-                        Logger.logDebugMessage(cmd.toString());
-                        Runtime.getRuntime().exec(cmd.toString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    shutdown();
+                    Logger.logDebugMessage(cmd.toString());
+                    Runtime.getRuntime().exec(cmd.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
+            }));
             // execute some custom code before restarting
             if (runBeforeRestart!= null) {
                 runBeforeRestart.run();
