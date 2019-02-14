@@ -13,7 +13,7 @@
                     <el-col :span="24" v-for="(mining,index) in joinList">
                         <div class="grid-content">
                             <div class="info">
-                                <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
+                                <h2>{{$t('mining.index.pool')}}{{index}}</h2>
                                 <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
                                 <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
                                              :show-text="false"></el-progress>
@@ -25,11 +25,14 @@
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
-                                    <span>{{$t('mining.index.Income_distribution')}}{{mining.distribution}}%</span>
+                                    <span>
+                                        {{$t('mining.index.Income_distribution')}}
+                                        {{(1 - mining.distribution.forgepool.reward.max)*100}}%
+                                    </span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuangchishenyu.png">
-                                    <span>{{$t('mining.index.remaining_mining', {number:remaining})}}(约13.5h)</span>
+                                    <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}</span>
                                 </p>
                             </div>
                         </div>
@@ -44,7 +47,7 @@
                     <el-col :span="24" v-for="(mining,index) in createList">
                         <div class="grid-content">
                             <div class="info">
-                                <h2>{{$t('mining.index.pool')}}{{mining.serialNumber}}</h2>
+                                <h2>{{$t('mining.index.pool')}}{{index}}</h2>
                                 <p>{{mining.currentInvestment}}/{{mining.investmentTotal}}</p>
                                 <el-progress :percentage="(mining.currentInvestment/mining.investmentTotal)*100"
                                              :show-text="false"></el-progress>
@@ -56,18 +59,23 @@
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
-                                    <span>{{$t('mining.index.Income_distribution')}}{{mining.distribution}}%</span>
+                                    <span>
+                                        {{$t('mining.index.Income_distribution')}}
+                                        {{(1 - mining.distribution.forgepool.reward.max)*100}}%
+                                    </span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuangchishenyu.png">
-                                    <span>{{$t('mining.index.remaining_mining',{mining:remaining})}}(约13.5h)</span>
+                                    <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}</span>
                                 </p>
                             </div>
                         </div>
                     </el-col>
                 </el-row>
             </div>
-            <div class="history" @click="$router.push({name: 'create-history'})">{{$t('mining.my_mining.history_create_record')}}&gt;&gt;</div>
+            <div class="history" @click="$router.push({name: 'create-history'})">
+                {{$t('mining.my_mining.history_create_record')}}&gt;&gt;
+            </div>
         </div>
     </div>
 </template>
@@ -78,109 +86,63 @@
         data() {
             return {
                 tabPosition: 'join',
-                joinList: [
-                    {
-                        serialNumber: "001",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "002",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "003",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "004",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "005",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "006",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                ],
-                createList: [
-                    {
-                        serialNumber: "001",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "002",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "003",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "004",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "005",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                    {
-                        serialNumber: "006",
-                        investmentTotal: 500000,
-                        currentInvestment: 180000,
-                        earnings: 1000,
-                        distribution: 80,
-                        remaining: 800,
-                    },
-                ],
+                joinList: [],
+                createList: [],
+                joinPoolIds: {},
             }
         },
-        methods: {}
+        methods: {
+            myCreateList() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    creatorId: SSO.account
+                }, "getPools").then(res => {
+                    for (let n of Object.keys(res)) {
+                        if (!Number(n)) continue;
+                        _this.createList.push({
+                            investmentTotal: 500000,
+                            currentInvestment: res[n].power / 100000000,
+                            earnings: res[n].historicalIncome / 100000000,
+                            distribution: res[n].rule.level0 ? res[n].rule.level0 : res[n].rule.level1,
+                            remaining: res[n].endBlockNo - res[n].updateHeight
+                        });
+                    }
+                });
+            },
+            myJoinList() {
+                let _this = this;
+                _this.$global.fetch("POST", {}, "getPools").then(res => {
+                    for (let mining of res.pools) {
+                        console.info(mining);
+                        if (!_this.joinPoolIds[mining.poolId]) continue;
+                        _this.joinList.push({
+                            investmentTotal: 500000,
+                            currentInvestment: mining.power / 100000000,
+                            earnings: mining.historicalIncome / 100000000,
+                            distribution: mining.rule.level0 ? mining.rule.level0 : mining.rule.level1,
+                            remaining: mining.endBlockNo - mining.updateHeight
+                        });
+                    }
+                });
+            },
+            getJoinPoolId() {
+                let _this = this;
+                _this.$global.fetch("GET", {
+                    account: SSO.accountRS,
+                    type: 8,
+                    subtype: 2,
+                }, "getBlockchainTransactions").then(res => {
+                    for (let t of res.transactions) {
+                        _this.joinPoolIds[t.attachment.poolId] = t.signature;
+                    }
+                    _this.myJoinList();
+                });
+            }
+        },
+        created() {
+            this.myCreateList();
+            this.getJoinPoolId();
+        }
     }
 </script>
 <style>

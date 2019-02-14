@@ -7,7 +7,7 @@
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}}{{mining.poolId}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
+                            {{$t('mining.attribute.pool_number')}}{{$global.numToAzd(mining.poolId)}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
                         </span>
                         <span class="pool-attribute-info" @click="miningMask('isAttribute')">{{$t('mining.attribute.pool_details')}}</span>
                     </div>
@@ -92,7 +92,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_number')}}{{miningInfo.poolId}}
+                                    {{$t('mining.attribute.pool_number')}}{{$global.numToAzd(mining.poolId)}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
@@ -130,7 +130,8 @@
                     miningInfo.currentInvestment)/100000000}}SS |
                     {{$t('mining.attribute.pool_capacity')}}{{miningInfo.investmentTotal/100000000}}SS</p>
                 <p class="input">
-                    <el-input v-model="joinPool" type="number" :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
+                    <el-input v-model="joinPool" type="number"
+                              :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
@@ -179,6 +180,11 @@
                 isDestroyPool: false,
                 joinRSPool: '',
                 myAccount: SSO.accountRS,
+                myInfo: {
+                    joinTime: 0,
+                    joinNum: 0,
+
+                },
                 miningInfo: {
                     account: '',
                     accountId: "",
@@ -301,6 +307,22 @@
                 }
                 this[val] = !this[val];
             },
+            myMiningInfo() {
+                let _this = this;
+                this.$global.fetch("GET", {
+                    account: SSO.accountRS,
+                    type: 8,
+                    subtype: 2
+                }, "getBlockchainTransactions").then(res => {
+                    console.info(res);
+                    for (let t of res.transactions) {
+                        _this.myInfo.joinNum += t.attachment.amount / 100000000;
+                        if (_this.myInfo.joinTime === 0 || _this.myInfo.joinTime < t.timestamp) {
+                            _this.myInfo.joinTime = t.timestamp;
+                        }
+                    }
+                });
+            }
         },
         created: function () {
             let _this = this;
@@ -308,7 +330,7 @@
             formData.append("poolId", _this.mining.poolId);
 
             console.log("newestBlock", _this.newestBlock);
-
+            _this.myMiningInfo();
 
             this.$http.post('/sharder?requestType=getPoolInfo', formData).then(res => {
                 if (res.data.errorDescription !== undefined) {
@@ -795,7 +817,7 @@
         }
 
         .pool-attribute .attribute-value .info {
-            font-size: 12px;
+            font-size: 10px;
             height: 30px;
             margin: 0 0 5px 0;
         }
