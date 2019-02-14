@@ -1,4 +1,3 @@
-+6
 import router from "../router/index";
 
 export default {

@@ -813,7 +813,6 @@
                 for (let t of res.transactions) {
                     if (t.type === 12) {
                         _this.pocInfo = t.attachment;
-                        console.info("POCPOCPOCPOCPOCPOCPOCPOCPOC", _this.pocInfo);
                         break;
                     }
                 }

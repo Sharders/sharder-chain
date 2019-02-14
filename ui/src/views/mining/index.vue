@@ -53,7 +53,8 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}}SS
+                    {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} |
+                    {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}} {{newBlockReward}}SS
             </span>
             </div>
             <div class="mining-list">
@@ -79,8 +80,9 @@
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
                                     <p>{{mining.power/100000000}}/{{maxPoolinvestment/100000000}}</p>
-                                    <el-progress :percentage="(mining.power/100000000)/(maxPoolinvestment/100000000)*100"
-                                                 :show-text="false"></el-progress>
+                                    <el-progress
+                                        :percentage="(mining.power/100000000)/(maxPoolinvestment/100000000)*100"
+                                        :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
                                     <p>
@@ -159,12 +161,13 @@
                     <img src="../../assets/img/wodezichan.png" class="header-img">
                     <p>
                         <span>{{$t('mining.index.miner_name')}}</span>:
-                        <span>{{$t('mining.index.miner_name_not_defined')}}</span>
+                        <span v-if="accountInfo.name !== undefined">{{accountInfo.name}}</span>
+                        <span v-else>{{$t('mining.index.miner_name_not_defined')}}</span>
                         <img src="../../assets/img/set.png" @click="isVisible('isSetName')">
                     </p>
                     <p>
                         <span>{{$t('mining.index.tss_address')}}</span>:
-                        <span>SSA-WHXU-6UB3-DB75-78GAT</span>
+                        <span>{{accountInfo.accountRS}}</span>
                         <img src="../../assets/img/TSS.png" @click="isVisible('isTSS')">
                     </p>
                 </div>
@@ -360,6 +363,7 @@
                 incomeDistribution: 0,
                 investment: '',
                 newestBlock: [],
+                newBlockReward: 0,
                 newestBlockCreator: '',
                 totalAssets: 0,
                 forgeAssets: 0,
@@ -524,9 +528,9 @@
             loginAfter() {
                 let _this = this;
 
-            let formData = new FormData();
-            formData.append("creatorId",SSO.account);
-            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
+                let formData = new FormData();
+                formData.append("creatorId", SSO.account);
+                this.$http.post('/sharder?requestType=getPoolRule', formData).then(res => {
 
                     if (typeof res.data.errorDescription !== 'undefined') {
                         _this.rule = null;
@@ -539,16 +543,16 @@
                 });
 
 
-            formData = new FormData();
-            // formData.append("createId",SSO.account);
-            _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
-                if(typeof res.data.errorDescription !== "undefined"){
-                    _this.$message.error(res.data.errorDescription);
-                    return;
-                }
-                console.log(res.data);
-                _this.miningList = res.data.pools;
-                _this.totalSize = _this.miningList.length;
+                formData = new FormData();
+                // formData.append("createId",SSO.account);
+                _this.$http.post('/sharder?requestType=getPools', formData).then(function (res) {
+                    if (typeof res.data.errorDescription !== "undefined") {
+                        _this.$message.error(res.data.errorDescription);
+                        return;
+                    }
+                    console.log(res.data);
+                    _this.miningList = res.data.pools;
+                    _this.totalSize = _this.miningList.length;
 
                 }).catch(function (err) {
                     console.log(err);
@@ -565,7 +569,7 @@
 
                     _this.newestBlock = res.data;
                     _this.newestBlockCreator = res.data.generators[0].accountRS;
-
+                    _this.getCoinBase(res.data.height);
                 }).catch(function (err) {
                     console.log(err);
                 });
@@ -587,13 +591,13 @@
                     _this.$message.error(err);
                 });
 
-            this.$http.get('/sharder?requestType=getAccount', {
-                params: {
-                    account:SSO.account,
-                    includeLessors: true,
-                    includeAssets: true,
-                    includeEffectiveBalance: true,
-                    includeCurrencies: true,
+                this.$http.get('/sharder?requestType=getAccount', {
+                    params: {
+                        account: SSO.account,
+                        includeLessors: true,
+                        includeAssets: true,
+                        includeEffectiveBalance: true,
+                        includeCurrencies: true,
 
                     }
                 }).then(function (res) {
@@ -606,6 +610,20 @@
 
                 });
             },
+            getCoinBase(height) {
+                let _this = this;
+                _this.$global.fetch("GET", {
+                    height: height,
+                    includeTransactions: true
+                }, "getBlock").then(res => {
+                    for (let t of res.transactions) {
+                        if (t.type === 9) {
+                            _this.newBlockReward = t.amountNQT;
+                            break;
+                        }
+                    }
+                });
+            }
         },
         created: function () {
             let _this = this;
