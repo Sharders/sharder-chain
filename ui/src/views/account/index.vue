@@ -337,7 +337,7 @@
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
+                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining" prop="modifyMnemonicWord">
                         <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">
@@ -369,15 +369,16 @@
                     <span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>
                     <span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>
                 </div>
-                <el-form label-position="left" label-width="160px">
+                <el-form label-position="left" label-width="160px" :rules="hubReconfigureSettingRules"
+                         :model="hubsetting" ref="reconfigureForm" status-icon>
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account')">
+                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account_password')">
-                        <el-input v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
+                        <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
@@ -391,20 +392,20 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.publicAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')">
+                    <el-form-item :label="$t('hubsetting.token_address')" prop="SS_Address">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining">
+                    <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining" prop="modifyMnemonicWord">
                         <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.reset_password')">
-                        <el-input v-model="hubsetting.newPwd"></el-input>
+                    <el-form-item :label="$t('hubsetting.reset_password')" prop="newPwd">
+                        <el-input type="password" v-model="hubsetting.newPwd"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.confirm_password')">
-                        <el-input v-model="hubsetting.confirmPwd"></el-input>
+                    <el-form-item :label="$t('hubsetting.confirm_password')" prop="confirmPwd">
+                        <el-input type="password" v-model="hubsetting.confirmPwd"></el-input>
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
@@ -484,8 +485,11 @@
         components: {echarts,dialogCommon,adminPwd,secretPhrase,
             "masked-input": require("vue-masked-input").default},
         data () {
-            const required = rules.required(this.$t('rules.mustRequired'));
-            const validateSSAddress = rules.ssAddress(this.$t('notification.hubsetting_account_address_error_format'));
+            let required = rules.required(this.$t('rules.mustRequired'));
+            let validateSSAddress = rules.ssAddress(
+                this.$t('notification.hubsetting_account_address_error_format'),
+                this.$t('rules.mustRequired')
+            );
             return {
                 //dialog
                 sendMessageDialog: false,
@@ -610,12 +614,48 @@
                     sharderAccount: [required],
                     sharderPwd: [required],
                     SS_Address: [validateSSAddress],
+                    modifyMnemonicWord: [required],
                     newPwd: [
                         {
                             validator:(rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
                                         this.$refs['initForm'].validateField('confirmPwd');
+                                    }
+                                    callback();
+                                } else {
+                                    callback(new Error(this.$t('rules.plz_input_admin_pwd')));
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                    confirmPwd: [
+                        {
+                            validator:(rule, value, callback) => {
+                                if (!value) {
+                                    callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
+                                } else if (value !== this.hubsetting.newPwd) {
+                                    callback(new Error(this.$t('rules.inconsistent_admin_password')));
+                                } else {
+                                    callback();
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                },
+                hubReconfigureSettingRules: {
+                    sharderAccount: [required],
+                    sharderPwd: [required],
+                    SS_Address: [validateSSAddress],
+                    modifyMnemonicWord: [required],
+                    newPwd: [
+                        {
+                            validator:(rule, value, callback) => {
+                                if (value) {
+                                    if (this.hubsetting.confirmPwd) {
+                                        this.$refs['reconfigureForm'].validateField('confirmPwd');
                                     }
                                     callback();
                                 } else {
@@ -789,18 +829,30 @@
                 let data = new FormData();
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=restart', data).then(res => {
-                    _this.$message.success(_this.$t('notification.restart_success'));
+                    if(!res.data.errorDescription){
+                        _this.$message.success(_this.$t('restart.restarting'));
+                        _this.$router.push("/login");
+                        _this.autoRefresh();
+                    } else {
+                        _this.$message.error(res.data.errorDescription);
+                    }
                 }).catch(err => {
                     _this.$message.error(err);
                 });
             },
             resettingHub(adminPwd){
                 const _this = this;
-                this.$http.post('/sharder?requestType=recovery', {
-                    adminPassword: adminPwd,
-                    restart: true
-                }).then(res => {
-                    _this.$message.success(_this.$t('notification.restart_success'));
+                let data = new FormData();
+                data.append("adminPassword", adminPwd);
+                data.append("restart", "true");
+                this.$http.post('/sharder?requestType=recovery', data).then(res => {
+                    if(!res.data.errorDescription){
+                        _this.$message.success(_this.$t('restart.restarting'));
+                        _this.$router.push("/login");
+                        _this.autoRefresh();
+                    } else {
+                        _this.$message.error(res.data.errorDescription);
+                    }
                 }).catch(err => {
                     _this.$message.error(err);
                 });
@@ -810,9 +862,11 @@
                 params.append("adminPassword",adminPwd);
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
                     if(typeof res.data.errorDescription === "undefined"){
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.success(_this.$t('restart.restarting'));
+                        _this.$router.push("/login");
+                        _this.autoRefresh();
                     }else{
-                        _this.$message.success(_this.$t('notification.restart_success'));
+                        _this.$message.error(res.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -821,6 +875,8 @@
             verifyHubSettingInfo(){
                 const _this = this;
                 let formData = new FormData();
+                formData.append("restart",true);
+                formData.append("sharder.disableAdminPassword", "false");
                 if(_this.hubsetting.openPunchthrough){
                     formData.append("sharder.useNATService",true);
                     if(_this.hubsetting.address === '' ||
@@ -862,9 +918,6 @@
                 }else{
                     formData.append("sharder.HubBind",false);
                 }
-                formData.append("sharder.disableAdminPassword",false);
-                formData.append("restart",true);
-
                 if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
                     if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
                         _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
@@ -881,22 +934,20 @@
                 let reConfigFormData = new FormData();
                 // check page value first
                 reConfigFormData = _this.verifyHubSettingInfo();
-                if(reConfigFormData === false){
+                if(reConfigFormData === false) {
                     return;
-                }else{
-                    reConfigFormData.append("isInit", true);
+                } else {
+                    reConfigFormData.append("isInit", "true");
                 }
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.nodeType);
                 _this.$refs['initForm'].validate((valid) => {
                     if (valid) {
-                        // and then confirm settings, save real address to operate system
-                        this.hubSettingsConfirm(confirmFormData);
-                        // in the same time, reconfigure hub and create a new sharder.properties file
-                        this.reconfigure(reConfigFormData);
-                        // auto flash
-                        this.autoRefresh();
+                        // firstly confirm settings, save real address to operate system
+                        // secondly reconfigure hub and create a new sharder.properties file
+                        // finally redirect to login page, and auto refresh after 30s
+                        this.hubSettingsConfirm(confirmFormData, reConfigFormData);
                     } else {
                         console.log('error submit!!');
                         return false;
@@ -906,13 +957,14 @@
             autoRefresh() {
                 setTimeout(() => {
                     window.location.reload();
-                }, 60000);
+                }, 30000);
             },
-            hubSettingsConfirm(data) {
+            hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
-                this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check/confirm.ss',data).then(res2 => {
+                this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss',data).then(res2 => {
                     if(!res2.data.errorDescription) {
                         console.log('update hub setting success');
+                        _this.reconfigure(reconfigData);
                     }else{
                         _this.$message.error(JSON.stringify(res2));
                     }
@@ -925,8 +977,9 @@
                 this.$http.post('/sharder?requestType=reConfig', data).then(res1 => {
                     if(!res1.data.errorDescription && !res1.errorDescription){
                         _this.$message.success(_this.$t('restart.restarting'));
-                        reConfigFormData = new FormData();
+                        data = new FormData();
                         _this.$router.push("/login");
+                        _this.autoRefresh();
                     }else{
                         let msg = res1.data.errorDescription ? res1.data.errorDescription :
                             (res1.errorDescription ? res1.errorDescription : 'error');
@@ -942,7 +995,7 @@
                 if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
                     formData.append("username",_this.hubsetting.sharderAccount);
                     formData.append("password",_this.hubsetting.sharderPwd);
-                    _this.$http.post('https://taskhall.sharder.org/bounties/hubDirectory/check.ss',formData).then(res=>{
+                    _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss',formData).then(res=>{
                         if(res.data.status === 'success'){
                             _this.hubsetting.address = res.data.data.natServiceAddress;
                             _this.hubsetting.port = res.data.data.natServicePort;
@@ -1456,15 +1509,22 @@
                 const _this = this;
                 _this.adminPasswordTitle = title;
                 if(title === 'reConfig'){
-                    let info = _this.verifyHubSettingInfo();
-                    if(info === false){
-                        return;
-                    }else{
-                        _this.params = info;
-                    }
+                    _this.$refs['reconfigureForm'].validate((valid) => {
+                        if (valid) {
+                            let info = _this.verifyHubSettingInfo();
+                            if(info){
+                                _this.params = info;
+                                _this.hubSettingDialog = false;
+                                _this.adminPasswordDialog =true;
+                            }
+                        } else {
+                            return false;
+                        }
+                    });
+                } else {
+                    _this.hubSettingDialog = false;
+                    _this.adminPasswordDialog =true;
                 }
-                _this.hubSettingDialog = false;
-                _this.adminPasswordDialog =true;
             },
             openSecretPhraseDialog:function(){
                 const _this = this;
@@ -1495,6 +1555,13 @@
                 _this.setName(secretPhrase);
             },
             closeDialog: function () {
+                // clear form
+                if (this.$refs['initForm']) {
+                    this.$refs["initForm"].resetFields();
+                } else if (this.$refs['reconfigureForm']) {
+                    this.$refs["reconfigureForm"].resetFields();
+                }
+
                 this.$store.state.mask = false;
                 this.sendMessageDialog = false;
                 this.tranferAccountsDialog = false;
@@ -1782,6 +1849,7 @@
             },
             getLang:{
                 handler:function(oldValue,newValue){
+                    console.log("语言发生变化");
                     const _this = this;
                     _this.transactionType = [{
                         value:'',
