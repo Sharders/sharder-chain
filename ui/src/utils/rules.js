@@ -70,10 +70,11 @@ function integer(message) {
 
 /**
  * 校验SS地址 validate SS address
- * @param message tips
+ * @param m1 SS Address Format Error
+ * @param m2 Required
  * @returns {{validator: validator, required: boolean}}
  */
-function ssAddress(message) {
+function ssAddress(m1, m2) {
     return {
         required: true,
         validator: (rule, value, callback) => {
@@ -82,10 +83,10 @@ function ssAddress(message) {
                 if (reg.test(value)) {
                     callback();
                 } else {
-                    callback(new Error(message ? message : 'SS Address Format Error'));
+                    callback(new Error(m1 ? m1 : 'SS Address Format Error'));
                 }
             } else {
-                callback(new Error('Required'));
+                callback(new Error(m2 ? m2 :'Required'));
             }
         }
     }
