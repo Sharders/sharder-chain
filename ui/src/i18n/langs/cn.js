@@ -816,7 +816,7 @@ const cn = {
         'enter_client':"进入客户端",
     },
     restart: {
-        'restarting': "正在重启，1分钟后自动刷新，请稍等......",
+        'restarting': "正在重启，稍后自动刷新，请稍等......",
     },
     rules: {
         mustRequired: '此项必填',

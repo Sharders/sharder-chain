@@ -811,7 +811,7 @@ const en = {
         'enter_client':"Enter",
     },
     restart: {
-        'restarting': "Hub is restarting，please wait...",
+        'restarting': "Hub is restarting，it will auto refresh later, please wait...",
     },
     rules: {
         mustRequired: 'Required Field',
