@@ -1555,10 +1555,13 @@
                 _this.setName(secretPhrase);
             },
             closeDialog: function () {
-                // clear form
-                if (this.$refs['initForm']) {
-                    this.$refs["initForm"].resetFields();
-                } else if (this.$refs['reconfigureForm']) {
+                // clear dialog form fields
+                if (this.hubSettingDialog && this.$refs['initForm']) {
+                    // do not reset fields, otherwise the setting button will hide
+                    // because "this.hubsetting.SS_Address" is used to display judgment
+                    this.$refs["initForm"].clearValidate();
+                }
+                if (this.hubInitDialog && this.$refs['reconfigureForm']) {
                     this.$refs["reconfigureForm"].resetFields();
                 }
 
@@ -1598,7 +1601,6 @@
 
                 _this.isShowName = true;
                 _this.temporaryName = "";
-
             },
             copySuccess: function () {
                 const _this = this;
@@ -1783,15 +1785,60 @@
                 }
             },
             whetherShowHubSettingBtn() {
-                return typeof(this.secretPhrase) !== 'undefined'
-                    && this.hubsetting.SS_Address === this.accountInfo.accountRS
+                /*
+                At the same time satisfy the following conditions:
+                1. sharder.HubBindAddress has value；
+                2. using secretPhrase to login；
+                3. NodeType is Hub；
+                4. Hub bind SS address must equals to user account address。
+                */
+                return this.secretPhrase
                     && !this.initHUb
+                    && this.nodeType === 'Hub'
+                    && this.hubsetting.SS_Address === this.accountInfo.accountRS;
             },
             whetherShowHubInitBtn() {
-                return typeof(this.secretPhrase) !== 'undefined' && this.initHUb && this.nodeType === 'Hub'
+                /*
+                At the same time satisfy the following conditions:
+                1. sharder.HubBindAddress has value；
+                2. using secretPhrase to login；
+                3. NodeType is Hub。
+                */
+                return this.secretPhrase
+                    && this.initHUb
+                    && this.nodeType === 'Hub';
             },
             whetherShowNATServiceRegisterBtn() {
-                return !this.useNATService && this.nodeType === 'Normal';
+                /*
+                At the same time satisfy the following conditions:
+                1. using secretPhrase to login；
+                2. NodeType is Normal；
+                3. didn't use NAT service；
+                4. NAT configuration is empty;
+                 */
+                return this.secretPhrase
+                    && !this.useNATService
+                    && this.nodeType === 'Normal'
+                    && !this.hubsetting.clientSecretkey
+                    && !this.hubsetting.publicAddress
+                    && !this.hubsetting.port
+                    && !this.hubsetting.address;
+            },
+            whetherShowUseNATServiceBtn() {
+                /*
+                At the same time satisfy the following conditions:
+                1. using secretPhrase to login；
+                2. NodeType is Normal；
+                3. didn't use NAT service；
+                4. NAT configuration is not empty;
+                 */
+                return this.secretPhrase
+                    && !this.useNATService
+                    && this.nodeType === 'Normal'
+                    && this.hubsetting.clientSecretkey
+                    && this.hubsetting.publicAddress
+                    && this.hubsetting.port
+                    && this.hubsetting.address;
             }
         },
         computed:{
