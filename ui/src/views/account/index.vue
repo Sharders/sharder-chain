@@ -38,7 +38,7 @@
                             </span>
                             <span>{{$t('account.send_message')}}</span>
                         </button>
-                        <!-- already set sharder.HubBindAddress and using secretPhrase to login and ss address is matching，then display HubSetting button -->
+                        <!-- Setting Hub Button -->
                         <button class="common_btn imgBtn writeBtn" v-if="whetherShowHubSettingBtn()"
                                 @click="openHubSettingDialog">
                             <span class="icon">
@@ -59,7 +59,7 @@
                             </span>
                             <span>{{$t('account.hub_setting')}}</span>
                         </button>
-                        <!-- not set sharder.HubBindAddress and using secretPhrase to login and node type is Hub, then display HubInit button -->
+                        <!-- Init Hub Button -->
                         <button class="common_btn imgBtn" v-if="whetherShowHubInitBtn()" @click="openHubInitDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
@@ -79,7 +79,7 @@
                             </span>
                             <span>{{$t('login.init_hub')}}</span>
                         </button>
-                        <!-- sharder.useNATService is not true and node type is Normal, then display NAT service register button -->
+                        <!-- Register NAT service button -->
                         <button class="common_btn imgBtn" v-if="whetherShowNATServiceRegisterBtn()"
                                 @click="openHubInitDialog">
                             <span class="icon">
@@ -98,7 +98,28 @@
                                     <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
                                 </svg>
                             </span>
-                            <span>{{$t('login.nat_server')}}</span>
+                            <span>{{$t('login.register_nat_server')}}</span>
+                        </button>
+                        <!-- Configure NAT service button -->
+                        <button class="common_btn imgBtn" v-if="whetherShowConfigureNATServiceBtn()"
+                                @click="openHubInitDialog">
+                            <span class="icon">
+                                <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
+                                    <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-210.23,147l-0.07,0h0Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-363.68,147h-0.08Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-227.43,189.31l-0.09.08,0,0Z" transform="translate(382.82 -23.48)"/>
+                                    <path
+                                        d="M-287,81.4A32.6,32.6,0,0,0-319.61,114,32.63,32.63,0,0,0-287,146.6,32.64,32.64,0,0,0-254.37,114,32.63,32.63,0,0,0-287,81.4Zm0,51.2A18.64,18.64,0,0,1-305.61,114,18.63,18.63,0,0,1-287,95.4,18.64,18.64,0,0,1-268.37,114,18.66,18.66,0,0,1-287,132.6Z"
+                                        transform="translate(382.82 -23.48)"/>
+                                    <path
+                                        d="M-192,100.14a24.25,24.25,0,0,0-6.37-12.19,24.2,24.2,0,0,0-11.94-7l-2.08-.48a12.38,12.38,0,0,1-6.89-5.6A12.55,12.55,0,0,1-221,68.66a12.42,12.42,0,0,1,.24-2.45l0.62-1.85,0.1-.31a22.6,22.6,0,0,0,1-6.65,25.77,25.77,0,0,0-2-9.91,23.67,23.67,0,0,0-6.38-8.83h0c-0.81-.69-4.05-3.27-11.62-7.64l0,0a88.68,88.68,0,0,0-12.22-6.15h0a22.73,22.73,0,0,0-7.83-1.35A24.92,24.92,0,0,0-277.14,31l0,0-1.52,1.62A12.25,12.25,0,0,1-287,35.78a12.44,12.44,0,0,1-8.36-3.19L-296.78,31a24.82,24.82,0,0,0-18-7.57,22.73,22.73,0,0,0-7.84,1.35h0A87,87,0,0,0-334.88,31L-335,31a83.41,83.41,0,0,0-11.58,7.67,23.6,23.6,0,0,0-6.35,8.77,25.67,25.67,0,0,0-2,9.93A22.81,22.81,0,0,0-354,64v0l0.62,2a13,13,0,0,1,.27,2.63,12.39,12.39,0,0,1-1.68,6.25,12.41,12.41,0,0,1-6.89,5.6l-2,.46h0a24.24,24.24,0,0,0-11.91,6.91A24.16,24.16,0,0,0-382,100.19v0a84.4,84.4,0,0,0-.8,13.84c0,8.71.61,12.78,0.8,13.83a24.2,24.2,0,0,0,6.38,12.23A24.16,24.16,0,0,0-363.71,147l2,0.45a12.39,12.39,0,0,1,7,5.62v0a12.42,12.42,0,0,1,1.7,6.27,12.35,12.35,0,0,1-.28,2.62l-0.6,2a22.62,22.62,0,0,0-1,6.59,25.77,25.77,0,0,0,2,9.92,23.67,23.67,0,0,0,6.37,8.83l0,0a84,84,0,0,0,11.61,7.63,84.21,84.21,0,0,0,12.37,6.22,22.74,22.74,0,0,0,7.76,1.33A24.91,24.91,0,0,0-296.83,197l0,0,1.39-1.5a12.58,12.58,0,0,1,8.41-3.22,12.45,12.45,0,0,1,8.4,3.23l1.42,1.52,0,0a24.83,24.83,0,0,0,18,7.57,22.76,22.76,0,0,0,7.83-1.35h0A86.42,86.42,0,0,0-239.09,197l0,0a84.17,84.17,0,0,0,11.53-7.59,23.48,23.48,0,0,0,6.44-8.86,25.75,25.75,0,0,0,2-9.92,22.71,22.71,0,0,0-1-6.61l0,0.06-0.63-2.13a12.69,12.69,0,0,1-.27-2.62,12.2,12.2,0,0,1,1.66-6.18v0a12.45,12.45,0,0,1,7-5.65l2-.46a24.21,24.21,0,0,0,11.9-6.9A24.18,24.18,0,0,0-192,127.85h0a84.88,84.88,0,0,0,.8-13.82V114A86.79,86.79,0,0,0-192,100.14Zm-13.74,25.23a10.89,10.89,0,0,1-7.64,8l-2.5.58a26.46,26.46,0,0,0-15.46,12.19,26.35,26.35,0,0,0-2.82,19.37l0.77,2.57a10.89,10.89,0,0,1-3.11,10.61,72.25,72.25,0,0,1-9.53,6.19A76.54,76.54,0,0,1-256.19,190a10.87,10.87,0,0,1-10.75-2.6l-1.77-1.89A26.46,26.46,0,0,0-287,178.22a26.51,26.51,0,0,0-18.29,7.27l-1.77,1.89a10.87,10.87,0,0,1-10.75,2.6,73.91,73.91,0,0,1-10.11-5.17,73.79,73.79,0,0,1-9.56-6.19A11,11,0,0,1-340.57,168l0.74-2.47a26.46,26.46,0,0,0-2.82-19.47A26.39,26.39,0,0,0-358.1,133.9l-2.5-.58a10.84,10.84,0,0,1-7.63-8,74.14,74.14,0,0,1-.58-11.35,74.19,74.19,0,0,1,.58-11.35,10.88,10.88,0,0,1,7.63-8l2.57-.58a26.37,26.37,0,0,0,15.43-12.15,26.53,26.53,0,0,0,2.82-19.43l-0.77-2.54a10.86,10.86,0,0,1,3.11-10.58,72.75,72.75,0,0,1,9.53-6.22A76.66,76.66,0,0,1-317.79,38,10.86,10.86,0,0,1-307,40.57l1.8,1.93A26.42,26.42,0,0,0-287,49.78a26.34,26.34,0,0,0,18.19-7.21l1.86-2A10.88,10.88,0,0,1-256.2,38a78.92,78.92,0,0,1,10.1,5.16,73.52,73.52,0,0,1,9.56,6.19,10.92,10.92,0,0,1,3.11,10.61l-0.83,2.51a26.43,26.43,0,0,0,2.83,19.47A26.45,26.45,0,0,0-216.09,94l2.66,0.61a10.9,10.9,0,0,1,7.63,8,76.56,76.56,0,0,1,.62,11.38A74.19,74.19,0,0,1-205.76,125.37Z"
+                                        transform="translate(382.82 -23.48)"/>
+                                    <path d="M-296.8,31l0,0h0Z" transform="translate(382.82 -23.48)"/>
+                                    <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
+                                </svg>
+                            </span>
+                            <span>{{$t('login.config_nat_server')}}</span>
                         </button>
                     </div>
                 </div>
@@ -340,7 +361,7 @@
         <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
             <div class="modal-header">
                 <h4 class="modal-title">
-                    <span>{{$t('login.init_hub')}}</span>
+                    <span>{{hubInitDialog_title}}</span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -387,7 +408,7 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}
+                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{hubInitDialog_ok_button_name}}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -552,8 +573,15 @@
                 adminPasswordDialog: false,
                 secretPhraseDialog: false,
                 initHUb: this.$store.state.isHubInit,
-                nodeType: this.$store.state.userConfig['sharder.NodeType'],
-                useNATService: this.$store.state.userConfig['sharder.useNATService'],
+                userConfig: {
+                    nodeType: this.$store.state.userConfig['sharder.NodeType'],
+                    useNATService: this.$store.state.userConfig['sharder.useNATService'],
+                    natClientSecretKey:this.$store.state.userConfig['sharder.NATClientKey'],
+                    publicAddress:this.$store.state.userConfig['sharder.myAddress'],
+                    natPort:this.$store.state.userConfig['sharder.NATServicePort'],
+                    natAddress:this.$store.state.userConfig['sharder.NATServiceAddress'],
+                    ssAddress: this.$store.state.userConfig['sharder.HubBindAddress'],
+                },
 
                 isShowName: true,
                 generatorRS: '',
@@ -733,8 +761,6 @@
         },
         created() {
             const _this = this;
-            console.log("_this.userConfig['sharder.useNATService']", this.$store.state.userConfig['sharder.useNATService']);
-            console.log("_this.userConfig['sharder.NodeType']", this.$store.state.userConfig['sharder.NodeType']);
             console.log("_this.initHUb", _this.initHUb);
             _this.getAccount(_this.accountInfo.accountRS).then(res => {
                 _this.accountInfo.account = res.account;
@@ -927,7 +953,7 @@
                 formData.append("restart", true);
                 formData.append("sharder.disableAdminPassword", "false");
                 if (_this.hubsetting.openPunchthrough) {
-                    formData.append("sharder.useNATService", true);
+                    formData.append("sharder.useNATService", "true");
                     if (_this.hubsetting.address === '' ||
                         _this.hubsetting.port === '' ||
                         _this.hubsetting.clientSecretkey === '') {
@@ -943,7 +969,7 @@
                         formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
                     }
                 } else {
-                    formData.append("sharder.useNATService", false);
+                    formData.append("sharder.useNATService", "false");
                 }
                 if (_this.hubsetting.SS_Address !== '') {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
@@ -990,18 +1016,28 @@
                 }
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("nodeType", _this.nodeType);
+                confirmFormData.append("nodeType", _this.userConfig.nodeType);
                 _this.$refs['initForm'].validate((valid) => {
                     if (valid) {
-                        // firstly confirm settings, save real address to operate system
-                        // secondly reconfigure hub and create a new sharder.properties file
-                        // finally redirect to login page, and auto refresh after 30s
-                        this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                        if (this.whetherShowHubInitBtn()) {
+                            this.confirmInitHubSetting(confirmFormData, reConfigFormData);
+                        } else if (this.whetherShowNATServiceRegisterBtn()) {
+                            this.registerNatService();
+                        }
                     } else {
                         console.log('error submit!!');
                         return false;
                     }
                 });
+            },
+            confirmInitHubSetting(confirmFormData, reConfigFormData) {
+                // firstly confirm settings, save real address to operate system
+                // secondly reconfigure hub and create a new sharder.properties file
+                // finally redirect to login page, and auto refresh after 30s
+                this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+            },
+            registerNatService() {
+                console.log("nat");
             },
             autoRefresh() {
                 setTimeout(() => {
@@ -1041,7 +1077,9 @@
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
-                if (_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough) {
+                if (_this.hubsetting.sharderAccount !== ''
+                    && _this.hubsetting.sharderPwd !== ''
+                    && _this.hubsetting.openPunchthrough) {
                     formData.append("username", _this.hubsetting.sharderAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
                     _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss', formData).then(res => {
@@ -1843,8 +1881,8 @@
                 */
                 return this.secretPhrase
                     && !this.initHUb
-                    && this.nodeType === 'Hub'
-                    && this.hubsetting.SS_Address === this.accountInfo.accountRS;
+                    && this.userConfig.nodeType === 'Hub'
+                    && this.userConfig.ssAddress === this.accountInfo.accountRS;
             },
             whetherShowHubInitBtn() {
                 /*
@@ -1855,7 +1893,7 @@
                 */
                 return this.secretPhrase
                     && this.initHUb
-                    && this.nodeType === 'Hub';
+                    && this.userConfig.nodeType === 'Hub';
             },
             whetherShowNATServiceRegisterBtn() {
                 /*
@@ -1866,14 +1904,14 @@
                 4. NAT configuration is empty;
                  */
                 return this.secretPhrase
-                    && !this.useNATService
-                    && this.nodeType === 'Normal'
-                    && !this.hubsetting.clientSecretkey
-                    && !this.hubsetting.publicAddress
-                    && !this.hubsetting.port
-                    && !this.hubsetting.address;
+                    && !this.userConfig.useNATService
+                    && this.userConfig.nodeType === 'Normal'
+                    && !this.userConfig.natClientSecretKey
+                    && !this.userConfig.publicAddress
+                    && !this.userConfig.natPort
+                    && !this.userConfig.natAddress;
             },
-            whetherShowUseNATServiceBtn() {
+            whetherShowConfigureNATServiceBtn() {
                 /*
                 At the same time satisfy the following conditions:
                 1. using secretPhrase to login；
@@ -1882,17 +1920,31 @@
                 4. NAT configuration is not empty;
                  */
                 return this.secretPhrase
-                    && !this.useNATService
-                    && this.nodeType === 'Normal'
-                    && this.hubsetting.clientSecretkey
-                    && this.hubsetting.publicAddress
-                    && this.hubsetting.port
-                    && this.hubsetting.address;
-            }
+                    && !this.userConfig.useNATService
+                    && this.userConfig.nodeType === 'Normal'
+                    && this.userConfig.natClientSecretKey
+                    && this.userConfig.publicAddress
+                    && this.userConfig.natPort
+                    && this.userConfig.natAddress;
+            },
         },
         computed: {
             getLang: function () {
                 return this.$store.state.currentLang;
+            },
+            hubInitDialog_ok_button_name() {
+                if (this.whetherShowHubInitBtn()) {
+                    return this.$t('hubsetting.confirm_restart');
+                } else if (this.whetherShowNATServiceRegisterBtn()) {
+                    return this.$t('hubsetting.confirm_register');
+                }
+            },
+            hubInitDialog_title() {
+                if (this.whetherShowHubInitBtn()) {
+                    return this.$t('login.init_hub');
+                } else if (this.whetherShowNATServiceRegisterBtn()) {
+                    return this.$t('login.register_nat_server');
+                }
             }
         },
         watch: {
