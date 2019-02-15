@@ -13,7 +13,8 @@ const en = {
         'register_tip':"Don't have an account? Click here to create one!",
         'welcome_tip':"Welcome to Sharder",
         'init_hub':"Initialize Hub",
-        'nat_server':"NAT Server",
+        'register_nat_server':"Register NAT Service",
+        'config_nat_server':"Configure NAT Service"
     },
     hubsetting: {
         'enable_nat_traversal':"Enable Nat Traversal",
@@ -39,6 +40,7 @@ const en = {
         'reset_password':"Reset Hub Password:",
         'cancel':"Cancel",
         'update_hub_setting_success': "Success to update Hub Settings",
+        'confirm_register':"Register",
     },
     register:{
         'register_title':"Your mnemonic phrase has been generated:",
