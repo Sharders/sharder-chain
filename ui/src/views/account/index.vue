@@ -576,10 +576,10 @@
                 userConfig: {
                     nodeType: this.$store.state.userConfig['sharder.NodeType'],
                     useNATService: this.$store.state.userConfig['sharder.useNATService'],
-                    natClientSecretKey:this.$store.state.userConfig['sharder.NATClientKey'],
-                    publicAddress:this.$store.state.userConfig['sharder.myAddress'],
-                    natPort:this.$store.state.userConfig['sharder.NATServicePort'],
-                    natAddress:this.$store.state.userConfig['sharder.NATServiceAddress'],
+                    natClientSecretKey: this.$store.state.userConfig['sharder.NATClientKey'],
+                    publicAddress: this.$store.state.userConfig['sharder.myAddress'],
+                    natPort: this.$store.state.userConfig['sharder.NATServicePort'],
+                    natAddress: this.$store.state.userConfig['sharder.NATServiceAddress'],
                     ssAddress: this.$store.state.userConfig['sharder.HubBindAddress'],
                 },
 
