@@ -13,7 +13,8 @@
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                         <span class="csp" @click="openUserInfoDialog">{{$t('account.account_info')}}</span>
                     </div>
-                    <p class="account_asset">{{$t('account.assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
+                    <p class="account_asset">
+                        {{$t('account.assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -38,7 +39,8 @@
                             <span>{{$t('account.send_message')}}</span>
                         </button>
                         <!-- already set sharder.HubBindAddress and using secretPhrase to login and ss address is matching，then display HubSetting button -->
-                        <button class="common_btn imgBtn writeBtn" v-if="whetherShowHubSettingBtn()" @click="openHubSettingDialog">
+                        <button class="common_btn imgBtn writeBtn" v-if="whetherShowHubSettingBtn()"
+                                @click="openHubSettingDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -78,7 +80,8 @@
                             <span>{{$t('login.init_hub')}}</span>
                         </button>
                         <!-- sharder.useNATService is not true and node type is Normal, then display NAT service register button -->
-                        <button class="common_btn imgBtn" v-if="whetherShowNATServiceRegisterBtn()" @click="openHubInitDialog">
+                        <button class="common_btn imgBtn" v-if="whetherShowNATServiceRegisterBtn()"
+                                @click="openHubInitDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -143,42 +146,57 @@
                             </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(transaction,index) in accountTransactionList">
-                                    <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS',true)}}</td>
-                                    <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}</td>
-                                    <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
-                                    <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
-                                    <td v-if="transaction.type === 1 && transaction.subtype === 0">{{$t('transaction.transaction_type_information')}}</td>
-                                    <td v-if="transaction.type === 1 && transaction.subtype === 5">{{$t('transaction.transaction_type_account')}}</td>
-                                    <td v-if="transaction.type === 6">{{$t('transaction.transaction_type_storage_service')}}</td>
-                                    <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
-                                    <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}</td>
-                                    <td v-if="transaction.type === 12">{{$t('transaction.transaction_type_poc')}}</td>
+                            <tr v-for="(transaction,index) in accountTransactionList">
+                                <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS',true)}}</td>
+                                <td class="linker" @click="openBlockInfoDialog(transaction.height)"
+                                    v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}
+                                </td>
+                                <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
+                                <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
+                                <td v-if="transaction.type === 1 && transaction.subtype === 0">
+                                    {{$t('transaction.transaction_type_information')}}
+                                </td>
+                                <td v-if="transaction.type === 1 && transaction.subtype === 5">
+                                    {{$t('transaction.transaction_type_account')}}
+                                </td>
+                                <td v-if="transaction.type === 6">
+                                    {{$t('transaction.transaction_type_storage_service')}}
+                                </td>
+                                <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
+                                <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}
+                                </td>
+                                <td v-if="transaction.type === 12">{{$t('transaction.transaction_type_poc')}}</td>
 
-                                    <td v-if="transaction.amountNQT === '0'">-</td>
-                                    <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">-{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
-                                    <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                <td v-if="transaction.amountNQT === '0'">-</td>
+                                <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">
+                                    -{{$global.formatMoney(transaction.amountNQT/100000000)}} SS
+                                </td>
+                                <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
 
-                                    <td v-if="transaction.feeNQT === '0'">-</td>
-                                    <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
-                                    <td class=" image_text w300">
-                                        <span class="linker" v-if="transaction.type === 9">Coinbase</span>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                              v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                              v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
-                                        <img src="../../assets/img/right_arrow.svg"/>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">{{$t('transaction.self')}}</span>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                              v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
-                                        <span class="linker" v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                              v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
-                                    </td>
-                                    <td  v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
-                                    <td  v-else>-</td>
-                                    <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">{{$t('transaction.view_details')}}</td>
-                                </tr>
+                                <td v-if="transaction.feeNQT === '0'">-</td>
+                                <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
+                                <td class=" image_text w300">
+                                    <span class="linker" v-if="transaction.type === 9">Coinbase</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
+                                          v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
+                                          v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
+                                    <img src="../../assets/img/right_arrow.svg"/>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
+                                          v-if="transaction.type === 9">{{$t('transaction.self')}}</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
+                                          v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
+                                    <span class="linker"
+                                          v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
+                                          v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
+                                </td>
+                                <td v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
+                                <td v-else>-</td>
+                                <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">
+                                    {{$t('transaction.view_details')}}
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -208,14 +226,17 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item :label="$t('sendMessage.receiver')" class="item_receiver">
-                                <masked-input id="receiver" mask="AAA-****-****-****-*****" v-model="messageForm.receiver" />
+                                <masked-input id="receiver" mask="AAA-****-****-****-*****"
+                                              v-model="messageForm.receiver"/>
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.receiver_publickey')" v-if="messageForm.hasPublicKey">
                                 <el-input v-model="messageForm.publicKey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.infomation')">
-                                <el-checkbox v-model="messageForm.isEncrypted">{{$t('sendMessage.encrypted_information')}}</el-checkbox>
+                                <el-checkbox v-model="messageForm.isEncrypted">
+                                    {{$t('sendMessage.encrypted_information')}}
+                                </el-checkbox>
                                 <el-input
                                     :disabled="messageForm.isFile"
                                     type="textarea"
@@ -226,15 +247,21 @@
                                 </el-input>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.file')">
-                                <el-input :placeholder="$t('sendMessage.file_tip')" class="input-with-select" v-model="messageForm.fileName" :readonly="true">
-                                    <el-button slot="append" v-if="file === null">{{$t('sendMessage.browse')}}</el-button>
-                                    <el-button slot="append" @click="delFile" v-else>{{$t('sendMessage.delete')}}</el-button>
+                                <el-input :placeholder="$t('sendMessage.file_tip')" class="input-with-select"
+                                          v-model="messageForm.fileName" :readonly="true">
+                                    <el-button slot="append" v-if="file === null">{{$t('sendMessage.browse')}}
+                                    </el-button>
+                                    <el-button slot="append" @click="delFile" v-else>{{$t('sendMessage.delete')}}
+                                    </el-button>
                                 </el-input>
                                 <input id="file" ref="file" type="file" @change="fileChange" v-if="file === null"/>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.fee')">
-                                <el-button class="calculate_fee" @click="getMessageFee()">{{$t('sendMessage.calculate')}}</el-button>
-                                <input class="el-input__inner"  v-model="messageForm.fee" type="number" min="1" max="100000" :step="0.1"/>
+                                <el-button class="calculate_fee" @click="getMessageFee()">
+                                    {{$t('sendMessage.calculate')}}
+                                </el-button>
+                                <input class="el-input__inner" v-model="messageForm.fee" type="number" min="1"
+                                       max="100000" :step="0.1"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.secret_key')">
@@ -243,7 +270,9 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn common_btn writeBtn" @click="sendMessageInfo">{{$t('sendMessage.send_message')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendMessageInfo">
+                            {{$t('sendMessage.send_message')}}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -259,23 +288,29 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item :label="$t('transfer.receiver')" class="item_receiver">
-                                <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****" v-model="transfer.receiver"/>
+                                <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****"
+                                              v-model="transfer.receiver"/>
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.receiver_public_key')" v-if="transfer.hasPublicKey">
                                 <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.amount')">
-                                <input class="el-input__inner"  v-model="transfer.number" min="0" :max="1000000000" type="number"/>
+                                <input class="el-input__inner" v-model="transfer.number" min="0" :max="1000000000"
+                                       type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.fee')">
-                                <el-button class="calculate_fee" @click="getTransferFee()">{{$t('transfer.calculate')}}</el-button>
-                                <input class="el-input__inner"  v-model="transfer.fee"  min="1" max="100000" :step="0.1" type="number"/>
+                                <el-button class="calculate_fee" @click="getTransferFee()">
+                                    {{$t('transfer.calculate')}}
+                                </el-button>
+                                <input class="el-input__inner" v-model="transfer.fee" min="1" max="100000" :step="0.1"
+                                       type="number"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
                             <el-form-item label="">
-                                <el-checkbox v-model="transfer.hasMessage">{{$t('transfer.enable_add_info')}}</el-checkbox>
+                                <el-checkbox v-model="transfer.hasMessage">{{$t('transfer.enable_add_info')}}
+                                </el-checkbox>
                                 <el-checkbox ref="encrypted2" v-model="transfer.isEncrypted"
                                              :disabled="!transfer.hasMessage">{{$t('transfer.encrypted_information')}}
                                 </el-checkbox>
@@ -294,7 +329,9 @@
                         </el-form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn common_btn writeBtn" @click="sendTransferInfo">{{$t('transfer.transfer_send')}}</button>
+                        <button type="button" class="btn common_btn writeBtn" @click="sendTransferInfo">
+                            {{$t('transfer.transfer_send')}}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -324,20 +361,22 @@
                     <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"  v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
+                                  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.public_ip_address')">
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
-                        <el-input  v-model="hubsetting.SS_Address"></el-input>
+                        <el-input v-model="hubsetting.SS_Address"></el-input>
                         <!--<a @click="register"><span>创建账户</span></a>-->
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining" prop="modifyMnemonicWord">
+                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining"
+                                  prop="modifyMnemonicWord">
                         <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">
@@ -348,7 +387,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{$t('hubsetting.confirm_restart')}}
+                    </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
@@ -386,7 +426,8 @@
                     <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"  v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
+                                  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.public_ip_address')" v-if="hubsetting.openPunchthrough">
@@ -398,7 +439,8 @@
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining" prop="modifyMnemonicWord">
+                    <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining"
+                                  prop="modifyMnemonicWord">
                         <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.reset_password')" prop="newPwd">
@@ -409,7 +451,9 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="openAdminDialog('reConfig')">{{$t('hubsetting.confirm_restart')}}</button>
+                    <button class="common_btn writeBtn" @click="openAdminDialog('reConfig')">
+                        {{$t('hubsetting.confirm_restart')}}
+                    </button>
                     <button class="common_btn writeBtn" @click="closeDialog()">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
@@ -443,7 +487,9 @@
                             </div>
                             <div class="rewriteName" v-else>
                                 <el-input v-model="temporaryName"></el-input>
-                                <button class="common_btn" @click="openSecretPhraseDialog">{{$t('account_info.account_set_name')}}</button>
+                                <button class="common_btn" @click="openSecretPhraseDialog">
+                                    {{$t('account_info.account_set_name')}}
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -480,11 +526,14 @@
     import adminPwd from "../dialog/adminPwd";
     import secretPhrase from "../dialog/secretPhrase";
     import rules from "../../utils/rules";
+
     export default {
         name: "Network",
-        components: {echarts,dialogCommon,adminPwd,secretPhrase,
-            "masked-input": require("vue-masked-input").default},
-        data () {
+        components: {
+            echarts, dialogCommon, adminPwd, secretPhrase,
+            "masked-input": require("vue-masked-input").default
+        },
+        data() {
             let required = rules.required(this.$t('rules.mustRequired'));
             let validateSSAddress = rules.ssAddress(
                 this.$t('notification.hubsetting_account_address_error_format'),
@@ -495,39 +544,39 @@
                 sendMessageDialog: false,
                 tranferAccountsDialog: false,
                 hubSettingDialog: false,
-                hubInitDialog:false,
+                hubInitDialog: false,
 
                 tradingInfoDialog: false,
-                userInfoDialog:false,
+                userInfoDialog: false,
                 accountInfoDialog: false,
-                adminPasswordDialog:false,
-                secretPhraseDialog:false,
-                initHUb:this.$store.state.isHubInit,
-                nodeType:this.$store.state.userConfig['sharder.NodeType'],
-                useNATService:this.$store.state.userConfig['sharder.useNATService'],
+                adminPasswordDialog: false,
+                secretPhraseDialog: false,
+                initHUb: this.$store.state.isHubInit,
+                nodeType: this.$store.state.userConfig['sharder.NodeType'],
+                useNATService: this.$store.state.userConfig['sharder.useNATService'],
 
                 isShowName: true,
-                generatorRS:'',
-                secretPhrase:SSO.secretPhrase,
+                generatorRS: '',
+                secretPhrase: SSO.secretPhrase,
 
-                blockInfoDialog:false,
-                height:'',
+                blockInfoDialog: false,
+                height: '',
 
-                publicKey:SSO.publicKey,
+                publicKey: SSO.publicKey,
                 messageForm: {
-                    errorCode:false,
+                    errorCode: false,
                     receiver: "SSA-____-____-____-_____",
                     message: "",
                     isEncrypted: false,
-                    hasPublicKey:false,
-                    isFile:false,
-                    publicKey:"",
-                    senderPublickey:SSO.publicKey,
-                    fileName:"",
+                    hasPublicKey: false,
+                    isFile: false,
+                    publicKey: "",
+                    senderPublickey: SSO.publicKey,
+                    fileName: "",
                     password: "",
-                    fee:1
+                    fee: 1
                 },
-                file:null,
+                file: null,
                 transfer: {
                     receiver: "SSA-____-____-____-_____",
                     number: 0,
@@ -536,15 +585,15 @@
                     message: "",
                     isEncrypted: false,
                     password: "",
-                    hasPublicKey:false,
-                    receiverPublickey:"",
-                    errorCode:false
+                    hasPublicKey: false,
+                    receiverPublickey: "",
+                    errorCode: false
                 },
                 hubsetting: {
                     openPunchthrough: true,
                     sharderAccount: '',
                     sharderPwd: '',
-                    address:'',
+                    address: '',
                     port: '',
                     clientSecretkey: '',
                     publicAddress: '',
@@ -554,61 +603,61 @@
                     newPwd: '',
                     confirmPwd: ''
                 },
-                unconfirmedTransactionsList:[],
-                blockchainState:this.$global.blockchainState,
-                accountInfo:{
-                    account:'',
-                    name:'',
-                    accountRS:SSO.accountRS,
-                    balanceNQT:0,              //账户余额
-                    effectiveBalanceSS:0,      //可用余额
-                    forgedBalanceNQT:0,        //挖矿余额
-                    frozenBalanceNQT:0,        //冻结余额
-                    guaranteedBalanceNQT:0,    //保证余额
+                unconfirmedTransactionsList: [],
+                blockchainState: this.$global.blockchainState,
+                accountInfo: {
+                    account: '',
+                    name: '',
+                    accountRS: SSO.accountRS,
+                    balanceNQT: 0,              //账户余额
+                    effectiveBalanceSS: 0,      //可用余额
+                    forgedBalanceNQT: 0,        //挖矿余额
+                    frozenBalanceNQT: 0,        //冻结余额
+                    guaranteedBalanceNQT: 0,    //保证余额
                     publicKey: SSO.publicKey,
                     requestProcessingTime: '',
                     unconfirmedBalanceNQT: '',
                 },
-                selectType:'',
-                transactionType:[{
-                    value:'',
-                    label:this.$t('transaction.transaction_type_all')
-                },{
-                    value:0,
-                    label:this.$t('transaction.transaction_type_payment')
-                },{
-                    value:1,
-                    label:this.$t('transaction.transaction_type_information')
-                },{
-                    value:1.5,
-                    label:this.$t('transaction.transaction_type_account')
-                },{
-                    value:6,
-                    label:this.$t('transaction.transaction_type_storage_service')
-                },{
-                    value:8,
-                    label:this.$t('transaction.transaction_type_forge_pool')
-                },{
-                    value:9,
-                    label:this.$t('transaction.transaction_type_block_reward')
-                },{
-                    value:12,
-                    label:this.$t('transaction.transaction_type_poc')
+                selectType: '',
+                transactionType: [{
+                    value: '',
+                    label: this.$t('transaction.transaction_type_all')
+                }, {
+                    value: 0,
+                    label: this.$t('transaction.transaction_type_payment')
+                }, {
+                    value: 1,
+                    label: this.$t('transaction.transaction_type_information')
+                }, {
+                    value: 1.5,
+                    label: this.$t('transaction.transaction_type_account')
+                }, {
+                    value: 6,
+                    label: this.$t('transaction.transaction_type_storage_service')
+                }, {
+                    value: 8,
+                    label: this.$t('transaction.transaction_type_forge_pool')
+                }, {
+                    value: 9,
+                    label: this.$t('transaction.transaction_type_block_reward')
+                }, {
+                    value: 12,
+                    label: this.$t('transaction.transaction_type_poc')
                 }],
-                trading:'',
-                accountTransactionList:[],
+                trading: '',
+                accountTransactionList: [],
                 //分页信息
-                currentPage:1,
-                totalSize:0,
-                pageSize:10,
+                currentPage: 1,
+                totalSize: 0,
+                pageSize: 10,
 
-                latesetVersion:'',
-                isUpdate:false,
+                latesetVersion: '',
+                isUpdate: false,
 
-                adminPasswordTitle:'',
-                params:[],
-                temporaryName:'',
-                ssPublickey:SSO.publicKey,
+                adminPasswordTitle: '',
+                params: [],
+                temporaryName: '',
+                ssPublickey: SSO.publicKey,
 
                 hubInitSettingRules: {
                     sharderAccount: [required],
@@ -617,7 +666,7 @@
                     modifyMnemonicWord: [required],
                     newPwd: [
                         {
-                            validator:(rule, value, callback) => {
+                            validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
                                         this.$refs['initForm'].validateField('confirmPwd');
@@ -632,7 +681,7 @@
                     ],
                     confirmPwd: [
                         {
-                            validator:(rule, value, callback) => {
+                            validator: (rule, value, callback) => {
                                 if (!value) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
                                 } else if (value !== this.hubsetting.newPwd) {
@@ -652,7 +701,7 @@
                     modifyMnemonicWord: [required],
                     newPwd: [
                         {
-                            validator:(rule, value, callback) => {
+                            validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
                                         this.$refs['reconfigureForm'].validateField('confirmPwd');
@@ -667,7 +716,7 @@
                     ],
                     confirmPwd: [
                         {
-                            validator:(rule, value, callback) => {
+                            validator: (rule, value, callback) => {
                                 if (!value) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
                                 } else if (value !== this.hubsetting.newPwd) {
@@ -682,12 +731,12 @@
                 },
             };
         },
-        created(){
+        created() {
             const _this = this;
             console.log("_this.userConfig['sharder.useNATService']", this.$store.state.userConfig['sharder.useNATService']);
             console.log("_this.userConfig['sharder.NodeType']", this.$store.state.userConfig['sharder.NodeType']);
-            console.log("_this.initHUb",_this.initHUb);
-            _this.getAccount(_this.accountInfo.accountRS).then(res=>{
+            console.log("_this.initHUb", _this.initHUb);
+            _this.getAccount(_this.accountInfo.accountRS).then(res => {
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
                 _this.accountInfo.effectiveBalanceSS = res.effectiveBalanceSS;
@@ -697,27 +746,27 @@
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
                 _this.accountInfo.name = res.name;
             });
-            console.log("mingchengshi:",_this.accountInfo.name);
+            console.log("mingchengshi:", _this.accountInfo.name);
             _this.getAccountTransactionList();
             _this.getDrawData();
             _this.getYieldData();
-            _this.$global.setBlockchainState(_this).then(res=>{
+            _this.$global.setBlockchainState(_this).then(res => {
                 _this.blockchainState = res.data;
             });
             SSO.getState();
-            _this.$global.getUserConfig(_this).then(res=>{
+            _this.$global.getUserConfig(_this).then(res => {
                 _this.hubsetting.address = res["sharder.NATServiceAddress"];
                 _this.hubsetting.port = res["sharder.NATServicePort"];
                 _this.hubsetting.clientSecretkey = res["sharder.NATClientKey"];
                 _this.hubsetting.publicAddress = res["sharder.myAddress"];
                 _this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
             });
-            _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res=>{
+            _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
                 _this.latesetVersion = res.data.version;
                 let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
 
                 _this.isUpdate = bool;
-            }).catch(err=>{
+            }).catch(err => {
                 console.log(err);
             });
         },
@@ -737,13 +786,13 @@
                     },
                     xAxis: {
                         type: 'category',
-                        data:barchat.xAxis,
+                        data: barchat.xAxis,
                     },
                     yAxis: {
                         type: 'value'
                     },
                     series: [{
-                        data:barchat.series,
+                        data: barchat.series,
                         type: 'bar',
                         color: '#493eda',
                     }]
@@ -767,7 +816,7 @@
                     },
                     dataZoom: [{
                         type: 'inside',
-                        show:false,
+                        show: false,
                         start: 80,
                         end: 100
                     }, {
@@ -808,7 +857,7 @@
             handleCurrentChange(val) {
                 this.getAccountTransactionList();
             },
-            updateHubVersion(adminPwd){
+            updateHubVersion(adminPwd) {
                 const _this = this;
                 this.$http.post('/sharder?requestType=upgradeClient', {
                     version: _this.latesetVersion,
@@ -824,12 +873,12 @@
                     _this.$message.error(err);
                 });
             },
-            restartHub(adminPwd){
+            restartHub(adminPwd) {
                 const _this = this;
                 let data = new FormData();
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=restart', data).then(res => {
-                    if(!res.data.errorDescription){
+                    if (!res.data.errorDescription) {
                         _this.$message.success(_this.$t('restart.restarting'));
                         _this.$router.push("/login");
                         _this.autoRefresh();
@@ -840,13 +889,13 @@
                     _this.$message.error(err);
                 });
             },
-            resettingHub(adminPwd){
+            resettingHub(adminPwd) {
                 const _this = this;
                 let data = new FormData();
                 data.append("adminPassword", adminPwd);
                 data.append("restart", "true");
                 this.$http.post('/sharder?requestType=recovery', data).then(res => {
-                    if(!res.data.errorDescription){
+                    if (!res.data.errorDescription) {
                         _this.$message.success(_this.$t('restart.restarting'));
                         _this.$router.push("/login");
                         _this.autoRefresh();
@@ -857,84 +906,84 @@
                     _this.$message.error(err);
                 });
             },
-            updateHubSetting(adminPwd, params){
+            updateHubSetting(adminPwd, params) {
                 const _this = this;
-                params.append("adminPassword",adminPwd);
+                params.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
-                    if(typeof res.data.errorDescription === "undefined"){
+                    if (typeof res.data.errorDescription === "undefined") {
                         _this.$message.success(_this.$t('restart.restarting'));
                         _this.$router.push("/login");
                         _this.autoRefresh();
-                    }else{
+                    } else {
                         _this.$message.error(res.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
                 });
             },
-            verifyHubSettingInfo(){
+            verifyHubSettingInfo() {
                 const _this = this;
                 let formData = new FormData();
-                formData.append("restart",true);
+                formData.append("restart", true);
                 formData.append("sharder.disableAdminPassword", "false");
-                if(_this.hubsetting.openPunchthrough){
-                    formData.append("sharder.useNATService",true);
-                    if(_this.hubsetting.address === '' ||
+                if (_this.hubsetting.openPunchthrough) {
+                    formData.append("sharder.useNATService", true);
+                    if (_this.hubsetting.address === '' ||
                         _this.hubsetting.port === '' ||
-                        _this.hubsetting.clientSecretkey === ''){
-                        if(_this.hubsetting.sharderPwd === '')
+                        _this.hubsetting.clientSecretkey === '') {
+                        if (_this.hubsetting.sharderPwd === '')
                             _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
                         else
                             _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         return false;
-                    }else{
-                        formData.append("sharder.NATServiceAddress",_this.hubsetting.address);
-                        formData.append("sharder.NATServicePort",_this.hubsetting.port);
-                        formData.append("sharder.NATClientKey",_this.hubsetting.clientSecretkey);
+                    } else {
+                        formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
+                        formData.append("sharder.NATServicePort", _this.hubsetting.port);
+                        formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
                         formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
                     }
-                }else{
-                    formData.append("sharder.useNATService",false);
+                } else {
+                    formData.append("sharder.useNATService", false);
                 }
-                if(_this.hubsetting.SS_Address !== ''){
+                if (_this.hubsetting.SS_Address !== '') {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                    if(!_this.hubsetting.SS_Address.toUpperCase().match(pattern)){
+                    if (!_this.hubsetting.SS_Address.toUpperCase().match(pattern)) {
                         _this.$message.warning(_this.$t('notification.hubsetting_account_address_error_format'));
                         return false;
-                    }else{
-                        formData.append("sharder.HubBindAddress",_this.hubsetting.SS_Address);
-                        formData.append("reBind",true);
+                    } else {
+                        formData.append("sharder.HubBindAddress", _this.hubsetting.SS_Address);
+                        formData.append("reBind", true);
                     }
-                }else{
-                    formData.append("reBind",false);
+                } else {
+                    formData.append("reBind", false);
                 }
-                if(_this.hubsetting.isOpenMining){
-                    formData.append("sharder.HubBind",true);
-                    if(_this.hubsetting.modifyMnemonicWord === ''){
+                if (_this.hubsetting.isOpenMining) {
+                    formData.append("sharder.HubBind", true);
+                    if (_this.hubsetting.modifyMnemonicWord === '') {
                         _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
                         return false;
                     }
-                    formData.append("sharder.HubBindPassPhrase",_this.hubsetting.modifyMnemonicWord);
-                }else{
-                    formData.append("sharder.HubBind",false);
+                    formData.append("sharder.HubBindPassPhrase", _this.hubsetting.modifyMnemonicWord);
+                } else {
+                    formData.append("sharder.HubBind", false);
                 }
-                if(_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== ""){
-                    if(_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd){
+                if (_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== "") {
+                    if (_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd) {
                         _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
                         return false;
-                    }else{
-                        formData.append("newAdminPassword",_this.hubsetting.newPwd);
+                    } else {
+                        formData.append("newAdminPassword", _this.hubsetting.newPwd);
                     }
                 }
                 return formData;
             },
-            verifyHubSetting:function(){
+            verifyHubSetting: function () {
                 const _this = this;
                 let confirmFormData = new FormData();
                 let reConfigFormData = new FormData();
                 // check page value first
                 reConfigFormData = _this.verifyHubSettingInfo();
-                if(reConfigFormData === false) {
+                if (reConfigFormData === false) {
                     return;
                 } else {
                     reConfigFormData.append("isInit", "true");
@@ -961,11 +1010,11 @@
             },
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
-                this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss',data).then(res2 => {
-                    if(!res2.data.errorDescription) {
+                this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss', data).then(res2 => {
+                    if (!res2.data.errorDescription) {
                         console.log('update hub setting success');
                         _this.reconfigure(reconfigData);
-                    }else{
+                    } else {
                         _this.$message.error(JSON.stringify(res2));
                     }
                 }).catch(err => {
@@ -975,12 +1024,12 @@
             reconfigure(data) {
                 let _this = this;
                 this.$http.post('/sharder?requestType=reConfig', data).then(res1 => {
-                    if(!res1.data.errorDescription && !res1.errorDescription){
+                    if (!res1.data.errorDescription && !res1.errorDescription) {
                         _this.$message.success(_this.$t('restart.restarting'));
                         data = new FormData();
                         _this.$router.push("/login");
                         _this.autoRefresh();
-                    }else{
+                    } else {
                         let msg = res1.data.errorDescription ? res1.data.errorDescription :
                             (res1.errorDescription ? res1.errorDescription : 'error');
                         _this.$message.error(msg);
@@ -989,28 +1038,28 @@
                     _this.$message.error(err);
                 });
             },
-            checkSharder(){
+            checkSharder() {
                 const _this = this;
                 let formData = new FormData();
-                if(_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough){
-                    formData.append("username",_this.hubsetting.sharderAccount);
-                    formData.append("password",_this.hubsetting.sharderPwd);
-                    _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss',formData).then(res=>{
-                        if(res.data.status === 'success'){
+                if (_this.hubsetting.sharderAccount !== '' && _this.hubsetting.sharderPwd !== '' && _this.hubsetting.openPunchthrough) {
+                    formData.append("username", _this.hubsetting.sharderAccount);
+                    formData.append("password", _this.hubsetting.sharderPwd);
+                    _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss', formData).then(res => {
+                        if (res.data.status === 'success') {
                             _this.hubsetting.address = res.data.data.natServiceAddress;
                             _this.hubsetting.port = res.data.data.natServicePort;
                             _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
                             _this.hubsetting.publicAddress = res.data.data.hubAddress;
                             _this.hubsetting.SS_Address = '';
-                        }else if(res.data.errorType === 'unifiedUserIsNull'){
+                        } else if (res.data.errorType === 'unifiedUserIsNull') {
                             _this.$message.error(res.data.errorMessage);
-                        }else if(res.data.errorType === 'hubDirectoryIsNull'){
+                        } else if (res.data.errorType === 'hubDirectoryIsNull') {
                             _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         }
                     })
                 }
             },
-            getAccount(account){
+            getAccount(account) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
                     this.$http.get('/sharder?requestType=getAccount', {
@@ -1028,23 +1077,23 @@
                     });
                 });
             },
-            getMessageFee:function(){
+            getMessageFee: function () {
                 const _this = this;
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
-                _this.getAccount(SSO.account).then(res=>{
-                    if(res.errorDescription === "Unknown account"){
+                _this.getAccount(SSO.account).then(res => {
+                    if (res.errorDescription === "Unknown account") {
                         _this.$message.warning(_this.$t('notification.new_account_warning'));
                         return;
                     }
                 });
-                if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
-                    _this.messageForm.receiver === "___-____-____-____-_____"){
+                if (_this.messageForm.receiver === "SSA-____-____-____-_____" ||
+                    _this.messageForm.receiver === "___-____-____-____-_____") {
                     formData.append("recipient", "");
-                }else{
-                    formData.append("recipient",  _this.messageForm.receiver);
-                    formData.append("recipientPublicKey",  _this.messageForm.publicKey);
+                } else {
+                    formData.append("recipient", _this.messageForm.receiver);
+                    formData.append("recipientPublicKey", _this.messageForm.publicKey);
                 }
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
@@ -1055,52 +1104,52 @@
                 formData.append("feeNQT", '0');
                 formData.append("publicKey", SSO.publicKey);
                 formData.append("deadline", '1440');
-                if(_this.messageForm.isEncrypted){
-                    if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
-                        _this.messageForm.receiver === "___-____-____-____-_____"){
+                if (_this.messageForm.isEncrypted) {
+                    if (_this.messageForm.receiver === "SSA-____-____-____-_____" ||
+                        _this.messageForm.receiver === "___-____-____-____-_____") {
                         _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                         return;
                     }
-                    if(_this.messageForm.publicKey === ""){
+                    if (_this.messageForm.publicKey === "") {
                         _this.$message.warning(_this.$t('notification.sendmessage_null_account_public'));
                         return;
                     }
-                    if(_this.messageForm.password === ""){
+                    if (_this.messageForm.password === "") {
                         _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                         return;
                     }
                     options.account = _this.messageForm.receiver;
                     options.publicKey = _this.messageForm.publicKey;
-                    if(_this.messageForm.isFile){
-                        formData.append("messageToEncryptIsText",'false');
-                        formData.append("encryptedMessageIsPrunable",'true');
+                    if (_this.messageForm.isFile) {
+                        formData.append("messageToEncryptIsText", 'false');
+                        formData.append("encryptedMessageIsPrunable", 'true');
                         let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
 
-                        _this.encryptFileCallback(_this.file, encryptionkeys).then(res=>{
+                        _this.encryptFileCallback(_this.file, encryptionkeys).then(res => {
                             formData.append("encryptedMessageFile", res.file);
                             formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
                             _this.sendMessage(formData);
                         });
-                    }else{
+                    } else {
                         encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
-                        formData.append("encrypt_message",'1');
+                        formData.append("encrypt_message", '1');
                         formData.append("encryptedMessageData", encrypted.message);
                         formData.append("encryptedMessageNonce", encrypted.nonce);
                         formData.append("messageToEncryptIsText", 'true');
                         formData.append("encryptedMessageIsPrunable", 'true');
                         _this.sendMessage(formData);
                     }
-                }else{
-                    if(_this.messageForm.isFile) {
+                } else {
+                    if (_this.messageForm.isFile) {
                         console.log(_this.file);
-                        formData.append("messageFile",_this.file);
+                        formData.append("messageFile", _this.file);
                         formData.append("messageIsText", 'false');
                         formData.append("messageIsPrunable", 'true');
-                    }else{
-                        if(_this.messageForm.message !== ""){
+                    } else {
+                        if (_this.messageForm.message !== "") {
                             formData.append("messageIsText", 'true');
                             formData.append("message", _this.messageForm.message);
-                            if(_this.$global.stringToByte(_this.messageForm.message).length >= 28){    //28 MIN_PRUNABLE_MESSAGE_LENGTH
+                            if (_this.$global.stringToByte(_this.messageForm.message).length >= 28) {    //28 MIN_PRUNABLE_MESSAGE_LENGTH
                                 formData.append("messageIsPrunable", 'true');
                             }
                         }
@@ -1108,124 +1157,124 @@
                     _this.sendMessage(formData);
                 }
             },
-            getTransferFee:function(){
+            getTransferFee: function () {
                 const _this = this;
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
 
- /*               if(_this.transfer.errorCode){
-                    _this.$message.warning(_this.$t('notification.null_information_warning'));
-                    return;
-                }*/
+                /*               if(_this.transfer.errorCode){
+                                   _this.$message.warning(_this.$t('notification.null_information_warning'));
+                                   return;
+                               }*/
 
-                if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
-                    _this.transfer.receiver === "___-____-____-____-_____"){
+                if (_this.transfer.receiver === "SSA-____-____-____-_____" ||
+                    _this.transfer.receiver === "___-____-____-____-_____") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
                 const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                if(!_this.transfer.receiver.toUpperCase().match(pattern)){
+                if (!_this.transfer.receiver.toUpperCase().match(pattern)) {
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
 
-                if(_this.transfer.number === 0){
+                if (_this.transfer.number === 0) {
                     _this.$message.warning(_this.$t('notification.transfer_amount_error'));
                     return;
                 }
-                _this.getAccount(_this.accountInfo.accountRS).then(res=>{
-                    if(typeof res.errorDescription === 'undefined') {
-                        if(res.errorDescription === "Unknown account"){
+                _this.getAccount(_this.accountInfo.accountRS).then(res => {
+                    if (typeof res.errorDescription === 'undefined') {
+                        if (res.errorDescription === "Unknown account") {
                             _this.$message.warning(_this.$t('notification.new_account_warning'));
                             return;
                         }
                     }
                     _this.accountInfo = res;
-                    if(_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT/100000000){
+                    if (_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT / 100000000) {
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
-                    if(typeof SSO.secretPhrase === "undefined" && _this.transfer.password === ""){
+                    if (typeof SSO.secretPhrase === "undefined" && _this.transfer.password === "") {
                         _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
-                    formData.append("recipient",_this.transfer.receiver);
-                    formData.append("deadline","1440");
+                    formData.append("recipient", _this.transfer.receiver);
+                    formData.append("deadline", "1440");
                     formData.append("phased", 'false');
                     formData.append("phasingLinkedFullHash", '');
                     formData.append("phasingHashedSecret", '');
                     formData.append("phasingHashedSecretAlgorithm", '2');
-                    formData.append("publicKey",res.publicKey);
-                    formData.append("calculateFee","true");
-                    formData.append("broadcast","false");
-                    formData.append("feeNQT","0");
-                    formData.append("amountNQT",_this.transfer.number * 100000000);
+                    formData.append("publicKey", res.publicKey);
+                    formData.append("calculateFee", "true");
+                    formData.append("broadcast", "false");
+                    formData.append("feeNQT", "0");
+                    formData.append("amountNQT", _this.transfer.number * 100000000);
 
-                    if(_this.transfer.hasMessage && _this.transfer.message !== ""){
-                        if(_this.transfer.isEncrypted){
-                            if(_this.transfer.password === ""){
+                    if (_this.transfer.hasMessage && _this.transfer.message !== "") {
+                        if (_this.transfer.isEncrypted) {
+                            if (_this.transfer.password === "") {
                                 _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                                 return;
                             }
-                            if(_this.transfer.receiverPublickey === ""){
+                            if (_this.transfer.receiverPublickey === "") {
                                 _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                                 return;
                             }
                             options.account = _this.transfer.receiver;
                             options.publicKey = _this.transfer.receiverPublickey;
                             encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
-                            formData.append("encrypt_message",'1');
+                            formData.append("encrypt_message", '1');
                             formData.append("encryptedMessageData", encrypted.message);
                             formData.append("encryptedMessageNonce", encrypted.nonce);
                             formData.append("messageToEncryptIsText", 'true');
                             formData.append("encryptedMessageIsPrunable", 'true');
                             // _this.sendMessage(formData);
-                        }else{
-                            formData.append("message",_this.transfer.message);
-                            formData.append("messageIsText","true");
+                        } else {
+                            formData.append("message", _this.transfer.message);
+                            formData.append("messageIsText", "true");
                         }
                     }
                     _this.sendTransfer(formData);
                 });
             },
-            encryptFileCallback:function(file,encryptionkeys){
+            encryptFileCallback: function (file, encryptionkeys) {
                 return new Promise(function (resolve, reject) {
-                    SSO.encryptFile(file,encryptionkeys,function (encrypted) {
+                    SSO.encryptFile(file, encryptionkeys, function (encrypted) {
                         resolve(encrypted);
                     });
                 });
             },
-            sendMessageInfo:function(){
+            sendMessageInfo: function () {
                 const _this = this;
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
                 console.log(_this.messageForm);
-                if(_this.messageForm.receiver === "SSA-____-____-____-_____" ||
+                if (_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                     _this.messageForm.receiver === "___-____-____-____-_____" ||
                     _this.messageForm.receiver === "SSA" ||
-                    _this.messageForm.receiver === ""){
+                    _this.messageForm.receiver === "") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
                 const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                if(!_this.messageForm.receiver.toUpperCase().match(pattern)){
+                if (!_this.messageForm.receiver.toUpperCase().match(pattern)) {
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
-                if(_this.messageForm.hasPublicKey){
-                    if(_this.messageForm.publicKey === ""){
+                if (_this.messageForm.hasPublicKey) {
+                    if (_this.messageForm.publicKey === "") {
                         _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                         return;
                     }
                 }
-                if(_this.messageForm.password === ''){
+                if (_this.messageForm.password === '') {
                     _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                     return;
                 }
-                formData.append("recipient",_this.messageForm.receiver);
-                formData.append("recipientPublicKey",_this.messageForm.publicKey);
+                formData.append("recipient", _this.messageForm.receiver);
+                formData.append("recipientPublicKey", _this.messageForm.publicKey);
                 formData.append("phased", 'false');
                 formData.append("phasingLinkedFullHash", '');
                 formData.append("phasingHashedSecret", '');
@@ -1234,38 +1283,38 @@
                 formData.append("secretPhrase", _this.messageForm.password);
                 formData.append("deadline", '1440');
 
-                if(!_this.messageForm.isEncrypted){
-                    if(_this.file === null){
-                        if(_this.messageForm.message !== ""){
+                if (!_this.messageForm.isEncrypted) {
+                    if (_this.file === null) {
+                        if (_this.messageForm.message !== "") {
                             formData.append("messageIsText", 'true');
                             formData.append("message", _this.messageForm.message);
-                            if(_this.$global.stringToByte(_this.messageForm.message).length >= 28){    //28 MIN_PRUNABLE_MESSAGE_LENGTH
+                            if (_this.$global.stringToByte(_this.messageForm.message).length >= 28) {    //28 MIN_PRUNABLE_MESSAGE_LENGTH
                                 formData.append("messageIsPrunable", 'true');
                             }
                         }
-                    }else{
-                        formData.append("messageFile",_this.file);
+                    } else {
+                        formData.append("messageFile", _this.file);
                         formData.append("messageIsText", 'false');
                         formData.append("messageIsPrunable", 'true');
                     }
                     _this.sendMessage(formData);
-                }else{
+                } else {
                     options.account = _this.messageForm.receiver;
                     options.publicKey = _this.messageForm.publicKey;
 
-                    if(_this.file === null){
+                    if (_this.file === null) {
                         encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
-                        formData.append("encrypt_message",'1');
+                        formData.append("encrypt_message", '1');
                         formData.append("encryptedMessageData", encrypted.message);
                         formData.append("encryptedMessageNonce", encrypted.nonce);
                         formData.append("messageToEncryptIsText", 'true');
                         formData.append("encryptedMessageIsPrunable", 'true');
                         _this.sendMessage(formData);
-                    }else{
-                        formData.append("messageToEncryptIsText",'false');
-                        formData.append("encryptedMessageIsPrunable",'true');
+                    } else {
+                        formData.append("messageToEncryptIsText", 'false');
+                        formData.append("encryptedMessageIsPrunable", 'true');
                         let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
-                        _this.encryptFileCallback(_this.file, encryptionkeys).then(res=>{
+                        _this.encryptFileCallback(_this.file, encryptionkeys).then(res => {
                             formData.append("encryptedMessageFile", res.file);
                             formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
                             _this.sendMessage(formData);
@@ -1273,7 +1322,7 @@
                     }
                 }
             },
-            sendMessage:function(formData){
+            sendMessage: function (formData) {
                 const _this = this;
                 return new Promise(function (resolve, reject) {
                     let config = {
@@ -1281,26 +1330,26 @@
                             'Content-Type': 'multipart/form-data'
                         }
                     };
-                    _this.$http.post('/sharder?requestType=sendMessage',formData, config).then(res=>{
+                    _this.$http.post('/sharder?requestType=sendMessage', formData, config).then(res => {
 
-                        if(typeof res.data.errorDescription === 'undefined'){
-                            if(res.data.broadcasted){
+                        if (typeof res.data.errorDescription === 'undefined') {
+                            if (res.data.broadcasted) {
                                 _this.$message.success(_this.$t('notification.sendmessage_success'));
                                 resolve(res.data);
                                 _this.closeDialog();
-                                _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
+                                _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res => {
+                                    _this.$store.commit("setUnconfirmedNotificationsList", res.data);
                                 });
-                            }else{
+                            } else {
                                 console.log(res.data);
                                 _this.messageForm.fee = res.data.transactionJSON.feeNQT / 100000000;
                                 resolve(res.data);
                             }
-                        }else{
+                        } else {
                             _this.$message.error(res.data.errorDescription);
                             resolve(res.data);
                         }
-                    }).catch(err=>{
+                    }).catch(err => {
                         reject(err);
                         console.log(err);
                         _this.$message.error(err);
@@ -1308,80 +1357,80 @@
                 });
 
             },
-            sendTransferInfo:function(){
+            sendTransferInfo: function () {
                 const _this = this;
                 let options = {};
                 let encrypted = {};
                 let formData = new FormData();
 
-                if(_this.transfer.receiver === "SSA-____-____-____-_____" ||
+                if (_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____" ||
                     _this.transfer.receiver === "SSA" ||
-                    _this.transfer.receiver === ""){
+                    _this.transfer.receiver === "") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
                 const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                if(!_this.transfer.receiver.toUpperCase().match(pattern)){
+                if (!_this.transfer.receiver.toUpperCase().match(pattern)) {
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
-                if(_this.transfer.receiverPublickey ===""){
+                if (_this.transfer.receiverPublickey === "") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account_public'));
                     return;
                 }
-                if(_this.transfer.number === 0){
+                if (_this.transfer.number === 0) {
                     _this.$message.warning(_this.$t('notification.transfer_amount_error'));
                     return;
                 }
-                _this.getAccount(_this.accountInfo.accountRS).then(res=>{
-                    if(typeof res.errorDescription === 'undefined') {
-                        if(res.errorDescription === "Unknown account"){
+                _this.getAccount(_this.accountInfo.accountRS).then(res => {
+                    if (typeof res.errorDescription === 'undefined') {
+                        if (res.errorDescription === "Unknown account") {
                             _this.$message.warning(_this.$t('notification.new_account_warning'));
                             return;
                         }
                     }
                     _this.accountInfo = res;
-                    if(_this.transfer.number > _this.accountInfo.effectiveBalanceSS){
+                    if (_this.transfer.number > _this.accountInfo.effectiveBalanceSS) {
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
-                    if(_this.transfer.password === ""){
+                    if (_this.transfer.password === "") {
                         _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
-                    formData.append("recipient",_this.transfer.receiver);
-                    formData.append("recipientPublicKey",_this.transfer.receiverPublickey);
-                    formData.append("deadline","1440");
+                    formData.append("recipient", _this.transfer.receiver);
+                    formData.append("recipientPublicKey", _this.transfer.receiverPublickey);
+                    formData.append("deadline", "1440");
                     formData.append("phased", 'false');
                     formData.append("phasingLinkedFullHash", '');
                     formData.append("phasingHashedSecret", '');
                     formData.append("phasingHashedSecretAlgorithm", '2');
-                    formData.append("publicKey","");
-                    formData.append("feeNQT",_this.transfer.fee * 100000000);
-                    formData.append("amountNQT",_this.transfer.number * 100000000);
-                    formData.append("secretPhrase",_this.transfer.password);
+                    formData.append("publicKey", "");
+                    formData.append("feeNQT", _this.transfer.fee * 100000000);
+                    formData.append("amountNQT", _this.transfer.number * 100000000);
+                    formData.append("secretPhrase", _this.transfer.password);
 
-                    if(_this.transfer.hasMessage && _this.transfer.message !== ""){
-                        if(_this.transfer.isEncrypted){
+                    if (_this.transfer.hasMessage && _this.transfer.message !== "") {
+                        if (_this.transfer.isEncrypted) {
 
                             options.account = _this.transfer.receiver;
                             options.publicKey = _this.transfer.receiverPublickey;
                             encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
-                            formData.append("encrypt_message",'1');
+                            formData.append("encrypt_message", '1');
                             formData.append("encryptedMessageData", encrypted.message);
                             formData.append("encryptedMessageNonce", encrypted.nonce);
                             formData.append("messageToEncryptIsText", 'true');
                             formData.append("encryptedMessageIsPrunable", 'true');
-                        }else{
-                            formData.append("message",_this.transfer.message);
-                            formData.append("messageIsText","true");
+                        } else {
+                            formData.append("message", _this.transfer.message);
+                            formData.append("messageIsText", "true");
                         }
                     }
                     _this.sendTransfer(formData);
                 });
             },
-            sendTransfer:function(formData){
+            sendTransfer: function (formData) {
                 const _this = this;
                 return new Promise(function (resolve, reject) {
                     let config = {
@@ -1389,70 +1438,70 @@
                             'Content-Type': 'multipart/form-data'
                         }
                     };
-                    _this.$http.post('/sharder?requestType=sendMoney',formData, config).then(res=>{
-                        if(typeof res.data.errorDescription === 'undefined'){
-                            if(res.data.broadcasted){
+                    _this.$http.post('/sharder?requestType=sendMoney', formData, config).then(res => {
+                        if (typeof res.data.errorDescription === 'undefined') {
+                            if (res.data.broadcasted) {
                                 _this.$message.success(_this.$t('notification.transfer_success'));
                                 resolve(res.data);
                                 _this.closeDialog();
-                                _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res=>{
-                                    _this.$store.commit("setUnconfirmedNotificationsList",res.data);
+                                _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res => {
+                                    _this.$store.commit("setUnconfirmedNotificationsList", res.data);
                                 });
-                            }else{
+                            } else {
                                 console.log(res.data);
                                 _this.transfer.fee = res.data.transactionJSON.feeNQT / 100000000;
                                 resolve(res.data);
                             }
-                        }else{
+                        } else {
                             _this.$message.error(res.data.errorDescription);
                             resolve(res.data);
                         }
-                    }).catch(err=>{
+                    }).catch(err => {
                         reject(err);
                         console.log(err);
                         _this.$message.error(err);
                     });
                 });
             },
-            getAccountTransactionList:function(){
+            getAccountTransactionList: function () {
                 const _this = this;
                 let params = new URLSearchParams();
 
-                params.append("account",_this.accountInfo.accountRS);
+                params.append("account", _this.accountInfo.accountRS);
 
                 _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
                 let i = 0;
-                if(typeof _this.unconfirmedTransactionsList !== 'undefined'){
+                if (typeof _this.unconfirmedTransactionsList !== 'undefined') {
                     i = _this.unconfirmedTransactionsList.length;
                 }
 
-                params.append("firstIndex",(_this.currentPage - 1) * 10);
-                params.append("lastIndex",_this.currentPage * 10 - 1 - i);
+                params.append("firstIndex", (_this.currentPage - 1) * 10);
+                params.append("lastIndex", _this.currentPage * 10 - 1 - i);
 
-                if(_this.selectType === 1.5){
-                    params.append("type","1");
-                    params.append("subtype","5");
-                }else if(_this.selectType === 1){
-                    params.append("type","1");
-                    params.append("subtype","0");
-                }else{
-                    params.append("type",_this.selectType);
+                if (_this.selectType === 1.5) {
+                    params.append("type", "1");
+                    params.append("subtype", "5");
+                } else if (_this.selectType === 1) {
+                    params.append("type", "1");
+                    params.append("subtype", "0");
+                } else {
+                    params.append("type", _this.selectType);
                 }
 
-                this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(function (res1) {
+                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
                     _this.accountTransactionList = res1.data.transactions;
 
                     params.delete("firstIndex");
                     params.delete("lastIndex");
-                    _this.$http.get('/sharder?requestType=getBlockchainTransactionsCount',{params}).then(function(res2){
+                    _this.$http.get('/sharder?requestType=getBlockchainTransactionsCount', {params}).then(function (res2) {
 
-                        if(typeof res2.data.errorDescription === "undefined"){
+                        if (typeof res2.data.errorDescription === "undefined") {
                             _this.totalSize = res2.data.count;
-                        }else{
+                        } else {
                             _this.$message.error(res2.data.errorCode);
                         }
-                    }).catch(err=>{
+                    }).catch(err => {
                         _this.$message.error(err);
                     });
                     _this.getTotalList();
@@ -1464,7 +1513,7 @@
             },
 
             openSendMessageDialog: function () {
-                if(SSO.downloadingBlockchain){
+                if (SSO.downloadingBlockchain) {
                     this.$message.warning("当前正在同步区块链，请稍后再试");
                     return;
                 }
@@ -1472,7 +1521,7 @@
                 this.sendMessageDialog = true;
             },
             openTransferDialog: function () {
-                if(SSO.downloadingBlockchain){
+                if (SSO.downloadingBlockchain) {
                     this.$message.warning("当前正在同步区块链，请稍后再试");
                     return;
                 }
@@ -1484,16 +1533,16 @@
                 _this.$store.state.mask = true;
                 _this.hubSettingDialog = true;
             },
-            openHubInitDialog:function(){
+            openHubInitDialog: function () {
                 const _this = this;
                 _this.$store.state.mask = true;
                 _this.hubInitDialog = true;
             },
-            openTradingInfoDialog:function(trading){
+            openTradingInfoDialog: function (trading) {
                 this.trading = trading;
                 this.tradingInfoDialog = true;
             },
-            openUserInfoDialog:function(){
+            openUserInfoDialog: function () {
                 this.userInfoDialog = true;
                 this.$store.state.mask = true;
             },
@@ -1501,21 +1550,21 @@
                 this.generatorRS = account;
                 this.accountInfoDialog = true;
             },
-            openBlockInfoDialog:function(height){
+            openBlockInfoDialog: function (height) {
                 this.height = height;
                 this.blockInfoDialog = true;
             },
-            openAdminDialog:function(title){
+            openAdminDialog: function (title) {
                 const _this = this;
                 _this.adminPasswordTitle = title;
-                if(title === 'reConfig'){
+                if (title === 'reConfig') {
                     _this.$refs['reconfigureForm'].validate((valid) => {
                         if (valid) {
                             let info = _this.verifyHubSettingInfo();
-                            if(info){
+                            if (info) {
                                 _this.params = info;
                                 _this.hubSettingDialog = false;
-                                _this.adminPasswordDialog =true;
+                                _this.adminPasswordDialog = true;
                             }
                         } else {
                             return false;
@@ -1523,35 +1572,35 @@
                     });
                 } else {
                     _this.hubSettingDialog = false;
-                    _this.adminPasswordDialog =true;
+                    _this.adminPasswordDialog = true;
                 }
             },
-            openSecretPhraseDialog:function(){
+            openSecretPhraseDialog: function () {
                 const _this = this;
-                if(SSO.downloadingBlockchain){
+                if (SSO.downloadingBlockchain) {
                     this.$message.warning("当前正在同步区块链，请稍后再试");
                     return;
                 }
                 _this.userInfoDialog = false;
-                _this.secretPhraseDialog =true;
+                _this.secretPhraseDialog = true;
             },
-            getAdminPassword:function(adminPwd){
+            getAdminPassword: function (adminPwd) {
                 const _this = this;
                 _this.adminPassword = adminPwd;
-                _this.adminPasswordDialog =false;
-                if(_this.adminPasswordTitle === 'reset'){
+                _this.adminPasswordDialog = false;
+                if (_this.adminPasswordTitle === 'reset') {
                     _this.resettingHub(adminPwd);
-                }else if(_this.adminPasswordTitle === 'restart'){
+                } else if (_this.adminPasswordTitle === 'restart') {
                     _this.restartHub(adminPwd);
-                }else if(_this.adminPasswordTitle === 'update'){
+                } else if (_this.adminPasswordTitle === 'update') {
                     _this.updateHubVersion(adminPwd);
-                }else if(_this.adminPasswordTitle === 'reConfig'){
-                    _this.updateHubSetting(adminPwd,_this.params);
+                } else if (_this.adminPasswordTitle === 'reConfig') {
+                    _this.updateHubSetting(adminPwd, _this.params);
                 }
             },
-            getSecretPhrase:function(secretPhrase){
+            getSecretPhrase: function (secretPhrase) {
                 const _this = this;
-                _this.secretPhraseDialog =false;
+                _this.secretPhraseDialog = false;
                 _this.setName(secretPhrase);
             },
             closeDialog: function () {
@@ -1576,9 +1625,9 @@
 
                 const _this = this;
                 _this.messageForm.errorCode = false;
-                _this.messageForm.receiver =  "SSA-____-____-____-_____";
-                _this.messageForm.message =  "";
-                _this.messageForm.isEncrypted =  false;
+                _this.messageForm.receiver = "SSA-____-____-____-_____";
+                _this.messageForm.message = "";
+                _this.messageForm.isEncrypted = false;
                 _this.messageForm.hasPublicKey = false;
                 _this.messageForm.isFile = false;
                 _this.messageForm.publicKey = "";
@@ -1610,25 +1659,25 @@
                     type: "success"
                 });
             },
-            setName:function(secretPhrase){
+            setName: function (secretPhrase) {
                 const _this = this;
                 let formData = new FormData();
-                formData.append("name",_this.temporaryName);
-                formData.append("secretPhrase",secretPhrase);
-                formData.append("deadline","1440");
-                formData.append("phased","false");
-                formData.append("phasingLinkedFullHash","");
-                formData.append("phasingHashedSecret","");
-                formData.append("phasingHashedSecretAlgorithm","2");
-                formData.append("feeNQT","0");
+                formData.append("name", _this.temporaryName);
+                formData.append("secretPhrase", secretPhrase);
+                formData.append("deadline", "1440");
+                formData.append("phased", "false");
+                formData.append("phasingLinkedFullHash", "");
+                formData.append("phasingHashedSecret", "");
+                formData.append("phasingHashedSecretAlgorithm", "2");
+                formData.append("feeNQT", "0");
 
-                _this.$http.post('/sharder?requestType=setAccountInfo',formData).then(res=>{
-                    if(typeof res.data.errorDescription === "undefined"){
+                _this.$http.post('/sharder?requestType=setAccountInfo', formData).then(res => {
+                    if (typeof res.data.errorDescription === "undefined") {
                         _this.$message.success(_this.$t('notification.modify_success'));
                         _this.accountInfo.name = res.data.transactionJSON.attachment.name;
                         _this.isShowName = true;
                         _this.temporaryName = "";
-                    }else{
+                    } else {
                         _this.$message.error(res.data.errorDescription);
                         _this.accountInfo.name = "";
                         _this.isShowName = true;
@@ -1643,7 +1692,7 @@
                     type: "error"
                 });
             },
-            delFile:function(){
+            delFile: function () {
                 const _this = this;
                 $('#file').val("");
                 _this.messageForm.fileName = "";
@@ -1655,7 +1704,7 @@
                 _this.messageForm.fileName = e.target.files[0].name;
                 _this.file = document.getElementById("file").files[0];
 
-                if(_this.file.size > 1024*1024*5){
+                if (_this.file.size > 1024 * 1024 * 5) {
                     _this.delFile();
                     _this.$message.error(_this.$t('notification.file_exceeds_max_limit'));
                     return;
@@ -1663,7 +1712,7 @@
                 _this.messageForm.isFile = true;
                 _this.messageForm.message = "";
             },
-            isClose:function () {
+            isClose: function () {
                 const _this = this;
                 _this.tradingInfoDialog = false;
                 _this.accountInfoDialog = false;
@@ -1673,77 +1722,77 @@
                 _this.isShowName = true;
                 _this.temporaryName = '';
             },
-            versionCompare(current, latest){
+            versionCompare(current, latest) {
                 let currentPre = parseFloat(current);
                 let latestPre = parseFloat(latest);
-                let currentNext =  current.replace(currentPre + ".","");
-                let latestpreNext =  latest.replace(latestPre + ".","");
-                if(currentPre > latestPre){
+                let currentNext = current.replace(currentPre + ".", "");
+                let latestpreNext = latest.replace(latestPre + ".", "");
+                if (currentPre > latestPre) {
                     return false;
-                }else if(currentPre < latestPre){
+                } else if (currentPre < latestPre) {
                     return true;
-                }else{
-                    if(currentNext >= latestpreNext){
+                } else {
+                    if (currentNext >= latestpreNext) {
                         return false;
-                    }else{
+                    } else {
                         return true;
                     }
                 }
             },
-            getDrawData(){
+            getDrawData() {
                 let _this = this;
-                let j=0;
+                let j = 0;
                 let barchat = {
-                    xAxis:[],
-                    series:[]
+                    xAxis: [],
+                    series: []
                 };
                 let params = new URLSearchParams();
-                params.append("account",_this.accountInfo.accountRS);
+                params.append("account", _this.accountInfo.accountRS);
                 params.append("firstIndex", '0');
-                params.append("lastIndex" , '4');
-                params.append("type","0");
-                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
-                    res.data.transactions.forEach(function (value, index,array) {
-                        if(value.senderRS === SSO.accountRS){
+                params.append("lastIndex", '4');
+                params.append("type", "0");
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(res => {
+                    res.data.transactions.forEach(function (value, index, array) {
+                        if (value.senderRS === SSO.accountRS) {
                             barchat.xAxis.push(_this.$t('account.payout'));
-                        }else{
+                        } else {
                             barchat.xAxis.push(_this.$t('account.income'));
                         }
-                        barchat.series.push(value.amountNQT/100000000);
+                        barchat.series.push(value.amountNQT / 100000000);
                     });
-                    for(;j !== 5;j++){
+                    for (; j !== 5; j++) {
                         barchat.xAxis.push("");
                         barchat.series.push(0);
                     }
                     this.drawBarchart(barchat);
                 });
             },
-            getYieldData(){
+            getYieldData() {
                 let _this = this;
                 let yields = {
-                    xAxis:[],
-                    series:[],
+                    xAxis: [],
+                    series: [],
                 };
                 let assets = 0;
                 let params = new URLSearchParams();
-                params.append("account",_this.accountInfo.accountRS);
-                _this.$http.get('/sharder?requestType=getBlockchainTransactions',{params}).then(res=>{
-                    if(typeof res.data.errorDescription === "undefined"){
+                params.append("account", _this.accountInfo.accountRS);
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(res => {
+                    if (typeof res.data.errorDescription === "undefined") {
                         let info = res.data.transactions.reverse();
-                        info.forEach(function(value, index, array){
-                            if(value.type === 0){
-                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
-                                if(value.senderRS !== SSO.accountRS){
-                                    assets = assets + value.amountNQT/100000000;
-                                }else{
-                                    assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                        info.forEach(function (value, index, array) {
+                            if (value.type === 0) {
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD", true));
+                                if (value.senderRS !== SSO.accountRS) {
+                                    assets = assets + value.amountNQT / 100000000;
+                                } else {
+                                    assets = assets - value.amountNQT / 100000000 - value.feeNQT / 100000000;
                                 }
-                            }else if(value.type === 9){
-                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
-                                assets = assets + value.amountNQT/100000000;
-                            }else if(value.senderRS === SSO.accountRS){
-                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD",true));
-                                assets = assets - value.amountNQT/100000000 - value.feeNQT/100000000;
+                            } else if (value.type === 9) {
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD", true));
+                                assets = assets + value.amountNQT / 100000000;
+                            } else if (value.senderRS === SSO.accountRS) {
+                                yields.xAxis.push(_this.$global.myFormatTime(value.timestamp, "YMD", true));
+                                assets = assets - value.amountNQT / 100000000 - value.feeNQT / 100000000;
                             }
                             yields.series.push(assets);
                         });
@@ -1751,36 +1800,36 @@
                     this.drawYield(yields);
                 });
             },
-            getTotalList:function () {
+            getTotalList: function () {
                 const _this = this;
                 _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
                 let list = [];
-                for(let i = 0;i<_this.unconfirmedTransactionsList.length;i++){
-                    if(_this.selectType === ''){
+                for (let i = 0; i < _this.unconfirmedTransactionsList.length; i++) {
+                    if (_this.selectType === '') {
                         list.push(_this.unconfirmedTransactionsList[i]);
                         _this.totalSize++;
-                    }else{
-                        if(_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0){
+                    } else {
+                        if (_this.selectType === 1 && _this.unconfirmedTransactionsList[i].subtype === 0) {
                             list.push(_this.unconfirmedTransactionsList[i]);
                             _this.totalSize++;
-                        }else if(_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type){
+                        } else if (_this.selectType !== 1 && _this.selectType === _this.unconfirmedTransactionsList[i].type) {
                             list.push(_this.unconfirmedTransactionsList[i]);
                             _this.totalSize++;
-                        }else if(_this.selectType === 1.5 &&
+                        } else if (_this.selectType === 1.5 &&
                             _this.unconfirmedTransactionsList[i].type === 1 &&
-                            _this.unconfirmedTransactionsList[i].subtype === 5){
+                            _this.unconfirmedTransactionsList[i].subtype === 5) {
                             list.push(_this.unconfirmedTransactionsList[i]);
                             _this.totalSize++;
                         }
                     }
                 }
-                for(let i = 0;i<_this.accountTransactionList.length;i++){
+                for (let i = 0; i < _this.accountTransactionList.length; i++) {
                     list.push(_this.accountTransactionList[i]);
                 }
                 _this.accountTransactionList = list;
 
-                if(_this.selectType === '') {
+                if (_this.selectType === '') {
                     // _this.getDrawData();
                 }
             },
@@ -1841,130 +1890,130 @@
                     && this.hubsetting.address;
             }
         },
-        computed:{
-            getLang:function(){
+        computed: {
+            getLang: function () {
                 return this.$store.state.currentLang;
             }
         },
         watch: {
             transfer: {
-                handler:function(oldValue,newValue){
+                handler: function (oldValue, newValue) {
                     const _this = this;
-                    if(!_this.transfer.hasMessage){
+                    if (!_this.transfer.hasMessage) {
                         _this.transfer.message = "";
                         _this.transfer.isEncrypted = false;
                     }
 
                     const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
 
-                    if(_this.transfer.fee === ''){
+                    if (_this.transfer.fee === '') {
                         _this.transfer.fee = 1;
-                    }else if(!_this.transfer.fee.toString().match(pattern)){
+                    } else if (!_this.transfer.fee.toString().match(pattern)) {
                         _this.transfer.fee = 1;
                     }
 
                     const pattern2 = /(^[1-9]\d{0,8}$)|(^1000000000$)|(^0$)/;
 
 
-                    if(_this.transfer.number === ''){
+                    if (_this.transfer.number === '') {
                         _this.transfer.number = 1;
-                    }else if(!_this.transfer.number.toString().match(pattern2)){
+                    } else if (!_this.transfer.number.toString().match(pattern2)) {
                         _this.transfer.number = 1;
                     }
 
                 },
                 deep: true
             },
-            messageForm:{
-                handler:function(oldValue,newValue){
+            messageForm: {
+                handler: function (oldValue, newValue) {
                     const _this = this;
                     const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
 
 
-                    if(_this.messageForm.fee === ''){
+                    if (_this.messageForm.fee === '') {
                         _this.messageForm.fee = 1;
-                    }else if(!_this.messageForm.fee.toString().match(pattern)){
+                    } else if (!_this.messageForm.fee.toString().match(pattern)) {
                         _this.messageForm.fee = 1;
                     }
                 },
-                deep:true
+                deep: true
             },
-            selectType:function () {
+            selectType: function () {
                 const _this = this;
                 _this.currentPage = 1;
                 _this.getAccountTransactionList();
             },
-            getLang:{
-                handler:function(oldValue,newValue){
+            getLang: {
+                handler: function (oldValue, newValue) {
                     console.log("语言发生变化");
                     const _this = this;
                     _this.transactionType = [{
-                        value:'',
-                        label:this.$t('transaction.transaction_type_all')
-                    },{
-                        value:0,
-                        label:this.$t('transaction.transaction_type_payment')
-                    },{
-                        value:1,
-                        label:this.$t('transaction.transaction_type_information')
-                    },{
-                        value:1.5,
-                        label:this.$t('transaction.transaction_type_account')
-                    },{
-                        value:6,
-                        label:this.$t('transaction.transaction_type_storage_service')
-                    },{
-                        value:8,
-                        label:this.$t('transaction.transaction_type_forge_pool')
-                    },{
-                        value:9,
-                        label:this.$t('transaction.transaction_type_block_reward')
-                    },{
-                        value:12,
-                        label:this.$t('transaction.transaction_type_poc')
+                        value: '',
+                        label: this.$t('transaction.transaction_type_all')
+                    }, {
+                        value: 0,
+                        label: this.$t('transaction.transaction_type_payment')
+                    }, {
+                        value: 1,
+                        label: this.$t('transaction.transaction_type_information')
+                    }, {
+                        value: 1.5,
+                        label: this.$t('transaction.transaction_type_account')
+                    }, {
+                        value: 6,
+                        label: this.$t('transaction.transaction_type_storage_service')
+                    }, {
+                        value: 8,
+                        label: this.$t('transaction.transaction_type_forge_pool')
+                    }, {
+                        value: 9,
+                        label: this.$t('transaction.transaction_type_block_reward')
+                    }, {
+                        value: 12,
+                        label: this.$t('transaction.transaction_type_poc')
                     }]
                 },
-                deep:true
+                deep: true
             }
         },
         mounted() {
             const _this = this;
 
-            let periodicTransactions = setInterval(()=>{
-                if(_this.$route.path === '/account'){
+            let periodicTransactions = setInterval(() => {
+                if (_this.$route.path === '/account') {
                     _this.getAccountTransactionList();
-                }else{
+                } else {
                     clearInterval(periodicTransactions);
                 }
-            },4000);
+            }, 4000);
 
-            $('#receiver').on("blur",function() {
+            $('#receiver').on("blur", function () {
                 let receiver = _this.messageForm.receiver;
-                if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
+                if (receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____") {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                    if(!receiver.toUpperCase().match(pattern)){
+                    if (!receiver.toUpperCase().match(pattern)) {
                         _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                         return;
                     }
-                    if(receiver === _this.accountInfo.accountRS){
+                    if (receiver === _this.accountInfo.accountRS) {
                         _this.$message.warning(_this.$t('notification.account_is_self'));
                         _this.messageForm.errorCode = true;
                     }
-                    _this.getAccount(receiver).then(res=>{
+                    _this.getAccount(receiver).then(res => {
                         console.log(res);
-                        if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey === "") {
+                        if (res.errorDescription === "Unknown account" && _this.messageForm.publicKey === "") {
                             _this.messageForm.hasPublicKey = true;
                             _this.messageForm.errorCode = true;
                             _this.$message.warning(_this.$t('notification.unknown_account'));
-                        }else if(res.errorDescription === "Unknown account" && _this.messageForm.publicKey !== ""){
+                        } else if (res.errorDescription === "Unknown account" && _this.messageForm.publicKey !== "") {
                             _this.messageForm.hasPublicKey = true;
                             _this.messageForm.errorCode = false;
-                        }else if(res.errorDescription === "Incorrect \"account\""){
+                        } else if (res.errorDescription === "Incorrect \"account\"") {
                             _this.messageForm.errorCode = true;
                             _this.messageForm.hasPublicKey = false;
                             _this.messageForm.publicKey = "";
                             _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
-                        }else if(typeof res.errorDescription === "undefined"){
+                        } else if (typeof res.errorDescription === "undefined") {
                             _this.messageForm.errorCode = false;
                             _this.messageForm.hasPublicKey = false;
                             _this.messageForm.publicKey = res.publicKey;
@@ -1972,33 +2021,33 @@
                     });
                 }
             });
-            $('#tranfer_receiver').on("blur",function () {
+            $('#tranfer_receiver').on("blur", function () {
                 let receiver = _this.transfer.receiver;
-                if(receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____"){
+                if (receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____") {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                    if(!receiver.toUpperCase().match(pattern)){
+                    if (!receiver.toUpperCase().match(pattern)) {
                         _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                         return;
                     }
-                    if(receiver === _this.accountInfo.accountRS){
+                    if (receiver === _this.accountInfo.accountRS) {
                         _this.$message.warning(_this.$t('notification.unknown_account'));
                         _this.transfer.errorCode = true;
                     }
-                    _this.getAccount(receiver).then(res=>{
+                    _this.getAccount(receiver).then(res => {
                         console.log(res);
-                        if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey === "") {
+                        if (res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey === "") {
                             _this.transfer.hasPublicKey = true;
                             _this.transfer.errorCode = true;
-                        }else if(res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey !== ""){
+                        } else if (res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey !== "") {
                             _this.transfer.hasPublicKey = true;
                             _this.transfer.errorCode = false;
                             _this.transfer.publicKey = "";
-                        }else if(res.errorDescription === "Incorrect \"account\""){
+                        } else if (res.errorDescription === "Incorrect \"account\"") {
                             _this.transfer.errorCode = true;
                             _this.transfer.hasPublicKey = false;
                             _this.transfer.publicKey = "";
                             _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
-                        }else if(typeof res.errorDescription === "undefined"){
+                        } else if (typeof res.errorDescription === "undefined") {
                             _this.transfer.errorCode = false;
                             _this.transfer.hasPublicKey = false;
                             _this.transfer.receiverPublickey = res.publicKey;
@@ -2020,23 +2069,27 @@
             background-color: #493eda !important;
             color: #fff !important;
         }
+
         .el-select-dropdown__item.selected.hover {
             background-color: #493eda !important;
             color: #fff !important;
         }
     }
-    .item_receiver{
-        input{
+
+    .item_receiver {
+        input {
             padding-left: 15px;
         }
-        img{
+
+        img {
             width: 20px;
             position: absolute;
             right: 15px;
             top: 40px;
         }
     }
-    .calculate_fee{
+
+    .calculate_fee {
         background-color: #493eda;
         color: #fff;
         border-radius: 4px;
@@ -2046,25 +2099,31 @@
         font-size: 13px;
         height: 20px;
     }
-    .modal_hubSetting{
-        width: 800px!important;
+
+    .modal_hubSetting {
+        width: 800px !important;
     }
-    .modal_hubSetting .modal-header .modal-title{
+
+    .modal_hubSetting .modal-header .modal-title {
         /*margin: 0!important;*/
     }
-    .modal_hubSetting .modal-body{
-        padding: 20px 40px 60px!important;
+
+    .modal_hubSetting .modal-body {
+        padding: 20px 40px 60px !important;
     }
-    .modal_hubSetting .modal-body .el-form{
-        margin-top: 20px!important;
+
+    .modal_hubSetting .modal-body .el-form {
+        margin-top: 20px !important;
     }
-    .modal_hubSetting .modal-body .el-form .el-form-item{
-        margin-top: 15px!important;
+
+    .modal_hubSetting .modal-body .el-form .el-form-item {
+        margin-top: 15px !important;
     }
+
     /*.modal_hubSetting .modal-body .el-form .create_account .el-input{
         width:450px;
     }*/
-    .modal_hubSetting .modal-body .el-form .create_account a{
+    .modal_hubSetting .modal-body .el-form .create_account a {
         position: absolute;
         right: 20px;
         top: 0;
