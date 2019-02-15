@@ -367,8 +367,11 @@
             <div class="modal-body">
                 <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
-                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
+                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')" v-if="whetherShowHubInitBtn()">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.has_public_address')" v-if="whetherShowNATServiceRegisterBtn()">
+                        <el-checkbox v-model="hubsetting.hasPublicAddress"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -376,18 +379,18 @@
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough && whetherShowHubInitBtn()">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough && whetherShowHubInitBtn()">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
-                                  v-if="hubsetting.openPunchthrough">
+                                  v-if="hubsetting.openPunchthrough && whetherShowHubInitBtn()">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.public_ip_address')">
-                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
+                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough || hubsetting.hasPublicAddress"></el-input>
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
@@ -619,6 +622,7 @@
                 },
                 hubsetting: {
                     openPunchthrough: true,
+                    hasPublicAddress: true,
                     sharderAccount: '',
                     sharderPwd: '',
                     address: '',
