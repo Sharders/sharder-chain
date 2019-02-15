@@ -18,6 +18,7 @@ const en = {
     },
     hubsetting: {
         'enable_nat_traversal':"Enable Nat Traversal",
+        'has_public_address':'I Have Public IP',
         'sharder_account':"Sharder Account:",
         'sharder_account_password':"Sharder Password:",
         'nat_traversal_address':"NAT Traversal Address:",

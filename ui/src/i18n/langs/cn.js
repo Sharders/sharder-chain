@@ -18,6 +18,7 @@ const cn = {
     },
     hubsetting: {
         'enable_nat_traversal':"启动内网穿透服务:",
+        'has_public_address':'我有公网',
         'sharder_account':"Sharder官网账户:",
         'sharder_account_password':"Sharder官网密码:",
         'nat_traversal_address':"穿透服务地址:",
