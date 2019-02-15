@@ -33,7 +33,7 @@ import java.util.List;
 
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
-    static final ReConfig instance = new ReConfig();
+    static final ReConfig INSTANCE = new ReConfig();
     static final List<String> excludeParams = Arrays.asList("restart", "requestType", "newAdminPassword", "isInit", "adminPassword", "reBind");
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
@@ -46,7 +46,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean bindNew = "true".equalsIgnoreCase(req.getParameter("reBind"));
         boolean isInit = "true".equalsIgnoreCase(req.getParameter("isInit"));
         boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
-        HashMap map = new HashMap();
+        HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();

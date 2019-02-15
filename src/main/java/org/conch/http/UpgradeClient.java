@@ -30,9 +30,12 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+/**
+ * @author jiangbubai
+ */
 public final class UpgradeClient extends APIServlet.APIRequestHandler {
 
-    static final UpgradeClient instance = new UpgradeClient();
+    static final UpgradeClient INSTANCE = new UpgradeClient();
 
     private UpgradeClient() {
         super(new APITag[] {APITag.DEBUG}, "version", "restart");
