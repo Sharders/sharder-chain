@@ -59,6 +59,7 @@ public enum APIEnum {
     GENERATE_TOKEN("generateToken", GenerateToken.instance),
     GENERATE_FILE_TOKEN("generateFileToken", GenerateFileToken.instance),
     GET_ACCOUNT("getAccount", GetAccount.instance),
+    GET_ACCOUNT_Ranking("getAccountRanking", GetAccountRanking.instance),
     GET_ACCOUNT_BLOCK_COUNT("getAccountBlockCount", GetAccountBlockCount.instance),
     GET_ACCOUNT_BLOCK_IDS("getAccountBlockIds", GetAccountBlockIds.instance),
     GET_ACCOUNT_BLOCKS("getAccountBlocks", GetAccountBlocks.instance),

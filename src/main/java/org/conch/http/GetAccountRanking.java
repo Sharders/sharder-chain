@@ -1,0 +1,136 @@
+package org.conch.http;
+
+
+import org.conch.common.ConchException;
+import org.conch.db.Db;
+import org.conch.util.Convert;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONStreamAware;
+
+import javax.servlet.http.HttpServletRequest;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+public class GetAccountRanking extends APIServlet.APIRequestHandler {
+    static final GetAccountRanking instance = new GetAccountRanking();
+
+    private GetAccountRanking() {
+        super(new APITag[]{APITag.DEBUG});
+    }
+
+    @Override
+    protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+        String account = request.getParameter("account");
+        String ranking = request.getParameter("ranking");
+        JSONObject json = new JSONObject();
+        json.put("success", true);
+        try {
+            if (account != null) {
+                json.put("data", getAccountRanking(Convert.parseUnsignedLong(account)));
+            } else if (ranking != null) {
+                json.put("data", getAccountRanking(Integer.valueOf(ranking)));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            json.put("success", false);
+        }
+        return json;
+    }
+
+    /**
+     * 获得资产最排行
+     *
+     * @param num
+     * @return
+     */
+    private Object getAccountRanking(int num) {
+        num = num > 100 ? 100 : num;
+        Connection con = getConnection();
+        Object obj = null;
+        ArrayList<Map<String, Object>> mapList = new ArrayList<>();
+        try {
+            PreparedStatement ps = con.prepareStatement("SELECT a.ID,a.BALANCE from ACCOUNT as a where a.HEIGHT > 0 and a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc limit ?");
+            ps.setInt(1, num);
+            obj = result(ps.executeQuery());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        commitAndClose(con);
+        return obj;
+    }
+
+    /**
+     * 获得某个账户的资产排行
+     *
+     * @param account
+     * @return
+     */
+    private Object getAccountRanking(long account) {
+        Connection con = getConnection();
+        Object obj = null;
+        try {
+            PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) as randking from (SELECT * from ACCOUNT as a where a.HEIGHT > 0 and a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc) as ma where ma.BALANCE > (SELECT a.BALANCE from ACCOUNT as a where a.ID = ? order by a.DB_ID desc limit 1)");
+            ps.setLong(1, account);
+            obj = result(ps.executeQuery());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        commitAndClose(con);
+        return obj;
+    }
+
+    /**
+     * 获得数据库连接对象
+     *
+     * @return
+     */
+    private Connection getConnection() {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return con;
+    }
+
+    /**
+     * 提交并关闭当前连接
+     *
+     * @param con
+     */
+    private void commitAndClose(Connection con) {
+        try {
+            con.commit();
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 结果集 转 ArrayList<Map<String, Object>>
+     *
+     * @param rs
+     * @return
+     * @throws SQLException
+     */
+    private Object result(ResultSet rs) throws SQLException {
+        ArrayList<Map<String, Object>> mapList = new ArrayList<>();
+        ResultSetMetaData rsmd = rs.getMetaData();
+        while (rs.next()) {
+            Map<String, Object> map = new HashMap<>();
+            for (int i = 0; i < rsmd.getColumnCount(); i++) {
+                String colName = rsmd.getColumnName(i + 1);
+                Object colValue = rs.getObject(colName);
+                map.put(colName, colValue);
+            }
+            mapList.add(map);
+        }
+        return mapList;
+    }
+
+
+}

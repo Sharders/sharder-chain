@@ -378,8 +378,8 @@
                             return;
                         }
                         res.data.transactions.forEach(function (element) {
-                            console.log(element.attachment.poolId);
-                            console.log(_this.miningInfo.poolId);
+                            // console.log(element.attachment.poolId);
+                            // console.log(_this.miningInfo.poolId);
                             if (element.attachment.poolId === _this.miningInfo.poolId) {
                                 _this.miningInfo.timestamp = element.timestamp;
                             }

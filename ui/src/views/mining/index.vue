@@ -237,16 +237,16 @@
                                 <span v-if="index > 2">{{index}}</span>
                             </td>
                             <td>
-                                {{ranking.account}}
+                                {{ranking.ID}}
                             </td>
                             <td>
-                                {{ranking.assets}}
+                                {{ranking.BALANCE / 100000000}}
                             </td>
                         </tr>
                     </table>
                     <div class="my-assets">
                         {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS
-                        | {{$t('mining.index.sort')}} 98 {{$t('mining.index.unit_ming')}}
+                        | {{$t('mining.index.sort')}} {{myRanking}} {{$t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -357,7 +357,7 @@
                         label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
-
+                myRanking:0,
                 value: '',
                 setname: '',
                 incomeDistribution: 0,
@@ -371,48 +371,7 @@
                 avgBlocksTime: '',
                 miningList: [],
                 rewardList: [/*'1', '2', '3', '4'*/],
-                rankingList: [
-                    /*    {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        }*/
-                ],
+                rankingList: [],
                 accountInfo: SSO.accountInfo,
 
                 totalSize: 10,
@@ -609,6 +568,9 @@
                 }).catch(function (err) {
 
                 });
+
+                _this.getAssetsRanking();
+                _this.getAccountRanking();
             },
             getCoinBase(height) {
                 let _this = this;
@@ -621,6 +583,27 @@
                             _this.newBlockReward = t.amountNQT;
                             break;
                         }
+                    }
+                });
+            },
+            getAssetsRanking() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    ranking: 10
+                }, "getAccountRanking").then(res => {
+                    if(res.success){
+                        _this.rankingList = res.data;
+                    }
+                });
+            },
+            getAccountRanking() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    account: SSO.account
+                }, "getAccountRanking").then(res => {
+                    // console.info(res);
+                    if(res.success){
+                        _this.myRanking = res.data[0]['RANDKING'] + 1
                     }
                 });
             }
