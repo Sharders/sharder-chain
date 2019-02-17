@@ -13,10 +13,10 @@ const cn = {
         'register_tip':"没有账户? 创建账户",
         'welcome_tip':"欢迎来到豆匣链",
         'init_hub':"初始化HUB",
-        'register_nat_server':"申请穿透服务",
-        'config_nat_server':"配置穿透服务"
+        'use_nat_server':"使用穿透服务"
     },
     hubsetting: {
+        'register_nat_server':"申请穿透服务",
         'enable_nat_traversal':"启动内网穿透服务:",
         'has_public_address':'我有公网',
         'sharder_account':"Sharder官网账户:",
@@ -41,7 +41,9 @@ const cn = {
         'reset_password':"重设管理员密码",
         'cancel':"取消",
         'update_hub_setting_success': "成功更新穿透服务配置信息",
-        'confirm_register':"申请",
+        'register_status':"申请状态",
+        'register_status_pending':"待审核",
+        'register_status_approval':"审核通过",
     },
     register:{
         'register_title':"已为您生成账户密钥",

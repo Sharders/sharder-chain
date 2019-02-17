@@ -13,10 +13,10 @@ const en = {
         'register_tip':"Don't have an account? Click here to create one!",
         'welcome_tip':"Welcome to Sharder",
         'init_hub':"Initialize Hub",
-        'register_nat_server':"Register NAT Service",
-        'config_nat_server':"Configure NAT Service"
+        'use_nat_server':"Use NAT Service"
     },
     hubsetting: {
+        'register_nat_server':"Register NAT Service",
         'enable_nat_traversal':"Enable Nat Traversal",
         'has_public_address':'I Have Public IP',
         'sharder_account':"Sharder Account:",
@@ -41,7 +41,9 @@ const en = {
         'reset_password':"Reset Hub Password:",
         'cancel':"Cancel",
         'update_hub_setting_success': "Success to update Hub Settings",
-        'confirm_register':"Register",
+        'register_status':"Application Status",
+        'register_status_pending':"Pending approval",
+        'register_status_approval':"Approved",
     },
     register:{
         'register_title':"Your mnemonic phrase has been generated:",
