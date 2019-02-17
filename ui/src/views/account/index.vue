@@ -79,9 +79,9 @@
                             </span>
                             <span>{{$t('login.init_hub')}}</span>
                         </button>
-                        <!-- Register NAT service button -->
-                        <button class="common_btn imgBtn" v-if="whetherShowNATServiceRegisterBtn()"
-                                @click="openHubInitDialog">
+                        <!-- Use NAT service button -->
+                        <button class="common_btn imgBtn" v-if="whetherShowUseNATServiceBtn()"
+                                @click="openUseNATDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -98,7 +98,7 @@
                                     <path d="M-210.36,81h0Z" transform="translate(382.82 -23.48)"/>
                                 </svg>
                             </span>
-                            <span>{{$t('login.register_nat_server')}}</span>
+                            <span>{{$t('login.use_nat_server')}}</span>
                         </button>
                         <!-- Configure NAT service button -->
                         <button class="common_btn imgBtn" v-if="whetherShowConfigureNATServiceBtn()"
@@ -361,17 +361,14 @@
         <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
             <div class="modal-header">
                 <h4 class="modal-title">
-                    <span>{{hubInitDialog_title}}</span>
+                    <span>{{ $t('login.init_hub') }}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
-                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')" v-if="whetherShowHubInitBtn()">
+                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.has_public_address')" v-if="whetherShowNATServiceRegisterBtn()">
-                        <el-checkbox v-model="hubsetting.hasPublicAddress"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -379,18 +376,18 @@
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough && whetherShowHubInitBtn()">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough && whetherShowHubInitBtn()">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
-                                  v-if="hubsetting.openPunchthrough && whetherShowHubInitBtn()">
+                                  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.public_ip_address')">
-                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough || hubsetting.hasPublicAddress"></el-input>
+                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
@@ -411,7 +408,7 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{hubInitDialog_ok_button_name}}
+                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{ $t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -482,6 +479,66 @@
                 </div>
             </div>
         </div>
+        <!-- view use NAT service dialog -->
+        <div class="modal_hubSetting" id="use_nat_service" v-show="useNATServiceDialog">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>{{ $t('login.use_nat_server') }}</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
+                         :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="useNATForm">
+                    <el-form-item :label="$t('hubsetting.has_public_address')">
+                        <el-checkbox v-model="hubsetting.hasPublicAddress"></el-checkbox>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
+                        <el-input v-model="hubsetting.sharderAccount"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
+                        <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
+                    </el-form-item>
+                    <el-form-item  :label="$t('hubsetting.register_status')" v-if="!hubsetting.hasPublicAddress">
+                        <el-input v-model="hubsetting.register_status_text" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="!hubsetting.hasPublicAddress">
+                        <el-input v-model="hubsetting.address" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="!hubsetting.hasPublicAddress">
+                        <el-input v-model="hubsetting.port" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
+                                  v-if="!hubsetting.hasPublicAddress">
+                        <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.public_ip_address')" prop="publicAddress">
+                        <el-input v-model="hubsetting.publicAddress" :disabled="!hubsetting.hasPublicAddress"></el-input>
+                    </el-form-item>
+                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
+                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    </el-form-item>
+                    <!--<el-form-item :label="$t('hubsetting.enable_auto_mining')">-->
+                        <!--<el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>-->
+                    <!--</el-form-item>-->
+                    <!--<el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining"-->
+                                  <!--prop="modifyMnemonicWord">-->
+                        <!--<el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>-->
+                    <!--</el-form-item>-->
+                    <!--<el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">-->
+                        <!--<el-input type="password" v-model="hubsetting.newPwd"></el-input>-->
+                    <!--</el-form-item>-->
+                    <!--<el-form-item :label="$t('hubsetting.confirm_password')" prop="confirmPwd">-->
+                        <!--<el-input type="password" v-model="hubsetting.confirmPwd"></el-input>-->
+                    <!--</el-form-item>-->
+                </el-form>
+                <div class="footer-btn">
+                    <el-button class="common_btn imgBtn" @click="verifyHubSetting" v-if="hubsetting.hasPublicAddress || !this.needRegister" :disabled="this.hubsetting.register_status === 0">{{ $t('hubsetting.confirm_restart') }}</el-button>
+                    <button class="common_btn imgBtn" @click="registerNatService" v-if="!hubsetting.hasPublicAddress && this.needRegister">{{ $t('hubsetting.register_nat_server') }}</button>
+                    <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
+                </div>
+            </div>
+        </div>
+
         <!--view account transaction dialog-->
         <div class="modal_info" id="account_info" v-show="userInfoDialog">
             <div class="modal-header">
@@ -569,6 +626,7 @@
                 tranferAccountsDialog: false,
                 hubSettingDialog: false,
                 hubInitDialog: false,
+                useNATServiceDialog: false,
 
                 tradingInfoDialog: false,
                 userInfoDialog: false,
@@ -586,6 +644,7 @@
                     ssAddress: this.$store.state.userConfig['sharder.HubBindAddress'],
                 },
 
+                needRegister: false,
                 isShowName: true,
                 generatorRS: '',
                 secretPhrase: SSO.secretPhrase,
@@ -622,7 +681,7 @@
                 },
                 hubsetting: {
                     openPunchthrough: true,
-                    hasPublicAddress: true,
+                    hasPublicAddress: false,
                     sharderAccount: '',
                     sharderPwd: '',
                     address: '',
@@ -633,7 +692,9 @@
                     isOpenMining: false,
                     modifyMnemonicWord: '',
                     newPwd: '',
-                    confirmPwd: ''
+                    confirmPwd: '',
+                    register_status: '',
+                    register_status_text: '',
                 },
                 unconfirmedTransactionsList: [],
                 blockchainState: this.$global.blockchainState,
@@ -692,6 +753,7 @@
                 ssPublickey: SSO.publicKey,
 
                 hubInitSettingRules: {
+                    publicAddress: [required],
                     sharderAccount: [required],
                     sharderPwd: [required],
                     SS_Address: [validateSSAddress],
@@ -1025,7 +1087,7 @@
                     if (valid) {
                         if (this.whetherShowHubInitBtn()) {
                             this.confirmInitHubSetting(confirmFormData, reConfigFormData);
-                        } else if (this.whetherShowNATServiceRegisterBtn()) {
+                        } else if (this.whetherShowUseNATServiceBtn()) {
                             this.registerNatService();
                         }
                     } else {
@@ -1041,7 +1103,23 @@
                 this.hubSettingsConfirm(confirmFormData, reConfigFormData);
             },
             registerNatService() {
-                console.log("nat");
+                console.info("registering nat service for normal node...");
+                const _this = this;
+                let data = new FormData();
+                data.append("sharderAccount", this.hubsetting.sharderAccount);
+                data.append("tssAddress", this.hubsetting.SS_Address);
+                data.append("nodeType", this.userConfig.nodeType);
+                data.append("registerStatus", "0");
+                this.$http.post('http://localhost:8080/bounties/hubDirectory/register.ss', data).then(res => {
+                    if (res.success) {
+                        console.info('success to register NAT service');
+                        _this.closeDialog();
+                    } else {
+                        _this.$message.error(`errorCode:${res.code}, reason:${res.msg}`);
+                    }
+                }).catch(err => {
+                    _this.$message.error(err);
+                });
             },
             autoRefresh() {
                 setTimeout(() => {
@@ -1093,9 +1171,16 @@
                             _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
                             _this.hubsetting.publicAddress = res.data.data.hubAddress;
                             _this.hubsetting.SS_Address = '';
+                            _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.registerStatus);
+                            _this.hubsetting.register_status = res.data.data.registerStatus;
+                            _this.needRegister = false;
                         } else if (res.data.errorType === 'unifiedUserIsNull') {
+                            _this.clearHubSetting();
                             _this.$message.error(res.data.errorMessage);
                         } else if (res.data.errorType === 'hubDirectoryIsNull') {
+                            console.info('HUB配置信息不存在, 需要注册NAT...');
+                            _this.clearHubSetting();
+                            _this.needRegister = true;
                             _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                         }
                     })
@@ -1553,7 +1638,17 @@
                     _this.$message.error(err);
                 });
             },
-
+            clearHubSetting() {
+                let _this = this;
+                _this.hubsetting.address = '';
+                _this.hubsetting.port = '';
+                _this.hubsetting.clientSecretkey = '';
+                _this.hubsetting.publicAddress = '';
+                _this.hubsetting.SS_Address = '';
+                _this.hubsetting.register_status = '';
+                _this.hubsetting.register_status_text = '';
+                _this.needRegister = false;
+            },
             openSendMessageDialog: function () {
                 if (SSO.downloadingBlockchain) {
                     this.$message.warning("当前正在同步区块链，请稍后再试");
@@ -1579,6 +1674,12 @@
                 const _this = this;
                 _this.$store.state.mask = true;
                 _this.hubInitDialog = true;
+            },
+            openUseNATDialog() {
+                const _this = this;
+                _this.$store.state.mask = true;
+                _this.useNATServiceDialog = true;
+                _this.hubsetting.openPunchthrough = true;
             },
             openTradingInfoDialog: function (trading) {
                 this.trading = trading;
@@ -1655,6 +1756,9 @@
                 if (this.hubInitDialog && this.$refs['reconfigureForm']) {
                     this.$refs["reconfigureForm"].resetFields();
                 }
+                if (this.useNATServiceDialog && this.$refs['useNATForm']) {
+                    this.$refs["useNATForm"].resetFields();
+                }
 
                 this.$store.state.mask = false;
                 this.sendMessageDialog = false;
@@ -1664,6 +1768,7 @@
                 this.tradingInfoDialog = false;
                 this.accountInfoDialog = false;
                 this.userInfoDialog = false;
+                this.useNATServiceDialog = false;
 
                 const _this = this;
                 _this.messageForm.errorCode = false;
@@ -1692,6 +1797,9 @@
 
                 _this.isShowName = true;
                 _this.temporaryName = "";
+                _this.needRegister = false;
+                _this.hubsetting.register_status = '';
+                _this.hubsetting.register_status_text = '';
             },
             copySuccess: function () {
                 const _this = this;
@@ -1875,6 +1983,14 @@
                     // _this.getDrawData();
                 }
             },
+            formatRegisterStatus(status) {
+                console.info('审核状态', status);
+                if (status === 0) {
+                    return this.$t('hubsetting.register_status_pending');
+                } else if (status === 1) {
+                    return this.$t('hubsetting.register_status_approval');
+                }
+            },
             whetherShowHubSettingBtn() {
                 /*
                 At the same time satisfy the following conditions:
@@ -1891,7 +2007,7 @@
             whetherShowHubInitBtn() {
                 /*
                 At the same time satisfy the following conditions:
-                1. sharder.HubBindAddress has value；
+                1. sharder.HubBindAddress has no value；
                 2. using secretPhrase to login；
                 3. NodeType is Hub。
                 */
@@ -1899,7 +2015,7 @@
                     && this.initHUb
                     && this.userConfig.nodeType === 'Hub';
             },
-            whetherShowNATServiceRegisterBtn() {
+            whetherShowUseNATServiceBtn() {
                 /*
                 At the same time satisfy the following conditions:
                 1. using secretPhrase to login；
@@ -1920,7 +2036,7 @@
                 At the same time satisfy the following conditions:
                 1. using secretPhrase to login；
                 2. NodeType is Normal；
-                3. didn't use NAT service；
+                3. using NAT service；
                 4. NAT configuration is not empty;
                  */
                 return this.secretPhrase
@@ -1935,20 +2051,6 @@
         computed: {
             getLang: function () {
                 return this.$store.state.currentLang;
-            },
-            hubInitDialog_ok_button_name() {
-                if (this.whetherShowHubInitBtn()) {
-                    return this.$t('hubsetting.confirm_restart');
-                } else if (this.whetherShowNATServiceRegisterBtn()) {
-                    return this.$t('hubsetting.confirm_register');
-                }
-            },
-            hubInitDialog_title() {
-                if (this.whetherShowHubInitBtn()) {
-                    return this.$t('login.init_hub');
-                } else if (this.whetherShowNATServiceRegisterBtn()) {
-                    return this.$t('login.register_nat_server');
-                }
             }
         },
         watch: {
