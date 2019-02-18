@@ -237,7 +237,7 @@
                                 <span v-if="index > 2">{{index}}</span>
                             </td>
                             <td>
-                                {{ranking.ID}}
+                                {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
                                 {{ranking.BALANCE / 100000000}}
@@ -357,7 +357,7 @@
                         label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
-                myRanking:0,
+                myRanking: 0,
                 value: '',
                 setname: '',
                 incomeDistribution: 0,
@@ -383,6 +383,14 @@
             }
         },
         methods: {
+            idToAccountRs(id) {
+                let nxtAddress = new NxtAddress();
+                let accountRS = "";
+                if (nxtAddress.set(id)) {
+                    accountRS = nxtAddress.toString();
+                }
+                return accountRS;
+            },
             createPool() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
@@ -591,7 +599,7 @@
                 _this.$global.fetch("POST", {
                     ranking: 10
                 }, "getAccountRanking").then(res => {
-                    if(res.success){
+                    if (res.success) {
                         _this.rankingList = res.data;
                     }
                 });
@@ -602,7 +610,7 @@
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
                     // console.info(res);
-                    if(res.success){
+                    if (res.success) {
                         _this.myRanking = res.data[0]['RANDKING'] + 1
                     }
                 });

@@ -263,7 +263,8 @@ public abstract class TransactionType {
     }
 
 
-    protected TransactionType() {}
+    protected TransactionType() {
+    }
 
     public abstract byte getType();
 
@@ -281,7 +282,7 @@ public abstract class TransactionType {
     public final boolean applyUnconfirmed(TransactionImpl transaction, Account senderAccount) {
         long amountNQT = transaction.getAmountNQT();
         long feeNQT = transaction.getFeeNQT();
-        if(transaction.getType().getType() != TYPE_COIN_BASE){
+        if (transaction.getType().getType() != TYPE_COIN_BASE) {
             if (transaction.referencedTransactionFullHash() != null
                     && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
                 feeNQT = Math.addExact(feeNQT, Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
@@ -304,7 +305,7 @@ public abstract class TransactionType {
     public abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
     public final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
-        if(transaction.getType().getType() != TYPE_COIN_BASE){
+        if (transaction.getType().getType() != TYPE_COIN_BASE) {
             long amount = transaction.getAmountNQT();
             long transactionId = transaction.getId();
             if (!transaction.attachmentIsPhased()) {
@@ -323,7 +324,7 @@ public abstract class TransactionType {
 
     public final void undoUnconfirmed(TransactionImpl transaction, Account senderAccount) {
         undoAttachmentUnconfirmed(transaction, senderAccount);
-        if(transaction.getType().getType() == TYPE_COIN_BASE){
+        if (transaction.getType().getType() == TYPE_COIN_BASE) {
             return;
         }
         senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
@@ -355,7 +356,7 @@ public abstract class TransactionType {
     }
 
     public static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Map<String, Integer>> duplicates, int maxCount) {
-        Map<String,Integer> typeDuplicates = duplicates.get(uniqueType);
+        Map<String, Integer> typeDuplicates = duplicates.get(uniqueType);
         if (typeDuplicates == null) {
             typeDuplicates = new HashMap<>();
             duplicates.put(uniqueType, typeDuplicates);
@@ -527,18 +528,19 @@ public abstract class TransactionType {
 
         /**
          * unfreeze mining balance use by pool, the caller of this method should be SharderPoolProcessor
+         *
          * @param transaction
          */
         public static void unFreezeMintBalance(Transaction transaction) {
-            Attachment.CoinBase coinBase = (Attachment.CoinBase)transaction.getAttachment();
+            Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
-            Map<Long,Long> consignors = coinBase.getConsignors();
-            if(consignors.size() == 0){
+            Map<Long, Long> consignors = coinBase.getConsignors();
+            if (consignors.size() == 0) {
                 senderAccount.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
                 senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
-            }else {
+            } else {
                 Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
-                for(long id : rewardList.keySet()){
+                for (long id : rewardList.keySet()) {
                     Account account = Account.getAccount(id);
                     account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
                     account.addToMintedBalanceNQT(rewardList.get(id));
@@ -565,7 +567,7 @@ public abstract class TransactionType {
 
             @Override
             public Attachment.CoinBase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-                return new Attachment.CoinBase(buffer,transactionVersion);
+                return new Attachment.CoinBase(buffer, transactionVersion);
             }
 
             @Override
@@ -577,45 +579,45 @@ public abstract class TransactionType {
             public boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
                 return isDuplicate(CoinBase.ORDINARY, "OrdinaryCoinBase", duplicates, true);
             }
-            
+
             private void validateByType(Transaction transaction) throws ConchException.NotValidException {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-                if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()){
-                    Map<Long,Long> consignors = coinBase.getConsignors();
+                if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
+                    Map<Long, Long> consignors = coinBase.getConsignors();
                     long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
                     if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
                             && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
                         throw new ConchException.NotValidException("allocation rule is wrong");
-                    }  
-                }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
-                    if(!SharderGenesis.isGenesisCreator(coinBase.getCreator())){
-                        throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");  
+                    }
+                } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
+                    if (!SharderGenesis.isGenesisCreator(coinBase.getCreator())) {
+                        throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");
                     }
                 }
             }
-            
+
             private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-                if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()){
-                    Map<Long,Long> consignors = coinBase.getConsignors();
-                    if(consignors.size() == 0){
+                if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
+                    Map<Long, Long> consignors = coinBase.getConsignors();
+                    if (consignors.size() == 0) {
                         senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
                         senderAccount.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                    }else {
+                    } else {
                         Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
-                        for(long id : rewardList.keySet()){
+                        for (long id : rewardList.keySet()) {
                             Account account = Account.getAccount(id);
                             account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
                             account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
                         }
                     }
-                }else if(Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()){
-                    if(SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId()) ){
-                        if(Constants.isDevnet()) {
+                } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
+                    if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {
+                        if (Constants.isDevnet()) {
                             Logger.logDebugMessage("add balance to genesis account in devnet[account id=" + senderAccount.getId() + ",amount=" + transaction.getAmountNQT() + "]");
-                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
-                        }else {
-                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),transaction.getId(), transaction.getAmountNQT());
+                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), transaction.getAmountNQT());
+                        } else {
+                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), transaction.getAmountNQT());
                         }
                     }
                 }
@@ -628,7 +630,7 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                applyByType(transaction,senderAccount,recipientAccount);
+                applyByType(transaction, senderAccount, recipientAccount);
             }
         };
 
@@ -814,6 +816,7 @@ public abstract class TransactionType {
             public AccountLedger.LedgerEvent getLedgerEvent() {
                 return AccountLedger.LedgerEvent.ALIAS_SELL;
             }
+
             @Override
             public String getName() {
                 return "AliasSell";
@@ -1049,7 +1052,7 @@ public abstract class TransactionType {
             private final Fee POLL_OPTIONS_FEE = new Fee.SizeBasedFee(10 * Constants.ONE_SS, Constants.ONE_SS, 1) {
                 @Override
                 public int getSize(TransactionImpl transaction, Appendix appendage) {
-                    int numOptions = ((Attachment.MessagingPollCreation)appendage).getPollOptions().length;
+                    int numOptions = ((Attachment.MessagingPollCreation) appendage).getPollOptions().length;
                     return numOptions <= 19 ? 0 : numOptions - 19;
                 }
             };
@@ -1057,9 +1060,9 @@ public abstract class TransactionType {
             private final Fee POLL_SIZE_FEE = new Fee.SizeBasedFee(0, 2 * Constants.ONE_SS, 32) {
                 @Override
                 public int getSize(TransactionImpl transaction, Appendix appendage) {
-                    Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation)appendage;
+                    Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) appendage;
                     int size = attachment.getPollName().length() + attachment.getPollDescription().length();
-                    for (String option : ((Attachment.MessagingPollCreation)appendage).getPollOptions()) {
+                    for (String option : ((Attachment.MessagingPollCreation) appendage).getPollOptions()) {
                         size += option.length();
                     }
                     return size <= 288 ? 0 : size - 288;
@@ -1148,7 +1151,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotCurrentlyValidException("Invalid finishing height" + attachment.getJSONObject());
                 }
 
-                if (! attachment.getVoteWeighting().acceptsVotes() || attachment.getVoteWeighting().getVotingModel() == VoteWeighting.VotingModel.HASH) {
+                if (!attachment.getVoteWeighting().acceptsVotes() || attachment.getVoteWeighting().getVotingModel() == VoteWeighting.VotingModel.HASH) {
                     throw new ConchException.NotValidException("VotingModel " + attachment.getVoteWeighting().getVotingModel() + " not valid for regular polls");
                 }
 
@@ -1338,7 +1341,7 @@ public abstract class TransactionType {
                         throw new ConchException.NotCurrentlyValidException("Invalid phased transaction " + Long.toUnsignedString(phasedTransactionId)
                                 + ", or phasing is finished");
                     }
-                    if (! poll.getVoteWeighting().acceptsVotes()) {
+                    if (!poll.getVoteWeighting().acceptsVotes()) {
                         throw new ConchException.NotValidException("This phased transaction does not require or accept voting");
                     }
                     long[] whitelist = poll.getWhitelist();
@@ -1355,7 +1358,7 @@ public abstract class TransactionType {
                         if (algorithm != 0 && algorithm != poll.getAlgorithm()) {
                             throw new ConchException.NotValidException("Phased transaction " + Long.toUnsignedString(phasedTransactionId) + " is using a different hashedSecretAlgorithm");
                         }
-                        if (hashedSecret == null && ! poll.verifySecret(revealedSecret)) {
+                        if (hashedSecret == null && !poll.verifySecret(revealedSecret)) {
                             throw new ConchException.NotValidException("Revealed secret does not match phased transaction hashed secret");
                         }
                         hashedSecret = poll.getHashedSecret();
@@ -1495,7 +1498,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.MessagingAccountInfo attachment = (Attachment.MessagingAccountInfo)transaction.getAttachment();
+                Attachment.MessagingAccountInfo attachment = (Attachment.MessagingAccountInfo) transaction.getAttachment();
                 if (attachment.getName().length() > Constants.MAX_ACCOUNT_NAME_LENGTH
                         || attachment.getDescription().length() > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH) {
                     throw new ConchException.NotValidException("Invalid account info issuance: " + attachment.getJSONObject());
@@ -1568,7 +1571,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.MessagingAccountProperty attachment = (Attachment.MessagingAccountProperty)transaction.getAttachment();
+                Attachment.MessagingAccountProperty attachment = (Attachment.MessagingAccountProperty) transaction.getAttachment();
                 if (attachment.getProperty().length() > Constants.MAX_ACCOUNT_PROPERTY_NAME_LENGTH
                         || attachment.getProperty().length() == 0
                         || attachment.getValue().length() > Constants.MAX_ACCOUNT_PROPERTY_VALUE_LENGTH) {
@@ -1629,7 +1632,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.MessagingAccountPropertyDelete attachment = (Attachment.MessagingAccountPropertyDelete)transaction.getAttachment();
+                Attachment.MessagingAccountPropertyDelete attachment = (Attachment.MessagingAccountPropertyDelete) transaction.getAttachment();
                 Account.AccountProperty accountProperty = Account.getProperty(attachment.getPropertyId());
                 if (accountProperty == null) {
                     throw new ConchException.NotCurrentlyValidException("No such property " + Long.toUnsignedString(attachment.getPropertyId()));
@@ -1672,7 +1675,8 @@ public abstract class TransactionType {
 
     public static abstract class ColoredCoins extends TransactionType {
 
-        private ColoredCoins() {}
+        private ColoredCoins() {
+        }
 
         @Override
         public final byte getType() {
@@ -1717,7 +1721,7 @@ public abstract class TransactionType {
                     return Convert.EMPTY_LONG;
                 }
                 long feeNQT = transaction.getFeeNQT();
-                return new long[] {feeNQT * 3 / 10, feeNQT * 2 / 10, feeNQT / 10};
+                return new long[]{feeNQT * 3 / 10, feeNQT * 2 / 10, feeNQT / 10};
             }
 
             @Override
@@ -1749,14 +1753,14 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) transaction.getAttachment();
                 if (attachment.getName().length() < Constants.MIN_ASSET_NAME_LENGTH
                         || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
                         || attachment.getDescription().length() > Constants.MAX_ASSET_DESCRIPTION_LENGTH
                         || attachment.getDecimals() < 0 || attachment.getDecimals() > 8
                         || attachment.getQuantityQNT() <= 0
                         || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT
-                        ) {
+                ) {
                     throw new ConchException.NotValidException("Invalid asset issuance: " + attachment.getJSONObject());
                 }
                 String normalizedName = attachment.getName().toLowerCase();
@@ -1785,7 +1789,7 @@ public abstract class TransactionType {
             }
 
             private boolean isSingletonIssuance(Transaction transaction) {
-                Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) transaction.getAttachment();
                 return attachment.getQuantityQNT() == 1 && attachment.getDecimals() == 0
                         && attachment.getDescription().length() <= Constants.MAX_SINGLETON_ASSET_DESCRIPTION_LENGTH;
             }
@@ -1854,7 +1858,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
                 if (transaction.getAmountNQT() != 0
                         || attachment.getComment() != null && attachment.getComment().length() > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
                         || attachment.getAssetId() == 0) {
@@ -1919,7 +1923,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete) transaction.getAttachment();
                 long unconfirmedAssetBalance = senderAccount.getUnconfirmedAssetBalanceQNT(attachment.getAssetId());
                 if (unconfirmedAssetBalance >= 0 && unconfirmedAssetBalance >= attachment.getQuantityQNT()) {
                     senderAccount.addToUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
@@ -1931,7 +1935,7 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete) transaction.getAttachment();
                 senderAccount.addToAssetBalanceQNT(getLedgerEvent(), transaction.getId(), attachment.getAssetId(),
                         -attachment.getQuantityQNT());
                 Asset.deleteAsset(transaction, attachment.getAssetId(), attachment.getQuantityQNT());
@@ -1939,14 +1943,14 @@ public abstract class TransactionType {
 
             @Override
             public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete) transaction.getAttachment();
                 senderAccount.addToUnconfirmedAssetBalanceQNT(getLedgerEvent(), transaction.getId(),
                         attachment.getAssetId(), attachment.getQuantityQNT());
             }
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete)transaction.getAttachment();
+                Attachment.ColoredCoinsAssetDelete attachment = (Attachment.ColoredCoinsAssetDelete) transaction.getAttachment();
                 if (attachment.getAssetId() == 0) {
                     throw new ConchException.NotValidException("Invalid asset identifier: " + attachment.getJSONObject());
                 }
@@ -1976,7 +1980,7 @@ public abstract class TransactionType {
 
             @Override
             public final void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.ColoredCoinsOrderPlacement attachment = (Attachment.ColoredCoinsOrderPlacement)transaction.getAttachment();
+                Attachment.ColoredCoinsOrderPlacement attachment = (Attachment.ColoredCoinsOrderPlacement) transaction.getAttachment();
                 if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
                         || attachment.getAssetId() == 0) {
                     throw new ConchException.NotValidException("Invalid asset order placement: " + attachment.getJSONObject());
@@ -2274,7 +2278,7 @@ public abstract class TransactionType {
 
             @Override
             public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
+                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment) transaction.getAttachment();
                 long assetId = attachment.getAssetId();
                 Asset asset = Asset.getAsset(assetId, attachment.getHeight());
                 if (asset == null) {
@@ -2291,13 +2295,13 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
+                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment) transaction.getAttachment();
                 senderAccount.payDividends(transaction.getId(), attachment);
             }
 
             @Override
             public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
+                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment) transaction.getAttachment();
                 long assetId = attachment.getAssetId();
                 Asset asset = Asset.getAsset(assetId, attachment.getHeight());
                 if (asset == null) {
@@ -2310,7 +2314,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment)transaction.getAttachment();
+                Attachment.ColoredCoinsDividendPayment attachment = (Attachment.ColoredCoinsDividendPayment) transaction.getAttachment();
                 if (attachment.getHeight() > Conch.getBlockchain().getHeight()) {
                     throw new ConchException.NotCurrentlyValidException("Invalid dividend payment height: " + attachment.getHeight()
                             + ", must not exceed current blockchain height " + Conch.getBlockchain().getHeight());
@@ -2745,7 +2749,7 @@ public abstract class TransactionType {
                         || (goods != null && goods.getSellerId() != transaction.getRecipientId())) {
                     throw new ConchException.NotValidException("Invalid digital goods purchase: " + attachment.getJSONObject());
                 }
-                if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
+                if (transaction.getEncryptedMessage() != null && !transaction.getEncryptedMessage().isText()) {
                     throw new ConchException.NotValidException("Only text encrypted messages allowed");
                 }
                 if (goods == null || goods.isDelisted()) {
@@ -2827,7 +2831,7 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery)transaction.getAttachment();
+                Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) transaction.getAttachment();
                 DigitalGoodsStore.deliver(transaction, attachment);
             }
 
@@ -2903,7 +2907,7 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback)transaction.getAttachment();
+                Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback) transaction.getAttachment();
                 DigitalGoodsStore.feedback(attachment.getPurchaseId(), transaction.getEncryptedMessage(), transaction.getMessage());
             }
 
@@ -2919,10 +2923,10 @@ public abstract class TransactionType {
                 if (transaction.getEncryptedMessage() == null && transaction.getMessage() == null) {
                     throw new ConchException.NotValidException("Missing feedback message");
                 }
-                if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
+                if (transaction.getEncryptedMessage() != null && !transaction.getEncryptedMessage().isText()) {
                     throw new ConchException.NotValidException("Only text encrypted messages allowed");
                 }
-                if (transaction.getMessage() != null && ! transaction.getMessage().isText()) {
+                if (transaction.getMessage() != null && !transaction.getMessage().isText()) {
                     throw new ConchException.NotValidException("Only text public messages allowed");
                 }
                 if (purchase == null || purchase.getEncryptedGoods() == null) {
@@ -3002,7 +3006,7 @@ public abstract class TransactionType {
                                 || transaction.getSenderId() != purchase.getSellerId()))) {
                     throw new ConchException.NotValidException("Invalid digital goods refund: " + attachment.getJSONObject());
                 }
-                if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
+                if (transaction.getEncryptedMessage() != null && !transaction.getEncryptedMessage().isText()) {
                     throw new ConchException.NotValidException("Only text encrypted messages allowed");
                 }
                 if (purchase == null || purchase.getEncryptedGoods() == null || purchase.getRefundNQT() != 0) {
@@ -3084,7 +3088,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing)transaction.getAttachment();
+                Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing) transaction.getAttachment();
                 if (transaction.getSenderId() == transaction.getRecipientId()) {
                     throw new ConchException.NotValidException("Account cannot lease balance to itself");
                 }
@@ -3096,7 +3100,7 @@ public abstract class TransactionType {
                 }
                 byte[] recipientPublicKey = Account.getPublicKey(transaction.getRecipientId());
                 if (recipientPublicKey == null && Conch.getBlockchain().getHeight() > Constants.PHASING_BLOCK_HEIGHT) {
-                    throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: "+ " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
+                    throw new ConchException.NotCurrentlyValidException("Invalid effective balance leasing: " + " recipient account " + Long.toUnsignedString(transaction.getRecipientId()) + " not found or no public key published");
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Leasing to Genesis account not allowed");
@@ -3139,7 +3143,7 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                Attachment.SetPhasingOnly attachment = (Attachment.SetPhasingOnly)transaction.getAttachment();
+                Attachment.SetPhasingOnly attachment = (Attachment.SetPhasingOnly) transaction.getAttachment();
                 VoteWeighting.VotingModel votingModel = attachment.getPhasingParams().getVoteWeighting().getVotingModel();
                 attachment.getPhasingParams().validate();
                 if (votingModel == VoteWeighting.VotingModel.NONE) {
@@ -3153,7 +3157,7 @@ public abstract class TransactionType {
                 long maxFees = attachment.getMaxFees();
                 long maxFeesLimit = (attachment.getPhasingParams().getVoteWeighting().isBalanceIndependent() ? 3 : 22) * Constants.ONE_SS;
                 if (maxFees < 0 || (maxFees > 0 && maxFees < maxFeesLimit) || maxFees > Constants.MAX_BALANCE_NQT) {
-                    throw new ConchException.NotValidException(String.format("Invalid max fees %f SS", ((double)maxFees)/Constants.ONE_SS));
+                    throw new ConchException.NotValidException(String.format("Invalid max fees %f SS", ((double) maxFees) / Constants.ONE_SS));
                 }
                 short minDuration = attachment.getMinDuration();
                 if (minDuration < 0 || (minDuration > 0 && minDuration < 3) || minDuration >= Constants.MAX_PHASING_DURATION) {
@@ -3176,7 +3180,7 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.SetPhasingOnly attachment = (Attachment.SetPhasingOnly)transaction.getAttachment();
+                Attachment.SetPhasingOnly attachment = (Attachment.SetPhasingOnly) transaction.getAttachment();
                 AccountRestrictions.PhasingOnly.set(senderAccount, attachment);
             }
 
@@ -3201,7 +3205,7 @@ public abstract class TransactionType {
 
     public static abstract class Data extends TransactionType {
 
-        private static final Fee TAGGED_DATA_FEE = new Fee.SizeBasedFee(Constants.ONE_SS, Constants.ONE_SS/10) {
+        private static final Fee TAGGED_DATA_FEE = new Fee.SizeBasedFee(Constants.ONE_SS, Constants.ONE_SS / 10) {
             @Override
             public int getSize(TransactionImpl transaction, Appendix appendix) {
                 return appendix.getFullSize();
@@ -3301,7 +3305,7 @@ public abstract class TransactionType {
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.TaggedDataUpload attachment = (Attachment.TaggedDataUpload) transaction.getAttachment();
-                TaggedData.add((TransactionImpl)transaction, attachment);
+                TaggedData.add((TransactionImpl) transaction, attachment);
             }
 
             @Override
@@ -3353,7 +3357,7 @@ public abstract class TransactionType {
                             + " is not a tagged data upload");
                 }
                 if (attachment.getData() != null) {
-                    Attachment.TaggedDataUpload taggedDataUpload = (Attachment.TaggedDataUpload)uploadTransaction.getAttachment();
+                    Attachment.TaggedDataUpload taggedDataUpload = (Attachment.TaggedDataUpload) uploadTransaction.getAttachment();
                     if (!Arrays.equals(attachment.getHash(), taggedDataUpload.getHash())) {
                         throw new ConchException.NotValidException("Hashes don't match! Extend hash: " + Convert.toHexString(attachment.getHash())
                                 + " upload hash: " + Convert.toHexString(taggedDataUpload.getHash()));
@@ -3387,7 +3391,9 @@ public abstract class TransactionType {
 
     public static abstract class SharderPool extends TransactionType {
         public abstract boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount);
+
         public abstract void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount);
+
         @Override
         public final byte getType() {
             return TransactionType.TYPE_SHARDER_POOL;
@@ -3395,7 +3401,7 @@ public abstract class TransactionType {
 
         @Override
         public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-            if(attachmentApplyUnconfirmed(transaction,senderAccount)){
+            if (attachmentApplyUnconfirmed(transaction, senderAccount)) {
                 return true;
             }
             return false;
@@ -3462,7 +3468,7 @@ public abstract class TransactionType {
                 //TODO node certify
                 // forge pool total No.
                 long poolId = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
-                if(poolId != -1){
+                if (poolId != -1) {
                     throw new ConchException.NotValidException("Creator already owned one forge pool " + poolId);
                 }
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
@@ -3529,7 +3535,7 @@ public abstract class TransactionType {
                 //TODO unconfirmed transaction already has this kind of transaction
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                if(forgePool == null){
+                if (forgePool == null) {
                     throw new ConchException.NotValidException("Sharder pool " + destroy.getPoolId() + " doesn't exists");
                 }
                 if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
@@ -3608,7 +3614,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if(forgePool == null){
+                if (forgePool == null) {
                     throw new ConchException.NotValidException("Sharder pool doesn't exists");
                 }
 
@@ -3620,6 +3626,14 @@ public abstract class TransactionType {
                 }
                 if (!PoolRule.validateConsignor(SharderPoolProcessor.getPool(join.getPoolId()).getCreatorId(), join, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
+                }
+
+                Object rule = forgePool.getRule().get("level0") != null ? forgePool.getRule().get("level0") : forgePool.getRule().get("level1");
+                com.alibaba.fastjson.JSONObject json = new com.alibaba.fastjson.JSONObject();
+                json.putAll((HashMap<String, Object>) rule);
+                long maxCapacity = json.getJSONObject("consignor").getJSONObject("amount").getLong("max");
+                if (join.getAmount() + forgePool.getPower() > maxCapacity) {
+                    throw new ConchException.NotValidException("exceeding total upper limit of pool");
                 }
 
                 //TODO forge pool lifeTime is less than join period
@@ -3638,7 +3652,7 @@ public abstract class TransactionType {
                 senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
                 height = height > forgePool.getStartBlockNo() ? height : forgePool.getStartBlockNo();
-                forgePool.addOrUpdateConsignor(senderAccount.getId(),transaction.getId(),height,height + forgePoolJoin.getPeriod(),amountNQT);
+                forgePool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
             }
 
             @Override
@@ -3687,10 +3701,10 @@ public abstract class TransactionType {
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = quit.getPoolId();
                 SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
-                if(sharderPool == null){
+                if (sharderPool == null) {
                     throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
                 }
-                if(!sharderPool.hasSenderAndTransaction(transaction.getSenderId(),quit.getTxId())){
+                if (!sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
                     throw new ConchException.NotValidException("the sharder pool doesn't have the transaction of sender,txId:" + quit.getTxId() + "poolId:" + poolId);
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
@@ -3707,7 +3721,7 @@ public abstract class TransactionType {
                 long poolId = sharderPoolQuit.getPoolId();
                 SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
                 long amountNQT = sharderPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
-                if(amountNQT != -1){
+                if (amountNQT != -1) {
                     senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
                 }
             }

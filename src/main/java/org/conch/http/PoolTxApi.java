@@ -4,6 +4,7 @@ import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.mint.pool.Consignor;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.Attachment;
@@ -33,17 +34,17 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
-            if(!PocProcessorImpl.isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
+            if (!PocProcessorImpl.isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
                 String errorDetail = "current account can't create sharder pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
-            
+
             int period = ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
-                rules = (JSONObject)(new JSONParser().parse(rule));
+                rules = (JSONObject) (new JSONParser().parse(rule));
             } catch (Exception e) {
                 Logger.logErrorMessage("cant obtain rule when create forge pool");
             }
@@ -117,9 +118,9 @@ public abstract class PoolTxApi {
 
             String cid = Convert.emptyToNull(request.getParameter("creatorId"));
 
-            if(cid == null){
+            if (cid == null) {
                 return SharderPoolProcessor.getPoolsFromNow();
-            }else{
+            } else {
                 long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
 
                 return SharderPoolProcessor.getPoolsFromNowAndDestroy(creatorId);
@@ -148,15 +149,20 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+            String account = request.getParameter("account");
             SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
             if (forgePool == null) {
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 1);
                 response.put("errorDescription", "sharder pool doesn't exists");
                 return JSON.prepare(response);
-            } else {
-                return forgePool.toJsonObject();
             }
+            JSONObject json = forgePool.toJsonObject();
+            if (account != null) {
+                Consignor consignor = forgePool.getConsignors().get(Long.parseUnsignedLong(account));
+                json.put("joinAmount", consignor == null ? 0 : consignor.getAmount());
+            }
+            return json;
         }
 
         @Override

@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,6 +126,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
             for (int i = 0; i < rsmd.getColumnCount(); i++) {
                 String colName = rsmd.getColumnName(i + 1);
                 Object colValue = rs.getObject(colName);
+                colValue = "ID".equalsIgnoreCase(colName) ? signedToUnsigned(colValue.toString()) : colValue;
                 map.put(colName, colValue);
             }
             mapList.add(map);
@@ -132,5 +134,20 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
         return mapList;
     }
 
+    /**
+     * 将数据库的负数ID 转成正数的账户ID
+     *
+     * @param s
+     * @return
+     */
+    private String signedToUnsigned(String s) {
+        BigDecimal num = new BigDecimal(s);
+        if (num.compareTo(new BigDecimal(0)) >= 0) {
+            return num.toString();
+        }
+        num = num.abs();
+        BigDecimal bd = new BigDecimal(Long.MIN_VALUE).abs().subtract(num).multiply(new BigDecimal(2));
+        return num.add(bd).toString();
+    }
 
 }
