@@ -13,7 +13,8 @@ const en = {
         'register_tip':"Don't have an account? Click here to create one!",
         'welcome_tip':"Welcome to Sharder",
         'init_hub':"Initialize Hub",
-        'use_nat_server':"Use NAT Service"
+        'use_nat_server':"Use NAT Service",
+        'config_nat_server':"Config NAT Service",
     },
     hubsetting: {
         'register_nat_server':"Register NAT Service",
@@ -809,6 +810,7 @@ const en = {
         'search_null_info_error':"Did not find any results, please search again.",
         'login_no_input_error':"Please enter the account or private key",
         'insufficient_permissions':"Insufficient permissions",
+        'success_to_register_nat':"Success to register NAT service, please wait for the review",
     },
     enter:{
         'enter_tip':"Your mnemonic phrase is very important! In order to be sure that you have saved it, please enter your mnemonic phrase below:",

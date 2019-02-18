@@ -13,7 +13,8 @@ const cn = {
         'register_tip':"没有账户? 创建账户",
         'welcome_tip':"欢迎来到豆匣链",
         'init_hub':"初始化HUB",
-        'use_nat_server':"使用穿透服务"
+        'use_nat_server':"使用穿透服务",
+        'config_nat_server':"配置穿透服务",
     },
     hubsetting: {
         'register_nat_server':"申请穿透服务",
@@ -814,6 +815,7 @@ const cn = {
         'search_null_info_error':"未找到任何信息，请再次查询。",
         'login_no_input_error':"请输入账号或私钥",
         'insufficient_permissions':"权限不足",
+        'success_to_register_nat':"NAT服务申请成功，请等待审核",
     },
     enter:{
         'enter_tip':"您的密钥非常重要！为确保您已保存它, 请填写上一步生生成的密钥：",
