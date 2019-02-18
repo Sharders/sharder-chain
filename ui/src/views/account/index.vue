@@ -60,7 +60,8 @@
                             <span>{{$t('account.hub_setting')}}</span>
                         </button>
                         <!-- Init Hub Button -->
-                        <button class="common_btn imgBtn" v-if="whetherShowHubInitBtn()" @click="openHubInitDialog">
+                        <button class="common_btn imgBtn" v-if="whetherShowHubInitBtn()"
+                                @click="openHubInitDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -102,7 +103,7 @@
                         </button>
                         <!-- Configure NAT service button -->
                         <button class="common_btn imgBtn" v-if="whetherShowConfigureNATServiceBtn()"
-                                @click="openHubInitDialog">
+                                @click="openUseNATDialog">
                             <span class="icon">
                                 <svg fill="#fff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 191.64 181.04">
                                     <path d="M-382,127.83h0v0Z" transform="translate(382.82 -23.48)"/>
@@ -408,7 +409,7 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="verifyHubSetting">{{ $t('hubsetting.confirm_restart') }}
+                    <button class="common_btn writeBtn" @click="verifyHubSetting('init')">{{ $t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -514,8 +515,9 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')" prop="publicAddress">
                         <el-input v-model="hubsetting.publicAddress" :disabled="!hubsetting.hasPublicAddress"></el-input>
                     </el-form-item>
-                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
+                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')"
+                                  prop="SS_Address" v-if="!this.needRegister">
+                        <el-input v-model="hubsetting.SS_Address" :disabled="this.hubsetting.register_status !== 1"></el-input>
                     </el-form-item>
                     <!--<el-form-item :label="$t('hubsetting.enable_auto_mining')">-->
                         <!--<el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>-->
@@ -532,7 +534,7 @@
                     <!--</el-form-item>-->
                 </el-form>
                 <div class="footer-btn">
-                    <el-button class="common_btn imgBtn" @click="verifyHubSetting" v-if="hubsetting.hasPublicAddress || !this.needRegister" :disabled="this.hubsetting.register_status === 0">{{ $t('hubsetting.confirm_restart') }}</el-button>
+                    <el-button class="common_btn imgBtn" @click="verifyHubSetting('register')" v-if="hubsetting.hasPublicAddress || !this.needRegister" :disabled="this.hubsetting.register_status !== 1">{{ $t('hubsetting.confirm_restart') }}</el-button>
                     <button class="common_btn imgBtn" @click="registerNatService" v-if="!hubsetting.hasPublicAddress && this.needRegister">{{ $t('hubsetting.register_nat_server') }}</button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -760,23 +762,23 @@
                     modifyMnemonicWord: [required],
                     newPwd: [
                         {
+                            required: false,
                             validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
                                         this.$refs['initForm'].validateField('confirmPwd');
                                     }
-                                    callback();
-                                } else {
-                                    callback(new Error(this.$t('rules.plz_input_admin_pwd')));
                                 }
+                                callback();
                             },
                             trigger: 'blur'
                         }
                     ],
                     confirmPwd: [
                         {
+                            required: false,
                             validator: (rule, value, callback) => {
-                                if (!value) {
+                                if (!value && this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
                                 } else if (value !== this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.inconsistent_admin_password')));
@@ -795,23 +797,23 @@
                     modifyMnemonicWord: [required],
                     newPwd: [
                         {
+                            required: false,
                             validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
                                         this.$refs['reconfigureForm'].validateField('confirmPwd');
                                     }
-                                    callback();
-                                } else {
-                                    callback(new Error(this.$t('rules.plz_input_admin_pwd')));
                                 }
+                                callback();
                             },
                             trigger: 'blur'
                         }
                     ],
                     confirmPwd: [
                         {
+                            required: false,
                             validator: (rule, value, callback) => {
-                                if (!value) {
+                                if (!value && this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
                                 } else if (value !== this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.inconsistent_admin_password')));
@@ -1013,29 +1015,59 @@
                     _this.$message.error(err);
                 });
             },
-            verifyHubSettingInfo() {
+            verifyHubSettingInfo(type) {
                 const _this = this;
                 let formData = new FormData();
                 formData.append("restart", true);
                 formData.append("sharder.disableAdminPassword", "false");
-                if (_this.hubsetting.openPunchthrough) {
-                    formData.append("sharder.useNATService", "true");
-                    if (_this.hubsetting.address === '' ||
-                        _this.hubsetting.port === '' ||
-                        _this.hubsetting.clientSecretkey === '') {
-                        if (_this.hubsetting.sharderPwd === '')
-                            _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
-                        else
-                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
-                        return false;
+                if (type === 'init' || type === 'reconfigure') {
+                    if (_this.hubsetting.openPunchthrough) {
+                        formData.append("sharder.useNATService", "true");
+                        if (_this.hubsetting.address === '' ||
+                            _this.hubsetting.port === '' ||
+                            _this.hubsetting.clientSecretkey === '') {
+                            if (_this.hubsetting.sharderPwd === '')
+                                _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
+                            else
+                                _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
+                            return false;
+                        } else {
+                            formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
+                            formData.append("sharder.NATServicePort", _this.hubsetting.port);
+                            formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
+                            formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                        }
                     } else {
-                        formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
-                        formData.append("sharder.NATServicePort", _this.hubsetting.port);
-                        formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
-                        formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                        formData.append("sharder.useNATService", "false");
                     }
-                } else {
-                    formData.append("sharder.useNATService", "false");
+                } else if (type === 'register') {
+                    formData.append("sharder.useNATService", "true");
+                    formData.append('username', _this.hubsetting.sharderAccount);
+                    formData.append('password', _this.hubsetting.sharderPwd);
+                    formData.append('registerStatus', _this.hubsetting.register_status);
+                    formData.append('nodeType', _this.userConfig.nodeType);
+                    formData.append('hasPublicAddress', _this.hubsetting.hasPublicAddress);
+                    if (_this.hubsetting.hasPublicAddress) {
+                        formData.append("sharder.NATServiceAddress", "");
+                        formData.append("sharder.NATServicePort", "");
+                        formData.append("sharder.NATClientKey", "");
+                        formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                    } else {
+                        if (!_this.hubsetting.address
+                            || !_this.hubsetting.port
+                            || !_this.hubsetting.clientSecretkey) {
+                            if (!_this.hubsetting.sharderPwd)
+                                _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
+                            else
+                                _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
+                            return false;
+                        } else {
+                            formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
+                            formData.append("sharder.NATServicePort", _this.hubsetting.port);
+                            formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
+                            formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                        }
+                    }
                 }
                 if (_this.hubsetting.SS_Address !== '') {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
@@ -1069,12 +1101,12 @@
                 }
                 return formData;
             },
-            verifyHubSetting: function () {
+            verifyHubSetting: function (type) {
                 const _this = this;
                 let confirmFormData = new FormData();
                 let reConfigFormData = new FormData();
                 // check page value first
-                reConfigFormData = _this.verifyHubSettingInfo();
+                reConfigFormData = _this.verifyHubSettingInfo(type);
                 if (reConfigFormData === false) {
                     return;
                 } else {
@@ -1083,18 +1115,28 @@
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                _this.$refs['initForm'].validate((valid) => {
-                    if (valid) {
-                        if (this.whetherShowHubInitBtn()) {
+                if (_this.hubsetting.register_status) {
+                    confirmFormData.append("registerStatus", _this.hubsetting.register_status);
+                }
+                if (type === 'init') {
+                    _this.$refs['initForm'].validate((valid) => {
+                        if (valid) {
                             this.confirmInitHubSetting(confirmFormData, reConfigFormData);
-                        } else if (this.whetherShowUseNATServiceBtn()) {
-                            this.registerNatService();
+                        } else {
+                            console.log('init dialog error submit!!');
+                            return false;
                         }
-                    } else {
-                        console.log('error submit!!');
-                        return false;
-                    }
-                });
+                    });
+                } else if (type === 'register') {
+                    _this.$refs['useNATForm'].validate((valid) => {
+                        if (valid) {
+                            this.confirmInitHubSetting(confirmFormData, reConfigFormData);
+                        } else {
+                            console.log('register dialog error submit!!');
+                            return false;
+                        }
+                    });
+                }
             },
             confirmInitHubSetting(confirmFormData, reConfigFormData) {
                 // firstly confirm settings, save real address to operate system
@@ -1110,12 +1152,13 @@
                 data.append("tssAddress", this.hubsetting.SS_Address);
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
-                this.$http.post('http://localhost:8080/bounties/hubDirectory/register.ss', data).then(res => {
-                    if (res.success) {
+                this.$http.post('http://localhost:8080/bounties/hubDirectory/register.ss', data).then(response => {
+                    if (response.data.success) {
                         console.info('success to register NAT service');
+                        _this.$message.success(_this.$t('notification.success_to_register_nat'));
                         _this.closeDialog();
                     } else {
-                        _this.$message.error(`errorCode:${res.code}, reason:${res.msg}`);
+                        _this.$message.error(`errorCode:${response.data.code}, reason:${response.data.msg}`);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -1130,7 +1173,7 @@
                 let _this = this;
                 this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss', data).then(res2 => {
                     if (!res2.data.errorDescription) {
-                        console.log('update hub setting success');
+                        console.info('success to update hub setting to remote server');
                         _this.reconfigure(reconfigData);
                     } else {
                         _this.$message.error(JSON.stringify(res2));
@@ -1142,15 +1185,17 @@
             reconfigure(data) {
                 let _this = this;
                 this.$http.post('/sharder?requestType=reConfig', data).then(res1 => {
-                    if (!res1.data.errorDescription && !res1.errorDescription) {
+                    if (res1.data.reconfiged) {
+                        console.log('success to reconfigure settings...');
                         _this.$message.success(_this.$t('restart.restarting'));
                         data = new FormData();
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
                         let msg = res1.data.errorDescription ? res1.data.errorDescription :
-                            (res1.errorDescription ? res1.errorDescription : 'error');
+                            (res1.data.failedReason ? res1.data.failedReason : 'error');
                         _this.$message.error(msg);
+                        console.log('failed to reconfigure settings...')
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -1703,7 +1748,7 @@
                 if (title === 'reConfig') {
                     _this.$refs['reconfigureForm'].validate((valid) => {
                         if (valid) {
-                            let info = _this.verifyHubSettingInfo();
+                            let info = _this.verifyHubSettingInfo('reconfigure');
                             if (info) {
                                 _this.params = info;
                                 _this.hubSettingDialog = false;
@@ -1748,13 +1793,13 @@
             },
             closeDialog: function () {
                 // clear dialog form fields
-                if (this.hubSettingDialog && this.$refs['initForm']) {
+                if (this.hubSettingDialog && this.$refs['reconfigureForm']) {
                     // do not reset fields, otherwise the setting button will hide
                     // because "this.hubsetting.SS_Address" is used to display judgment
-                    this.$refs["initForm"].clearValidate();
+                    this.$refs["reconfigureForm"].clearValidate();
                 }
-                if (this.hubInitDialog && this.$refs['reconfigureForm']) {
-                    this.$refs["reconfigureForm"].resetFields();
+                if (this.hubInitDialog && this.$refs['initForm']) {
+                    this.$refs["initForm"].resetFields();
                 }
                 if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                     this.$refs["useNATForm"].resetFields();
@@ -2040,7 +2085,7 @@
                 4. NAT configuration is not empty;
                  */
                 return this.secretPhrase
-                    && !this.userConfig.useNATService
+                    && this.userConfig.useNATService
                     && this.userConfig.nodeType === 'Normal'
                     && this.userConfig.natClientSecretKey
                     && this.userConfig.publicAddress
