@@ -173,6 +173,7 @@
         data() {
             return {
                 mining: this.$route.params.mining,
+                joinPool: '',
                 newestBlock: this.$route.params.newestBlock,
                 isAttribute: false,
                 isJoinPool: false,
@@ -272,28 +273,20 @@
             },
             miningJoin() {
                 let _this = this;
-                if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
-                    return;
-                }
-                let formData = new FormData();
-                formData.append("period", "400");
-                formData.append("secretPhrase", SSO.secretPhrase);
-                formData.append("deadline", "1440");
-                formData.append("feeNQT", "100000000");
-
-                formData.append("poolId", _this.mining.poolId);
-                formData.append("amount", _this.joinPool * 100000000);
-
-                this.$http.post('/sharder?requestType=joinPool', formData).then(res => {
-
-                    if (typeof res.data.errorDescription === "undefined") {
-                        console.log(res.data);
+                _this.$global.fetch("POST", {
+                    period: 400,
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    feeNQT: 100000000,// 手续费默认是 1 SS
+                    poolId: _this.mining.poolId,
+                    amount: _this.joinPool * 100000000
+                }, "joinPool").then(res => {
+                    if (typeof res.errorDescription === "undefined") {
                         _this.$message.success("加入成功");
-                        this.$store.state.mask = false;
+                        _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                     } else {
-                        _this.$message.error(res.data.error);
+                        _this.$message.error(res.error);
                     }
                 }).catch(err => {
                     console.log(err);
@@ -322,6 +315,17 @@
                         }
                     }
                 });
+            },
+            validationJoinMining() {
+                if (SSO.downloadingBlockchain) {
+                    return this.$message.warning("当前正在同步区块链，请稍后再试");
+                }
+                if (this.joinPool <= 1) {
+                    return this.$message.error("投入数量必须大于1");
+                }
+                if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
+                    return this.$message.error("超出矿池总上限");
+                }
             }
         },
         created: function () {
@@ -330,7 +334,7 @@
             formData.append("poolId", _this.mining.poolId);
 
             console.log("newestBlock", _this.newestBlock);
-            _this.myMiningInfo();
+            // _this.myMiningInfo();
 
             this.$http.post('/sharder?requestType=getPoolInfo', formData).then(res => {
                 if (res.data.errorDescription !== undefined) {
