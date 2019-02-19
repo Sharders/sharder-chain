@@ -21,7 +21,9 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -67,6 +69,10 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                     continue;
                 }
                 String value = prop.getProperty(key);
+                if ("sharder.NodeType".equalsIgnoreCase(key) && StringUtils.isEmpty(value)) {
+                    Logger.logMessage(key + " not defined or is empty, using default value Hub");
+                    value = "Hub";
+                }
                 response.put(key, value);
             }
         } catch (IOException e) {

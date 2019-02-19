@@ -21,39 +21,59 @@
 
 package org.conch.http;
 
-import org.apache.commons.io.FileUtils;
 import org.conch.Conch;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
+/**
+ * @author jangbubai
+ */
 public final class Recovery extends APIServlet.APIRequestHandler {
 
-    static final Recovery instance = new Recovery();
+    static final Recovery INSTANCE = new Recovery();
+    private static final List<String> RESET_PARAMS = Arrays.asList(
+            "sharder.adminPassword",
+            "sharder.disableAdminPassword",
+            "sharder.useNATService",
+            "sharder.myAddress",
+            "sharder.NATClientKey",
+            "sharder.NATServicePort",
+            "sharder.NATServiceAddress",
+            "sharder.HubBind",
+            "sharder.HubBindAddress",
+            "sharder.HubBindPassPhrase"
+    );
+    private static final HashMap<String, String> RESET_MAP;
+
+    static {
+        RESET_MAP = new HashMap<>(16);
+        RESET_PARAMS.forEach(param -> RESET_MAP.put(param, ""));
+    }
 
     private Recovery() {
-        super(new APITag[] {APITag.DEBUG},"restart");
+        super(new APITag[]{APITag.DEBUG}, "restart");
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         try {
             Conch.getBlockchainProcessor().fullReset();
-            //delete user define properties file
-            FileUtils.forceDelete(new File("conf/"+ Conch.CONCH_PROPERTIES));
+            // reset user define properties file
+            Conch.storePropertiesToFile(RESET_MAP);
             response.put("done", true);
         } catch (RuntimeException e) {
             JSONData.putException(response, e);
-        } catch (IOException e) {
-            JSONData.putException(response, e);
         }
         if (restart) {
-            Conch.restartApplication(null);
+            new Thread(() -> Conch.restartApplication(null)).start();
         }
         return response;
     }

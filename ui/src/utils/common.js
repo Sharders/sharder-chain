@@ -3,14 +3,14 @@
  */
 
 export default {
-    loginState:'hub',
-    apiUrl:'',
+    loginState: 'hub',
+    apiUrl: '',
     epochBeginning: -1,
-    newConsole:null,
-    isOpenConsole:false,
-    blockchainState:[],
-    peers:[],
-    userConfig:[],
+    newConsole: null,
+    isOpenConsole: false,
+    blockchainState: [],
+    peers: [],
+    userConfig: [],
 
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
@@ -36,14 +36,15 @@ export default {
     setBlockchainState(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-                _this.blockchainState =
-                    t.$http.get('/sharder?requestType=getBlockchainStatus',{
-                        params:{
-                            random:parseInt(new Date().getTime().toString())
-                        }
-                    }).then(res => {res.data;
-                resolve(res);
-            });
+            _this.blockchainState =
+                t.$http.get('/sharder?requestType=getBlockchainStatus', {
+                    params: {
+                        random: parseInt(new Date().getTime().toString())
+                    }
+                }).then(res => {
+                    res.data;
+                    resolve(res);
+                });
         });
     },
     /**
@@ -52,13 +53,13 @@ export default {
      * @param account
      * @returns {Promise<any>}
      */
-    setUnconfirmedTransactions(t,account){
+    setUnconfirmedTransactions(t, account) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getUnconfirmedTransactions',{
-                params:{
-                    random:parseInt(new Date().getTime().toString()),
-                    account:account
+            t.$http.get('/sharder?requestType=getUnconfirmedTransactions', {
+                params: {
+                    random: parseInt(new Date().getTime().toString()),
+                    account: account
                 }
             }).then(res => {
                 resolve(res);
@@ -70,13 +71,13 @@ export default {
      * @param t
      * @returns {Promise<any>}
      */
-    setPeers(t){
+    setPeers(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getPeers',{
+            t.$http.get('/sharder?requestType=getPeers', {
                 params: {
-                    includePeerInfo:true,
-                    random:parseInt(new Date().getTime().toString())
+                    includePeerInfo: true,
+                    random: parseInt(new Date().getTime().toString())
                 }
             }).then(res => {
                 _this.peers = res.data;
@@ -108,15 +109,15 @@ export default {
      * @param type
      * @returns {string}
      */
-    myFormatTime(value, type,hasEpochBeginning) {
+    myFormatTime(value, type, hasEpochBeginning) {
         const _this = this;
         let dataTime = "";
         let data = new Date();
-        if(typeof value === 'undefined')
+        if (typeof value === 'undefined')
             value = "0";
 
         let date = parseInt(value + '000');
-        if(hasEpochBeginning){
+        if (hasEpochBeginning) {
             date = date + _this.epochBeginning;
         }
         data.setTime(date);
@@ -155,25 +156,25 @@ export default {
      * @param s
      * @returns {string}
      */
-    formatMoney(s,n=8) {
-/*        let result = '', counter = 0;
-        num = (num || 0).toString();
-        for (let i = num.length - 1; i >= 0; i--) {
-            counter++;
-            result = num.charAt(i) + result;
-            if (!(counter % 3) && i !== 0) {
-                result = ',' + result;
-            }
-        }
-        return result;*/
-        if(isNaN(s)){
+    formatMoney(s, n = 8) {
+        /*        let result = '', counter = 0;
+                num = (num || 0).toString();
+                for (let i = num.length - 1; i >= 0; i--) {
+                    counter++;
+                    result = num.charAt(i) + result;
+                    if (!(counter % 3) && i !== 0) {
+                        result = ',' + result;
+                    }
+                }
+                return result;*/
+        if (isNaN(s)) {
             return 0;
         }
 
         n = n >= 0 && n <= 20 ? n : 2;
         s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";
         let l = s.split(".")[0].split("").reverse(),
-            r = s.split(".")[1].replace(/(0+)\b/,'');         //去除末尾的零
+            r = s.split(".")[1].replace(/(0+)\b/, '');         //去除末尾的零
         let t = "";
         for (let i = 0; i < l.length; i++) {
             t += l[i] + ((i + 1) % 3 === 0 && (i + 1) !== l.length ? "," : "");
@@ -182,9 +183,9 @@ export default {
 
         num = parseFloat(num).toString();
         return num;*/
-        if(r === ''){
+        if (r === '') {
             return t.split("").reverse().join("")
-        }else
+        } else
             return t.split("").reverse().join("") + "." + r;
 
 
@@ -211,17 +212,17 @@ export default {
      * @param t
      * @returns {Promise<any>}
      */
-    getUserConfig(t){
+    getUserConfig(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getUserConfig',{
-                params:{
-                    random:new Date().getTime().toString()
+            t.$http.get('/sharder?requestType=getUserConfig', {
+                params: {
+                    random: new Date().getTime().toString()
                 }
-            }).then(res=>{
+            }).then(res => {
                 _this.userConfig = res.data;
                 resolve(res.data);
-            }).catch(err=>{
+            }).catch(err => {
                 console.log(err);
             });
         });
@@ -235,18 +236,18 @@ export default {
         let bytes = [];
         let len, c;
         len = str.length;
-        for(let i = 0; i < len; i++) {
+        for (let i = 0; i < len; i++) {
             c = str.charCodeAt(i);
-            if(c >= 0x010000 && c <= 0x10FFFF) {
+            if (c >= 0x010000 && c <= 0x10FFFF) {
                 bytes.push(((c >> 18) & 0x07) | 0xF0);
                 bytes.push(((c >> 12) & 0x3F) | 0x80);
                 bytes.push(((c >> 6) & 0x3F) | 0x80);
                 bytes.push((c & 0x3F) | 0x80);
-            } else if(c >= 0x000800 && c <= 0x00FFFF) {
+            } else if (c >= 0x000800 && c <= 0x00FFFF) {
                 bytes.push(((c >> 12) & 0x0F) | 0xE0);
                 bytes.push(((c >> 6) & 0x3F) | 0x80);
                 bytes.push((c & 0x3F) | 0x80);
-            } else if(c >= 0x000080 && c <= 0x0007FF) {
+            } else if (c >= 0x000080 && c <= 0x0007FF) {
                 bytes.push(((c >> 6) & 0x1F) | 0xC0);
                 bytes.push((c & 0x3F) | 0x80);
             } else {
@@ -261,18 +262,18 @@ export default {
      * @returns {string}
      */
     byteToString(arr) {
-        if(typeof arr === 'string') {
+        if (typeof arr === 'string') {
             return arr;
         }
         let str = '',
             _arr = arr;
-        for(let i = 0; i < _arr.length; i++) {
+        for (let i = 0; i < _arr.length; i++) {
             let one = _arr[i].toString(2),
                 v = one.match(/^1+?(?=0)$/);
-            if(v && one.length === 8) {
+            if (v && one.length === 8) {
                 let bytesLength = v[0].length;
                 let store = _arr[i].toString(2).slice(7 - bytesLength);
-                for(let st = 1; st < bytesLength; st++) {
+                for (let st = 1; st < bytesLength; st++) {
                     store += _arr[st + i].toString(2).slice(2);
                 }
                 str += String.fromCharCode(parseInt(store, 2));
@@ -294,16 +295,16 @@ export default {
      */
     addToConsole(url, type, data, response, error) {
         const _this = this;
-        if(!_this.isOpenConsole || !_this.newConsole){
+        if (!_this.isOpenConsole || !_this.newConsole) {
             return;
         }
-        if(!_this.newConsole.document || !_this.newConsole.document.body){
+        if (!_this.newConsole.document || !_this.newConsole.document.body) {
             _this.isOpenConsole = false;
             _this.newConsole = null;
             return;
         }
-        url = url.replace(/&random=[\.\d]+/, "",url);
-        _this.addToConsoleBody(url+ "("+type+")"+new Date().toString(), "url");
+        url = url.replace(/&random=[\.\d]+/, "", url);
+        _this.addToConsoleBody(url + "(" + type + ")" + new Date().toString(), "url");
 
         if (data) {
             if (typeof data === "string") {
@@ -317,14 +318,14 @@ export default {
         if (error) {
             _this.addToConsoleBody(response, "error");
         } else {
-            if(typeof response === 'undefined'){
+            if (typeof response === 'undefined') {
                 return;
-            }else{
+            } else {
                 _this.addToConsoleBody(JSON.stringify(response, null, "\t"), (response.errorCode ? "error" : ""));
             }
         }
     },
-    addToConsoleBody(text,type){
+    addToConsoleBody(text, type) {
         const _this = this;
         let color = "";
         switch (type) {
@@ -342,10 +343,10 @@ export default {
         $(_this.newConsole.document.body).find("#console").append("<pre" + (color ? " style='color:" + color + "'" : "") + ">" + text.escapeHTML() + "</pre>");
 
     },
-    logConsole(msg, isDateIncluded, isDisplayTimeExact){
+    logConsole(msg, isDateIncluded, isDisplayTimeExact) {
 
     },
-    queryStringToObject(qs){
+    queryStringToObject(qs) {
         qs = qs.split("&");
 
         if (!qs) {
@@ -370,40 +371,40 @@ export default {
         return obj;
     },
 
-    setJsonLocalStorage:function (key,val) {
+    setJsonLocalStorage: function (key, val) {
         try {
-            localStorage.setItem(key,JSON.stringify(val));
-        }catch (e) {
+            localStorage.setItem(key, JSON.stringify(val));
+        } catch (e) {
             console.warn("The browser does not support cookies.");
             return null;
         }
 
     },
-    getJsonLocalStorage:function (key) {
+    getJsonLocalStorage: function (key) {
         try {
             return JSON.parse(localStorage.getItem(key));
-        }catch (e) {
+        } catch (e) {
             console.warn("The browser does not support cookies.");
             return null;
         }
     },
-    setlocalStorage:function(key,val){
+    setlocalStorage: function (key, val) {
         try {
-            localStorage.setItem(key,val);
-        }catch (e) {
+            localStorage.setItem(key, val);
+        } catch (e) {
             console.warn("The browser does not support cookies.");
             return null;
         }
     },
-    getLocalStorage:function (key) {
+    getLocalStorage: function (key) {
         try {
             return localStorage.getItem(key);
-        }catch (e) {
+        } catch (e) {
             console.warn("The browser does not support cookies.");
             return null;
         }
     },
-    setlang:function(_lang){
+    setlang: function (_lang) {
         try {
             localStorage.lang = _lang;
         } catch (e) {
@@ -411,7 +412,7 @@ export default {
             return null;
         }
     },
-    lang:function(){
+    lang: function () {
         try {
             return localStorage.lang;
         } catch (e) {
@@ -420,48 +421,75 @@ export default {
         }
     },
 
-    getAvgTimestamp:function(lastBlockTimestamp, firstBlockTimestamp, length){
-        let avgTimestamp = parseInt((lastBlockTimestamp - firstBlockTimestamp)/length);
-/*
-        let minute = parseInt(avgTimestamp/60);
-        let hour = parseInt(minute/60);
-        let day = parseInt(hour/24);
-        let second = avgTimestamp - minute * 60;
+    getAvgTimestamp: function (lastBlockTimestamp, firstBlockTimestamp, length) {
+        let avgTimestamp = parseInt((lastBlockTimestamp - firstBlockTimestamp) / length);
+        /*
+                let minute = parseInt(avgTimestamp/60);
+                let hour = parseInt(minute/60);
+                let day = parseInt(hour/24);
+                let second = avgTimestamp - minute * 60;
 
-        console.log("lastBlockTimestamp",lastBlockTimestamp);
-        console.log("firstBlockTimestamp",firstBlockTimestamp);
-        console.log("length",length);
-        console.log("avgTimestamp",avgTimestamp);
-        console.log("second",second);
-        console.log("minute",minute);
-        console.log("hour",hour);
-        console.log("day",day);
+                console.log("lastBlockTimestamp",lastBlockTimestamp);
+                console.log("firstBlockTimestamp",firstBlockTimestamp);
+                console.log("length",length);
+                console.log("avgTimestamp",avgTimestamp);
+                console.log("second",second);
+                console.log("minute",minute);
+                console.log("hour",hour);
+                console.log("day",day);
 
-        let dataTime = "";
-        if (day !== 0) {
-            dataTime = dataTime + day + " (day) ";
-        }
-        if (hour !== 0) {
-            dataTime = dataTime + hour + " (hour) ";
-        }
-        if (minute !== 0) {
-            dataTime = dataTime + minute + " (min) ";
-        }
-        if (second !== 0) {
-            dataTime = dataTime + second + " (s) ";
-        }
+                let dataTime = "";
+                if (day !== 0) {
+                    dataTime = dataTime + day + " (day) ";
+                }
+                if (hour !== 0) {
+                    dataTime = dataTime + hour + " (hour) ";
+                }
+                if (minute !== 0) {
+                    dataTime = dataTime + minute + " (min) ";
+                }
+                if (second !== 0) {
+                    dataTime = dataTime + second + " (s) ";
+                }
 
-        return dataTime;//将格式化后的字符串输出到前端显示
-*/
+                return dataTime;//将格式化后的字符串输出到前端显示
+        */
         return avgTimestamp;
     },
 
-    //将科学计数法转换为小数
-    toNonExponential:function(num){
+    /**
+     * 将科学计数法转换为小数
+     * @param num
+     * @returns {string | * | * | *}
+     */
+    toNonExponential: function (num) {
         let m = num.toExponential().match(/\d(?:\.(\d*))?e([+-]\d+)/);
-        console.log("m",m);
+        console.log("m", m);
         let result = num.toFixed(Math.max(0, (m[1] || '').length - m[2]));
-        console.log("result",result);
+        console.log("result", result);
         return result;
+    },
+    /**
+     * 数字转Azd
+     * @param num
+     * @returns {string}
+     */
+    numToAzd(num) {
+        let str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        let s = num < 0 ? '∉' : '';
+        num = Math.abs(num);
+        let i = 0;
+        while (true) {
+            i = num % str.length;
+            s += str.substr(i, 1);
+            num = parseInt(num / str.length);
+            if (num < str.length) {
+                s += str.substr(num, 1);
+                break;
+            }
+        }
+        return s;
     }
+
+
 };

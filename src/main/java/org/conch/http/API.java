@@ -325,6 +325,10 @@ public final class API {
         if (API.disableAdminPassword) {
             return;
         }
+        // when init hub, do not need admin password
+        if (Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("isInit"))) {
+            return;
+        }
         if (API.adminPassword.isEmpty()) {
             throw new ParameterException(NO_PASSWORD_IN_CONFIG);
         }
@@ -364,7 +368,7 @@ public final class API {
                 Logger.logWarningMessage("Too many incorrect admin password attempts from " + remoteHost);
                 throw new ParameterException(LOCKED_ADMIN_PASSWORD);
             }
-            if (!API.adminPassword.equals(req.getParameter("newAdminPassword"))) {
+            if (!API.adminPassword.equals(req.getParameter("adminPassword"))) {
                 if (passwordCount == null) {
                     passwordCount = new PasswordCount();
                     incorrectPasswords.put(remoteHost, passwordCount);

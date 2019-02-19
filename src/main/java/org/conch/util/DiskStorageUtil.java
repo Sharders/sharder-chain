@@ -1,5 +1,6 @@
 package org.conch.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.db.Db;
 
 import java.io.*;
@@ -9,7 +10,20 @@ import java.io.*;
  * @since 2018/12/12
  */
 public class DiskStorageUtil {
-    private static final String LOCAL_STORAGE_FOLDER = Db.getDir() + File.separator + "localstorage";
+    //private static final String LOCAL_STORAGE_FOLDER = Db.getDir() + File.separator + "localstorage";
+    private static final String FOLDER_NAME = "localstorage";
+    private static final String LOCAL_STORAGE_FOLDER = initPath();
+    private static String initPath() {
+        String pathPrefix = "tmp";
+        String dbDir = Db.getDir();
+        if (StringUtils.isNotEmpty(dbDir)) {
+            File dirFile = new File(dbDir);
+            if (dirFile.exists()) {
+                pathPrefix = dirFile.getParentFile().getAbsolutePath() ;
+            }
+        }
+        return pathPrefix + File.separator + FOLDER_NAME;
+    }
 
     public static String getLocalStoragePath(String fileName) {
         return LOCAL_STORAGE_FOLDER + File.separator + fileName;

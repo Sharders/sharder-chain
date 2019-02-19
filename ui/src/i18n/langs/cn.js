@@ -13,10 +13,13 @@ const cn = {
         'register_tip':"没有账户? 创建账户",
         'welcome_tip':"欢迎来到豆匣链",
         'init_hub':"初始化HUB",
-        'nat_server':"穿透服务",
+        'use_nat_server':"使用穿透服务",
+        'config_nat_server':"配置穿透服务",
     },
     hubsetting: {
+        'register_nat_server':"申请穿透服务",
         'enable_nat_traversal':"启动内网穿透服务:",
+        'has_public_address':'我有公网',
         'sharder_account':"Sharder官网账户:",
         'sharder_account_password':"Sharder官网密码:",
         'nat_traversal_address':"穿透服务地址:",
@@ -38,6 +41,10 @@ const cn = {
         'reset_mnemonic_phrase':"改绑助记词",
         'reset_password':"重设管理员密码",
         'cancel':"取消",
+        'update_hub_setting_success': "成功更新穿透服务配置信息",
+        'register_status':"申请状态",
+        'register_status_pending':"待审核",
+        'register_status_approval':"审核通过",
     },
     register:{
         'register_title':"已为您生成账户密钥",
@@ -775,7 +782,7 @@ const cn = {
         'hubsetting_sharder_account_no_permission':"请联系管理员获取Hub设置",
         'hubsetting_account_address_error_format':"关联SS地址格式错误！",
         'hubsetting_no_mnemonic_word':"开启矿池必须填写助记词！",
-        'hubsetting_inconsistent_password':"密码不一致！",
+        'hubsetting_inconsistent_password':"两次输入的管理员密码不一致！",
         'new_account_warning':"您有一个全新的帐户，请先给它充值。",
         'null_information_warning':"请检查是否还有未填的信息",
         'sendmessage_null_account':"请输入接收者账户ID",
@@ -808,11 +815,23 @@ const cn = {
         'search_null_info_error':"未找到任何信息，请再次查询。",
         'login_no_input_error':"请输入账号或私钥",
         'insufficient_permissions':"权限不足",
+        'success_to_register_nat':"NAT服务申请成功，请等待审核",
     },
     enter:{
         'enter_tip':"您的密钥非常重要！为确保您已保存它, 请填写上一步生生成的密钥：",
         'enter_cancel':"取消",
         'enter_client':"进入客户端",
+    },
+    restart: {
+        'restarting': "正在重启，稍后自动刷新，请稍等......",
+    },
+    rules: {
+        mustRequired: '此项必填',
+        onlyNonNegativeInteger: '只能输入非负整数',
+        onlyInteger: '只能输入整数',
+        plz_input_admin_pwd: '请输入管理员密码',
+        plz_input_admin_pwd_again: '请再次输入管理员密码',
+        inconsistent_admin_password:"两次输入的管理员密码不一致！",
     },
     ...zhLocale
 };
