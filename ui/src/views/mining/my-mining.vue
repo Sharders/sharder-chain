@@ -27,7 +27,7 @@
                                     <img src="../../assets/img/kuagnchifhenpei.png">
                                     <span>
                                         {{$t('mining.index.Income_distribution')}}
-                                        {{(1 - mining.distribution.forgepool.reward.max)*100}}%
+                                        {{(1 - mining.distribution)*100}}%
                                     </span>
                                 </p>
                                 <p>
@@ -61,7 +61,7 @@
                                     <img src="../../assets/img/kuagnchifhenpei.png">
                                     <span>
                                         {{$t('mining.index.Income_distribution')}}
-                                        {{(1 - mining.distribution.forgepool.reward.max)*100}}%
+                                        {{(1 - mining.distribution)*100}}%
                                     </span>
                                 </p>
                                 <p>
@@ -99,11 +99,12 @@
                 }, "getPools").then(res => {
                     for (let n of Object.keys(res)) {
                         if (!Number(n)) continue;
+                        let level = res[n].rule.level0 ? res[n].rule.level0 : res[n].rule.level1;
                         _this.createList.push({
-                            investmentTotal: 500000,
+                            investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: res[n].power / 100000000,
                             earnings: res[n].historicalIncome / 100000000,
-                            distribution: res[n].rule.level0 ? res[n].rule.level0 : res[n].rule.level1,
+                            distribution: level.forgepool.reward.max,
                             remaining: res[n].endBlockNo - res[n].updateHeight
                         });
                     }
@@ -113,13 +114,13 @@
                 let _this = this;
                 _this.$global.fetch("POST", {}, "getPools").then(res => {
                     for (let mining of res.pools) {
-                        console.info(mining);
                         if (!_this.joinPoolIds[mining.poolId]) continue;
+                        let level = mining.rule.level0 ? mining.rule.level0 : mining.rule.level1;
                         _this.joinList.push({
-                            investmentTotal: 500000,
+                            investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: mining.power / 100000000,
                             earnings: mining.historicalIncome / 100000000,
-                            distribution: mining.rule.level0 ? mining.rule.level0 : mining.rule.level1,
+                            distribution: level.forgepool.reward.max,
                             remaining: mining.endBlockNo - mining.updateHeight
                         });
                     }

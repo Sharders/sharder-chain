@@ -607,7 +607,7 @@
                 }, "getBlock").then(res => {
                     for (let t of res.transactions) {
                         if (t.type === 9) {
-                            _this.newBlockReward = t.amountNQT;
+                            _this.newBlockReward = t.amountNQT / 100000000;
                             break;
                         }
                     }
