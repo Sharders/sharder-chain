@@ -70,6 +70,7 @@ var Sso = (function (NRS, $, undefined) {
     NRS.contacts = {};
 
     NRS.isTestNet = NRS.isTestNet ? NRS.isTestNet : false;
+    NRS.netWorkType = 'dev';
     NRS.forgingStatus = NRS.constants.UNKNOWN;
     NRS.isAccountForging = false;
     NRS.isLeased = false;
@@ -371,6 +372,9 @@ var Sso = (function (NRS, $, undefined) {
                         }
                         if (key == "version") {
                             NRS.appVersion = response[key];
+                        }
+                        if (key == "netWorkType") {
+                            NRS.netWorkType = response[key];
                         }
                     }
 

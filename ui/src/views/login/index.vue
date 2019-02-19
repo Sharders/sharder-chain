@@ -71,6 +71,8 @@
         created() {
             const _this = this;
 
+            console.info("Net work type is:", SSO.netWorkType);
+
             this.$global.getUserConfig(this).then(res=>{
 
                 if(typeof res["sharder.HubBindAddress"] === 'undefined' || res["sharder.HubBindAddress"] === ""){
