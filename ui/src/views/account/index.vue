@@ -409,7 +409,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="verifyHubSetting('init')">{{ $t('hubsetting.confirm_restart') }}
+                    <button class="common_btn writeBtn" @click="verifyHubSetting('init')">{{
+                        $t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -499,7 +500,7 @@
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item  :label="$t('hubsetting.register_status')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.register_status')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.register_status_text" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
@@ -517,25 +518,33 @@
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')"
                                   prop="SS_Address" v-if="!this.needRegister">
-                        <el-input v-model="hubsetting.SS_Address" :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough"></el-input>
+                        <el-input v-model="hubsetting.SS_Address"
+                                  :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
                     <!--<el-form-item :label="$t('hubsetting.enable_auto_mining')">-->
-                        <!--<el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>-->
+                    <!--<el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>-->
                     <!--</el-form-item>-->
                     <!--<el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining"-->
-                                  <!--prop="modifyMnemonicWord">-->
-                        <!--<el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>-->
+                    <!--prop="modifyMnemonicWord">-->
+                    <!--<el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>-->
                     <!--</el-form-item>-->
                     <!--<el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">-->
-                        <!--<el-input type="password" v-model="hubsetting.newPwd"></el-input>-->
+                    <!--<el-input type="password" v-model="hubsetting.newPwd"></el-input>-->
                     <!--</el-form-item>-->
                     <!--<el-form-item :label="$t('hubsetting.confirm_password')" prop="confirmPwd">-->
-                        <!--<el-input type="password" v-model="hubsetting.confirmPwd"></el-input>-->
+                    <!--<el-input type="password" v-model="hubsetting.confirmPwd"></el-input>-->
                     <!--</el-form-item>-->
                 </el-form>
                 <div class="footer-btn">
-                    <el-button class="common_btn imgBtn" @click="verifyHubSetting('register')" v-if="!hubsetting.openPunchthrough || !this.needRegister" :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough">{{ $t('hubsetting.confirm_restart') }}</el-button>
-                    <button class="common_btn imgBtn" @click="registerNatService" v-if="hubsetting.openPunchthrough && this.needRegister">{{ $t('hubsetting.register_nat_server') }}</button>
+                    <el-button class="common_btn imgBtn" @click="verifyHubSetting('register')"
+                               v-if="!hubsetting.openPunchthrough || !this.needRegister"
+                               :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough">{{
+                        $t('hubsetting.confirm_restart') }}
+                    </el-button>
+                    <button class="common_btn imgBtn" @click="registerNatService"
+                            v-if="hubsetting.openPunchthrough && this.needRegister">{{
+                        $t('hubsetting.register_nat_server') }}
+                    </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
@@ -609,6 +618,7 @@
     import adminPwd from "../dialog/adminPwd";
     import secretPhrase from "../dialog/secretPhrase";
     import rules from "../../utils/rules";
+    import {getCommonFoundationApiUrl, FoundationApiUrls} from "../../utils/apiUrl"
 
     export default {
         name: "Network",
@@ -1148,17 +1158,19 @@
                 data.append("tssAddress", this.hubsetting.SS_Address);
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
-                this.$http.post('http://localhost:8080/bounties/hubDirectory/register.ss', data).then(response => {
-                    if (response.data.success) {
-                        console.info('success to register NAT service');
-                        _this.$message.success(_this.$t('notification.success_to_register_nat'));
-                        _this.closeDialog();
-                    } else {
-                        _this.$message.error(`errorCode:${response.data.code}, reason:${response.data.msg}`);
-                    }
-                }).catch(err => {
-                    _this.$message.error(err);
-                });
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister.eoLinkerUrl, FoundationApiUrls.natRegister.path), data)
+                    .then(response => {
+                        if (response.data.success) {
+                            console.info('success to register NAT service');
+                            _this.$message.success(_this.$t('notification.success_to_register_nat'));
+                            _this.closeDialog();
+                        } else {
+                            _this.$message.error(`errorCode:${response.data.code}, reason:${response.data.msg}`);
+                        }
+                    })
+                    .catch(err => {
+                        _this.$message.error(err);
+                    });
             },
             autoRefresh() {
                 setTimeout(() => {
@@ -1167,16 +1179,18 @@
             },
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
-                this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss', data).then(res2 => {
-                    if (res2.data === 'success') {
-                        console.info('success to update hub setting to remote server');
-                        _this.reconfigure(reconfigData);
-                    } else {
-                        _this.$message.error(JSON.stringify(res2));
-                    }
-                }).catch(err => {
-                    _this.$message.error(err);
-                });
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm.eoLinkerUrl, FoundationApiUrls.hubSettingConfirm.path), data)
+                    .then(res2 => {
+                        if (res2.data === 'success') {
+                            console.info('success to update hub setting to remote server');
+                            _this.reconfigure(reconfigData);
+                        } else {
+                            _this.$message.error(JSON.stringify(res2));
+                        }
+                    })
+                    .catch(err => {
+                        _this.$message.error(err);
+                    });
             },
             reconfigure(data) {
                 let _this = this;
@@ -1205,26 +1219,34 @@
                     && _this.hubsetting.openPunchthrough) {
                     formData.append("username", _this.hubsetting.sharderAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
-                    _this.$http.post('http://localhost:8080/bounties/hubDirectory/check.ss', formData).then(res => {
-                        if (res.data.status === 'success') {
-                            _this.hubsetting.address = res.data.data.natServiceAddress;
-                            _this.hubsetting.port = res.data.data.natServicePort;
-                            _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
-                            _this.hubsetting.publicAddress = res.data.data.hubAddress;
-                            _this.hubsetting.SS_Address = '';
-                            _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.registerStatus);
-                            _this.hubsetting.register_status = res.data.data.registerStatus;
-                            _this.needRegister = false;
-                        } else if (res.data.errorType === 'unifiedUserIsNull') {
-                            _this.clearHubSetting();
-                            _this.$message.error(res.data.errorMessage);
-                        } else if (res.data.errorType === 'hubDirectoryIsNull') {
-                            console.info('HUB配置信息不存在, 需要注册NAT...');
-                            _this.clearHubSetting();
-                            _this.needRegister = true;
-                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
-                        }
-                    })
+                    _this.$http.post(
+                        getCommonFoundationApiUrl(
+                            FoundationApiUrls.hubSettingAccountCheck.eoLinkerUrl,
+                            FoundationApiUrls.hubSettingAccountCheck.path
+                        ), formData)
+                        .then(res => {
+                            if (res.data.status === 'success') {
+                                _this.hubsetting.address = res.data.data.natServiceAddress;
+                                _this.hubsetting.port = res.data.data.natServicePort;
+                                _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
+                                _this.hubsetting.publicAddress = res.data.data.hubAddress;
+                                _this.hubsetting.SS_Address = '';
+                                _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.registerStatus);
+                                _this.hubsetting.register_status = res.data.data.registerStatus;
+                                _this.needRegister = false;
+                            } else if (res.data.errorType === 'unifiedUserIsNull') {
+                                _this.clearHubSetting();
+                                _this.$message.error(res.data.errorMessage);
+                            } else if (res.data.errorType === 'hubDirectoryIsNull') {
+                                console.info('HUB配置信息不存在, 需要注册NAT...');
+                                _this.clearHubSetting();
+                                _this.needRegister = true;
+                                _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
+                            }
+                        })
+                        .catch(err => {
+                            _this.$message.error(err);
+                        });
                 }
             },
             getAccount(account) {
@@ -2086,7 +2108,7 @@
                     && this.userConfig.publicAddress
                     && this.userConfig.natPort
                     && this.userConfig.natAddress;
-            },
+            }
         },
         computed: {
             getLang: function () {

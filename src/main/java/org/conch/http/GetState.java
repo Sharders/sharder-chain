@@ -100,7 +100,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("peerPort", Conch.getPeerPort());
         response.put("isOffline", Constants.isOffline);
         response.put("needsAdminPassword", !API.disableAdminPassword);
-        response.put("netWorkType", Conch.getNetworkType());
+        response.put("netWorkType", Constants.NetworkDef);
         InetAddress externalAddress = UPnP.getExternalAddress();
         if (externalAddress != null) {
             response.put("upnpExternalAddress", externalAddress.getHostAddress());

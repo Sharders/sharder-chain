@@ -4,6 +4,8 @@
 
 export default {
     loginState: 'hub',
+    sharderFoundationHost: 'sharder.org',
+    sharderFoundationTestHost: 'test.sharder.org',
     apiUrl: '',
     epochBeginning: -1,
     newConsole: null,
@@ -489,7 +491,25 @@ export default {
             }
         }
         return s;
+    },
+    isTestNet() {
+        return SSO.netWorkType === 'Testnet';
+    },
+    isMainNet() {
+        return SSO.netWorkType === 'Mainnet';
+    },
+    isDevNet() {
+        return SSO.netWorkType === 'Devnet';
+    },
+    getSharderFoundationHost() {
+        return (this.isTestNet() || this.isDevNet()) ?
+            this.sharderFoundationTestHost : this.sharderFoundationHost;
+    },
+    getCommonFoundationAPI(eoLinkerUrl, path) {
+        if (this.isMainNet() || this.isTestNet()) {
+            return "http://" + this.getSharderFoundationHost() + path;
+        }
+        return eoLinkerUrl;
     }
-
 
 };
