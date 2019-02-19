@@ -203,9 +203,9 @@
                 <span class="img-close" @click="isVisible('isSetName')"></span>
                 <h1>{{$t('mining.index.set_name')}}</h1>
                 <div class="input">
-                    <el-input v-model="setname" :placeholder="$t('mining.index.set_name_tip')"></el-input>
+                    <el-input v-model="accountName" :placeholder="$t('mining.index.set_name_tip')"></el-input>
                 </div>
-                <div class="determine">{{$t('mining.attribute.confirm')}}</div>
+                <div class="determine" @click="setAccountInfo()">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
         <!--TSS说明-->
@@ -359,7 +359,7 @@
                 ],
                 myRanking: 0,
                 value: '',
-                setname: '',
+                accountName: SSO.accountInfo.name,
                 incomeDistribution: 0,
                 investment: '',
                 newestBlock: [],
@@ -383,6 +383,25 @@
             }
         },
         methods: {
+            setAccountInfo() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    name: _this.accountName,
+                    secretPhrase:SSO.secretPhrase,
+                    deadline:1440,
+                    phased:false,
+                    phasingHashedSecretAlgorithm:2,
+                    feeNQT:0
+                }, "setAccountInfo").then(res => {
+                    if (!res.errorDescription) {
+                        _this.accountInfo.name = res.transactionJSON.attachment.name;
+                        _this.$message.success(_this.$t('notification.modify_success'));
+                    } else {
+                        _this.$message.error(res.errorDescription);
+                    }
+                    _this.isVisible('isSetName');
+                });
+            },
             idToAccountRs(id) {
                 let nxtAddress = new NxtAddress();
                 let accountRS = "";
