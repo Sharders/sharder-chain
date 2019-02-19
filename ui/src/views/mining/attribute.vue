@@ -773,8 +773,7 @@
 
         .pool-attribute .attribute-value .info {
             font-size: 10px;
-            height: 30px;
-            margin: 0 0 5px 0;
+            height: 40px;
         }
 
         .pool-attribute .join-pool, .pool-attribute .exit-pool {
