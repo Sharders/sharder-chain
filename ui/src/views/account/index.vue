@@ -490,8 +490,8 @@
             <div class="modal-body">
                 <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="useNATForm">
-                    <el-form-item :label="$t('hubsetting.has_public_address')">
-                        <el-checkbox v-model="hubsetting.hasPublicAddress"></el-checkbox>
+                    <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
+                        <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -499,25 +499,25 @@
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item  :label="$t('hubsetting.register_status')" v-if="!hubsetting.hasPublicAddress">
+                    <el-form-item  :label="$t('hubsetting.register_status')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.register_status_text" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="!hubsetting.hasPublicAddress">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="!hubsetting.hasPublicAddress">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
-                                  v-if="!hubsetting.hasPublicAddress">
+                                  v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.public_ip_address')" prop="publicAddress">
-                        <el-input v-model="hubsetting.publicAddress" :disabled="!hubsetting.hasPublicAddress"></el-input>
+                        <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')"
                                   prop="SS_Address" v-if="!this.needRegister">
-                        <el-input v-model="hubsetting.SS_Address" :disabled="this.hubsetting.register_status !== 1"></el-input>
+                        <el-input v-model="hubsetting.SS_Address" :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
                     <!--<el-form-item :label="$t('hubsetting.enable_auto_mining')">-->
                         <!--<el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>-->
@@ -534,8 +534,8 @@
                     <!--</el-form-item>-->
                 </el-form>
                 <div class="footer-btn">
-                    <el-button class="common_btn imgBtn" @click="verifyHubSetting('register')" v-if="hubsetting.hasPublicAddress || !this.needRegister" :disabled="this.hubsetting.register_status !== 1">{{ $t('hubsetting.confirm_restart') }}</el-button>
-                    <button class="common_btn imgBtn" @click="registerNatService" v-if="!hubsetting.hasPublicAddress && this.needRegister">{{ $t('hubsetting.register_nat_server') }}</button>
+                    <el-button class="common_btn imgBtn" @click="verifyHubSetting('register')" v-if="!hubsetting.openPunchthrough || !this.needRegister" :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough">{{ $t('hubsetting.confirm_restart') }}</el-button>
+                    <button class="common_btn imgBtn" @click="registerNatService" v-if="hubsetting.openPunchthrough && this.needRegister">{{ $t('hubsetting.register_nat_server') }}</button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
@@ -638,7 +638,7 @@
                 initHUb: this.$store.state.isHubInit,
                 userConfig: {
                     nodeType: this.$store.state.userConfig['sharder.NodeType'],
-                    useNATService: this.$store.state.userConfig['sharder.useNATService'],
+                    useNATService: this.$store.state.userConfig['sharder.useNATService'] === 'true',
                     natClientSecretKey: this.$store.state.userConfig['sharder.NATClientKey'],
                     publicAddress: this.$store.state.userConfig['sharder.myAddress'],
                     natPort: this.$store.state.userConfig['sharder.NATServicePort'],
@@ -683,7 +683,6 @@
                 },
                 hubsetting: {
                     openPunchthrough: true,
-                    hasPublicAddress: false,
                     sharderAccount: '',
                     sharderPwd: '',
                     address: '',
@@ -762,21 +761,21 @@
                     modifyMnemonicWord: [required],
                     newPwd: [
                         {
-                            required: false,
                             validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
                                         this.$refs['initForm'].validateField('confirmPwd');
                                     }
+                                    callback();
+                                } else {
+                                    callback(new Error(this.$t('rules.plz_input_admin_pwd')));
                                 }
-                                callback();
                             },
                             trigger: 'blur'
                         }
                     ],
                     confirmPwd: [
                         {
-                            required: false,
                             validator: (rule, value, callback) => {
                                 if (!value && this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
@@ -1041,18 +1040,18 @@
                         formData.append("sharder.useNATService", "false");
                     }
                 } else if (type === 'register') {
-                    formData.append("sharder.useNATService", "true");
                     formData.append('username', _this.hubsetting.sharderAccount);
                     formData.append('password', _this.hubsetting.sharderPwd);
                     formData.append('registerStatus', _this.hubsetting.register_status);
                     formData.append('nodeType', _this.userConfig.nodeType);
-                    formData.append('hasPublicAddress', _this.hubsetting.hasPublicAddress);
-                    if (_this.hubsetting.hasPublicAddress) {
+                    if (!_this.hubsetting.openPunchthrough) {
                         formData.append("sharder.NATServiceAddress", "");
                         formData.append("sharder.NATServicePort", "");
                         formData.append("sharder.NATClientKey", "");
                         formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                        formData.append("sharder.useNATService", "false");
                     } else {
+                        formData.append("sharder.useNATService", "true");
                         if (!_this.hubsetting.address
                             || !_this.hubsetting.port
                             || !_this.hubsetting.clientSecretkey) {
@@ -1115,9 +1114,6 @@
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                if (_this.hubsetting.register_status) {
-                    confirmFormData.append("registerStatus", _this.hubsetting.register_status);
-                }
                 if (type === 'init') {
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
@@ -1172,7 +1168,7 @@
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
                 this.$http.post('http://localhost:8080/bounties/hubDirectory/check/confirm.ss', data).then(res2 => {
-                    if (!res2.data.errorDescription) {
+                    if (res2.data === 'success') {
                         console.info('success to update hub setting to remote server');
                         _this.reconfigure(reconfigData);
                     } else {
@@ -2072,7 +2068,6 @@
                     && !this.userConfig.useNATService
                     && this.userConfig.nodeType === 'Normal'
                     && !this.userConfig.natClientSecretKey
-                    && !this.userConfig.publicAddress
                     && !this.userConfig.natPort
                     && !this.userConfig.natAddress;
             },

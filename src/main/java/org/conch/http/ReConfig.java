@@ -33,13 +33,16 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * @author jiangbubai
+ */
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
     static final ReConfig INSTANCE = new ReConfig();
-    static final List<String> excludeParams = Arrays.asList(
+    private static final List<String> EXCLUDE_PARAMS = Arrays.asList(
             "restart", "requestType", "newAdminPassword", "isInit", "registerStatus",
-            "adminPassword", "reBind", "username", "password", "hasPublicAddress");
-    static final String url = getCheckUrl();
+            "adminPassword", "reBind", "username", "password", "nodeType");
+    private static final String URL = getCheckUrl();
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -76,7 +79,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
                 continue;
             }
-            if (excludeParams.contains(paraName)) {
+            if (EXCLUDE_PARAMS.contains(paraName)) {
                 continue;
             }
             map.put(paraName, req.getParameter(paraName));
@@ -98,7 +101,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     private Boolean verifyForNormalNode(HttpServletRequest req, JSONObject response) {
         boolean result = true;
         boolean isNormalNode = "Normal".equalsIgnoreCase(req.getParameter("nodeType"));
-        boolean hasPublicAddress = Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("hasPublicAddress"));
+        boolean useNATService = Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("sharder.useNATService"));
         Map<String, String> pageValues = new HashMap<>(16);
         pageValues.put("registerStatus", Convert.nullToEmpty(req.getParameter("registerStatus")));
         pageValues.put("natServiceAddress", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
@@ -108,9 +111,9 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         pageValues.put("nodeType", Convert.nullToEmpty(req.getParameter("nodeType")));
         Iterator<Map.Entry<String, String>> iterator = pageValues.entrySet().iterator();
 
-        if (isNormalNode && !hasPublicAddress) {
+        if (isNormalNode && useNATService) {
             try {
-                RestfulHttpClient.HttpResponse verifyResponse = RestfulHttpClient.getClient(url)
+                RestfulHttpClient.HttpResponse verifyResponse = RestfulHttpClient.getClient(URL)
                         .post()
                         .addPostParam("username", req.getParameter("username"))
                         .addPostParam("password", req.getParameter("password"))
@@ -148,14 +151,14 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     }
 
     private Boolean doVerify(Object pageValue, Object dbValue) {
-        if (pageValue == null && dbValue == null) {
+        boolean bothNull = pageValue == null && dbValue == null;
+        boolean unilateralNull = (pageValue == null && dbValue != null) || (pageValue != null && dbValue == null);
+        if (bothNull) {
             return true;
-        } else if ((pageValue == null && dbValue != null) || (pageValue != null && dbValue == null)) {
+        } else if (unilateralNull) {
             return false;
-        } else if (pageValue.equals(dbValue)) {
-            return true;
         } else {
-            return false;
+            return pageValue.equals(dbValue);
         }
     }
 
