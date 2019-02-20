@@ -77,7 +77,7 @@ public final class Constants {
     }
 
     private static final String networkInProperties = Conch.getStringProperty("sharder.network");
-    private static final String NetworkDef = loadNetworkDefinition();
+    public static final String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
