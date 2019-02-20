@@ -27,6 +27,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
@@ -789,15 +790,10 @@ public final class Peers {
 
     };
 
-    private static final String SC_PEERS_API = scPeerApiUrl();
-
-    private static String scPeerApiUrl() {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
-        }
-
-        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
-    }
+    private static final String SC_PEERS_API = UrlManager.getFoundationUrl(
+            UrlManager.PEERS_LIST_EOLINKER,
+            UrlManager.PEERS_LIST_PATH
+    );
 
     private static final Runnable GET_HUB_PEER_THREAD =
             () -> {

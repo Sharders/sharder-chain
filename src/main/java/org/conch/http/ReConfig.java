@@ -24,6 +24,7 @@ package org.conch.http;
 import com.alibaba.fastjson.JSON;
 import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.util.Convert;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
@@ -42,16 +43,12 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     private static final List<String> EXCLUDE_PARAMS = Arrays.asList(
             "restart", "requestType", "newAdminPassword", "isInit", "registerStatus",
             "adminPassword", "reBind", "username", "password", "nodeType");
-    private static final String URL = getCheckUrl();
+    private static final String URL = UrlManager.getFoundationUrl(
+            UrlManager.HUB_SETTING_ACCOUNT_CHECK_EOLINKER,
+            UrlManager.HUB_SETTING_ACCOUNT_CHECK_PATH
+    );
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
-    }
-
-    private static String getCheckUrl() {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/bounties/hubDirectory/check.ss";
-        }
-        return "http://localhost:8080/bounties/hubDirectory/check.ss";
     }
 
     @Override
