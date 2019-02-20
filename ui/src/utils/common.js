@@ -510,6 +510,20 @@ export default {
             return "http://" + this.getSharderFoundationHost() + path;
         }
         return eoLinkerUrl;
+    },
+    /**
+     * 获得交易类型的字符串
+     * @param t
+     * @returns {string}
+     */
+    getTransactionTypeStr(t) {
+        if (t.type === 0) return "普通支付";
+        if (t.type === 1 && t.subType === 0) return "任意信息";
+        if (t.type === 1 && t.subType === 5) return "账户信息";
+        if (t.type === 6) return "存储服务";
+        if (t.type === 8) return "矿池交易";
+        if (t.type === 9) return "出块奖励";
+        if (t.type === 12) return "POC交易";
     }
 
 };

@@ -63,8 +63,7 @@
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
                     </div>
-                    <el-select v-model="value" :placeholder="$t('mining.index.sort')"
-                               v-if="miningList !== undefined && miningList.length >0">
+                    <el-select v-model="sortFun" v-if="miningList.length > 0">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -75,13 +74,13 @@
                 </h5>
                 <div class="mining-list-info">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-show="miningList.length !== 0" v-for="(mining,index) in miningList">
+                        <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
-                                    <p>{{mining.power/100000000}}/{{maxPoolinvestment/100000000}}</p>
+                                    <p>{{mining.power/100000000}}/{{maxPoolInvestment/100000000}}</p>
                                     <el-progress
-                                        :percentage="(mining.power/100000000)/(maxPoolinvestment/100000000)*100"
+                                        :percentage="(mining.power/100000000)/(maxPoolInvestment/100000000)*100"
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
@@ -107,7 +106,7 @@
                     </el-row>
                 </div>
             </div>
-            <div class="mining-paging" v-if="miningList !== undefined && miningList.length > 0">
+            <div class="mining-paging" v-if="miningList.length > 0">
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
@@ -234,13 +233,13 @@
                         <tr v-for="(ranking,index) in rankingList">
                             <td>
                                 <span v-if="index <= 2" :class="'ranking-logo bg-'+ index"></span>
-                                <span v-if="index > 2">{{index}}</span>
+                                <span v-if="index > 2">{{index+1}}</span>
                             </td>
                             <td>
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.BALANCE / 100000000}}
+                                {{ranking.BALANCE > 0 ? ranking.BALANCE / 100000000 : 0}}
                             </td>
                         </tr>
                     </table>
@@ -272,7 +271,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{maxPoolinvestment/100000000}}SS</span>
+                            <span>{{maxPoolInvestment/100000000}}SS</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
@@ -336,7 +335,7 @@
                 isSetName: false,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
-                maxPoolinvestment: 50000000000000,
+                maxPoolInvestment: 0,
                 maxPoolsNum: 51,
                 maxForgeTime: 1 * 60 * 60,
                 options: [
@@ -357,8 +356,8 @@
                         label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
-                myRanking: 0,
-                value: '',
+                myRanking: {},
+                sortFun: 'default',
                 accountName: SSO.accountInfo.name,
                 incomeDistribution: 0,
                 investment: '',
@@ -367,7 +366,7 @@
                 newestBlockCreator: '',
                 totalAssets: 0,
                 forgeAssets: 0,
-                rule: [],
+                rule: null,
                 avgBlocksTime: '',
                 miningList: [],
                 rewardList: [/*'1', '2', '3', '4'*/],
@@ -387,11 +386,11 @@
                 let _this = this;
                 _this.$global.fetch("POST", {
                     name: _this.accountName,
-                    secretPhrase:SSO.secretPhrase,
-                    deadline:1440,
-                    phased:false,
-                    phasingHashedSecretAlgorithm:2,
-                    feeNQT:0
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    phased: false,
+                    phasingHashedSecretAlgorithm: 2,
+                    feeNQT: 0
                 }, "setAccountInfo").then(res => {
                     if (!res.errorDescription) {
                         _this.accountInfo.name = res.transactionJSON.attachment.name;
@@ -413,64 +412,39 @@
             createPool() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
-                    return;
+                    return _this.$message.warning("当前正在同步区块链，请稍后再试");
                 }
 
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
                     _this.isVisible('isCreatePool');
-                    _this.$message.info(_this.$t('mining.index.insufficient_permissions'));
-                    return;
+                    return _this.$message.info(_this.$t('mining.index.insufficient_permissions'));
                 }
 
-                let formData = new FormData();
-                let period = parseInt(_this.maxForgeTime / _this.avgBlocksTime).toString();
-                formData.append("period", period);
-                formData.append("secretPhrase", SSO.secretPhrase);
-                formData.append("deadline", "1440");
-                formData.append("feeNQT", "100000000");
-                // formData.append("amount",_this.investment);
-
-                // console.log("getAmount", 50000000000000);
-                let rule = {
-                    'forgepool': {
-                        'reward': _this.incomeDistribution / 100,
-                        'number': _this.rule.forgepool.number.max - 1,
-                    },
-                    "rule": {
-                        "totalBlocks": 0
-                    },
-                    'consignor': {
-                        'amount': 50000000000000
-                    },
-                };
-                formData.append("rule", JSON.stringify(rule));
-
-                _this.$http.post('/sharder?requestType=createPool', formData).then(function (res) {
-                    if (res.data.broadcasted) {
+                _this.$global.fetch("POST", {
+                    period: parseInt(_this.maxForgeTime / _this.avgBlocksTime),
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    feeNQT: 100000000,
+                    rule: JSON.stringify({
+                        'forgepool': {
+                            'reward': _this.incomeDistribution / 100,
+                            'number': _this.rule.forgepool.number.max - 1,
+                        },
+                        "rule": {
+                            "totalBlocks": 0
+                        },
+                        'consignor': {
+                            'amount': _this.maxPoolInvestment
+                        }
+                    })
+                }, "createPool").then(res => {
+                    if (res.broadcasted) {
                         _this.$message.success("创建成功！");
-                        /*
-                        formData = new FormData();
-                        let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
-                        formData.append("period",period);
-                        formData.append("secretPhrase",SSO.secretPhrase);
-                        formData.append("deadline","1440");
-                        formData.append("feeNQT","100000000");
-
-                        formData.append("poolId",_this.mining.poolId);
-                        formData.append("amount",_this.investment);
-
-                        _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
-                        });*/
                         _this.isVisible('isCreatePool');
-
                     } else {
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res.errorDescription);
                     }
-                }).catch(function (err) {
-                    console.log(err);
                 });
-
             },
             poolAttribute(mining) {
 
@@ -514,86 +488,52 @@
             loginAfter() {
                 let _this = this;
 
-                let formData = new FormData();
-                formData.append("creatorId", SSO.account);
-                this.$http.post('/sharder?requestType=getPoolRule', formData).then(res => {
-
-                    if (typeof res.data.errorDescription !== 'undefined') {
-                        _this.rule = null;
-                    } else {
-                        _this.rule = res.data;
+                _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
+                    if (!res.errorDescription) {
+                        _this.rule = res;
+                        _this.maxPoolInvestment = res.consignor.amount.max - 100000000;
                     }
-                    console.log("getRule", _this.rule.forgepool.reward.max);
-                }).catch(err => {
-                    console.log(err);
                 });
 
-
-                formData = new FormData();
-                // formData.append("createId",SSO.account);
-                _this.$http.post('/sharder?requestType=getPools', formData).then(function (res) {
-                    if (typeof res.data.errorDescription !== "undefined") {
-                        _this.$message.error(res.data.errorDescription);
-                        return;
+                _this.$global.fetch("POST", {}, "getPools").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
                     }
-                    console.log(res.data);
-                    _this.miningList = res.data.pools;
+                    _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
-
-                }).catch(function (err) {
-                    console.log(err);
                 });
 
-
-                formData = new FormData();
-                _this.$http.post('/sharder?requestType=getNextBlockGenerators', formData).then(function (res) {
-                    if (typeof res.data.errorDescription !== "undefined") {
-                        _this.$message.error(res.data.errorDescription);
-                        return;
+                _this.$global.fetch("POST", {}, "getNextBlockGenerators").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
                     }
-                    console.log("getNextBlockGenerators", res.data);
-
-                    _this.newestBlock = res.data;
-                    _this.newestBlockCreator = res.data.generators[0].accountRS;
-                    _this.getCoinBase(res.data.height);
-                }).catch(function (err) {
-                    console.log(err);
+                    _this.newestBlock = res;
+                    _this.newestBlockCreator = res.generators[0].accountRS;
+                    _this.getCoinBase(res.height);
                 });
 
-                this.$http.get('/sharder?requestType=getBlocks', {
-                    params: {
-                        firstIndex: 0,
-                        lastIndex: 9
+                _this.$global.fetch("GET", {
+                    firstIndex: 0,
+                    lastIndex: 9
+                }, "getBlocks").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
                     }
-                }).then(function (res) {
-                    if (!res.data.errorDescription) {
-                        let len = res.data.blocks.length;
-                        _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.data.blocks[0].timestamp, res.data.blocks[len - 1].timestamp, len);
-                        console.log("avgBlocksTime", _this.avgBlocksTime);
-                    } else {
-                        _this.$message.error(res.data.errorDescription);
-                    }
-                }).catch(function (err) {
-                    _this.$message.error(err);
+                    let len = res.blocks.length;
+                    _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.blocks[0].timestamp, res.blocks[len - 1].timestamp, len);
                 });
 
-                this.$http.get('/sharder?requestType=getAccount', {
-                    params: {
-                        account: SSO.account,
-                        includeLessors: true,
-                        includeAssets: true,
-                        includeEffectiveBalance: true,
-                        includeCurrencies: true,
-
+                _this.$global.fetch("GET", {
+                    account: SSO.account,
+                    includeLessors: true,
+                    includeAssets: true,
+                    includeEffectiveBalance: true,
+                    includeCurrencies: true,
+                }, "getAccount").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
                     }
-                }).then(function (res) {
-                    if (typeof res.data.errorDescription !== "undefined") {
-                        _this.$message.error(res.data.errorDescription);
-                        return;
-                    }
-                    _this.accountInfo = res.data;
-                }).catch(function (err) {
-
+                    _this.accountInfo = res;
                 });
 
                 _this.getAssetsRanking();
@@ -628,9 +568,8 @@
                 _this.$global.fetch("POST", {
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
-                    // console.info(res);
                     if (res.success) {
-                        _this.myRanking = res.data[0]['RANDKING'] + 1
+                        _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
             }
@@ -669,6 +608,9 @@
                     ];
                 },
                 deep: true
+            },
+            sortFun(v) {
+                console.info(v);
             }
         },
         filters: {
