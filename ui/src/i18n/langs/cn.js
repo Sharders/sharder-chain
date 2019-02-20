@@ -334,7 +334,7 @@ const cn = {
             'blocker':"出块者: ",
             'reward':"奖励: ",
             'pool_list':"矿池列表",
-            'sort':"排序",
+            'sort':"排名",
             'pool':"矿池",
             'pool_income':"矿池收益:",
             'Income_distribution':"收益分配:",

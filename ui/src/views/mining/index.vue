@@ -234,13 +234,13 @@
                         <tr v-for="(ranking,index) in rankingList">
                             <td>
                                 <span v-if="index <= 2" :class="'ranking-logo bg-'+ index"></span>
-                                <span v-if="index > 2">{{index}}</span>
+                                <span v-if="index > 2">{{index+1}}</span>
                             </td>
                             <td>
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.BALANCE / 100000000}}
+                                {{ranking.BALANCE > 0 ? ranking.BALANCE / 100000000 : 0}}
                             </td>
                         </tr>
                     </table>
@@ -357,7 +357,7 @@
                         label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
-                myRanking: 0,
+                myRanking: {},
                 value: '',
                 accountName: SSO.accountInfo.name,
                 incomeDistribution: 0,
@@ -387,11 +387,11 @@
                 let _this = this;
                 _this.$global.fetch("POST", {
                     name: _this.accountName,
-                    secretPhrase:SSO.secretPhrase,
-                    deadline:1440,
-                    phased:false,
-                    phasingHashedSecretAlgorithm:2,
-                    feeNQT:0
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    phased: false,
+                    phasingHashedSecretAlgorithm: 2,
+                    feeNQT: 0
                 }, "setAccountInfo").then(res => {
                     if (!res.errorDescription) {
                         _this.accountInfo.name = res.transactionJSON.attachment.name;
@@ -628,9 +628,8 @@
                 _this.$global.fetch("POST", {
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
-                    // console.info(res);
                     if (res.success) {
-                        _this.myRanking = res.data[0]['RANDKING'] + 1
+                        _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
             }
