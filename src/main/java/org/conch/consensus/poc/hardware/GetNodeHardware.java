@@ -216,15 +216,14 @@ public class GetNodeHardware {
                 .post()
                 .body(systemInfo)
                 .request();
-        Boolean result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS))
-                .map(Object::toString).map(Boolean::valueOf).orElse(Boolean.FALSE);
-        System.out.println("report the System hardware infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
+        boolean result = JSONObject.parseObject(response.getContent()).getBooleanValue(Constants.SUCCESS);
+        System.out.println("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
         System.out.println(systemInfo.toString());
         if (result) {
-            System.out.println("<=== success to report hardware performance");
+            System.out.println("<=== success to report node configuration performance");
             return true;
         } else {
-            System.out.println("<=== failed to report hardware performance, remote error");
+            System.out.println("<=== failed to report node configuration performance, remote error");
             return false;
         }
     }

@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 /**
- * 引导远程请求节点，进行配置性能测试接口
+ * 引导节点发起的性能测试请求
  *
  * @author CloudSen
  */
