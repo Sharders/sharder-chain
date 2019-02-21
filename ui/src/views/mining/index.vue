@@ -31,7 +31,7 @@
                 <div class="state">
                     <div class="state-info">
                         <p>{{$t('mining.attribute.mining')}}</p>
-                        <p>{{$t('mining.index.net_income')}} 1000 SS</p>
+                        <p>{{$t('mining.index.net_income')}} {{allIncome}} SS</p>
                     </div>
                 </div>
                 <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
@@ -78,9 +78,9 @@
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
-                                    <p>{{mining.power/100000000}}/{{maxPoolInvestment/100000000}}</p>
+                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
                                     <el-progress
-                                        :percentage="(mining.power/100000000)/(maxPoolInvestment/100000000)*100"
+                                        :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
@@ -90,8 +90,10 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
-                                        <span>{{$t('mining.index.Income_distribution')}}{{typeof mining.rule.level1 !== 'undefined' ?
-                                                (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%</span>
+                                        <span>
+                                            {{$t('mining.index.Income_distribution')}}
+                                            {{mining.rule.level1 ? (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%
+                                        </span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
@@ -101,7 +103,7 @@
                             </div>
                         </el-col>
                         <div v-show="miningList.length === 0" class="mining-list-null">
-                            暂时没有任何矿池
+                            {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
                 </div>
@@ -372,7 +374,7 @@
                 rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
-
+                allIncome: 0,
                 totalSize: 10,
             }
         },
@@ -382,6 +384,18 @@
             }
         },
         methods: {
+            getAllIncome() {
+                let _this = this;
+                _this.$global.fetch("GET", {allIncome: "allIncome"}, "getAccount").then(res => {
+                    if (res.success) {
+                        _this.allIncome = res.cutIncome[0]["NUM"] / 100000000;
+                    }
+                });
+            },
+            getAmountMax(rule) {
+                let level = rule.level0 ? rule.level0 : rule.level1;
+                return level.consignor.amount.max / 100000000;
+            },
             setAccountInfo() {
                 let _this = this;
                 _this.$global.fetch("POST", {
@@ -487,6 +501,7 @@
             },
             loginAfter() {
                 let _this = this;
+                _this.getAllIncome();
 
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
@@ -567,7 +582,7 @@
                     }
                 });
             },
-            getPools(parameter){
+            getPools(parameter) {
                 let _this = this;
                 _this.$global.fetch("POST", parameter, "getPools").then(res => {
                     if (res.errorDescription) {
@@ -615,7 +630,7 @@
             },
             sortFun(v) {
                 console.info(v);
-                this.getPools({sort:v});
+                this.getPools({sort: v});
             }
         },
         filters: {
@@ -792,10 +807,15 @@
         top: 2px;
     }
 
-    .state .state-info {
-        width: 140px;
-        height: 50px;
+    .mining-content .state {
         text-align: center;
+        position: relative;
+        right: 7%;
+    }
+
+    .state .state-info {
+        display: inline-block;
+        height: 50px;
         margin: auto;
         background-color: #20a0ff99;
         color: #14c6fc;
@@ -1391,11 +1411,17 @@
             top: 1px;
         }
 
+        .mining .mining-content .state{
+            right: 0;
+        }
+
         .mining .mining-content .state .state-info {
-            left: calc(50% - 70px);
+            max-width: 100%;
+            height: auto;
             font-size: 12px;
             position: absolute;
             top: 100px;
+            right: 0;
         }
 
         .en_mining .mining-content .state .state-info {

@@ -150,6 +150,9 @@ const cn = {
 
     },
     network:{
+        'no_connection':"无连接",
+        'in_connection':"已连接",
+        'disconnect':"断开连接",
         'network_title':"网络总览",
         'block_height':"区块高度",
         'block_newest_time':"生成时间 ",
@@ -163,6 +166,7 @@ const cn = {
         'store_transaction':"存储交易数",
         'alias_modification':"别名修改数",
         'peers_info':"节点信息",
+        'peers_add':"添加节点",
         'peers_detail':"节点详情",
         'block_list':"区块列表",
         'block_list_height':"高度",
@@ -175,6 +179,16 @@ const cn = {
         'view_details':"查看详情",
     },
     peers:{
+        'tag_node':"标记节点",
+        'stores_modifiable_messages':"存储过期的可修改消息",
+        'api_service':"API服务",
+        'api_ssl_service':"API SSL服务",
+        'enable_cors_api':"启用CORS的API",
+        'commercial_api_services':"商业API服务",
+        'offline_data_storage':"离线数据存储",
+        'agent_mining':"代理挖掘",
+        'nat_server':"Nat服务",
+        'certificate_services':"证明服务",
         'return_network':"返回网络",
         'total_peers':"节点数量",
         'active_hub':"HUB运行数",
@@ -381,6 +395,7 @@ const cn = {
             'mining_sort_capacity':"矿池容量",
             'mining_sort_distribution':"奖励分配",
             'mining_sort_time':"剩余时间",
+            'mining_no_pit_moment':"暂时没有任何矿池",
         },
         invite_friends:{
             'title':"共识矿场",
