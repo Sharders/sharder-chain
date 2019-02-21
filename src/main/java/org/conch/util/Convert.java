@@ -22,6 +22,7 @@
 package org.conch.util;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 
@@ -327,5 +328,9 @@ public final class Convert {
         }
         return o1.length - o2.length;
     };
+
+    public static String stringTemplate(String formatMsg, Object... objects) {
+        return String.format(StringUtils.replace(formatMsg, "{}", "%s"), objects);
+    }
 
 }

@@ -193,7 +193,7 @@ public class GetNodeHardware {
         }
     }
 
-    private static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+    public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
@@ -211,7 +211,7 @@ public class GetNodeHardware {
      * @return true报告成功，false失败
      * @throws IOException 请求异常
      */
-    private static Boolean report(SystemInfo systemInfo) throws IOException {
+    public static Boolean report(SystemInfo systemInfo) throws IOException {
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
                 .post()
                 .body(systemInfo)

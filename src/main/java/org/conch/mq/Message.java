@@ -1,32 +1,68 @@
 package org.conch.mq;
 
+import org.apache.commons.lang3.StringUtils;
+import org.conch.mq.handler.MessageHandler;
+import org.conch.mq.handler.NodeConfigPerformanceTestMsgHandler;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * 消息队列中的消息
  *
  * @author CloudSen
  */
-public class Message<T> {
+public class Message implements Serializable {
 
-    enum Type {
+    private static final long serialVersionUID = -3563275674424414022L;
+
+    public enum Handler {
         /**
          * 节点配置性能测试
          */
-        NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest"),
+        NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest", NodeConfigPerformanceTestMsgHandler.getInstance()),
         ;
 
-        private final String name;
+        private String type;
+        private MessageHandler messageHandler;
 
-        Type(String name) {
-            this.name = name;
+        Handler(String type, MessageHandler messageHandler) {
+            this.type = type;
+            this.messageHandler = messageHandler;
         }
 
-        public String getName() {
-            return name;
+        public String getType() {
+            return type;
+        }
+
+        public MessageHandler getMessageHandler() {
+            return messageHandler;
+        }
+
+        public static boolean containsType(String type) {
+            if (StringUtils.isEmpty(type)) {
+                return false;
+            }
+            return Arrays.stream(Handler.values())
+                    .anyMatch(handler -> handler.getType().equalsIgnoreCase(type));
+        }
+
+        public static MessageHandler getByType(String type) {
+            return Arrays.stream(Handler.values())
+                    .filter(handler -> handler.getType().equalsIgnoreCase(type))
+                    .map(Handler::getMessageHandler).findFirst().orElse(null);
+        }
+
+        public static String getTypeNameByHandler(MessageHandler messageHandler) {
+            return Arrays.stream(Handler.values())
+                    .filter(handler -> handler.getMessageHandler() == messageHandler)
+                    .map(Handler::getType).findFirst().orElse(null);
         }
     }
 
     /**
-     * 消息ID，可以防止重复消息
+     * 消息ID
      */
     private String id;
 
@@ -38,19 +74,23 @@ public class Message<T> {
     /**
      * 消息类型
      */
-    private Type type;
+    private String type;
+
+    /**
+     * 标记是否是同一时刻发出的
+     */
+    private long timestamp;
 
     /**
      * 传输的数据
      */
-    private T data;
-
+    private String dataJson;
 
     public String getId() {
         return id;
     }
 
-    public Message<T> setId(String id) {
+    public Message setId(String id) {
         this.id = id;
         return this;
     }
@@ -59,26 +99,35 @@ public class Message<T> {
         return sender;
     }
 
-    public Message<T> setSender(String sender) {
+    public Message setSender(String sender) {
         this.sender = sender;
         return this;
     }
 
-    public Type getType() {
+    public String getType() {
         return type;
     }
 
-    public Message<T> setType(Type type) {
+    public Message setType(String type) {
         this.type = type;
         return this;
     }
 
-    public T getData() {
-        return data;
+    public long getTimestamp() {
+        return timestamp;
     }
 
-    public Message<T> setData(T data) {
-        this.data = data;
+    public Message setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+        return this;
+    }
+
+    public String getDataJson() {
+        return dataJson;
+    }
+
+    public Message setDataJson(String dataJson) {
+        this.dataJson = dataJson;
         return this;
     }
 
@@ -87,8 +136,29 @@ public class Message<T> {
         return "Message{" +
                 "id='" + id + '\'' +
                 ", sender='" + sender + '\'' +
-                ", type=" + type.getName() +
-                ", data=" + data +
+                ", type='" + type + '\'' +
+                ", timestamp=" + timestamp +
+                ", dataJson='" + dataJson + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Message message = (Message) o;
+        return timestamp == message.timestamp &&
+                id.equals(message.id) &&
+                sender.equals(message.sender) &&
+                type.equals(message.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, sender, type, timestamp);
     }
 }
