@@ -11,11 +11,13 @@ import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.conch.util.JSON;
 import org.conch.util.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Comparator;
 import java.util.Map;
 
 /**
@@ -119,13 +121,90 @@ public abstract class PoolTxApi {
             String cid = Convert.emptyToNull(request.getParameter("creatorId"));
 
             if (cid == null) {
-                return SharderPoolProcessor.getPoolsFromNow();
+                return sortPools(request, SharderPoolProcessor.getPoolsFromNow());
             } else {
                 long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
 
                 return SharderPoolProcessor.getPoolsFromNowAndDestroy(creatorId);
             }
 
+        }
+
+        /**
+         * 排序矿池 列表
+         *
+         * @param request
+         * @param pools
+         * @return
+         */
+        private JSONObject sortPools(HttpServletRequest request, JSONObject pools) {
+            String sort = request.getParameter("sort");
+            if (sort == null || "default".equals(sort)) {
+                return pools;
+            }
+            JSONArray jsonArray = (JSONArray) (pools.get("pools"));
+            Comparator<JSONObject> comparator = null;
+            if ("capacity".equals(sort)) {
+                comparator = new Comparator<JSONObject>() {
+                    @Override
+                    public int compare(JSONObject o1, JSONObject o2) {
+                        Long a = getLevel(o1).getJSONObject("consignor").getJSONObject("amount").getLong("max");
+                        Long b = getLevel(o2).getJSONObject("consignor").getJSONObject("amount").getLong("max");
+                        if (a > b) {
+                            return 1;
+                        } else if (a < b) {
+                            return -1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                };
+            }
+            if ("distribution".equals(sort)) {
+                comparator = new Comparator<JSONObject>() {
+                    @Override
+                    public int compare(JSONObject o1, JSONObject o2) {
+                        Double a = getLevel(o1).getJSONObject("forgepool").getJSONObject("reward").getDouble("max");
+                        Double b = getLevel(o2).getJSONObject("forgepool").getJSONObject("reward").getDouble("max");
+                        if (a > b) {
+                            return 1;
+                        } else if (a < b) {
+                            return -1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                };
+            }
+            if ("time".equals(sort)) {
+                comparator = new Comparator<JSONObject>() {
+                    @Override
+                    public int compare(JSONObject o1, JSONObject o2) {
+                        Long a = Long.valueOf(o1.get("endBlockNo").toString()) - Long.valueOf(o1.get("updateHeight").toString());
+                        Long b = Long.valueOf(o2.get("endBlockNo").toString()) - Long.valueOf(o2.get("updateHeight").toString());
+                        if (a > b) {
+                            return 1;
+                        } else if (a < b) {
+                            return -1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                };
+            }
+            jsonArray.sort(comparator);
+            return pools;
+        }
+
+        /**
+         * 获得rule 对象的 level1 或 level0
+         *
+         * @param rule
+         * @return
+         */
+        private com.alibaba.fastjson.JSONObject getLevel(JSONObject rule) {
+            com.alibaba.fastjson.JSONObject o = com.alibaba.fastjson.JSONObject.parseObject(rule.get("rule").toString());
+            return o.getJSONObject("level1") != null ? o.getJSONObject("level1") : o.getJSONObject("level0");
         }
 
         @Override

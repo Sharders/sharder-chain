@@ -495,13 +495,7 @@
                     }
                 });
 
-                _this.$global.fetch("POST", {}, "getPools").then(res => {
-                    if (res.errorDescription) {
-                        return _this.$message.error(res.errorDescription);
-                    }
-                    _this.miningList = res.pools;
-                    _this.totalSize = _this.miningList.length;
-                });
+                _this.getPools();
 
                 _this.$global.fetch("POST", {}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
@@ -572,6 +566,16 @@
                         _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
+            },
+            getPools(parameter){
+                let _this = this;
+                _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
+                    }
+                    _this.miningList = res.pools;
+                    _this.totalSize = _this.miningList.length;
+                });
             }
         },
         created: function () {
@@ -611,6 +615,7 @@
             },
             sortFun(v) {
                 console.info(v);
+                this.getPools({sort:v});
             }
         },
         filters: {
