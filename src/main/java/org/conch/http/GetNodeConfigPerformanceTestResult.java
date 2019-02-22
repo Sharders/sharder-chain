@@ -60,7 +60,7 @@ public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequ
         Message message = JSON.parseObject(postParams, Message.class);
 
         // add this message to message queue
-        boolean result = MessageManager.addMessage(message);
+        boolean result = MessageManager.receiveMessage(message);
 
         // return response immediately
         if (result) {
