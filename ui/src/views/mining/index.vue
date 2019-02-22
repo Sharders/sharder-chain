@@ -426,7 +426,7 @@
             createPool() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    return _this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return _this.$message.warning(this.$t("account.synchronization_block"));
                 }
 
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
@@ -453,7 +453,7 @@
                     })
                 }, "createPool").then(res => {
                     if (res.broadcasted) {
-                        _this.$message.success("创建成功！");
+                        _this.$message.success($t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
                     } else {
                         _this.$message.error(res.errorDescription);
@@ -467,7 +467,7 @@
             isVisible(val) {
 
                 if (val === "isCreatePool" && this.rule === null) {
-                    this.$message.error("您还未拥有创建矿池的权限");
+                    this.$message.error($t("mining.index.pool_no_permissions"));
                     return;
                 }
                 this.$store.state.mask = !this[val];

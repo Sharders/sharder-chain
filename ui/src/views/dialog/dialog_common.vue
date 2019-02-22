@@ -303,7 +303,7 @@
                             </td>
                             <td v-else-if="transaction.type === 12">
                                 <img src="../../assets/img/POC.svg"/>
-                                <span>POC交易</span>
+                                <span>{{$t("account.poc_trading")}}</span>
                             </td>
                             <td>{{transaction.amountNQT/100000000}}</td>
                             <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
@@ -366,7 +366,7 @@
                             <td>{{blockInfo.cumulativeDifficulty}}</td>
                         </tr>
                         <tr>
-                            <th>区块编号</th>
+                            <th>{{$t("account.block_number")}}</th>
                             <td>{{blockInfo.block}}</td>
                         </tr>
                         <tr>

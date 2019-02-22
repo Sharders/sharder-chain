@@ -1714,7 +1714,7 @@
             },
             openSendMessageDialog: function () {
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    this.$message.warning(this.$t("account.synchronization_block"));
                     return;
                 }
                 this.$store.state.mask = true;
@@ -1722,7 +1722,7 @@
             },
             openTransferDialog: function () {
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    this.$message.warning(this.$t("account.synchronization_block"));
                     return;
                 }
                 this.$store.state.mask = true;
@@ -1784,7 +1784,7 @@
             openSecretPhraseDialog: function () {
                 const _this = this;
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
+                    this.$message.warning(this.$t("account.synchronization_block"));
                     return;
                 }
                 _this.userInfoDialog = false;

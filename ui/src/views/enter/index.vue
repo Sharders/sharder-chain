@@ -45,7 +45,7 @@
                     return;
                 }
                 if(_this.confirmPassphrase !== _this.passPhrase){
-                    _this.$message.error("您输入的密钥不正确，请再试一次 ！");
+                    _this.$message.error(_this.$t('login.incorrect_key'));
                     return;
                 }
                 Login.login(true, _this.passphrase, _this, function () {
