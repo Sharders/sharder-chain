@@ -29,6 +29,9 @@ public class UrlManager {
     public static final String PEERS_LIST_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
     public static final String PEERS_LIST_PATH = "/sc/peer/list.ss";
 
+    public static final String ADD_MESSAGE_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/messageQueue/add.ss";
+    public static final String ADD_MESSAGE_PATH = "/messageQueue/add.ss";
+
     /*=============================================Foundation API END========================================*/
 
     public static String getFoundationUrl(String eoLinkerUrl, String path) {
