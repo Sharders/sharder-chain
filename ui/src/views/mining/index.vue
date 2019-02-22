@@ -30,11 +30,13 @@
                 </div>
                 <div class="state">
                     <div class="state-info">
-                        <p>{{$t('mining.attribute.mining')}}</p>
-                        <p>{{$t('mining.index.net_income')}} {{allIncome}} SS</p>
+                        <span>{{$t('mining.attribute.mining')}}</span><br/>
+                        <span>{{$t('mining.index.net_income')}} {{allIncome}} SS</span>
                     </div>
                 </div>
-                <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
+                <div class="instructions" @click="$router.push({name: 'rule-description'})">
+                    {{$t('mining.index.mining_description')}}
+                </div>
                 <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
                     {{$t('mining.index.join_friends')}}
                 </div>
@@ -809,14 +811,14 @@
 
     .mining-content .state {
         text-align: center;
-        position: relative;
-        right: 7%;
+        width: calc(100% - 60px);
+        position: absolute;
+        top: 40px;
+        word-break: break-all;
     }
 
     .state .state-info {
         display: inline-block;
-        height: 50px;
-        margin: auto;
         background-color: #20a0ff99;
         color: #14c6fc;
         font-size: 14px;
@@ -1007,7 +1009,6 @@
 
 
     .en_mining .state .state-info {
-        width: 160px;
         font-size: 12px;
     }
 
@@ -1411,22 +1412,14 @@
             top: 1px;
         }
 
-        .mining .mining-content .state{
-            right: 0;
+        .mining .mining-content .state {
+            top: 110px;
+            width: calc(100% - 30px);
         }
 
         .mining .mining-content .state .state-info {
-            max-width: 100%;
-            height: auto;
             font-size: 12px;
-            position: absolute;
-            top: 100px;
-            right: 0;
-        }
-
-        .en_mining .mining-content .state .state-info {
-            height: 60px;
-            width: 130px;
+            max-width: 100%;
         }
 
         .mining .mining-list .mining-list-img {
