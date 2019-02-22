@@ -1,8 +1,9 @@
 package org.conch.mq;
 
+import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.mq.handler.MessageHandler;
-import org.conch.mq.handler.NodeConfigPerformanceTestMsgHandler;
+import org.conch.mq.handler.NodeConfigPerformanceMsgHandler;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public class Message implements Serializable {
         /**
          * 节点配置性能测试
          */
-        NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest", NodeConfigPerformanceTestMsgHandler.getInstance()),
+        NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest", NodeConfigPerformanceMsgHandler.getInstance()),
         ;
 
         private String type;
@@ -133,13 +134,7 @@ public class Message implements Serializable {
 
     @Override
     public String toString() {
-        return "Message{" +
-                "id='" + id + '\'' +
-                ", sender='" + sender + '\'' +
-                ", type='" + type + '\'' +
-                ", timestamp=" + timestamp +
-                ", dataJson='" + dataJson + '\'' +
-                '}';
+        return JSON.toJSONString(this);
     }
 
     @Override
