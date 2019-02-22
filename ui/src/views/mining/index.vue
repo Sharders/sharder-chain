@@ -426,7 +426,7 @@
             createPool() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    return _this.$message.warning(this.$t("account.synchronization_block"));
+                    return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
 
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
@@ -453,7 +453,7 @@
                     })
                 }, "createPool").then(res => {
                     if (res.broadcasted) {
-                        _this.$message.success($t("mining.index.creating_success"));
+                        _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
                     } else {
                         _this.$message.error(res.errorDescription);
@@ -467,7 +467,7 @@
             isVisible(val) {
 
                 if (val === "isCreatePool" && this.rule === null) {
-                    this.$message.error($t("mining.index.pool_no_permissions"));
+                    this.$message.error(this.$t("mining.index.pool_no_permissions"));
                     return;
                 }
                 this.$store.state.mask = !this[val];
@@ -1127,7 +1127,7 @@
 <style scoped>
     .ranking {
         position: fixed;
-        top: 160px;
+        top: calc(50% - 250px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -1194,7 +1194,7 @@
     .create-pool {
         position: fixed;
         z-index: 9999;
-        top: 180px;
+        top: calc(50% - 300px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;

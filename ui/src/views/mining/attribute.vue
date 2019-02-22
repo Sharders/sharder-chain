@@ -243,8 +243,7 @@
             miningDestroy() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning(this.$t("account.synchronization_block"));
-                    return;
+                    return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
                 _this.$global.fetch("POST", {
                     period: 400,
@@ -258,7 +257,7 @@
                     }
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
-                    return _this.$message.success(this.$t("mining.attribute.delete_success"));
+                    return _this.$message.success(_this.$t("mining.attribute.delete_success"));
                 });
             },
             miningJoin() {
@@ -273,7 +272,7 @@
                     amount: _this.joinPool * 100000000
                 }, "joinPool").then(res => {
                     if (typeof res.errorDescription === "undefined") {
-                        _this.$message.success($t("mining.attribute.join_success"));
+                        _this.$message.success(_this.$t("mining.attribute.join_success"));
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                     } else {

@@ -1784,7 +1784,7 @@
             openSecretPhraseDialog: function () {
                 const _this = this;
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning(this.$t("account.synchronization_block"));
+                    _this.$message.warning(_this.$t("account.synchronization_block"));
                     return;
                 }
                 _this.userInfoDialog = false;

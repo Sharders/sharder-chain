@@ -174,7 +174,6 @@
                     <div class="modal-body modal-miner">
                         <el-table
                             :data="minerlist"
-                            :height="550"
                             border
                             style="width: 100%">
                             <el-table-column
