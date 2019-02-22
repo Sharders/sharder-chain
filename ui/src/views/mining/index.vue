@@ -30,11 +30,13 @@
                 </div>
                 <div class="state">
                     <div class="state-info">
-                        <p>{{$t('mining.attribute.mining')}}</p>
-                        <p>{{$t('mining.index.net_income')}} 1000 SS</p>
+                        <span>{{$t('mining.attribute.mining')}}</span><br/>
+                        <span>{{$t('mining.index.net_income')}} {{allIncome}} SS</span>
                     </div>
                 </div>
-                <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
+                <div class="instructions" @click="$router.push({name: 'rule-description'})">
+                    {{$t('mining.index.mining_description')}}
+                </div>
                 <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
                     {{$t('mining.index.join_friends')}}
                 </div>
@@ -78,9 +80,9 @@
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
-                                    <p>{{mining.power/100000000}}/{{maxPoolInvestment/100000000}}</p>
+                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
                                     <el-progress
-                                        :percentage="(mining.power/100000000)/(maxPoolInvestment/100000000)*100"
+                                        :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
@@ -90,8 +92,10 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
-                                        <span>{{$t('mining.index.Income_distribution')}}{{typeof mining.rule.level1 !== 'undefined' ?
-                                                (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%</span>
+                                        <span>
+                                            {{$t('mining.index.Income_distribution')}}
+                                            {{mining.rule.level1 ? (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%
+                                        </span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
@@ -101,7 +105,7 @@
                             </div>
                         </el-col>
                         <div v-show="miningList.length === 0" class="mining-list-null">
-                            暂时没有任何矿池
+                            {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
                 </div>
@@ -372,7 +376,7 @@
                 rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
-
+                allIncome: 0,
                 totalSize: 10,
             }
         },
@@ -382,6 +386,18 @@
             }
         },
         methods: {
+            getAllIncome() {
+                let _this = this;
+                _this.$global.fetch("GET", {allIncome: "allIncome"}, "getAccount").then(res => {
+                    if (res.success) {
+                        _this.allIncome = res.cutIncome[0]["NUM"] / 100000000;
+                    }
+                });
+            },
+            getAmountMax(rule) {
+                let level = rule.level0 ? rule.level0 : rule.level1;
+                return level.consignor.amount.max / 100000000;
+            },
             setAccountInfo() {
                 let _this = this;
                 _this.$global.fetch("POST", {
@@ -412,7 +428,7 @@
             createPool() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    return _this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
 
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
@@ -439,7 +455,7 @@
                     })
                 }, "createPool").then(res => {
                     if (res.broadcasted) {
-                        _this.$message.success("创建成功！");
+                        _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
                     } else {
                         _this.$message.error(res.errorDescription);
@@ -453,7 +469,7 @@
             isVisible(val) {
 
                 if (val === "isCreatePool" && this.rule === null) {
-                    this.$message.error("您还未拥有创建矿池的权限");
+                    this.$message.error(this.$t("mining.index.pool_no_permissions"));
                     return;
                 }
                 this.$store.state.mask = !this[val];
@@ -487,6 +503,7 @@
             },
             loginAfter() {
                 let _this = this;
+                _this.getAllIncome();
 
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
@@ -567,7 +584,7 @@
                     }
                 });
             },
-            getPools(parameter){
+            getPools(parameter) {
                 let _this = this;
                 _this.$global.fetch("POST", parameter, "getPools").then(res => {
                     if (res.errorDescription) {
@@ -615,7 +632,7 @@
             },
             sortFun(v) {
                 console.info(v);
-                this.getPools({sort:v});
+                this.getPools({sort: v});
             }
         },
         filters: {
@@ -792,11 +809,16 @@
         top: 2px;
     }
 
-    .state .state-info {
-        width: 140px;
-        height: 50px;
+    .mining-content .state {
         text-align: center;
-        margin: auto;
+        width: calc(100% - 60px);
+        position: absolute;
+        top: 40px;
+        word-break: break-all;
+    }
+
+    .state .state-info {
+        display: inline-block;
         background-color: #20a0ff99;
         color: #14c6fc;
         font-size: 14px;
@@ -987,7 +1009,6 @@
 
 
     .en_mining .state .state-info {
-        width: 160px;
         font-size: 12px;
     }
 
@@ -1107,7 +1128,7 @@
 <style scoped>
     .ranking {
         position: fixed;
-        top: 160px;
+        top: calc(50% - 250px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -1174,7 +1195,7 @@
     .create-pool {
         position: fixed;
         z-index: 9999;
-        top: 180px;
+        top: calc(50% - 300px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -1391,16 +1412,14 @@
             top: 1px;
         }
 
-        .mining .mining-content .state .state-info {
-            left: calc(50% - 70px);
-            font-size: 12px;
-            position: absolute;
-            top: 100px;
+        .mining .mining-content .state {
+            top: 110px;
+            width: calc(100% - 30px);
         }
 
-        .en_mining .mining-content .state .state-info {
-            height: 60px;
-            width: 130px;
+        .mining .mining-content .state .state-info {
+            font-size: 12px;
+            max-width: 100%;
         }
 
         .mining .mining-list .mining-list-img {

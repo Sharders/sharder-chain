@@ -29,8 +29,8 @@
                 <div class="number">{{al.num}}{{$t('mining.create_history.diamond')}}</div>
             </div>
             <div class="load-assets">
-                <p v-if="isPage" @click="loadAssets()">点击加载</p>
-                <p v-else>到底了...</p>
+                <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
+                <p v-else>{{$t("mining.my_assets.whether")}}</p>
             </div>
         </div>
     </div>

@@ -118,7 +118,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
      * @return
      * @throws SQLException
      */
-    private Object result(ResultSet rs) throws SQLException {
+    public static Object result(ResultSet rs) throws SQLException {
         ArrayList<Map<String, Object>> mapList = new ArrayList<>();
         ResultSetMetaData rsmd = rs.getMetaData();
         while (rs.next()) {
@@ -139,7 +139,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
      * @param s
      * @return
      */
-    private String signedToUnsigned(String s) {
+    private static String signedToUnsigned(String s) {
         BigDecimal num = new BigDecimal(s);
         if (num.compareTo(new BigDecimal(0)) >= 0) {
             return num.toString();
