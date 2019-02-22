@@ -178,22 +178,22 @@ public class GetNodeHardware {
      */
     public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
-        String myAddress = Conch.getMyAddress();
-        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
-        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
-        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
-        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-
         try {
             return report(read(systemInfo, executeTime));
         } catch (Exception e) {
-            System.out.println("<=== failed to report hardware performance, local error");
+            System.out.println("<=== failed to report configuration performance, local error");
             e.printStackTrace();
             return false;
         }
     }
 
     public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        String myAddress = Conch.getMyAddress();
+        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
+        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
+        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
+        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
+        System.out.println("Now start testing configuration performance...");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
@@ -201,6 +201,7 @@ public class GetNodeHardware {
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
         systemInfo.setNetworkType(Conch.getNetworkType());
+        System.out.println("The configuration performance test is completed");
         return systemInfo;
     }
 
@@ -220,10 +221,10 @@ public class GetNodeHardware {
         System.out.println("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
         System.out.println(systemInfo.toString());
         if (result) {
-            System.out.println("<=== success to report node configuration performance");
+            System.out.println("<=== Your configuration performance was successfully reported to operate system");
             return true;
         } else {
-            System.out.println("<=== failed to report node configuration performance, remote error");
+            System.out.println("<=== failed to report configuration performance, remote error");
             return false;
         }
     }
