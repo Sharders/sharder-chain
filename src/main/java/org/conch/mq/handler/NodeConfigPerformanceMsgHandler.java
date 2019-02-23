@@ -2,8 +2,8 @@ package org.conch.mq.handler;
 
 import com.alibaba.fastjson.JSON;
 import org.conch.Conch;
-import org.conch.common.UrlManager;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
+import org.conch.http.Result;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
 import org.conch.mq.dto.NodeConfigPerformanceTestDto;
@@ -33,8 +33,8 @@ public class NodeConfigPerformanceMsgHandler implements MessageHandler {
     @Override
     public boolean handleMessage(Message message, MessageManager.QueueType queueType) {
         switch (queueType) {
-            case RECEIVED:
-                this.handleReceived(message);
+            case PENDING:
+                this.handlePending(message);
                 break;
             case SUCCESS:
                 this.handleSuccess(message);
@@ -55,49 +55,79 @@ public class NodeConfigPerformanceMsgHandler implements MessageHandler {
      * @param message message
      * @return whether success
      */
-    private boolean handleReceived(Message message) {
+    private boolean handlePending(Message message) {
         boolean result = false;
-        System.out.println(Convert.stringTemplate("handling received message: {}", message));
+        System.out.println(Convert.stringTemplate("handling pending message: {}", message));
         try {
             NodeConfigPerformanceTestDto data = JSON.parseObject(message.getDataJson(), NodeConfigPerformanceTestDto.class);
-            GetNodeHardware.readAndReport(data.getTestTime());
-            result = MessageManager.addSuccessMessage(message);
+            result = GetNodeHardware.readAndReport(data.getTestTime());
+            if (result) {
+                result = MessageManager.receiveMessage(message, MessageManager.QueueType.SUCCESS, MessageManager.OperationType.PUT);
+            } else {
+                result = MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            MessageManager.addFailedMessage(message);
+            MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
         }
         return result;
     }
 
     private boolean handleSuccess(Message message) {
         boolean result = false;
-        String address = Conch.getMyAddress();
-        Message msg = new Message().setId(message.getId()).setSender(address)
+        Message msg = new Message().setId(message.getId()).setSender(Conch.getMyAddress()).setRetryCount(0).setSuccess(true)
                 .setDataJson(message.getDataJson()).setTimestamp(message.getTimestamp()).setType(message.getType());
         System.out.println(Convert.stringTemplate("handling success message: {}", message));
         try {
-            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(
-                    UrlManager.getFoundationUrl(
-                            UrlManager.ADD_MESSAGE_EOLINKER,
-                            UrlManager.ADD_MESSAGE_PATH
-                    )
-            )
-                    .post()
-                    .body(msg)
-                    .request();
+            RestfulHttpClient.HttpResponse response = MessageManager.sendMessageToFoundation(msg);
+            Result responseResult = JSON.parseObject(response.getContent(), Result.class);
+            result = responseResult.getSuccess();
+            if (result) {
+                System.out.println("node configuration performance success message has been sent to Operation System");
+            } else {
+                System.out.println("node configuration performance success message failed to send to Operation System");
+                System.out.println("the current success message will be reprocessed later...");
+                MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("[ERROR] send message error, failed to connect to operate system");
-            System.out.println("the current message will be resend later...");
-            MessageManager.receiveMessage(message);
+            System.out.println("[ERROR] send success message error, failed to connect to operate system");
+            System.out.println("the current success message will be reprocessed later...");
+            MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
         }
         return result;
     }
 
     private boolean handleFailed(Message message) {
-        boolean result = false;
+        boolean isValid, result = false;
         System.out.println(Convert.stringTemplate("handling failed message: {}", message));
-
+        MessageManager.addRetryCount(message);
+        isValid = MessageManager.checkMsgValidity(message);
+        if (isValid) {
+            // return it to pending queue
+            result = MessageManager.receiveMessage(message, MessageManager.QueueType.PENDING, MessageManager.OperationType.PUT);
+        } else {
+            // send failed message
+            Message msg = new Message().setId(message.getId()).setSender(Conch.getMyAddress()).setRetryCount(0).setSuccess(true)
+                    .setDataJson(message.getDataJson()).setTimestamp(message.getTimestamp()).setType(message.getType());
+            System.out.println(Convert.stringTemplate("handling failed message: {}", message));
+            try {
+                RestfulHttpClient.HttpResponse response = MessageManager.sendMessageToFoundation(msg);
+                Result responseResult = JSON.parseObject(response.getContent(), Result.class);
+                result = responseResult.getSuccess();
+                if (result) {
+                    System.out.println("node configuration performance failed message has been sent to Operation System");
+                } else {
+                    System.out.println("node configuration performance failed message failed to send to Operation System");
+                    System.out.println("the current failed message will be abandoned...");
+                }
+            } catch (IOException e) {
+                // abandon message
+                e.printStackTrace();
+                System.out.println("[ERROR] send failed message error, failed to connect to operate system");
+                System.out.println("the current failed message will be abandoned...");
+            }
+        }
         return result;
     }
 }
