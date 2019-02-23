@@ -1,16 +1,13 @@
 package org.conch.mq;
 
 import com.alibaba.fastjson.JSON;
-import org.apache.commons.lang3.StringUtils;
-import org.conch.mq.handler.MessageHandler;
-import org.conch.mq.handler.NodeConfigPerformanceMsgHandler;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * 消息队列中的消息
+ * message for message queue
  *
  * @author CloudSen
  */
@@ -18,74 +15,64 @@ public class Message implements Serializable {
 
     private static final long serialVersionUID = -3563275674424414022L;
 
-    public enum Handler {
+    public enum Type {
         /**
-         * 节点配置性能测试
+         * node config performance test
          */
-        NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest", NodeConfigPerformanceMsgHandler.getInstance()),
+        NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest"),
         ;
 
-        private String type;
-        private MessageHandler messageHandler;
+        private String name;
 
-        Handler(String type, MessageHandler messageHandler) {
-            this.type = type;
-            this.messageHandler = messageHandler;
+        public String getName() {
+            return name;
         }
 
-        public String getType() {
-            return type;
+        Type(String name) {
+            this.name = name;
         }
 
-        public MessageHandler getMessageHandler() {
-            return messageHandler;
-        }
-
-        public static boolean containsType(String type) {
-            if (StringUtils.isEmpty(type)) {
-                return false;
-            }
-            return Arrays.stream(Handler.values())
-                    .anyMatch(handler -> handler.getType().equalsIgnoreCase(type));
-        }
-
-        public static MessageHandler getByType(String type) {
-            return Arrays.stream(Handler.values())
-                    .filter(handler -> handler.getType().equalsIgnoreCase(type))
-                    .map(Handler::getMessageHandler).findFirst().orElse(null);
-        }
-
-        public static String getTypeNameByHandler(MessageHandler messageHandler) {
-            return Arrays.stream(Handler.values())
-                    .filter(handler -> handler.getMessageHandler() == messageHandler)
-                    .map(Handler::getType).findFirst().orElse(null);
+        public static Type getTypeByName(String name) {
+            return Arrays.stream(Type.values())
+                    .filter(type -> type.getName().equalsIgnoreCase(name))
+                    .findFirst().orElse(null);
         }
     }
 
     /**
-     * 消息ID
+     * message id
      */
     private String id;
 
     /**
-     * 消息发送者
+     * message sender
      */
     private String sender;
 
     /**
-     * 消息类型
+     * message type
      */
     private String type;
 
     /**
-     * 标记是否是同一时刻发出的
+     * when the message has been sent
      */
     private long timestamp;
 
     /**
-     * 传输的数据
+     * extra data
      */
     private String dataJson;
+
+    /**
+     * retry count
+     */
+    private Integer retryCount;
+
+    /**
+     *
+     */
+    private Boolean success;
 
     public String getId() {
         return id;
@@ -130,6 +117,29 @@ public class Message implements Serializable {
     public Message setDataJson(String dataJson) {
         this.dataJson = dataJson;
         return this;
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public Message setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
+        return this;
+    }
+
+    public Boolean getSuccess() {
+        return success;
+    }
+
+    public Message setSuccess(Boolean success) {
+        this.success = success;
+        return this;
+    }
+
+    public Message() {
+        this.retryCount = 0;
+        this.success = false;
     }
 
     @Override
