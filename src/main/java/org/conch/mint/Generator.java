@@ -85,7 +85,7 @@ public class Generator implements Comparable<Generator> {
         }
         static String reset(){
             String generatorSummary = appendSplitter("--------------Active Miners-------------",false);
-            generatorSummary += appendSplitter("Local bind account[rs=" + HUB_BIND_ADDRESS + "]",false);
+            generatorSummary += appendSplitter("Local bind account[ hub rs=" + HUB_BIND_ADDRESS + " | autoMint rs=" + AUTO_MINT_ADDRESS + " ]",false);
             count=0;
             return generatorSummary;
         }
@@ -676,7 +676,12 @@ public class Generator implements Comparable<Generator> {
     public static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
     public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
     public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
+    public static final String AUTO_MINT_ADDRESS = autoMintRs();
     static boolean autoMintRunning = false;
+    static String autoMintRs(){
+        String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+        return StringUtils.isEmpty(autoMintPR) ? null : Account.rsAccount(Account.getId(autoMintPR));
+    }
     /**
      * Auto mining of Hub or Miner, just execute once
      */
