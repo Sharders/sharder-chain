@@ -156,14 +156,17 @@ public class Message implements Serializable {
             return false;
         }
         Message message = (Message) o;
-        return timestamp == message.timestamp &&
-                id.equals(message.id) &&
-                sender.equals(message.sender) &&
-                type.equals(message.type);
+        return getTimestamp() == message.getTimestamp() &&
+                Objects.equals(getId(), message.getId()) &&
+                getSender().equals(message.getSender()) &&
+                getType().equals(message.getType()) &&
+                Objects.equals(getDataJson(), message.getDataJson()) &&
+                Objects.equals(getRetryCount(), message.getRetryCount()) &&
+                Objects.equals(getSuccess(), message.getSuccess());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, sender, type, timestamp);
+        return Objects.hash(getId(), getSender(), getType(), getTimestamp(), getDataJson(), getRetryCount(), getSuccess());
     }
 }
