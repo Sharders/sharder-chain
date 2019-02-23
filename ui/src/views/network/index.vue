@@ -30,7 +30,7 @@
                     </span>
                     <span class="hrefbtn fr block_title csp mr5">
                         <a @click="openMinerList">
-                            <span>矿工列表</span>
+                            <span>{{$t('network.miners_list')}}</span>
                         </a>
                     </span>
                 </p>
@@ -169,22 +169,21 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">矿工名单</h4>
+                        <h4 class="modal-title">{{$t("network.miners_roll")}}</h4>
                     </div>
                     <div class="modal-body modal-miner">
                         <el-table
                             :data="minerlist"
-                            :height="550"
                             border
                             style="width: 100%">
                             <el-table-column
                                 prop="accountRS"
-                                label="账户"
+                                :label="$t('dialog.account_info_account')"
                                 width="220">
                             </el-table-column>
                             <el-table-column
                                 prop="bindPeerType"
-                                label="类型"
+                                :label="$t('dialog.account_transaction_type')"
                                 >
                             </el-table-column>
                             <el-table-column
@@ -196,7 +195,7 @@
                             <el-table-column
                                 prop="hitTime"
                                 :formatter="dateFormat"
-                                label="挖矿时间"
+                                :label="$t('network.mining_time')"
                                 width="160">
                             </el-table-column>
                         </el-table>
@@ -315,11 +314,11 @@
                 console.error("error", err);
             });
             this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
-                console.log("矿工数量：",res);
+                // console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
                 _this.minerlist = res.data.generators;
 
-                console.log("miners:",_this.minerlist);
+                // console.log("miners:",_this.minerlist);
             }).catch(function (err) {
                 console.error("error", err);
             });

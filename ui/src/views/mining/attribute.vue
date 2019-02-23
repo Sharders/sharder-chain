@@ -30,7 +30,7 @@
                                 <button class="info">
                                     <p>{{$t('mining.attribute.join_time')}}</p>
                                     <p class="strong">{{miningInfo.timestamp === 0 ?
-                                        '未加入':$global.myFormatTime(miningInfo.timestamp,'YMDHMS',true)}}</p>
+                                        $t("mining.attribute.not_join"):$global.myFormatTime(miningInfo.timestamp,'YMDHMS',true)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
@@ -205,7 +205,7 @@
             miningExit() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    return this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return this.$message.warning(this.$t("account.synchronization_block"));
                 }
                 this.$http.get('sharder?requestType=getBlockchainTransactions', {
                     params: {
@@ -233,7 +233,7 @@
                         }
 
                     }
-                    _this.$message.warning("请求已提交...");
+                    _this.$message.warning("Request submitted ...");
                     _this.$store.state.mask = false;
                     _this.isExitPool = false;
                 }).catch(err => {
@@ -243,8 +243,7 @@
             miningDestroy() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
-                    return;
+                    return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
                 _this.$global.fetch("POST", {
                     period: 400,
@@ -258,7 +257,7 @@
                     }
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
-                    return _this.$message.success("删除成功");
+                    return _this.$message.success(_this.$t("mining.attribute.delete_success"));
                 });
             },
             miningJoin() {
@@ -273,7 +272,7 @@
                     amount: _this.joinPool * 100000000
                 }, "joinPool").then(res => {
                     if (typeof res.errorDescription === "undefined") {
-                        _this.$message.success("加入成功");
+                        _this.$message.success(_this.$t("mining.attribute.join_success"));
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                     } else {
@@ -317,13 +316,13 @@
             },
             validationJoinMining() {
                 if (SSO.downloadingBlockchain) {
-                    return this.$message.warning("当前正在同步区块链，请稍后再试");
+                    return this.$message.warning(this.$("account.synchronization_block"));
                 }
                 if (this.joinPool <= 1) {
-                    return this.$message.error("投入数量必须大于1");
+                    return this.$message.error(this.$("mining.attribute.join_number_info"));
                 }
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
-                    return this.$message.error("超出矿池总上限");
+                    return this.$message.error(this.$t("mining.attribute.exceeding_total"));
                 }
             },
             myJoinTime() {

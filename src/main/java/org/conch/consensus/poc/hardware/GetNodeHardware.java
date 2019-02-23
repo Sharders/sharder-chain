@@ -3,6 +3,7 @@ package org.conch.consensus.poc.hardware;
 import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
@@ -65,6 +66,8 @@ public class GetNodeHardware {
                 case 5:// TYPE_CDROM ：光驱
                     break;
                 case 6:// TYPE_SWAP ：页面交换
+                    break;
+                default:
                     break;
             }
         }
@@ -158,14 +161,10 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    private static String scHardwareApiUrl() {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
-        }
-        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
-    }
-
-    public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
+    private static final String NODE_CONFIG_REPORT_URL = UrlManager.getFoundationUrl(
+            UrlManager.NODE_CONFIG_REPORT_EOLINKER,
+            UrlManager.NODE_CONFIG_REPORT_PATH
+    );
 
     /**
      * 每次开机时，获取节点配置，并主动汇报，以及更新绑定用户
@@ -179,22 +178,22 @@ public class GetNodeHardware {
      */
     public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
-        String myAddress = Conch.getMyAddress();
-        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
-        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
-        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
-        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-
         try {
             return report(read(systemInfo, executeTime));
         } catch (Exception e) {
-            System.out.println("<=== failed to report hardware performance, local error");
+            System.out.println("<=== failed to report configuration performance, local error");
             e.printStackTrace();
             return false;
         }
     }
 
-    private static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+    public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        String myAddress = Conch.getMyAddress();
+        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
+        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
+        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
+        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
+        System.out.println("Now start testing configuration performance...");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
@@ -202,6 +201,7 @@ public class GetNodeHardware {
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
         systemInfo.setNetworkType(Conch.getNetworkType());
+        System.out.println("The configuration performance test is completed");
         return systemInfo;
     }
 
@@ -212,20 +212,19 @@ public class GetNodeHardware {
      * @return true报告成功，false失败
      * @throws IOException 请求异常
      */
-    private static Boolean report(SystemInfo systemInfo) throws IOException {
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
+    public static Boolean report(SystemInfo systemInfo) throws IOException {
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
                 .post()
                 .body(systemInfo)
                 .request();
-        Boolean result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS))
-                .map(Object::toString).map(Boolean::valueOf).orElse(Boolean.FALSE);
-        System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL + "] ===>");
+        boolean result = JSONObject.parseObject(response.getContent()).getBooleanValue(Constants.SUCCESS);
+        System.out.println("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
         System.out.println(systemInfo.toString());
         if (result) {
-            System.out.println("<=== success to report hardware performance");
+            System.out.println("<=== Your configuration performance was successfully reported to operate system");
             return true;
         } else {
-            System.out.println("<=== failed to report hardware performance, remote error");
+            System.out.println("<=== failed to report configuration performance, remote error");
             return false;
         }
     }

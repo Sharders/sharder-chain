@@ -33,7 +33,7 @@
                     </span>
                     <span class="hrefbtn fr block_title csp">
                         <a @click="openAddPeer">
-                            <span>添加节点</span>
+                            <span>{{$t("network.peers_add")}}</span>
                         </a>
                     </span>
                 </p>
@@ -55,19 +55,19 @@
                             <tbody>
                                 <tr v-for="(peer,index) in peersList" v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
                                     <td class="image_text linker tl" @click="openInfo(peer.address)">
-                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 0" content="无连接">
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 0" :content="$t('network.no_connection')">
                                             <span>
                                                 <img src="../../assets/img/error.svg"/>
                                                 <span>{{peer.address}}</span>
                                             </span>
                                         </el-tooltip>
-                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 1" content="已连接">
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 1" :content="$t('network.in_connection')">
                                             <span>
                                             <img src="../../assets/img/success.svg"/>
                                             <span>{{peer.address}}</span>
                                         </span>
                                         </el-tooltip>
-                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 2" content="断开连接">
+                                        <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 2" :content="$t('network.disconnect')">
                                             <span>
                                                 <img src="../../assets/img/error.svg"/>
                                                 <span>{{peer.address}}</span>
@@ -80,34 +80,34 @@
                                     <td>{{peer.platform}}</td>
                                     <td class="linker ">
                                         <span v-for="service in peer.services">
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'HALLMARK'" content="标记节点">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'HALLMARK'" :content="$t('peers.tag_node')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PRUNABLE'" content="存储过期的可修改消息">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PRUNABLE'" :content="$t('peers.stores_modifiable_messages')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API'" content="API服务">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API'" :content="$t('peers.api_service')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API_SSL'" content="API SSL服务">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'API_SSL'" :content="$t('peers.api_ssl_service')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'CORS'" content="启用CORS的API">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'CORS'" :content="$t('peers.enable_cors_api')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'BAPI'" content="商业API服务">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'BAPI'" :content="$t('peers.commercial_api_services')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'STORAGE'" content="离线数据存储">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'STORAGE'" :content="$t('peers.offline_data_storage')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'MINER'" content="代理挖掘">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'MINER'" :content="$t('peers.agent_mining')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'NATER'" content="Nat服务">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'NATER'" :content="$t('peers.nat_server')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PROVER'" content="证明服务">
+                                            <el-tooltip class="item" placement="top" effect="light" v-if="service === 'PROVER'" :content="$t('peers.certificate_services')">
                                                 <a>{{service | getPeerServicesLabel}}</a>
                                             </el-tooltip>
 
@@ -182,16 +182,16 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">添加节点</h4>
+                        <h4 class="modal-title">{{$t("network.peers_add")}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>地址：</p>
+                        <p>{{$t("mining.binding_account.address")}}：</p>
                         <input v-model="addPeerAddress" type="text">
-                        <p class="mt10">管理密码：</p>
+                        <p class="mt10">{{$t("password_modal.admin_password")}}：</p>
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="addPeer(addPeerAddress,adminPassword)">添加</button>
+                        <button type="button" class="btn" @click="addPeer(addPeerAddress,adminPassword)">{{$t("peers.join")}}</button>
                     </div>
                 </div>
             </div>
