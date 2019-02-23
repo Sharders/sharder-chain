@@ -194,15 +194,19 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     private static void updateHistoricalFees(long poolId, long fee) {
-        SharderPoolProcessor pool = sharderPools.get(poolId);
-        pool.historicalBlocks++;
-        pool.historicalIncome += fee;
+        if(poolId != -1 && SharderPoolProcessor.getPool(poolId).getState().equals(SharderPoolProcessor.State.WORKING)) {
+            SharderPoolProcessor pool = sharderPools.get(poolId);
+            pool.historicalBlocks++;
+            pool.historicalIncome += fee;
+        }
     }
     
     private static void updateHistoricalRewards(long poolId, long reward) {
-        SharderPoolProcessor pool = sharderPools.get(poolId);
-        pool.historicalIncome += reward;
-        pool.historicalMintRewards += reward;
+        if(poolId != -1 && SharderPoolProcessor.getPool(poolId).getState().equals(SharderPoolProcessor.State.WORKING)) {
+            SharderPoolProcessor pool = sharderPools.get(poolId);
+            pool.historicalIncome += reward;
+            pool.historicalMintRewards += reward;
+        }
     }
 
     private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
@@ -278,9 +282,7 @@ public class SharderPoolProcessor implements Serializable {
                             
                             // update pool summary
                             long id = ownOnePool(block.getGeneratorId());
-                            if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
-                                updateHistoricalFees(id, block.getTotalFeeNQT());
-                            }
+                            updateHistoricalFees(id, block.getTotalFeeNQT());
                             
                             //unfreeze the reward
                             if (height > Constants.SHARDER_REWARD_DELAY) {
@@ -296,7 +298,6 @@ public class SharderPoolProcessor implements Serializable {
                                     }
                                 }
                             }
-
                             DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
                             DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
                         },
