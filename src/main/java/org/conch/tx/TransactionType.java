@@ -531,7 +531,7 @@ public abstract class TransactionType {
          *
          * @param transaction
          */
-        public static void unFreezeMintBalance(Transaction transaction) {
+        public static long unFreezeMintReward(Transaction transaction) {
             Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             Map<Long, Long> consignors = coinBase.getConsignors();
@@ -546,6 +546,7 @@ public abstract class TransactionType {
                     account.addToMintedBalanceNQT(rewardList.get(id));
                 }
             }
+            return transaction.getAmountNQT();
         }
 
         public static final TransactionType ORDINARY = new CoinBase() {
@@ -3557,8 +3558,8 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                forgePool.destroySharderPool(curHeight);
+                SharderPoolProcessor mintPool = SharderPoolProcessor.getPool(destroy.getPoolId());
+                mintPool.destroySharderPool(curHeight);
             }
 
             @Override
@@ -3650,9 +3651,9 @@ public abstract class TransactionType {
                 long poolId = forgePoolJoin.getPoolId();
                 long transactionId = transaction.getId();
                 senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
-                height = height > forgePool.getStartBlockNo() ? height : forgePool.getStartBlockNo();
-                forgePool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
+                SharderPoolProcessor mintPool = SharderPoolProcessor.getPool(poolId);
+                height = height > mintPool.getStartBlockNo() ? height : mintPool.getStartBlockNo();
+                mintPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
             }
 
             @Override

@@ -108,7 +108,7 @@ public class PoolRule implements Serializable {
                 return true;
             } else {
                 Logger.logDebugMessage(
-                        "validate forge pool rule failed,min " + min + "max " + max + "value" + value);
+                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         } else if (value instanceof Integer) {
@@ -118,7 +118,7 @@ public class PoolRule implements Serializable {
                 return true;
             } else {
                 Logger.logDebugMessage(
-                        "validate forge pool rule failed,min " + min + "max " + max + "value" + value);
+                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         } else {
@@ -128,7 +128,7 @@ public class PoolRule implements Serializable {
                 return true;
             } else {
                 Logger.logDebugMessage(
-                        "validate forge pool rule failed,min " + min + "max " + max + "value" + value);
+                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         }

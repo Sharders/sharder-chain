@@ -27,6 +27,7 @@ public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
     private static final ConcurrentMap<Long, SharderPoolProcessor> sharderPools;
     private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools;
+    private static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
 
     public enum State {
         INIT,
@@ -43,8 +44,14 @@ public class SharderPoolProcessor implements Serializable {
     private final int startBlockNo;
     private int endBlockNo;
     private int historicalBlocks;
-    private int totalBlocks; // the sum of all destroyed forge pool's life time
+    // the sum of all destroyed mint pool's life time
+    private int totalBlocks;
+    // total income
     private long historicalIncome;
+    // mint rewards
+    private long historicalMintRewards;
+    // fees
+    private long historicalFees;
     private long power;
     private final ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
     private int number = 0;
@@ -59,49 +66,54 @@ public class SharderPoolProcessor implements Serializable {
         this.level = PoolRule.getLevel(creatorId);
     }
 
-    public static void createSharderPool(
-            long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+    public static void createSharderPool( long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+        SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
+        Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
+        pool.power += PLEDGE_AMOUNT;
+        
         if (destroyedPools.containsKey(creatorId)) {
-            SharderPoolProcessor forgePool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
-            SharderPoolProcessor past = newPoolFromDestroyed(creatorId);
-            forgePool.chance = past.chance;
-            forgePool.state = State.INIT;
-            forgePool.historicalBlocks = past.historicalBlocks;
-            forgePool.historicalIncome = past.historicalIncome;
-            forgePool.totalBlocks = past.totalBlocks;
-            forgePool.rule = rule;
-            sharderPools.put(forgePool.poolId, forgePool);
-            Logger.logDebugMessage("create forge pool from old pool, chance " + past);
+            SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
+            pool.chance = pastPool.chance;
+            pool.state = State.INIT;
+            pool.historicalBlocks = pastPool.historicalBlocks;
+            pool.historicalIncome = pastPool.historicalIncome;
+            pool.historicalFees = pastPool.historicalFees;
+            pool.historicalMintRewards = pastPool.historicalMintRewards;
+            pool.totalBlocks = pastPool.totalBlocks;
+            pool.rule = rule;
+            Logger.logDebugMessage(creatorId + " create mint pool from old pool, chance " + pastPool.chance);
         } else {
-            SharderPoolProcessor forgePool =
-                    new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
-            forgePool.chance = 0;
-            forgePool.state = State.INIT;
-            forgePool.historicalBlocks = 0;
-            forgePool.historicalIncome = 0;
-            forgePool.totalBlocks = 0;
-            forgePool.rule = rule;
-            sharderPools.put(forgePool.poolId, forgePool);
-            Logger.logDebugMessage(creatorId + " create new forge pool");
+            pool.chance = 0;
+            pool.state = State.INIT;
+            pool.historicalBlocks = 0;
+            pool.historicalIncome = 0;
+            pool.historicalFees = 0;
+            pool.historicalMintRewards = 0;
+            pool.totalBlocks = 0;
+            pool.rule = rule;
+            Logger.logDebugMessage(creatorId + " create a new mint pool");
         }
+        
+        sharderPools.put(pool.poolId, pool);
     }
 
     public void destroySharderPool(int height) {
         state = State.DESTROYED;
         endBlockNo = height;
-
+        
+        Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
+        power -= PLEDGE_AMOUNT;
+        
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
             if (amount != 0) {
                 power -= amount;
-                Account.getAccount(consignor.getId())
-                        .frozenAndUnconfirmedBalanceNQT(
-                                AccountLedger.LedgerEvent.FORGE_POOL_QUIT, -1, -amount);
+                Account.getAccount(consignor.getId()).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
             }
         }
         if (startBlockNo > endBlockNo) {
             sharderPools.remove(poolId);
-            Logger.logDebugMessage("destroy forge pool " + poolId + " before start ");
+            Logger.logDebugMessage("destroy mint pool " + poolId + " before start ");
             return;
         }
         if (destroyedPools.containsKey(creatorId)) {
@@ -113,11 +125,10 @@ public class SharderPoolProcessor implements Serializable {
             destroyedPools.put(creatorId, destroy);
             sharderPools.remove(poolId);
         }
-        Logger.logDebugMessage("destroy forge pool " + poolId);
+        Logger.logDebugMessage("destroy mint pool " + poolId);
     }
 
-    public void addOrUpdateConsignor(
-            long id, long txId, int startBlockNo, int endBlockNo, long amount) {
+    public void addOrUpdateConsignor(long id, long txId, int startBlockNo, int endBlockNo, long amount) {
         if (consignors.containsKey(id)) {
             Consignor consignor = consignors.get(id);
             consignor.addTransaction(txId, startBlockNo, endBlockNo, amount);
@@ -128,12 +139,12 @@ public class SharderPoolProcessor implements Serializable {
             power += amount;
             number++;
         }
-        Logger.logDebugMessage(id + " join in forge pool " + poolId);
+        Logger.logDebugMessage(id + " join in mint pool " + poolId);
     }
 
     public long quitConsignor(long id, long txId) {
         if (!consignors.containsKey(id)) {
-            Logger.logErrorMessage("forge pool:" + poolId + " don't have consignor:" + id);
+            Logger.logErrorMessage("mint pool:" + poolId + " don't have consignor:" + id);
             return -1;
         }
         Consignor consignor = consignors.get(id);
@@ -146,7 +157,7 @@ public class SharderPoolProcessor implements Serializable {
         if (consignor.removeTransaction(txId)) {
             consignors.remove(id);
             number--;
-            Logger.logDebugMessage(id + "quit forge pool " + poolId + ",tx id is " + txId);
+            Logger.logDebugMessage(id + "quit mint pool " + poolId + ",tx id is " + txId);
         }
         return amount;
     }
@@ -182,10 +193,16 @@ public class SharderPoolProcessor implements Serializable {
         return poolProcessor != null ? poolProcessor.toJsonObject() : new JSONObject();
     }
 
-    private static void updatePool(long poolId, long incom) {
-        SharderPoolProcessor forgePool = sharderPools.get(poolId);
-        forgePool.historicalBlocks++;
-        forgePool.historicalIncome += incom;
+    private static void updateHistoricalFees(long poolId, long fee) {
+        SharderPoolProcessor pool = sharderPools.get(poolId);
+        pool.historicalBlocks++;
+        pool.historicalIncome += fee;
+    }
+    
+    private static void updateHistoricalRewards(long poolId, long reward) {
+        SharderPoolProcessor pool = sharderPools.get(poolId);
+        pool.historicalIncome += reward;
+        pool.historicalMintRewards += reward;
     }
 
     private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
@@ -203,9 +220,7 @@ public class SharderPoolProcessor implements Serializable {
 
         file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS));
         if (file.exists()) {
-            destroyedPools =
-                    (ConcurrentMap<Long, List<SharderPoolProcessor>>)
-                            DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
+            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
         } else {
             // TODO delete by user
             destroyedPools = new ConcurrentHashMap<>();
@@ -247,9 +262,7 @@ public class SharderPoolProcessor implements Serializable {
                                     long amount = consignor.validateHeight(height);
                                     if (amount != 0) {
                                         sharderPool.power -= amount;
-                                        Account.getAccount(consignor.getId())
-                                                .frozenAndUnconfirmedBalanceNQT(
-                                                        AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+                                        Account.getAccount(consignor.getId()).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
                                     }
                                 }
 
@@ -265,22 +278,20 @@ public class SharderPoolProcessor implements Serializable {
                             
                             // update pool summary
                             long id = ownOnePool(block.getGeneratorId());
-                            if (id != -1
-                                    && SharderPoolProcessor.getPool(id)
-                                    .getState()
-                                    .equals(SharderPoolProcessor.State.WORKING)) {
-                                updatePool(id, block.getTotalFeeNQT());
+                            if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)) {
+                                updateHistoricalFees(id, block.getTotalFeeNQT());
                             }
                             
                             //unfreeze the reward
                             if (height > Constants.SHARDER_REWARD_DELAY) {
-                                Block past = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
-                                for (Transaction transaction : past.getTransactions()) {
+                                Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+                                for (Transaction transaction : pastBlock.getTransactions()) {
                                     Attachment attachment = transaction.getAttachment();
                                     if(attachment instanceof Attachment.CoinBase){
                                         Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
                                         if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinbaseBody.getCoinBaseType()){
-                                            TransactionType.CoinBase.unFreezeMintBalance(transaction);
+                                            long mintReward = TransactionType.CoinBase.unFreezeMintReward(transaction);
+                                            updateHistoricalRewards(id,mintReward);
                                         }
                                     }
                                 }
@@ -353,23 +364,23 @@ public class SharderPoolProcessor implements Serializable {
                 break;
             }
         }
-        List<SharderPoolProcessor> pasts = new ArrayList<>();
+        List<SharderPoolProcessor> pastPools = new ArrayList<>();
         if (destroyedPools.containsKey(creatorId)) {
-            pasts = destroyedPools.get(creatorId);
+            pastPools = destroyedPools.get(creatorId);
         }
 
         if (now != null) {
-            pasts.add(now);
+            pastPools.add(now);
         }
         JSONObject jsonObject = new JSONObject();
-        if (pasts.size() == 0) {
+        if (pastPools.size() == 0) {
             jsonObject.put("errorCode", 1);
-            jsonObject.put("errorDescription", "current id doesn't create any forge pool");
+            jsonObject.put("errorDescription", "current id doesn't create any mint pool");
             return jsonObject;
         }
-        for (SharderPoolProcessor forgePool : pasts) {
-            jsonObject.put(forgePool.poolId, forgePool.toJsonObject());
-        }
+
+        pastPools.forEach(pool -> jsonObject.put(pool.poolId, pool.toJsonObject()) );
+        
         return jsonObject;
     }
 
@@ -439,6 +450,8 @@ public class SharderPoolProcessor implements Serializable {
         jsonObject.put("chance", chance);
         jsonObject.put("historicalBlocks", historicalBlocks);
         jsonObject.put("historicalIncome", historicalIncome);
+        jsonObject.put("historicalFees", historicalFees);
+        jsonObject.put("historicalMintRewards", historicalMintRewards);
         jsonObject.put("totalBlocks",totalBlocks);
         jsonObject.put("consignors",consignors);
         jsonObject.put("startBlockNo", startBlockNo);

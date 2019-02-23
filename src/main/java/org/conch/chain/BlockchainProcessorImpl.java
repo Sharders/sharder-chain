@@ -540,8 +540,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           if (slowestPeer != null
               && connectedPublicPeers.size() >= Peers.maxNumberOfConnectedPublicPeers
               && chainBlockIds.size() > 360) {
-            Logger.logDebugMessage(
-                slowestPeer.getHost() + " took " + maxResponseTime + " ms, disconnecting");
+            Logger.logDebugMessage(slowestPeer.getHost() + " took " + maxResponseTime + " ms, disconnecting");
             slowestPeer.deactivate();
           }
           //
@@ -552,9 +551,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           blockchain.writeLock();
           try {
             List<BlockImpl> forkBlocks = new ArrayList<>();
-            for (int index = 1;
-                index < chainBlockIds.size() && blockchain.getHeight() - startHeight < 720;
-                index++) {
+            for (int index = 1; index < chainBlockIds.size() && blockchain.getHeight() - startHeight < 720; index++) {
               PeerBlock peerBlock = blockMap.get(chainBlockIds.get(index));
               if (peerBlock == null) {
                 break;
