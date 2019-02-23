@@ -243,6 +243,7 @@ public class SharderPoolProcessor implements Serializable {
                             int height = block.getHeight();
                             for (SharderPoolProcessor sharderPool : sharderPools.values()) {
                                 sharderPool.updateHeight = height;
+                                
                                 if (sharderPool.consignors.size() == 0 && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
                                     sharderPool.destroySharderPool(height);
                                     continue;
