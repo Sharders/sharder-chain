@@ -52,6 +52,7 @@ import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.mq.MessageManager;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
 import org.conch.shuffle.Shuffling;
@@ -631,6 +632,7 @@ public final class Conch {
                 StorageBackup.init();
                 FxtDistribution.init();
                 Peers.init();
+                MessageManager.init();
                 APIProxy.init();
                 Generator.init();
                 AddOns.init();
