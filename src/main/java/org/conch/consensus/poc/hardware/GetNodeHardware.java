@@ -221,7 +221,7 @@ public class GetNodeHardware {
         System.out.println("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
         System.out.println(systemInfo.toString());
         if (result) {
-            System.out.println("<=== Your configuration performance was successfully reported to operate system");
+            System.out.println("<=== Your configuration performance was successfully reported");
             return true;
         } else {
             System.out.println("<=== failed to report configuration performance, remote error");

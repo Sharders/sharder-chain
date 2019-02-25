@@ -3,7 +3,9 @@ package org.conch.mq;
 import org.conch.common.UrlManager;
 import org.conch.mq.handler.MessageHandler;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
+import org.conch.util.ThreadPool;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -19,6 +21,9 @@ public class MessageManager {
     private static final BlockingQueue<Message> PENDING_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
     private static final BlockingQueue<Message> SUCCESS_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
     private static final BlockingQueue<Message> FAILED_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
+    private static final Runnable PENDING_MESSAGE_WORKER;
+    private static final Runnable SUCCESS_MESSAGE_WORKER;
+    private static final Runnable FAILED_MESSAGE_WORKER;
 
     public enum QueueType {
         /**
@@ -51,6 +56,16 @@ public class MessageManager {
         /*
          using schedule thread to run consumers
          */
+        PENDING_MESSAGE_WORKER = new HandleMessageWorker(QueueType.PENDING);
+        SUCCESS_MESSAGE_WORKER = new HandleMessageWorker(QueueType.SUCCESS);
+        FAILED_MESSAGE_WORKER = new HandleMessageWorker(QueueType.FAILED);
+        ThreadPool.scheduleThread("pending message consumer", PENDING_MESSAGE_WORKER, 30);
+        ThreadPool.scheduleThread("success message consumer", SUCCESS_MESSAGE_WORKER, 30);
+        ThreadPool.scheduleThread("failed message consumer", FAILED_MESSAGE_WORKER, 30);
+    }
+
+    public static void init() {
+        Logger.logInfoMessage("message queue is initializing...");
     }
 
     /**
@@ -66,7 +81,7 @@ public class MessageManager {
         BlockingQueue<Message> queue;
         try {
             queue = getQueueByType(queueType);
-            System.out.println(Convert.stringTemplate("adding message: {}, to {} queue...", message, queueType));
+            Logger.logInfoMessage(Convert.stringTemplate("adding message: {}, to {} queue...", message, queueType));
             switch (operationType) {
                 case ADD:
                     result = queue.add(message);
@@ -83,13 +98,12 @@ public class MessageManager {
             }
 
             if (result) {
-                System.out.println(Convert.stringTemplate("success to add message, now message queue has {} messages", queue.size()));
+                Logger.logInfoMessage(Convert.stringTemplate("success to add message, now message queue has {} messages", queue.size()));
             } else {
-                System.out.println("failed to add message, message queue has been filled...");
+                Logger.logWarningMessage("failed to add message, message queue has been filled...");
             }
         } catch (IllegalStateException | InterruptedException | IllegalArgumentException e) {
-            System.out.println(Convert.stringTemplate("[ERROR] failed to add message: {}", message));
-            e.printStackTrace();
+            Logger.logErrorMessage(Convert.stringTemplate("[ERROR] failed to add message: {}", message), e);
         }
         return result;
     }
@@ -107,7 +121,7 @@ public class MessageManager {
 
         try {
             queue = getQueueByType(queueType);
-            System.out.println(Convert.stringTemplate("fetching message from {} queue...", queueType));
+            Logger.logInfoMessage(Convert.stringTemplate("fetching message from {} queue...", queueType));
             switch (operationType) {
                 case REMOVE:
                     message = queue.remove();
@@ -122,13 +136,12 @@ public class MessageManager {
                     throw new IllegalArgumentException("operation type can not found...");
             }
             if (message != null) {
-                System.out.println(Convert.stringTemplate("success to fetch message: {}, now {} queue has {} messages", message, queueType, queue.size()));
+                Logger.logInfoMessage(Convert.stringTemplate("success to fetch message: {}, now {} queue has {} messages", message, queueType, queue.size()));
             } else {
-                System.out.println("failed to fetch message, time out...");
+                Logger.logWarningMessage("failed to fetch message, time out...");
             }
         } catch (IllegalArgumentException | NoSuchElementException | InterruptedException e) {
-            System.out.println(Convert.stringTemplate("[ERROR] failed to fetch message from {} queue", queueType));
-            e.printStackTrace();
+            Logger.logErrorMessage(Convert.stringTemplate("[ERROR] failed to fetch message from {} queue", queueType), e);
         }
         return message;
     }
@@ -173,7 +186,7 @@ public class MessageManager {
                 .request();
     }
 
-    class HandleMessageWorker implements Runnable {
+    static class HandleMessageWorker implements Runnable {
 
         private MessageHandler messageHandler;
         private QueueType queueType;
@@ -186,7 +199,7 @@ public class MessageManager {
         public void run() {
             Message message = fetchMessage(queueType, OperationType.POLL);
             if (message == null) {
-                System.out.println(Convert.stringTemplate("{} Thread：no message fetched, nothing to do.", queueType));
+                Logger.logInfoMessage(Convert.stringTemplate("{} Thread：no message fetched, nothing to do.", queueType));
                 return;
             }
             messageHandler = MessageHandler.Factory.getByType(Message.Type.getTypeByName(message.getType()));
