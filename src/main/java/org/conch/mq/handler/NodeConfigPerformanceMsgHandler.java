@@ -90,7 +90,7 @@ public class NodeConfigPerformanceMsgHandler implements MessageHandler {
             result = responseResult.getSuccess();
             if (result) {
                 Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_HANDLE_SUCCESS_MSG, message));
-                Logger.logInfoMessage(Constants.NODE_CONFIG_SUCCESS_INFO);
+                Logger.logInfoMessage(Convert.stringTemplate(Constants.NODE_CONFIG_SUCCESS_INFO, msg));
             } else {
                 message.setSuccess(false);
                 Logger.logWarningMessage(Constants.NODE_CONFIG_FAILED_INFO);
