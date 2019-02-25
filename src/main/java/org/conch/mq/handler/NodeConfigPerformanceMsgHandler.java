@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import org.conch.Conch;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.http.Result;
+import org.conch.mq.Constants;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
 import org.conch.mq.dto.NodeConfigPerformanceTestDto;
@@ -58,17 +59,21 @@ public class NodeConfigPerformanceMsgHandler implements MessageHandler {
      */
     private boolean handlePending(Message message) {
         boolean result = false;
-        Logger.logInfoMessage(Convert.stringTemplate("handling pending message: {}", message));
+        Logger.logInfoMessage(Convert.stringTemplate(Constants.HANDLE_PENDING_MSG, message));
         try {
             NodeConfigPerformanceTestDto data = JSON.parseObject(message.getDataJson(), NodeConfigPerformanceTestDto.class);
             result = GetNodeHardware.readAndReport(data.getTestTime());
             if (result) {
+                message.setSuccess(true);
+                Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_HANDLE_PENDING_MSG, message));
                 result = MessageManager.receiveMessage(message, MessageManager.QueueType.SUCCESS, MessageManager.OperationType.PUT);
             } else {
+                message.setSuccess(false);
+                Logger.logInfoMessage(Convert.stringTemplate(Constants.FAILED_HANDLE_PENDING_MSG, message));
                 result = MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.logErrorMessage(Constants.ERROR_HANDLE_PENDING_MSG, e);
             MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
         }
         return result;
@@ -78,21 +83,23 @@ public class NodeConfigPerformanceMsgHandler implements MessageHandler {
         boolean result = false;
         Message msg = new Message().setId(message.getId()).setSender(Conch.getMyAddress()).setRetryCount(0).setSuccess(true)
                 .setDataJson(message.getDataJson()).setTimestamp(message.getTimestamp()).setType(message.getType());
-        Logger.logInfoMessage(Convert.stringTemplate("handling success message: {}", message));
+        Logger.logInfoMessage(Convert.stringTemplate(Constants.HANDLE_SUCCESS_MSG, message));
         try {
             RestfulHttpClient.HttpResponse response = MessageManager.sendMessageToFoundation(msg);
             Result responseResult = JSON.parseObject(response.getContent(), Result.class);
             result = responseResult.getSuccess();
             if (result) {
-                Logger.logInfoMessage("node configuration performance success message has been sent to Operation System");
+                Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_HANDLE_SUCCESS_MSG, message));
+                Logger.logInfoMessage(Constants.NODE_CONFIG_SUCCESS_INFO);
             } else {
-                Logger.logWarningMessage("node configuration performance success message failed to send to Operation System");
-                Logger.logWarningMessage("the current success message will be reprocessed later...");
+                message.setSuccess(false);
+                Logger.logWarningMessage(Constants.NODE_CONFIG_FAILED_INFO);
+                Logger.logWarningMessage(Constants.REPROCESS_SUCCESS_MSG_LATER);
                 MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
             }
         } catch (IOException e) {
-            Logger.logErrorMessage("[ERROR] send success message error, failed to connect to operate system", e);
-            Logger.logWarningMessage("the current success message will be reprocessed later...");
+            Logger.logErrorMessage(Constants.ERROR_HANDLE_SUCCESS_MSG, e);
+            Logger.logWarningMessage(Constants.REPROCESS_SUCCESS_MSG_LATER);
             MessageManager.receiveMessage(message, MessageManager.QueueType.FAILED, MessageManager.OperationType.PUT);
         }
         return result;
@@ -100,31 +107,33 @@ public class NodeConfigPerformanceMsgHandler implements MessageHandler {
 
     private boolean handleFailed(Message message) {
         boolean isValid, result = false;
-        Logger.logInfoMessage(Convert.stringTemplate("handling failed message: {}", message));
+        Logger.logInfoMessage(Convert.stringTemplate(Constants.HANDLE_FAILED_MSG, message));
         MessageManager.addRetryCount(message);
         isValid = MessageManager.checkMsgValidity(message);
         if (isValid) {
             // return it to pending queue
+            Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_HANDLE_FAILED_MSG_1, message));
+            Logger.logInfoMessage(Constants.REPROCESS_FAILED_MSG_LATER);
             result = MessageManager.receiveMessage(message, MessageManager.QueueType.PENDING, MessageManager.OperationType.PUT);
         } else {
             // send failed message
             Message msg = new Message().setId(message.getId()).setSender(Conch.getMyAddress()).setRetryCount(0).setSuccess(true)
                     .setDataJson(message.getDataJson()).setTimestamp(message.getTimestamp()).setType(message.getType());
-            Logger.logInfoMessage(Convert.stringTemplate("handling failed message: {}", message));
             try {
                 RestfulHttpClient.HttpResponse response = MessageManager.sendMessageToFoundation(msg);
                 Result responseResult = JSON.parseObject(response.getContent(), Result.class);
                 result = responseResult.getSuccess();
                 if (result) {
-                    Logger.logInfoMessage("node configuration performance failed message has been sent to Operation System");
+                    Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_HANDLE_FAILED_MSG_2, message));
+                    Logger.logInfoMessage(Constants.NODE_CONFIG_SUCCESS_INFO_2);
                 } else {
-                    Logger.logWarningMessage("node configuration performance failed message failed to send to Operation System");
-                    Logger.logWarningMessage("the current failed message will be abandoned...");
+                    Logger.logWarningMessage(Constants.NODE_CONFIG_FAILED_INFO_2);
+                    Logger.logWarningMessage(Convert.stringTemplate(Constants.ABANDON_MSG, message));
                 }
             } catch (IOException e) {
                 // abandon message
-                Logger.logErrorMessage("[ERROR] send failed message error, failed to connect to operate system", e);
-                Logger.logWarningMessage("the current failed message will be abandoned...");
+                Logger.logErrorMessage(Constants.ERROR_HANDLE_FAILED_MSG, e);
+                Logger.logWarningMessage(Convert.stringTemplate(Constants.ABANDON_MSG, message));
             }
         }
         return result;

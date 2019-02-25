@@ -354,8 +354,6 @@ public final class Constants {
 
     public static final String HTTP = "http://";
 
-    public static final String HTTPS = "https://";
-
     public static final String CURLY_BRACES = "{";
 
     public static final String BRACKET = "[";
