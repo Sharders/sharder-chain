@@ -26,7 +26,7 @@ public class UrlManager {
     /**
      * get peers list
      */
-    public static final String PEERS_LIST_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
+    public static final String PEERS_LIST_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/list.ss";
     public static final String PEERS_LIST_PATH = "/sc/peer/list.ss";
 
     /**
