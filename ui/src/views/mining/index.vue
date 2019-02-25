@@ -832,7 +832,7 @@
         position: relative;
         float: right;
         right: -30px;
-        top: -20px;
+        /*top: -20px;*/
         background-color: #0000ff;
         display: inline-block;
         font-size: 14px;
@@ -851,7 +851,7 @@
         position: relative;
         text-align: center;
         color: #fff;
-        top: 130px;
+        top: 180px;
         float: right;
         right: -130px;
         cursor: pointer;

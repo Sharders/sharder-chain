@@ -168,7 +168,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t("network.miners_roll")}}</h4>
                     </div>
                     <div class="modal-body modal-miner">
