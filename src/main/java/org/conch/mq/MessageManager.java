@@ -59,9 +59,9 @@ public class MessageManager {
         PENDING_MESSAGE_WORKER = new HandleMessageWorker(QueueType.PENDING);
         SUCCESS_MESSAGE_WORKER = new HandleMessageWorker(QueueType.SUCCESS);
         FAILED_MESSAGE_WORKER = new HandleMessageWorker(QueueType.FAILED);
-        ThreadPool.scheduleThread(Constants.PENDING_THREAD_NAME, PENDING_MESSAGE_WORKER, 30);
-        ThreadPool.scheduleThread(Constants.SUCCESS_THREAD_NAME, SUCCESS_MESSAGE_WORKER, 30);
-        ThreadPool.scheduleThread(Constants.FAILED_THREAD_NAME, FAILED_MESSAGE_WORKER, 30);
+        ThreadPool.scheduleThread(Constants.PENDING_THREAD_NAME, PENDING_MESSAGE_WORKER, 1);
+        ThreadPool.scheduleThread(Constants.SUCCESS_THREAD_NAME, SUCCESS_MESSAGE_WORKER, 1);
+        ThreadPool.scheduleThread(Constants.FAILED_THREAD_NAME, FAILED_MESSAGE_WORKER, 1);
     }
 
     public static void init() {
