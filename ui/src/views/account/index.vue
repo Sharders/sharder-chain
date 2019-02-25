@@ -242,7 +242,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t('sendMessage.sendMessage_title')}}</h4>
                     </div>
                     <div class="modal-body modal-message">
@@ -304,7 +304,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t('transfer.transfer_title')}}</h4>
                     </div>
                     <div class="modal-body modal-message">
@@ -553,7 +553,7 @@
         <!--view account transaction dialog-->
         <div class="modal_info" id="account_info" v-show="userInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span>{{$t('account_info.account_information')}}</span>
                 </h4>

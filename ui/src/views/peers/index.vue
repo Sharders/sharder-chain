@@ -143,7 +143,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t('peers.join_blacklist')}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
@@ -162,7 +162,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t('peers.link_peer')}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
@@ -181,7 +181,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t("network.peers_add")}}</h4>
                     </div>
                     <div class="modal-body modal-peer">

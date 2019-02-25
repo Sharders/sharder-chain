@@ -3,7 +3,7 @@
         <!--view account info-->
         <div class="modal_info" id="account_info" v-show="accountInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span>{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
                 </h4>
@@ -86,7 +86,7 @@
         <!--view account transaction info-->
         <div class="modal_info" id="account_transaction" v-show="accountTransactionDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span>{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
                 </h4>

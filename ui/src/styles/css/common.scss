@@ -244,15 +244,12 @@
                 border-bottom: 1px solid #eee;
                 .close{
                     position: absolute;
-                    right: 25px;
-                    background: none;
+                    right: 10px;
+                    background: url("../../assets/img/error.svg") no-repeat center;;
                     border: none;
-                    font-size: 16px;
-                    color: #333;
-                    font-weight: bold;
-                    padding: 0;
-                    top: 0;
-                    bottom: 0;
+                    width: 20px;
+                    height: 20px;
+                    top: 10px;
                     cursor: pointer;
                 }
                 .modal-title{
@@ -419,10 +416,10 @@
         height: 60px;
         border-bottom: 1px solid #eee;
         .close{
-            width: 24px;
+            width: 20px;
             position: absolute;
-            right: 30px;
-            top: 18px;
+            right: 10px;
+            top: 10px;
             cursor: pointer;
         }
         .modal-title{
