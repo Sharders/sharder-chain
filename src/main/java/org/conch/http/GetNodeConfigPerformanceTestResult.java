@@ -49,11 +49,11 @@ public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequ
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) {
 
-//        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-//            String msg = "Exception: Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!";
-//            System.out.println(msg);
-//            return ResultUtil.error500(msg);
-//        }
+        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+            String msg = "Exception: Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!";
+            System.out.println(msg);
+            return ResultUtil.error500(msg);
+        }
 
         // get message from request
         String postParams = Https.getPostData(request);

@@ -20,8 +20,7 @@ public class UrlManager {
     /**
      * report node configuration performance
      */
-//    public static final String NODE_CONFIG_REPORT_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
-    public static final String NODE_CONFIG_REPORT_EOLINKER = "http://localhost:8080/sc/peer/report.ss";
+    public static final String NODE_CONFIG_REPORT_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
     public static final String NODE_CONFIG_REPORT_PATH = "/sc/peer/report.ss";
 
     /**
@@ -33,8 +32,7 @@ public class UrlManager {
     /**
      * add message
      */
-//    public static final String ADD_MESSAGE_TO_SHARDER_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/messageQueue/add.ss";
-    public static final String ADD_MESSAGE_TO_SHARDER_EOLINKER = "http://localhost:8080/messageQueue/add.ss";
+    public static final String ADD_MESSAGE_TO_SHARDER_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/messageQueue/add.ss";
     public static final String ADD_MESSAGE_TO_SHARDER_PATH = "/messageQueue/add.ss";
 
     /*=============================================Foundation API END========================================*/
