@@ -111,7 +111,7 @@
                             <el-col :span="12">
                                 <button class="info">
                                     {{$t('mining.attribute.reward_distribution')}}
-                                    {{(1-miningInfo.level.forgepool.reward.max/1)*100 }}%
+                                    {{miningInfo.level.forgepool.reward.max * 100 }}%
                                 </button>
                             </el-col>
                         </el-row>
@@ -301,7 +301,7 @@
                     _this.miningInfo.poolId = res.poolId;
                     _this.miningInfo.currentInvestment = res.power;
                     _this.miningInfo.accountId = res.creatorID;
-                    _this.miningInfo.income = res.historicalIncome;
+                    _this.miningInfo.income = res.historicalMintRewards;
                     _this.miningInfo.chance = res.chance;
                     _this.miningInfo.startBlockNo = res.startBlockNo;
                     _this.miningInfo.endBlockNo = res.endBlockNo;
@@ -316,10 +316,10 @@
             },
             validationJoinMining() {
                 if (SSO.downloadingBlockchain) {
-                    return this.$message.warning(this.$("account.synchronization_block"));
+                    return this.$message.warning(this.$t("account.synchronization_block"));
                 }
                 if (this.joinPool <= 1) {
-                    return this.$message.error(this.$("mining.attribute.join_number_info"));
+                    return this.$message.error(this.$t("mining.attribute.join_number_info"));
                 }
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));

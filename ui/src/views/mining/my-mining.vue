@@ -103,7 +103,7 @@
                         _this.createList.push({
                             investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: res[n].power / 100000000,
-                            earnings: res[n].historicalIncome / 100000000,
+                            earnings: res[n].historicalMintRewards / 100000000,
                             distribution: level.forgepool.reward.max,
                             remaining: res[n].startBlockNo > res[n].updateHeight ? res[n].endBlockNo - res[n].startBlockNo : res[n].endBlockNo - res[n].updateHeight
                         });
@@ -119,7 +119,7 @@
                         _this.joinList.push({
                             investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: mining.power / 100000000,
-                            earnings: mining.historicalIncome / 100000000,
+                            earnings: mining.historicalMintRewards / 100000000,
                             distribution: level.forgepool.reward.max,
                             remaining: mining.startBlockNo > mining.updateHeight ? mining.endBlockNo - mining.startBlockNo : mining.endBlockNo - mining.updateHeight
                         });

@@ -11,6 +11,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -299,11 +300,27 @@ public class PoolRule implements Serializable {
             total += value;
         }
         for (Long id : map.keySet()) {
+//            if (result.containsKey(id)) {
+//                result.put(id, result.get(id) + leftAmount * map.get(id) / total);
+//            }
+//            result.put(id, leftAmount * map.get(id) / total);
+
+            //奖励分发(1);
+            long reward = new BigDecimal(leftAmount).multiply(new BigDecimal(map.get(id).toString())).divide(new BigDecimal(total),0,BigDecimal.ROUND_DOWN).longValue();
             if (result.containsKey(id)) {
-                result.put(id, result.get(id) + leftAmount * map.get(id) / total);
+                result.put(id, result.get(id) + reward);
+                continue;
             }
-            result.put(id, leftAmount * map.get(id) / total);
+            result.put(id, reward);
         }
+
+        //奖励分发(2);
+        long poor = amount;
+        for(long p : result.values()){
+            poor -= p;
+        }
+        result.put(creator, result.get(creator) + poor);
+
         return result;
     }
 

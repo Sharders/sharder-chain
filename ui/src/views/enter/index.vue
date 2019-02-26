@@ -22,17 +22,17 @@
 
     export default {
         name: "index",
-        data () {
+        data() {
             return {
                 notAutoSize: {
                     minRows: 4,
                     maxRows: 4
                 },
-                passphrase:this.$route.params.passPhrase,
-                confirmPassphrase:''
+                passphrase: this.$route.params.passPhrase,
+                confirmPassphrase: ''
             };
         },
-        created:function(){
+        created: function () {
         },
         methods: {
             cancel: function () {
@@ -41,23 +41,13 @@
             enter: function () {
                 let _this = this;
                 if (_this.confirmPassphrase === "") {
-                    _this.$message.info(_this.$t('notification.login_no_input_error'));
-                    return;
+                    return _this.$message.info(_this.$t('notification.login_no_input_error'));
                 }
-                if(_this.confirmPassphrase !== _this.passPhrase){
-                    _this.$message.error(_this.$t('login.incorrect_key'));
-                    return;
+                if (_this.confirmPassphrase !== _this.passphrase) {
+                    return _this.$message.error(_this.$t('login.incorrect_key'));
                 }
-                Login.login(true, _this.passphrase, _this, function () {
-/*
-                    console.log(SSO);
-                    console.log("account", SSO.account);
-                    console.log("accountInfo", SSO.accountInfo);
-                    console.log("accountRS", SSO.accountRS);
-                    console.log("publicKey", SSO.publicKey);
-                    console.log("settings", SSO.settings);
-*/
-                    _this.$global.setEpochBeginning(_this).then(res=>{
+                Login.login(1, _this.passphrase, _this, function () {
+                    _this.$global.setEpochBeginning(_this).then(res => {
                         _this.$store.state.isLogin = true;
                         _this.$router.push("/account");
 

@@ -88,13 +88,13 @@
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalIncome/100000000}} SS</span>
+                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalMintRewards/100000000}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
                                         <span>
                                             {{$t('mining.index.Income_distribution')}}
-                                            {{mining.rule.level1 ? (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%
+                                            {{mining.rule.level1 ? (mining.rule.level1.forgepool.reward.max * 100) : (mining.rule.level0.forgepool.reward.max * 100)}}%
                                         </span>
                                     </p>
                                     <p>
@@ -549,6 +549,14 @@
 
                 _this.getAssetsRanking();
                 _this.getAccountRanking();
+
+                if (!window.$miningInitial) {
+                    window.$miningInitial = setInterval(() => {
+                        if (_this.$router.currentRoute.name !== "mining") return;
+                        _this.loginAfter();
+                        _this.$forceUpdate();//通知Vue渲染
+                    }, 10000);
+                }
             },
             getCoinBase(height) {
                 let _this = this;
