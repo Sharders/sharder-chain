@@ -22,11 +22,11 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
-import org.conch.Conch;
+import org.conch.common.ConchException;
+import org.conch.common.UrlManager;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
 import org.conch.util.Https;
-import org.conch.util.IpUtil;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,10 +49,11 @@ public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequ
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) {
 
-        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-            String msg = "Exception: Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!";
-            System.out.println(msg);
-            return ResultUtil.error500(msg);
+        try {
+            UrlManager.foundationHostFilter(request);
+        } catch (ConchException.NotValidException e) {
+            e.printStackTrace();
+            return ResultUtil.error500(e.getMessage());
         }
 
         // get message from request
