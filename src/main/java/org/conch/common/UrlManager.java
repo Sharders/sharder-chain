@@ -1,6 +1,9 @@
 package org.conch.common;
 
 import org.conch.Conch;
+import org.conch.util.IpUtil;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 统一管理eoLinker的URLs
@@ -42,5 +45,17 @@ public class UrlManager {
             return Constants.HTTP + Conch.getSharderFoundationURL() + path;
         }
         return eoLinkerUrl;
+    }
+
+    /**
+     * foundation url filter
+     *
+     * @param request HttpServletRequest
+     * @throws ConchException.NotValidException
+     */
+    public static void foundationHostFilter(HttpServletRequest request) throws ConchException.NotValidException {
+        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
+            throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!");
+        }
     }
 }
