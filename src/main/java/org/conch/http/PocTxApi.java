@@ -2,9 +2,10 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocTemplate;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -14,13 +15,15 @@ import org.conch.tx.Attachment;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Https;
-import org.conch.util.IpUtil;
+import org.conch.util.Logger;
+import org.eclipse.jetty.http.HttpStatus;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 public abstract class PocTxApi {
@@ -34,16 +37,25 @@ public abstract class PocTxApi {
         }
 
         @Override
-        protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
+        protected JSONStreamAware processRequest(HttpServletRequest request) {
+            try {
+                UrlManager.foundationHostFilter(request);
+                String nodeTypeConfigJson = Https.getPostData(request);
+                Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
+                        .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
+                Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
+                SystemInfo systemInfo = Optional.ofNullable(JSONObject.parseObject(nodeTypeConfigJson, SystemInfo.class))
+                        .orElseThrow(() -> new ConchException.NotValidException("system info can not be null!"));
+                Attachment attachment = new PocTxBody.PocNodeConf(systemInfo.getIp(), systemInfo.getPort(), systemInfo);
+                Logger.logInfoMessage("creating node config performance tx...");
+                Logger.logDebugMessage(Convert.stringTemplate("account id={},address={}; systemInfo:{}", account.getId(), account.getRsAddress(), systemInfo));
+                createTransaction(request, account, 0, 0, attachment);
+                Logger.logInfoMessage("success to create node config performance tx");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.toString());
             }
-            String nodeTypeConfigJson = Https.getPostData(request);
-            Account account = ParameterParser.getSenderAccount(request);
-            String bindRs = request.getParameter("bindRs");
-            SystemInfo systemInfo = JSONObject.parseObject(nodeTypeConfigJson, SystemInfo.class);
-            Attachment attachment = new PocTxBody.PocNodeConf(systemInfo.getIp(), systemInfo.getPort(), systemInfo);
-            return createTransaction(request, account, 0, 0, attachment);
+            return ResultUtil.ok(Constants.SUCCESS);
         }
     }
 
@@ -58,9 +70,7 @@ public abstract class PocTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
 
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
+            UrlManager.foundationHostFilter(request);
             String ip = Convert.emptyToNull(request.getParameter("ip"));
             String port = Convert.emptyToNull(request.getParameter("port"));
             String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
@@ -118,7 +128,6 @@ public abstract class PocTxApi {
     }
 
 
-
     /**
      * Create a node type definition tx
      */
@@ -132,15 +141,11 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            UrlManager.foundationHostFilter(request);
             Account account = ParameterParser.getSenderAccount(request);
-
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
-
             String ip = request.getParameter("ip");
             String type = request.getParameter("type");
-            Attachment attachment = new PocTxBody.PocNodeType(ip,Peer.Type.getByCode(type));
+            Attachment attachment = new PocTxBody.PocNodeType(ip, Peer.Type.getByCode(type));
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
@@ -156,16 +161,13 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
+            UrlManager.foundationHostFilter(request);
             String templateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
             PocTemplate customPocTemp = JSONObject.parseObject(
                     templateJson,
                     PocTemplate.class
-                    );
+            );
             Attachment attachment = PocTxBody.PocWeightTable.pocWeightTableBuilder(customPocTemp);
             return createTransaction(request, account, attachment);
         }
@@ -181,10 +183,7 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
+            UrlManager.foundationHostFilter(request);
             String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
             String transactionFullHash = Convert.emptyToNull(request.getParameter("fullHash"));
             boolean includePhasingResult = Boolean.TRUE.toString().equalsIgnoreCase(request.getParameter("includePhasingResult"));
@@ -210,7 +209,7 @@ public abstract class PocTxApi {
         }
 
         private void queryPocTemplateTransactionsViaVersion(List<org.json.simple.JSONObject> pocWeightTablesJson, long version, List<org.json.simple.JSONObject> transactions) {
-            for(org.json.simple.JSONObject transaction : transactions) {
+            for (org.json.simple.JSONObject transaction : transactions) {
                 byte type = Byte.parseByte(String.valueOf(transaction.get("type")));
                 byte subType = Byte.parseByte(String.valueOf(transaction.get("subtype") == null ? 0 : transaction.get("subtype")));
                 if (TransactionType.TYPE_POC == type && PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == subType) {
@@ -241,7 +240,7 @@ public abstract class PocTxApi {
     }
 
 
-    public static final class CreateOnlineRate extends CreateTransaction{
+    public static final class CreateOnlineRate extends CreateTransaction {
 
         static final CreateOnlineRate instance = new CreateOnlineRate();
 
@@ -251,17 +250,14 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
+            UrlManager.foundationHostFilter(request);
             String onlineRateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
             Map onlineRateMap = JSONObject.parseObject(onlineRateJson, Map.class);
             String ip = String.valueOf(onlineRateMap.get("ip"));
             String port = String.valueOf(onlineRateMap.get("port"));
             String rate = String.valueOf(onlineRateMap.get("onlineRate"));
-            Integer onlineRate = Integer.parseInt(StringUtils.isEmpty(rate)||"null".equalsIgnoreCase(rate) ? "0" : rate);
+            Integer onlineRate = Integer.parseInt(StringUtils.isEmpty(rate) || "null".equalsIgnoreCase(rate) ? "0" : rate);
             Attachment attachment = new PocTxBody.PocOnlineRate(ip, port, onlineRate);
 
             return createTransaction(request, account, 0, 0, attachment);
@@ -278,10 +274,7 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-
-            if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-                throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can create this tx");
-            }
+            UrlManager.foundationHostFilter(request);
             String ip = Convert.emptyToNull(request.getParameter("ip"));
             String port = Convert.emptyToNull(request.getParameter("port"));
             String transactionIdString = Convert.emptyToNull(request.getParameter("transaction"));
@@ -309,7 +302,7 @@ public abstract class PocTxApi {
         }
 
         private void queryOnlineRateTransactionsViaAddress(List<org.json.simple.JSONObject> onlineRateJson, String ip, String port, List<org.json.simple.JSONObject> transactions) {
-            for(org.json.simple.JSONObject transaction : transactions) {
+            for (org.json.simple.JSONObject transaction : transactions) {
                 byte type = Byte.parseByte(String.valueOf(transaction.get("type")));
                 byte subType = Byte.parseByte(String.valueOf(transaction.get("subtype") == null ? 0 : transaction.get("subtype")));
                 if (TransactionType.TYPE_POC == type && PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == subType) {
