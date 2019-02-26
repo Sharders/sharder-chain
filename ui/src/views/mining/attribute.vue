@@ -111,7 +111,7 @@
                             <el-col :span="12">
                                 <button class="info">
                                     {{$t('mining.attribute.reward_distribution')}}
-                                    {{(1-miningInfo.level.forgepool.reward.max/1)*100 }}%
+                                    {{miningInfo.level.forgepool.reward.max * 100 }}%
                                 </button>
                             </el-col>
                         </el-row>
@@ -301,7 +301,7 @@
                     _this.miningInfo.poolId = res.poolId;
                     _this.miningInfo.currentInvestment = res.power;
                     _this.miningInfo.accountId = res.creatorID;
-                    _this.miningInfo.income = res.historicalIncome;
+                    _this.miningInfo.income = res.historicalMintRewards;
                     _this.miningInfo.chance = res.chance;
                     _this.miningInfo.startBlockNo = res.startBlockNo;
                     _this.miningInfo.endBlockNo = res.endBlockNo;

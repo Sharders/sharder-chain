@@ -471,7 +471,7 @@ var NRS = (function (NRS, $, undefined) {
                     NRS.resetRemoteNode(true);
                 }
                 if (error == "timeout") {
-                    error = $.t("sso.error_request_timeout");
+                    error = "sso.error_request_timeout";
                 }
                 callback({
                     "errorCode": -1,
