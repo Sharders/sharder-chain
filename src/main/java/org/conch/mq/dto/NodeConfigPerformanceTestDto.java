@@ -11,6 +11,7 @@ public class NodeConfigPerformanceTestDto implements Serializable {
     private Integer id;
     private String address;
     private Integer port;
+    private String netWorkType;
     private Integer testTime;
 
     public Integer getId() {
@@ -42,6 +43,15 @@ public class NodeConfigPerformanceTestDto implements Serializable {
 
     public Integer getTestTime() {
         return testTime;
+    }
+
+    public String getNetWorkType() {
+        return netWorkType;
+    }
+
+    public NodeConfigPerformanceTestDto setNetWorkType(String netWorkType) {
+        this.netWorkType = netWorkType;
+        return this;
     }
 
     public NodeConfigPerformanceTestDto setTestTime(Integer testTime) {
