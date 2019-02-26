@@ -3,12 +3,15 @@ package org.conch.consensus.poc.hardware;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.io.Serializable;
+
 /**
  * 系统信息对象
  * @author CloudSen
  */
-public class SystemInfo {
+public class SystemInfo implements Serializable {
 
+    private static final long serialVersionUID = -3649460156403566640L;
     /**
      * 性能测试用，穿透服务地址或本机地址
      */
