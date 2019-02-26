@@ -316,10 +316,10 @@
             },
             validationJoinMining() {
                 if (SSO.downloadingBlockchain) {
-                    return this.$message.warning(this.$("account.synchronization_block"));
+                    return this.$message.warning(this.$t("account.synchronization_block"));
                 }
                 if (this.joinPool <= 1) {
-                    return this.$message.error(this.$("mining.attribute.join_number_info"));
+                    return this.$message.error(this.$t("mining.attribute.join_number_info"));
                 }
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));

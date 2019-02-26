@@ -151,6 +151,8 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
             Connection con = Db.db.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT sum(a.FORGED_BALANCE) as num from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID)");
             json.put("cutIncome",GetAccountRanking.result(ps.executeQuery()));
+            con.commit();
+            con.close();
         } catch (SQLException e) {
             json.put("success",false);
             e.printStackTrace();
