@@ -81,7 +81,7 @@ public class MessageManager {
         BlockingQueue<Message> queue;
         try {
             queue = getQueueByType(queueType);
-            Logger.logInfoMessage(Convert.stringTemplate(Constants.ADD_MSG_INFO, message, queueType));
+            Logger.logDebugMessage(Convert.stringTemplate(Constants.ADD_MSG_INFO, message, queueType));
             switch (operationType) {
                 case ADD:
                     result = queue.add(message);
@@ -98,7 +98,7 @@ public class MessageManager {
             }
 
             if (result) {
-                Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_ADD_MSG, queueType, queueType, queue.size()));
+                Logger.logDebugMessage(Convert.stringTemplate(Constants.SUCCESS_ADD_MSG, queueType, queueType, queue.size()));
             } else {
                 Logger.logWarningMessage(Convert.stringTemplate(Constants.FAILED_ADD_MSG, queueType, queueType));
             }
@@ -121,7 +121,7 @@ public class MessageManager {
 
         try {
             queue = getQueueByType(queueType);
-            Logger.logInfoMessage(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType));
+            Logger.logDebugMessage(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType));
             switch (operationType) {
                 case REMOVE:
                     message = queue.remove();
@@ -136,7 +136,7 @@ public class MessageManager {
                     throw new IllegalArgumentException(Constants.OPERATION_NOT_FOUND);
             }
             if (message != null) {
-                Logger.logInfoMessage(Convert.stringTemplate(Constants.SUCCESS_FETCH_MSG, queueType, message, queueType, queue.size()));
+                Logger.logDebugMessage(Convert.stringTemplate(Constants.SUCCESS_FETCH_MSG, queueType, message, queueType, queue.size()));
             } else {
                 Logger.logWarningMessage(Constants.FAILED_FETCH_MSG);
             }
@@ -199,7 +199,7 @@ public class MessageManager {
         public void run() {
             Message message = fetchMessage(queueType, OperationType.POLL);
             if (message == null) {
-                Logger.logInfoMessage(Convert.stringTemplate(Constants.NO_MSG_NOW, queueType));
+                Logger.logDebugMessage(Convert.stringTemplate(Constants.NO_MSG_NOW, queueType));
                 return;
             }
             messageHandler = MessageHandler.Factory.getByType(Message.Type.getTypeByName(message.getType()));
