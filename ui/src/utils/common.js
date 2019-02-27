@@ -478,7 +478,7 @@ export default {
      */
     numToAzd(num) {
         let str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        let s = num < 0 ? '∉' : '';
+        let s = num < 0 ? '$' : '';
         num = Math.abs(num);
         let i = 0;
         while (true) {
@@ -491,6 +491,14 @@ export default {
             }
         }
         return s;
+    },
+    /**
+     * 将数字转换成无符号long
+     */
+    longUnsigned(num) {
+        if (num > 0) return num;
+        num = new BigInteger(num).abs();
+        return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
     },
     isTestNet() {
         return SSO.netWorkType === 'Testnet';

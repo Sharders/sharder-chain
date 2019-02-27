@@ -7,7 +7,7 @@
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}}{{$global.numToAzd(mining.poolId)}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
+                            {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
                         </span>
                         <span class="pool-attribute-info" @click="miningMask('isAttribute')">{{$t('mining.attribute.pool_details')}}</span>
                     </div>
@@ -95,7 +95,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_number')}}{{$global.numToAzd(mining.poolId)}}
+                                    {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
@@ -300,7 +300,7 @@
                     _this.miningInfo.amount = res.number;
                     _this.miningInfo.poolId = res.poolId;
                     _this.miningInfo.currentInvestment = res.power;
-                    _this.miningInfo.accountId = res.creatorID;
+                    _this.miningInfo.accountId = _this.$global.longUnsigned(res.creatorID);
                     _this.miningInfo.income = res.historicalMintRewards;
                     _this.miningInfo.chance = res.chance;
                     _this.miningInfo.startBlockNo = res.startBlockNo;
@@ -309,7 +309,7 @@
                     _this.miningInfo.joinAmount = res.joinAmount;
                     _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max;
                     let nxtAddress = new NxtAddress();
-                    if (nxtAddress.set(res.creatorID)) {
+                    if (nxtAddress.set(_this.miningInfo.accountId)) {
                         _this.miningInfo.account = nxtAddress.toString();
                     }
                 });

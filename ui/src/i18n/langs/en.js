@@ -159,6 +159,7 @@ const en = {
     },
     network: {
         'mining_time': "Mining time",
+        'poc_score': "Power",
         'miners_roll': "Miners roll",
         'miners_list': "Miners list",
         'no_connection': "No Connection",

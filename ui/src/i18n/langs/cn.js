@@ -161,6 +161,7 @@ const cn = {
     },
     network: {
         'mining_time': "挖矿时间",
+        'poc_score': "算力",
         'miners_roll': "矿工名单",
         'miners_list': "矿工列表",
         'no_connection': "无连接",
