@@ -1136,7 +1136,7 @@
 <style scoped>
     .ranking {
         position: fixed;
-        top: calc(50% - 250px);
+        top: calc(50% - 300px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -1180,7 +1180,7 @@
     }
 
     .ranking-content .my-assets {
-        padding: 30px 0;
+        padding: 20px 0;
         text-align: center;
         font-size: 14px;
         font-weight: bold;
@@ -1188,7 +1188,7 @@
 
     .ranking-table th {
         font-weight: bold;
-        height: 60px;
+        height: 50px;
         min-width: 100px;
         font-size: 14px;
     }
@@ -1456,7 +1456,7 @@
             position: absolute;
             width: calc(100% - 30px);
             left: 15px;
-            top: 80px;
+            top: 60px;
         }
 
         .mining .create-pool {
@@ -1567,6 +1567,14 @@
 
         .mining .mining-list .mining-list-info {
             padding: 0 10px 70px 10px;
+        }
+
+        .ranking-table th {
+            height: 30px !important;
+        }
+
+        .ranking-table tr {
+            height: 40px !important;
         }
     }
 </style>

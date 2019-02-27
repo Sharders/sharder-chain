@@ -46,6 +46,7 @@
                 if (_this.confirmPassphrase !== _this.passphrase) {
                     return _this.$message.error(_this.$t('login.incorrect_key'));
                 }
+                SSO.secretPhrase = _this.passphrase;
                 Login.login(1, _this.passphrase, _this, function () {
                     _this.$global.setEpochBeginning(_this).then(res => {
                         _this.$store.state.isLogin = true;

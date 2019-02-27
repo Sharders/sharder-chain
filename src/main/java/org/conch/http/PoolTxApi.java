@@ -264,7 +264,8 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+//            long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+            long creatorId = Long.parseUnsignedLong(request.getParameter("creatorId"));
             return PoolRule.getTemplate(creatorId);
         }
 

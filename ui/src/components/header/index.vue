@@ -361,9 +361,7 @@
                 this.$store.state.mask = false;
             },
             exit:function () {
-               const _this = this;
-               _this.$store.state.isLogin = false;
-               _this.$router.push("/login");
+                window.location.href = "/";
             },
             isClose:function () {
                 const _this = this;

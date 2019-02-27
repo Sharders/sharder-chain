@@ -59,13 +59,13 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button class="join" @click="miningMask('isJoinPool')">
+                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal" class="join" @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="myAccount !== miningInfo.account" class="exit" @click="miningMask('isExitPool')">
+                        <button v-if="miningInfo.joinAmount > 0" class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-else class="exit" @click="miningMask('isDestroyPool')">
+                        <button v-if="myAccount === miningInfo.account " class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
                     </div>
