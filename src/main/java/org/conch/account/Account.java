@@ -1942,8 +1942,8 @@ public final class Account {
     }
 
     public static void checkApiAutoTxAccount(String address) throws ConchException.AccountControlException {
-        String correctRs = Optional.ofNullable(Conch.getStringProperty("sharder.transactionAddress"))
-                .orElseThrow(() -> new ConchException.AccountControlException("sharder.transactionAddress not configured!"));
+        String correctRs = Optional.ofNullable(Conch.getStringProperty("sharder.autoTransactionAddress"))
+                .orElseThrow(() -> new ConchException.AccountControlException("auto transaction address not configured!"));
         if (!correctRs.equals(address)) {
             throw new ConchException.AccountControlException("Account address does not match!");
         }

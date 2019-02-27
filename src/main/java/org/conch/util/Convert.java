@@ -260,6 +260,10 @@ public final class Convert {
         return size;
     }
 
+    public static int writeObject(ByteBuffer buffer, Object object) {
+        return writeString(buffer, JSONObject.toJSONString(object));
+    }
+
     public static String truncate(String s, String replaceNull, int limit, boolean dots) {
         return s == null ? replaceNull : s.length() > limit ? (s.substring(0, dots ? limit - 3 : limit) + (dots ? "..." : "")) : s;
     }

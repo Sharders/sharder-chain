@@ -290,6 +290,7 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         } catch (ConchException.InsufficientBalanceException e) {
             throw e;
         } catch (ConchException.ValidationException e) {
+            e.printStackTrace();
             if (broadcast) {
                 response.clear();
             }
