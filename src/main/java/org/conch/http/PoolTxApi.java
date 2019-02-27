@@ -151,9 +151,9 @@ public abstract class PoolTxApi {
                         Long a = getLevel(o1).getJSONObject("consignor").getJSONObject("amount").getLong("max");
                         Long b = getLevel(o2).getJSONObject("consignor").getJSONObject("amount").getLong("max");
                         if (a > b) {
-                            return 1;
-                        } else if (a < b) {
                             return -1;
+                        } else if (a < b) {
+                            return 1;
                         } else {
                             return 0;
                         }
@@ -167,9 +167,9 @@ public abstract class PoolTxApi {
                         Double a = getLevel(o1).getJSONObject("forgepool").getJSONObject("reward").getDouble("max");
                         Double b = getLevel(o2).getJSONObject("forgepool").getJSONObject("reward").getDouble("max");
                         if (a > b) {
-                            return 1;
-                        } else if (a < b) {
                             return -1;
+                        } else if (a < b) {
+                            return 1;
                         } else {
                             return 0;
                         }
@@ -180,12 +180,12 @@ public abstract class PoolTxApi {
                 comparator = new Comparator<JSONObject>() {
                     @Override
                     public int compare(JSONObject o1, JSONObject o2) {
-                        Long a = Long.valueOf(o1.get("endBlockNo").toString()) - Long.valueOf(o1.get("updateHeight").toString());
-                        Long b = Long.valueOf(o2.get("endBlockNo").toString()) - Long.valueOf(o2.get("updateHeight").toString());
+                        Long a = Long.valueOf(o1.get("endBlockNo").toString());
+                        Long b = Long.valueOf(o2.get("endBlockNo").toString());
                         if (a > b) {
-                            return 1;
-                        } else if (a < b) {
                             return -1;
+                        } else if (a < b) {
+                            return 1;
                         } else {
                             return 0;
                         }
@@ -203,7 +203,7 @@ public abstract class PoolTxApi {
          * @return
          */
         private com.alibaba.fastjson.JSONObject getLevel(JSONObject rule) {
-            com.alibaba.fastjson.JSONObject o = com.alibaba.fastjson.JSONObject.parseObject(rule.get("rule").toString());
+            com.alibaba.fastjson.JSONObject o = (com.alibaba.fastjson.JSONObject)com.alibaba.fastjson.JSONObject.toJSON(rule.get("rule"));
             return o.getJSONObject("level1") != null ? o.getJSONObject("level1") : o.getJSONObject("level0");
         }
 
@@ -264,8 +264,12 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-//            long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             long creatorId = Long.parseUnsignedLong(request.getParameter("creatorId"));
+            if (!PocProcessorImpl.isCertifiedPeerBind(creatorId) && !Constants.isDevnet()) {
+                String errorDetail = "The account is not bound to an authentication peer";
+                Logger.logInfoMessage(errorDetail);
+                throw new ConchException.NotValidException(errorDetail);
+            }
             return PoolRule.getTemplate(creatorId);
         }
 

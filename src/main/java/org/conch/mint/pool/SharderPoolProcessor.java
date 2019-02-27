@@ -71,18 +71,18 @@ public class SharderPoolProcessor implements Serializable {
         Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
         
-        if (destroyedPools.containsKey(creatorId)) {
-            SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
-            pool.chance = pastPool.chance;
-            pool.state = State.INIT;
-            pool.historicalBlocks = pastPool.historicalBlocks;
-            pool.historicalIncome = pastPool.historicalIncome;
-            pool.historicalFees = pastPool.historicalFees;
-            pool.historicalMintRewards = pastPool.historicalMintRewards;
-            pool.totalBlocks = pastPool.totalBlocks;
-            pool.rule = rule;
-            Logger.logDebugMessage(creatorId + " create mint pool from old pool, chance " + pastPool.chance);
-        } else {
+//        if (destroyedPools.containsKey(creatorId)) {
+//            SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
+//            pool.chance = pastPool.chance;
+//            pool.state = State.INIT;
+//            pool.historicalBlocks = pastPool.historicalBlocks;
+//            pool.historicalIncome = pastPool.historicalIncome;
+//            pool.historicalFees = pastPool.historicalFees;
+//            pool.historicalMintRewards = pastPool.historicalMintRewards;
+//            pool.totalBlocks = pastPool.totalBlocks;
+//            pool.rule = rule;
+//            Logger.logDebugMessage(creatorId + " create mint pool from old pool, chance " + pastPool.chance);
+//        } else {
             pool.chance = 0;
             pool.state = State.INIT;
             pool.historicalBlocks = 0;
@@ -92,7 +92,7 @@ public class SharderPoolProcessor implements Serializable {
             pool.totalBlocks = 0;
             pool.rule = rule;
             Logger.logDebugMessage(creatorId + " create a new mint pool");
-        }
+//        }
         
         sharderPools.put(pool.poolId, pool);
     }

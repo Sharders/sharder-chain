@@ -512,7 +512,7 @@
                     }
                 });
 
-                _this.getPools();
+                _this.getPools({sort: _this.sortFun});
 
                 _this.$global.fetch("POST", {}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
