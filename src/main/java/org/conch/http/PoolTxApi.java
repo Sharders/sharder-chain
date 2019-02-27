@@ -37,18 +37,18 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
             if (!PocProcessorImpl.isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
-                String errorDetail = "current account can't create sharder pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to certified peer";
+                String errorDetail = "current account can't create mint pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
 
-            int period = ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
+            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
                 rules = (JSONObject) (new JSONParser().parse(rule));
             } catch (Exception e) {
-                Logger.logErrorMessage("cant obtain rule when create forge pool");
+                Logger.logErrorMessage("cant obtain rule when create mint pool");
             }
             Map<String, Object> rule = PoolRule.jsonObjectToMap(rules);
             Attachment attachment = new Attachment.SharderPoolCreate(period, rule);

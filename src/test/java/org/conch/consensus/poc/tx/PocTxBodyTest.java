@@ -16,7 +16,9 @@ public class PocTxBodyTest {
     
     static void defaultTemplate2BytesTest(){
         PocTxBody.PocWeightTable weightTable = PocTxBody.PocWeightTable.defaultPocWeightTable();
-        buffer = ByteBuffer.allocate(weightTable.getMySize());
+        //allocate and put the bytes into buffer
+        buffer = ByteBuffer.allocate(weightTable.getMySize() + 1);
+        buffer.put((byte)1);
         weightTable.putMyBytes(buffer);
         byteStr = Convert.toString(buffer.array());
         System.out.println("size=" + byteStr.length());
@@ -24,13 +26,14 @@ public class PocTxBodyTest {
     }
     
     static void bytes2WeightTableTest() throws ConchException.NotValidException {
+        //parse the bytes string to PocWeightTable
         PocTxBody.PocWeightTable weightTable = new PocTxBody.PocWeightTable(ByteBuffer.wrap(Convert.toBytes(byteStr)),(byte)1);
         System.out.println(weightTable.toString());
     }
     
   public static void main(String[] args) throws ConchException.NotValidException {
-    //      defaultTemplate2BytesTest();
-    //      bytes2WeightTableTest();
-    System.out.println(Conch.getEpochTime());
+          defaultTemplate2BytesTest();
+          bytes2WeightTableTest();
+//    System.out.println(Conch.getEpochTime());
   }
 }
