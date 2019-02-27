@@ -1,5 +1,6 @@
 package org.conch.consensus.poc.tx;
 
+import com.alibaba.fastjson.JSON;
 import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.PocTemplate;
@@ -9,9 +10,7 @@ import org.conch.tx.Attachment;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -24,7 +23,7 @@ import java.util.Map;
  */
 public interface PocTxBody  {
      int MAX_POC_ITEM_BYTEBUFFER = 10240;
-     
+
      enum WeightTableOptions {
         NODE_TYPE("node"),
         SERVER_OPEN("serverOpen"),
@@ -33,9 +32,9 @@ public interface PocTxBody  {
         NETWORK_CONFIG("networkConfig"),
         TX_PERFORMANCE("txPerformance"),
         GENERATION_MISSING("generationMissing"),
-        BC_SPEED("bcSpeed"), 
+        BC_SPEED("bcSpeed"),
         ONLINE_RATE("onlineRate");
-        
+
         private String value;
 
         WeightTableOptions(String value) {
@@ -56,7 +55,7 @@ public interface PocTxBody  {
         MIDDLE(2),
         // 可以认为是好、高、丢失量低,等
         GOOD(3);
-        
+
         private final int level;
 
         public int getLevel() {
@@ -67,7 +66,7 @@ public interface PocTxBody  {
             this.level = level;
         }
     }
-    
+
     enum OnlineStatusDef {
         FROM_99_00_TO_99_99(0),
         FROM_97_00_TO_99_00(1),
@@ -77,7 +76,7 @@ public interface PocTxBody  {
         FROM_99_00_TO_100(5),
         FROM_97_00_TO_100(6),
         FROM_90_00_TO_100(7);
-        
+
         private final int value;
 
         public int getValue() {
@@ -159,12 +158,12 @@ public interface PocTxBody  {
         private Map<Integer, Integer> hardwareConfigTemplate;
         private Map<Integer, Integer> networkConfigTemplate;
         private Map<Integer, Integer> txPerformanceTemplate;
-        
+
         private Map<Peer.Type,Map<Integer, Integer>> onlineRateTemplate;
-        
+
         private Map<Integer, Integer> generationMissingTemplate;
         private Map<Integer, Integer> bocSpeedTemplate;
-        
+
         private Long weightTableVersion;
 
         public Map<String, Integer> getWeightMap() {
@@ -198,7 +197,7 @@ public interface PocTxBody  {
         public void setOnlineRateTemplate(Map<Peer.Type, Map<Integer, Integer>> onlineRateTemplate) {
             this.onlineRateTemplate = onlineRateTemplate;
         }
-        
+
         public Map<Integer, Integer> getOnlineRateTemplate(Peer.Type type){
            if(type == null || onlineRateTemplate == null || onlineRateTemplate.size() <= 0) {
                return null;
@@ -236,56 +235,56 @@ public interface PocTxBody  {
             weightMap.put(WeightTableOptions.SS_HOLD.value, pocTemplate.getSsHoldWeight().intValue());
             weightMap.put(WeightTableOptions.HARDWARE_CONFIG.value, pocTemplate.getHardwareConfWeight().intValue());
             weightMap.put(WeightTableOptions.NETWORK_CONFIG.value, pocTemplate.getNetWorkConfWeight().intValue());
-            weightMap.put(WeightTableOptions.TX_PERFORMANCE.value, pocTemplate.getTxHandlePerformanceWeight().intValue()); 
+            weightMap.put(WeightTableOptions.TX_PERFORMANCE.value, pocTemplate.getTxHandlePerformanceWeight().intValue());
 
             Map<Integer, Integer> nodeTypeTP = new HashMap<>();
-            nodeTypeTP.put(Peer.Type.FOUNDATION.getCode(), pocTemplate.getFoundationNodeScore().intValue()); 
-            nodeTypeTP.put(Peer.Type.COMMUNITY.getCode(), pocTemplate.getCommunityNodeScore().intValue()); 
+            nodeTypeTP.put(Peer.Type.FOUNDATION.getCode(), pocTemplate.getFoundationNodeScore().intValue());
+            nodeTypeTP.put(Peer.Type.COMMUNITY.getCode(), pocTemplate.getCommunityNodeScore().intValue());
             nodeTypeTP.put(Peer.Type.HUB.getCode(), pocTemplate.getHubNodeScore().intValue());
-            nodeTypeTP.put(Peer.Type.BOX.getCode(), pocTemplate.getBoxNodeScore().intValue()); 
-            nodeTypeTP.put(Peer.Type.NORMAL.getCode(), pocTemplate.getNormalNodeScore().intValue()); 
+            nodeTypeTP.put(Peer.Type.BOX.getCode(), pocTemplate.getBoxNodeScore().intValue());
+            nodeTypeTP.put(Peer.Type.NORMAL.getCode(), pocTemplate.getNormalNodeScore().intValue());
 
             Map<Long, Integer> serverOpenTP = new HashMap<>();
-            serverOpenTP.put(Peer.Service.MINER.getCode(),pocTemplate.getMinerScore().intValue()); 
-            serverOpenTP.put(Peer.Service.BAPI.getCode(),pocTemplate.getBapiScore().intValue()); 
-            serverOpenTP.put(Peer.Service.NATER.getCode(),pocTemplate.getNaterScore().intValue()); 
-            serverOpenTP.put(Peer.Service.STORAGE.getCode(),pocTemplate.getStorageScore().intValue()); 
-            serverOpenTP.put(Peer.Service.PROVER.getCode(),pocTemplate.getProverScore().intValue()); 
+            serverOpenTP.put(Peer.Service.MINER.getCode(),pocTemplate.getMinerScore().intValue());
+            serverOpenTP.put(Peer.Service.BAPI.getCode(),pocTemplate.getBapiScore().intValue());
+            serverOpenTP.put(Peer.Service.NATER.getCode(),pocTemplate.getNaterScore().intValue());
+            serverOpenTP.put(Peer.Service.STORAGE.getCode(),pocTemplate.getStorageScore().intValue());
+            serverOpenTP.put(Peer.Service.PROVER.getCode(),pocTemplate.getProverScore().intValue());
 
             Map<Integer, Integer> hardwareConfigTP = new HashMap<>();
-            hardwareConfigTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadHardwareScore().intValue()); 
-            hardwareConfigTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleHardwareScore().intValue()); 
-            hardwareConfigTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodHardwareScore().intValue()); 
+            hardwareConfigTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadHardwareScore().intValue());
+            hardwareConfigTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleHardwareScore().intValue());
+            hardwareConfigTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodHardwareScore().intValue());
 
             Map<Integer, Integer> networkConfigTP = new HashMap<>();
-            networkConfigTP.put(DeviceLevels.POOR.getLevel(), pocTemplate.getPoorNetworkScore().intValue()); 
-            networkConfigTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadNetworkScore().intValue()); 
-            networkConfigTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleNetworkScore().intValue()); 
-            networkConfigTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodNetworkScore().intValue()); 
+            networkConfigTP.put(DeviceLevels.POOR.getLevel(), pocTemplate.getPoorNetworkScore().intValue());
+            networkConfigTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadNetworkScore().intValue());
+            networkConfigTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleNetworkScore().intValue());
+            networkConfigTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodNetworkScore().intValue());
 
             Map<Integer, Integer> txPerformanceTP = new HashMap<>();
-            txPerformanceTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadTxScore().intValue()); 
-            txPerformanceTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleTxScore().intValue()); 
-            txPerformanceTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodTxScore().intValue());  
+            txPerformanceTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadTxScore().intValue());
+            txPerformanceTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleTxScore().intValue());
+            txPerformanceTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodTxScore().intValue());
 
             Map<Integer, Integer> onlineRateFoundationTP = new HashMap<>();
-            onlineRateFoundationTP.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), pocTemplate.getFoundationFrom9900To9999().intValue()); 
-            onlineRateFoundationTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getFoundationFrom9700To9900().intValue()); 
-            onlineRateFoundationTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), pocTemplate.getFoundationFrom0000To9700().intValue()); 
+            onlineRateFoundationTP.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), pocTemplate.getFoundationFrom9900To9999().intValue());
+            onlineRateFoundationTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getFoundationFrom9700To9900().intValue());
+            onlineRateFoundationTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), pocTemplate.getFoundationFrom0000To9700().intValue());
 
             Map<Integer, Integer> onlineRateCommunityTP = new HashMap<>();
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(),pocTemplate.getCommunityFrom9700To9900().intValue()); 
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(),pocTemplate.getCommunityFrom9000To9700().intValue()); 
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(),pocTemplate.getCommunityFrom0000To9000().intValue()); 
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(),pocTemplate.getCommunityFrom9700To9900().intValue());
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(),pocTemplate.getCommunityFrom9000To9700().intValue());
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(),pocTemplate.getCommunityFrom0000To9000().intValue());
 
             Map<Integer, Integer> onlineRateHubBoxTP = new HashMap<>();
-            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), pocTemplate.getHbFrom9900To100().intValue()); 
-            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getHbFrom9700To100().intValue()); 
-            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getHbFrom0000To9000().intValue()); 
+            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), pocTemplate.getHbFrom9900To100().intValue());
+            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getHbFrom9700To100().intValue());
+            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getHbFrom0000To9000().intValue());
 
             Map<Integer, Integer> onlineRateNormalTP = new HashMap<>();
-            onlineRateNormalTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getNormalFrom9700To100().intValue()); 
-            onlineRateNormalTP.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), pocTemplate.getNormalFrom9000To100().intValue()); 
+            onlineRateNormalTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getNormalFrom9700To100().intValue());
+            onlineRateNormalTP.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), pocTemplate.getNormalFrom9000To100().intValue());
 
             Map<Peer.Type,Map<Integer, Integer>> onlineRateMap = new HashMap<>();
             onlineRateMap.put(Peer.Type.FOUNDATION,onlineRateFoundationTP);
@@ -295,14 +294,14 @@ public interface PocTxBody  {
             onlineRateMap.put(Peer.Type.NORMAL,onlineRateNormalTP);
 
             Map<Integer, Integer> blockingMissTemplate = new HashMap<>();
-            blockingMissTemplate.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadBlockingMissScore().intValue()); 
-            blockingMissTemplate.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleBlockingMissScore().intValue()); 
-            blockingMissTemplate.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodBlockingMissScore().intValue()); 
+            blockingMissTemplate.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadBlockingMissScore().intValue());
+            blockingMissTemplate.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleBlockingMissScore().intValue());
+            blockingMissTemplate.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodBlockingMissScore().intValue());
 
             Map<Integer, Integer> bocSpeedTemplate = new HashMap<>();
-            bocSpeedTemplate.put(DeviceLevels.POOR.getLevel(), pocTemplate.getPoorBocSpeedScore().intValue()); 
-            bocSpeedTemplate.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadBocSpeedScore().intValue()); 
-            bocSpeedTemplate.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleBocSpeedScore().intValue()); 
+            bocSpeedTemplate.put(DeviceLevels.POOR.getLevel(), pocTemplate.getPoorBocSpeedScore().intValue());
+            bocSpeedTemplate.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadBocSpeedScore().intValue());
+            bocSpeedTemplate.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleBocSpeedScore().intValue());
 
             Long weightTableVersion = pocTemplate.getVersion();
             return new PocWeightTable(weightMap,nodeTypeTP,serverOpenTP,hardwareConfigTP,networkConfigTP,txPerformanceTP,onlineRateMap,blockingMissTemplate,bocSpeedTemplate,weightTableVersion);
@@ -318,10 +317,10 @@ public interface PocTxBody  {
         public static PocWeightTable defaultPocWeightTable(){
             return pocWeightTableBuilder(new PocTemplate());
         }
-        
+
         // tx version must be set to 1
-        public PocWeightTable(Map<String, Integer> weightMap, Map<Integer, Integer> nodeTypeTP, Map<Long, Integer> serverOpenTP, Map<Integer, Integer> hardwareConfigTP, 
-                              Map<Integer, Integer> networkConfigTP, Map<Integer, Integer> txPerformanceTP, Map<Peer.Type, Map<Integer, Integer>> onlineRateTP, 
+        public PocWeightTable(Map<String, Integer> weightMap, Map<Integer, Integer> nodeTypeTP, Map<Long, Integer> serverOpenTP, Map<Integer, Integer> hardwareConfigTP,
+                              Map<Integer, Integer> networkConfigTP, Map<Integer, Integer> txPerformanceTP, Map<Peer.Type, Map<Integer, Integer>> onlineRateTP,
                               Map<Integer, Integer> generationMissTP, Map<Integer, Integer> bocSpeedTP, Long weightTableVersion) {
             super(1);
             this.weightMap = weightMap;
@@ -362,7 +361,7 @@ public interface PocTxBody  {
             onlineRateTemplate = (Map<Peer.Type, Map<Integer, Integer>>) attachmentData.get("onlineRateTemplate");
             generationMissingTemplate = (Map<Integer, Integer>) attachmentData.get("generationMissingTemplate");
             bocSpeedTemplate = (Map<Integer, Integer>) attachmentData.get("bocSpeedTemplate");
-             
+
         }
 
         @Override
@@ -414,8 +413,8 @@ public interface PocTxBody  {
 
     final class PocNodeConf extends Attachment.TxBodyBase {
 
-        private final String ip;
-        private final String port;
+        private String ip;
+        private String port;
         private SystemInfo systemInfo;
 
         public String getIp() {
@@ -438,21 +437,11 @@ public interface PocTxBody  {
 
         public PocNodeConf(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
-            
-            ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
             try {
-                ObjectInputStream ois = new ObjectInputStream(bais);
-                Object obj = ois.readObject();
-                if (obj instanceof SystemInfo) {
-                    this.systemInfo = (SystemInfo) obj;
-                } else {
-                    this.systemInfo = null;
-                }
-                bais.close();
-                ois.close();
-            } catch (IOException | ClassNotFoundException e) {
+                this.ip = Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER);
+                this.port = Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER);
+                this.systemInfo = JSON.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), SystemInfo.class);
+            } catch (ConchException.NotValidException e) {
                 e.printStackTrace();
             }
         }
@@ -466,17 +455,15 @@ public interface PocTxBody  {
 
         @Override
         public int getMySize() {
-            return ip.getBytes().length
-              + port.getBytes().length
-              + _readByteSize(systemInfo);
+            return 4 * 3 + ip.getBytes().length + port.getBytes().length
+                    + Convert.countJsonBytes(systemInfo);
         }
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
-
-            _putByteSize(buffer, systemInfo);
+            Convert.writeString(buffer, ip);
+            Convert.writeString(buffer, port);
+            Convert.writeObject(buffer, systemInfo);
         }
 
         @Override
