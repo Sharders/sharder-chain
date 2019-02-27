@@ -145,7 +145,7 @@ public class MessageManager {
 
         try {
             queue = getQueueByType(queueType);
-            Logger.logDebugMessage(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType),LogLevel.DEBUG);
+            log(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType),LogLevel.DEBUG);
             switch (operationType) {
                 case REMOVE:
                     message = queue.remove();
