@@ -530,8 +530,16 @@ export default {
         if (t.type === 1 && t.subType === 5) return "账户信息";
         if (t.type === 6) return "存储服务";
         if (t.type === 8) return "矿池交易";
-        if (t.type === 9) return "出块奖励";
+        if (t.type === 9) {
+            // BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC
+            if("GENESIS" === t.attachment.coinBaseType) {
+                return "创世交易";
+            }else if("BLOCK_REWARD" === t.attachment.coinBaseType){
+                return "出块奖励";
+            }
+            return "系统奖励";
+        }
         if (t.type === 12) return "POC交易";
     }
-
+    
 };
