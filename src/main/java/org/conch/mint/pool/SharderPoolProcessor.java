@@ -27,7 +27,7 @@ public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
     private static final ConcurrentMap<Long, SharderPoolProcessor> sharderPools;
     private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools;
-    private static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
+    public static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
 
     public enum State {
         INIT,
