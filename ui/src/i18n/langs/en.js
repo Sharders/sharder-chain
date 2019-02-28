@@ -764,7 +764,7 @@ const en = {
         'account_info_fee': "Fee",
         'account_info_account': "Account",
         'account_info_operating': "Details",
-        'account_info_payment': "Payments",
+        'account_info_payment': "Transfer",
         'account_info_information': "Information",
         'account_info_account_info': "Account Info",
         'account_info_data_storage': "Data Storage",

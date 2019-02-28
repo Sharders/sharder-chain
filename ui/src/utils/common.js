@@ -525,7 +525,7 @@ export default {
      * @returns {string}
      */
     getTransactionTypeStr(t) {
-        if (t.type === 0) return "普通支付";
+        if (t.type === 0) return "普通转账";
         if (t.type === 1 && t.subType === 0) return "任意信息";
         if (t.type === 1 && t.subType === 5) return "账户信息";
         if (t.type === 6) return "存储服务";
