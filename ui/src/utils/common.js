@@ -13,7 +13,7 @@ export default {
     blockchainState: [],
     peers: [],
     userConfig: [],
-
+    $vue: {},
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -525,13 +525,13 @@ export default {
      * @returns {string}
      */
     getTransactionTypeStr(t) {
-        if (t.type === 0) return "普通支付";
-        if (t.type === 1 && t.subType === 0) return "任意信息";
-        if (t.type === 1 && t.subType === 5) return "账户信息";
-        if (t.type === 6) return "存储服务";
-        if (t.type === 8) return "矿池交易";
-        if (t.type === 9) return "出块奖励";
-        if (t.type === 12) return "POC交易";
+        if (t.type === 0) return this.$vue.$t("transaction.transaction_type_payment");
+        if (t.type === 1 && t.subType === 0) return this.$vue.$t("transaction.transaction_type_information");
+        if (t.type === 1 && t.subType === 5) return this.$vue.$t("transaction.transaction_type_account");
+        if (t.type === 6) return this.$vue.$t("transaction.transaction_type_storage_service");
+        if (t.type === 8) return this.$vue.$t("transaction.transaction_type_forge_pool");
+        if (t.type === 9) return this.$vue.$t("transaction.transaction_type_block_reward");
+        if (t.type === 12) return this.$vue.$t("transaction.transaction_type_poc");
     }
 
 };
