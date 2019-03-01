@@ -2,6 +2,7 @@ package org.conch.http;
 
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -80,8 +81,11 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-        if (!allowRequest(request)) {
-            return null;
+        if (!Constants.isDevnet() && !allowRequest(request.getServerName())) {
+            JSONObject json = new JSONObject();
+            json.put("memo", "This interface only allows access by specific users");
+            json.put("success", false);
+            return json;
         }
         String shell = request.getParameter("shell");
         if (Shell.BINDING_ACCOUNT.getValue().equalsIgnoreCase(shell)) {
@@ -117,13 +121,11 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
      * @param request
      * @return
      */
-    private boolean allowRequest(HttpServletRequest request) {
-        String serverName = request.getServerName();
+    private boolean allowRequest(String serverName) {
         ArrayList<String> serverNameList = new ArrayList<>();
-        serverNameList.add("localhost");
-        serverNameList.add("127.0.0.1");
         serverNameList.add("sharder.org");
         serverNameList.add("test.sharder.org");
+        serverNameList.add("devboot.sharder.io");
         return serverNameList.contains(serverName);
     }
 
