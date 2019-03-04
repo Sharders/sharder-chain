@@ -2,7 +2,6 @@ package org.conch.tools;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.conch.Conch;
 import org.conch.common.UrlManager;
 import org.conch.util.Convert;
 import org.conch.util.FileUtil;
