@@ -874,16 +874,20 @@
                 _this.hubsetting.publicAddress = res["sharder.myAddress"];
                 _this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
             });
-            _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
-                _this.latesetVersion = res.data.version;
-                let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
-
-                _this.isUpdate = bool;
-            }).catch(err => {
-                console.log(err);
-            });
+            _this.getLatestHubVersion();
         },
         methods: {
+            getLatestHubVersion() {
+                const _this = this;
+                _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
+                    _this.latesetVersion = res.data.version;
+                    let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
+
+                    _this.isUpdate = bool;
+                }).catch(err => {
+                    console.log(err);
+                });
+            },
             drawBarchart: function (barchat) {
                 const barchart = echarts.init(document.getElementById("transaction_amount_bar"));
                 const _this = this;
@@ -1187,7 +1191,7 @@
             autoRefresh() {
                 setTimeout(() => {
                     window.location.reload();
-                }, 40000);
+                }, 60000);
             },
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
@@ -1742,6 +1746,7 @@
             },
             openHubSettingDialog: function () {
                 const _this = this;
+                _this.getLatestHubVersion();
                 _this.$store.state.mask = true;
                 _this.hubSettingDialog = true;
             },
