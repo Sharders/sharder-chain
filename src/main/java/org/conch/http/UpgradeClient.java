@@ -51,17 +51,8 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
             response.put("error", "version can not be blank");
             return response;
         }
-        try {
-            ClientUpgradeTool.fetchUpgradePackage(version);
-            if (restart) {
-                new Thread(() -> Conch.restartApplication(null)).start();
-            }
-            response.put("upgraded", true);
-        } catch (IOException e) {
-            e.printStackTrace();
-            response.put("upgraded", false);
-            response.put("error", e.getMessage());
-        }
+        ClientUpgradeTool.fetchUpgradePackageThread(version, restart);
+        response.put("upgraded", true);
         return response;
     }
 
