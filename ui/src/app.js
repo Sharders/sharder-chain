@@ -30,8 +30,18 @@ function passage(path) {
     return false;
 }
 
+/**
+ * 根据路径参数切换语言
+ */
+function urlTabLanguage(query){
+    let language = query['language'];
+    if (language === "en-US") return i18n.locale = 'en';
+    if (language === "zh-CN") return i18n.locale = 'cn';
+}
+
 router.beforeEach((to, from, next) => {
     // console.info(to);
+    urlTabLanguage(to.query);
     let redirect = to.query['redirect'];
     if (passage(redirect)) {
         next(redirect + "?token" + to.query['token']);
@@ -69,3 +79,4 @@ const app = new Vue({
     ...App
 });
 export {app, router, store};
+global.$vue = app;

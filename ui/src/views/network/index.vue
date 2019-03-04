@@ -188,8 +188,8 @@
                             </el-table-column>
                             <el-table-column
                                 sortable
-                                prop="effectiveBalanceSS"
-                                label="SS"
+                                prop="pocScore"
+                                :label="$t('network.poc_score')"
                                 >
                             </el-table-column>
                             <el-table-column

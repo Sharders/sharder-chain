@@ -13,7 +13,7 @@ export default {
     blockchainState: [],
     peers: [],
     userConfig: [],
-
+    $vue: {},
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -478,7 +478,7 @@ export default {
      */
     numToAzd(num) {
         let str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        let s = num < 0 ? '∉' : '';
+        let s = num < 0 ? '$' : '';
         num = Math.abs(num);
         let i = 0;
         while (true) {
@@ -491,6 +491,14 @@ export default {
             }
         }
         return s;
+    },
+    /**
+     * 将数字转换成无符号long
+     */
+    longUnsigned(num) {
+        if (num > 0) return num;
+        num = new BigInteger(num).abs();
+        return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
     },
     isTestNet() {
         return SSO.netWorkType === 'Testnet';
@@ -517,13 +525,21 @@ export default {
      * @returns {string}
      */
     getTransactionTypeStr(t) {
-        if (t.type === 0) return "普通支付";
-        if (t.type === 1 && t.subType === 0) return "任意信息";
-        if (t.type === 1 && t.subType === 5) return "账户信息";
-        if (t.type === 6) return "存储服务";
-        if (t.type === 8) return "矿池交易";
-        if (t.type === 9) return "出块奖励";
-        if (t.type === 12) return "POC交易";
+        if (t.type === 0) return this.$vue.$t("transaction.transaction_type_payment");
+        if (t.type === 1 && t.subType === 0) return this.$vue.$t("transaction.transaction_type_information");
+        if (t.type === 1 && t.subType === 5) return this.$vue.$t("transaction.transaction_type_account");
+        if (t.type === 6) return this.$vue.$t("transaction.transaction_type_storage_service");
+        if (t.type === 8) return this.$vue.$t("transaction.transaction_type_forge_pool");
+        if (t.type === 9) {
+            // BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC
+            if("GENESIS" === t.attachment.coinBaseType) {
+                return this.$vue.$t("transaction.transaction_type_genesis_reward");
+            }else if("BLOCK_REWARD" === t.attachment.coinBaseType){
+                return this.$vue.$t("transaction.transaction_type_block_reward");
+            }
+            return this.$vue.$t("transaction.transaction_type_system_reward");
+        }
+        if (t.type === 12) return this.$vue.$t("transaction.transaction_type_poc");
     }
 
 };

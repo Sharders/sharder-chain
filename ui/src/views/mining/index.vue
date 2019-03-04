@@ -433,7 +433,7 @@
 
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
                     _this.isVisible('isCreatePool');
-                    return _this.$message.info(_this.$t('mining.index.insufficient_permissions'));
+                    return _this.$message.info(_this.$t('notification.insufficient_permissions'));
                 }
 
                 _this.$global.fetch("POST", {

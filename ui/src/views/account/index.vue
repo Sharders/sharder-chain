@@ -14,7 +14,7 @@
                         <span class="csp" @click="openUserInfoDialog">{{$t('account.account_info')}}</span>
                     </div>
                     <p class="account_asset">
-                        {{$t('account.assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
+                        {{$t('account.assets')}} {{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -185,8 +185,17 @@
                                     {{$t('transaction.transaction_type_storage_service')}}
                                 </td>
                                 <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
-                                <td v-if="transaction.type === 9">{{$t('transaction.transaction_type_block_reward')}}
+                                
+                                <td v-if="transaction.type === 9 && 'GENESIS' === transaction.attachment.coinBaseType">
+                                    {{$t('transaction.transaction_type_genesis_reward')}}
                                 </td>
+                                <td v-else-if="transaction.type === 9 && 'BLOCK_REWARD' === transaction.attachment.coinBaseType">
+                                    {{$t('transaction.transaction_type_block_reward')}}
+                                </td>
+                                <td v-else-if="transaction.type === 9">
+                                    {{$t('transaction.transaction_type_system_reward')}}
+                                </td>
+                                
                                 <td v-if="transaction.type === 12">{{$t('transaction.transaction_type_poc')}}</td>
 
                                 <td v-if="transaction.amountNQT === '0'">-</td>
@@ -197,6 +206,7 @@
 
                                 <td v-if="transaction.feeNQT === '0'">-</td>
                                 <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
+                                
                                 <td class=" image_text w300">
                                     <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
@@ -743,7 +753,7 @@
                     label: this.$t('transaction.transaction_type_forge_pool')
                 }, {
                     value: 9,
-                    label: this.$t('transaction.transaction_type_block_reward')
+                    label: this.$t('transaction.transaction_type_system_reward')
                 }, {
                     value: 12,
                     label: this.$t('transaction.transaction_type_poc')
@@ -2189,7 +2199,7 @@
                         label: this.$t('transaction.transaction_type_forge_pool')
                     }, {
                         value: 9,
-                        label: this.$t('transaction.transaction_type_block_reward')
+                        label: this.$t('transaction.transaction_type_system_reward')
                     }, {
                         value: 12,
                         label: this.$t('transaction.transaction_type_poc')

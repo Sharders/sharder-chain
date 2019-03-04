@@ -41,7 +41,9 @@ public abstract class PoolTxApi {
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
-
+            if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT - Long.valueOf(req.getParameter("feeNQT")) < 0){
+                throw new ConchException.NotValidException("Insufficient account balance");
+            }
             int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
             JSONObject rules = null;
             try {
