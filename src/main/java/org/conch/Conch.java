@@ -98,7 +98,7 @@ public final class Conch {
     private static final String myAddress;
 
     private static final RuntimeMode runtimeMode;
-    private static final DirProvider dirProvider;
+    public static final DirProvider dirProvider;
 
     private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
