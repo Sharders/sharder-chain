@@ -1,6 +1,8 @@
 package org.conch.tools;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.conch.Conch;
 import org.conch.common.UrlManager;
 import org.conch.util.Convert;
 import org.conch.util.FileUtil;
@@ -51,8 +53,9 @@ public class ClientUpgradeTool {
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
-            // TODO[Enh] support windows command
-            Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
+            if (!SystemUtils.IS_OS_WINDOWS) {
+                Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
+            }
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);
         }
