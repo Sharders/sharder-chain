@@ -37,8 +37,17 @@ public class UrlManager {
      */
     public static final String ADD_MESSAGE_TO_SHARDER_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/messageQueue/add.ss";
     public static final String ADD_MESSAGE_TO_SHARDER_PATH = "/messageQueue/add.ss";
-
     /*=============================================Foundation API END========================================*/
+
+    /*=============================================HUB UPGRADE API START========================================*/
+
+    private static final String ZIP_SUFFIX = ".zip";
+    public static final String LATEST_VERSION_ONLINE_URL = "https://oss.sharder.org/cos/client/release/lastest-version";
+    public static final String LATEST_VERSION_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/lastest-version";
+    public static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-hub-";
+    public static final String DOWNLOAD_PACKAGE_DEV_URL = "https://resource.sharder.io/sharder-hub/release/cos-hub-";
+
+    /*=============================================HUB UPGRADE API END========================================*/
 
     public static String getFoundationUrl(String eoLinkerUrl, String path) {
         if (Constants.isMainnet() || Constants.isTestnet()) {
@@ -57,5 +66,24 @@ public class UrlManager {
         if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
             throw new ConchException.NotValidException("Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!");
         }
+    }
+
+    /**
+     * Hub Latest Version URLs
+     *
+     * @return url
+     */
+    public static String getHubLatestVersionUrl() {
+        return Constants.isMainnet() ? LATEST_VERSION_ONLINE_URL : LATEST_VERSION_DEV_URL;
+    }
+
+    /**
+     * get latest hub version upgrade package download URLs
+     *
+     * @param version latest hub version
+     * @return url
+     */
+    public static String getPackageDownloadUrl(String version) {
+        return Constants.isMainnet() ? DOWNLOAD_PACKAGE_ONLINE_URL + version + ZIP_SUFFIX : DOWNLOAD_PACKAGE_DEV_URL + version + ZIP_SUFFIX;
     }
 }
