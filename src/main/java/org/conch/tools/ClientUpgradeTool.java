@@ -1,9 +1,11 @@
 package org.conch.tools;
 
 import org.apache.commons.io.FileUtils;
+import org.conch.common.UrlManager;
+import org.conch.util.Convert;
 import org.conch.util.FileUtil;
-import org.conch.util.Https;
 import org.conch.util.Logger;
+import org.conch.util.RestfulHttpClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,12 +43,11 @@ public class ClientUpgradeTool {
     }
 
     public static void fetchUpgradePackage(String version) throws IOException {
-        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         if (!archive.exists()) {
             Logger.logDebugMessage("[UPGRADE CLIENT] Get upgrade package:" + archive.getName());
-            FileUtils.copyURLToFile(new URL(url), archive);
+            FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
         }
         FileUtil.unzipAndReplace(archive, true);
         try {
@@ -58,7 +59,7 @@ public class ClientUpgradeTool {
     }
 
     public static String fetchLastHubVersion() throws IOException {
-        String url = UPGRADE_SERVER + "/sharder-hub/release/lastest-version";
-        return Https.httpRequest(url,"GET", null);
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(UrlManager.getHubLatestVersionUrl()).get().request();
+        return Convert.nullToEmpty(response.getContent()).replaceAll("[\r\n]", "");
     }
 }
