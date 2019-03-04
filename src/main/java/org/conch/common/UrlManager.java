@@ -45,7 +45,7 @@ public class UrlManager {
     public static final String LATEST_VERSION_ONLINE_URL = "https://oss.sharder.org/cos/client/release/lastest-version";
     public static final String LATEST_VERSION_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/lastest-version";
     public static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-hub-";
-    public static final String DOWNLOAD_PACKAGE_DEV_URL = "https://resource.sharder.io/sharder-hub/release/cos-hub-";
+    public static final String DOWNLOAD_PACKAGE_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/cos-hub-";
 
     /*=============================================HUB UPGRADE API END========================================*/
 
