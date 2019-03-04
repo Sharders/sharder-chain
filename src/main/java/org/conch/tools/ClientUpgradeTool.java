@@ -2,6 +2,7 @@ package org.conch.tools;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.conch.Conch;
 import org.conch.common.UrlManager;
 import org.conch.util.Convert;
 import org.conch.util.FileUtil;
@@ -17,20 +18,15 @@ import java.net.URL;
  * @since 2019-01-29
  */
 public class ClientUpgradeTool {
-    private static final String UPGRADE_SERVER = "https://resource.sharder.io";
 
-    public static Thread fetchUpgradePackageThread(String version) {
-        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version + ".zip";
-        File projectPath = new File("temp/");
-        File archive = new File(projectPath, "cos-hub-" + version + ".zip");
+    public static Thread fetchUpgradePackageThread(String version, Boolean restart) {
         Thread fetchUpgradePackageThread = new Thread(
                 () -> {
                     try {
-                        if (!archive.exists()) {
-                            Logger.logDebugMessage("[UPGRADE CLIENT] Get upgrade package:" + archive.getName());
-                            FileUtils.copyURLToFile(new URL(url), archive);
+                        fetchUpgradePackage(version);
+                        if (restart) {
+                            Conch.restartApplication(null);
                         }
-                        FileUtil.unzipAndReplace(archive, true);
                     } catch (IOException e) {
                         e.printStackTrace();
                         Thread.currentThread().interrupt();
@@ -53,10 +49,10 @@ public class ClientUpgradeTool {
         FileUtil.unzipAndReplace(archive, true);
         try {
             if (!SystemUtils.IS_OS_WINDOWS) {
-                Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
+                Runtime.getRuntime().exec("chmod -R +x " + Conch.dirProvider.getUserHomeDir());
             }
         } catch (Exception e) {
-            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/", e);
+            Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);
         }
     }
 
