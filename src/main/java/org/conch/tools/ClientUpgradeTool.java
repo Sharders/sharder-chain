@@ -21,7 +21,7 @@ public class ClientUpgradeTool {
     private static final String UPGRADE_SERVER = "https://resource.sharder.io";
 
     public static Thread fetchUpgradePackageThread(String version) {
-        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version +".zip";
+        String url = UPGRADE_SERVER + "/sharder-hub/release/cos-hub-" + version + ".zip";
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         Thread fetchUpgradePackageThread = new Thread(
@@ -57,7 +57,7 @@ public class ClientUpgradeTool {
                 Runtime.getRuntime().exec("chmod -R +x ~/sharder-hub/");
             }
         } catch (Exception e) {
-            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/" , e);
+            Logger.logErrorMessage("Failed to run after start script: chmod -R +x ~/sharder-hub/", e);
         }
     }
 
