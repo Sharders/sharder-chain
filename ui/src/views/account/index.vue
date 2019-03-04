@@ -962,15 +962,17 @@
             },
             updateHubVersion(adminPwd) {
                 const _this = this;
-                this.$http.post('/sharder?requestType=upgradeClient', {
-                    version: _this.latesetVersion,
-                    restart: true,
-                    adminPassword: adminPwd
-                }).then(res => {
+                let data = new FormData();
+                data.append("version", _this.latesetVersion);
+                data.append("restart", "true");
+                data.append("adminPassword", adminPwd);
+                this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {
                     if (res.data.upgraded) {
                         _this.$message.success(_this.$t('notification.update_success'));
+                        _this.$router.push("/login");
+                        _this.autoRefresh();
                     } else {
-                        _this.$message.error(res.data.error);
+                        _this.$message.error(res.data.error? res.data.error : res.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err);
@@ -1175,7 +1177,7 @@
             autoRefresh() {
                 setTimeout(() => {
                     window.location.reload();
-                }, 30000);
+                }, 40000);
             },
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
