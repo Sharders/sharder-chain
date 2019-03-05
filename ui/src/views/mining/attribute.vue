@@ -276,7 +276,7 @@
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                     } else {
-                        _this.$message.error(res.error);
+                        _this.$message.error(res.errorDescription);
                     }
                 }).catch(err => {
                     console.log(err);
