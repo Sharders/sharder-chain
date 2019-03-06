@@ -158,7 +158,7 @@ public class PocProcessorImpl implements PocProcessor {
     try {
       
       if(!synPocTxNow) {
-        Logger.logInfoMessage("No needs to syn poc serial txs now, sleep 10 minutes...");
+        Logger.logInfoMessage("no needs to syn poc serial txs now, sleep 10 minutes...");
         Thread.sleep(10 * 60 * 1000);
       }
       
@@ -174,7 +174,7 @@ public class PocProcessorImpl implements PocProcessor {
       synPocTxNow = false;
       
     } catch (Exception e) {
-      Logger.logDebugMessage("Poc tx syn thread interrupted");
+      Logger.logDebugMessage("poc tx syn thread interrupted");
     } catch (Throwable t) {
       Logger.logErrorMessage(
           "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
@@ -186,13 +186,12 @@ public class PocProcessorImpl implements PocProcessor {
     synPocTxNow = true;
   }
   
-  
   private static volatile List<String> synPeerList = Lists.newArrayList();
   private static final Runnable peerSynThread = () -> {
     try {
       
       if(synPeerList.size() <= 0) {
-        Logger.logInfoMessage("No needs to syn peer, sleep 10 minutes...");
+        Logger.logInfoMessage("no needs to syn peer, sleep 10 minutes...");
         Thread.sleep(10 * 60 * 1000);
       }
 
@@ -208,10 +207,9 @@ public class PocProcessorImpl implements PocProcessor {
       synPeerList.clear();
       
     } catch (Exception e) {
-      Logger.logDebugMessage("Peer syn thread interrupted");
+      Logger.logDebugMessage("peer syn thread interrupted");
     } catch (Throwable t) {
-      Logger.logErrorMessage(
-          "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
       System.exit(1);
     }
   };
