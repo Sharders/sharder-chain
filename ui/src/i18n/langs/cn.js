@@ -237,6 +237,7 @@ const cn = {
     mining: {
         attribute: {
             'exceeding_total':"超出矿池总上限",
+            'pool_destruction':"矿池已销毁",
             'join_number_info':"投入数量必须大于1",
             'join_success':"加入成功",
             'delete_success':"删除成功",

@@ -235,6 +235,7 @@ const en = {
     mining: {
         attribute: {
             'exceeding_total':"Exceeding total upper limit of pit",
+            'pool_destruction':"The pit has been destroyed",
             'join_number_info':"The input quantity must be greater than 1",
             'join_success':"Join the success",
             'delete_success':"Delete the success",
