@@ -526,15 +526,15 @@ export default {
      */
     getTransactionTypeStr(t) {
         if (t.type === 0) return this.$vue.$t("transaction.transaction_type_payment");
-        if (t.type === 1 && t.subType === 0) return this.$vue.$t("transaction.transaction_type_information");
-        if (t.type === 1 && t.subType === 5) return this.$vue.$t("transaction.transaction_type_account");
+        if (t.type === 1 && t.subtype === 0) return this.$vue.$t("transaction.transaction_type_information");
+        if (t.type === 1 && t.subtype === 5) return this.$vue.$t("transaction.transaction_type_account");
         if (t.type === 6) return this.$vue.$t("transaction.transaction_type_storage_service");
         if (t.type === 8) return this.$vue.$t("transaction.transaction_type_forge_pool");
         if (t.type === 9) {
             // BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC
-            if("GENESIS" === t.attachment.coinBaseType) {
+            if ("GENESIS" === t.attachment.coinBaseType) {
                 return this.$vue.$t("transaction.transaction_type_genesis_reward");
-            }else if("BLOCK_REWARD" === t.attachment.coinBaseType){
+            } else if ("BLOCK_REWARD" === t.attachment.coinBaseType) {
                 return this.$vue.$t("transaction.transaction_type_block_reward");
             }
             return this.$vue.$t("transaction.transaction_type_system_reward");

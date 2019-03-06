@@ -480,10 +480,10 @@ public interface PocTxBody  {
     }
 
     final class PocOnlineRate extends Attachment.TxBodyBase {
-        private final String ip;
-        private final String port;
+        private String ip;
+        private String port;
         // 网络在线率百分比的值乘以 100，用 int 表示, 例 99% = 9900， 99.99% = 9999
-        private final int networkRate;
+        private int networkRate;
 
         public String getIp() {
             return ip;
@@ -505,9 +505,13 @@ public interface PocTxBody  {
 
         public PocOnlineRate(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.ip = buffer.toString();
-            this.port = buffer.toString();
             this.networkRate = buffer.getInt();
+            try {
+                this.ip = Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER);
+                this.port = Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER);
+            } catch (ConchException.NotValidException e) {
+                e.printStackTrace();
+            }
         }
 
         public PocOnlineRate(JSONObject attachmentData) {
@@ -519,14 +523,14 @@ public interface PocTxBody  {
 
         @Override
         public int getMySize() {
-            return 2 + ip.getBytes().length + port.getBytes().length;
+            return 4 + 4*2 + ip.getBytes().length + port.getBytes().length;
         }
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            buffer.put(ip.getBytes());
-            buffer.put(port.getBytes());
             buffer.putInt(networkRate);
+            Convert.writeString(buffer, ip);
+            Convert.writeString(buffer, port);
         }
 
         @Override

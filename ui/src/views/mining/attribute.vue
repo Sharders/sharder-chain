@@ -276,7 +276,7 @@
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                     } else {
-                        _this.$message.error(res.error);
+                        _this.$message.error(res.errorDescription);
                     }
                 }).catch(err => {
                     console.log(err);
@@ -297,6 +297,10 @@
                     poolId: _this.mining.poolId,
                 }, "getPoolInfo").then(res => {
                     console.info(res);
+                    if(res.errorDescription) {
+                        _this.$message.warning(_this.$t("mining.attribute.pool_destruction"));
+                        return _this.$router.back()
+                    }
                     _this.miningInfo.amount = res.number;
                     _this.miningInfo.poolId = res.poolId;
                     _this.miningInfo.currentInvestment = res.power;
