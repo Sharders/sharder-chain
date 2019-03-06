@@ -174,39 +174,14 @@
                                     v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}
                                 </td>
                                 <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
-                                <td v-if="transaction.type === 0">{{$t('transaction.transaction_type_payment')}}</td>
-                                <td v-if="transaction.type === 1 && transaction.subtype === 0">
-                                    {{$t('transaction.transaction_type_information')}}
-                                </td>
-                                <td v-if="transaction.type === 1 && transaction.subtype === 5">
-                                    {{$t('transaction.transaction_type_account')}}
-                                </td>
-                                <td v-if="transaction.type === 6">
-                                    {{$t('transaction.transaction_type_storage_service')}}
-                                </td>
-                                <td v-if="transaction.type === 8">{{$t('transaction.transaction_type_forge_pool')}}</td>
-                                
-                                <td v-if="transaction.type === 9 && 'GENESIS' === transaction.attachment.coinBaseType">
-                                    {{$t('transaction.transaction_type_genesis_reward')}}
-                                </td>
-                                <td v-else-if="transaction.type === 9 && 'BLOCK_REWARD' === transaction.attachment.coinBaseType">
-                                    {{$t('transaction.transaction_type_block_reward')}}
-                                </td>
-                                <td v-else-if="transaction.type === 9">
-                                    {{$t('transaction.transaction_type_system_reward')}}
-                                </td>
-                                
-                                <td v-if="transaction.type === 12">{{$t('transaction.transaction_type_poc')}}</td>
-
+                                <td>{{$global.getTransactionTypeStr(transaction)}}</td>
                                 <td v-if="transaction.amountNQT === '0'">-</td>
                                 <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">
                                     -{{$global.formatMoney(transaction.amountNQT/100000000)}} SS
                                 </td>
                                 <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
-
                                 <td v-if="transaction.feeNQT === '0'">-</td>
                                 <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
-                                
                                 <td class=" image_text w300">
                                     <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
