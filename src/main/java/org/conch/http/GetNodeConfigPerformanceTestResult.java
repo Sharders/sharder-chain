@@ -50,7 +50,7 @@ public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequ
     protected JSONStreamAware processRequest(HttpServletRequest request) {
 
         try {
-            UrlManager.foundationHostFilter(request);
+            UrlManager.validFoundationHost(request);
         } catch (ConchException.NotValidException e) {
             e.printStackTrace();
             return ResultUtil.error500(e.getMessage());

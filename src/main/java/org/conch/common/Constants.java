@@ -357,4 +357,6 @@ public final class Constants {
     public static final String CURLY_BRACES = "{";
 
     public static final String BRACKET = "[";
+
+    public static final String HOST_FILTER_INFO = "Not valid host! ONLY {} can do this operation!";
 }

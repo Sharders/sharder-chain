@@ -45,6 +45,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             "adminPassword", "reBind", "username", "password", "nodeType");
     private static final String URL = UrlManager.getFoundationUrl(
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_EOLINKER,
+            UrlManager.HUB_SETTING_ACCOUNT_CHECK_LOCAL,
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_PATH
     );
     private ReConfig() {
@@ -115,9 +116,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                         .addPostParam("username", req.getParameter("username"))
                         .addPostParam("password", req.getParameter("password"))
                         .request();
-                boolean querySuccess = Constants.SUCCESS.equalsIgnoreCase(
-                        com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getString(Constants.STATUS)
-                );
+                boolean querySuccess = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
                 if (querySuccess) {
                     com.alibaba.fastjson.JSONObject hubSetting = (com.alibaba.fastjson.JSONObject) JSON.toJSON(
                             JSON.parseObject(verifyResponse.getContent()).get(Constants.DATA)

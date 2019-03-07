@@ -163,6 +163,7 @@ public class GetNodeHardware {
 
     private static final String NODE_CONFIG_REPORT_URL = UrlManager.getFoundationUrl(
             UrlManager.NODE_CONFIG_REPORT_EOLINKER,
+            UrlManager.NODE_CONFIG_REPORT_LOCAL,
             UrlManager.NODE_CONFIG_REPORT_PATH
     );
 
