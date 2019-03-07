@@ -267,7 +267,7 @@
                                        max="100000" :step="0.1"/>
                                 <label class="input_suffix">SS</label>
                             </el-form-item>
-                            <el-form-item :label="$t('sendMessage.secret_key')">
+                            <el-form-item :label="$t('sendMessage.secret_key')" v-if="!secretPhrase">
                                 <el-input v-model="messageForm.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
@@ -326,7 +326,7 @@
                                     :disabled="!transfer.hasMessage">
                                 </el-input>
                             </el-form-item>
-                            <el-form-item :label="$t('transfer.secret_key')">
+                            <el-form-item :label="$t('transfer.secret_key')" v-if="!secretPhrase">
                                 <el-input v-model="transfer.password" type="password"></el-input>
                             </el-form-item>
                         </el-form>
@@ -1291,7 +1291,7 @@
                         _this.$message.warning(_this.$t('notification.sendmessage_null_account_public'));
                         return;
                     }
-                    if (_this.messageForm.password === "") {
+                    if (!(_this.messageForm.password || _this.secretPhrase)) {
                         _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                         return;
                     }
@@ -1300,7 +1300,7 @@
                     if (_this.messageForm.isFile) {
                         formData.append("messageToEncryptIsText", 'false');
                         formData.append("encryptedMessageIsPrunable", 'true');
-                        let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
+                        let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password || _this.secretPhrase);
 
                         _this.encryptFileCallback(_this.file, encryptionkeys).then(res => {
                             formData.append("encryptedMessageFile", res.file);
@@ -1308,7 +1308,7 @@
                             _this.sendMessage(formData);
                         });
                     } else {
-                        encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
+                        encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password || _this.secretPhrase);
                         formData.append("encrypt_message", '1');
                         formData.append("encryptedMessageData", encrypted.message);
                         formData.append("encryptedMessageNonce", encrypted.nonce);
@@ -1372,7 +1372,7 @@
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
-                    if (typeof SSO.secretPhrase === "undefined" && _this.transfer.password === "") {
+                    if (!(_this.secretPhrase || _this.transfer.password)) {
                         _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
@@ -1390,7 +1390,7 @@
 
                     if (_this.transfer.hasMessage && _this.transfer.message !== "") {
                         if (_this.transfer.isEncrypted) {
-                            if (_this.transfer.password === "") {
+                            if (!(_this.secretPhrase || _this.transfer.password)) {
                                 _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                                 return;
                             }
@@ -1400,7 +1400,7 @@
                             }
                             options.account = _this.transfer.receiver;
                             options.publicKey = _this.transfer.receiverPublickey;
-                            encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
+                            encrypted = SSO.encryptNote(_this.transfer.message, options, _this.secretPhrase || _this.transfer.password);
                             formData.append("encrypt_message", '1');
                             formData.append("encryptedMessageData", encrypted.message);
                             formData.append("encryptedMessageNonce", encrypted.nonce);
@@ -1446,7 +1446,7 @@
                         return;
                     }
                 }
-                if (_this.messageForm.password === '') {
+                if (!(_this.messageForm.password || _this.secretPhrase)) {
                     _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                     return;
                 }
@@ -1457,7 +1457,7 @@
                 formData.append("phasingHashedSecret", '');
                 formData.append("phasingHashedSecretAlgorithm", '2');
                 formData.append("feeNQT", _this.messageForm.fee * 100000000);
-                formData.append("secretPhrase", _this.messageForm.password);
+                formData.append("secretPhrase", _this.messageForm.password || _this.secretPhrase);
                 formData.append("deadline", '1440');
 
                 if (!_this.messageForm.isEncrypted) {
@@ -1480,7 +1480,7 @@
                     options.publicKey = _this.messageForm.publicKey;
 
                     if (_this.file === null) {
-                        encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password);
+                        encrypted = SSO.encryptNote(_this.messageForm.message, options, _this.messageForm.password || _this.secretPhrase);
                         formData.append("encrypt_message", '1');
                         formData.append("encryptedMessageData", encrypted.message);
                         formData.append("encryptedMessageNonce", encrypted.nonce);
@@ -1490,7 +1490,7 @@
                     } else {
                         formData.append("messageToEncryptIsText", 'false');
                         formData.append("encryptedMessageIsPrunable", 'true');
-                        let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password);
+                        let encryptionkeys = SSO.getEncryptionKeys(options, _this.messageForm.password || _this.secretPhrase);
                         _this.encryptFileCallback(_this.file, encryptionkeys).then(res => {
                             formData.append("encryptedMessageFile", res.file);
                             formData.append("encryptedMessageNonce", converters.byteArrayToHexString(res.nonce));
@@ -1572,7 +1572,7 @@
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
-                    if (_this.transfer.password === "") {
+                    if (!(_this.secretPhrase || _this.transfer.password)) {
                         _this.$message.warning(_this.$t('notification.transfer_null_secret_key'));
                         return;
                     }
@@ -1586,14 +1586,14 @@
                     formData.append("publicKey", "");
                     formData.append("feeNQT", _this.transfer.fee * 100000000);
                     formData.append("amountNQT", _this.transfer.number * 100000000);
-                    formData.append("secretPhrase", _this.transfer.password);
+                    formData.append("secretPhrase", _this.secretPhrase || _this.transfer.password);
 
                     if (_this.transfer.hasMessage && _this.transfer.message !== "") {
                         if (_this.transfer.isEncrypted) {
 
                             options.account = _this.transfer.receiver;
                             options.publicKey = _this.transfer.receiverPublickey;
-                            encrypted = SSO.encryptNote(_this.transfer.message, options, _this.transfer.password);
+                            encrypted = SSO.encryptNote(_this.transfer.message, options, _this.secretPhrase || _this.transfer.password);
                             formData.append("encrypt_message", '1');
                             formData.append("encryptedMessageData", encrypted.message);
                             formData.append("encryptedMessageNonce", encrypted.nonce);
