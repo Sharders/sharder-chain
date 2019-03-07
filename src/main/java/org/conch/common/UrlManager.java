@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 public class UrlManager {
 
-    private static final Boolean USE_EOLINKER = Optional.ofNullable(Conch.getStringProperty("sharder.dev.useEolinker"))
+    public static final Boolean USE_EOLINKER = Optional.ofNullable(Conch.getStringProperty("sharder.dev.useEolinker"))
             .map(Boolean::valueOf).orElse(false);
     private static final String HTTP_SCHEME = "http://";
     private static final String HTTPS_SCHEME = "https://";

@@ -31,6 +31,7 @@ import org.conch.asset.token.Currency;
 import org.conch.asset.token.CurrencyBuyOffer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.market.*;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
@@ -46,20 +47,24 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 
+/**
+ * @author ben-xy
+ */
 public final class GetState extends APIServlet.APIRequestHandler {
 
-    static final GetState instance = new GetState();
+    static final GetState INSTANCE = new GetState();
 
     private GetState() {
         super(new APITag[] {APITag.INFO}, "includeCounts", "adminPassword");
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
 
         JSONObject response = GetBlockchainStatus.instance.processRequest(req);
 
-        if ("true".equalsIgnoreCase(req.getParameter("includeCounts")) && API.checkPassword(req)) {
+        if (Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("includeCounts")) && API.checkPassword(req)) {
             response.put("numberOfTransactions", Conch.getBlockchain().getTransactionCount());
             response.put("numberOfAccounts", Account.getCount());
             response.put("numberOfAssets", Asset.getCount());
@@ -101,6 +106,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("isOffline", Constants.isOffline);
         response.put("needsAdminPassword", !API.disableAdminPassword);
         response.put("netWorkType", Constants.NetworkDef);
+        response.put("useEoLinker", UrlManager.USE_EOLINKER);
         InetAddress externalAddress = UPnP.getExternalAddress();
         if (externalAddress != null) {
             response.put("upnpExternalAddress", externalAddress.getHostAddress());

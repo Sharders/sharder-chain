@@ -138,7 +138,7 @@ public enum APIEnum {
     GET_POLL_RESULT("getPollResult", GetPollResult.instance),
     GET_POLL_VOTES("getPollVotes", GetPollVotes.instance),
     GET_POLL_VOTE("getPollVote", GetPollVote.instance),
-    GET_STATE("getState", GetState.instance),
+    GET_STATE("getState", GetState.INSTANCE),
     GET_TIME("getTime", GetTime.instance),
     GET_TRADES("getTrades", GetTrades.instance),
     GET_LAST_TRADES("getLastTrades", GetLastTrades.instance),
