@@ -175,11 +175,7 @@
                                 </td>
                                 <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
                                 <td>{{$global.getTransactionTypeStr(transaction)}}</td>
-                                <td v-if="transaction.amountNQT === '0'">-</td>
-                                <td v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">
-                                    -{{$global.formatMoney(transaction.amountNQT/100000000)}} SS
-                                </td>
-                                <td v-else>+{{$global.formatMoney(transaction.amountNQT/100000000)}} SS</td>
+                                <td>{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}} SS</td>
                                 <td v-if="transaction.feeNQT === '0'">-</td>
                                 <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                 <td class=" image_text w300">

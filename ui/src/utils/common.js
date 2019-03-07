@@ -540,6 +540,22 @@ export default {
             return this.$vue.$t("transaction.transaction_type_system_reward");
         }
         if (t.type === 12) return this.$vue.$t("transaction.transaction_type_poc");
+    },
+    /**
+     * 获得交易金额
+     * @param t
+     * @param accountRS
+     * @returns {string}
+     */
+    getTransactionAmountNQT(t, accountRS) {
+        let amountNQT = t.amountNQT / 100000000;
+        if (amountNQT === 0) {
+            return "-"
+        } else if (t.senderRS === accountRS && t.type !== 9) {
+            return -amountNQT
+        } else {
+            return "+" + amountNQT
+        }
     }
 
 };
