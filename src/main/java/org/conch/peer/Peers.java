@@ -792,6 +792,7 @@ public final class Peers {
 
     private static final String SC_PEERS_API = UrlManager.getFoundationUrl(
             UrlManager.PEERS_LIST_EOLINKER,
+            UrlManager.PEERS_LIST_LOCAL,
             UrlManager.PEERS_LIST_PATH
     );
 

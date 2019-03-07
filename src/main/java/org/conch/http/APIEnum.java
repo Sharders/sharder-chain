@@ -313,12 +313,12 @@ public enum APIEnum {
     GET_STORED_DATA("getStoredData", GetStoredData.instance), // get off-chain file content
     DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance), // download off-chain file
     // poc
-    CREATE_POC_NODE_CONFIG ("createPocNodeConf", PocTxApi.CreateNodeConf.instance),
-    GET_POC_NODE_CONFIG ("getPocNodeConf", PocTxApi.GetNodeConf.instance),
-    CREATE_POC_TEMPLATE ("createPocTemplate", PocTxApi.CreatePocTemplate.instance),
-    GET_POC_TEMPLATE ("getPocTemplate", PocTxApi.GetPocTemplate.instance),
-    CREATE_POC_ONLINE_RATE("createPocOnlineRate", PocTxApi.CreateOnlineRate.instance),
-    GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.instance);
+    CREATE_POC_NODE_CONFIG ("createPocNodeConf", PocTxApi.CreateNodeConf.INSTANCE),
+    GET_POC_NODE_CONFIG ("getPocNodeConf", PocTxApi.GetNodeConf.INSTANCE),
+    CREATE_POC_TEMPLATE ("createPocTemplate", PocTxApi.CreatePocTemplate.INSTANCE),
+    GET_POC_TEMPLATE ("getPocTemplate", PocTxApi.GetPocTemplate.INSTANCE),
+    CREATE_POC_ONLINE_RATE("createPocOnlineRate", PocTxApi.CreateOnlineRate.INSTANCE),
+    GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.INSTANCE);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

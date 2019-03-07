@@ -18,30 +18,31 @@ import java.util.concurrent.TimeUnit;
  */
 public class MessageManager {
     private static boolean openLogger = false;
-    enum LogLevel{
+
+    enum LogLevel {
         DEBUG,
         INFO,
         WARN
     }
-    
-    private static void log(String msg,LogLevel level){
-        if(!openLogger) return;
-        
-        if(LogLevel.DEBUG == level) {
+
+    private static void log(String msg, LogLevel level) {
+        if (!openLogger) return;
+
+        if (LogLevel.DEBUG == level) {
             Logger.logDebugMessage(msg);
-        }else if(LogLevel.INFO == level){
+        } else if (LogLevel.INFO == level) {
             Logger.logInfoMessage(msg);
-        }else if(LogLevel.WARN == level){
+        } else if (LogLevel.WARN == level) {
             Logger.logWarningMessage(msg);
         }
     }
 
-    private static void log(String msg, Throwable e){
-        if(!openLogger) return;
-        
+    private static void log(String msg, Throwable e) {
+        if (!openLogger) return;
+
         Logger.logErrorMessage(msg, e);
     }
-    
+
     private static final BlockingQueue<Message> PENDING_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
     private static final BlockingQueue<Message> SUCCESS_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
     private static final BlockingQueue<Message> FAILED_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
@@ -105,7 +106,7 @@ public class MessageManager {
         BlockingQueue<Message> queue;
         try {
             queue = getQueueByType(queueType);
-            log(Convert.stringTemplate(Constants.ADD_MSG_INFO, message, queueType),LogLevel.DEBUG);
+            log(Convert.stringTemplate(Constants.ADD_MSG_INFO, message, queueType), LogLevel.DEBUG);
             switch (operationType) {
                 case ADD:
                     result = queue.add(message);
@@ -122,9 +123,9 @@ public class MessageManager {
             }
 
             if (result) {
-                log(Convert.stringTemplate(Constants.SUCCESS_ADD_MSG, queueType, queueType, queue.size()),LogLevel.DEBUG);
+                log(Convert.stringTemplate(Constants.SUCCESS_ADD_MSG, queueType, queueType, queue.size()), LogLevel.DEBUG);
             } else {
-                log(Convert.stringTemplate(Constants.FAILED_ADD_MSG, queueType, queueType),LogLevel.WARN);
+                log(Convert.stringTemplate(Constants.FAILED_ADD_MSG, queueType, queueType), LogLevel.WARN);
             }
         } catch (IllegalStateException | InterruptedException | IllegalArgumentException e) {
             log(Convert.stringTemplate(Constants.ERROR_ADD_MSG, queueType, message), e);
@@ -145,7 +146,7 @@ public class MessageManager {
 
         try {
             queue = getQueueByType(queueType);
-            log(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType),LogLevel.DEBUG);
+            log(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType), LogLevel.DEBUG);
             switch (operationType) {
                 case REMOVE:
                     message = queue.remove();
@@ -160,9 +161,9 @@ public class MessageManager {
                     throw new IllegalArgumentException(Constants.OPERATION_NOT_FOUND);
             }
             if (message != null) {
-                log(Convert.stringTemplate(Constants.SUCCESS_FETCH_MSG, queueType, message, queueType, queue.size()),LogLevel.DEBUG);
+                log(Convert.stringTemplate(Constants.SUCCESS_FETCH_MSG, queueType, message, queueType, queue.size()), LogLevel.DEBUG);
             } else {
-                log(Constants.FAILED_FETCH_MSG,LogLevel.WARN);
+                log(Constants.FAILED_FETCH_MSG, LogLevel.WARN);
             }
         } catch (IllegalArgumentException | NoSuchElementException | InterruptedException e) {
             log(Convert.stringTemplate(Constants.ERROR_FETCH_MSG, queueType), e);
@@ -202,9 +203,12 @@ public class MessageManager {
     }
 
     public static RestfulHttpClient.HttpResponse sendMessageToFoundation(Message message) throws IOException {
-        return RestfulHttpClient.getClient(
-                UrlManager.getFoundationUrl(UrlManager.ADD_MESSAGE_TO_SHARDER_EOLINKER, UrlManager.ADD_MESSAGE_TO_SHARDER_PATH)
-        )
+        String url = UrlManager.getFoundationUrl(
+                UrlManager.ADD_MESSAGE_TO_SHARDER_EOLINKER,
+                UrlManager.ADD_MESSAGE_TO_SHARDER_LOCAL,
+                UrlManager.ADD_MESSAGE_TO_SHARDER_PATH
+        );
+        return RestfulHttpClient.getClient(url)
                 .post()
                 .body(message)
                 .request();
@@ -223,7 +227,7 @@ public class MessageManager {
         public void run() {
             Message message = fetchMessage(queueType, OperationType.POLL);
             if (message == null) {
-                log(Convert.stringTemplate(Constants.NO_MSG_NOW, queueType),LogLevel.DEBUG);
+                log(Convert.stringTemplate(Constants.NO_MSG_NOW, queueType), LogLevel.DEBUG);
                 return;
             }
             messageHandler = MessageHandler.Factory.getByType(Message.Type.getTypeByName(message.getType()));
