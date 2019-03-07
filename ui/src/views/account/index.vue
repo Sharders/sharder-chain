@@ -1111,6 +1111,7 @@
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
+                confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
                 if (type === 'init') {
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
@@ -1132,7 +1133,7 @@
                 }
             },
             confirmInitHubSetting(confirmFormData, reConfigFormData) {
-                // firstly confirm settings, save real address to operate system
+                // firstly confirm settings, save real address and ssAddress to operate system
                 // secondly reconfigure hub and create a new sharder.properties file
                 // finally redirect to login page, and auto refresh after 30s
                 this.hubSettingsConfirm(confirmFormData, reConfigFormData);
@@ -1145,7 +1146,7 @@
                 data.append("tssAddress", this.hubsetting.SS_Address);
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
-                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister.eoLinkerUrl, FoundationApiUrls.natRegister.path), data)
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister), data)
                     .then(response => {
                         if (response.data.success) {
                             console.info('success to register NAT service');
@@ -1166,7 +1167,7 @@
             },
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
-                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm.eoLinkerUrl, FoundationApiUrls.hubSettingConfirm.path), data)
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res2 => {
                         if (res2.data === 'success') {
                             console.info('success to update hub setting to remote server');
@@ -1206,18 +1207,14 @@
                     && _this.hubsetting.openPunchthrough) {
                     formData.append("username", _this.hubsetting.sharderAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
-                    _this.$http.post(
-                        getCommonFoundationApiUrl(
-                            FoundationApiUrls.hubSettingAccountCheck.eoLinkerUrl,
-                            FoundationApiUrls.hubSettingAccountCheck.path
-                        ), formData)
+                    _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingAccountCheck), formData)
                         .then(res => {
                             if (res.data.status === 'success') {
                                 _this.hubsetting.address = res.data.data.natServiceAddress;
                                 _this.hubsetting.port = res.data.data.natServicePort;
                                 _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
                                 _this.hubsetting.publicAddress = res.data.data.hubAddress;
-                                _this.hubsetting.SS_Address = '';
+                                _this.hubsetting.SS_Address = res.data.data.tssAddress;
                                 _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.registerStatus);
                                 _this.hubsetting.register_status = res.data.data.registerStatus;
                                 _this.needRegister = false;
