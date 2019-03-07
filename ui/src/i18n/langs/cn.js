@@ -237,6 +237,7 @@ const cn = {
     mining: {
         attribute: {
             'exceeding_total':"超出矿池总上限",
+            'pool_destruction':"矿池已销毁",
             'join_number_info':"投入数量必须大于1",
             'join_success':"加入成功",
             'delete_success':"删除成功",
@@ -358,7 +359,7 @@ const cn = {
             'ss_exchange': "SS兑换",
             'net_mining': "全网挖矿: ",
             'net_mining_number': "第{number}块",
-            'my_assets': "我的资产: ",
+            'my_assets': "我的资产",
             'my_income': "我的收益: ",
             'view_ranking': "查看排行",
             'net_income': "全网收益",

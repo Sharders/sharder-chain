@@ -132,30 +132,7 @@
         </div>
         <!--SS兑换-->
         <div v-if="tabTitle === 'exchange'">
-            <div class="reward">
-                <div class="reward-title">
-                    {{$t('mining.index.reward_title')}}
-                </div>
-                <div class="reward-content">
-                    <el-row :gutter="20">
-                        <el-col :span="12" v-for="reward in rewardList">
-                            <div class="reward-content-div">
-                                <div class="content-left">
-                                    <p>
-                                        <img src="../../assets/img/logo.svg" class="content-left-img">
-                                        <span class="strong">1000 SS(ERC-20)</span>
-                                        <span>{{$t('mining.index.remaining')}}0</span>
-                                    </p>
-                                    <p class="reward-instructions">{{$t('mining.index.reward_instruction')}}</p>
-                                </div>
-                                <div class="content-right">
-                                    <el-button type="info">{{$t('mining.diamond_exchange.not_open')}}</el-button>
-                                </div>
-                            </div>
-                        </el-col>
-                    </el-row>
-                </div>
-            </div>
+            <ExchangeReward></ExchangeReward>
         </div>
         <!--个人中心-->
         <div v-if="tabMenu === 'personal'">
@@ -329,8 +306,13 @@
 </template>
 
 <script>
+    import ExchangeReward from "./exchange-reward";
+
     export default {
         name: 'mining',
+        components: {
+            "ExchangeReward": ExchangeReward
+        },
         data() {
             return {
                 isCreatePool: false,

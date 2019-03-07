@@ -19,26 +19,22 @@ import java.util.concurrent.TimeUnit;
 public class MessageManager {
     private static boolean openLogger = false;
 
-    enum LogLevel {
-        DEBUG,
-        INFO,
-        WARN
-    }
+    private static void log(String msg,Logger.Level level){
+        if(!openLogger) return;
 
-    private static void log(String msg, LogLevel level) {
-        if (!openLogger) return;
-
-        if (LogLevel.DEBUG == level) {
+        if(Logger.Level.DEBUG == level) {
             Logger.logDebugMessage(msg);
-        } else if (LogLevel.INFO == level) {
+        }else if(Logger.Level.INFO == level){
             Logger.logInfoMessage(msg);
-        } else if (LogLevel.WARN == level) {
+        }else if(Logger.Level.WARN == level){
             Logger.logWarningMessage(msg);
         }
     }
 
     private static void log(String msg, Throwable e) {
-        if (!openLogger) return;
+        if (!openLogger) {
+            return;
+        }
 
         Logger.logErrorMessage(msg, e);
     }
@@ -106,7 +102,7 @@ public class MessageManager {
         BlockingQueue<Message> queue;
         try {
             queue = getQueueByType(queueType);
-            log(Convert.stringTemplate(Constants.ADD_MSG_INFO, message, queueType), LogLevel.DEBUG);
+            log(Convert.stringTemplate(Constants.ADD_MSG_INFO, message, queueType),Logger.Level.DEBUG);
             switch (operationType) {
                 case ADD:
                     result = queue.add(message);
@@ -123,9 +119,9 @@ public class MessageManager {
             }
 
             if (result) {
-                log(Convert.stringTemplate(Constants.SUCCESS_ADD_MSG, queueType, queueType, queue.size()), LogLevel.DEBUG);
+                log(Convert.stringTemplate(Constants.SUCCESS_ADD_MSG, queueType, queueType, queue.size()),Logger.Level.DEBUG);
             } else {
-                log(Convert.stringTemplate(Constants.FAILED_ADD_MSG, queueType, queueType), LogLevel.WARN);
+                log(Convert.stringTemplate(Constants.FAILED_ADD_MSG, queueType, queueType),Logger.Level.WARN);
             }
         } catch (IllegalStateException | InterruptedException | IllegalArgumentException e) {
             log(Convert.stringTemplate(Constants.ERROR_ADD_MSG, queueType, message), e);
@@ -146,7 +142,7 @@ public class MessageManager {
 
         try {
             queue = getQueueByType(queueType);
-            log(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType), LogLevel.DEBUG);
+            log(Convert.stringTemplate(Constants.FETCH_MSG_INFO, queueType),Logger.Level.DEBUG);
             switch (operationType) {
                 case REMOVE:
                     message = queue.remove();
@@ -161,9 +157,9 @@ public class MessageManager {
                     throw new IllegalArgumentException(Constants.OPERATION_NOT_FOUND);
             }
             if (message != null) {
-                log(Convert.stringTemplate(Constants.SUCCESS_FETCH_MSG, queueType, message, queueType, queue.size()), LogLevel.DEBUG);
+                log(Convert.stringTemplate(Constants.SUCCESS_FETCH_MSG, queueType, message, queueType, queue.size()),Logger.Level.DEBUG);
             } else {
-                log(Constants.FAILED_FETCH_MSG, LogLevel.WARN);
+                log(Constants.FAILED_FETCH_MSG,Logger.Level.WARN);
             }
         } catch (IllegalArgumentException | NoSuchElementException | InterruptedException e) {
             log(Convert.stringTemplate(Constants.ERROR_FETCH_MSG, queueType), e);
@@ -227,7 +223,7 @@ public class MessageManager {
         public void run() {
             Message message = fetchMessage(queueType, OperationType.POLL);
             if (message == null) {
-                log(Convert.stringTemplate(Constants.NO_MSG_NOW, queueType), LogLevel.DEBUG);
+                log(Convert.stringTemplate(Constants.NO_MSG_NOW, queueType),Logger.Level.DEBUG);
                 return;
             }
             messageHandler = MessageHandler.Factory.getByType(Message.Type.getTypeByName(message.getType()));

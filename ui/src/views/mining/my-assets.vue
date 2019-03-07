@@ -26,7 +26,7 @@
                     <p class="strong">{{al.title}}</p>
                     <p>{{al.time}}</p>
                 </div>
-                <div class="number">{{al.num}}{{$t('mining.create_history.diamond')}}</div>
+                <div class="number">{{al.num}} SS</div>
             </div>
             <div class="load-assets">
                 <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
@@ -59,10 +59,11 @@
                         return _this.isPage = false;
                     }
                     for (let t of res.transactions) {
+                        console.info(t);
                         _this.assetsList.push({
                             title: _this.$global.getTransactionTypeStr(t),
                             time: _this.$global.myFormatTime(t.timestamp, 'YMDHMS', true),
-                            num: t.amountNQT / 100000000
+                            num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
                         })
                     }
                 });
