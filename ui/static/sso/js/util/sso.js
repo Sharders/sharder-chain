@@ -71,6 +71,7 @@ var Sso = (function (NRS, $, undefined) {
 
     NRS.isTestNet = NRS.isTestNet ? NRS.isTestNet : false;
     NRS.netWorkType = 'dev';
+    NRS.useEoLinker = true;
     NRS.forgingStatus = NRS.constants.UNKNOWN;
     NRS.isAccountForging = false;
     NRS.isLeased = false;
@@ -355,26 +356,29 @@ var Sso = (function (NRS, $, undefined) {
                         if (!response.hasOwnProperty(key)) {
                             continue;
                         }
-                        if (key == "isTestnet") {
+                        if (key === "isTestnet") {
                             isTestnet = response[key];
                         }
-                        if (key == "isOffline") {
+                        if (key === "isOffline") {
                             isOffline = response[key];
                         }
-                        if (key == "peerPort") {
+                        if (key === "peerPort") {
                             peerPort = response[key];
                         }
-                        if (key == "needsAdminPassword") {
+                        if (key === "needsAdminPassword") {
                             NRS.needsAdminPassword = response[key];
                         }
-                        if (key == "upnpExternalAddress") {
+                        if (key === "upnpExternalAddress") {
                             NRS.upnpExternalAddress = response[key];
                         }
-                        if (key == "version") {
+                        if (key === "version") {
                             NRS.appVersion = response[key];
                         }
-                        if (key == "netWorkType") {
+                        if (key === "netWorkType") {
                             NRS.netWorkType = response[key];
+                        }
+                        if (key === "useEoLinker") {
+                            NRS.useEoLinker = response[key] === 'true';
                         }
                     }
 

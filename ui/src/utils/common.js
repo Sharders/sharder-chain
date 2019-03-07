@@ -509,6 +509,9 @@ export default {
     isDevNet() {
         return SSO.netWorkType === 'Devnet';
     },
+    useEoLinker() {
+        return SSO.useEoLinker;
+    },
     getSharderFoundationHost() {
         return (this.isTestNet() || this.isDevNet()) ?
             this.sharderFoundationTestHost : this.sharderFoundationHost;
