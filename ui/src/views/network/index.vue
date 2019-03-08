@@ -258,7 +258,7 @@
         },
         created: function () {
             const _this = this;
-            this.$http.get('/sharder?requestType=getBlocks', {
+            _this.$http.get('/sharder?requestType=getBlocks', {
                 params: {
                     firstIndex: (_this.currentPage - 1) * 10,
                     lastIndex: _this.currentPage * 10 - 1
@@ -282,17 +282,12 @@
             }).catch(function (err) {
                 _this.$message.error(err);
             });
-            this.$http.get('/sharder?requestType=getPeers').then(function (res) {
-                _this.peerNum = res.data.peers.length;
-                let arr = [];
-                for(let p of res.data.peers){
-                    let ip = p.split(":")[0];
-                    if(arr.indexOf(ip) === -1){
-                        arr.push(ip);
-                    }
-                }
 
-                _this.$global.byIPtoCoordinates(arr).then(res1=>{
+            _this.$http.get('/sharder?requestType=getPeers').then(function (res) {
+                _this.peerNum = res.data.peers.length;
+                let peers = [];
+                res.data.peers.forEach(el => { peers.push(el.split(":")[0])});
+                _this.$global.byIPtoCoordinates(peers).then(res1=>{
                     let json = JSON.parse(res1);
                     for(let i of Object.keys(json)){
                         if(json[i]["X"] !== "" && json[i]["X"] !== "0"
@@ -313,7 +308,8 @@
             }).catch(function (err) {
                 console.error("error", err);
             });
-            this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+
+            _this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
                 // console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
                 _this.minerlist = res.data.generators;
@@ -322,7 +318,8 @@
             }).catch(function (err) {
                 console.error("error", err);
             });
-            this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
+
+            _this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
                 _this.transferCount = res.data.transferCount;
                 _this.storageCount = res.data.storageCount;
                 _this.totalCount = res.data.transferAmount;
