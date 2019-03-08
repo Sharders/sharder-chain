@@ -88,7 +88,7 @@
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalMintRewards/100000000}} SS</span>
+                                        <span>{{$t('mining.index.pool_income')}}{{mining.mintRewards/100000000}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">

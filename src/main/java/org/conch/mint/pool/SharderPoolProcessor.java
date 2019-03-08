@@ -50,6 +50,7 @@ public class SharderPoolProcessor implements Serializable {
     private long historicalIncome;
     // mint rewards
     private long historicalMintRewards;
+    private long mintRewards;
     // fees
     private long historicalFees;
     private long power;
@@ -71,18 +72,18 @@ public class SharderPoolProcessor implements Serializable {
         Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
         
-//        if (destroyedPools.containsKey(creatorId)) {
-//            SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
-//            pool.chance = pastPool.chance;
-//            pool.state = State.INIT;
-//            pool.historicalBlocks = pastPool.historicalBlocks;
-//            pool.historicalIncome = pastPool.historicalIncome;
-//            pool.historicalFees = pastPool.historicalFees;
-//            pool.historicalMintRewards = pastPool.historicalMintRewards;
-//            pool.totalBlocks = pastPool.totalBlocks;
-//            pool.rule = rule;
-//            Logger.logDebugMessage(creatorId + " create mint pool from old pool, chance " + pastPool.chance);
-//        } else {
+        if (destroyedPools.containsKey(creatorId)) {
+            SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
+            pool.chance = pastPool.chance;
+            pool.state = State.INIT;
+            pool.historicalBlocks = pastPool.historicalBlocks;
+            pool.historicalIncome = pastPool.historicalIncome;
+            pool.historicalFees = pastPool.historicalFees;
+            pool.historicalMintRewards = pastPool.historicalMintRewards;
+            pool.totalBlocks = pastPool.totalBlocks;
+            pool.rule = rule;
+            Logger.logDebugMessage(creatorId + " create mint pool from old pool, chance " + pastPool.chance);
+        } else {
             pool.chance = 0;
             pool.state = State.INIT;
             pool.historicalBlocks = 0;
@@ -92,7 +93,7 @@ public class SharderPoolProcessor implements Serializable {
             pool.totalBlocks = 0;
             pool.rule = rule;
             Logger.logDebugMessage(creatorId + " create a new mint pool");
-//        }
+        }
         
         sharderPools.put(pool.poolId, pool);
     }
@@ -206,6 +207,7 @@ public class SharderPoolProcessor implements Serializable {
             SharderPoolProcessor pool = sharderPools.get(poolId);
             pool.historicalIncome += reward;
             pool.historicalMintRewards += reward;
+            pool.mintRewards += reward;
         }
     }
 
@@ -454,6 +456,7 @@ public class SharderPoolProcessor implements Serializable {
         jsonObject.put("historicalIncome", historicalIncome);
         jsonObject.put("historicalFees", historicalFees);
         jsonObject.put("historicalMintRewards", historicalMintRewards);
+        jsonObject.put("mintRewards", mintRewards);
         jsonObject.put("totalBlocks",totalBlocks);
         jsonObject.put("consignors",consignors);
         jsonObject.put("startBlockNo", startBlockNo);
