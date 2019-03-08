@@ -23,8 +23,10 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.util.Convert;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
@@ -53,6 +55,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
@@ -61,6 +64,13 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
+        long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
+
+        if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
+            response.put("reconfiged", false);
+            response.put("failedReason", "user has created a working pool, failed to configure settings");
+            return response;
+        }
 
         if (!verifyForNormalNode(req, response)) {
             System.out.println("failed to configure settings...");

@@ -1000,12 +1000,12 @@
                 const _this = this;
                 params.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
-                    if (typeof res.data.errorDescription === "undefined") {
+                    if (res.data.reconfiged) {
                         _this.$message.success(_this.$t('restart.restarting'));
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res.data.errorDescription?res.data.errorDescription:res.data.failedReason);
                     }
                 }).catch(err => {
                     _this.$message.error(err.message);
