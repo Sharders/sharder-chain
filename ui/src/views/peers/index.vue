@@ -303,12 +303,14 @@
         },
         created:function(){
             let _this = this;
-
-            _this.peersList = _this.$global.peers.peers;
-            _this.totalSize = _this.$global.peers.peers.length;
-            _this.getPeersInfo(_this.peersList);
+            _this.init(_this.$global.peers.peers);
         },
         methods: {
+            init:function(peersList){
+                this.peersList = peersList;
+                this.totalSize = peersList.length;
+                this.getPeersInfo(peersList);
+            },
             drawPeers: function () {
                 let _this = this;
                 const myChart = echarts.init(document.getElementById("peers-map"));
@@ -465,8 +467,10 @@
             getPeersInfo:function (data) {
                 let _this = this;
                 _this.peersCount = data.length;
+                _this.activeHubCount = 0;
+                _this.activePeersCount = 0;
                 data.forEach(function(item){
-                    if(item.type === 4){
+                    if(item.platform === "Sharder Hub"){
                         _this.activeHubCount++;
                     }
                     if(item.state === 1){
@@ -483,15 +487,15 @@
 
                 this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
                     if(typeof res.data.errorDescription === 'undefined'){
-                        _this.$message.success("添加成功！");
-
+                        _this.$message.success("Add a success！");
                         _this.$global.setPeers(_this).then(res=>{
-                            _this.peersList = res.data;
+                            _this.init(res.data.peers);
                         });
                     }else{
                         _this.$message.error(res.data.errorDescription);
                     }
-                })
+                    _this.closeDialog();
+                });
             },
             addBlacklist:function(address){
                 let _this = this;
@@ -500,16 +504,16 @@
                 formData.append("adminPassword",_this.adminPassword);
 
                 this.$http.post('sharder?requestType=blacklistPeer',formData).then(function (res) {
-                    if(typeof res.data.errorDescription === 'undefined'){
+                    if(!res.data.errorDescription){
                         _this.$message({
                             showClose: true,
-                            message: this.$t('peers.join_blacklist_success1')+address+this.$t('peers.join_blacklist_success2'),
+                            message: _this.$t('peers.join_blacklist_success1')+address+_this.$t('peers.join_blacklist_success2'),
                             type: "success"
                         });
                     }else{
                         _this.$message({
                             showClose: true,
-                            message: this.$t('peers.join_blacklist_error'),
+                            message: _this.$t('peers.join_blacklist_error'),
                             type: "error"
                         });
                     }
@@ -524,16 +528,16 @@
                 formData.append("peer",address);
                 formData.append("adminPassword",_this.adminPassword);
                 this.$http.post('sharder?requestType=addPeer',formData).then(function (res) {
-                    if(typeof res.data.errorDescription === 'undefined'){
+                    if(!res.data.errorDescription){
                         _this.$message({
                             showClose: true,
-                            message: this.$t('peers.join_link_peer_success1')+address+this.$t('peers.join_link_peer_success2'),
+                            message: _this.$t('peers.join_link_peer_success1')+address+_this.$t('peers.join_link_peer_success2'),
                             type: "success"
                         });
                     }else{
                         _this.$message({
                             showClose: true,
-                            message: this.$t('peers.join_link_peer_error'),
+                            message: _this.$t('peers.join_link_peer_error'),
                             type: "error"
                         });
                     }
