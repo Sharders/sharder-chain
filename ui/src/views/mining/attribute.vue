@@ -59,13 +59,15 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal" class="join" @click="miningMask('isJoinPool')">
+                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal" class="join"
+                                @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
                         <button v-if="miningInfo.joinAmount > 0" class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account " class="exit" @click="miningMask('isDestroyPool')">
+                        <button v-if="myAccount === miningInfo.account " class="exit"
+                                @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
                     </div>
@@ -297,7 +299,7 @@
                     poolId: _this.mining.poolId,
                 }, "getPoolInfo").then(res => {
                     console.info(res);
-                    if(res.errorDescription) {
+                    if (res.errorDescription) {
                         _this.$message.warning(_this.$t("mining.attribute.pool_destruction"));
                         return _this.$router.back()
                     }
@@ -305,7 +307,7 @@
                     _this.miningInfo.poolId = res.poolId;
                     _this.miningInfo.currentInvestment = res.power;
                     _this.miningInfo.accountId = _this.$global.longUnsigned(res.creatorID);
-                    _this.miningInfo.income = res.historicalMintRewards;
+                    _this.miningInfo.income = res.mintRewards;
                     _this.miningInfo.chance = res.chance;
                     _this.miningInfo.startBlockNo = res.startBlockNo;
                     _this.miningInfo.endBlockNo = res.endBlockNo;

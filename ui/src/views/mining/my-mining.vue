@@ -39,7 +39,6 @@
                     </el-col>
                 </el-row>
             </div>
-            <div class="info">{{$t('mining.my_mining.no_more')}}</div>
         </div>
         <div v-if="tabPosition === 'create'">
             <div class="mining-list create">
@@ -73,10 +72,8 @@
                     </el-col>
                 </el-row>
             </div>
-            <div class="history" @click="$router.push({name: 'create-history'})">
-                {{$t('mining.my_mining.history_create_record')}}&gt;&gt;
-            </div>
         </div>
+        <div class="info">{{$t('mining.my_mining.no_more')}}</div>
     </div>
 </template>
 
@@ -103,7 +100,7 @@
                         _this.createList.push({
                             investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: res[n].power / 100000000,
-                            earnings: res[n].historicalMintRewards / 100000000,
+                            earnings: res[n].mintRewards / 100000000,
                             distribution: level.forgepool.reward.max,
                             remaining: res[n].startBlockNo > res[n].updateHeight ? res[n].endBlockNo - res[n].startBlockNo : res[n].endBlockNo - res[n].updateHeight
                         });
@@ -119,7 +116,7 @@
                         _this.joinList.push({
                             investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: mining.power / 100000000,
-                            earnings: mining.historicalMintRewards / 100000000,
+                            earnings: mining.mintRewards / 100000000,
                             distribution: level.forgepool.reward.max,
                             remaining: mining.startBlockNo > mining.updateHeight ? mining.endBlockNo - mining.startBlockNo : mining.endBlockNo - mining.updateHeight
                         });
@@ -189,6 +186,10 @@
     .my-mining .tabs .title .btn {
         width: 50%;
         outline: none;
+    }
+
+    .my-mining .info {
+        text-align: center;
     }
 
     .my-mining .mining-list {

@@ -11,7 +11,7 @@
                         <span>{{accountInfo.accountRS}}</span>
                         <img class="csp" src="../../assets/img/copy.svg" v-clipboard:copy="accountInfo.accountRS"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
-                        <span class="csp" @click="openUserInfoDialog">{{$t('account.account_info')}}</span>
+                        <span class="csp" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</span>
                     </div>
                     <p class="account_asset">
                         {{$t('account.assets')}} {{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
@@ -957,7 +957,7 @@
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
-                        _this.$message.error(res.data.error? res.data.error : res.data.errorDescription);
+                        _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
                     }
                 }).catch(err => {
                     _this.$message.error(err.message);
@@ -1733,9 +1733,9 @@
                 this.trading = trading;
                 this.tradingInfoDialog = true;
             },
-            openUserInfoDialog: function () {
-                this.userInfoDialog = true;
-                this.$store.state.mask = true;
+            isUserInfoDialog: function (bool) {
+                this.userInfoDialog = bool;
+                this.$store.state.mask = bool;
             },
             openAccountInfoDialog: function (account) {
                 this.generatorRS = account;
@@ -1772,8 +1772,8 @@
                     _this.$message.warning(_this.$t("account.synchronization_block"));
                     return;
                 }
-                _this.userInfoDialog = false;
-                _this.secretPhraseDialog = true;
+                _this.isUserInfoDialog(false);
+                _this.secretPhrase ? _this.setName(_this.secretPhrase) : _this.secretPhraseDialog = true;
             },
             getAdminPassword: function (adminPwd) {
                 const _this = this;
