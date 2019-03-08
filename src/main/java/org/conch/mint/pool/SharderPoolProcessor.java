@@ -23,16 +23,34 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * @author ben-xy
+ */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
+    /**
+     * working mine pool, one creator only has one working pool
+     */
     private static final ConcurrentMap<Long, SharderPoolProcessor> sharderPools;
     private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools;
     public static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
 
     public enum State {
+        /**
+         * user created pool, but not produce block yet
+         */
         INIT,
+        /**
+         * pool is creating
+         */
         CREATING,
+        /**
+         * pool is working
+         */
         WORKING,
+        /**
+         * pool is abandoned
+         */
         DESTROYED
     }
 
@@ -44,13 +62,21 @@ public class SharderPoolProcessor implements Serializable {
     private final int startBlockNo;
     private int endBlockNo;
     private int historicalBlocks;
-    // the sum of all destroyed mint pool's life time
+    /**
+     * the sum of all destroyed mint pool's life time
+     */
     private int totalBlocks;
-    // total income
+    /**
+     * total income
+     */
     private long historicalIncome;
-    // mint rewards
+    /**
+     * mint rewards
+     */
     private long historicalMintRewards;
-    // fees
+    /**
+     * fees
+     */
     private long historicalFees;
     private long power;
     private final ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
@@ -440,6 +466,17 @@ public class SharderPoolProcessor implements Serializable {
 
     public long getCreatorId() {
         return creatorId;
+    }
+
+    /**
+     * whether creator has created a working mine pool
+     *
+     * @param creatorId
+     * @return true(creator has working pool) or false(creator has no working pool)
+     */
+    public static Boolean whetherCreatorHasWorkingMinePool(Long creatorId) {
+        return sharderPools.values().stream().map(SharderPoolProcessor::getCreatorId)
+                .anyMatch(poolCreatorId -> poolCreatorId.equals(creatorId));
     }
 
     public JSONObject toJsonObject() {
