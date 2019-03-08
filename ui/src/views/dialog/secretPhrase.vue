@@ -11,7 +11,7 @@
                     <input v-model="secretPhrase" type="password"/>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" @click="returnValue()">{{$t('password_modal.open')}}</button>
+                    <button type="button" class="btn" @click="returnValue()">{{$t('account_info.account_set_name')}}</button>
                 </div>
             </div>
         </div>
