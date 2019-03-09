@@ -306,13 +306,9 @@
 </template>
 
 <script>
-    import ExchangeReward from "./exchange-reward";
 
     export default {
         name: 'mining',
-        components: {
-            "ExchangeReward": ExchangeReward
-        },
         data() {
             return {
                 isCreatePool: false,

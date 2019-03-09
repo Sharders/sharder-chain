@@ -173,10 +173,10 @@
                                 <td class="linker" @click="openBlockInfoDialog(transaction.height)"
                                     v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}
                                 </td>
-                                <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>-</td>
+                                <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>--</td>
                                 <td>{{$global.getTransactionTypeStr(transaction)}}</td>
                                 <td>{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}} SS</td>
-                                <td v-if="transaction.feeNQT === '0'">-</td>
+                                <td v-if="transaction.feeNQT === '0'">--</td>
                                 <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
                                 <td class=" image_text w300">
                                     <span class="linker" v-if="transaction.type === 9">Coinbase</span>
@@ -195,7 +195,7 @@
                                           v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
                                 </td>
                                 <td v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
-                                <td v-else>-</td>
+                                <td v-else>--</td>
                                 <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">
                                     {{$t('transaction.view_details')}}
                                 </td>
@@ -594,8 +594,6 @@
     </div>
 </template>
 <script>
-    import echarts from "echarts";
-    import dialogCommon from "../dialog/dialog_common";
     import adminPwd from "../dialog/adminPwd";
     import secretPhrase from "../dialog/secretPhrase";
     import rules from "../../utils/rules";
@@ -603,10 +601,7 @@
 
     export default {
         name: "Network",
-        components: {
-            echarts, dialogCommon, adminPwd, secretPhrase,
-            "masked-input": require("vue-masked-input").default
-        },
+        components: {adminPwd, secretPhrase},
         data() {
             let required = rules.required(this.$t('rules.mustRequired'));
             let validateSSAddress = rules.ssAddress(
@@ -860,8 +855,8 @@
                 });
             },
             drawBarchart: function (barchat) {
-                const barchart = echarts.init(document.getElementById("transaction_amount_bar"));
                 const _this = this;
+                const barchart = _this.$echarts.init(document.getElementById("transaction_amount_bar"));
                 const option = {
                     grid: {
                         left: '15%',
@@ -890,8 +885,8 @@
                 }
             },
             drawYield: function (yields) {
-                const yieldCurve = echarts.init(document.getElementById("yield_curve"));
                 const _this = this;
+                const yieldCurve = _this.$echarts.init(document.getElementById("yield_curve"));
                 const option = {
                     grid: {
                         left: '15%',

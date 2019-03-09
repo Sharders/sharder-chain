@@ -24,13 +24,9 @@
 </template>
 
 <script>
-    import ReceiveAlert from "./receiveAlert";
 
     export default {
         name: "free-collar-drill",
-        components: {
-            ReceiveAlert: ReceiveAlert,
-        },
         data() {
             return {
                 freeList: [
