@@ -981,24 +981,39 @@
             },
             resettingHub(adminPwd) {
                 const _this = this;
-                let data = new FormData();
-                data.append("adminPassword", adminPwd);
-                data.append("restart", "true");
+                let resetData = new FormData();
+                let confirmFormData = new FormData();
+                confirmFormData.append("username", _this.hubsetting.sharderAccount);
+                confirmFormData.append("password", _this.hubsetting.sharderPwd);
+                confirmFormData.append("tssAddress", "");
+                resetData.append("adminPassword", adminPwd);
+                resetData.append("restart", "true");
+                console.log("resetting hub...");
+                this.hubSettingsConfirmThenDoOperation(confirmFormData, _this.sendResettingHubRequest, resetData);
+            },
+            sendResettingHubRequest(data) {
+                const _this = this;
                 this.$http.post('/sharder?requestType=recovery', data).then(res => {
-                    if (!res.data.errorDescription) {
+                    if (res.data.done) {
                         _this.$message.success(_this.$t('restart.restarting'));
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res.data.errorDescription?res.data.errorDescription:res.data.failedReason);
                     }
-                }).catch(err => {
-                    _this.$message.error(err.message);
-                });
+                }).catch(err => _this.$message.error(err.message));
             },
             updateHubSetting(adminPwd, params) {
                 const _this = this;
+                let confirmFormData = new FormData();
+                confirmFormData.append("username", _this.hubsetting.sharderAccount);
+                confirmFormData.append("password", _this.hubsetting.sharderPwd);
+                confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
                 params.append("adminPassword", adminPwd);
+                _this.hubSettingsConfirmThenDoOperation(confirmFormData, _this.sendUpdateHubSettingRequest, params);
+            },
+            sendUpdateHubSettingRequest(params) {
+                const _this = this;
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
                     if (res.data.reconfiged) {
                         _this.$message.success(_this.$t('restart.restarting'));
@@ -1168,17 +1183,42 @@
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
-                    .then(res2 => {
-                        if (res2.data === 'success') {
+                    .then(res => {
+                        if (res.data.code == 200) {
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
                         } else {
-                            _this.$message.error(JSON.stringify(res2));
+                            _this.$message.error(res.data.errorDescription? res.data.errorDescription : res.data.errorType + res.data.errorMessage);
                         }
                     })
                     .catch(err => {
                         _this.$message.error(err.message);
                     });
+            },
+            hubSettingsConfirmThenDoOperation(confirmFormData, callBack, callBackData) {
+                const _this = this;
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), confirmFormData)
+                    .then(res => {
+                        if (res.data.code === 200) {
+                            console.info('success to update hub setting to remote server');
+                            callBack(callBackData);
+                        } else {
+                            _this.$message.error(res.data.errorType + res.data.errorMessage);
+                        }
+                    })
+                    .catch(err => _this.$message.error(err.message));
+            },
+            hubSettingConfirmThenGoAdmin(type, formName) {
+                let _this = this;
+                _this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        _this.hubSettingDialog = false;
+                        _this.adminPasswordDialog = true;
+                    } else {
+                        console.log(`operation of ${type} missing field`);
+                        return false;
+                    }
+                });
             },
             reconfigure(data) {
                 let _this = this;
@@ -1761,6 +1801,8 @@
                             return false;
                         }
                     });
+                } else if (title === 'reset') {
+                    _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
                 } else {
                     _this.hubSettingDialog = false;
                     _this.adminPasswordDialog = true;
