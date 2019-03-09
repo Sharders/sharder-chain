@@ -194,15 +194,14 @@ public class GetNodeHardware {
         Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
         String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
         systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-        System.out.println("Now start testing configuration performance...");
+        System.out.println("==============Now start testing configuration performance...==============");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
-        systemInfo.setNetworkType(Conch.getNetworkType());
-        System.out.println("The configuration performance test is completed");
+        System.out.println("==============The configuration performance test is completed==============");
         return systemInfo;
     }
 
