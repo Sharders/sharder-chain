@@ -523,6 +523,110 @@ export default {
         return eoLinkerUrl;
     },
     /**
+     * 渲染节点坐标
+     */
+    drawPeers(peersLocationList, peersTimeList) {
+        let _this = this.$vue;
+        let myChart = _this.$echarts.init(document.getElementById("peers-map"));
+
+        function makeMapData(rawData) {
+            let mapData = [];
+            for (let i = 0; i < rawData.length; i++) {
+                const geoCoord = peersLocationList[rawData[i][0]];
+                if (geoCoord) {
+                    mapData.push({
+                        name: rawData[i][0],
+                        value: geoCoord
+                    });
+                }
+            }
+            return mapData;
+        }
+
+        let option = {
+            geo: {
+                map: "world",
+                silent: true,
+                label: {
+                    emphasis: {
+                        show: true,
+                        areaColor: "#eceef1"
+                    }
+                },
+                itemStyle: {
+                    normal: {
+                        borderWidth: 1,
+                        borderColor: "#fff"
+                    }
+                },
+                left: 0,
+                top: 0,
+                bottom: 0,
+                right: 0,
+                roam: false
+            },
+            parallel: {
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                parallelAxisDefault: {
+                    type: "value",
+                    nameLocation: "start",
+                    nameTextStyle: {
+                        fontSize: 12
+                    },
+                    nameGap: 20,
+                    splitNumber: 3,
+                    tooltip: {
+                        show: false
+                    },
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                            width: 1,
+                            color: "rgba(255,255,255,0.3)"
+                        }
+                    },
+                    axisTick: {
+                        show: true
+                    },
+                    splitLine: {
+                        show: true
+                    },
+                    z: 100
+                }
+            },
+            series: [
+                {
+                    name: "节点",
+                    type: "scatter",
+                    coordinateSystem: "geo",
+                    symbolSize: 8,
+                    data: makeMapData(peersTimeList),
+                    activeOpacity: 1,
+                    label: {
+                        normal: {
+                            formatter: "{b}",
+                            position: "right",
+                            show: false
+                        },
+                        emphasis: {
+                            show: true
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            borderColor: "#fff",
+                            color: "#577ceb"
+                        }
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+    },
+    /**
      * 获得交易类型的字符串
      * @param t
      * @returns {string}
@@ -553,7 +657,7 @@ export default {
     getTransactionAmountNQT(t, accountRS) {
         let amountNQT = t.amountNQT / 100000000;
         if (amountNQT === 0) {
-            return "-"
+            return "--"
         } else if (t.senderRS === accountRS && t.type !== 9) {
             return -amountNQT
         } else {

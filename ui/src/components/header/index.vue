@@ -119,10 +119,8 @@
 </template>
 
 <script>
-    import dialogCommon from "../../views/dialog/dialog_common";
     export default {
         name: "Header",
-        components: {dialogCommon},
         props: ["openSidebar", "title"],
         data () {
             return {

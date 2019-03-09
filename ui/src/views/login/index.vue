@@ -38,9 +38,6 @@
 
 <script>
     export default {
-        components: {
-            "masked-input": require("vue-masked-input").default
-        },
         name: "index",
         data() {
             return {

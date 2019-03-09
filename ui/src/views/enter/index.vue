@@ -18,7 +18,6 @@
 </template>
 
 <script>
-    import Store from "../../store";
 
     export default {
         name: "index",
