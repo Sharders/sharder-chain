@@ -22,6 +22,8 @@
 package org.conch.http;
 
 import org.conch.Conch;
+import org.conch.account.Account;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -64,6 +66,13 @@ public final class Recovery extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
+        long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
+
+        if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
+            response.put("done", false);
+            response.put("failedReason", "user has created a working pool, failed to recovery hub");
+            return response;
+        }
         try {
             Conch.getBlockchainProcessor().fullReset();
             // reset user define properties file
