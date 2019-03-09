@@ -37,10 +37,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * @author jiangbubai
+ */
 public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
-    static final GetUserConfig instance = new GetUserConfig();
-    static final List<String> excludeKeys = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
+    static final GetUserConfig INSTANCE = new GetUserConfig();
+    static final List<String> EXCLUDE_KEYS = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
     private GetUserConfig() {
         super(new APITag[]{APITag.INFO});
     }
@@ -65,16 +68,13 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             Enumeration<?> e = prop.propertyNames();
             while (e.hasMoreElements()) {
                 String key = (String) e.nextElement();
-                if (excludeKeys.contains(key)) {
+                if (EXCLUDE_KEYS.contains(key)) {
                     continue;
                 }
                 String value = prop.getProperty(key);
-                if ("sharder.NodeType".equalsIgnoreCase(key) && StringUtils.isEmpty(value)) {
-                    Logger.logMessage(key + " not defined or is empty, using default value Hub");
-                    value = "Hub";
-                }
                 response.put(key, value);
             }
+            // TODO get node type from operating system
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
