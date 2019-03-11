@@ -1242,10 +1242,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (!isPruned) {
       return transaction;
     }
-    List<Peer> peers =
-        Peers.getPeers(
-            chkPeer ->
-                chkPeer.providesService(Peer.Service.PRUNABLE)
+    List<Peer> peers = Peers.getPeers(
+            chkPeer -> chkPeer.providesService(Peer.Service.PRUNABLE)
                     && !chkPeer.isBlacklisted()
                     && chkPeer.getAnnouncedAddress() != null);
     if (peers.isEmpty()) {

@@ -190,6 +190,7 @@ public class GetNodeHardware {
 
     public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
         String myAddress = Conch.getMyAddress();
+        // nat service: open - use myAddress in sharder.properties; close - local ip.
         String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
         Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
         String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");

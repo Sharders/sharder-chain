@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
@@ -255,6 +256,12 @@ public final class Conch {
         loadProperties(properties, CONCH_PROPERTIES, false);
 
         myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
+        
+        if(StringUtils.isEmpty(myAddress)){
+            //TODO use the ip of local
+        }
+        
+        // check port of myAddress whether equal to port of TESTNET
         if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
             throw new RuntimeException("Port " + PresetParam.getPeerPort(Constants.Network.TESTNET) + " should only be used for testnet!!!");
         }
@@ -301,6 +308,7 @@ public final class Conch {
                         BufferedReader br = new BufferedReader(isr);
                         if (br.readLine() == null){
                             Logger.logInfoMessage("Open NAT Client Auto Start");
+                            //FIXME use the installation folder of Sharder as execution path
                             Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
                         }
