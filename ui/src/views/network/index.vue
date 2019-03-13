@@ -174,8 +174,123 @@
                     <div class="modal-body modal-miner">
                         <el-table
                             :data="minerlist"
-                            border
                             style="width: 100%">
+                            <el-table-column type="expand">
+                                <template slot-scope="props">
+                                    <el-form label-position="left" inline>
+                                        <div class="hidden-md-and-up">
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_ss')">
+                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_node_type')">
+                                                        <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_server')">
+                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_hardware')">
+                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_performance')">
+                                                        <span>{{ props.row.detailedPocScore.performanceScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
+                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
+                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_bc')">
+                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                        <div class="hidden-sm-and-down">
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_ss')">
+                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_node_type')">
+                                                        <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_server')">
+                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_hardware')">
+                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_performance')">
+                                                        <span>{{ props.row.detailedPocScore.performanceScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
+                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
+                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_bc')">
+                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                    </el-form>
+                                </template>
+                            </el-table-column>
                             <el-table-column
                                 prop="accountRS"
                                 :label="$t('dialog.account_info_account')"
@@ -307,8 +422,7 @@
                 // console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
                 _this.minerlist = res.data.generators;
-
-                // console.log("miners:",_this.minerlist);
+                console.log("success to fetch miners");
             }).catch(function (err) {
                 console.error("error", err);
             });
@@ -431,6 +545,14 @@
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
     @import './style.scss';
+
+    .el-table th > .cell {
+        background-color: white;
+    }
+
+    .modal-body .el-form .el-form-item .el-form-item__label {
+        color: #99a9bf !important;
+    }
 </style>
 <!--<style scoped>-->
 <!--.modal.w700{-->
