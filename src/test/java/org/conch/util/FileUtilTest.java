@@ -18,11 +18,12 @@ public class FileUtilTest {
     private static final String ZIP_SUFFIX = ".zip";
     private static final String SAVE_PATH = "temp/cos-hub-";
     private static final String DYNAMIC_DOWNLOAD_URL = "https://oss.sharder.org/cos/client/release/cos-hub-";
-    private static final String VERSION_URL = "https://oss.sharder.org/cos/client/release/lastest-version";
+    private static final String VERSION_URL = "https://oss.sharder.org/cos/client/release/cos-latest-version";
     private static final String DOWNLOAD_URL_0_1_1 = "https://oss.sharder.org/cos/client/release/cos-hub-0.1.1.zip";
     private static final String DOWNLOAD_URL_0_1_0 = "https://oss.sharder.org/cos/client/release/cos-hub-0.1.0.zip";
+    private static final String LATEST_VERSION_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/cos-lastest-version";
 
-    public static void fetchUpgradePackageViaVerison() throws IOException, ConchException.NotValidException {
+    public static void fetchUpgradePackageViaVersion() throws IOException, ConchException.NotValidException {
         String version = getNewestHubVersion();
         String url = DYNAMIC_DOWNLOAD_URL + version + ZIP_SUFFIX;
         System.out.println("[ UPGRADE INFO ] Url: " + url);
@@ -55,7 +56,7 @@ public class FileUtilTest {
 
     public static void main(String[] args) {
         try {
-            //fetchUpgradePackageViaVerison();
+            //fetchUpgradePackageViaVersion();
             getNewestHubVersion();
             //fetchUpgradePackage();
         } catch (IOException | ConchException.NotValidException e) {
