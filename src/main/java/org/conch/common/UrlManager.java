@@ -52,8 +52,8 @@ public class UrlManager {
     /*=============================================HUB UPGRADE API START========================================*/
 
     private static final String ZIP_SUFFIX = ".zip";
-    private static final String LATEST_VERSION_ONLINE_URL = "https://oss.sharder.org/cos/client/release/lastest-version";
-    private static final String LATEST_VERSION_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/lastest-version";
+    private static final String LATEST_VERSION_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-latest-version";
+    private static final String LATEST_VERSION_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/cos-latest-version";
     private static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-hub-";
     private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/cos-hub-";
 
