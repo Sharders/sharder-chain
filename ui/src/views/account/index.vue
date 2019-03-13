@@ -848,7 +848,6 @@
                 _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
                     _this.latesetVersion = res.data.version;
                     let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
-
                     _this.isUpdate = bool;
                 }).catch(err => {
                     console.log(err);
