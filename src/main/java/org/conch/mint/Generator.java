@@ -21,6 +21,7 @@
 
 package org.conch.mint;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -425,6 +426,7 @@ public class Generator implements Comparable<Generator> {
     protected volatile BigInteger hit;
     protected volatile BigInteger effectiveBalance;
     protected volatile BigInteger pocScore;
+    protected volatile com.alibaba.fastjson.JSONObject detailedPocScore;
 
     private String secretPhrase;
     private volatile long deadline;
@@ -480,6 +482,7 @@ public class Generator implements Comparable<Generator> {
         json.put("accountRS", Account.rsAccount(accountId));
         json.put("effectiveBalanceSS",  effectiveBalance);
         json.put("pocScore", pocScore);
+        json.put("detailedPocScore", detailedPocScore);
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
@@ -501,6 +504,8 @@ public class Generator implements Comparable<Generator> {
         effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
 
         pocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
+
+        detailedPocScore = PocProcessorImpl.instance.calDetailedPocScore(account, lastHeight);
 
         if (pocScore.signum() <= 0) {
             hitTime = 0;

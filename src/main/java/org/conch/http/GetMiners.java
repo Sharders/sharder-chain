@@ -34,6 +34,9 @@ import static org.conch.http.JSONResponses.NOT_FORGING;
 import static org.conch.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 
+/**
+ * @author ben-xy
+ */
 public final class GetMiners extends APIServlet.APIRequestHandler {
 
     static final GetMiners instance = new GetMiners();

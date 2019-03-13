@@ -21,11 +21,15 @@
 
 package org.conch.consensus.poc;
 
+import com.alibaba.fastjson.JSONObject;
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
 
 import java.math.BigInteger;
 
+/**
+ * @author ben-xy
+ */
 public interface PocProcessor {
 
     /**
@@ -33,10 +37,20 @@ public interface PocProcessor {
      * @param height
      * @return
      */
-    BigInteger calPocScore(Account account,int height);
+    BigInteger calPocScore(Account account, int height);
+
+    /**
+     * return detailed poc data json string
+     *
+     * @param account
+     * @param height
+     * @return json string
+     */
+    JSONObject calDetailedPocScore(Account account, int height);
 
     /**
      * Get the poc weight table
+     *
      * @param version template version
      * @return PocWeightTable
      */
