@@ -73,8 +73,10 @@ import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -308,8 +310,8 @@ public final class Conch {
                         BufferedReader br = new BufferedReader(isr);
                         if (br.readLine() == null){
                             Logger.logInfoMessage("Open NAT Client Auto Start");
-                            //FIXME use the installation folder of Sharder as execution path
-                            Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
+                            //use the installation folder of Sharder as execution path
+                            Process autoStart = Runtime.getRuntime().exec("cp " + Conch.getUserHomeDir() + " /etc/init.d");
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
                         }
                         Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
