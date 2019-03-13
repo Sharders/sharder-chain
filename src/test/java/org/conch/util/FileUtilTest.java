@@ -48,7 +48,7 @@ public class FileUtilTest {
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(VERSION_URL).get().request();
         String version = Optional.ofNullable(response.getContent())
                 .orElseThrow(() -> new ConchException.NotValidException("latest version can not be null"));
-        version.replaceAll("[\r|\n]", "");
+        version = version.replaceAll("[\r|\n]", "");
         System.out.println("[ VERSION ] Latest version is: " + version);
         return version;
     }
@@ -57,7 +57,7 @@ public class FileUtilTest {
         try {
             //fetchUpgradePackageViaVerison();
             getNewestHubVersion();
-            fetchUpgradePackage();
+            //fetchUpgradePackage();
         } catch (IOException | ConchException.NotValidException e) {
             e.printStackTrace();
         }
