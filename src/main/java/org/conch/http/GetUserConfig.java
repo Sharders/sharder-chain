@@ -74,7 +74,8 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 String value = prop.getProperty(key);
                 response.put(key, value);
             }
-            // TODO get node type from operating system
+            // TODO read node serial number
+            // TODO get node type from operating system via serial number
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
