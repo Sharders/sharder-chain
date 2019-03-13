@@ -11,6 +11,7 @@ import "whatwg-fetch";
 import "material-design-icons";
 import "styles/css/index.scss";
 import "element-ui/lib/theme-chalk/index.css";
+import 'element-ui/lib/theme-chalk/display.css';
 import global from "./utils/common.js";
 import "../static/sso/js";
 import i18n from "./i18n/i18n";
