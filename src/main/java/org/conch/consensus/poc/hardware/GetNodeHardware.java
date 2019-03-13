@@ -2,11 +2,13 @@ package org.conch.consensus.poc.hardware;
 
 import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
@@ -180,29 +182,33 @@ public class GetNodeHardware {
     public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
         try {
+            Logger.logInfoMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
             return report(read(systemInfo, executeTime));
+        } catch (ConchException.NotValidException e) {
+            Logger.logErrorMessage("<=== failed to report configuration performance, hub isn't initialized yet", e);
         } catch (Exception e) {
-            System.out.println("<=== failed to report configuration performance, local error");
-            e.printStackTrace();
-            return false;
+            Logger.logErrorMessage("<=== failed to report configuration performance, local error", e);
         }
+        return false;
     }
 
     public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
-        String myAddress = Conch.getMyAddress();
-        // nat service: open - use myAddress in sharder.properties; close - local ip.
-        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
-        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
-        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
-        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-        System.out.println("==============Now start testing configuration performance...==============");
+        String myAddress = Optional.ofNullable(Conch.getMyAddress())
+                .orElseThrow(() -> new ConchException.NotValidException("my address is null"));
+        // nat service: open - myAddress should be proxy address; nat service : close - myAddress should be public address
+        String ip = Conch.addressHost(myAddress);
+        int port = Conch.addressPort(myAddress);
+        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS)
+                .orElseThrow(() -> new ConchException.NotValidException("use nat service is true, but bind ss address is null"));
+        systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
+        Logger.logInfoMessage("==============Now start testing configuration performance...==============");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
-        System.out.println("==============The configuration performance test is completed==============");
+        Logger.logInfoMessage("==============The configuration performance test is completed==============");
         return systemInfo;
     }
 
@@ -219,13 +225,12 @@ public class GetNodeHardware {
                 .body(systemInfo)
                 .request();
         boolean result = JSONObject.parseObject(response.getContent()).getBooleanValue(Constants.SUCCESS);
-        System.out.println("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
         System.out.println(systemInfo.toString());
         if (result) {
-            System.out.println("<=== Your configuration performance was successfully reported");
+            Logger.logInfoMessage("<=== Your configuration performance was successfully reported");
             return true;
         } else {
-            System.out.println("<=== failed to report configuration performance, remote error");
+            Logger.logErrorMessage("<=== failed to report configuration performance, remote error");
             return false;
         }
     }
