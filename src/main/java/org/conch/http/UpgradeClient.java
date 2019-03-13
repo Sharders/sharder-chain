@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Convert;
@@ -42,13 +43,14 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         String version = Convert.emptyToNull(req.getParameter("version"));
-        if (version == null) {
+        if (StringUtils.isEmpty(version)) {
             response.put("upgraded", false);
-            response.put("error", "version can not be blank");
+            response.put("error", "version can not be null");
             return response;
         }
         ClientUpgradeTool.fetchUpgradePackageThread(version, restart);

@@ -273,7 +273,7 @@ public enum APIEnum {
     RECONFIG("reConfig", ReConfig.INSTANCE),
     RECOVERY("recovery", Recovery.INSTANCE),
     GET_USERCONFIG("getUserConfig", GetUserConfig.INSTANCE),
-    GET_LASTEST_HUB_VERSION("getLastestHubVersion", GetNewestHubVersion.instance),
+    GET_LASTEST_HUB_VERSION("getLastestHubVersion", GetNewestHubVersion.INSTANCE),
 
     TRIM_DERIVED_TABLES("trimDerivedTables", TrimDerivedTables.instance),
     HASH("hash", Hash.instance),

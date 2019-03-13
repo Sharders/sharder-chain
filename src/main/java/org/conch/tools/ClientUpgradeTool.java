@@ -43,13 +43,14 @@ public class ClientUpgradeTool {
         File projectPath = new File("temp/");
         File archive = new File(projectPath, "cos-hub-" + version + ".zip");
         if (!archive.exists()) {
-            Logger.logDebugMessage("[UPGRADE CLIENT] Get upgrade package:" + archive.getName());
+            Logger.logDebugMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
             FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
         }
+        Logger.logDebugMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName());
         FileUtil.unzipAndReplace(archive, true);
         try {
             if (!SystemUtils.IS_OS_WINDOWS) {
-                Runtime.getRuntime().exec("chmod -R +x " + Conch.dirProvider.getUserHomeDir());
+                Runtime.getRuntime().exec("chmod -R +x " + Conch.getUserHomeDir());
             }
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);

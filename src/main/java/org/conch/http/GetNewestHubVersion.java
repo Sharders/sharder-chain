@@ -28,15 +28,21 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+/**
+ * get hub latest version
+ *
+ * @author jiangbubai
+ */
 public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
 
-    static final GetNewestHubVersion instance = new GetNewestHubVersion();
+    static final GetNewestHubVersion INSTANCE = new GetNewestHubVersion();
 
     private GetNewestHubVersion() {
-        super(new APITag[] {APITag.DEBUG});
+        super(new APITag[]{APITag.DEBUG});
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
