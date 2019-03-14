@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import org.conch.tools.ClientUpgradeTool;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -36,6 +37,7 @@ import java.io.IOException;
 public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
 
     static final GetNewestHubVersion INSTANCE = new GetNewestHubVersion();
+    private static final String FAILED_INFO = "failed to fetch latest hub version!";
 
     private GetNewestHubVersion() {
         super(new APITag[]{APITag.DEBUG});
@@ -47,8 +49,11 @@ public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         try {
             response.put("version", ClientUpgradeTool.fetchLastHubVersion());
+            response.put("success", true);
         } catch (IOException e) {
-            response.put("error", e.getMessage());
+            response.put("success", false);
+            response.put("error", FAILED_INFO);
+            Logger.logErrorMessage(FAILED_INFO, e);
         }
         return response;
     }
