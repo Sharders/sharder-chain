@@ -19,9 +19,9 @@ public class FileUtilTest {
     private static final String SAVE_PATH = "temp/cos-hub-";
     private static final String DYNAMIC_DOWNLOAD_URL = "https://oss.sharder.org/cos/client/release/cos-hub-";
     private static final String VERSION_URL = "https://oss.sharder.org/cos/client/release/cos-latest-version";
+    private static final String LATEST_VERSION_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-latest-version";
     private static final String DOWNLOAD_URL_0_1_1 = "https://oss.sharder.org/cos/client/release/cos-hub-0.1.1.zip";
     private static final String DOWNLOAD_URL_0_1_0 = "https://oss.sharder.org/cos/client/release/cos-hub-0.1.0.zip";
-    private static final String LATEST_VERSION_DEV_URL = "https://resource.sharder.io/sharder-hub/dev/release/cos-lastest-version";
 
     public static void fetchUpgradePackageViaVersion() throws IOException, ConchException.NotValidException {
         String version = getNewestHubVersion();
@@ -46,7 +46,7 @@ public class FileUtilTest {
     public static String getNewestHubVersion() throws IOException, ConchException.NotValidException {
         Map<String, String> header = new HashMap<>(16);
         header.put("contentType", "application/zip");
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(VERSION_URL).get().request();
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(LATEST_VERSION_DEV_URL).get().request();
         String version = Optional.ofNullable(response.getContent())
                 .orElseThrow(() -> new ConchException.NotValidException("latest version can not be null"));
         version = version.replaceAll("[\r|\n]", "");
