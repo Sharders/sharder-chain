@@ -846,11 +846,16 @@
             getLatestHubVersion() {
                 const _this = this;
                 _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
-                    _this.latesetVersion = res.data.version;
-                    let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
-                    _this.isUpdate = bool;
+                    if (res.data.success) {
+                        _this.latesetVersion = res.data.version;
+                        let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
+                        _this.isUpdate = bool;
+                        console.log("success to fetch latest hub version");
+                    } else {
+                        _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
+                    }
                 }).catch(err => {
-                    console.log(err);
+                    _this.$message.error(err.message);
                 });
             },
             drawBarchart: function (barchat) {
