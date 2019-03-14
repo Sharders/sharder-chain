@@ -56,7 +56,7 @@ const cn = {
         'next_step': "下一步",
     },
     account: {
-        'download_interrupt':"区块链下载中断，没有连接",
+        'download_interrupt': "区块链下载中断，没有连接",
         'block_fully_downloaded': "区块还未完整下载",
         'remaining_blocks': "个剩余区块",
         'downloading_blockchain': "正在下载区块链",
@@ -159,7 +159,6 @@ const cn = {
         'search_open': "输入账户ID/交易ID/区块ID进行搜索",
         'open_console': "打开控制台。日志记录开始......",
         'console': "控制台",
-
     },
     network: {
         'mining_time': "挖矿时间",
@@ -245,12 +244,12 @@ const cn = {
     },
     mining: {
         attribute: {
-            'exceeding_total':"超出矿池总上限",
-            'pool_destruction':"矿池已销毁",
-            'join_number_info':"投入数量必须大于1",
-            'join_success':"加入成功",
-            'delete_success':"删除成功",
-            'not_join':"未加入",
+            'exceeding_total': "超出矿池总上限",
+            'pool_destruction': "矿池已销毁",
+            'join_number_info': "投入数量必须大于1",
+            'join_success': "加入成功",
+            'delete_success': "删除成功",
+            'not_join': "未加入",
             'return_previous': "返回上一页",
             'pool_number': "矿池编号:",
             'mining_probability': "挖矿几率:",
@@ -361,8 +360,8 @@ const cn = {
             'received': "已领取",
         },
         index: {
-            'pool_no_permissions':"您还未拥有创建矿池的权限",
-            'creating_success':"创建成功",
+            'pool_no_permissions': "您还未拥有创建矿池的权限",
+            'creating_success': "创建成功",
             'sharder_mining': "豆匣矿场",
             'free_collar': "免费领SS",
             'ss_exchange': "SS兑换",
@@ -443,8 +442,8 @@ const cn = {
             'unit_ren': "人",
         },
         my_assets: {
-            'whether':"到底了...",
-            'click_load':"点击加载",
+            'whether': "到底了...",
+            'click_load': "点击加载",
             'total_asset': "总资产(砖石)",
             'available_asset': "可用资产",
             'frozen_assets': "冻结资产(挖矿中)",
@@ -598,7 +597,6 @@ const cn = {
         'error_max_fee_warning': "您的手续费高于 __nxt__ SS。您确定要继续吗？请再次单击提交按钮以确认。",
         'error_decimal_positions_warning': "警告: 使用少于 2 位或超过 6 位的小数点可能会降低你的 __entity__ 的可用性",
         'error_unknown': "出现未知错误！",
-
         'success_clipboard_copy': "已经拷贝到剪贴板",
         'error_server_connect': "无法连接到全节点 __url__",
         'mobile_client': "移动客户端",
@@ -692,7 +690,6 @@ const cn = {
         'account_ledger_message': "只显示最近的 __blocks__ 个区块生成的账户明细",
         'show_type_menu': "显示所有类型",
         'hide_type_menu': "隐藏类型菜单",
-
         'error_fraction_decimals': "分数最多只能有 __decimals__ 位小数。",
         'error_invalid_input_numbers': "无效的输入。只接受数字和点。",
         'temporarily_disconnected': "连接暂时中断",
@@ -786,7 +783,6 @@ const cn = {
         'account_info_forge_pool': "矿池交易",
         'account_info_poc': "POC交易",
         'account_info_view_detail': "查看详情",
-
         'account_transaction_detail': "交易详情",
         'account_transaction_return': "返回账户信息",
         'account_transaction_signature': "签名",
@@ -804,7 +800,6 @@ const cn = {
         'account_transaction_fullHash': "类型完整哈希：",
         'account_transaction_version': "版本：",
         'account_transaction_block_height': "区块高度",
-
         'block_info_title1': "区块 ",
         'block_info_title2': " 信息",
         'block_info_all_transaction': "所有交易",
