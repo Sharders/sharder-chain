@@ -550,7 +550,7 @@
         background-color: white;
     }
 
-    .modal-body .el-form .el-form-item .el-form-item__label {
+    #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
         color: #99a9bf !important;
     }
 </style>
