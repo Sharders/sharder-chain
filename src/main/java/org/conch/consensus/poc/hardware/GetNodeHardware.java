@@ -14,6 +14,7 @@ import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -220,17 +221,24 @@ public class GetNodeHardware {
      * @throws IOException 请求异常
      */
     public static Boolean report(SystemInfo systemInfo) throws IOException {
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
-                .post()
-                .body(systemInfo)
-                .request();
-        boolean result = JSONObject.parseObject(response.getContent()).getBooleanValue(Constants.SUCCESS);
-        System.out.println(systemInfo.toString());
-        if (result) {
-            Logger.logInfoMessage("<=== Your configuration performance was successfully reported");
-            return true;
-        } else {
-            Logger.logErrorMessage("<=== failed to report configuration performance, remote error");
+        try{
+            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
+                    .post()
+                    .body(systemInfo)
+                    .request();
+            boolean result = JSONObject.parseObject(response.getContent()).getBooleanValue(Constants.SUCCESS);
+            if (result) {
+                Logger.logInfoMessage("<=== Your configuration performance was successfully reported");
+                return true;
+            } else {
+                Logger.logErrorMessage("<=== failed to report configuration performance, remote error");
+                return false;
+            }
+        }catch(ConnectException e){
+            Logger.logErrorMessage("connection refused[" + NODE_CONFIG_REPORT_URL + "]");
+            return false;
+        }catch(Exception e){
+            Logger.logErrorMessage("unkonwn exception[" + NODE_CONFIG_REPORT_URL + "]", e);
             return false;
         }
     }

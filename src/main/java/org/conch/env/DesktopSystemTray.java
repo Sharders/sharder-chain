@@ -95,7 +95,7 @@ public class DesktopSystemTray {
         itemNameMap.put("Application",new ItemName("Application","应用程序"));
         itemNameMap.put("Network",new ItemName("Network","网络"));
         itemNameMap.put("WorkingO",new ItemName("Offline","离线模式"));
-        itemNameMap.put("Wallet",new ItemName("Browser","浏览器端"));
+//        itemNameMap.put("Wallet",new ItemName("Browser","浏览器端"));
         itemNameMap.put("PeerP",new ItemName("Peer port","监听端口"));
         itemNameMap.put("ProgramF",new ItemName("Program folder","程序目录"));
         itemNameMap.put("UserF",new ItemName("User folder","用户目录"));

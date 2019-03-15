@@ -22,7 +22,7 @@
 package org.conch.env;
 
 public enum ServerStatus {
-    BEFORE_DATABASE("Loading Database"), AFTER_DATABASE("Loading Resources"), STARTED("Online");
+    BEFORE_DATABASE("Loading Database"), AFTER_DATABASE("Loading Resources"), STARTED("Running");
 
     private final String message;
 
