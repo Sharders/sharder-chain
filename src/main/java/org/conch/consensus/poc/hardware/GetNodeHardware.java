@@ -199,7 +199,7 @@ public class GetNodeHardware {
         String ip = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS)
-                .orElseThrow(() -> new ConchException.NotValidException("use nat service is true, but bind ss address is null"));
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
         systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
         Logger.logInfoMessage("==============Now start testing configuration performance...==============");
         cpu(systemInfo);
