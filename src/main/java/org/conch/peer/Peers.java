@@ -859,12 +859,22 @@ public final class Peers {
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
+    public static volatile boolean hasMyAddress = StringUtils.isNotEmpty(Conch.getMyAddress());
     public static final int DEFAULT_TX_CHECKING_COUNT = 10;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
-        if (!sysInitialed) {
+        if (!sysInitialed && hasMyAddress) {
             Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
             try {
                 Thread.sleep(30 * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!hasMyAddress) {
+            Logger.logInfoMessage("Current node not initialized yet, sleep 1H...");
+            try {
+                Thread.sleep(3600 * 1000L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
