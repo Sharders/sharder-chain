@@ -204,7 +204,10 @@ public interface Attachment extends Appendix {
     final class CoinBase extends AbstractAttachment {
         
         public enum CoinBaseType {
-            BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC;
+            GENESIS,
+            BLOCK_REWARD, 
+            FOUNDING_TX, 
+            SPECIAL_LOGIC;
 
             public static CoinBaseType getType(String name) {
                 for (CoinBaseType type : CoinBaseType.values()) {

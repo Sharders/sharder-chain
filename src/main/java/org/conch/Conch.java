@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
@@ -52,6 +53,7 @@ import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.mq.MessageManager;
 import org.conch.peer.Peers;
 import org.conch.peer.StreamGobbler;
 import org.conch.shuffle.Shuffling;
@@ -97,7 +99,7 @@ public final class Conch {
     private static final String myAddress;
 
     private static final RuntimeMode runtimeMode;
-    private static final DirProvider dirProvider;
+    public static final DirProvider dirProvider;
 
     private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
@@ -254,6 +256,12 @@ public final class Conch {
         loadProperties(properties, CONCH_PROPERTIES, false);
 
         myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
+        
+        if(StringUtils.isEmpty(myAddress)){
+            //TODO use the ip of local
+        }
+        
+        // check port of myAddress whether equal to port of TESTNET
         if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
             throw new RuntimeException("Port " + PresetParam.getPeerPort(Constants.Network.TESTNET) + " should only be used for testnet!!!");
         }
@@ -300,7 +308,8 @@ public final class Conch {
                         BufferedReader br = new BufferedReader(isr);
                         if (br.readLine() == null){
                             Logger.logInfoMessage("Open NAT Client Auto Start");
-                            Process autoStart = Runtime.getRuntime().exec("cp /root/sharder-hub/nat_client /etc/init.d");
+                            //use the installation folder of Sharder as execution path
+                            Process autoStart = Runtime.getRuntime().exec("cp " + Conch.getUserHomeDir() + " /etc/init.d");
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
                         }
                         Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
@@ -631,6 +640,7 @@ public final class Conch {
                 StorageBackup.init();
                 FxtDistribution.init();
                 Peers.init();
+                MessageManager.init();
                 APIProxy.init();
                 Generator.init();
                 AddOns.init();
@@ -836,18 +846,15 @@ public final class Conch {
             }
             // execute the command in a shutdown hook, to be sure that all the
             // resources have been disposed before restarting the application
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        shutdown();
-                        Logger.logDebugMessage(cmd.toString());
-                        Runtime.getRuntime().exec(cmd.toString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    shutdown();
+                    Logger.logDebugMessage(cmd.toString());
+                    Runtime.getRuntime().exec(cmd.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
+            }));
             // execute some custom code before restarting
             if (runBeforeRestart!= null) {
                 runBeforeRestart.run();

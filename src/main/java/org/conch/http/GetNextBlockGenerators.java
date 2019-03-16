@@ -64,6 +64,7 @@ import java.util.List;
  * <li>hitTime - The generation time for the account
  * </ul>
  * </ul>
+ * @author ben
  */
 public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
 

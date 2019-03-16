@@ -383,6 +383,8 @@ public final class Logger {
             case ERROR:
                 log.error(logMessage, e);
                 break;
+            default:
+                break;
         }
         //
         // Notify listeners

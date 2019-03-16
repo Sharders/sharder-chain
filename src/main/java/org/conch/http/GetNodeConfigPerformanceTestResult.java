@@ -21,17 +21,18 @@
 
 package org.conch.http;
 
-import org.conch.Conch;
-import org.conch.consensus.poc.hardware.GetNodeHardware;
-import org.conch.peer.Peers;
-import org.conch.util.IpUtil;
+import com.alibaba.fastjson.JSON;
+import org.conch.common.ConchException;
+import org.conch.common.UrlManager;
+import org.conch.mq.Message;
+import org.conch.mq.MessageManager;
+import org.conch.util.Https;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
 
 /**
- * 引导远程请求节点，进行配置性能测试接口
+ * 引导节点发起的性能测试请求
  *
  * @author CloudSen
  */
@@ -48,16 +49,22 @@ public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequ
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) {
 
-        if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-            String msg = "Exception: Not valid host! ONLY " + Conch.getSharderFoundationURL() + " can do this operation!";
-            System.out.println(msg);
-            return ResultUtil.error500(msg);
+        try {
+            UrlManager.validFoundationHost(request);
+        } catch (ConchException.NotValidException e) {
+            e.printStackTrace();
+            return ResultUtil.error500(e.getMessage());
         }
 
-        Integer time = Optional.ofNullable(request.getParameter("time")).map(Integer::valueOf).orElse(Peers.DEFAULT_TX_CHECKING_COUNT);
-        // 开始节点配置性能测试，并将结果报告给引导节点
-        boolean success = GetNodeHardware.readAndReport(time);
-        if (success) {
+        // get message from request
+        String postParams = Https.getPostData(request);
+        Message message = JSON.parseObject(postParams, Message.class);
+
+        // add this message to message queue
+        boolean result = MessageManager.receiveMessage(message, MessageManager.QueueType.PENDING, MessageManager.OperationType.OFFER);
+
+        // return response immediately
+        if (result) {
             return ResultUtil.ok(TEST_SUCCESS);
         } else {
             return ResultUtil.failed(TEST_FAILED);

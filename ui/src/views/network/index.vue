@@ -30,7 +30,7 @@
                     </span>
                     <span class="hrefbtn fr block_title csp mr5">
                         <a @click="openMinerList">
-                            <span>矿工列表</span>
+                            <span>{{$t('network.miners_list')}}</span>
                         </a>
                     </span>
                 </p>
@@ -168,30 +168,150 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
-                        <h4 class="modal-title">矿工名单</h4>
+                        <button class="close" @click="closeDialog"></button>
+                        <h4 class="modal-title">{{$t("network.miners_roll")}}</h4>
                     </div>
                     <div class="modal-body modal-miner">
                         <el-table
                             :data="minerlist"
-                            :height="550"
-                            border
                             style="width: 100%">
+                            <el-table-column type="expand">
+                                <template slot-scope="props">
+                                    <el-form label-position="left" inline>
+                                        <div class="hidden-md-and-up">
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_ss')">
+                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_node_type')">
+                                                        <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_server')">
+                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_hardware')">
+                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_performance')">
+                                                        <span>{{ props.row.detailedPocScore.performanceScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
+                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
+                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_bc')">
+                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                        <div class="hidden-sm-and-down">
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_ss')">
+                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_node_type')">
+                                                        <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_server')">
+                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_hardware')">
+                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_performance')">
+                                                        <span>{{ props.row.detailedPocScore.performanceScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
+                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
+                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_bc')">
+                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                    </el-form>
+                                </template>
+                            </el-table-column>
                             <el-table-column
                                 prop="accountRS"
-                                label="账户"
-                                width="250">
+                                :label="$t('dialog.account_info_account')"
+                                width="220">
+                            </el-table-column>
+                            <el-table-column
+                                prop="bindPeerType"
+                                :label="$t('dialog.account_transaction_type')"
+                            >
                             </el-table-column>
                             <el-table-column
                                 sortable
-                                prop="effectiveBalanceSS"
-                                label="SS"
-                                width="150">
+                                prop="pocScore"
+                                :label="$t('network.poc_score')"
+                            >
                             </el-table-column>
                             <el-table-column
                                 prop="hitTime"
                                 :formatter="dateFormat"
-                                label="挖矿时间">
+                                :label="$t('network.mining_time')"
+                                width="160">
                             </el-table-column>
                         </el-table>
                     </div>
@@ -202,17 +322,10 @@
                       :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
     </div>
 </template>
-
 <script>
-    import echarts from "echarts";
-    import world from "echarts-worldmap";
-    import dialogCommon from "../dialog/dialog_common";
-
 
     export default {
         name: "Network",
-        components: {echarts, world, dialogCommon},
-
         data() {
             return {
                 tabTitle: "account",
@@ -227,15 +340,12 @@
                 transactionDialog: false,
                 accountInfo: [],
 
-                minerlistDialog:false,
-                minerlist:[],
+                minerlistDialog: false,
+                minerlist: [],
                 minerlistHeight: 590,
 
-
-                peersLocationList:{},
-                peersTimeList:[],
-
-
+                peersLocationList: {},
+                peersTimeList: [],
 
                 //list列表
                 blocklist: [],
@@ -259,7 +369,7 @@
         },
         created: function () {
             const _this = this;
-            this.$http.get('/sharder?requestType=getBlocks', {
+            _this.$http.get('/sharder?requestType=getBlocks', {
                 params: {
                     firstIndex: (_this.currentPage - 1) * 10,
                     lastIndex: _this.currentPage * 10 - 1
@@ -270,11 +380,11 @@
                     console.log("blocklist", _this.blocklist);
                     // _this.calcAverageAmount(res);
 
-                    if(_this.currentPage === 1){
+                    if (_this.currentPage === 1) {
                         _this.totalSize = res.data.blocks[0].height;
                         _this.coinbaseCount = _this.newestHeight;
                         _this.newestHeight = res.data.blocks[0].height;
-                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS',true);
+                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
                     }
                 } else {
                     _this.$message.error(res.data.errorDescription);
@@ -283,40 +393,41 @@
             }).catch(function (err) {
                 _this.$message.error(err);
             });
-            this.$http.get('/sharder?requestType=getPeers').then(function (res) {
-                _this.peerNum = res.data.peers.length;
 
-                _this.$global.byIPtoCoordinates(res.data.peers).then(res1=>{
+            _this.$http.get('/sharder?requestType=getPeers').then(function (res) {
+                _this.peerNum = res.data.peers.length;
+                _this.$global.byIPtoCoordinates(res.data.peers).then(res1 => {
                     let json = JSON.parse(res1);
-                    for(let i of Object.keys(json)){
-                        if(json[i]["X"] !== "" && json[i]["X"] !== "0"
+                    for (let i of Object.keys(json)) {
+                        if (json[i]["X"] !== "" && json[i]["X"] !== "0"
                             && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
-                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])){
+                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
                             let arr = [];
                             arr.push(json[i]["Y"]);
                             arr.push(json[i]["X"]);
                             _this.peersLocationList[i] = arr;
                             arr = [];
                             arr.push(i);
-                            arr.push(_this.$global.myFormatTime(json[i]["time"],"HMS",false));
+                            arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
                             _this.peersTimeList.push(arr);
                         }
                     }
-                    _this.drawPeers();
+                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
                 });
             }).catch(function (err) {
                 console.error("error", err);
             });
-            this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
-                console.log("矿工数量：",res);
+
+            _this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+                // console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
                 _this.minerlist = res.data.generators;
-
-                console.log("miners:",_this.minerlist);
+                console.log("success to fetch miners");
             }).catch(function (err) {
                 console.error("error", err);
             });
-            this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
+
+            _this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
                 _this.transferCount = res.data.transferCount;
                 _this.storageCount = res.data.storageCount;
                 _this.totalCount = res.data.transferAmount;
@@ -334,124 +445,22 @@
             },
             turn2peers: function () {
                 this.$router.push({
-                    name:"peers",
-                    params:{
-                        peersLocationList:this.peersLocationList,
-                        peersTimeList:this.peersTimeList
+                    name: "peers",
+                    params: {
+                        peersLocationList: this.peersLocationList,
+                        peersTimeList: this.peersTimeList
                     }
                 });
             },
-            openMinerList:function(){
+            openMinerList: function () {
                 let _this = this;
                 this.$store.state.mask = true;
                 this.minerlistDialog = true;
             },
-            closeDialog:function(){
+            closeDialog: function () {
                 this.$store.state.mask = false;
                 this.minerlistDialog = false;
             },
-            drawPeers: function () {
-                let _this = this;
-                const myChart = echarts.init(document.getElementById("peers-map"));
-                function makeMapData(rawData) {
-                    const mapData = [];
-                    for (let i = 0; i < rawData.length; i++) {
-                        const geoCoord = _this.peersLocationList[rawData[i][0]];
-                        if (geoCoord) {
-                            mapData.push({
-                                name: rawData[i][0],
-                                value: geoCoord
-                            });
-                        }
-                    }
-                    return mapData;
-                }
-
-                const option = {
-                    geo: {
-                        map: "world",
-                        silent: true,
-                        label: {
-                            emphasis: {
-                                show: true,
-                                areaColor: "#eceef1"
-                            }
-                        },
-                        itemStyle: {
-                            normal: {
-                                borderWidth: 1,
-                                borderColor: "#fff"
-                            }
-                        },
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        right: 0,
-                        roam: false
-                    },
-                    parallel: {
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        parallelAxisDefault: {
-                            type: "value",
-                            nameLocation: "start",
-                            nameTextStyle: {
-                                fontSize: 12
-                            },
-                            nameGap: 20,
-                            splitNumber: 3,
-                            tooltip: {
-                                show: false
-                            },
-                            axisLine: {
-                                show: true,
-                                lineStyle: {
-                                    width: 1,
-                                    color: "rgba(255,255,255,0.3)"
-                                }
-                            },
-                            axisTick: {
-                                show: true
-                            },
-                            splitLine: {
-                                show: true
-                            },
-                            z: 100
-                        }
-                    },
-                    series: [
-                        {
-                            name: "节点",
-                            type: "scatter",
-                            coordinateSystem: "geo",
-                            symbolSize: 8,
-                            data: makeMapData(_this.peersTimeList),
-                            activeOpacity: 1,
-                            label: {
-                                normal: {
-                                    formatter: "{b}",
-                                    position: "right",
-                                    show: false
-                                },
-                                emphasis: {
-                                    show: true
-                                }
-                            },
-                            itemStyle: {
-                                normal: {
-                                    borderColor: "#fff",
-                                    color: "#577ceb"
-                                }
-                            }
-                        }
-                    ]
-                };
-
-                myChart.setOption(option);
-            },
-
             getBlockList(currentPage) {
                 const _this = this;
                 this.$http.get('/sharder?requestType=getBlocks', {
@@ -467,14 +476,6 @@
                     return null;
                 });
             },
-            /*calcAverageAmount(res) {
-                const _this = this;
-                let num = 0;
-                res.data.blocks.forEach(function (item) {
-                    num += parseInt(item.totalAmountNQT/100000000);
-                });
-                _this.averageAmount = num / 10;
-            },*/
             openBlockInfo(height) {
                 const _this = this;
                 _this.blockInfoHeight = height;
@@ -503,16 +504,15 @@
                 _this.blockInfoDialog = false;
                 _this.blockInfoHeight = -1;
                 _this.generatorRS = '';
-
             },
             dateFormat(val) {
-                return this.$global.myFormatTime(val.hitTime,"YMDHMS",true);
+                return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
         },
         mounted() {
             let _this = this;
-            let periodicBlocks = setInterval(()=>{
-                if(_this.$route.path === '/network'){
+            let periodicBlocks = setInterval(() => {
+                if (_this.$route.path === '/network') {
                     this.$http.get('/sharder?requestType=getBlocks', {
                         params: {
                             firstIndex: (_this.currentPage - 1) * 10,
@@ -522,11 +522,11 @@
                         if (!res.data.errorDescription) {
                             _this.blocklist = res.data.blocks;
 
-                            if(_this.currentPage === 1){
+                            if (_this.currentPage === 1) {
                                 _this.totalSize = res.data.blocks[0].height;
                                 _this.coinbaseCount = _this.newestHeight;
                                 _this.newestHeight = res.data.blocks[0].height;
-                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS',true);
+                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
                             }
                         } else {
                             _this.$message.error(res.data.errorDescription);
@@ -535,14 +535,27 @@
                     }).catch(function (err) {
                         _this.$message.error(err);
                     });
-                }else{
+                } else {
                     clearInterval(periodicBlocks);
                 }
-            },5000);
+            }, 5000);
         },
     };
 </script>
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
     @import './style.scss';
+
+    .el-table th > .cell {
+        background-color: white;
+    }
+
+    #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
+        color: #99a9bf !important;
+    }
 </style>
+<!--<style scoped>-->
+<!--.modal.w700{-->
+<!--width: 960px!important;-->
+<!--}-->
+<!--</style>-->

@@ -1,5 +1,6 @@
 package org.conch.db;
 
+import com.google.common.collect.Lists;
 import it.sauronsoftware.cron4j.Task;
 import it.sauronsoftware.cron4j.TaskExecutionContext;
 import org.conch.Conch;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class DbBackupTask extends Task{
     private static String defaultPath = Conch.getStringProperty("sharder.db.backup.path");
@@ -59,6 +61,9 @@ public class DbBackupTask extends Task{
             String sql = "SCRIPT TO '" + pathStr + (pathStr.endsWith(File.separator) ? "" : File.separator) +  fileNameStr +"' COMPRESSION ZIP";
             Shell shell = new Shell();
             shell.runTool(Db.db.getConnection(), "-sql", sql);
+
+            deleteOldBackupFiles(pathStr, Lists.newArrayList(fileNameStr));
+            
             return file.getAbsolutePath();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -68,5 +73,23 @@ public class DbBackupTask extends Task{
             Conch.getBlockchain().readUnlock();
         }
 
+    }
+
+    private static boolean deleteOldBackupFiles(String path, List<String> ignoreList){
+        File file = new File(path);
+
+        if(!file.isDirectory()) {
+            return false;
+        }
+        
+        File[] oldFiles = file.listFiles();
+        for(int i = 0 ; i < oldFiles.length; i++){
+            if(ignoreList.contains(oldFiles[i].getName())) {
+                continue;
+            }
+            oldFiles[i].delete();
+        }
+
+        return true;
     }
 }

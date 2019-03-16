@@ -22,6 +22,7 @@
 package org.conch.util;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 
@@ -259,6 +260,10 @@ public final class Convert {
         return size;
     }
 
+    public static int writeObject(ByteBuffer buffer, Object object) {
+        return writeString(buffer, JSONObject.toJSONString(object));
+    }
+
     public static String truncate(String s, String replaceNull, int limit, boolean dots) {
         return s == null ? replaceNull : s.length() > limit ? (s.substring(0, dots ? limit - 3 : limit) + (dots ? "..." : "")) : s;
     }
@@ -327,5 +332,9 @@ public final class Convert {
         }
         return o1.length - o2.length;
     };
+
+    public static String stringTemplate(String formatMsg, Object... objects) {
+        return String.format(StringUtils.replace(formatMsg, "{}", "%s"), objects);
+    }
 
 }

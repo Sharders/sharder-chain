@@ -8,7 +8,7 @@ import Qs from 'qs';
 import cookie from "../../static/sso/js/cookie.js";
 
 // axios默认配置
-axios.defaults.timeout = 10000;   // 超时时间
+axios.defaults.timeout = 30000;   // 超时时间
 axios.defaults.baseURL = apiURL;  // 默认地址
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 /**
@@ -66,6 +66,7 @@ axios.interceptors.response.use(
     },
     error => {
         // 返回接口返回的错误信息
-        return Promise.reject(error.response);
+        console.log(`axios error: ${JSON.stringify(error)}`)
+        return Promise.reject(error);
     });
 export default axios;

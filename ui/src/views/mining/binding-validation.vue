@@ -60,13 +60,9 @@
 </template>
 
 <script>
-    import ReceiveAlert from "./receiveAlert";
 
     export default {
         name: "binding-validation",
-        components: {
-            ReceiveAlert: ReceiveAlert,
-        },
         data() {
             return {
                 isReceiveAlert: false,

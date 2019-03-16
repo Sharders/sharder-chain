@@ -1,11 +1,18 @@
 package org.conch.consensus.poc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
+import org.conch.common.Constants;
+import org.conch.consensus.genesis.GenesisRecipient;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
+import org.conch.util.IpUtil;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,9 +41,26 @@ public class PocHolder implements Serializable {
     int lastHeight = -1;
 
     static {
+        initBindMiners();
+    }
+
+    private static void initBindMiners(){
         inst.certifiedBindAccountMap.put(Peer.Type.HUB,Maps.newConcurrentMap());
         inst.certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
         inst.certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
+
+
+        String ip = Constants.isDevnet() ? IpUtil.getIp("devboot.sharder.io") : Constants.isTestnet() ? IpUtil.getIp("testboot.sharder.io") : IpUtil.getIp("mainboot.sharder.io");
+        inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(SharderGenesis.CREATOR_ID,ip);
+
+        if(Constants.isDevnet()){
+            List<GenesisRecipient> recipients = GenesisRecipient.getAll();
+            recipients.forEach(recipient -> inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(recipient.id,ip));
+        }else if(Constants.isTestnet()){
+            //TODO default testnet accounts 
+        }else if(Constants.isMainnet()){
+            //TODO default mainnet accounts 
+        }
     }
 
     private PocHolder(){}
@@ -55,7 +79,7 @@ public class PocHolder implements Serializable {
     static BigInteger getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
         if (!inst.scoreMap.containsKey(accountId)) {
-            PocProcessorImpl.instance.notifySynTxNow();
+            PocProcessorImpl.notifySynTxNow();
             _defaultPocScore(accountId,height);
         }
 
@@ -71,6 +95,32 @@ public class PocHolder implements Serializable {
             }
         }
         return BigInteger.ZERO;
+    }
+
+    /**
+     * get the detailed poc score of the specified height
+     *
+     * @param height
+     * @param accountId
+     * @return json string
+     */
+    static JSONObject getDetailedPocScore(int height, long accountId) {
+        if(height < 0) height = 0;
+        PocScore pocScore;
+        if (!inst.scoreMap.containsKey(accountId)) {
+            PocProcessorImpl.notifySynTxNow();
+            _defaultPocScore(accountId,height);
+        }
+        pocScore = inst.scoreMap.get(accountId);
+        //newest poc score when query height is bigger than last height of poc score
+        if(pocScore.height > height) {
+            //get from history
+            pocScore = getHistoryPocScore(height, accountId);
+        }
+        if (pocScore != null) {
+            return pocScore.toJsonObject();
+        }
+        return null;
     }
 
     /**

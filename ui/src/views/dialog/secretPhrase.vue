@@ -3,7 +3,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button class="close" @click="closeDialog">X</button>
+                    <button class="close" @click="closeDialog"></button>
                     <h4 class="modal-title">{{$t('password_modal.secret_password')}}</h4>
                 </div>
                 <div class="modal-body modal-peer">
@@ -11,13 +11,12 @@
                     <input v-model="secretPhrase" type="password"/>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" @click="returnValue()">{{$t('password_modal.open')}}</button>
+                    <button type="button" class="btn" @click="returnValue()">{{$t('account_info.account_set_name')}}</button>
                 </div>
             </div>
         </div>
     </div>
 </template>
-
 <script>
     export default {
         name: "secretPhrase",
@@ -52,11 +51,5 @@
                 }
             }
         }
-
     }
-
 </script>
-
-<style scoped>
-
-</style>

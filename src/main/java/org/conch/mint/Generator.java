@@ -21,6 +21,7 @@
 
 package org.conch.mint;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -85,7 +86,7 @@ public class Generator implements Comparable<Generator> {
         }
         static String reset(){
             String generatorSummary = appendSplitter("--------------Active Miners-------------",false);
-            generatorSummary += appendSplitter("Local bind account[rs=" + HUB_BIND_ADDRESS + "]",false);
+            generatorSummary += appendSplitter("Local bind account[ hub rs=" + HUB_BIND_ADDRESS + " | autoMint rs=" + AUTO_MINT_ADDRESS + " ]",false);
             count=0;
             return generatorSummary;
         }
@@ -425,6 +426,7 @@ public class Generator implements Comparable<Generator> {
     protected volatile BigInteger hit;
     protected volatile BigInteger effectiveBalance;
     protected volatile BigInteger pocScore;
+    protected volatile com.alibaba.fastjson.JSONObject detailedPocScore;
 
     private String secretPhrase;
     private volatile long deadline;
@@ -480,6 +482,7 @@ public class Generator implements Comparable<Generator> {
         json.put("accountRS", Account.rsAccount(accountId));
         json.put("effectiveBalanceSS",  effectiveBalance);
         json.put("pocScore", pocScore);
+        json.put("detailedPocScore", detailedPocScore);
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
@@ -501,6 +504,8 @@ public class Generator implements Comparable<Generator> {
         effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
 
         pocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
+
+        detailedPocScore = PocProcessorImpl.instance.calDetailedPocScore(account, lastHeight);
 
         if (pocScore.signum() <= 0) {
             hitTime = 0;
@@ -676,7 +681,12 @@ public class Generator implements Comparable<Generator> {
     public static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
     public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
     public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
+    public static final String AUTO_MINT_ADDRESS = autoMintRs();
     static boolean autoMintRunning = false;
+    static String autoMintRs(){
+        String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+        return StringUtils.isEmpty(autoMintPR) ? null : Account.rsAccount(Account.getId(autoMintPR));
+    }
     /**
      * Auto mining of Hub or Miner, just execute once
      */

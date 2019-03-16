@@ -21,7 +21,9 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -35,10 +37,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * @author jiangbubai
+ */
 public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
-    static final GetUserConfig instance = new GetUserConfig();
-    static final List<String> excludeKeys = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
+    static final GetUserConfig INSTANCE = new GetUserConfig();
+    static final List<String> EXCLUDE_KEYS = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
     private GetUserConfig() {
         super(new APITag[]{APITag.INFO});
     }
@@ -63,12 +68,14 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             Enumeration<?> e = prop.propertyNames();
             while (e.hasMoreElements()) {
                 String key = (String) e.nextElement();
-                if (excludeKeys.contains(key)) {
+                if (EXCLUDE_KEYS.contains(key)) {
                     continue;
                 }
                 String value = prop.getProperty(key);
                 response.put(key, value);
             }
+            // TODO read node serial number
+            // TODO get node type from operating system via serial number
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());

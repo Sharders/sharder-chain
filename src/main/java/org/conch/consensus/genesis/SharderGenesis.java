@@ -140,8 +140,7 @@ public class SharderGenesis {
                         genesisRecipient.amount * Constants.ONE_SS,
                         0,
                         (short) 0,
-                        new Attachment.CoinBase(
-                                Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, genesisRecipient.id, Maps.newHashMap()))
+                        new Attachment.CoinBase(Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, genesisRecipient.id, Maps.newHashMap()))
                         .timestamp(0)
                         .recipientId(genesisRecipient.id)
                         .signature(genesisRecipient.signature)

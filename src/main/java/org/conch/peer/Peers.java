@@ -27,6 +27,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
@@ -51,6 +52,9 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * @author ben-xy
+ */
 public final class Peers {
 
     public enum Event {
@@ -789,15 +793,11 @@ public final class Peers {
 
     };
 
-    private static final String SC_PEERS_API = scPeerApiUrl();
-
-    private static String scPeerApiUrl() {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/list.ss";
-        }
-
-        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=https://sharder.org/sc/peer/list.ss";
-    }
+    private static final String SC_PEERS_API = UrlManager.getFoundationUrl(
+            UrlManager.PEERS_LIST_EOLINKER,
+            UrlManager.PEERS_LIST_LOCAL,
+            UrlManager.PEERS_LIST_PATH
+    );
 
     private static final Runnable GET_HUB_PEER_THREAD =
             () -> {
@@ -859,12 +859,22 @@ public final class Peers {
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
+    public static volatile boolean hasMyAddress = StringUtils.isNotEmpty(Conch.getMyAddress());
     public static final int DEFAULT_TX_CHECKING_COUNT = 10;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
-        if (!sysInitialed) {
+        if (!sysInitialed && hasMyAddress) {
             Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
             try {
                 Thread.sleep(30 * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!hasMyAddress) {
+            Logger.logInfoMessage("Current node not initialized yet, sleep 1H...");
+            try {
+                Thread.sleep(3600 * 1000L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

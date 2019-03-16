@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Convert;
@@ -30,35 +31,30 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+/**
+ * @author jiangbubai
+ */
 public final class UpgradeClient extends APIServlet.APIRequestHandler {
 
-    static final UpgradeClient instance = new UpgradeClient();
+    static final UpgradeClient INSTANCE = new UpgradeClient();
 
     private UpgradeClient() {
         super(new APITag[] {APITag.DEBUG}, "version", "restart");
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         String version = Convert.emptyToNull(req.getParameter("version"));
-        if (version == null) {
+        if (StringUtils.isEmpty(version)) {
             response.put("upgraded", false);
-            response.put("error", "version can not be blank");
+            response.put("error", "version can not be null");
             return response;
         }
-        try {
-            ClientUpgradeTool.fetchUpgradePackage(version);
-            if (restart) {
-                Conch.restartApplication(null);
-            }
-            response.put("upgraded", true);
-        } catch (IOException e) {
-            e.printStackTrace();
-            response.put("upgraded", false);
-            response.put("error", e.getMessage());
-        }
+        ClientUpgradeTool.fetchUpgradePackageThread(version, restart);
+        response.put("upgraded", true);
         return response;
     }
 

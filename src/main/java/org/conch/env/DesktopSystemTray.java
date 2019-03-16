@@ -77,10 +77,10 @@ public class DesktopSystemTray {
     }
 
     private static String getNetwork(){
-        return getItemDisplay(Constants.getNetwork().getName());
+        return Constants.isOffline ? "Offline Mode" : getItemDisplay(Constants.getNetwork().getName());
     }
 
-
+    // support cn and en languages
     private static final Map<String,ItemName> itemNameMap = new ConcurrentHashMap<>();
     {
         itemNameMap.put("Shutdown",new ItemName("Shutdown","关闭"));
@@ -95,10 +95,10 @@ public class DesktopSystemTray {
         itemNameMap.put("Application",new ItemName("Application","应用程序"));
         itemNameMap.put("Network",new ItemName("Network","网络"));
         itemNameMap.put("WorkingO",new ItemName("Offline","离线模式"));
-        itemNameMap.put("Wallet",new ItemName("Browser","浏览器端"));
+        itemNameMap.put("Browser",new ItemName("Browser","浏览器端"));
         itemNameMap.put("PeerP",new ItemName("Peer port","监听端口"));
         itemNameMap.put("ProgramF",new ItemName("Program folder","程序目录"));
-        itemNameMap.put("UserF",new ItemName("User folder","用户目录"));
+        itemNameMap.put("UserF",new ItemName("Config folder","用户目录"));
         itemNameMap.put("DatabaseU",new ItemName("Database URL","数据库"));
         itemNameMap.put("LastB",new ItemName("Block","区块"));
         itemNameMap.put("Height",new ItemName("Height","区块高度"));
@@ -186,7 +186,7 @@ public class DesktopSystemTray {
             try {
                 Desktop.getDesktop().browse(dataProvider.getWallet());
             } catch (IOException ex) {
-                Logger.logInfoMessage("Cannot open wallet in browser", ex);
+                Logger.logInfoMessage("Cannot open client in browser", ex);
             }
         });
 
@@ -261,12 +261,12 @@ public class DesktopSystemTray {
         addDataRow(statusPanel, getItemDisplay("Application"), Conch.APPLICATION);
         addDataRow(statusPanel, getItemDisplay("Version"), Conch.getFullVersion());
         addDataRow(statusPanel, getItemDisplay("Network"), getNetwork());
-        addDataRow(statusPanel, getItemDisplay("WorkingO"), "" + Constants.isOffline);
-        addDataRow(statusPanel, getItemDisplay("Wallet"), String.valueOf(API.getWelcomePageUri()));
+//        addDataRow(statusPanel, getItemDisplay("WorkingO"), "" + Constants.isOffline);
+//        addDataRow(statusPanel, getItemDisplay("Browser"), String.valueOf(API.getWelcomePageUri()));
         addDataRow(statusPanel, getItemDisplay("PeerP"), String.valueOf(Conch.getPeerPort()));
         addDataRow(statusPanel, getItemDisplay("ProgramF"), String.valueOf(Paths.get(".").toAbsolutePath().getParent()));
-        addDataRow(statusPanel, getItemDisplay("UserF"), String.valueOf(Paths.get(Conch.getUserHomeDir()).toAbsolutePath()));
-        addDataRow(statusPanel, getItemDisplay("DatabaseU"), Db.db == null ? getItemDisplay("Unavailable") : Db.db.getUrl());
+//        addDataRow(statusPanel, getItemDisplay("UserF"), String.valueOf(Paths.get(Conch.getUserHomeDir()).toAbsolutePath()));
+//        addDataRow(statusPanel, getItemDisplay("DatabaseU"), Db.db == null ? getItemDisplay("Unavailable") : Db.db.getUrl());
         addEmptyRow(statusPanel);
 
         String lastBlockEpochTime = DateFormatUtils.format(new Date(Convert.fromEpochTime(lastBlock.getTimestamp())),"yyyy-mm-dd HH:MM:SS");

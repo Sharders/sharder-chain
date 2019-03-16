@@ -46,7 +46,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
-
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -99,7 +98,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       new Runnable() {
 
         private final JSONStreamAware getCumulativeDifficultyRequest;
-
         {
           JSONObject request = new JSONObject();
           request.put("requestType", "getCumulativeDifficulty");
@@ -379,8 +377,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
 
-        private List<Long> getBlockIdsAfterCommon(
-            final Peer peer, final long startBlockId, final boolean countFromStart) {
+        private List<Long> getBlockIdsAfterCommon(final Peer peer, final long startBlockId, final boolean countFromStart) {
           long matchId = startBlockId;
           List<Long> blockList = new ArrayList<>(720);
           boolean matched = false;
@@ -403,8 +400,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             // prevent overloading with blockIds
             if (nextBlockIds.size() > limit) {
-              Logger.logDebugMessage(
-                  "Obsolete or rogue peer "
+              Logger.logDebugMessage("Obsolete or rogue peer "
                       + peer.getHost()
                       + " sends too many nextBlockIds, blacklisting");
               peer.blacklist("Too many nextBlockIds");
@@ -540,8 +536,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           if (slowestPeer != null
               && connectedPublicPeers.size() >= Peers.maxNumberOfConnectedPublicPeers
               && chainBlockIds.size() > 360) {
-            Logger.logDebugMessage(
-                slowestPeer.getHost() + " took " + maxResponseTime + " ms, disconnecting");
+            Logger.logDebugMessage(slowestPeer.getHost() + " took " + maxResponseTime + " ms, disconnecting");
             slowestPeer.deactivate();
           }
           //
@@ -552,9 +547,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           blockchain.writeLock();
           try {
             List<BlockImpl> forkBlocks = new ArrayList<>();
-            for (int index = 1;
-                index < chainBlockIds.size() && blockchain.getHeight() - startHeight < 720;
-                index++) {
+            for (int index = 1; index < chainBlockIds.size() && blockchain.getHeight() - startHeight < 720; index++) {
               PeerBlock peerBlock = blockMap.get(chainBlockIds.get(index));
               if (peerBlock == null) {
                 break;
@@ -1249,10 +1242,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (!isPruned) {
       return transaction;
     }
-    List<Peer> peers =
-        Peers.getPeers(
-            chkPeer ->
-                chkPeer.providesService(Peer.Service.PRUNABLE)
+    List<Peer> peers = Peers.getPeers(
+            chkPeer -> chkPeer.providesService(Peer.Service.PRUNABLE)
                     && !chkPeer.isBlacklisted()
                     && chkPeer.getAnnouncedAddress() != null);
     if (peers.isEmpty()) {
@@ -1974,8 +1965,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     BlockImpl previousBlock = blockchain.getLastBlock();
     TransactionProcessorImpl.getInstance().processWaitingTransactions();
-    SortedSet<UnconfirmedTransaction> sortedTransactions =
-        selectUnconfirmedTransactions(duplicates, previousBlock, blockTimestamp);
+    SortedSet<UnconfirmedTransaction> sortedTransactions = selectUnconfirmedTransactions(duplicates, previousBlock, blockTimestamp);
     List<TransactionImpl> blockTransactions = new ArrayList<>();
     MessageDigest digest = Crypto.sha256();
     final byte[] publicKey = Crypto.getPublicKey(secretPhrase);

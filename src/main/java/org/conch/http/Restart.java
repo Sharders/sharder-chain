@@ -44,7 +44,7 @@ public final class Restart extends APIServlet.APIRequestHandler {
         if (scan) {
             Conch.getBlockchainProcessor().fullScanWithShutdown();
         } else {
-            Conch.restartApplication(null);
+            new Thread(() -> Conch.restartApplication(null)).start();
         }
         response.put("restart", true);
         return response;

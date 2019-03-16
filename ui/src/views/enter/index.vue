@@ -18,21 +18,20 @@
 </template>
 
 <script>
-    import Store from "../../store";
 
     export default {
         name: "index",
-        data () {
+        data() {
             return {
                 notAutoSize: {
                     minRows: 4,
                     maxRows: 4
                 },
-                passphrase:this.$route.params.passPhrase,
-                confirmPassphrase:''
+                passphrase: this.$route.params.passPhrase,
+                confirmPassphrase: ''
             };
         },
-        created:function(){
+        created: function () {
         },
         methods: {
             cancel: function () {
@@ -41,23 +40,14 @@
             enter: function () {
                 let _this = this;
                 if (_this.confirmPassphrase === "") {
-                    _this.$message.info(_this.$t('notification.login_no_input_error'));
-                    return;
+                    return _this.$message.info(_this.$t('notification.login_no_input_error'));
                 }
-                if(_this.confirmPassphrase !== _this.passPhrase){
-                    _this.$message.error("您输入的密钥不正确，请再试一次 ！");
-                    return;
+                if (_this.confirmPassphrase !== _this.passphrase) {
+                    return _this.$message.error(_this.$t('login.incorrect_key'));
                 }
-                Login.login(true, _this.passphrase, _this, function () {
-/*
-                    console.log(SSO);
-                    console.log("account", SSO.account);
-                    console.log("accountInfo", SSO.accountInfo);
-                    console.log("accountRS", SSO.accountRS);
-                    console.log("publicKey", SSO.publicKey);
-                    console.log("settings", SSO.settings);
-*/
-                    _this.$global.setEpochBeginning(_this).then(res=>{
+                SSO.secretPhrase = _this.passphrase;
+                Login.login(1, _this.passphrase, _this, function () {
+                    _this.$global.setEpochBeginning(_this).then(res => {
                         _this.$store.state.isLogin = true;
                         _this.$router.push("/account");
 

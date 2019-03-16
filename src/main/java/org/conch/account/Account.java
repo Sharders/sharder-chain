@@ -26,6 +26,7 @@ import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.crypto.Crypto;
@@ -1938,6 +1939,15 @@ public final class Account {
         }
         this.addToBalanceNQT(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, -totalDividend);
         AssetDividend.addAssetDividend(transactionId, attachment, totalDividend, numAccounts);
+    }
+
+    public static void checkApiAutoTxAccount(String address) throws ConchException.AccountControlException {
+        String correctRs = Optional.ofNullable(Conch.getStringProperty("sharder.autoTransactionAddress"))
+                .orElseThrow(() -> new ConchException.AccountControlException("auto transaction address not configured!"));
+        if (!correctRs.equals(address)) {
+            throw new ConchException.AccountControlException("Account address does not match!");
+        }
+        Logger.logInfoMessage("Account address is correct!");
     }
 
     @Override

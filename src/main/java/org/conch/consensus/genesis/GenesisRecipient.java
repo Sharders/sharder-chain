@@ -57,4 +57,8 @@ public class GenesisRecipient {
         }
         return null;
     }
+
+    public static List<GenesisRecipient> getAll(){
+        return recipients;
+    }
 }

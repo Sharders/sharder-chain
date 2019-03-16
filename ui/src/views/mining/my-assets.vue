@@ -5,17 +5,18 @@
             <div class="assets-info">
                 <div class="totle-assets">
                     <span>{{$t('mining.my_assets.total_asset')}}</span>
-                    <span class="strong">100000</span>
+                    <span class="strong">{{accountInfo.balanceNQT/100000000}}</span>
                 </div>
-                <p class="exchang" @click="$router.push({name: 'free-collar-drill'})">{{$t('mining.index.diamond_exchange')}}</p>
+                <p class="exchang" @click="$router.push({name: 'free-collar-drill'})">
+                    {{$t('mining.index.diamond_exchange')}}</p>
                 <div class="assets-detail">
                     <div>
                         <p>{{$t('mining.my_assets.available_asset')}}</p>
-                        <p class="strong">80000</p>
+                        <p class="strong">{{accountInfo.guaranteedBalanceNQT/100000000}}</p>
                     </div>
                     <div>
                         <p>{{$t('mining.my_assets.frozen_assets')}}</p>
-                        <p class="strong">20000</p>
+                        <p class="strong">{{accountInfo.forgedBalanceNQT/100000000}}</p>
                     </div>
                 </div>
             </div>
@@ -25,7 +26,11 @@
                     <p class="strong">{{al.title}}</p>
                     <p>{{al.time}}</p>
                 </div>
-                <div class="number">{{al.num}}{{$t('mining.create_history.diamond')}}</div>
+                <div class="number">{{al.num}} SS</div>
+            </div>
+            <div class="load-assets">
+                <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
+                <p v-else>{{$t("mining.my_assets.whether")}}</p>
             </div>
         </div>
     </div>
@@ -36,44 +41,40 @@
         name: "my-assets",
         data() {
             return {
-                assetsList: [
-                    {
-                        title: this.$t('mining.free_collar_drill.daily_login'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                    {
-                        title: this.$t('mining.my_assets.mining_reward'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                    {
-                        title: this.$t('mining.free_collar_drill.daily_login'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                    {
-                        title: this.$t('mining.my_assets.mining_reward'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                    {
-                        title: this.$t('mining.my_assets.ss_storage_rebate'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                    {
-                        title: this.$t('mining.binding_validation.bind_phone'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                    {
-                        title: this.$t('mining.my_assets.mining_reward'),
-                        time: "2018-07-11 15:59",
-                        num: "+100"
-                    },
-                ]
+                accountInfo: SSO.accountInfo,
+                pageNO: 1,
+                isPage: true,
+                assetsList: []
             }
+        },
+        methods: {
+            getAssetsList() {
+                let _this = this;
+                _this.$global.fetch("GET", {
+                    account: SSO.accountRS,
+                    firstIndex: (_this.pageNO - 1) * 10,
+                    lastIndex: (_this.pageNO - 1) * 10 + 9
+                }, "getBlockchainTransactions").then(res => {
+                    if (res.transactions.length === 0) {
+                        return _this.isPage = false;
+                    }
+                    for (let t of res.transactions) {
+                        console.info(t);
+                        _this.assetsList.push({
+                            title: _this.$global.getTransactionTypeStr(t),
+                            time: _this.$global.myFormatTime(t.timestamp, 'YMDHMS', true),
+                            num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
+                        })
+                    }
+                });
+            },
+            loadAssets() {
+                this.pageNO++;
+                this.getAssetsList();
+            }
+        },
+        created() {
+            this.getAssetsList();
         }
     }
 </script>
@@ -91,6 +92,11 @@
         padding: 25px;
         font-size: 14px;
         position: relative;
+    }
+
+    .assets .load-assets {
+        text-align: center;
+        padding: 10px 0;
     }
 
     .assets-info .totle-assets .strong {
@@ -121,6 +127,7 @@
 
     .assets-info .assets-detail .strong {
         font-size: 20px;
+        overflow: hidden;
     }
 
     .assets .assets-header {

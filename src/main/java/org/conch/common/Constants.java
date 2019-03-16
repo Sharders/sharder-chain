@@ -77,7 +77,7 @@ public final class Constants {
     }
 
     private static final String networkInProperties = Conch.getStringProperty("sharder.network");
-    private static final String NetworkDef = loadNetworkDefinition();
+    public static final String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
@@ -202,7 +202,7 @@ public final class Constants {
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
-    public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 0 : 0;
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  0 : (isTestnet() ? 0 : 0);
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -227,10 +227,10 @@ public final class Constants {
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
-    public static final int SHARDER_POOL_DELAY = 10; //transaction become effective
+    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 10; //transaction become effective
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
-    public static final int SHARDER_POOL_DEADLINE = 50; //pool will be destroyed automatically when it has nobody join
-    public static final int SHARDER_REWARD_DELAY = 10;
+    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60*24 : 60*24*3; //pool will be destroyed automatically when it has nobody join
+    public static final int SHARDER_REWARD_DELAY = isTestnetOrDevnet() ? 3 : 10;
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
@@ -348,11 +348,15 @@ public final class Constants {
 
     public static final String SUCCESS = "success";
 
-    public static final String HTTP = "http://";
+    public static final String DATA = "data";
 
-    public static final String HTTPS = "https://";
+    public static final String STATUS = "status";
+
+    public static final String HTTP = "http://";
 
     public static final String CURLY_BRACES = "{";
 
     public static final String BRACKET = "[";
+
+    public static final String HOST_FILTER_INFO = "Not valid host! ONLY {} can do this operation!";
 }

@@ -32,10 +32,10 @@ public class RewardCalculator {
      * @param accountId
      * @return
      */
-    public static long mintReward(Long accountId) {
+    public static long mintReward(long accountId) {
         // 300SS reward of one block 
         // 90% for hub miner, 10% for other miner in Testnet phase1 (before end of 2019.Q2)
         double rate = PocProcessorImpl.isHubBind(accountId) ? 0.9d : 0.1d;
-        return Constants.ONE_SS * RewardDef.MINT.getAmount() * Math.round(rate);
+        return (long) (Constants.ONE_SS * RewardDef.MINT.getAmount() * rate);
     }
 }

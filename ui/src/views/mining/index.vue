@@ -30,11 +30,13 @@
                 </div>
                 <div class="state">
                     <div class="state-info">
-                        <p>{{$t('mining.attribute.mining')}}</p>
-                        <p>{{$t('mining.index.net_income')}} 1000 SS</p>
+                        <span>{{$t('mining.attribute.mining')}}</span><br/>
+                        <span>{{$t('mining.index.net_income')}} {{allIncome}} SS</span>
                     </div>
                 </div>
-                <div class="instructions" @click="">{{$t('mining.index.mining_description')}}</div>
+                <div class="instructions" @click="$router.push({name: 'rule-description'})">
+                    {{$t('mining.index.mining_description')}}
+                </div>
                 <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
                     {{$t('mining.index.join_friends')}}
                 </div>
@@ -53,7 +55,8 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} | {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}}SS
+                    {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} |
+                    {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}} {{newBlockReward}}SS
             </span>
             </div>
             <div class="mining-list">
@@ -62,8 +65,7 @@
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
                     </div>
-                    <el-select v-model="value" :placeholder="$t('mining.index.sort')"
-                               v-if="miningList !== undefined && miningList.length >0">
+                    <el-select v-model="sortFun" v-if="miningList.length > 0">
                         <el-option
                             v-for="item in options"
                             :key="item.value"
@@ -74,23 +76,26 @@
                 </h5>
                 <div class="mining-list-info">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-show="miningList.length !== 0" v-for="(mining,index) in miningList">
+                        <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
-                                    <p>{{mining.power/100000000}}/{{maxPoolinvestment/100000000}}</p>
-                                    <el-progress :percentage="(mining.power/100000000/maxPoolinvestment/100000000)*100"
-                                                 :show-text="false"></el-progress>
+                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
+                                    <el-progress
+                                        :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
+                                        :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.historicalIncome/100000000}} SS</span>
+                                        <span>{{$t('mining.index.pool_income')}}{{mining.mintRewards/100000000}} SS</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
-                                        <span>{{$t('mining.index.Income_distribution')}}{{typeof mining.rule.level1 !== 'undefined' ?
-                                                (1-mining.rule.level1.forgepool.reward.max/1)*100 : (1-mining.rule.level0.forgepool.reward.max/1)*100 }}%</span>
+                                        <span>
+                                            {{$t('mining.index.Income_distribution')}}
+                                            {{mining.rule.level1 ? (mining.rule.level1.forgepool.reward.max * 100) : (mining.rule.level0.forgepool.reward.max * 100)}}%
+                                        </span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
@@ -100,12 +105,12 @@
                             </div>
                         </el-col>
                         <div v-show="miningList.length === 0" class="mining-list-null">
-                            暂时没有任何矿池
+                            {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
                 </div>
             </div>
-            <div class="mining-paging" v-if="miningList !== undefined && miningList.length > 0">
+            <div class="mining-paging" v-if="miningList.length > 0">
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
@@ -127,30 +132,7 @@
         </div>
         <!--SS兑换-->
         <div v-if="tabTitle === 'exchange'">
-            <div class="reward">
-                <div class="reward-title">
-                    {{$t('mining.index.reward_title')}}
-                </div>
-                <div class="reward-content">
-                    <el-row :gutter="20">
-                        <el-col :span="12" v-for="reward in rewardList">
-                            <div class="reward-content-div">
-                                <div class="content-left">
-                                    <p>
-                                        <img src="../../assets/img/logo.svg" class="content-left-img">
-                                        <span class="strong">1000 SS(ERC-20)</span>
-                                        <span>{{$t('mining.index.remaining')}}0</span>
-                                    </p>
-                                    <p class="reward-instructions">{{$t('mining.index.reward_instruction')}}</p>
-                                </div>
-                                <div class="content-right">
-                                    <el-button type="info">{{$t('mining.diamond_exchange.not_open')}}</el-button>
-                                </div>
-                            </div>
-                        </el-col>
-                    </el-row>
-                </div>
-            </div>
+            <ExchangeReward></ExchangeReward>
         </div>
         <!--个人中心-->
         <div v-if="tabMenu === 'personal'">
@@ -159,12 +141,13 @@
                     <img src="../../assets/img/wodezichan.png" class="header-img">
                     <p>
                         <span>{{$t('mining.index.miner_name')}}</span>:
-                        <span>{{$t('mining.index.miner_name_not_defined')}}</span>
+                        <span v-if="accountInfo.name !== undefined">{{accountInfo.name}}</span>
+                        <span v-else>{{$t('mining.index.miner_name_not_defined')}}</span>
                         <img src="../../assets/img/set.png" @click="isVisible('isSetName')">
                     </p>
                     <p>
                         <span>{{$t('mining.index.tss_address')}}</span>:
-                        <span>SSA-WHXU-6UB3-DB75-78GAT</span>
+                        <span>{{accountInfo.accountRS}}</span>
                         <img src="../../assets/img/TSS.png" @click="isVisible('isTSS')">
                     </p>
                 </div>
@@ -200,9 +183,9 @@
                 <span class="img-close" @click="isVisible('isSetName')"></span>
                 <h1>{{$t('mining.index.set_name')}}</h1>
                 <div class="input">
-                    <el-input v-model="setname" :placeholder="$t('mining.index.set_name_tip')"></el-input>
+                    <el-input v-model="accountName" :placeholder="$t('mining.index.set_name_tip')"></el-input>
                 </div>
-                <div class="determine">{{$t('mining.attribute.confirm')}}</div>
+                <div class="determine" @click="setAccountInfo()">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
         <!--TSS说明-->
@@ -231,19 +214,19 @@
                         <tr v-for="(ranking,index) in rankingList">
                             <td>
                                 <span v-if="index <= 2" :class="'ranking-logo bg-'+ index"></span>
-                                <span v-if="index > 2">{{index}}</span>
+                                <span v-if="index > 2">{{index+1}}</span>
                             </td>
                             <td>
-                                {{ranking.account}}
+                                {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.assets}}
+                                {{ranking.BALANCE > 0 ? ranking.BALANCE / 100000000 : 0}}
                             </td>
                         </tr>
                     </table>
                     <div class="my-assets">
-                        {{$t('mining.index.my_assets')}}100000 SS | {{$t('mining.index.sort')}}98
-                        {{$t('mining.index.unit_ming')}}
+                        {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS
+                        | {{$t('mining.index.sort')}} {{myRanking}} {{$t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -269,7 +252,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{maxPoolinvestment/100000000}}SS</span>
+                            <span>{{maxPoolInvestment/100000000}}SS</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
@@ -323,6 +306,7 @@
 </template>
 
 <script>
+
     export default {
         name: 'mining',
         data() {
@@ -333,7 +317,7 @@
                 isSetName: false,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
-                maxPoolinvestment: 50000000000000,
+                maxPoolInvestment: 0,
                 maxPoolsNum: 51,
                 maxForgeTime: 1 * 60 * 60,
                 options: [
@@ -354,63 +338,23 @@
                         label: this.$t('mining.index.mining_sort_time')
                     }
                 ],
-
-                value: '',
-                setname: '',
+                myRanking: {},
+                sortFun: 'default',
+                accountName: SSO.accountInfo.name,
                 incomeDistribution: 0,
                 investment: '',
                 newestBlock: [],
+                newBlockReward: 0,
                 newestBlockCreator: '',
                 totalAssets: 0,
                 forgeAssets: 0,
-                rule: [],
+                rule: null,
                 avgBlocksTime: '',
                 miningList: [],
                 rewardList: [/*'1', '2', '3', '4'*/],
-                rankingList: [
-                    /*    {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        },
-                        {
-                            account: "SSA-92HT-CNBE-YADN-B4JPW",
-                            assets: 1000000
-                        }*/
-                ],
+                rankingList: [],
                 accountInfo: SSO.accountInfo,
-
+                allIncome: 0,
                 totalSize: 10,
             }
         },
@@ -420,67 +364,81 @@
             }
         },
         methods: {
+            getAllIncome() {
+                let _this = this;
+                _this.$global.fetch("GET", {allIncome: "allIncome"}, "getAccount").then(res => {
+                    if (res.success) {
+                        _this.allIncome = res.cutIncome[0]["NUM"] / 100000000;
+                    }
+                });
+            },
+            getAmountMax(rule) {
+                let level = rule.level0 ? rule.level0 : rule.level1;
+                return level.consignor.amount.max / 100000000;
+            },
+            setAccountInfo() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    name: _this.accountName,
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    phased: false,
+                    phasingHashedSecretAlgorithm: 2,
+                    feeNQT: 0
+                }, "setAccountInfo").then(res => {
+                    if (!res.errorDescription) {
+                        _this.accountInfo.name = res.transactionJSON.attachment.name;
+                        _this.$message.success(_this.$t('notification.modify_success'));
+                    } else {
+                        _this.$message.error(res.errorDescription);
+                    }
+                    _this.isVisible('isSetName');
+                });
+            },
+            idToAccountRs(id) {
+                let nxtAddress = new NxtAddress();
+                let accountRS = "";
+                if (nxtAddress.set(id)) {
+                    accountRS = nxtAddress.toString();
+                }
+                return accountRS;
+            },
             createPool() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning("当前正在同步区块链，请稍后再试");
-                    return;
+                    return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
 
                 if (_this.accountInfo.errorCode === 5 || SSO.publicKey === "") {
                     _this.isVisible('isCreatePool');
-                    _this.$message.info(_this.$t('mining.index.insufficient_permissions'));
-                    return;
+                    return _this.$message.info(_this.$t('notification.insufficient_permissions'));
                 }
 
-                let formData = new FormData();
-                let period = parseInt(_this.maxForgeTime / _this.avgBlocksTime).toString();
-                formData.append("period", period);
-                formData.append("secretPhrase", SSO.secretPhrase);
-                formData.append("deadline", "1440");
-                formData.append("feeNQT", "100000000");
-                // formData.append("amount",_this.investment);
-
-                // console.log("getAmount", 50000000000000);
-                let rule = {
-                    'forgepool': {
-                        'reward': _this.incomeDistribution / 100,
-                        'number': _this.rule.forgepool.number.max - 1,
-                    },
-                    "rule": {
-                        "totalBlocks": 0
-                    },
-                    'consignor': {
-                        'amount': 50000000000000
-                    },
-                };
-                formData.append("rule", JSON.stringify(rule));
-
-                _this.$http.post('/sharder?requestType=createPool', formData).then(function (res) {
-                    if (res.data.broadcasted) {
-                        _this.$message.success("创建成功！");
-                        /*
-                        formData = new FormData();
-                        let period = parseInt(_this.maxForgeTime/_this.avgBlocksTime).toString();
-                        formData.append("period",period);
-                        formData.append("secretPhrase",SSO.secretPhrase);
-                        formData.append("deadline","1440");
-                        formData.append("feeNQT","100000000");
-
-                        formData.append("poolId",_this.mining.poolId);
-                        formData.append("amount",_this.investment);
-
-                        _this.$http.post('/sharder?requestType=joinPool',formData).then(function (res) {
-                        });*/
+                _this.$global.fetch("POST", {
+                    period: parseInt(_this.maxForgeTime / _this.avgBlocksTime),
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    feeNQT: 100000000,
+                    rule: JSON.stringify({
+                        'forgepool': {
+                            'reward': _this.incomeDistribution / 100,
+                            'number': _this.rule.forgepool.number.max - 1,
+                        },
+                        "rule": {
+                            "totalBlocks": 0
+                        },
+                        'consignor': {
+                            'amount': _this.maxPoolInvestment
+                        }
+                    })
+                }, "createPool").then(res => {
+                    if (res.broadcasted) {
+                        _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
-
                     } else {
-                        _this.$message.error(res.data.errorDescription);
+                        _this.$message.error(res.errorDescription);
                     }
-                }).catch(function (err) {
-                    console.log(err);
                 });
-
             },
             poolAttribute(mining) {
 
@@ -489,7 +447,7 @@
             isVisible(val) {
 
                 if (val === "isCreatePool" && this.rule === null) {
-                    this.$message.error("您还未拥有创建矿池的权限");
+                    this.$message.error(this.$t("mining.index.pool_no_permissions"));
                     return;
                 }
                 this.$store.state.mask = !this[val];
@@ -523,89 +481,105 @@
             },
             loginAfter() {
                 let _this = this;
+                _this.getAllIncome();
 
-            let formData = new FormData();
-            formData.append("creatorId",SSO.account);
-            this.$http.post('/sharder?requestType=getPoolRule',formData).then(res=>{
-
-                    if (typeof res.data.errorDescription !== 'undefined') {
-                        _this.rule = null;
-                    } else {
-                        _this.rule = res.data;
+                _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
+                    if (!res.errorDescription) {
+                        _this.rule = res;
+                        _this.maxPoolInvestment = res.consignor.amount.max - 100000000;
                     }
-                    console.log("getRule", _this.rule.forgepool.reward.max);
-                }).catch(err => {
-                    console.log(err);
                 });
 
+                _this.getPools({sort: _this.sortFun});
 
-            formData = new FormData();
-            // formData.append("createId",SSO.account);
-            _this.$http.post('/sharder?requestType=getPools',formData).then(function (res) {
-                if(typeof res.data.errorDescription !== "undefined"){
-                    _this.$message.error(res.data.errorDescription);
-                    return;
-                }
-                console.log(res.data);
-                _this.miningList = res.data.pools;
-                _this.totalSize = _this.miningList.length;
-
-                }).catch(function (err) {
-                    console.log(err);
+                _this.$global.fetch("POST", {}, "getNextBlockGenerators").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
+                    }
+                    _this.newestBlock = res;
+                    _this.newestBlockCreator = res.generators[0].accountRS;
+                    _this.getCoinBase(res.height);
                 });
 
-
-                formData = new FormData();
-                _this.$http.post('/sharder?requestType=getNextBlockGenerators', formData).then(function (res) {
-                    if (typeof res.data.errorDescription !== "undefined") {
-                        _this.$message.error(res.data.errorDescription);
-                        return;
+                _this.$global.fetch("GET", {
+                    firstIndex: 0,
+                    lastIndex: 9
+                }, "getBlocks").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
                     }
-                    console.log("getNextBlockGenerators", res.data);
-
-                    _this.newestBlock = res.data;
-                    _this.newestBlockCreator = res.data.generators[0].accountRS;
-
-                }).catch(function (err) {
-                    console.log(err);
+                    let len = res.blocks.length;
+                    _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.blocks[0].timestamp, res.blocks[len - 1].timestamp, len);
                 });
 
-                this.$http.get('/sharder?requestType=getBlocks', {
-                    params: {
-                        firstIndex: 0,
-                        lastIndex: 9
-                    }
-                }).then(function (res) {
-                    if (!res.data.errorDescription) {
-                        let len = res.data.blocks.length;
-                        _this.avgBlocksTime = _this.$global.getAvgTimestamp(res.data.blocks[0].timestamp, res.data.blocks[len - 1].timestamp, len);
-                        console.log("avgBlocksTime", _this.avgBlocksTime);
-                    } else {
-                        _this.$message.error(res.data.errorDescription);
-                    }
-                }).catch(function (err) {
-                    _this.$message.error(err);
-                });
-
-            this.$http.get('/sharder?requestType=getAccount', {
-                params: {
-                    account:SSO.account,
+                _this.$global.fetch("GET", {
+                    account: SSO.account,
                     includeLessors: true,
                     includeAssets: true,
                     includeEffectiveBalance: true,
                     includeCurrencies: true,
-
+                }, "getAccount").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
                     }
-                }).then(function (res) {
-                    if (typeof res.data.errorDescription !== "undefined") {
-                        _this.$message.error(res.data.errorDescription);
-                        return;
-                    }
-                    _this.accountInfo = res.data;
-                }).catch(function (err) {
+                    _this.accountInfo = res;
+                });
 
+                _this.getAssetsRanking();
+                _this.getAccountRanking();
+
+                if (!window.$miningInitial) {
+                    window.$miningInitial = setInterval(() => {
+                        if (_this.$router.currentRoute.name !== "mining") return;
+                        _this.loginAfter();
+                        _this.$forceUpdate();//通知Vue渲染
+                    }, 10000);
+                }
+            },
+            getCoinBase(height) {
+                let _this = this;
+                _this.$global.fetch("GET", {
+                    height: height,
+                    includeTransactions: true
+                }, "getBlock").then(res => {
+                    for (let t of res.transactions) {
+                        if (t.type === 9) {
+                            _this.newBlockReward = t.amountNQT / 100000000;
+                            break;
+                        }
+                    }
                 });
             },
+            getAssetsRanking() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    ranking: 10
+                }, "getAccountRanking").then(res => {
+                    if (res.success) {
+                        _this.rankingList = res.data;
+                    }
+                });
+            },
+            getAccountRanking() {
+                let _this = this;
+                _this.$global.fetch("POST", {
+                    account: SSO.account
+                }, "getAccountRanking").then(res => {
+                    if (res.success) {
+                        _this.myRanking = res.data[0]['RANDKING'];
+                    }
+                });
+            },
+            getPools(parameter) {
+                let _this = this;
+                _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
+                    }
+                    _this.miningList = res.pools;
+                    _this.totalSize = _this.miningList.length;
+                });
+            }
         },
         created: function () {
             let _this = this;
@@ -641,6 +615,10 @@
                     ];
                 },
                 deep: true
+            },
+            sortFun(v) {
+                console.info(v);
+                this.getPools({sort: v});
             }
         },
         filters: {
@@ -817,11 +795,16 @@
         top: 2px;
     }
 
-    .state .state-info {
-        width: 140px;
-        height: 50px;
+    .mining-content .state {
         text-align: center;
-        margin: auto;
+        width: calc(100% - 60px);
+        position: absolute;
+        top: 40px;
+        word-break: break-all;
+    }
+
+    .state .state-info {
+        display: inline-block;
         background-color: #20a0ff99;
         color: #14c6fc;
         font-size: 14px;
@@ -835,7 +818,7 @@
         position: relative;
         float: right;
         right: -30px;
-        top: -20px;
+        /*top: -20px;*/
         background-color: #0000ff;
         display: inline-block;
         font-size: 14px;
@@ -854,7 +837,7 @@
         position: relative;
         text-align: center;
         color: #fff;
-        top: 130px;
+        top: 180px;
         float: right;
         right: -130px;
         cursor: pointer;
@@ -1012,7 +995,6 @@
 
 
     .en_mining .state .state-info {
-        width: 160px;
         font-size: 12px;
     }
 
@@ -1132,7 +1114,7 @@
 <style scoped>
     .ranking {
         position: fixed;
-        top: 160px;
+        top: calc(50% - 300px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -1176,7 +1158,7 @@
     }
 
     .ranking-content .my-assets {
-        padding: 30px 0;
+        padding: 20px 0;
         text-align: center;
         font-size: 14px;
         font-weight: bold;
@@ -1184,7 +1166,7 @@
 
     .ranking-table th {
         font-weight: bold;
-        height: 60px;
+        height: 50px;
         min-width: 100px;
         font-size: 14px;
     }
@@ -1199,7 +1181,7 @@
     .create-pool {
         position: fixed;
         z-index: 9999;
-        top: 180px;
+        top: calc(50% - 300px);
         left: calc(50% - 250px);
         background-color: #fff;
         width: 500px;
@@ -1416,16 +1398,14 @@
             top: 1px;
         }
 
-        .mining .mining-content .state .state-info {
-            left: calc(50% - 70px);
-            font-size: 12px;
-            position: absolute;
-            top: 100px;
+        .mining .mining-content .state {
+            top: 110px;
+            width: calc(100% - 30px);
         }
 
-        .en_mining .mining-content .state .state-info {
-            height: 60px;
-            width: 130px;
+        .mining .mining-content .state .state-info {
+            font-size: 12px;
+            max-width: 100%;
         }
 
         .mining .mining-list .mining-list-img {
@@ -1454,7 +1434,7 @@
             position: absolute;
             width: calc(100% - 30px);
             left: 15px;
-            top: 80px;
+            top: 60px;
         }
 
         .mining .create-pool {
@@ -1565,6 +1545,14 @@
 
         .mining .mining-list .mining-list-info {
             padding: 0 10px 70px 10px;
+        }
+
+        .ranking-table th {
+            height: 30px !important;
+        }
+
+        .ranking-table tr {
+            height: 40px !important;
         }
     }
 </style>

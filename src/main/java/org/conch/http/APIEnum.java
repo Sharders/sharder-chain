@@ -59,6 +59,7 @@ public enum APIEnum {
     GENERATE_TOKEN("generateToken", GenerateToken.instance),
     GENERATE_FILE_TOKEN("generateFileToken", GenerateFileToken.instance),
     GET_ACCOUNT("getAccount", GetAccount.instance),
+    GET_ACCOUNT_Ranking("getAccountRanking", GetAccountRanking.instance),
     GET_ACCOUNT_BLOCK_COUNT("getAccountBlockCount", GetAccountBlockCount.instance),
     GET_ACCOUNT_BLOCK_IDS("getAccountBlockIds", GetAccountBlockIds.instance),
     GET_ACCOUNT_BLOCKS("getAccountBlocks", GetAccountBlocks.instance),
@@ -137,7 +138,7 @@ public enum APIEnum {
     GET_POLL_RESULT("getPollResult", GetPollResult.instance),
     GET_POLL_VOTES("getPollVotes", GetPollVotes.instance),
     GET_POLL_VOTE("getPollVote", GetPollVote.instance),
-    GET_STATE("getState", GetState.instance),
+    GET_STATE("getState", GetState.INSTANCE),
     GET_TIME("getTime", GetTime.instance),
     GET_TRADES("getTrades", GetTrades.instance),
     GET_LAST_TRADES("getLastTrades", GetLastTrades.instance),
@@ -268,11 +269,11 @@ public enum APIEnum {
     SET_LOGGING("setLogging", SetLogging.instance),
     SHUTDOWN("shutdown", Shutdown.instance),
     RESTART("restart", Restart.instance),
-    UPGRADE_CLIENT("upgradeClient", UpgradeClient.instance),
-    RECONFIG("reConfig", ReConfig.instance),
-    RECOVERY("recovery", Recovery.instance),
-    GET_USERCONFIG("getUserConfig", GetUserConfig.instance),
-    GET_LASTEST_HUB_VERSION("getLastestHubVersion", GetNewestHubVersion.instance),
+    UPGRADE_CLIENT("upgradeClient", UpgradeClient.INSTANCE),
+    RECONFIG("reConfig", ReConfig.INSTANCE),
+    RECOVERY("recovery", Recovery.INSTANCE),
+    GET_USERCONFIG("getUserConfig", GetUserConfig.INSTANCE),
+    GET_LASTEST_HUB_VERSION("getLastestHubVersion", GetNewestHubVersion.INSTANCE),
 
     TRIM_DERIVED_TABLES("trimDerivedTables", TrimDerivedTables.instance),
     HASH("hash", Hash.instance),
@@ -312,12 +313,12 @@ public enum APIEnum {
     GET_STORED_DATA("getStoredData", GetStoredData.instance), // get off-chain file content
     DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance), // download off-chain file
     // poc
-    CREATE_POC_NODE_CONFIG ("createPocNodeConf", PocTxApi.CreateNodeConf.instance),
-    GET_POC_NODE_CONFIG ("getPocNodeConf", PocTxApi.GetNodeConf.instance),
-    CREATE_POC_TEMPLATE ("createPocTemplate", PocTxApi.CreatePocTemplate.instance),
-    GET_POC_TEMPLATE ("getPocTemplate", PocTxApi.GetPocTemplate.instance),
-    CREATE_POC_ONLINE_RATE("createPocOnlineRate", PocTxApi.CreateOnlineRate.instance),
-    GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.instance);
+    CREATE_POC_NODE_CONFIG ("createPocNodeConf", PocTxApi.CreateNodeConf.INSTANCE),
+    GET_POC_NODE_CONFIG ("getPocNodeConf", PocTxApi.GetNodeConf.INSTANCE),
+    CREATE_POC_TEMPLATE ("createPocTemplate", PocTxApi.CreatePocTemplate.INSTANCE),
+    GET_POC_TEMPLATE ("getPocTemplate", PocTxApi.GetPocTemplate.INSTANCE),
+    CREATE_POC_ONLINE_RATE("createPocOnlineRate", PocTxApi.CreateOnlineRate.INSTANCE),
+    GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.INSTANCE);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

@@ -2,15 +2,19 @@ package org.conch.consensus.poc.hardware;
 
 import com.alibaba.fastjson.JSONObject;
 import org.conch.Conch;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +69,8 @@ public class GetNodeHardware {
                 case 5:// TYPE_CDROM ：光驱
                     break;
                 case 6:// TYPE_SWAP ：页面交换
+                    break;
+                default:
                     break;
             }
         }
@@ -158,14 +164,11 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    private static String scHardwareApiUrl() {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return Constants.HTTP + Conch.getSharderFoundationURL() + "/sc/peer/report.ss";
-        }
-        return "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/sc/peer/report.ss";
-    }
-
-    public static final String SYSTEM_INFO_REPORT_URL = scHardwareApiUrl();
+    private static final String NODE_CONFIG_REPORT_URL = UrlManager.getFoundationUrl(
+            UrlManager.NODE_CONFIG_REPORT_EOLINKER,
+            UrlManager.NODE_CONFIG_REPORT_LOCAL,
+            UrlManager.NODE_CONFIG_REPORT_PATH
+    );
 
     /**
      * 每次开机时，获取节点配置，并主动汇报，以及更新绑定用户
@@ -179,29 +182,34 @@ public class GetNodeHardware {
      */
     public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
-        String myAddress = Conch.getMyAddress();
-        String ip = Optional.ofNullable(Conch.NAT_SERVICE_ADDRESS).orElse(Conch.addressHost(myAddress));
-        Integer port = Optional.of(Conch.NAT_SERVICE_PORT).filter(num -> num != 0).orElse(Conch.addressPort(myAddress));
-        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS).orElse("");
-        systemInfo.setIp(ip).setPort(port.toString()).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-
         try {
+            Logger.logInfoMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
             return report(read(systemInfo, executeTime));
+        } catch (ConchException.NotValidException e) {
+            Logger.logErrorMessage("<=== failed to report configuration performance, hub isn't initialized yet", e);
         } catch (Exception e) {
-            System.out.println("<=== failed to report hardware performance, local error");
-            e.printStackTrace();
-            return false;
+            Logger.logErrorMessage("<=== failed to report configuration performance, local error", e);
         }
+        return false;
     }
 
-    private static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+    public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+        String myAddress = Optional.ofNullable(Conch.getMyAddress())
+                .orElseThrow(() -> new ConchException.NotValidException("my address is null"));
+        // nat service: open - myAddress should be proxy address; nat service : close - myAddress should be public address
+        String ip = Conch.addressHost(myAddress);
+        int port = Conch.addressPort(myAddress);
+        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS)
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
+        systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
+        Logger.logInfoMessage("==============Now start testing configuration performance...==============");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
-        systemInfo.setNetworkType(Conch.getNetworkType());
+        Logger.logInfoMessage("==============The configuration performance test is completed==============");
         return systemInfo;
     }
 
@@ -212,20 +220,25 @@ public class GetNodeHardware {
      * @return true报告成功，false失败
      * @throws IOException 请求异常
      */
-    private static Boolean report(SystemInfo systemInfo) throws IOException {
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(SYSTEM_INFO_REPORT_URL)
-                .post()
-                .body(systemInfo)
-                .request();
-        Boolean result = Optional.ofNullable(JSONObject.parseObject(response.getContent()).get(Constants.SUCCESS))
-                .map(Object::toString).map(Boolean::valueOf).orElse(Boolean.FALSE);
-        System.out.println("report the System hardware infos to sharder foundation[" + SYSTEM_INFO_REPORT_URL + "] ===>");
-        System.out.println(systemInfo.toString());
-        if (result) {
-            System.out.println("<=== success to report hardware performance");
-            return true;
-        } else {
-            System.out.println("<=== failed to report hardware performance, remote error");
+    public static Boolean report(SystemInfo systemInfo) throws IOException {
+        try{
+            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
+                    .post()
+                    .body(systemInfo)
+                    .request();
+            boolean result = JSONObject.parseObject(response.getContent()).getBooleanValue(Constants.SUCCESS);
+            if (result) {
+                Logger.logInfoMessage("<=== Your configuration performance was successfully reported");
+                return true;
+            } else {
+                Logger.logErrorMessage("<=== failed to report configuration performance, remote error");
+                return false;
+            }
+        }catch(ConnectException e){
+            Logger.logErrorMessage("connection refused[" + NODE_CONFIG_REPORT_URL + "]");
+            return false;
+        }catch(Exception e){
+            Logger.logErrorMessage("unkonwn exception[" + NODE_CONFIG_REPORT_URL + "]", e);
             return false;
         }
     }

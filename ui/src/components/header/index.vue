@@ -35,7 +35,7 @@
                         <span class="isLogin" v-else>{{accountRS}} | {{$t('header.secret_mode')}}</span>
                     </div>
                     <div class="navbar_pilotLamp">
-                        <el-tooltip class="item csp" content="请先初始化Hub" placement="bottom" effect="light" v-if="isHubInit">
+                        <el-tooltip class="item csp" :content="$t('account.please_init_hub')" placement="bottom" effect="light" v-if="isHubInit">
                             <div class="pilotLamp_circle notForging"></div>
                         </el-tooltip>
                         <el-tooltip class="item csp" :content="$t('header.forging_error_new_account')" placement="bottom" effect="light" v-else-if="accountInfo.errorDescription === 'Unknown account'">
@@ -80,7 +80,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button class="close" @click="closeDialog">X</button>
+                        <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t('header.start_forging')}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
@@ -96,8 +96,8 @@
         <div class="download_blocks_loading" v-if="isDownLoadingBlockchain">
             <div class="download_blocks_loading_active" v-show="isDownloadingState === 'isActive'">
                 <div>
-                    <span>正在下载区块链</span>
-                    <span v-if="blocksLeft">（{{blocksLeft}}个剩余区块）</span>
+                    <span>{{$t("account.downloading_blockchain")}}</span>
+                    <span v-if="blocksLeft">（{{blocksLeft}}{{$t("account.remaining_blocks")}}）</span>
                 </div>
                 <div class="download_blocks_progress_total" v-if="blocksLeft && blocksLeft >= 2500">
                     <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18" :percentage="percentageTotal"></el-progress>
@@ -108,10 +108,10 @@
             </div>
             <div  v-show="isDownloadingState === 'isLightClient'">
                 <p>Light Client</p>
-                <p>区块还未完整下载</p>
+                <p>{{$t("account.block_fully_downloaded")}}</p>
             </div>
             <div  v-show="isDownloadingState === 'isHalted'">
-                <span>区块链下载中断，没有连接</span>
+                <span>{{$t("account.download_interrupt")}}</span>
             </div>
         </div>
     </header>
@@ -119,10 +119,8 @@
 </template>
 
 <script>
-    import dialogCommon from "../../views/dialog/dialog_common";
     export default {
         name: "Header",
-        components: {dialogCommon},
         props: ["openSidebar", "title"],
         data () {
             return {
@@ -361,9 +359,7 @@
                 this.$store.state.mask = false;
             },
             exit:function () {
-               const _this = this;
-               _this.$store.state.isLogin = false;
-               _this.$router.push("/login");
+                window.location.href = "/";
             },
             isClose:function () {
                 const _this = this;

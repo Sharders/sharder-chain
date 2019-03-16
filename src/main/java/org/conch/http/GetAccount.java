@@ -21,8 +21,10 @@
 
 package org.conch.http;
 
+import com.alibaba.fastjson.JSON;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;
@@ -30,6 +32,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public final class GetAccount extends APIServlet.APIRequestHandler {
 
@@ -41,7 +46,9 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
-
+        if(req.getParameter("allIncome") != null) {
+            return getCutIncome();
+        }
         Account account = ParameterParser.getAccount(req);
         boolean includeLessors = "true".equalsIgnoreCase(req.getParameter("includeLessors"));
         boolean includeAssets = "true".equalsIgnoreCase(req.getParameter("includeAssets"));
@@ -137,4 +144,19 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
 
     }
 
+    private JSONObject getCutIncome(){
+        JSONObject json = new JSONObject();
+        json.put("success",true);
+        try {
+            Connection con = Db.db.getConnection();
+            PreparedStatement ps = con.prepareStatement("SELECT sum(a.FORGED_BALANCE) as num from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID)");
+            json.put("cutIncome",GetAccountRanking.result(ps.executeQuery()));
+            con.commit();
+            con.close();
+        } catch (SQLException e) {
+            json.put("success",false);
+            e.printStackTrace();
+        }
+        return json;
+    }
 }

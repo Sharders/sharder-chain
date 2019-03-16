@@ -38,9 +38,6 @@
 
 <script>
     export default {
-        components: {
-            "masked-input": require("vue-masked-input").default
-        },
         name: "index",
         data() {
             return {
@@ -70,6 +67,8 @@
         },
         created() {
             const _this = this;
+
+            console.info("Net work type is:", SSO.netWorkType);
 
             this.$global.getUserConfig(this).then(res=>{
 
@@ -186,7 +185,7 @@
                         }
                     }).then(function (res) {
                         if(typeof res.data.errorDescription !== 'undefined'){
-                            _this.$message.error("无法找到您的帐户地址。");
+                            _this.$message.error(_this.$t("login.no_found_account"));
                         }else{
                             Login.login(_this.type, val, _this, function () {
                                 _this.$global.setEpochBeginning(_this).then(res=>{

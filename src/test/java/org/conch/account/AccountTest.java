@@ -60,16 +60,30 @@ public class AccountTest extends BaseTest {
     }
 
     public static void getAccountInfoViaBindRS(String bindRs) {
-        long accountId = Account.rsAccountToId(bindRs);
+        getAccountInfo(Account.rsAccountToId(bindRs));
+    }
+    
+    public static Account getAccountInfo(long accountId) {
         Account account = Account.getAccount(accountId);
         System.out.println("account info is :" + JSONObject.toJSONString(account));
         System.out.println("public key is:" + Convert.toString(Account.getPublicKey(accountId), false));
+        System.out.println("rs address:" + Account.rsAccount(accountId));
+        return account;
+    }
+
+    public static Account getAccountInfoBySecretPhrase(String secretPhrase) {
+        byte[] publicKey = Crypto.getPublicKey(secretPhrase);
+        Account account = Account.getAccount(publicKey);
+        System.out.println("account info is :" + JSONObject.toJSONString(account));
+        System.out.println("public key is:" + Convert.toString(Account.getPublicKey(account.getId()), false));
+        System.out.println("rs address:" + Account.rsAccount(account.getId()));
+        return account;
     }
 
     public static void main(String[] args) throws IOException {
-        String secretPhrase = getSpFromConsole();
-        accountInfoPrint(secretPhrase);
+//        String secretPhrase = getSpFromConsole();
+//        accountInfoPrint(secretPhrase);
 //        accountSignInfo(secretPhrase);
-        getAccountInfoViaBindRS("SSA-EF9Z-8J9G-LLHC-9VU5U");
+//        getAccountInfoViaBindRS("SSA-EF9Z-8J9G-LLHC-9VU5U");
     }
 }
