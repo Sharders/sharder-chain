@@ -663,6 +663,17 @@ export default {
         } else {
             return "+" + amountNQT
         }
+    },
+    /**
+     * 获得手续费
+     * @param t
+     * @returns {string}
+     */
+    getTransactionFeeNQT(t){
+        if(t.feeNQT === "1"){
+            return "--";
+        }
+        return t.feeNQT /100000000;
     }
 
 };
