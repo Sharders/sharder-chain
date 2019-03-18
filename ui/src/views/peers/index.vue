@@ -4,7 +4,7 @@
             <div class="block_network mb20">
                 <p class="block_title csp">
                     <a @click="turn2network">
-                        <span>&lt;&lt;{{$t('peers.return_network')}}</span>
+                        <span>{{$t('peers.return_network')}}</span>
                     </a>
                 </p>
                 <div class="w dfl">

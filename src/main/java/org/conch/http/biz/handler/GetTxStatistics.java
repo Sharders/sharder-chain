@@ -44,7 +44,7 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
     public static final GetTxStatistics instance = new GetTxStatistics();
 
     private GetTxStatistics() {
-        super(new APITag[] {APITag.BIZ});
+        super(new APITag[]{APITag.BIZ});
     }
 
     @Override
@@ -104,6 +104,8 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
             jsonObject.put("transferCount24H", transferCount24H);
             jsonObject.put("transferAmount24H", transferAmount24H);
             jsonObject.put("storageCount", storageCount);
+            jsonObject.put("poolCount", getTransactionCountByType(con, 8));
+            jsonObject.put("coinBaseCount", getTransactionCountByType(con, 9));
             jsonObject.put("storageDataLength", storageDataLength);
             jsonObject.put("storageCount24H", storageCount24H);
             jsonObject.put("storageDataLength24H", storageDataLength24H);
@@ -113,6 +115,25 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
             DbUtils.close(con);
             return jsonObject;
         }
+    }
+
+
+    /**
+     * 更具交易类型获得交易总数
+     *
+     * @param con
+     * @param type
+     * @return
+     * @throws SQLException
+     */
+    private long getTransactionCountByType(Connection con, int type) throws SQLException {
+        PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM TRANSACTION WHERE TYPE = ?");
+        ps.setInt(1, type);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getLong(1);
+        }
+        return 0L;
     }
 
     @Override
