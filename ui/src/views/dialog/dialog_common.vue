@@ -10,12 +10,8 @@
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{$t('dialog.account_info_name')}}&nbsp</span>
-                    <span
-                        v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
-                    <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span>
-                    <!--<span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>-->
+                    <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} | </span>
+                    <span>{{$t('dialog.account_info_available_asset') + (accountInfo.unconfirmedBalanceNQT/100000000)}} SS</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -40,37 +36,14 @@
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo">
                                     <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</td>
-                                    <td v-if="transactions.type === 0">
-                                        <img src="../../assets/img/pay.svg"/>
-                                        <span>{{$t('dialog.account_info_payment')}}</span>
-                                    </td>
-                                    <td v-else-if="transactions.type === 1 && transactions.subtype === 0">
-                                        <img src="../../assets/img/infomation.svg"/>
-                                        <span>{{$t('dialog.account_info_information')}}</span>
-                                    </td>
-                                    <td v-else-if="transactions.type === 1 && transactions.subtype === 5">
-                                        <img src="../../assets/img/rename.svg"/>
-                                        <span>{{$t('dialog.account_info_account_info')}}</span>
-                                    </td>
-                                    <td v-else-if="transactions.type === 6">
-                                        <img src="../../assets/img/storage.svg"/>
-                                        <span>{{$t('dialog.account_info_data_storage')}}</span>
-                                    </td>
-                                    <td v-else-if="transactions.type === 8">
-                                        <img src="../../assets/img/forge_pool.svg"/>
-                                        <span>{{$t('dialog.account_info_forge_pool')}}</span>
-                                    </td>
-                                    <td v-else-if="transactions.type === 9">
-                                        <img src="../../assets/img/coinBase.svg"/>
-                                        <span>CoinBase</span>
-                                    </td>
-                                    <td v-else-if="transactions.type === 12">
-                                        <img src="../../assets/img/POC.svg"/>
-                                        <span>POC交易</span>
+                                    <td class="transaction-img">
+                                        <span class="bg" :class="'type' + transactions.type + transactions.subtype"></span>
+                                        <span>{{$global.getTransactionTypeStr(transactions)}}</span>
                                     </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
-                                    <td>{{transactions.feeNQT/100000000}}</td>
-                                    <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)"><span>{{transactions.senderRS}}</span>
+                                    <td>{{$global.getTransactionFeeNQT(transactions)}}</td>
+                                    <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)">
+                                        <span>{{transactions.senderRS}}</span>
                                     </td>
                                     <td class="linker" @click="openTransactionDialog(transactions.transaction)">
                                         {{$t('dialog.account_info_view_detail')}}
@@ -118,27 +91,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_type')}}</th>
-                            <td v-if="transactionInfo.type === 0">
-                                <span>{{$t('dialog.account_info_payment')}}</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 0">
-                                <span>{{$t('dialog.account_info_information')}}</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 5">
-                                <span>{{$t('dialog.account_info_account_info')}}</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 6">
-                                <span>{{$t('dialog.account_info_data_storage')}}</span>
-                            </td>
-                            <td v-else-if="transaction.type === 8">
-                                <span>{{$t('transaction.transaction_type_forge_pool')}}</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 9">
-                                <span>CoinBase</span>
-                            </td>
-                            <td v-else-if="transactionInfo.type === 12">
-                                <span>POC交易</span>
-                            </td>
+                            <td>{{$global.getTransactionTypeStr(transactionInfo)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
@@ -250,7 +203,7 @@
         <div class="modal_info" id="block_info" v-show="blockInfoDialog">
 
             <div class="modal-header">
-                <img class="close" src="../../assets/img/close.svg" @click="closeDialog()"/>
+                <img class="close" src="../../assets/img/error.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
                     <span>{{$t('dialog.block_info_title1')}}{{blockInfo.block}}</span>
                 </h4>
@@ -277,43 +230,19 @@
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
                             <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</td>
-                            <td v-if="transaction.type === 0">
-                                <img src="../../assets/img/pay.svg"/>
-                                <span>{{$t('dialog.account_info_payment')}}</span>
-                            </td>
-                            <td v-else-if="transaction.type === 1&&transaction.subtype === 0">
-                                <img src="../../assets/img/infomation.svg"/>
-                                <span>{{$t('dialog.account_info_information')}}</span>
-                            </td>
-                            <td v-else-if="transaction.type === 1&&transaction.subtype === 5">
-                                <img src="../../assets/img/rename.svg"/>
-                                <span>{{$t('dialog.account_info_account_info')}}</span>
-                            </td>
-                            <td v-else-if="transaction.type === 6">
-                                <img src="../../assets/img/storage.svg"/>
-                                <span>{{$t('dialog.account_info_data_storage')}}</span>
-                            </td>
-                            <td v-else-if="transaction.type === 8">
-                                <img src="../../assets/img/forge_pool.svg"/>
-                                <span>{{$t('transaction.transaction_type_forge_pool')}}</span>
-                            </td>
-                            <td v-else-if="transaction.type === 9">
-                                <img src="../../assets/img/coinBase.svg"/>
-                                <span>CoinBase</span>
-                            </td>
-                            <td v-else-if="transaction.type === 12">
-                                <img src="../../assets/img/POC.svg"/>
-                                <span>{{$t("account.poc_trading")}}</span>
+                            <td class="transaction-img">
+                                <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
+                                <span>{{$global.getTransactionTypeStr(transaction)}}</span>
                             </td>
                             <td>{{transaction.amountNQT/100000000}}</td>
-                            <td v-if="transaction.feeNQT">{{transaction.feeNQT/100000000}} SS</td>
-                            <td v-else></td>
+                            <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
                             <td v-if="transaction.type === 9">CoinBase</td>
                             <td class="linker" v-else @click="openAccountInfo(transaction.senderRS)">
                                 {{transaction.senderRS}}
                             </td>
                             <td class="linker" v-if="transaction.type === 9"
-                                @click="openAccountInfo(transaction.senderRS)">{{transaction.senderRS}}
+                                @click="openAccountInfo(transaction.senderRS)">
+                                {{transaction.senderRS}}
                             </td>
                             <td class="linker" v-else @click="openAccountInfo(transaction.recipientRS)">
                                 {{transaction.recipientRS}}
@@ -454,7 +383,7 @@
         <!--view account transaction dialog-->
         <div class="modal_info" id="trading_info" v-show="tradingInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span>{{$t('dialog.account_transaction_detail')}}</span>
                 </h4>
@@ -475,24 +404,7 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_type')}}</th>
-                        <td v-if="transactionInfo.type === 0">
-                            <span>{{$t('dialog.account_info_payment')}}</span>
-                        </td>
-                        <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 0">
-                            <span>{{$t('dialog.account_info_information')}}</span>
-                        </td>
-                        <td v-else-if="transactionInfo.type === 1&&transactionInfo.subtype === 5">
-                            <span>{{$t('dialog.account_info_account_info')}}</span>
-                        </td>
-                        <td v-else-if="transactionInfo.type === 6">
-                            <span>{{$t('dialog.account_info_data_storage')}}</span>
-                        </td>
-                        <td v-else-if="transactionInfo.type === 8">
-                            <span>{{$t('dialog.account_info_block_reward')}}</span>
-                        </td>
-                        <td v-else-if="transactionInfo.type === 9">
-                            <span>CoinBase</span>
-                        </td>
+                        <td>{{$global.getTransactionTypeStr(transactionInfo)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
@@ -501,7 +413,8 @@
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender')}}</th>
                         <td v-if="transactionInfo.type === 9"></td>
-                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.senderRS}}
+                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">
+                            {{transactionInfo.senderRS}}
                         </td>
                         <td v-else-if="$store.state.account === transactionInfo.senderRS">
                             {{$t('dialog.account_transaction_own')}}
