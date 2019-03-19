@@ -725,4 +725,20 @@ public class Generator implements Comparable<Generator> {
         }
         autoMintRunning = true;
     }
+
+    /**
+     * Stop auto mining of Hub or Miner
+     */
+    public static void stopAutoMining(){
+       String stopAccount = null;
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            stopAccount = HUB_BIND_PR;
+        }else {
+            stopAccount = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+        }
+
+        Logger.logInfoMessage("account " + stopAccount + " stop mining...");
+        stopMining(stopAccount);
+        autoMintRunning = false;
+    }
 }

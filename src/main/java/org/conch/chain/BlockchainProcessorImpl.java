@@ -197,7 +197,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
 
-            // 里程碑区块
+            // milestone block
             long commonMilestoneBlockId = SharderGenesis.GENESIS_BLOCK_ID;
 
             if (blockchain.getLastBlock().getId() != SharderGenesis.GENESIS_BLOCK_ID) {
@@ -216,10 +216,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             final Block commonBlock = blockchain.getBlock(commonBlockId);
             if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
               if (commonBlock != null) {
-                Logger.logDebugMessage(
-                    peer
-                        + " advertised chain with better difficulty, but the last common block is at height "
-                        + commonBlock.getHeight());
+                Logger.logDebugMessage(peer + " advertised chain with better difficulty, but the last common block is at height " + commonBlock.getHeight());
               }
               return;
             }
@@ -234,9 +231,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             blockchain.updateLock();
             try {
-              if (betterCumulativeDifficulty.compareTo(
-                      blockchain.getLastBlock().getCumulativeDifficulty())
-                  <= 0) {
+              if (betterCumulativeDifficulty.compareTo(blockchain.getLastBlock().getCumulativeDifficulty()) <= 0) {
                 return;
               }
               long lastBlockId = blockchain.getLastBlock().getId();
@@ -306,6 +301,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             * (lastBlockchainFeederHeight - blockchain.getHeight())
                             / ((long) totalBlocks * 1000 * 60)
                         + " min left");
+
+                // close forceConverge after blocks sync completed
+                if(forceConverge) {
+                  forceConverge = false;
+                  Generator.autoMining();
+                }
               } else {
                 Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
               }
@@ -352,10 +353,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             // prevent overloading with blockIds
             if (milestoneBlockIds.size() > 20) {
-              Logger.logDebugMessage(
-                  "Obsolete or rogue peer "
-                      + peer.getHost()
-                      + " sends too many milestoneBlockIds, blacklisting");
+              Logger.logDebugMessage("Obsolete or rogue peer " + peer.getHost() + " sends too many milestoneBlockIds, blacklisting");
               peer.blacklist("Too many milestoneBlockIds");
               return 0;
             }
@@ -478,19 +476,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             for (GetNextBlocks nextBlocks : getList) {
               Peer peer;
-              if (nextBlocks.getRequestCount() > 1) {
-                break download;
-              }
-              if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
-                peer = feederPeer;
-              } else {
-                if (nextPeerIndex >= connectedPublicPeers.size()) {
-                  nextPeerIndex = 0;
+              if(forceConverge){
+                //TODO us the foudation peer
+                peer = null;
+              }else{
+                if (nextBlocks.getRequestCount() > 1) {
+                  break download;
                 }
-                peer = connectedPublicPeers.get(nextPeerIndex++);
-              }
-              if (nextBlocks.getPeer() == peer) {
-                break download;
+                if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
+                  peer = feederPeer;
+                } else {
+                  if (nextPeerIndex >= connectedPublicPeers.size()) {
+                    nextPeerIndex = 0;
+                  }
+                  peer = connectedPublicPeers.get(nextPeerIndex++);
+                }
+                if (nextBlocks.getPeer() == peer) {
+                  break download;
+                }
               }
               nextBlocks.setPeer(peer);
               Future<List<BlockImpl>> future = networkService.submit(nextBlocks);
@@ -568,10 +571,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             // Process a fork
             //
-            int myForkSize = blockchain.getHeight() - startHeight;
-            if (!forkBlocks.isEmpty() && myForkSize < 720) {
-              Logger.logDebugMessage("Will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
-              processFork(feederPeer, forkBlocks, commonBlock);
+            if(!forceConverge) {
+              int myForkSize = blockchain.getHeight() - startHeight;
+              if (!forkBlocks.isEmpty() && myForkSize < 720) {
+                Logger.logDebugMessage("Will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+                processFork(feederPeer, forkBlocks, commonBlock);
+              }
             }
           } finally {
             blockchain.writeUnlock();
@@ -639,6 +644,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
       };
+
+  private static boolean forceConverge = false;
+  /**
+   * force converge if the fork can't be converge itself
+   * @return
+   */
+  private boolean forceForkConverge(final Block commonBlock){
+    // just connected to foundation node in download peers when forceConverge is true
+    forceConverge = true;
+
+    // check and stop mining
+    Generator.stopAutoMining();
+
+    // popoff to specified block or height
+    List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
+
+    return true;
+  }
 
   /** Callable method to get the next block segment from the selected peer */
   private static class GetNextBlocks implements Callable<List<BlockImpl>> {
