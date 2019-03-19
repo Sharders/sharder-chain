@@ -14,7 +14,7 @@
                         <span class="csp" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</span>
                     </div>
                     <p class="account_asset">
-                        {{$t('account.assets')}} {{$global.formatMoney(accountInfo.effectiveBalanceSS, 8)}} SS</p>
+                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) + $global.unit}}</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -170,14 +170,12 @@
                             <tbody>
                             <tr v-for="(transaction,index) in accountTransactionList">
                                 <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS',true)}}</td>
-                                <td class="linker" @click="openBlockInfoDialog(transaction.height)"
-                                    v-if="typeof transaction.block !== 'undefined'">{{transaction.height}}
+                                <td class="linker" @click="openBlockInfoDialog(transaction.height)">
+                                    {{$global.returnObj(transaction.block,transaction.height)}}
                                 </td>
-                                <td class="linker" @click="openBlockInfoDialog(transaction.height)" v-else>--</td>
                                 <td>{{$global.getTransactionTypeStr(transaction)}}</td>
-                                <td>{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}} SS</td>
-                                <td v-if="transaction.feeNQT === '0'">--</td>
-                                <td v-else>{{$global.formatMoney(transaction.feeNQT/100000000)}} SS</td>
+                                <td>{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}}</td>
+                                <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
                                 <td class=" image_text w300">
                                     <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
@@ -194,8 +192,7 @@
                                     <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
                                           v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
                                 </td>
-                                <td v-if="typeof transaction.block !== 'undefined'">{{transaction.confirmations}}</td>
-                                <td v-else>--</td>
+                                <td>{{$global.returnObj(transaction.block,transaction.confirmations)}}</td>
                                 <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">
                                     {{$t('transaction.view_details')}}
                                 </td>
@@ -265,7 +262,7 @@
                                 </el-button>
                                 <input class="el-input__inner" v-model="messageForm.fee" type="number" min="1"
                                        max="100000" :step="0.1"/>
-                                <label class="input_suffix">SS</label>
+                                <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.secret_key')" v-if="!secretPhrase">
                                 <el-input v-model="messageForm.password" type="password"></el-input>
@@ -301,7 +298,7 @@
                             <el-form-item :label="$t('transfer.amount')">
                                 <input class="el-input__inner" v-model="transfer.number" min="0" :max="1000000000"
                                        type="number"/>
-                                <label class="input_suffix">SS</label>
+                                <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.fee')">
                                 <el-button class="calculate_fee" @click="getTransferFee()">
@@ -309,7 +306,7 @@
                                 </el-button>
                                 <input class="el-input__inner" v-model="transfer.fee" min="1" max="100000" :step="0.1"
                                        type="number"/>
-                                <label class="input_suffix">SS</label>
+                                <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item label="">
                                 <el-checkbox v-model="transfer.hasMessage">{{$t('transfer.enable_add_info')}}
@@ -568,15 +565,15 @@
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_balance')}}</th>
-                        <td>{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.balanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_available_balance')}}</th>
-                        <td>{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceSS,true)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_mining_balance')}}</th>
-                        <td>{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}} SS</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.public_key')}}</th>

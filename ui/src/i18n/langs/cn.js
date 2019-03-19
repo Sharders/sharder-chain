@@ -189,7 +189,7 @@ const cn = {
         'coinbase_transaction': "矿池交易数",
         'store_transaction': "存储交易数",
         'alias_modification': "别名修改数",
-        'system_reward': "系统奖励",
+        'system_reward': "系统奖励交易",
         'peers_info': "节点信息",
         'peers_add': "添加节点",
         'peers_detail': "节点详情",
@@ -766,7 +766,7 @@ const cn = {
     dialog: {
         'account_info_title1': "账户：",
         'account_info_title2': " 信息",
-        'account_info_name': "账户命名：",
+        'account_info_name': "账户名：",
         'account_info_available_asset': "可用资金：",
         'account_info_alias': "别名：",
         'account_info_total_transaction': "所有交易",

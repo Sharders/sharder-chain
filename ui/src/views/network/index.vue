@@ -135,12 +135,10 @@
                                 <td class="pl0"><span>{{block.height}}</span></td>
                                 <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span></td>
                                 <td>
-                                    <span v-if="block.totalAmountNQT === '0'">-</span>
-                                    <span v-else>{{block.totalAmountNQT/100000000}} SS</span>
+                                    <span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span>
                                 </td>
                                 <td>
-                                    <span v-if="block.totalFeeNQT === '0'">-</span>
-                                    <span v-else>{{block.totalFeeNQT/100000000}} SS</span>
+                                    <span>{{$global.getBlockTotalFeeNQT(block.totalFeeNQT)}}</span>
                                 </td>
                                 <td><span>{{block.numberOfTransactions}}</span></td>
                                 <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}

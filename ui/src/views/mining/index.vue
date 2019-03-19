@@ -31,7 +31,7 @@
                 <div class="state">
                     <div class="state-info">
                         <span>{{$t('mining.attribute.mining')}}</span><br/>
-                        <span>{{$t('mining.index.net_income')}} {{allIncome}} SS</span>
+                        <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
                     </div>
                 </div>
                 <div class="instructions" @click="$router.push({name: 'rule-description'})">
@@ -55,8 +55,8 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                    {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} |
-                    {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}} {{newBlockReward}}SS
+                    {{$t('mining.index.mineral') + $t('mining.index.net_mining_number',{number:newestBlock.height})}} |
+                    {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getSSNumberFormat(newBlockReward)}}
             </span>
             </div>
             <div class="mining-list">
@@ -88,7 +88,7 @@
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.mintRewards/100000000}} SS</span>
+                                        <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
@@ -225,8 +225,8 @@
                         </tr>
                     </table>
                     <div class="my-assets">
-                        {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS
-                        | {{$t('mining.index.sort')}} {{myRanking}} {{$t('mining.index.unit_ming')}}
+                        {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
+                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -252,11 +252,11 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{maxPoolInvestment/100000000}}SS</span>
+                            <span>{{$global.getSSNumberFormat(maxPoolInvestment)}}</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{parseInt(maxForgeTime/avgBlocksTime)}}块（约{{maxForgeTime/60/60}}小时）</span>
+                            <span>{{parseInt(maxForgeTime/avgBlocksTime)}} Block（≈{{maxForgeTime/60/60}}H）</span>
                         </p>
                     </div>
                     <div class="pool-set">
@@ -264,15 +264,16 @@
                             <img src="../../assets/img/kuangchi_set.png">
                             <span>{{$t('mining.index.mining_setting')}}</span>
                         </h1>
-                        <!--                        <div class="pool-data">
-                                                    <p>
-                                                        <span class="strong">{{$t('mining.index.invest_ss')}}</span>
-                                                        <span class="user-input">
-                                                            <el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>
-                                                        </span>
-                                                    </p>
-                                                    <p>{{$t('mining.index.invest_ss_tip')}}</p>
-                                                </div>-->
+                        <!--创建矿池时默认投入-->
+                        <!--<div class="pool-data">-->
+                            <!--<p>-->
+                                <!--<span class="strong">{{$t('mining.index.invest_ss')}}</span>-->
+                                <!--<span class="user-input">-->
+                                    <!--<el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>-->
+                                <!--</span>-->
+                            <!--</p>-->
+                            <!--<p>{{$t('mining.index.invest_ss_tip')}}</p>-->
+                        <!--</div>-->
                         <div class="pool-data">
                             <p>
                                 <span class="strong">{{$t('mining.index.income_distribution')}}</span>
@@ -368,7 +369,7 @@
                 let _this = this;
                 _this.$global.fetch("GET", {allIncome: "allIncome"}, "getAccount").then(res => {
                     if (res.success) {
-                        _this.allIncome = res.cutIncome[0]["NUM"] / 100000000;
+                        _this.allIncome = res.cutIncome[0]["NUM"];
                     }
                 });
             },
@@ -544,7 +545,7 @@
                 }, "getBlock").then(res => {
                     for (let t of res.transactions) {
                         if (t.type === 9) {
-                            _this.newBlockReward = t.amountNQT / 100000000;
+                            _this.newBlockReward = t.amountNQT;
                             break;
                         }
                     }

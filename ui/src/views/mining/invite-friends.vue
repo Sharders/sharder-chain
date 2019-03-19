@@ -1,6 +1,6 @@
 <template xmlns:v-clipboard="http://www.w3.org/1999/xhtml">
     <div class="invite-friends">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <div class="invite">
             <h1 class="title">{{$t('mining.invite_friends.title')}}</h1>
             <p class="info">{{$t('mining.invite_friends.subtitle1')}}</p>

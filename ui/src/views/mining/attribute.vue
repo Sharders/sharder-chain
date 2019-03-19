@@ -1,7 +1,7 @@
 <template>
     <div class="pool-attribute">
         <div>
-            <p @click="$router.back()" class="pool-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+            <p @click="$router.back()" class="pool-back">{{$t('mining.attribute.return_previous')}}</p>
             <div class="pool-content">
                 <div class="attribute-info">
                     <img src="../../assets/img/shouyi.png" id="shouyi">
@@ -17,7 +17,7 @@
                             class="number">{{newestBlock.height}}</span>{{$t('mining.attribute.mining_current_number2')}}
                         </h1>
                     </div>
-                    <div class="earnings">{{$t('mining.attribute.income')}}+{{miningInfo.income/100000000}}SS</div>
+                    <div class="earnings">{{$t('mining.attribute.income') + "+" + $global.getSSNumberFormat(miningInfo.income)}}</div>
                 </div>
                 <div class="my-info">
                     <h1>
@@ -42,10 +42,7 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.gain_profit')}}</p>
-                                    <p class="strong">
-                                        <!--{{(miningInfo.joinAmount/miningInfo.investmentTotal)*miningInfo.income / 100000000}} SS-->
-                                        {{miningInfo.income / 100000000}} SS
-                                    </p>
+                                    <p class="strong">{{$global.getSSNumberFormat(miningInfo.income)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
@@ -130,9 +127,8 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available')}}
-                    {{(miningInfo.investmentTotal - miningInfo.currentInvestment)/100000000}}SS |
-                    {{$t('mining.attribute.pool_capacity')}}{{miningInfo.investmentTotal/100000000}}SS
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}}|
+                    {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
                 <p class="input">
                     <el-input v-model="joinPool" type="number"

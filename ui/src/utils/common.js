@@ -14,6 +14,8 @@ export default {
     peers: [],
     userConfig: [],
     $vue: {},
+    placeholder: "--",
+    unit: " SS",
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -657,11 +659,11 @@ export default {
     getTransactionAmountNQT(t, accountRS) {
         let amountNQT = t.amountNQT / 100000000;
         if (amountNQT === 0) {
-            return "--"
+            return this.placeholder
         } else if (t.senderRS === accountRS && t.type !== 9) {
-            return -amountNQT
+            return -amountNQT + this.unit
         } else {
-            return "+" + amountNQT
+            return "+" + amountNQT + this.unit
         }
     },
     /**
@@ -669,11 +671,93 @@ export default {
      * @param t
      * @returns {string}
      */
-    getTransactionFeeNQT(t){
-        if(t.feeNQT === "1"){
-            return "--";
+    getTransactionFeeNQT(t) {
+        if (t.feeNQT === "1" || t.feeNQT === "0") {
+            return this.placeholder;
         }
-        return t.feeNQT /100000000;
+        return t.feeNQT / 100000000 + this.unit;
+    },
+    /**
+     * 返回对象 或 占位符
+     * @param o1
+     * @param o2
+     * @returns {string}
+     */
+    returnObj(o1, o2) {
+        return o1 !== undefined && o2 !== undefined ? o2 : this.placeholder;
+    },
+    /**
+     * 获得发送者或接受者
+     * @param t
+     */
+    getSenderOrRecipient(t) {
+        if (t.type === 9 && this.$vue.$store.state.account === t.recipientRS) {
+            return t.senderRS
+        } else if (t.type === 9 && this.$vue.$store.state.account !== t.recipientRS) {
+            return this.$vue.$t('dialog.account_transaction_own')
+        } else if (this.$vue.$store.state.account === t.recipientRS) {
+            return this.$vue.$t('dialog.account_transaction_own')
+        } else if (typeof t.recipientRS === 'undefined') {
+            return this.placeholder
+        } else if (this.$vue.$store.state.account !== t.recipientRS) {
+            return t.recipientRS
+        }
+    },
+    /**
+     * 获得发送者
+     */
+    getSenderRSOrWo(t) {
+        if (t.type === 9) {
+            return "System";
+        } else if (this.$vue.$store.state.account !== t.senderRS) {
+            return t.senderRS
+        } else if (this.$vue.$store.state.account === t.senderRS) {
+            return this.$vue.$t('dialog.account_transaction_own')
+        }
+    },
+    /**
+     * 获得区块总手续费
+     * @param totalFeeNQT
+     */
+    getBlockTotalFeeNQT(totalFeeNQT) {
+        if (totalFeeNQT === '0') {
+            return this.placeholder
+        }
+        return totalFeeNQT / 100000000 + this.unit
+    },
+    /**
+     * 获得区块总金额
+     * @param totalAmountNQT
+     */
+    getBlocKTotalAmountNQT(totalAmountNQT) {
+        if (totalAmountNQT === '0') {
+            return this.placeholder
+        }
+        return totalAmountNQT / 100000000 + this.unit
+    },
+    /**
+     * 获得交易的区块时间
+     * @param t
+     */
+    getTransactionBlockTimestamp(t) {
+        if (t.block) {
+            return t.blockTimestamp + ' | ' + this.myFormatTime(t.blockTimestamp, 'YMDHMS', true)
+        }
+        return this.placeholder
+    },
+    /**
+     * 格式化SS数量 + "SS"
+     * @param num
+     * @param f
+     * @returns {string}
+     */
+    getSSNumberFormat(num, f) {
+        if (num === '0' || num === '1') {
+            return this.placeholder
+        } else if (f) {
+            return num + this.unit
+        } else {
+            return num / 100000000 + this.unit
+        }
     }
-
 };
