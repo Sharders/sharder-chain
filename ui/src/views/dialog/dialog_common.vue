@@ -11,7 +11,7 @@
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} | </span>
-                    <span>{{$t('dialog.account_info_available_asset') + (accountInfo.unconfirmedBalanceNQT/100000000)}} SS</span>
+                    <span>{{$t('dialog.account_info_available_asset') + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -37,7 +37,8 @@
                                 <tr v-for="transactions in accountTransactionInfo">
                                     <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</td>
                                     <td class="transaction-img">
-                                        <span class="bg" :class="'type' + transactions.type + transactions.subtype"></span>
+                                        <span class="bg"
+                                              :class="'type' + transactions.type + transactions.subtype"></span>
                                         <span>{{$global.getTransactionTypeStr(transactions)}}</span>
                                     </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
@@ -66,9 +67,8 @@
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>{{$t('dialog.account_info_name')}}&nbsp;</span><span></span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_available_asset')}}&nbsp;</span><span>{{accountInfo.unconfirmedBalanceNQT/100000000}}&nbsp;SS</span><span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    <span>{{$t('dialog.account_info_alias')}}&nbsp;</span><span></span>
+                    <span>{{$t('dialog.account_info_name') + accountInfo.name}}</span> |
+                    <span>{{$t('dialog.account_info_available_asset') + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
@@ -84,10 +84,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
-                            <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">
-                                {{transactionInfo.transactionIndex}}
-                            </td>
-                            <td v-else>-</td>
+                            <td>{{$global.returnObj(transactionInfo.transactionIndex,transactionInfo.transactionIndex)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_type')}}</th>
@@ -99,13 +96,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender')}}</th>
-                            <td v-if="transactionInfo.type === 9"></td>
-                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">
-                                {{transactionInfo.senderRS}}
-                            </td>
-                            <td v-else-if="$store.state.account === transactionInfo.senderRS">
-                                {{$t('dialog.account_transaction_own')}}
-                            </td>
+                            <td>{{$global.getSenderRSOrWo(transactionInfo)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_amount')}}</th>
@@ -113,31 +104,17 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
-                                {{transactionInfo.senderRS}}
-                            </td>
-                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
-                                {{$t('dialog.account_transaction_own')}}
-                            </td>
-                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">
-                                {{$t('dialog.account_transaction_own')}}
-                            </td>
-                            <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
-                                {{transactionInfo.recipientRS}}
-                            </td>
+                            <td>{{$global.getSenderOrRecipient(transactionInfo)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}
-                            </td>
-                            <td v-else>-</td>
+                            <td>{{$global.getTransactionBlockTimestamp(transactionInfo)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_timestamp')}}</th>
-                            <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                                &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
+                            <td>
+                                {{transactionInfo.timestamp}} |
+                                {{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
                             </td>
                         </tr>
                         <tr>
@@ -150,9 +127,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_confirm')}}</th>
-                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}
-                            </td>
-                            <td v-else>-</td>
+                            <td>{{$global.returnObj(transactionInfo.block,transactionInfo.confirmations)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_fullHash')}}</th>
@@ -163,35 +138,8 @@
                             <td>{{transactionInfo.version}}</td>
                         </tr>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_sender')}}</th>
-                            <td v-if="transactionInfo.type === 9"></td>
-                            <td v-else-if="$store.state.account !== transactionInfo.senderRS">
-                                {{transactionInfo.sender}}
-                            </td>
-                            <td v-else-if="$store.state.account === transactionInfo.senderRS">
-                                {{$t('dialog.account_transaction_own')}}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
-                                {{transactionInfo.senderRS}}
-                            </td>
-                            <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
-                                {{$t('dialog.account_transaction_own')}}
-                            </td>
-                            <td v-else-if="$store.state.account === transactionInfo.recipientRS">
-                                {{$t('dialog.account_transaction_own')}}
-                            </td>
-                            <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                            <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
-                                {{transactionInfo.recipientRS}}
-                            </td>
-                        </tr>
-                        <tr>
                             <th>{{$t('dialog.account_transaction_block_height')}}</th>
-                            <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.height}}</td>
-                            <td v-else>-</td>
+                            <td>{{$global.returnObj(transactionInfo.block,transactionInfo.height)}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -214,7 +162,7 @@
                     </el-radio-button>
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}
                     </el-radio-button>
-                    <el-radio-button label="pocInfo" class="btn">POC权重表</el-radio-button>
+                    <el-radio-button label="pocInfo" class="btn">POC</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
@@ -264,7 +212,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_total_amount')}}</th>
-                            <td>{{blockInfo.totalAmountNQT/100000000}} SS</td>
+                            <td>{{$global.getBlocKTotalAmountNQT(blockInfo.totalAmountNQT)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_generation_signature')}}</th>
@@ -288,7 +236,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_total_fee')}}</th>
-                            <td>{{blockInfo.totalFeeNQT/100000000}} SS</td>
+                            <td>{{$global.getBlockTotalFeeNQT(blockInfo.totalFeeNQT)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_cumulative_difficulty')}}</th>
@@ -397,10 +345,7 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
-                        <td v-if="typeof transactionInfo.transactionIndex !== 'undefined'">
-                            {{transactionInfo.transactionIndex}}
-                        </td>
-                        <td v-else>-</td>
+                        <td>{{$global.returnObj(transactionInfo.transactionIndex,transactionInfo.transactionIndex)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_type')}}</th>
@@ -412,13 +357,7 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender')}}</th>
-                        <td v-if="transactionInfo.type === 9"></td>
-                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">
-                            {{transactionInfo.senderRS}}
-                        </td>
-                        <td v-else-if="$store.state.account === transactionInfo.senderRS">
-                            {{$t('dialog.account_transaction_own')}}
-                        </td>
+                        <td>{{$global.getSenderRSOrWo(transactionInfo)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_amount')}}</th>
@@ -426,31 +365,17 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
-                            {{transactionInfo.senderRS}}
-                        </td>
-                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
-                            {{$t('dialog.account_transaction_own')}}
-                        </td>
-                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">
-                            {{$t('dialog.account_transaction_own')}}
-                        </td>
-                        <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
-                            {{transactionInfo.recipientRS}}
-                        </td>
+                        <td>{{$global.getSenderOrRecipient(transactionInfo)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
-                        <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.blockTimestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.blockTimestamp,'YMDHMS',true)}}
-                        </td>
-                        <td v-else>-</td>
+                        <td>{{$global.getTransactionBlockTimestamp(transactionInfo)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_timestamp')}}</th>
-                        <td>{{transactionInfo.timestamp}}&nbsp;&nbsp;|
-                            &nbsp;&nbsp;{{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
+                        <td>
+                            {{transactionInfo.timestamp}} |
+                            {{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
                         </td>
                     </tr>
                     <tr>
@@ -462,9 +387,8 @@
                         <td>{{transactionInfo.feeNQT/100000000}}</td>
                     </tr>
                     <tr>
-                        <th>{{$t('dialog.account_transaction_confirm')}}</th>
-                        <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.confirmations}}</td>
-                        <td v-else>-</td>
+                        <th>{{$t('transaction.transaction_confirm_quantity')}}</th>
+                        <td>{{$global.returnObj(transactionInfo.block,transactionInfo.confirmations)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_fullHash')}}</th>
@@ -475,34 +399,8 @@
                         <td>{{transactionInfo.version}}</td>
                     </tr>
                     <tr>
-                        <th>{{$t('dialog.account_transaction_sender')}}</th>
-                        <td v-if="transactionInfo.type === 9"></td>
-                        <td v-else-if="$store.state.account !== transactionInfo.senderRS">{{transactionInfo.sender}}
-                        </td>
-                        <td v-else-if="$store.state.account === transactionInfo.senderRS">
-                            {{$t('dialog.account_transaction_own')}}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                        <td v-if="transactionInfo.type === 9&&$store.state.account === transactionInfo.recipientRS">
-                            {{transactionInfo.sender}}
-                        </td>
-                        <td v-else-if="transactionInfo.type === 9&&$store.state.account !== transactionInfo.recipientRS">
-                            {{$t('dialog.account_transaction_own')}}
-                        </td>
-                        <td v-else-if="$store.state.account === transactionInfo.recipientRS">
-                            {{$t('dialog.account_transaction_own')}}
-                        </td>
-                        <td v-else-if="typeof transactionInfo.recipientRS === 'undefined'">-</td>
-                        <td v-else-if="$store.state.account !== transactionInfo.recipientRS">
-                            {{transactionInfo.recipient}}
-                        </td>
-                    </tr>
-                    <tr>
                         <th>{{$t('dialog.account_transaction_block_height')}}</th>
-                        <td v-if="typeof transactionInfo.block !== 'undefined'">{{transactionInfo.height}}</td>
-                        <td v-else>-</td>
+                        <td>{{$global.returnObj(transactionInfo.block,transactionInfo.height)}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -913,9 +811,9 @@
                     }
 
                     td {
-                        width: 1100px;
-                        padding: 0 60px;
-                        line-height: 40px;
+                        width: 1000px;
+                        padding: 8px 10px;
+                        line-height: 20px;
                     }
                 }
             }
@@ -1088,9 +986,9 @@
                     }
 
                     td {
-                        width: 1140px;
-                        padding: 0 60px;
-                        line-height: 40px;
+                        width: 1000px;
+                        padding: 6px 10px;
+                        line-height: 20px;
                     }
                 }
             }
@@ -1102,8 +1000,9 @@
 
         .table {
             td {
-                width: 980px;
-                padding: 0 60px;
+                width: 1000px;
+                padding: 6px 10px;
+                line-height: 20px;
             }
 
             th {

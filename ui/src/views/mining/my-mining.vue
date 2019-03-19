@@ -1,7 +1,7 @@
 <template>
     <div class="my-mining">
         <div class="tabs">
-            <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+            <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
             <el-radio-group v-model="tabPosition" class="title">
                 <el-radio-button label="join" class="btn">{{$t('mining.my_mining.i_join')}}</el-radio-button>
                 <el-radio-button label="create" class="btn">{{$t('mining.my_mining.i_create')}}</el-radio-button>
@@ -21,7 +21,7 @@
                             <div class="tag">
                                 <p>
                                     <img src="../../assets/img/kuangchisouyi.png">
-                                    <span>{{$t('mining.index.pool_income')}}{{mining.earnings}} SS</span>
+                                    <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.earnings)}}</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
@@ -54,7 +54,7 @@
                             <div class="tag">
                                 <p>
                                     <img src="../../assets/img/kuangchisouyi.png">
-                                    <span>{{$t('mining.index.pool_income')}}{{mining.earnings}} SS</span>
+                                    <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.earnings)}}</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
@@ -100,7 +100,7 @@
                         _this.createList.push({
                             investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: res[n].power / 100000000,
-                            earnings: res[n].mintRewards / 100000000,
+                            earnings: res[n].mintRewards,
                             distribution: level.forgepool.reward.max,
                             remaining: res[n].startBlockNo > res[n].updateHeight ? res[n].endBlockNo - res[n].startBlockNo : res[n].endBlockNo - res[n].updateHeight
                         });
@@ -116,7 +116,7 @@
                         _this.joinList.push({
                             investmentTotal: level.consignor.amount.max / 100000000,
                             currentInvestment: mining.power / 100000000,
-                            earnings: mining.mintRewards / 100000000,
+                            earnings: mining.mintRewards,
                             distribution: level.forgepool.reward.max,
                             remaining: mining.startBlockNo > mining.updateHeight ? mining.endBlockNo - mining.startBlockNo : mining.endBlockNo - mining.updateHeight
                         });

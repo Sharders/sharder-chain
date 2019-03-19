@@ -1,6 +1,6 @@
 <template>
     <div class="rule-description">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <div class="description">
             <h1 class="description-title">{{$t('mining.rule_description.rule_description_title')}}</h1>
             <p class="description-info">{{$t('mining.rule_description.rule_description_subtitle')}}</p>

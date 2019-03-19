@@ -31,8 +31,6 @@
                 span {
                     font-size: 14px;
                     color: #666;
-                    font-family: "Microsoft YaHei UI";
-
                     &:first-child {
                         font-weight: bold;
                         font-size: 20px;
@@ -46,7 +44,7 @@
 
 .modal {
     //top: calc(50% - 300px);
-    min-width: 740px!important;
+    min-width: 1000px!important;
     .modal-dialog .modal-content .modal-body {
         max-height: 480px;
         overflow-y: auto;

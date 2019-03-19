@@ -1,6 +1,6 @@
 <template>
     <div class="diamond-exchange">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <ExchangeReward></ExchangeReward>
     </div>
 </template>

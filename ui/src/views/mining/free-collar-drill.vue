@@ -1,6 +1,6 @@
 <template>
     <div class="free-collar-drill">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <div class="free-collar">
             <div class="free-header">
                 <h1>{{$t('mining.free_collar_drill.free_collar_title')}}</h1>

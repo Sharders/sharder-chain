@@ -1,6 +1,6 @@
 <template>
     <div class="my-assets">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <div class="assets">
             <div class="assets-info">
                 <div class="totle-assets">
@@ -26,7 +26,7 @@
                     <p class="strong">{{al.title}}</p>
                     <p>{{al.time}}</p>
                 </div>
-                <div class="number">{{al.num}} SS</div>
+                <div class="number">{{$global.getSSNumberFormat(al.num,true)}}</div>
             </div>
             <div class="load-assets">
                 <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
