@@ -1,90 +1,114 @@
-.block_account{
-    .w{
+.block_account {
+    .w {
         background: #fff;
         height: 290px;
         text-align: center;
         border-radius: 4px;
-        .account_address{
+
+        .account_address {
             margin-left: 112px;
-            color:#493eda;
-            font:{
-                size:18px;
+            color: #493eda;
+            font: {
+                size: 18px;
                 family: "Microsoft YaHei UI";
             }
-            img{
+
+            img {
                 vertical-align: middle;
                 margin: 0 20px 0 10px;
-                width:16px;
+                width: 16px;
                 height: 18px;
             }
-            span{
-                &:first-child{
+
+            span {
+                &:first-child {
                     vertical-align: middle;
                     font-weight: bold;
                 }
-                &:last-child{
-                    font-size:14px;
+
+                &:last-child {
+                    font-size: 14px;
                 }
             }
         }
-        .account_asset{
+
+        .account_asset {
             margin-top: 50px;
-            color:#333;
-            font:{
-                size:24px;
+            color: #333;
+            font: {
+                size: 24px;
                 family: "Microsoft YaHei UI";
                 weight: bold;
             }
         }
-        .account_tool{
+
+        .account_tool {
             text-align: center;
             display: inline-flex;
             margin-top: 50px;
-            .common_btn{
-                width:120px;
+
+            .common_btn {
+                width: 120px;
             }
         }
     }
 }
 
-.block_receiptDisbursement{
-    .w{
+.block_receiptDisbursement {
+    .w {
         background: #fff;
         height: 200px;
         display: flex;
-        div{
+
+        div {
             text-align: center;
 
         }
     }
 }
 
-.block_list{
-    .transaction_type{
+.block_list {
+    .transaction_type {
         float: left;
-        .el-select{
+
+        .el-select {
             height: 24px;
             width: 80px;
-            .el-input__inner{
+
+            .el-input__inner {
+                font-size: 13px;
                 width: 80px;
                 height: 24px;
-                margin-left: 20px;
+                //margin-left: 20px;
                 background: transparent;
                 border: 1px solid #493eda;
                 padding: 0 15px 0 0;
                 text-align: center;
             }
         }
-        .el-input__suffix{
-            top: -12px;
-            right: -20px;
 
-            //left: 514px;
+        .el-input__suffix {
+            top: -12px;
+            //right: -20px;
+        }
+
+        .btn {
+            cursor: pointer;
+            font-size: 13px;
+            padding: 3px 10px;
+            border: 1px solid #493eda;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .active {
+            background: #493eda;
+            color: #fff;
         }
     }
 }
 
-#file{
+#file {
     position: absolute;
     cursor: pointer;
     width: 70px;
@@ -95,88 +119,104 @@
 }
 
 
-
-#trading_info{
+#trading_info {
     top: 80px;
-    .table{
-        td{
+
+    .table {
+        td {
             width: 980px;
             padding: 0 60px;
         }
-        th{
-            width:160px;
+
+        th {
+            width: 160px;
         }
     }
 }
 
-#account_info{
-    .modal-header{
+#account_info {
+    .modal-header {
         border-bottom: none;
         padding: 0 20px 0 60px;
         height: auto;
     }
-    .modal-body{
+
+    .modal-body {
         margin: 20px 0 40px;
-        .table{
-            border:none;
-            td{
-                border:none;
+
+        .table {
+            border: none;
+
+            td {
+                border: none;
                 padding-left: 0;
                 width: 900px;
                 line-height: normal;
                 font-weight: bold;
-                .accountName{
-                    span{
+
+                .accountName {
+                    span {
                         line-height: 40px;
                         vertical-align: middle;
                     }
-                    img{
+
+                    img {
                         margin-left: 20px;
                         width: 20px;
                         line-height: 40px;
                         vertical-align: middle;
                     }
                 }
-                .rewriteName{
-                    .el-input{
+
+                .rewriteName {
+                    .el-input {
                         width: 140px;
-                        .el-input__inner{
+
+                        .el-input__inner {
                             height: 30px;
                         }
-                        .el-input__inner:focus{
+
+                        .el-input__inner:focus {
                             border-color: #493eda;
                         }
                     }
-                    .common_btn{
+
+                    .common_btn {
                         width: 60px;
                         height: 30px;
                         margin-left: 10px;
                     }
                 }
-                .QRcode{
+
+                .QRcode {
                     position: relative;
                     height: 80px;
                     padding-top: 10px;
-                    img{
+
+                    img {
                         width: 25px;
                         display: inline;
-                        &:hover{
-                            width:80px;
+
+                        &:hover {
+                            width: 80px;
                         }
                     }
                 }
 
             }
-            th{
-                border:none;
+
+            th {
+                border: none;
                 text-align: left;
                 padding-left: 60px;
                 font-weight: normal;
             }
-            tr{
+
+            tr {
                 background: none;
             }
-            .th80{
+
+            .th80 {
                 vertical-align: top;
                 padding-top: 10px;
             }
@@ -185,9 +225,9 @@
     }
 }
 
-#send_message_modal{
-    .modal-content{
-        .modal-message{
+#send_message_modal {
+    .modal-content {
+        .modal-message {
 
         }
     }

@@ -143,6 +143,15 @@
                     <span>{{$t('transaction.transaction_record')}}</span>
                 </p>
                 <div class="transaction_type">
+                    <span class="btn" :class="activeSelectType(0)" @click="selectType = 0">
+                        {{$t('transaction.transaction_type_payment')}}
+                    </span>
+                    <span class="btn" :class="activeSelectType(8)" @click="selectType = 8">
+                        {{$t('transaction.transaction_type_forge_pool')}}
+                    </span>
+                    <span class="btn" :class="activeSelectType(9)" @click="selectType = 9">
+                        {{$t('transaction.transaction_type_system_reward')}}
+                    </span>
                     <el-select v-model="selectType" :placeholder="$t('transaction.transaction_type_all')">
                         <el-option
                             v-for="item in transactionType"
@@ -840,6 +849,9 @@
             _this.getLatestHubVersion();
         },
         methods: {
+            activeSelectType(type){
+                return this.selectType === type ? 'active' : ''
+            },
             getLatestHubVersion() {
                 const _this = this;
                 _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
