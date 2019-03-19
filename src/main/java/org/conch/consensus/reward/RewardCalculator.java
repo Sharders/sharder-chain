@@ -1,7 +1,6 @@
 package org.conch.consensus.reward;
 
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -33,9 +32,7 @@ public class RewardCalculator {
      * @return
      */
     public static long mintReward(long accountId) {
-        // 300SS reward of one block 
-        // 90% for hub miner, 10% for other miner in Testnet phase1 (before end of 2019.Q2)
-        double rate = PocProcessorImpl.isHubBind(accountId) ? 0.9d : 0.1d;
-        return (long) (Constants.ONE_SS * RewardDef.MINT.getAmount() * rate);
+        // 300SS reward of one block
+        return Constants.ONE_SS * RewardDef.MINT.getAmount();
     }
 }
