@@ -1,6 +1,4 @@
 # Sharder #
-
-## What is Sharder ##
 Sharder is a blockchain-based multi-chain storage Network.
 
 ## Project Structure ##
@@ -49,8 +47,6 @@ Please read the [MINER-GUIDE.md](./MINER-GUIDE.md)
 ----
 
 # 豆匣 #
-
-## 豆匣是什么? ##
 豆匣是多链架构区块链存储网络。
 
 ## 工程说明 ##
