@@ -150,19 +150,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
 
-        // 交换库存
+        private int peerConnectCheckCount = 0;
         private void downloadPeer() throws InterruptedException {
           try {
             long startTime = System.currentTimeMillis();
             int numberOfForkConfirmations = Math.min(1, defaultNumberOfForkConfirmations);
             connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
             if (connectedPublicPeers.size() <= numberOfForkConfirmations) {
-              Logger.logMessage(
-                  "No enough peers[limit size="
-                      + (numberOfForkConfirmations + 1)
-                      + ",current connected size="
-                      + connectedPublicPeers.size()
-                      + "], break syn blocks...");
+                boolean printNow = peerConnectCheckCount++ == 0 || peerConnectCheckCount++ > 100;
+                if(printNow) {
+                  Logger.logMessage("No enough connected peers[limit size=" + (numberOfForkConfirmations + 1)
+                                  + ",current connected size=" + connectedPublicPeers.size() + "], break syn blocks...");
+                  peerConnectCheckCount = 1;
+                }
               return;
             }
             peerHasMore = true;

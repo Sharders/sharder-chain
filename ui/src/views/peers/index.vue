@@ -4,7 +4,7 @@
             <div class="block_network mb20">
                 <p class="block_title csp">
                     <a @click="turn2network">
-                        <span>&lt;&lt;{{$t('peers.return_network')}}</span>
+                        <span>{{$t('peers.return_network')}}</span>
                     </a>
                 </p>
                 <div class="w dfl">
@@ -227,7 +227,7 @@
         <!--view peer info-->
         <div class="modal_info" id="peer_info" v-show="peerInfoDialog">
             <div class="modal-header">
-                <img class="close" src="../../assets/img/close.svg" @click="closeDialog"/>
+                <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
                     <span>{{$t('peers.peer')}}{{peerInfo.address}}</span>
                 </h4>

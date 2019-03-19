@@ -68,7 +68,7 @@
                         <div>
                             <img src="../../assets/img/miner-info4.svg"/>
                             <div class="section_info">
-                                <span>{{coinbaseCount}}</span>
+                                <span>{{poolCount}}</span>
                                 <span>{{$t('network.coinbase_transaction')}}</span>
                             </div>
                         </div>
@@ -86,8 +86,8 @@
                         <div>
                             <img src="../../assets/img/miner-info6.svg"/>
                             <div class="section_info">
-                                <span>{{aliasCount}}</span>
-                                <span>{{$t('network.alias_modification')}}</span>
+                                <span>{{systemReward}}</span>
+                                <span>{{$t('network.system_reward')}}</span>
                             </div>
                         </div>
                     </div>
@@ -360,6 +360,8 @@
                 storageCount: 0,
                 transferCount: 0,
                 coinbaseCount: 0,
+                systemReward:0,
+                poolCount:0,
                 aliasCount: 0,
                 //分页信息
                 currentPage: 1,
@@ -431,6 +433,8 @@
                 _this.transferCount = res.data.transferCount;
                 _this.storageCount = res.data.storageCount;
                 _this.totalCount = res.data.transferAmount;
+                _this.poolCount = res.data.poolCount;
+                _this.systemReward = res.data.coinBaseCount;
                 _this.averageAmount = res.data.storageCount24H + res.data.storageDataLength24H + res.data.transferCount24H;
             }).catch(function (err) {
                 console.error("error", err);

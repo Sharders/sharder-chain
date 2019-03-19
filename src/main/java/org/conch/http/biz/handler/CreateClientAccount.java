@@ -43,6 +43,9 @@ public final class CreateClientAccount extends CreateTransaction {
 
     public static final CreateClientAccount instance = new CreateClientAccount();
 
+    /**
+     * passPhrase: pass phrase of creator to the new account
+     */
     private CreateClientAccount() {
         super(new APITag[] {APITag.BIZ, APITag.CREATE_TRANSACTION}, "passPhrase");
     }
@@ -54,12 +57,12 @@ public final class CreateClientAccount extends CreateTransaction {
         }
         String newAccountPassPhrase = PassPhraseGenerator.makeMnemonicWords();
         byte[] publicKey = Crypto.getPublicKey(newAccountPassPhrase);
-        long accountId = Account.getId(publicKey);
-        long recipientId = Account.getId(publicKey);
+        //long accountId = Account.getId(publicKey);
+        long newAccountId = Account.getId(publicKey);
 
         // Send a message to the new account to active it
-        Account account = ParameterParser.getSenderAccount(req);
-        String createTransactionResponse = JSON.toString(createTransaction(req, account, recipientId, 0, Attachment.ARBITRARY_MESSAGE));
+        Account txCreator = ParameterParser.getSenderAccount(req);
+        String createTransactionResponse = JSON.toString(createTransaction(req, txCreator, newAccountId, 0, Attachment.ARBITRARY_MESSAGE));
 
         ObjectMapper mapper = new ObjectMapper();
         ErrorDescription ed = null;
@@ -73,8 +76,8 @@ public final class CreateClientAccount extends CreateTransaction {
             return ed;
         }
         JSONObject response = new JSONObject();
-        response.put("accountID", accountId);
-        response.put("accountRS", Account.rsAccount(accountId));
+        response.put("accountID", newAccountId);
+        response.put("accountRS", Account.rsAccount(newAccountId));
         response.put("publicKey", Convert.toHexString(publicKey));
         response.put("passPhrase", newAccountPassPhrase);
         return response;
