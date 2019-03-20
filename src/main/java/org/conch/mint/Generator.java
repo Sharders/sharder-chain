@@ -21,7 +21,6 @@
 
 package org.conch.mint;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -111,7 +110,7 @@ public class Generator implements Comparable<Generator> {
      * @param lastBlock
      * @return
      */
-    private static boolean mintHeightReached(Block lastBlock){
+    private static boolean isMintHeightReached(Block lastBlock){
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
             if(printNow) {
@@ -140,7 +139,7 @@ public class Generator implements Comparable<Generator> {
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
                         
-                        if(!mintHeightReached(lastBlock)) return;
+                        if(!isMintHeightReached(lastBlock)) return;
 
                         final int generationLimit = Conch.getEpochTime() - delayTime;
                         if (lastBlock.getId() != lastBlockId || sortedMiners == null || sortedMiners.size() == 0) {
@@ -388,7 +387,7 @@ public class Generator implements Comparable<Generator> {
         BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.getBlockGapSeconds() - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
         // check the elapsed time(in second) after previous block generated
-        boolean elapsed = Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 3600;
+        boolean elapsed = elapsedTime > Constants.getBlockGapSeconds();
         return hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
         
 //        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
@@ -555,7 +554,7 @@ public class Generator implements Comparable<Generator> {
      * @throws BlockchainProcessor.GeneratorNotAcceptedException
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
-        if(!mintHeightReached(lastBlock)) return false;
+        if(!isMintHeightReached(lastBlock)) return false;
         
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {

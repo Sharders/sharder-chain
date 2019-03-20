@@ -46,6 +46,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
+
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -570,7 +572,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if(!forceConverge) {
               int myForkSize = blockchain.getHeight() - startHeight;
               if (!forkBlocks.isEmpty() && myForkSize < 720) {
-                Logger.logDebugMessage("Will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+                Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
                 processFork(feederPeer, forkBlocks, commonBlock);
               }
             }
@@ -588,6 +590,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           int pushedForkBlocks = 0;
           if (blockchain.getLastBlock().getId() == commonBlock.getId()) {
             for (BlockImpl block : forkBlocks) {
+              /** temp code**/
               com.alibaba.fastjson.JSONObject curBlock = new com.alibaba.fastjson.JSONObject();
               com.alibaba.fastjson.JSONObject remoteBlock = new com.alibaba.fastjson.JSONObject();
               curBlock.put("height",blockchain.getLastBlock().getHeight());
@@ -597,6 +600,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               remoteBlock.put("height",block.getHeight());
               remoteBlock.put("blockid",block.getId());
               remoteBlock.put("generator",Account.rsAccount(block.getGeneratorId()));
+              /** temp code**/
               
               if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
                 try {
@@ -658,9 +662,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
    * force converge if the fork can't be converge itself
    * @return
    */
-  private boolean forceForkConverge(final Block commonBlock){
+  private boolean forceForkConverge(HttpServletRequest reqSender,final Block commonBlock) throws ConchException.NotValidException {
     // authority check
-    
+    if (!IpUtil.matchHost(reqSender, Conch.getBootNode())) {
+      throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getBootNode()));
+    }
     
     // just connected to foundation node in download peers when forceConverge is true
     forceConverge = true;
@@ -1472,6 +1478,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       BigInteger score = PocProcessorImpl.instance.calPocScore(generatorAccount,previousLastBlock.getHeight());
 //      long generatorBalance = generatorAccount == null ? 0 : generatorAccount.getEffectiveBalanceSS();
+      block.verifyGenerationSignature();
       throw new BlockNotAcceptedException("Generation signature verification failed, poc score " + score, block);
     }
     if (!block.verifyBlockSignature()) {

@@ -267,7 +267,9 @@ public interface Attachment extends Appendix {
 
         @Override
         public int getMySize() {
-            return 2 + coinBaseType.name().getBytes().length + 8 + 8 + consignors.size() * 2 * 8;
+            return 2 + coinBaseType.name().getBytes().length 
+                    + 8 + 8 
+                    + consignors.size() * 2 * 8;
         }
 
         @Override
