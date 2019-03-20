@@ -202,7 +202,7 @@ public final class Constants {
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  10 : (isTestnet() ? 100 : 1000);
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  0 : (isTestnet() ? 100 : 1000);
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
