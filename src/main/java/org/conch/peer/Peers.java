@@ -421,11 +421,18 @@ public final class Peers {
         
         List<String> hosts = Lists.newArrayList();
         for(String peerStr : peers){
-            String[] peerArray = peerStr.split("#");
-            String host = peerArray[0];
-            String type = peerArray[1];
-            hosts.add(host);
-            //TODO[valid-node] consider add these wellknown peers into certified node list
+            String host = peerStr;
+            String type;
+            if(StringUtils.isNotEmpty(peerStr) && peerStr.contains("#")){
+                String[] peerArray = peerStr.split("#");
+                host = peerArray[0];
+                type = peerArray[1];
+            }
+            
+            if(StringUtils.isNotEmpty(host)) {
+                hosts.add(host);
+                //TODO[valid-node] consider add these wellknown peers into certified node list
+            }
         }
         return Collections.unmodifiableList(hosts);
     }
@@ -1521,4 +1528,5 @@ public final class Peers {
     public static boolean isOpenService(Peer.Service service) {
         return myServices.contains(service);
     }
+
 }

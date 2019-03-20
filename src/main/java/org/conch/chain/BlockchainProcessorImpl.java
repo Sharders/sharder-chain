@@ -477,7 +477,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             for (GetNextBlocks nextBlocks : getList) {
               Peer peer;
               if(forceConverge){
-                //TODO us the foudation peer
+                //TODO us the foundation peer
                 peer = null;
               }else{
                 if (nextBlocks.getRequestCount() > 1) {
@@ -651,6 +651,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
    * @return
    */
   private boolean forceForkConverge(final Block commonBlock){
+    // authority check
+    
+    
     // just connected to foundation node in download peers when forceConverge is true
     forceConverge = true;
 
@@ -1972,8 +1975,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
     if (blockchain.getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
-      try (DbIterator<TransactionImpl> phasedTransactions =
-          PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
+      try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
           try {
             phasedTransaction.validate();

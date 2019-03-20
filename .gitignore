@@ -10,6 +10,8 @@ jre
 
 package-lock.json
 
+/LocalTest
+
 !/html/www/
 /html/www/*
 !html/www/img/

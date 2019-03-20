@@ -107,7 +107,28 @@ public class Generator implements Comparable<Generator> {
     private static final Runnable generateBlocksThread = new Runnable() {
 
         private volatile boolean logged;
+        private int mintHeightCheckCount = 0;
 
+        /**
+         * check current height whether reached last known block
+         * @param lastBlock
+         * @return
+         */
+        private boolean mintHeightReached(Block lastBlock){
+            if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
+                boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
+                if(printNow) {
+                    Logger.logInfoMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK 
+                            + ", and current height is " + lastBlock.getHeight() 
+                            + ", don't mint till blocks sync finished...");
+                    mintHeightCheckCount = 1;
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        
         @Override
         public void run() {
             try {
@@ -117,10 +138,8 @@ public class Generator implements Comparable<Generator> {
                     BlockchainImpl.getInstance().updateLock();
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
-                        //wait for last known block
-                        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-                            return;
-                        }
+                        
+                        if(!mintHeightReached(lastBlock)) return;
 
                         final int generationLimit = Conch.getEpochTime() - delayTime;
                         if (lastBlock.getId() != lastBlockId || sortedMiners == null || sortedMiners.size() == 0) {
