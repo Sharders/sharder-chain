@@ -22,13 +22,13 @@
 package org.conch.peer;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
@@ -90,6 +90,16 @@ public final class Peers {
 
     public static boolean isUseNATService() {
         return Conch.getUseNATService();
+    }
+    
+    static Map<String,Object> natAndAddrMap = null;
+    public static Map<String,Object> getNatAndAddressMap(){
+        if(natAndAddrMap == null) {
+            natAndAddrMap = Maps.newHashMap();
+            natAndAddrMap.put("useNATService", Peers.isUseNATService());
+            natAndAddrMap.put("announcedAddress", Peers.getMyAddress());
+        }
+        return natAndAddrMap;
     }
 
     public static boolean isMyAddressAnnounced() {

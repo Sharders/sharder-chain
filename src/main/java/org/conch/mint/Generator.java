@@ -103,31 +103,32 @@ public class Generator implements Comparable<Generator> {
         }
         
     }
+
+
+    private static int mintHeightCheckCount = 0;
+    /**
+     * check current height whether reached last known block
+     * @param lastBlock
+     * @return
+     */
+    private static boolean mintHeightReached(Block lastBlock){
+        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
+            boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
+            if(printNow) {
+                Logger.logInfoMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
+                        + ", and current height is " + lastBlock.getHeight()
+                        + ", don't mint till blocks sync finished...");
+                mintHeightCheckCount = 1;
+            }
+            return false;
+        }
+        return true;
+    }
     
     private static final Runnable generateBlocksThread = new Runnable() {
 
         private volatile boolean logged;
-        private int mintHeightCheckCount = 0;
 
-        /**
-         * check current height whether reached last known block
-         * @param lastBlock
-         * @return
-         */
-        private boolean mintHeightReached(Block lastBlock){
-            if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-                boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
-                if(printNow) {
-                    Logger.logInfoMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK 
-                            + ", and current height is " + lastBlock.getHeight() 
-                            + ", don't mint till blocks sync finished...");
-                    mintHeightCheckCount = 1;
-                    return false;
-                }
-            }
-            return true;
-        }
-        
         
         @Override
         public void run() {
@@ -554,11 +555,14 @@ public class Generator implements Comparable<Generator> {
      * @throws BlockchainProcessor.GeneratorNotAcceptedException
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
+        if(!mintHeightReached(lastBlock)) return false;
+        
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
             return false;
         }
+        
         int start = Conch.getEpochTime();
         while (true) {
             try {

@@ -173,8 +173,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             // [NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getCumulativeDifficulty");
-            request.put("useNATService", Peers.isUseNATService());
-            request.put("announcedAddress", Peers.getMyAddress());
+            request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
             if (response == null) {
               return;
@@ -265,8 +264,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // [NAT] inject useNATService property to the request params
                 request.clear();
                 request.put("requestType", "getCumulativeDifficulty");
-                request.put("useNATService", Peers.isUseNATService());
-                request.put("announcedAddress", Peers.getMyAddress());
+                request.putAll(Peers.getNatAndAddressMap());
                 JSONObject otherPeerResponse = peer.send(JSON.prepareRequest(request));
                 if (otherPeerResponse == null
                     || (otherPeerCumulativeDifficulty =
@@ -330,8 +328,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             JSONObject milestoneBlockIdsRequest = new JSONObject();
             milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
             // [NAT] inject useNATService property to the request params
-            milestoneBlockIdsRequest.put("useNATService", Peers.isUseNATService());
-            milestoneBlockIdsRequest.put("announcedAddress", Peers.getMyAddress());
+            milestoneBlockIdsRequest.putAll(Peers.getNatAndAddressMap());
             if (lastMilestoneBlockId == null) {
               milestoneBlockIdsRequest.put("lastBlockId", blockchain.getLastBlock().getStringId());
             } else {
@@ -384,10 +381,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             JSONObject request = new JSONObject();
             // [NAT] inject useNATService property to the request params
             request.put("requestType", "getNextBlockIds");
-            request.put("useNATService", Peers.isUseNATService());
-            request.put("announcedAddress", Peers.getMyAddress());
             request.put("blockId", Long.toUnsignedString(matchId));
             request.put("limit", limit);
+            request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
             if (response == null) {
               return Collections.emptyList();
@@ -477,7 +473,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             for (GetNextBlocks nextBlocks : getList) {
               Peer peer;
               if(forceConverge){
-                //TODO us the foundation peer
+                //TODO connected to foundation peers to get the blocks only
                 peer = null;
               }else{
                 if (nextBlocks.getRequestCount() > 1) {
@@ -584,14 +580,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         private void processFork(final Peer peer, final List<BlockImpl> forkBlocks, final Block commonBlock) {
-
+          // record the current difficulty and popoff the chain to common block(genesis block or last known block)
           BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
-
           List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
-
+          
+          // push the fork blocks into chain
           int pushedForkBlocks = 0;
           if (blockchain.getLastBlock().getId() == commonBlock.getId()) {
             for (BlockImpl block : forkBlocks) {
+              com.alibaba.fastjson.JSONObject curBlock = new com.alibaba.fastjson.JSONObject();
+              com.alibaba.fastjson.JSONObject remoteBlock = new com.alibaba.fastjson.JSONObject();
+              curBlock.put("height",blockchain.getLastBlock().getHeight());
+              curBlock.put("blockid",blockchain.getLastBlock().getId());
+              curBlock.put("generator",Account.rsAccount(blockchain.getLastBlock().getGeneratorId()));
+
+              remoteBlock.put("height",block.getHeight());
+              remoteBlock.put("blockid",block.getId());
+              remoteBlock.put("generator",Account.rsAccount(block.getGeneratorId()));
+              
               if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
                 try {
                   pushBlock(block);
@@ -606,7 +612,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
             }
           }
-
+          
+          // check original difficulty(before pushed fork blocks) of chain with difficulty of pushed chain 
           if (pushedForkBlocks > 0
               && blockchain
                       .getLastBlock()
@@ -621,7 +628,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
             }
           }
-
+          
+          // put the popoff blocks back to chain 
           if (pushedForkBlocks == 0) {
             Logger.logDebugMessage("Didn't accept any blocks, pushing back my previous blocks");
             for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
@@ -722,10 +730,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // [NAT] inject useNATService property to the request params
       JSONObject request = new JSONObject();
       request.put("requestType", "getNextBlocks");
-      request.put("useNATService", Peers.isUseNATService());
-      request.put("announcedAddress", Peers.getMyAddress());
       request.put("blockIds", idList);
       request.put("blockId", Long.toUnsignedString(blockIds.get(start)));
+      request.putAll(Peers.getNatAndAddressMap());
       long startTime = System.currentTimeMillis();
       JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
       responseTime = System.currentTimeMillis() - startTime;
@@ -951,8 +958,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
           // [NAT] inject useNATService property to the request params
           request.put("requestType", "getTransactions");
-          request.put("useNATService", Peers.isUseNATService());
-          request.put("announcedAddress", Peers.getMyAddress());
+          request.putAll(Peers.getNatAndAddressMap());
           request.put("transactionIds", requestList);
           JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
           if (response == null) {

@@ -135,14 +135,14 @@ public class StorageTxProcessorImpl implements StorageTxProcessor {
             Logger.logErrorMessage(transaction.getId() + " backup failed " ,e);
             return false;
         }
-        StorageBackup.add(storeTransaction,transaction, Peers.isMyAddressAnnounced()?Peers.getMyAddress():IpfsService.myAddress());
+        StorageBackup.add(storeTransaction,transaction, Peers.isMyAddressAnnounced() ? Peers.getMyAddress() : IpfsService.myAddress());
         return true;
     }
 
     public void syncBackTable(Transaction transaction) {
         Attachment.DataStorageBackup attachment = (Attachment.DataStorageBackup) transaction.getAttachment();
         Transaction storeTransaction = Conch.getBlockchain().getTransaction(attachment.getUploadTransaction());
-        StorageBackup.add(storeTransaction,transaction, Peers.isMyAddressAnnounced()?Peers.getMyAddress():IpfsService.myAddress());
+        StorageBackup.add(storeTransaction,transaction, Peers.isMyAddressAnnounced() ? Peers.getMyAddress() : IpfsService.myAddress());
     }
 
     public static void addTask(long id,int num){
