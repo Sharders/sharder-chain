@@ -486,7 +486,8 @@ public final class BlockImpl implements Block {
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             
-            return Generator.verifyHit(hit, pocScore, previousBlock, timestamp) || isKnownBadBlock(this.getId());
+            return Generator.verifyHit(hit, pocScore, previousBlock, timestamp) 
+                    || isKnownBadBlock(this.getId());
 
         } catch (RuntimeException e) {
             Logger.logMessage("Error verifying block generation signature", e);

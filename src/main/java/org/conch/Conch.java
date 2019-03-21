@@ -86,7 +86,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.1";
+    public static final String VERSION = "0.2.1";
     public static final String STAGE = "-Alpha";
     public static final String APPLICATION = "COS";
 
@@ -105,7 +105,6 @@ public final class Conch {
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
     private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
 
-
     public static String getSharderFoundationURL(){
         return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
     }
@@ -114,6 +113,12 @@ public final class Conch {
         return Constants.isMainnet() ? "beta" : Constants.isTestnet() ? "alpha" : "dev";
     }
 
+    public static String getBootNode(){
+        if(Constants.isDevnet()) return "devboot.sharder.io";
+        if(Constants.isTestnet()) return "testboot.sharder.io";
+        return "mainboot.sharder.io";
+    }
+    
     /**
      * Preset parameters
      */
@@ -180,22 +185,14 @@ public final class Conch {
     }
 
     public static int getPeerPort(){
-//        return Conch.getIntProperty("sharder.peerServerPort");
         return PresetParam.getPeerPort(Constants.getNetwork());
     }
 
-//    public static int getUiPort(){
-////        return Conch.getIntProperty("sharder.uiServerPort");
-//        return PresetParam.getUiPort(Constants.getNetwork());
-//    }
-
     public static int getApiPort(){
-//        return Conch.getIntProperty("sharder.apiServerPort");
         return PresetParam.getApiPort(Constants.getNetwork());
     }
 
     public static int getApiSSLPort(){
-//        return Conch.getIntProperty("sharder.apiServerSSLPort");
         return PresetParam.getApiSSLPort(Constants.getNetwork());
     }
 

@@ -22,13 +22,13 @@
 package org.conch.peer;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
@@ -90,6 +90,16 @@ public final class Peers {
 
     public static boolean isUseNATService() {
         return Conch.getUseNATService();
+    }
+    
+    static Map<String,Object> natAndAddrMap = null;
+    public static Map<String,Object> getNatAndAddressMap(){
+        if(natAndAddrMap == null) {
+            natAndAddrMap = Maps.newHashMap();
+            natAndAddrMap.put("useNATService", Peers.isUseNATService());
+            natAndAddrMap.put("announcedAddress", Peers.getMyAddress());
+        }
+        return natAndAddrMap;
     }
 
     public static boolean isMyAddressAnnounced() {
@@ -421,11 +431,18 @@ public final class Peers {
         
         List<String> hosts = Lists.newArrayList();
         for(String peerStr : peers){
-            String[] peerArray = peerStr.split("#");
-            String host = peerArray[0];
-            String type = peerArray[1];
-            hosts.add(host);
-            //TODO[valid-node] consider add these wellknown peers into certified node list
+            String host = peerStr;
+            String type;
+            if(StringUtils.isNotEmpty(peerStr) && peerStr.contains("#")){
+                String[] peerArray = peerStr.split("#");
+                host = peerArray[0];
+                type = peerArray[1];
+            }
+            
+            if(StringUtils.isNotEmpty(host)) {
+                hosts.add(host);
+                //TODO[valid-node] consider add these wellknown peers into certified node list
+            }
         }
         return Collections.unmodifiableList(hosts);
     }
@@ -1521,4 +1538,5 @@ public final class Peers {
     public static boolean isOpenService(Peer.Service service) {
         return myServices.contains(service);
     }
+
 }

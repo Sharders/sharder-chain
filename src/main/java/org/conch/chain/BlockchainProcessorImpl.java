@@ -46,6 +46,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
+
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -173,8 +175,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             // [NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getCumulativeDifficulty");
-            request.put("useNATService", Peers.isUseNATService());
-            request.put("announcedAddress", Peers.getMyAddress());
+            request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
             if (response == null) {
               return;
@@ -197,7 +198,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
 
-            // 里程碑区块
+            // milestone block
             long commonMilestoneBlockId = SharderGenesis.GENESIS_BLOCK_ID;
 
             if (blockchain.getLastBlock().getId() != SharderGenesis.GENESIS_BLOCK_ID) {
@@ -216,10 +217,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             final Block commonBlock = blockchain.getBlock(commonBlockId);
             if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
               if (commonBlock != null) {
-                Logger.logDebugMessage(
-                    peer
-                        + " advertised chain with better difficulty, but the last common block is at height "
-                        + commonBlock.getHeight());
+                Logger.logDebugMessage(peer + " advertised chain with better difficulty, but the last common block is at height " + commonBlock.getHeight());
               }
               return;
             }
@@ -234,9 +232,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             blockchain.updateLock();
             try {
-              if (betterCumulativeDifficulty.compareTo(
-                      blockchain.getLastBlock().getCumulativeDifficulty())
-                  <= 0) {
+              if (betterCumulativeDifficulty.compareTo(blockchain.getLastBlock().getCumulativeDifficulty()) <= 0) {
                 return;
               }
               long lastBlockId = blockchain.getLastBlock().getId();
@@ -270,8 +266,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // [NAT] inject useNATService property to the request params
                 request.clear();
                 request.put("requestType", "getCumulativeDifficulty");
-                request.put("useNATService", Peers.isUseNATService());
-                request.put("announcedAddress", Peers.getMyAddress());
+                request.putAll(Peers.getNatAndAddressMap());
                 JSONObject otherPeerResponse = peer.send(JSON.prepareRequest(request));
                 if (otherPeerResponse == null
                     || (otherPeerCumulativeDifficulty =
@@ -306,6 +301,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             * (lastBlockchainFeederHeight - blockchain.getHeight())
                             / ((long) totalBlocks * 1000 * 60)
                         + " min left");
+
+                // close forceConverge after blocks sync completed
+                if(forceConverge) {
+                  forceConverge = false;
+                  Generator.autoMining();
+                }
               } else {
                 Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
               }
@@ -329,8 +330,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             JSONObject milestoneBlockIdsRequest = new JSONObject();
             milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
             // [NAT] inject useNATService property to the request params
-            milestoneBlockIdsRequest.put("useNATService", Peers.isUseNATService());
-            milestoneBlockIdsRequest.put("announcedAddress", Peers.getMyAddress());
+            milestoneBlockIdsRequest.putAll(Peers.getNatAndAddressMap());
             if (lastMilestoneBlockId == null) {
               milestoneBlockIdsRequest.put("lastBlockId", blockchain.getLastBlock().getStringId());
             } else {
@@ -352,10 +352,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             // prevent overloading with blockIds
             if (milestoneBlockIds.size() > 20) {
-              Logger.logDebugMessage(
-                  "Obsolete or rogue peer "
-                      + peer.getHost()
-                      + " sends too many milestoneBlockIds, blacklisting");
+              Logger.logDebugMessage("Obsolete or rogue peer " + peer.getHost() + " sends too many milestoneBlockIds, blacklisting");
               peer.blacklist("Too many milestoneBlockIds");
               return 0;
             }
@@ -386,10 +383,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             JSONObject request = new JSONObject();
             // [NAT] inject useNATService property to the request params
             request.put("requestType", "getNextBlockIds");
-            request.put("useNATService", Peers.isUseNATService());
-            request.put("announcedAddress", Peers.getMyAddress());
             request.put("blockId", Long.toUnsignedString(matchId));
             request.put("limit", limit);
+            request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
             if (response == null) {
               return Collections.emptyList();
@@ -478,19 +474,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             for (GetNextBlocks nextBlocks : getList) {
               Peer peer;
-              if (nextBlocks.getRequestCount() > 1) {
-                break download;
-              }
-              if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
-                peer = feederPeer;
-              } else {
-                if (nextPeerIndex >= connectedPublicPeers.size()) {
-                  nextPeerIndex = 0;
+              if(forceConverge){
+                //TODO connected to foundation peers to get the blocks only
+                peer = null;
+              }else{
+                if (nextBlocks.getRequestCount() > 1) {
+                  break download;
                 }
-                peer = connectedPublicPeers.get(nextPeerIndex++);
-              }
-              if (nextBlocks.getPeer() == peer) {
-                break download;
+                if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
+                  peer = feederPeer;
+                } else {
+                  if (nextPeerIndex >= connectedPublicPeers.size()) {
+                    nextPeerIndex = 0;
+                  }
+                  peer = connectedPublicPeers.get(nextPeerIndex++);
+                }
+                if (nextBlocks.getPeer() == peer) {
+                  break download;
+                }
               }
               nextBlocks.setPeer(peer);
               Future<List<BlockImpl>> future = networkService.submit(nextBlocks);
@@ -568,10 +569,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             // Process a fork
             //
-            int myForkSize = blockchain.getHeight() - startHeight;
-            if (!forkBlocks.isEmpty() && myForkSize < 720) {
-              Logger.logDebugMessage("Will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
-              processFork(feederPeer, forkBlocks, commonBlock);
+            if(!forceConverge) {
+              int myForkSize = blockchain.getHeight() - startHeight;
+              if (!forkBlocks.isEmpty() && myForkSize < 720) {
+                Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+                processFork(feederPeer, forkBlocks, commonBlock);
+              }
             }
           } finally {
             blockchain.writeUnlock();
@@ -579,14 +582,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         private void processFork(final Peer peer, final List<BlockImpl> forkBlocks, final Block commonBlock) {
-
+          // record the current difficulty and popoff the chain to common block(genesis block or last known block)
           BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
-
           List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
-
+          
+          // push the fork blocks into chain
           int pushedForkBlocks = 0;
           if (blockchain.getLastBlock().getId() == commonBlock.getId()) {
             for (BlockImpl block : forkBlocks) {
+              /** temp code**/
+              com.alibaba.fastjson.JSONObject curBlock = new com.alibaba.fastjson.JSONObject();
+              com.alibaba.fastjson.JSONObject remoteBlock = new com.alibaba.fastjson.JSONObject();
+              curBlock.put("height",blockchain.getLastBlock().getHeight());
+              curBlock.put("blockid",blockchain.getLastBlock().getId());
+              curBlock.put("generator",Account.rsAccount(blockchain.getLastBlock().getGeneratorId()));
+
+              remoteBlock.put("height",block.getHeight());
+              remoteBlock.put("blockid",block.getId());
+              remoteBlock.put("generator",Account.rsAccount(block.getGeneratorId()));
+              /** temp code**/
+              
               if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
                 try {
                   pushBlock(block);
@@ -601,7 +616,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
             }
           }
-
+          
+          // check original difficulty(before pushed fork blocks) of chain with difficulty of pushed chain 
           if (pushedForkBlocks > 0
               && blockchain
                       .getLastBlock()
@@ -616,7 +632,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
             }
           }
-
+          
+          // put the popoff blocks back to chain 
           if (pushedForkBlocks == 0) {
             Logger.logDebugMessage("Didn't accept any blocks, pushing back my previous blocks");
             for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
@@ -639,6 +656,29 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
       };
+
+  private static boolean forceConverge = false;
+  /**
+   * force converge if the fork can't be converge itself
+   * @return
+   */
+  private boolean forceForkConverge(HttpServletRequest reqSender,final Block commonBlock) throws ConchException.NotValidException {
+    // authority check
+    if (!IpUtil.matchHost(reqSender, Conch.getBootNode())) {
+      throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getBootNode()));
+    }
+    
+    // just connected to foundation node in download peers when forceConverge is true
+    forceConverge = true;
+
+    // check and stop mining
+    Generator.stopAutoMining();
+
+    // popoff to specified block or height
+    List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
+
+    return true;
+  }
 
   /** Callable method to get the next block segment from the selected peer */
   private static class GetNextBlocks implements Callable<List<BlockImpl>> {
@@ -696,10 +736,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // [NAT] inject useNATService property to the request params
       JSONObject request = new JSONObject();
       request.put("requestType", "getNextBlocks");
-      request.put("useNATService", Peers.isUseNATService());
-      request.put("announcedAddress", Peers.getMyAddress());
       request.put("blockIds", idList);
       request.put("blockId", Long.toUnsignedString(blockIds.get(start)));
+      request.putAll(Peers.getNatAndAddressMap());
       long startTime = System.currentTimeMillis();
       JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
       responseTime = System.currentTimeMillis() - startTime;
@@ -925,8 +964,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
           // [NAT] inject useNATService property to the request params
           request.put("requestType", "getTransactions");
-          request.put("useNATService", Peers.isUseNATService());
-          request.put("announcedAddress", Peers.getMyAddress());
+          request.putAll(Peers.getNatAndAddressMap());
           request.put("transactionIds", requestList);
           JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
           if (response == null) {
@@ -1440,6 +1478,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       BigInteger score = PocProcessorImpl.instance.calPocScore(generatorAccount,previousLastBlock.getHeight());
 //      long generatorBalance = generatorAccount == null ? 0 : generatorAccount.getEffectiveBalanceSS();
+      block.verifyGenerationSignature();
       throw new BlockNotAcceptedException("Generation signature verification failed, poc score " + score, block);
     }
     if (!block.verifyBlockSignature()) {
@@ -1949,8 +1988,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
     if (blockchain.getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
-      try (DbIterator<TransactionImpl> phasedTransactions =
-          PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
+      try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
           try {
             phasedTransaction.validate();
