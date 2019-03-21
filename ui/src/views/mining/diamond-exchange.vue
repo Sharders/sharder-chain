@@ -6,13 +6,9 @@
 </template>
 
 <script>
-    import ExchangeReward from "./exchange-reward";
 
     export default {
         name: "diamond-exchange",
-        components: {
-            "ExchangeReward": ExchangeReward
-        },
         data() {
             return {}
         },
