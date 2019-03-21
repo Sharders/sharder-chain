@@ -938,7 +938,7 @@
     }
 
     #account_transaction {
-        top: 20px;
+        /*top: 20px;*/
 
         .modal-header {
             padding: 0 40px;
