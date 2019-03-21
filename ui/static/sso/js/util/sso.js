@@ -378,7 +378,7 @@ var Sso = (function (NRS, $, undefined) {
                             NRS.netWorkType = response[key];
                         }
                         if (key === "useEoLinker") {
-                            NRS.useEoLinker = response[key] === 'true';
+                            NRS.useEoLinker = response[key];
                         }
                     }
 
