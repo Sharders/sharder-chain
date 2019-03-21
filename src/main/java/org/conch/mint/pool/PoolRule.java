@@ -1,5 +1,6 @@
 package org.conch.mint.pool;
 
+import org.conch.Conch;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -28,7 +29,7 @@ public class PoolRule implements Serializable {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbFactory.newDocumentBuilder();
-            Document ruleFile = db.parse("conf" + File.separator + "rule-default.xml");
+            Document ruleFile = db.parse(Conch.getConfDir() + File.separator + "rule-default.xml");
             rules = (Map<String, Object>) toMap(ruleFile.getChildNodes()).get("rules");
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to load rule file ", e);

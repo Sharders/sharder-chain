@@ -24,9 +24,7 @@ package org.conch.util;
 import org.apache.log4j.PropertyConfigurator;
 import org.conch.Conch;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
 import java.util.logging.LogManager;
 
@@ -64,7 +62,20 @@ public final class Logger {
      * No constructor
      */
     private Logger() {}
+    
+    static void appendPrefix(Properties loggingProperties){
+        // append USER_HOME as prefix under desktop mode
+        if(Conch.isDesktopApplicationEnabled()) {
+            String logFileName = "log4j.appender.D.File";
+            String errorFileName = "log4j.appender.E.File";
+            String logFilePath = Conch.getUserHomeDir() + loggingProperties.getProperty(logFileName);
+            String errorFilePath = Conch.getUserHomeDir() + loggingProperties.getProperty(errorFileName);
 
+            loggingProperties.setProperty(logFileName,logFilePath);
+            loggingProperties.setProperty(errorFileName,errorFilePath);
+        }
+    }
+    
     /**
      * Logger initialization
      *
@@ -81,14 +92,24 @@ public final class Logger {
             System.setProperty("java.util.logging.manager",
                     (oldManager != null ? oldManager : "java.util.logging.LogManager"));
         }
-        PropertyConfigurator.configure("conf/logging-default.properties");
+        
+        Properties loggingProperties = new Properties();
+        String defaultPropertieFile = Conch.getConfDir() + File.separator + "logging-default.properties";
+        try (InputStream fis = new FileInputStream(defaultPropertieFile)) {
+            loggingProperties.load(fis);
+            appendPrefix(loggingProperties);
+        } catch (IOException e) {
+            System.err.println(String.format("Error loading default logging properties from %s", defaultPropertieFile));
+        }
+        PropertyConfigurator.configure(loggingProperties);
+        
         if (! Boolean.getBoolean("sharder.doNotConfigureLogging")) {
             try {
-                Properties loggingProperties = new Properties();
                 Conch.loadProperties(loggingProperties, "logging-default.properties", true);
                 Conch.loadProperties(loggingProperties, "logging.properties", false);
                 Conch.updateLogFileHandler(loggingProperties);
                 if (loggingProperties.size() > 0) {
+                    appendPrefix(loggingProperties);
                     ByteArrayOutputStream outStream = new ByteArrayOutputStream();
                     loggingProperties.store(outStream, "logging properties");
                     ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
@@ -101,6 +122,7 @@ public final class Logger {
                 throw new RuntimeException("Error loading logging properties", e);
             }
         }
+        
         log = org.slf4j.LoggerFactory.getLogger(Conch.class);
         enableStackTraces = Conch.getBooleanProperty("sharder.enableStackTraces");
         enableLogTraceback = Conch.getBooleanProperty("sharder.enableLogTraceback");
