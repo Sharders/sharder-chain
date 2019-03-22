@@ -68,8 +68,8 @@ public final class Logger {
         if(Conch.isDesktopApplicationEnabled()) {
             String logFileName = "log4j.appender.D.File";
             String errorFileName = "log4j.appender.E.File";
-            String logFilePath = Conch.getUserHomeDir() + loggingProperties.getProperty(logFileName);
-            String errorFilePath = Conch.getUserHomeDir() + loggingProperties.getProperty(errorFileName);
+            String logFilePath = Conch.getUserHomeDir() + File.separator + loggingProperties.getProperty(logFileName);
+            String errorFilePath = Conch.getUserHomeDir() + File.separator + loggingProperties.getProperty(errorFileName);
 
             loggingProperties.setProperty(logFileName,logFilePath);
             loggingProperties.setProperty(errorFileName,errorFilePath);
