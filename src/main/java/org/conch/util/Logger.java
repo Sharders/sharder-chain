@@ -23,6 +23,7 @@ package org.conch.util;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.conch.Conch;
+import org.conch.env.RuntimeEnvironment;
 
 import java.io.*;
 import java.util.Properties;
@@ -65,7 +66,7 @@ public final class Logger {
     
     static void appendPrefix(Properties loggingProperties){
         // append USER_HOME as prefix under desktop mode
-        if(Conch.isDesktopApplicationEnabled()) {
+        if(RuntimeEnvironment.isDesktopApplicationEnabled()) {
             String logFileName = "log4j.appender.D.File";
             String errorFileName = "log4j.appender.E.File";
             String logFilePath = Conch.getUserHomeDir() + File.separator + loggingProperties.getProperty(logFileName);

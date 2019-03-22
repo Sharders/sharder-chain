@@ -256,7 +256,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{parseInt(maxForgeTime/avgBlocksTime)}} Block（≈{{maxForgeTime/60/60}}H）</span>
+                            <span>{{parseInt(maxForgeTime/avgBlocksTime) + $t("mining.index.unit_block")}}（约{{maxForgeTime/60/60}}h）</span>
                         </p>
                     </div>
                     <div class="pool-set">
