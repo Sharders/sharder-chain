@@ -879,6 +879,17 @@ const cn = {
         plz_input_admin_pwd_again: '请再次输入管理员密码',
         inconsistent_admin_password: "两次输入的管理员密码不一致！",
     },
+    reward:{
+        "exchange_success":"兑换成功",
+        "exchange_error":"兑换失败",
+        "transfer_failed":"转账失败",
+        "sharder_binding_acconut":"请去官网绑定该地址",
+        "binding_account":"绑定账户",
+        "no_binding_account":"没绑定账户",
+        "immediately_binding":"立刻绑定",
+        "exchange":"兑换",
+        "exchange_sharder_account":"兑换到Sharder账户:  {account}"
+    },
     ...zhLocale
 };
 

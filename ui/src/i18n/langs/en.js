@@ -879,6 +879,17 @@ const en = {
         plz_input_admin_pwd_again: 'Please input hub password again',
         inconsistent_admin_password: 'Hub Passwords do not match',
     },
+    reward:{
+        "exchange_success":"For successful",
+        "exchange_error":"For failure",
+        "transfer_failed":"Transfer failed",
+        "sharder_binding_acconut":"Please go to the official website to bind the address",
+        "binding_account":"Binding account",
+        "no_binding_account":"No account binding",
+        "immediately_binding":"Immediately binding",
+        "exchange":"exchange",
+        "exchange_sharder_account":"Exchange to Sharder account:  {account}"
+    },
     ...enLocale
 };
 

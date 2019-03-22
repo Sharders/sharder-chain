@@ -3,8 +3,11 @@
         <div class="exchange-header">
             <h1>{{$t('mining.diamond_exchange.diamond_exchange_title')}}</h1>
             <p v-show="isSSA">
-                <span v-if="sharderAccount">绑定账户 : {{sharderAccount}}</span>
-                <span v-else>没绑定账户?<a href="https://sharder.org">立刻绑定</a></span>
+                <span v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</span>
+                <span v-else>
+                    {{$t("reward.no_binding_account")}} ?
+                    <a href="https://sharder.org">{{$t("reward.immediately_binding")}}</a>
+                </span>
             </p>
             <p>{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
         </div>
@@ -14,7 +17,7 @@
                 <span class="title">{{exchange.title}}</span>
             </p>
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
-            <button @click="exchangeFun(exchange)">兑换</button>
+            <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
         <div class="exchange-list info">
             {{$t('mining.diamond_exchange.not_open_tip')}}
@@ -62,13 +65,13 @@
             let _this = this;
             let data = new FormData();
             data.append("ssa", SSO.accountRS);
-            _this.$http.post("http://localhost:8080/official/address/ssa.ss", data).then(res => {
+            _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
                 _this.isSSA = true;
                 if (res.data.success) {
                     _this.sharderAccount = res.data.data;
                 }
             });
-            _this.$http.post("http://localhost:8080/official/exchange/rs.ss").then(res => {
+            _this.$http.post(window.api.sharderExchangeRS).then(res => {
                 if (res.data.success) {
                     _this.recipient = res.data.data;
                 }
@@ -78,9 +81,9 @@
             exchangeFun(e) {
                 let _this = this;
                 if (!_this.sharderAccount) {
-                    return _this.$message.warning("请去官网绑定该地址");
+                    return _this.$message.warning(_this.$t("reward.sharder_binding_acconut"));
                 }
-                _this.$confirm(e.info, "兑换到Sharder账户:  " + _this.sharderAccount).then(() => {
+                _this.$confirm(e.info,_this.$t("reward.exchange_sharder_account",{account:_this.sharderAccount})).then(() => {
                     _this.sendMoney(e.num)
                 });
             },
@@ -97,7 +100,7 @@
                     if (res.broadcasted) {
                         _this.exchangeRS(res.transaction);
                     } else {
-                        _this.$message.error('转账失败!');
+                        _this.$message.error(_this.$t("reward.transfer_failed"));
                     }
                 });
             },
@@ -106,11 +109,11 @@
                 let data = new FormData();
                 data.append("ssa", SSO.accountRS);
                 data.append("transaction", val);
-                _this.$http.post("http://localhost:8080/official/exchange.ss", data).then(res => {
+                _this.$http.post(window.api.sharderExchange, data).then(res => {
                     if (res.data.status) {
-                        _this.$message.success('兑换成功!');
+                        _this.$message.success(_this.$t("reward.exchange_success"));
                     } else {
-                        _this.$message.error('兑换失败!');
+                        _this.$message.error(_this.$t("reward.exchange_error"));
                     }
                 });
             }
