@@ -574,15 +574,15 @@
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.balanceNQT)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.balanceNQT||0)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_available_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceSS,true)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceSS || 0,true)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_mining_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT || 0)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.public_key')}}</th>
@@ -2254,24 +2254,16 @@
                         _this.$message.warning(_this.$t('notification.account_is_self'));
                         _this.messageForm.errorCode = true;
                     }
+                    _this.messageForm.publicKey = "";
                     _this.getAccount(receiver).then(res => {
                         console.log(res);
-                        if (res.errorDescription === "Unknown account" && _this.messageForm.publicKey === "") {
-                            _this.messageForm.hasPublicKey = true;
-                            _this.messageForm.errorCode = true;
-                            _this.$message.warning(_this.$t('notification.unknown_account'));
-                        } else if (res.errorDescription === "Unknown account" && _this.messageForm.publicKey !== "") {
-                            _this.messageForm.hasPublicKey = true;
-                            _this.messageForm.errorCode = false;
-                        } else if (res.errorDescription === "Incorrect \"account\"") {
-                            _this.messageForm.errorCode = true;
-                            _this.messageForm.hasPublicKey = false;
-                            _this.messageForm.publicKey = "";
-                            _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
-                        } else if (typeof res.errorDescription === "undefined") {
-                            _this.messageForm.errorCode = false;
-                            _this.messageForm.hasPublicKey = false;
+                        if(res.publicKey){
                             _this.messageForm.publicKey = res.publicKey;
+                            return;
+                        }
+                        if(res.errorDescription || !res.publicKey){
+                            _this.messageForm.errorCode = true;
+                            _this.messageForm.hasPublicKey = true;
                         }
                     });
                 }
@@ -2285,28 +2277,19 @@
                         return;
                     }
                     if (receiver === _this.accountInfo.accountRS) {
-                        _this.$message.warning(_this.$t('notification.unknown_account'));
+                        _this.$message.warning(_this.$t('notification.account_is_self'));
                         _this.transfer.errorCode = true;
                     }
+                    _this.transfer.receiverPublickey = "";
                     _this.getAccount(receiver).then(res => {
                         console.log(res);
-                        if (res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey === "") {
-                            _this.transfer.hasPublicKey = true;
-                            _this.transfer.errorCode = true;
-                        } else if (res.errorDescription === "Unknown account" && _this.transfer.receiverPublickey !== "") {
-                            _this.transfer.hasPublicKey = true;
-                            _this.transfer.errorCode = false;
-                            _this.transfer.publicKey = "";
-                        } else if (res.errorDescription === "Incorrect \"account\"") {
-                            _this.transfer.errorCode = true;
-                            _this.transfer.hasPublicKey = false;
-                            _this.transfer.publicKey = "";
-                            _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
-                        } else if (typeof res.errorDescription === "undefined") {
-                            _this.transfer.errorCode = false;
-                            _this.transfer.hasPublicKey = false;
+                        if(res.publicKey){
                             _this.transfer.receiverPublickey = res.publicKey;
-
+                            return ;
+                        }
+                        if(res.errorDescription || !res.publicKey){
+                            _this.transfer.errorCode = true;
+                            _this.transfer.hasPublicKey = true;
                         }
                     });
                 }
