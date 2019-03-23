@@ -67,7 +67,7 @@
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>{{$t('dialog.account_info_name') + accountInfo.name}}</span> |
+                    <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} |</span>
                     <span>{{$t('dialog.account_info_available_asset') + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_transactionInfo">
