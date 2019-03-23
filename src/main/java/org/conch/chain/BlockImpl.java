@@ -312,9 +312,9 @@ public final class BlockImpl implements Block {
 
     @Override
     public int getHeight() {
-        if (height == -1) {
-            throw new IllegalStateException("Block height not yet set");
-        }
+//        if (height == -1) {
+//            throw new IllegalStateException("Block height not yet set");
+//        }
         return height;
     }
 
