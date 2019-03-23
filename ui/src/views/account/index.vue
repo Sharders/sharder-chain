@@ -560,7 +560,7 @@
                         <th>{{$t('account_info.account_name')}}</th>
                         <td>
                             <div class="accountName" v-if="isShowName">
-                                <span v-if="typeof accountInfo.name !== 'undefined' && accountInfo.name !== ''">{{accountInfo.name}}</span>
+                                <span v-if="accountInfo.name">{{accountInfo.name}}</span>
                                 <span v-else style="color:#999;font-weight: normal">{{$t('account_info.account_name_not_set')}}</span>
                                 <img src="../../assets/img/rewrite.svg" @click="isShowName = false"/>
                             </div>
