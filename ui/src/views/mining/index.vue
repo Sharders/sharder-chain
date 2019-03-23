@@ -493,7 +493,7 @@
 
                 _this.getPools({sort: _this.sortFun});
 
-                _this.$global.fetch("POST", {}, "getNextBlockGenerators").then(res => {
+                _this.$global.fetch("POST", {limit:99999}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
