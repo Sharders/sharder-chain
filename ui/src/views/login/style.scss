@@ -14,12 +14,12 @@
             outline: none;
         }
         .common_btn{
-            width: 510px;
+            width: 416px;
         }
     }
     :nth-child(3){
         a{
-            font-size: 16px;
+            font-size: 14px;
             margin-left: 2px;
             cursor: pointer;
             text-decoration:none;
@@ -45,8 +45,7 @@
     .el-button{
         height: 45px;
         //color: #fff;
-        margin-top: 40px;
-        margin-bottom: 50px;
+        margin: 50px auto 30px;
         font-size: 16px;
     }
 }
