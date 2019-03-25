@@ -12,7 +12,7 @@
         </el-col>
 
         <el-col :span="24">
-            <div class="radius_blue tip">
+            <div class="tip">
                 <div>{{$t('register.register_tip1')}}</div>
                 <div>{{$t('register.register_tip2')}}</div>
             </div>

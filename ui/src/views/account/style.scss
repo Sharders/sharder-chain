@@ -89,14 +89,15 @@
 
         .el-input__suffix {
             top: -12px;
+            right: 0px;
             //right: -20px;
         }
 
         .btn {
             cursor: pointer;
             font-size: 13px;
-            padding: 3px 10px;
-            border: 1px solid #493eda;
+            padding: 5px 10px;
+            border: 0.5px solid #493eda;
             border-radius: 4px;
             margin-right: 10px;
         }
