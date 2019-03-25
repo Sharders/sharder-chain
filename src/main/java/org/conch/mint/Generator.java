@@ -90,14 +90,18 @@ public class Generator implements Comparable<Generator> {
             count=0;
             return generatorSummary;
         }
-        static void putin(Generator generator){
-            generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore 
-                    + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+        static void putin(){
+            if(sortedMiners != null && sortedMiners.size() > 0){
+                for(Generator generator : sortedMiners){
+                    generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
+                            + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+                }
+            }
         }
 
         static void print(){
             if(!debug || (count++  <= 100)) return;
-           
+            putin();
             Logger.logDebugMessage(generatorSummary);
             generatorSummary = reset();
         }
@@ -188,7 +192,6 @@ public class Generator implements Comparable<Generator> {
                                 generator.setLastBlock(lastBlock);
                                 if (generator.pocScore.signum() > 0) {
                                     forgers.add(generator);
-                                    MinerPrinter.putin(generator);
                                 }
                             }
 

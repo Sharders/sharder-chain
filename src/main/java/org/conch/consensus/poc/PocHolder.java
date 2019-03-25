@@ -51,8 +51,8 @@ public class PocHolder implements Serializable {
         inst.certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
         inst.certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
 
-
-        String ip = Constants.isDevnet() ? IpUtil.getIp("devboot.sharder.io") : Constants.isTestnet() ? IpUtil.getIp("testboot.sharder.io") : IpUtil.getIp("mainboot.sharder.io");
+        String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
+        String ip = IpUtil.getIp(bootNodeDomain);
         inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(SharderGenesis.CREATOR_ID,ip);
 
         if(Constants.isDevnet()){

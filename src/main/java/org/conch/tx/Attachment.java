@@ -267,6 +267,9 @@ public interface Attachment extends Appendix {
 
         @Override
         public int getMySize() {
+            if(Constants.isDevnet()) {
+                System.out.println(toString());
+            }
             return 2 + coinBaseType.name().getBytes().length 
                     + 8 + 8 
                     + consignors.size() * 2 * 8;
@@ -4297,5 +4300,9 @@ public interface Attachment extends Appendix {
         public long getStorerId() {
             return storerId;
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Account.rsAccount(3790328149872734783L));
     }
 }
