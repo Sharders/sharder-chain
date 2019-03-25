@@ -47,7 +47,7 @@ public class PocCalculator implements Serializable {
 
     static void ssHoldCal(PocScore pocScore) {
         BigInteger ssHoldWeight = getWeight(PocTxBody.WeightTableOptions.SS_HOLD);
-        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore);
+        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore).divide(PERCENT_DIVISOR);
     }
     
     
@@ -137,6 +137,7 @@ public class PocCalculator implements Serializable {
     private static BigInteger predefineOnlineRateLevel(Peer.Type peerType,PocTxBody.OnlineStatusDef statusDef){
         return BigInteger.valueOf(inst.pocWeightTable.getOnlineRateTemplate().get(peerType.getCode()).get(statusDef.getValue()));
     }
+    
     static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
         BigInteger onlineRateScore = BigInteger.ZERO;
 

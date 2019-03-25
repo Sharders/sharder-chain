@@ -2,18 +2,19 @@ package org.conch.consensus.poc;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
+import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.util.IpUtil;
+import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,7 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PocHolder implements Serializable {
 
     static PocHolder inst = new PocHolder();
-
+    
+    
     // accountId : pocScore
     Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
     // height : { accountId : pocScore }
@@ -122,7 +124,7 @@ public class PocHolder implements Serializable {
         }
         return null;
     }
-
+    
     /**
      * update the poc score of account
      * @param pocScore a poc score object
@@ -137,6 +139,7 @@ public class PocHolder implements Serializable {
 
         inst.scoreMap.put(pocScore.accountId,_pocScore);
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
+        PocScorePrinter.print();
     }
 
     static BigInteger getTotal(int height,Long accountId){
@@ -145,7 +148,7 @@ public class PocHolder implements Serializable {
         PocScore score = map.get(accountId);
         return score !=null ? score.total() : BigInteger.ZERO;
     }
-
+        
     /**
      * record current poc score into history
      */
@@ -162,11 +165,76 @@ public class PocHolder implements Serializable {
         if(!inst.historyScore.containsKey(height)) {
             return null;
         }
+        PocScorePrinter.print();
         return inst.historyScore.get(height).get(accountId);
     }
 
     static PocTxBody.PocWeightTable getPocWeightTable(){
         return PocCalculator.inst.getCurWeightTable();
+    }
+
+    /**
+     * Poc score map printer
+     */
+    private static class PocScorePrinter {
+        static int count = 0;
+        static final int printCount = 100;
+        
+        protected static boolean debug = Constants.isDevnet() ? true : false;
+        protected static String summary = reset();
+
+        private static final String splitter = "\n\r";
+
+        static private String appendSplitter(String str, boolean appendEnd) {
+            str = splitter + str ;
+            if(appendEnd) {
+                str += splitter;
+            }
+            return str;
+        }
+        
+        static String reset(){
+            String summary = appendSplitter("--------------PocScorePrinter-------------",false);
+            count=0;
+            return summary;
+        }
+        
+        static String scoreMapStr( Map<Long, PocScore> scoreMap){
+            Set<Long> accountIds = scoreMap.keySet();
+            for(Long accountId : accountIds){
+                PocScore pocScore = scoreMap.get(accountId);
+                summary += appendSplitter(Account.rsAccount(pocScore.accountId) + ",poc score=" + pocScore.total() + ":" + pocScore.toJsonString(),false);
+            }
+            return summary;
+        }
+        
+        static void putin(){
+            // accountId : pocScore
+            Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+            // height : { accountId : pocScore }
+            Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
+
+            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] >>>>>>>>",true);
+            scoreMapStr(inst.scoreMap);
+            summary += appendSplitter("<<<<<<<<<<",true);
+
+            summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore Object } ] >>>>>>>>",true);
+            Set<Integer> heights = inst.historyScore.keySet();
+            
+            for(Integer height : heights){
+                summary += "height -> {";
+                scoreMapStr(inst.historyScore.get(height));
+                summary += appendSplitter("}",true);
+            }
+            summary += appendSplitter("<<<<<<<<<<",true);
+        }
+
+        static void print(){
+            if(!debug || (count++  <= printCount)) return;
+            putin();
+            Logger.logDebugMessage(summary);
+            summary = reset();
+        }
     }
 
 }

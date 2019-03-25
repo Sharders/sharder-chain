@@ -111,8 +111,9 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
+        boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
+        
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-            boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
             if(printNow) {
                 Logger.logInfoMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
                         + ", and current height is " + lastBlock.getHeight()
@@ -121,6 +122,15 @@ public class Generator implements Comparable<Generator> {
             }
             return false;
         }
+        
+        if(Conch.getBlockchainProcessor().isDownloading()){
+            if(printNow) {
+                Logger.logInfoMessage("block is downloading, don't mint till blocks sync finished...");
+                mintHeightCheckCount = 1;
+            }
+            return false;
+        }
+        
         return true;
     }
     

@@ -87,6 +87,7 @@ public class PocScore implements Serializable {
         PocCalculator.inst.ssHoldCal(this);
     }
 
+
     public void nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
         PocCalculator.inst.nodeConfCal(this, nodeConf);
     }
@@ -207,4 +208,5 @@ public class PocScore implements Serializable {
     public BigInteger getBcScore() {
         return bcScore;
     }
+
 }
