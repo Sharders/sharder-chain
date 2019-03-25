@@ -289,15 +289,15 @@
                         </el-table-column>
                         <el-table-column
                             prop="senderRS"
-                            label="Account">
+                            label="{{$t('poc.creator')}}">
                         </el-table-column>
                         <el-table-column
                             prop="block"
-                            label="Block">
+                            label="{{$t('poc.block')}}">
                         </el-table-column>
                         <el-table-column
                             prop="transaction"
-                            label="transaction">
+                            label="{{$t('poc.tx')}}">
                         </el-table-column>
                     </el-table>
                 </div>

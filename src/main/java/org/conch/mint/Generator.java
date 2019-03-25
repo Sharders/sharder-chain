@@ -648,14 +648,16 @@ public class Generator implements Comparable<Generator> {
             Block lastBlock = blockchain.getLastBlock();
             List<ActiveGenerator> curMiners = new ArrayList<>();
             //add active miners of local node 
-            for(Generator generator : sortedMiners){
-                if(activeGeneratorMp.containsKey(generator.getAccountId())) {
-                    continue;
+            if(sortedMiners != null && sortedMiners.size() > 0) {
+                for(Generator generator : sortedMiners){
+                    if(activeGeneratorMp.containsKey(generator.getAccountId())) {
+                        continue;
+                    }
+                    ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
+                    curMiners.add(activeMiner);
                 }
-                ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
-                curMiners.add(activeMiner);
             }
-
+        
             if (lastBlock.getId() != activeBlockId) {
                 activeBlockId = lastBlock.getId();
                 curMiners.forEach(generator -> generator.setLastBlock(lastBlock));

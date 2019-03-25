@@ -2,8 +2,8 @@
     <div class="pocContent">
         <div class="template">
             <p v-if="pocInfo.weightMap">
-                <strong>权重占比(%)</strong>
-                <span>节点类型:{{pocInfo.weightMap.node}}</span>
+                <strong>{{$t('poc.weight')}}</strong>
+                <span>{{$t('poc.nodeType')}}:{{pocInfo.weightMap.node}}</span>
                 <span>开启服务:{{pocInfo.weightMap.serverOpen}}</span>
                 <span>SS持有量:{{pocInfo.weightMap.ssHold}}</span>
                 <span>硬件配置:{{pocInfo.weightMap.hardwareConfig}}</span>
@@ -114,7 +114,7 @@
     .pocContent .template p strong {
         display: inline-block;
         width: 200px;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: bold;
         color: #000;
     }
@@ -137,14 +137,14 @@
     }
 
     .online-rate > div > h3 {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: bold;
         color: #000;
     }
 
     .online-rate > div > P {
         padding: 8px 0 0 0;
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .online-rate > div > P span {
@@ -156,8 +156,9 @@
 
     .pocContent .template-version {
         padding: 16px 0 0;
-        font-size: 18px;
-        font-weight: bold;
-        text-align: center;
+        font-size: 14px;
+        font-weight: normal;
+        text-align: right;
+        font-style: italic;
     }
 </style>

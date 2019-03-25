@@ -889,6 +889,13 @@ const cn = {
         "immediately_binding":"立刻绑定",
         "exchange":"兑换",
         "exchange_sharder_account":"兑换到Sharder账户:  {account}"
+    }, 
+    poc: {
+        'creator': "创建者",
+        'block': "生效区块",
+        'tx': "交易",
+        'weight': "权重占比(%)",
+        'nodeType': "节点类型",
     },
     ...zhLocale
 };

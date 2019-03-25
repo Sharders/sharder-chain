@@ -890,6 +890,13 @@ const en = {
         "exchange":"exchange",
         "exchange_sharder_account":"Exchange to Sharder account:  {account}"
     },
+    poc: {
+        'creator': "Creator",
+        'block': "Started Block",
+        'tx': "Transaction",
+        'weight': "Weight Distribution(%)",
+        'nodeType': "Node Type",
+    },
     ...enLocale
 };
 
