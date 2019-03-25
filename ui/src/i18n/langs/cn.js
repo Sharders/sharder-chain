@@ -162,8 +162,8 @@ const cn = {
     },
     network: {
         'mining_time': "挖矿时间",
-        'poc_score': "算力",
-        'poc_score_ss': "SS持有量",
+        'poc_score': "算力(PoC)",
+        'poc_score_ss': "SS持有得分",
         'poc_score_node_type': "节点类型",
         'poc_score_server': '开启服务',
         'poc_score_hardware': '硬件',

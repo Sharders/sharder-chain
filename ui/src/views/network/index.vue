@@ -315,6 +315,7 @@
                     </div>
                 </div>
             </div>
+            <p class="testnet-tips">{{$t('poc.block_reward_tips_phase1')}}</p>
         </div>
         <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight"
                       :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
@@ -554,6 +555,13 @@
 
     #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
         color: #99a9bf !important;
+    }
+
+    .testnet-tips {
+        padding: 10px 0 20px 0;
+        font-size: 13px;
+        font-weight: normal;
+        text-align: center;
     }
 </style>
 <!--<style scoped>-->

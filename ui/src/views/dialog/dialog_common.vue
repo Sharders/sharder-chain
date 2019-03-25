@@ -162,7 +162,7 @@
                     </el-radio-button>
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}
                     </el-radio-button>
-                    <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">POC</el-radio-button>
+                    <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
@@ -277,7 +277,7 @@
                     </table>
                 </div>
                 <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
-                    <el-table :data="pocInfoList" style="width: 100%">
+                    <el-table :data="pocInfoList" class="poc" style="width: 100%">
                         <el-table-column type="expand">
                             <template slot-scope="props">
                                 <el-form label-position="left" inline>
@@ -288,16 +288,16 @@
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="senderRS"
-                            label="{{$t('poc.creator')}}">
+                            prop="senderRS" 
+                            :label="$t('poc.creator')">
                         </el-table-column>
                         <el-table-column
                             prop="block"
-                            label="{{$t('poc.block')}}">
+                            :label="$t('poc.block')">
                         </el-table-column>
                         <el-table-column
                             prop="transaction"
-                            label="{{$t('poc.tx')}}">
+                            :label="$t('poc.tx')">
                         </el-table-column>
                     </el-table>
                 </div>
@@ -467,6 +467,7 @@
                                         pocInfo:t.attachment,
                                         senderRS:t.senderRS,
                                         block:t.block,
+                                        height:t.height,
                                         transaction:t.transaction
                                     });
                                 }
@@ -788,6 +789,10 @@
                         padding: 8px 10px;
                         line-height: 20px;
                     }
+                }
+                
+                .poc {
+                    margin-top: 20px;
                 }
             }
         }

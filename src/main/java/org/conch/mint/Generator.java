@@ -153,7 +153,6 @@ public class Generator implements Comparable<Generator> {
 
         private volatile boolean logged;
 
-        
         @Override
         public void run() {
             try {
@@ -262,7 +261,7 @@ public class Generator implements Comparable<Generator> {
 
     static {
         if (!Constants.isLightClient) {
-            ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 500, TimeUnit.MILLISECONDS);
+            ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 15000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -637,10 +636,11 @@ public class Generator implements Comparable<Generator> {
         synchronized(activeGeneratorMp) {
             if (!generatorsInitialized) {
                 Set<Long> generatorIds = BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE));
+                // load history miners 
                 generatorIds.forEach(generatorId -> activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId)));
                 Logger.logDebugMessage(activeGeneratorMp.size() + " generators found");
                 
-                // Active generator listener for block pushed
+                // active generator listener for block pushed
                 Conch.getBlockchainProcessor().addListener(block -> {
                     long generatorId = block.getGeneratorId();
                     synchronized(activeGeneratorMp) {
@@ -653,26 +653,27 @@ public class Generator implements Comparable<Generator> {
                 generatorsInitialized = true;
             }
 
-            Block lastBlock = blockchain.getLastBlock();
-            List<ActiveGenerator> curMiners = new ArrayList<>();
-            //add active miners of local node 
+            // add active miners of local node 
+            List<ActiveGenerator> minersOnCurNode = new ArrayList<>();
             if(sortedMiners != null && sortedMiners.size() > 0) {
                 for(Generator generator : sortedMiners){
                     if(activeGeneratorMp.containsKey(generator.getAccountId())) {
                         continue;
                     }
                     ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
-                    curMiners.add(activeMiner);
+                    minersOnCurNode.add(activeMiner);
                 }
             }
-        
+
+            // re-calculate poc score and hit according to last block
+            Block lastBlock = blockchain.getLastBlock();
             if (lastBlock.getId() != activeBlockId) {
                 activeBlockId = lastBlock.getId();
-                curMiners.forEach(generator -> generator.setLastBlock(lastBlock));
+                minersOnCurNode.forEach(generator -> generator.setLastBlock(lastBlock));
                 activeGeneratorMp.forEach((id, generator)-> generator.setLastBlock(lastBlock));
             }
 
-            generatorList = Lists.newArrayList(curMiners);
+            generatorList = Lists.newArrayList(minersOnCurNode);
             generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
         }
@@ -686,7 +687,7 @@ public class Generator implements Comparable<Generator> {
     public static class ActiveGenerator extends Generator {
 
         public ActiveGenerator(long accountId) {
-            new ActiveGenerator(accountId,Long.MAX_VALUE,BigInteger.ZERO);
+            this(accountId,Long.MAX_VALUE,BigInteger.ZERO);
         }
         
         public ActiveGenerator(long accountId, long hitTime, BigInteger hit) {
@@ -694,10 +695,7 @@ public class Generator implements Comparable<Generator> {
             this.publicKey = Account.getPublicKey(this.accountId);
             this.hitTime = hitTime;
             this.hit = hit;
-            Block lastBlock = Conch.getBlockchain().getLastBlock();
-            if(lastBlock != null) {
-                calAndSetHit(lastBlock);
-            }
+            setLastBlock(Conch.getBlockchain().getLastBlock());
         }
 
         public long getEffectiveBalance() {
@@ -707,6 +705,8 @@ public class Generator implements Comparable<Generator> {
         public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {
+            if(lastBlock == null) return;
+            
             if (publicKey == null) {
                 publicKey = Account.getPublicKey(accountId);
                 if (publicKey == null) {

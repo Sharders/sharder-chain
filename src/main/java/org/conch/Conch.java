@@ -663,16 +663,13 @@ public final class Conch {
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
-                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
+                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI access URL is " + API.getWelcomePageUri());
 
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
 
                 if (isDesktopApplicationEnabled()) launchDesktopApplication();
 
-                if (Constants.isTestnet()) Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
-
-                if (Constants.isDevnet()) Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
-
+                if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE REAL ACCOUNTS!");
 
                 Peers.sysInitialed = true;
 

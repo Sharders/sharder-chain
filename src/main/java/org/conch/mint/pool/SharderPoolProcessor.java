@@ -240,8 +240,7 @@ public class SharderPoolProcessor implements Serializable {
     static {
         File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS));
         if (file.exists()) {
-            sharderPools =
-                    (ConcurrentMap<Long, SharderPoolProcessor>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
+            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
         } else {
             // TODO delete by user ,pop off get block from network
             sharderPools = new ConcurrentHashMap<>();

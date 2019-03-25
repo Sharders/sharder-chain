@@ -139,7 +139,7 @@
                                     <button class="list_button w40" @click="openConnectPeer(peer.address)">
                                         {{$t('peers.link')}}
                                     </button>
-                                    <button class="list_button w50" @click="openBlackDialog(peer.address)">
+                                    <button class="list_button w70" @click="openBlackDialog(peer.address)">
                                         {{$t('peers.blacklist')}}
                                     </button>
                                 </td>
