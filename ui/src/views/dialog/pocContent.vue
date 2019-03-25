@@ -92,6 +92,7 @@
         </div>
 
         <p class="template-version">版本号: {{pocInfo.templateVersion}}</p>
+        <p class="testnet-tips">{{$t('poc.reward')}}</p>
     </div>
 </template>
 
@@ -160,5 +161,12 @@
         font-weight: normal;
         text-align: right;
         font-style: italic;
+    }
+    
+    .pocContent .testnet-tips {
+        padding: 16px 0 0;
+        font-size: 13px;
+        font-weight: normal;
+        text-align: center;
     }
 </style>

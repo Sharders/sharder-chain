@@ -140,13 +140,15 @@ public class PocProcessorImpl implements PocProcessor {
   }
   
   @Override
-  public BigInteger calPocScore(Account account, int height) {
+  public JSONObject calPocScore(Account account, int height) {
     return PocHolder.getPocScore(height, account.getId());
   }
 
-  @Override
-  public JSONObject calDetailedPocScore(Account account, int height) {
-    return PocHolder.getDetailedPocScore(height, account.getId());
+  public BigInteger getScoreInt(JSONObject scoreJson) {
+    if(scoreJson == null || !scoreJson.containsKey(SCORE_KEY)) {
+      return BigInteger.ZERO;
+    }
+    return new BigInteger(scoreJson.getString(SCORE_KEY));
   }
 
   @Override

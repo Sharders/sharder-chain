@@ -28,7 +28,6 @@ public class PocHolder implements Serializable {
 
     static PocHolder inst = new PocHolder();
     
-    
     // accountId : pocScore
     Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
     // height : { accountId : pocScore }
@@ -71,58 +70,34 @@ public class PocHolder implements Serializable {
     private static void _defaultPocScore(long accountId,int height){
         scoreMapping(new PocScore(accountId,height));
     }
-
+    
+    
     /**
-     * get the poc score of the specified height
+     * get the poc score and detail of the specified height
      * @param height
      * @param accountId
      * @return
      */
-    static BigInteger getPocScore(int height, long accountId) {
+    static JSONObject getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
+        JSONObject jsonObject = new JSONObject();
         if (!inst.scoreMap.containsKey(accountId)) {
             PocProcessorImpl.notifySynTxNow();
             _defaultPocScore(accountId,height);
         }
-
-        PocScore pocScore = inst.scoreMap.get(accountId);
-        //newest poc score when query height is bigger than last height of poc score 
-        if(pocScore.height <= height) {
-            return pocScore.total();
-        }else{
-            //get from history
-            pocScore = getHistoryPocScore(height, accountId);
-            if(pocScore != null) {
-                return pocScore.total();
-            }
-        }
-        return BigInteger.ZERO;
-    }
-
-    /**
-     * get the detailed poc score of the specified height
-     *
-     * @param height
-     * @param accountId
-     * @return json string
-     */
-    static JSONObject getDetailedPocScore(int height, long accountId) {
-        if(height < 0) height = 0;
-        PocScore pocScore;
-        if (!inst.scoreMap.containsKey(accountId)) {
-            PocProcessorImpl.notifySynTxNow();
-            _defaultPocScore(accountId,height);
-        }
-        pocScore = inst.scoreMap.get(accountId);
+        PocScore pocScoreDetail = inst.scoreMap.get(accountId);
         //newest poc score when query height is bigger than last height of poc score
-        if(pocScore.height > height) {
+
+        if(pocScoreDetail.height > height) {
             //get from history
-            pocScore = getHistoryPocScore(height, accountId);
+            pocScoreDetail = getHistoryPocScore(height, accountId);
         }
-        if (pocScore != null) {
-            return pocScore.toJsonObject();
+
+        if(pocScoreDetail != null) {
+            jsonObject.put(PocProcessor.SCORE_KEY,pocScoreDetail.total());
+            jsonObject.putAll(pocScoreDetail.toJsonObject());
         }
-        return null;
+        return jsonObject;
     }
     
     /**

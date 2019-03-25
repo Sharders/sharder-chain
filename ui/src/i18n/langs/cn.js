@@ -891,6 +891,7 @@ const cn = {
         "exchange_sharder_account":"兑换到Sharder账户:  {account}"
     }, 
     poc: {
+        'block_reward_tips_phase1': "开放测试网络第一阶段(2019.Q2前) 90%的挖矿奖励属于Hub矿工，剩余10%的奖励属于其余矿工",
         'creator': "创建者",
         'block': "生效区块",
         'tx': "交易",

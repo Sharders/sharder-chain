@@ -464,6 +464,7 @@ public class Generator implements Comparable<Generator> {
 
 
     protected long accountId;
+    protected String rsAddress;
     protected byte[] publicKey;
     protected volatile long hitTime;
     protected volatile BigInteger hit;
@@ -480,6 +481,7 @@ public class Generator implements Comparable<Generator> {
         this.secretPhrase = secretPhrase;
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.accountId = Account.getId(publicKey);
+        this.rsAddress = Account.rsAccount(accountId);
         Conch.getBlockchain().updateLock();
         try {
             if (Conch.getBlockchain().getHeight() >= Constants.LAST_KNOWN_BLOCK) {
@@ -541,14 +543,17 @@ public class Generator implements Comparable<Generator> {
      * @param lastBlock
      */
     protected void calAndSetHit(Block lastBlock) {
+        if(lastBlock == null) {
+            Logger.logWarningMessage("last block is null, can't calculate the poc score and hit of account[" + rsAddress + ",id=" + accountId + "]");
+            return;
+        }
+        
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
 
         effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
-
-        pocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
-
-        detailedPocScore = PocProcessorImpl.instance.calDetailedPocScore(account, lastHeight);
+        detailedPocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
+        pocScore = PocProcessorImpl.instance.getScoreInt(detailedPocScore);
 
         if (pocScore.signum() <= 0) {
             hitTime = 0;
@@ -681,15 +686,18 @@ public class Generator implements Comparable<Generator> {
     public static class ActiveGenerator extends Generator {
 
         public ActiveGenerator(long accountId) {
-            this.accountId = accountId;
-            this.hitTime = Long.MAX_VALUE;
-            this.hit = BigInteger.ZERO;;
+            new ActiveGenerator(accountId,Long.MAX_VALUE,BigInteger.ZERO);
         }
         
         public ActiveGenerator(long accountId, long hitTime, BigInteger hit) {
             this.accountId = accountId;
+            this.publicKey = Account.getPublicKey(this.accountId);
             this.hitTime = hitTime;
             this.hit = hit;
+            Block lastBlock = Conch.getBlockchain().getLastBlock();
+            if(lastBlock != null) {
+                calAndSetHit(lastBlock);
+            }
         }
 
         public long getEffectiveBalance() {

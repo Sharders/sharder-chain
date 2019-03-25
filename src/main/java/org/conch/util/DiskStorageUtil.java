@@ -48,7 +48,11 @@ public class DiskStorageUtil {
             Object object = ois.readObject();
             return object;
         } catch (Exception e) {
-            Logger.logErrorMessage("failed to read file [" + fileName + "]" ,e);
+            Logger.logWarningMessage("failed to read file [" + fileName + "]" ,e);
+        }finally {
+            File file = new File(getLocalStoragePath(fileName));
+            file.deleteOnExit();
+            Logger.logWarningMessage("delete local cached file [" + fileName + "]");
             return null;
         }
     }

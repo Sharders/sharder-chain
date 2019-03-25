@@ -31,22 +31,22 @@ import java.math.BigInteger;
  * @author ben-xy
  */
 public interface PocProcessor {
-
+    
+    public static final String SCORE_KEY = "poc_score";
     /**
      * @param account
      * @param height
-     * @return
+     * @return poc score json
      */
-    BigInteger calPocScore(Account account, int height);
+    JSONObject calPocScore(Account account, int height);
 
     /**
      * return detailed poc data json string
      *
-     * @param account
-     * @param height
-     * @return json string
+     * @param scoreJson
+     * @return poc score
      */
-    JSONObject calDetailedPocScore(Account account, int height);
+    BigInteger getScoreInt(JSONObject scoreJson);
 
     /**
      * Get the poc weight table

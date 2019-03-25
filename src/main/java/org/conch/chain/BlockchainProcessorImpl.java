@@ -1476,7 +1476,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
-      BigInteger score = PocProcessorImpl.instance.calPocScore(generatorAccount,previousLastBlock.getHeight());
+      com.alibaba.fastjson.JSONObject scoreJson = PocProcessorImpl.instance.calPocScore(generatorAccount,previousLastBlock.getHeight());
+      BigInteger score = PocProcessorImpl.instance.getScoreInt(scoreJson);
 //      long generatorBalance = generatorAccount == null ? 0 : generatorAccount.getEffectiveBalanceSS();
       block.verifyGenerationSignature();
       throw new BlockNotAcceptedException("Generation signature verification failed, poc score " + score, block);

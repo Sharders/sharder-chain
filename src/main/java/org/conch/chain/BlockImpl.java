@@ -470,8 +470,8 @@ public final class BlockImpl implements Block {
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
-
-            BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            com.alibaba.fastjson.JSONObject scoreJson = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            BigInteger pocScore = PocProcessorImpl.instance.getScoreInt(scoreJson);
             if (pocScore.signum() <= 0) {
                 return false;
             }
