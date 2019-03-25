@@ -70,7 +70,7 @@
                 if (res.data.success) {
                     _this.sharderAccount = res.data.data;
                 }
-            });
+            }).catch(() => {_this.isSSA = true});
             _this.$http.post(window.api.sharderExchangeRS).then(res => {
                 if (res.data.success) {
                     _this.recipient = res.data.data;

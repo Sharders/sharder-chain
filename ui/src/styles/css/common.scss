@@ -27,10 +27,13 @@
 }
 
 .radius_blue {
+    color: #493eda;
     border-radius: 4px;
-    background: #493eda;
+    border: 1px solid #493eda;
 }
-
+.block_blue.radius_blue{
+    background:#493eda;
+}
 .block_blue {
     height: 120px;
     width: 390px;
@@ -223,6 +226,7 @@
     background: #fff;
     color: #493eda;
     border: 1px solid #493eda;
+    border-radius: 24px;
 
     svg {
         fill: #493eda;
@@ -726,10 +730,16 @@
 .el-radio-button__orig-radio:checked + .el-radio-button__inner {
     background: #493eda !important;
 }
-.el-button--primary{
+
+.el-button--primary {
     background: #493eda !important;
-    border-color:#493eda !important;
+    border-color: #493eda !important;
 }
-#blocks_table,#peers_table{
+
+#blocks_table, #peers_table {
     width: 100%;
+}
+
+input:focus {
+    border-color: #493eda !important;
 }

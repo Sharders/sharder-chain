@@ -8,13 +8,14 @@
         text-align: right;
     }
     .radius_blue{
-        height: 120px;
+        height: 80px;
         margin: 10px auto;
-        color: #fff;
+        padding: 10px;
         overflow:auto;
         .phrase{
-            width: 400px;
-            margin: 30px auto;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 28px;
         }
     }
 

@@ -418,7 +418,7 @@
                 console.error("error", err);
             });
 
-            _this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
+            _this.$http.get('/sharder?requestType=getNextBlockGenerators&limit=99999').then(function (res) {
                 // console.log("矿工数量：",res);
                 _this.activeCount = res.data.activeCount;
                 _this.minerlist = res.data.generators;

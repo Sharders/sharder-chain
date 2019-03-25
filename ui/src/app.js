@@ -71,7 +71,9 @@ import dialogCommon from "./views/dialog/dialog_common";
 import maskedInput from "vue-masked-input";
 import ReceiveAlert from "./views/mining/receiveAlert";
 import ExchangeReward from "./views/mining/exchange-reward";
+import PocContent from "./views/dialog/pocContent";
 //注册组件
+Vue.component("PocContent",PocContent);
 Vue.component("dialogCommon",dialogCommon);
 Vue.component("masked-input",maskedInput);
 Vue.component("ReceiveAlert",ReceiveAlert);

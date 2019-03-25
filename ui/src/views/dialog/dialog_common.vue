@@ -67,7 +67,7 @@
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span>{{$t('dialog.account_info_name') + accountInfo.name}}</span> |
+                    <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} |</span>
                     <span>{{$t('dialog.account_info_available_asset') + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_transactionInfo">
@@ -162,7 +162,7 @@
                     </el-radio-button>
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}
                     </el-radio-button>
-                    <el-radio-button label="pocInfo" class="btn">POC</el-radio-button>
+                    <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">POC</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
@@ -277,54 +277,29 @@
                     </table>
                 </div>
                 <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
-                    <table class="table">
-                        <tbody>
-                        <tr>
-                            <th>bocSpeedTemplate</th>
-                            <td>{{pocInfo.bocSpeedTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>generationMissingTemplate</th>
-                            <td>{{pocInfo.generationMissingTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>hardwareConfigTemplate</th>
-                            <td>{{pocInfo.hardwareConfigTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>networkConfigTemplate</th>
-                            <td>{{pocInfo.networkConfigTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>nodeTypeTemplate</th>
-                            <td>{{pocInfo.nodeTypeTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>onlineRateTemplate</th>
-                            <td>{{pocInfo.onlineRateTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>serverOpenTemplate</th>
-                            <td>{{pocInfo.serverOpenTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>templateVersion</th>
-                            <td>{{pocInfo.templateVersion}}</td>
-                        </tr>
-                        <tr>
-                            <th>txPerformanceTemplate</th>
-                            <td>{{pocInfo.txPerformanceTemplate}}</td>
-                        </tr>
-                        <tr>
-                            <th>version.pocWeightTable</th>
-                            <td>{{pocInfo['version.pocWeightTable']}}</td>
-                        </tr>
-                        <tr>
-                            <th>weightMap</th>
-                            <td>{{pocInfo.weightMap}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <el-table :data="pocInfoList" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline>
+                                    <el-row>
+                                        <PocContent :pocInfo="props.row.pocInfo"></PocContent>
+                                    </el-row>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="senderRS"
+                            label="Account">
+                        </el-table-column>
+                        <el-table-column
+                            prop="block"
+                            label="Block">
+                        </el-table-column>
+                        <el-table-column
+                            prop="transaction"
+                            label="transaction">
+                        </el-table-column>
+                    </el-table>
                 </div>
             </div>
         </div>
@@ -439,7 +414,7 @@
                 searchVal: '',
                 blockInfoDialog: this.blockInfoOpen,
                 blockInfo: [],
-                pocInfo: {},
+                pocInfoList:[],
                 tradingInfoDialog: this.tradingInfoOpen,
             }
         },
@@ -475,6 +450,7 @@
             },
             httpGetBlockInfo(height, BlockID) {
                 const _this = this;
+                _this.pocInfoList = [];
                 return new Promise((resolve, reject) => {
                     _this.$http.get('/sharder?requestType=getBlock', {
                         params: {
@@ -485,7 +461,16 @@
                     }).then(function (res) {
                         if (!res.data.errorDescription) {
                             _this.blockInfo = res.data;
-
+                            for (let t of res.data.transactions) {
+                                if (t.type === 12) {
+                                    _this.pocInfoList.push({
+                                        pocInfo:t.attachment,
+                                        senderRS:t.senderRS,
+                                        block:t.block,
+                                        transaction:t.transaction
+                                    });
+                                }
+                            }
                             resolve("success");
                         } else {
                             resolve(res.data.errorDescription);
@@ -615,20 +600,6 @@
                 _this.$emit('isClose', false);
             }
         },
-        created() {
-            let _this = this;
-            _this.$global.fetch("GET", {
-                height: 0,
-                includeTransactions: true
-            }, "getBlock").then(res => {
-                for (let t of res.transactions) {
-                    if (t.type === 12) {
-                        _this.pocInfo = t.attachment;
-                        break;
-                    }
-                }
-            });
-        },
         watch: {
             blockInfoOpen: function (val) {
                 const _this = this;
@@ -746,6 +717,8 @@
 <style scoped type="text/scss" lang="scss">
     #block_info {
         .modal-body {
+            max-height: 600px;
+            overflow-y: auto;
             margin: 30px 20px 40px !important;
 
             .title {
