@@ -180,9 +180,10 @@ public class PocHolder implements Serializable {
         static int count = 0;
         static final int printCount = 100;
         
-        protected static boolean debug = Constants.isDevnet() ? true : false;
+        protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
+        protected static boolean debugHistory = false;
+        
         protected static String summary = reset();
-
         private static final String splitter = "\n\r";
 
         static private String appendSplitter(String str, boolean appendEnd) {
@@ -214,19 +215,22 @@ public class PocHolder implements Serializable {
             // height : { accountId : pocScore }
             Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
 
-            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] >>>>>>>>",true);
+            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] size=" + inst.scoreMap.size() + " >>>>>>>>",true);
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
-
-            summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore Object } ] >>>>>>>>",true);
-            Set<Integer> heights = inst.historyScore.keySet();
             
-            for(Integer height : heights){
-                summary += "height -> {";
-                scoreMapStr(inst.historyScore.get(height));
-                summary += appendSplitter("}",true);
+            if(debugHistory) {
+                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore Object } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
+                Set<Integer> heights = inst.historyScore.keySet();
+
+                for(Integer height : heights){
+                    summary += "height: " + height +" -> {";
+                    scoreMapStr(inst.historyScore.get(height));
+                    summary += appendSplitter("}",true);
+                }
+                summary += appendSplitter("<<<<<<<<<<",true);  
             }
-            summary += appendSplitter("<<<<<<<<<<",true);
+          
         }
 
         static void print(){

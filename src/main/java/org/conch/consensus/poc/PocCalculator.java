@@ -47,7 +47,8 @@ public class PocCalculator implements Serializable {
 
     static void ssHoldCal(PocScore pocScore) {
         BigInteger ssHoldWeight = getWeight(PocTxBody.WeightTableOptions.SS_HOLD);
-        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore).divide(PERCENT_DIVISOR);
+//        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore).divide(PERCENT_DIVISOR);
+        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore);
     }
     
     

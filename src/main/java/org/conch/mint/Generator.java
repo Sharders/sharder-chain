@@ -32,6 +32,7 @@ import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
+import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
@@ -103,22 +104,32 @@ public class Generator implements Comparable<Generator> {
         
     }
 
-
-    private static int mintHeightCheckCount = 0;
+    private static int logPrintCount = 0;
+    private static final boolean isBootNode = bootNodeCheck();
+    private static final boolean bootNodeCheck() {
+        String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
+        if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
+        
+        return Boolean.valueOf(isBootNode);
+    }
     /**
      * check current height whether reached last known block
      * @param lastBlock
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
-        boolean printNow = mintHeightCheckCount++ == 0 || mintHeightCheckCount++ > 200;
+        boolean printNow = logPrintCount++ == 0 || logPrintCount++ > 200;
+        
+        if(isBootNode) {
+            return true;
+        }
         
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(printNow) {
                 Logger.logInfoMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
                         + ", and current height is " + lastBlock.getHeight()
                         + ", don't mint till blocks sync finished...");
-                mintHeightCheckCount = 1;
+                logPrintCount = 1;
             }
             return false;
         }
@@ -126,7 +137,7 @@ public class Generator implements Comparable<Generator> {
         if(Conch.getBlockchainProcessor().isDownloading()){
             if(printNow) {
                 Logger.logInfoMessage("block is downloading, don't mint till blocks sync finished...");
-                mintHeightCheckCount = 1;
+                logPrintCount = 1;
             }
             return false;
         }

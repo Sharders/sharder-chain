@@ -54,6 +54,9 @@ public class PocScore implements Serializable {
      * 分叉收敛惩罚分
      */
     BigInteger bcScore = BigInteger.ZERO;
+    
+    //TODO 
+    int luck = 0;
 
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
