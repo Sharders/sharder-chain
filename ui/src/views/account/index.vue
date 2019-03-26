@@ -267,7 +267,7 @@
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.fee')">
                                 <el-button class="calculate_fee" @click="getMessageFee()">
-                                    {{$t('sendMessage.calc')}}
+                                    {{$t('sendMessage.calc_short')}}
                                 </el-button>
                                 <input class="el-input__inner" v-model="messageForm.fee" type="number" min="1"
                                        max="100000" :step="0.1"/>
@@ -297,7 +297,7 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item :label="$t('transfer.receiver')" class="item_receiver">
-                                <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****"
+                                <masked-input id="tranfer_receiver" mask="SSA-****-****-****-*****"
                                               v-model="transfer.receiver"/>
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
@@ -311,7 +311,7 @@
                             </el-form-item>
                             <el-form-item :label="$t('transfer.fee')">
                                 <el-button class="calculate_fee" @click="getTransferFee()">
-                                    {{$t('transfer.calc')}}
+                                    {{$t('transfer.calc_short')}}
                                 </el-button>
                                 <input class="el-input__inner" v-model="transfer.fee" min="1" max="100000" :step="0.1"
                                        type="number"/>
