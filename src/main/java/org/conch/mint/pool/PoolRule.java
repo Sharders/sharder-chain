@@ -177,8 +177,7 @@ public class PoolRule implements Serializable {
         JSONObject consignor = (JSONObject) jsonObject.get("consignor");
         Map<String, Object> levelForgePool = new HashMap<>();
         for (Object o : forgePool.keySet()) {
-            Map<String, Object> field =
-                    (Map<String, Object>) ((Map<String, Object>) ruleMap.get("forgepool")).get(o);
+            Map<String, Object> field = (Map<String, Object>) ((Map<String, Object>) ruleMap.get("forgepool")).get(o);
             if (!validate(field, forgePool.get(o))) {
                 return false;
             }
@@ -198,12 +197,12 @@ public class PoolRule implements Serializable {
             // field.put("max",consignor.get(o));
             // levelConsignor.put((String)o,field);
         }
-    /*levelRule.put("consignor",levelConsignor);
-    Map<String,Object> levelRules = new HashMap<>();
-    levelRules.put("level" + level,levelRule);
-    Map<String,Object> tempRules = new HashMap<>();
-    tempRules.put("rules",levelRules);
-    rules = tempRules;*/
+        /*levelRule.put("consignor",levelConsignor);
+        Map<String,Object> levelRules = new HashMap<>();
+        levelRules.put("level" + level,levelRule);
+        Map<String,Object> tempRules = new HashMap<>();
+        tempRules.put("rules",levelRules);
+        rules = tempRules;*/
         return true;
     }
 

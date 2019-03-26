@@ -3467,6 +3467,7 @@ public abstract class TransactionType {
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 //TODO node certify
+                
                 // forge pool total No.
                 long poolId = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
                 if (poolId != -1) {
@@ -3474,9 +3475,9 @@ public abstract class TransactionType {
                 }
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
                 if (!PoolRule.validateRule(transaction.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
-                    throw new ConchException.NotValidException("forge pool is invalid," + transaction.getSenderId());
+                    throw new ConchException.NotValidException("pool is invalid," + transaction.getSenderId());
                 }
-                //TODO unconfirmed transaction already has create forge pool
+                //TODO unconfirmed transaction already has create pool, remove the pool if tx be rejected
                 //TransactionProcessorImpl.getInstance().getUnconfirmedTransaction();
             }
 
