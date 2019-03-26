@@ -1,5 +1,6 @@
 package org.conch.mint.pool;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -7,6 +8,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.PocCalculator;
+import org.conch.mint.Generator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -120,6 +122,8 @@ public class SharderPoolProcessor implements Serializable {
         }
         
         sharderPools.put(pool.poolId, pool);
+
+        checkOrAddIntoActiveGenerator(pool);
     }
 
     public void destroySharderPool(int height) {
@@ -234,6 +238,19 @@ public class SharderPoolProcessor implements Serializable {
             pool.mintRewards += reward;
         }
     }
+    
+    private static void checkOrAddIntoActiveGenerator(SharderPoolProcessor sharderPool){
+        if(Generator.containMiner(sharderPool.creatorId)) {
+            Logger.logInfoMessage("current creator %s of pool %s already mining on this node", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
+            return;
+        }
+        
+        if(Generator.isAutoMiningAccount(sharderPool.creatorId)){
+            Logger.logInfoMessage("current creator %s of pool %s isn't mining on this node, force to open auto mining now.", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
+            Generator.forceOpenAutoMining();
+            Generator.checkOrStartAutoMining();
+        }
+    }
 
     private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
     private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
@@ -274,9 +291,12 @@ public class SharderPoolProcessor implements Serializable {
                                     sharderPool.destroySharderPool(height);
                                     continue;
                                 }
+                                // check the miner whether running before poll started
+                                if(sharderPool.startBlockNo-height <=3 && sharderPool.startBlockNo > height){
+                                    checkOrAddIntoActiveGenerator(sharderPool);
+                                }
                                 if (sharderPool.startBlockNo == height) {
                                     sharderPool.state = State.WORKING;
-                                    // TODO add to generator list
                                     continue;
                                 }
                                 // TODO auto destroy pool because the number or amount of pool is too small

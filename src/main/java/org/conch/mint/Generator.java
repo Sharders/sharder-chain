@@ -372,7 +372,16 @@ public class Generator implements Comparable<Generator> {
     public static Collection<Generator> getAllGenerators() {
         return allGenerators;
     }
-
+    
+    public static boolean containMiner(long minerId){
+        for(Generator generator : allGenerators) {
+            if(generator.accountId == minerId) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public static List<Generator> getSortedMiners() {
         List<Generator> forgers = sortedMiners;
         return forgers == null ? Collections.emptyList() : forgers;
@@ -743,16 +752,36 @@ public class Generator implements Comparable<Generator> {
     }
 
 
-    // Hub setting
+    // Hub auto mining setting
     public static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
     public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
     public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
-    public static final String AUTO_MINT_ADDRESS = autoMintRs();
+    public static final String AUTO_MINT_ADDRESS = autoMintAccountRs();
     static boolean autoMintRunning = false;
-    static String autoMintRs(){
+    static String autoMintAccountRs(){
         String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
         return StringUtils.isEmpty(autoMintPR) ? null : Account.rsAccount(Account.getId(autoMintPR));
     }
+    
+    static long autoMintAccountId(){
+        String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+        return StringUtils.isEmpty(autoMintPR) ? 0 : Account.getId(autoMintPR);
+    }
+
+    public static void forceOpenAutoMining(){
+        autoMintRunning = true;
+    }
+    
+    public static boolean isAutoMiningAccount(long accountId){
+        long bindAddrId = Account.rsAccountToId(Generator.HUB_BIND_ADDRESS);
+        if(bindAddrId != 0 && bindAddrId == accountId) return true;
+
+        long autoMintAccountId = autoMintAccountId();
+        if(autoMintAccountId != 0 && autoMintAccountId == accountId) return true;
+        
+        return false;
+    }
+    
     /**
      * Auto mining of Hub or Miner, just execute once
      */
