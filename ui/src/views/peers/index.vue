@@ -454,13 +454,13 @@
                     if (!res.data.errorDescription) {
                         _this.$message({
                             showClose: true,
-                            message: _this.$t('peers.join_link_peer_success1') + address + _this.$t('peers.join_link_peer_success2'),
+                            message: _this.$t('notification.join_link_peer_success1') + address + _this.$t('notification.join_link_peer_success2'),
                             type: "success"
                         });
                     } else {
                         _this.$message({
                             showClose: true,
-                            message: _this.$t('peers.join_link_peer_error'),
+                            message: _this.$t('notification.join_link_peer_error'),
                             type: "error"
                         });
                     }
