@@ -582,7 +582,7 @@ public final class Conch {
 
     private static class Init {
 
-        private static volatile boolean initialized = false;
+        static volatile boolean initialized = false;
 
         static {
             try {
@@ -663,15 +663,13 @@ public final class Conch {
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
-                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI access URL is " + API.getWelcomePageUri());
+                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI URL is " + API.getWelcomePageUri());
 
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
 
                 if (isDesktopApplicationEnabled()) launchDesktopApplication();
 
                 if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE REAL ACCOUNTS!");
-
-                Peers.sysInitialed = true;
 
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
@@ -753,6 +751,10 @@ public final class Conch {
                         "Install haveged if on linux, or set sharder.useStrongSecureRandom=false.");
             }
         } catch (InterruptedException ignore) {}
+    }
+    
+    public static boolean isInitialized(){
+        return Init.initialized;
     }
 
     public static String getProcessId() {

@@ -311,7 +311,7 @@
                             </el-form-item>
                             <el-form-item :label="$t('transfer.fee')">
                                 <el-button class="calculate_fee" @click="getTransferFee()">
-                                    {{$t('transfer.calculate')}}
+                                    {{$t('transfer.calc')}}
                                 </el-button>
                                 <input class="el-input__inner" v-model="transfer.fee" min="1" max="100000" :step="0.1"
                                        type="number"/>

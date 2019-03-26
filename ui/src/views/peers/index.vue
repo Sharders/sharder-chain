@@ -191,7 +191,8 @@
                         <h4 class="modal-title">{{$t('peers.link_peer')}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>{{$t('peers.peer_name')}}{{connectPeer}}</p>
+                        <p>{{$t('peers.peer_name')}}</p>
+                        <p>{{connectPeer}}</p>
                         <p>{{$t('peers.admin_password')}}</p>
                         <input v-model="adminPassword" type="password"/>
                     </div>

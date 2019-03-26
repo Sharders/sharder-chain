@@ -127,6 +127,14 @@ public class Generator implements Comparable<Generator> {
         if(isBootNode) {
             return true;
         }
+
+        if(!Conch.isInitialized()) {
+            if(printNow) {
+                Logger.logInfoMessage("wait for Conch initialized...");
+                logPrintCount = 1;
+            }
+            return false;
+        }
         
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(printNow) {

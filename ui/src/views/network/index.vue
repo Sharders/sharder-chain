@@ -162,7 +162,7 @@
                 </div>
             </div>
         </div>
-        <div class="modal w700" id="miner_list" v-show="minerlistDialog">
+        <div class="modal modal-w900" id="miner_list" v-show="minerlistDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
