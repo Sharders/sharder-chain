@@ -156,7 +156,7 @@ const en = {
         'admin_password': "Hub Password",
         'starting_forging': "Start",
         'search': "Search",
-        'search_open': "Search By Account ID/Transaction ID/Block ID",
+        'search_open': "Search By Account ID/Tx ID/Block ID",
         'open_console': "Console running. Recording logs…",
         'console': "console",
     },
