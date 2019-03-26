@@ -3,7 +3,7 @@
         <div class="template">
             <p v-if="pocInfo.weightMap">
                 <strong>{{$t('poc.weight')}}</strong>
-                <span>{{$t('poc.node_type')}}: {{pocInfo.weightMap.node}}%</span>
+                <span>{{$t('poc.weight_node_type')}}: {{pocInfo.weightMap.node}}%</span>
                 <span>{{$t('poc.weight_role')}}: {{pocInfo.weightMap.serverOpen}}%</span>
                 <span>{{$t('poc.weight_ss_held')}}: {{pocInfo.weightMap.ssHold}}%</span>
                 <span>{{$t('poc.weight_hardware_config')}}: {{pocInfo.weightMap.hardwareConfig}}%</span>
