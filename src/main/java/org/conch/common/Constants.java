@@ -102,7 +102,7 @@ public final class Constants {
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
     /** for the security, you can set the confirmations = 1440 */
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 : 205;
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 215 : 615);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
@@ -202,7 +202,12 @@ public final class Constants {
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
+    
     public static final int LAST_KNOWN_BLOCK = isDevnet() ?  10 : (isTestnet() ? 100 : 1000);
+    public static final int TESTNET_PHASE_ONE = 20000;
+    public static final int TESTNET_PHASE_TWO = 39000;
+    public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
+    public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;

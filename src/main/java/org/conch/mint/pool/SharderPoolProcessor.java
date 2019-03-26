@@ -1,6 +1,7 @@
 package org.conch.mint.pool;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -19,10 +20,9 @@ import org.json.simple.JSONObject;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -92,8 +92,38 @@ public class SharderPoolProcessor implements Serializable {
         this.endBlockNo = endBlockNo;
         this.level = PoolRule.getLevel(creatorId);
     }
+    
+    static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * check the end block to verify the pool life cycle can't exceed the end date
+     * @param endBlockNo
+     * @return
+     */
+    private static int checkAndReturnEndBlockNo(int endBlockNo){
+        try {
+            Date phaseOneEndDate = dateFormat.parse(Constants.TESTNET_PHASE_ONE_TIME);
+            Date now = new Date();
+            // phase one check
+            if(now.before(phaseOneEndDate)){
+                if(endBlockNo > Constants.TESTNET_PHASE_ONE) {
+                    return Constants.TESTNET_PHASE_ONE;
+                }
+            }else {
+            // phase two check
+                Date phaseTwoEndDate = dateFormat.parse(Constants.TESTNET_PHASE_TWO_TIME);
+                if(now.before(phaseTwoEndDate) && endBlockNo > Constants.TESTNET_PHASE_TWO) {
+                    return Constants.TESTNET_PHASE_TWO;
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+       return endBlockNo;
+    }
 
     public static void createSharderPool( long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+        endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
         Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
