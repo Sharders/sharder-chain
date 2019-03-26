@@ -66,7 +66,7 @@ const cn = {
         'synchronization_block': "当前正在同步区块链，请稍后再试",
         'account_title': "账户总览",
         'account_info': "账户详情",
-        'assets': "资产",
+        'assets': "资产 ",
         'transfer': "转账",
         'send_message': "发送消息",
         'hub_setting': "HUB设置",

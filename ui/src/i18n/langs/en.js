@@ -66,7 +66,7 @@ const en = {
         'synchronization_block': "Synchronizing blockchain, please try again later",
         'account_title': "Account Overview",
         'account_info': "Account Info",
-        'assets': "Assets:",
+        'assets': "Assets ",
         'transfer': "Transfer",
         'send_message': "Message",
         'hub_setting': "Settings",
