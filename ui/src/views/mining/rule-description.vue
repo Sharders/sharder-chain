@@ -3,6 +3,7 @@
         <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <div class="description">
             <h1 class="description-title">{{$t('mining.rule_description.rule_title')}}</h1>
+            <p class="description-info"></p>
             <!--<p class="description-info">{{$t('mining.rule_description.rule_subtitle')}}</p>-->
             <div class="info">
                 <h3>{{$t('mining.rule_description.sharder_pool')}}</h3>
