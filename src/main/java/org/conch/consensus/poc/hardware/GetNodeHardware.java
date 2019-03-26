@@ -183,7 +183,7 @@ public class GetNodeHardware {
     public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
         try {
-            Logger.logInfoMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
+            Logger.logDebugMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
             return report(read(systemInfo, executeTime));
         } catch (ConchException.NotValidException e) {
             Logger.logErrorMessage("<=== failed to report configuration performance, hub isn't initialized yet", e);
@@ -202,14 +202,14 @@ public class GetNodeHardware {
         String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS)
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
         systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-        Logger.logInfoMessage("==============Now start testing configuration performance...==============");
+        Logger.logDebugMessage("==============Now start testing configuration performance...==============");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
-        Logger.logInfoMessage("==============The configuration performance test is completed==============");
+        Logger.logDebugMessage("==============The configuration performance test is completed==============");
         return systemInfo;
     }
 
