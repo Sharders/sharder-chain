@@ -93,8 +93,7 @@ public class FileUtil {
         String uncompressedDirectory = new File(".").getCanonicalPath() + File.separator;
 
         //Iterate over entries
-        while (entries.hasMoreElements())
-        {
+        while (entries.hasMoreElements()) {
             ZipEntry zipEntry = entries.nextElement();
             final String name = zipEntry.getName();
             final File outputFile = new File(uncompressedDirectory + File.separator + name);
