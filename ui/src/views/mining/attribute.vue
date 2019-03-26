@@ -395,7 +395,7 @@
     .attribute-info .pool-attribute-info {
         float: right;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 13px;
         border-bottom: 1px solid #fff;
     }
 

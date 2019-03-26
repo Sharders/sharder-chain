@@ -127,6 +127,14 @@ public class Generator implements Comparable<Generator> {
         if(isBootNode) {
             return true;
         }
+
+        if(!Conch.isInitialized()) {
+            if(printNow) {
+                Logger.logInfoMessage("wait for Conch initialized...");
+                logPrintCount = 1;
+            }
+            return false;
+        }
         
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(printNow) {
@@ -157,13 +165,15 @@ public class Generator implements Comparable<Generator> {
         public void run() {
             try {
                 try {
-                    autoMining();
+                 
                     
                     BlockchainImpl.getInstance().updateLock();
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
                         
                         if(!isMintHeightReached(lastBlock)) return;
+
+                        checkOrStartAutoMining();
 
                         final int generationLimit = Conch.getEpochTime() - delayTime;
                         if (lastBlock.getId() != lastBlockId || sortedMiners == null || sortedMiners.size() == 0) {
@@ -261,7 +271,7 @@ public class Generator implements Comparable<Generator> {
 
     static {
         if (!Constants.isLightClient) {
-            ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 15000, TimeUnit.MILLISECONDS);
+            ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 10000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -746,7 +756,7 @@ public class Generator implements Comparable<Generator> {
     /**
      * Auto mining of Hub or Miner, just execute once
      */
-    public static void autoMining(){
+    public static void checkOrStartAutoMining(){
         if(autoMintRunning) {
             return;
         }

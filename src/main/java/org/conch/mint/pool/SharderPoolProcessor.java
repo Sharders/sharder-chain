@@ -6,6 +6,7 @@ import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocCalculator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -28,8 +29,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
-    private static final ConcurrentMap<Long, SharderPoolProcessor> sharderPools;
-    private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools;
+    private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = new ConcurrentHashMap<>();
     public static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
 
     public enum State {
@@ -238,20 +239,17 @@ public class SharderPoolProcessor implements Serializable {
     private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
 
     static {
-        File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS));
-        if (file.exists()) {
-            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
-        } else {
-            // TODO delete by user ,pop off get block from network
-            sharderPools = new ConcurrentHashMap<>();
+        // load pools from local cached files
+        Logger.logInfoMessage("load exist pools info from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS) + "]");
+        Object poolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
+        if(poolsObj != null) {
+            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) poolsObj;
         }
 
-        file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS));
-        if (file.exists()) {
-            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
-        } else {
-            // TODO delete by user
-            destroyedPools = new ConcurrentHashMap<>();
+        Logger.logInfoMessage("load exist destroyed pools info from local [" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS) + "]");
+        Object destroyedPoolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
+        if(destroyedPoolsObj != null) {
+            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) destroyedPoolsObj;
         }
 
         /**

@@ -121,17 +121,18 @@ public class PocProcessorImpl implements PocProcessor {
    */
   private static void loadFromDisk() {
     // read the disk backup
-    File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER));
-    if (file.exists()) {
-      Logger.logInfoMessage("load exist poc holder instance from local disk[" + file.getPath() + "]");
-      PocHolder.inst = (PocHolder) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
-    } 
+    Logger.logInfoMessage("load exist poc holder instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
+    Object holderObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
+    if(holderObj != null) {
+      PocHolder.inst = (PocHolder) holderObj;
+    }
+
+    Logger.logInfoMessage("load exist poc calculator instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR) + "]");
+    Object calcObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
+    if(calcObj != null) {
+      PocCalculator.inst = (PocCalculator) calcObj;
+    }
     
-    File calculatorFile = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR));
-    if (calculatorFile.exists()) {
-      Logger.logInfoMessage("load exist poc calculator instance from local disk[" + file.getPath() + "]");
-      PocCalculator.inst = (PocCalculator) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
-    } 
 
     //if no disk backup, read the poc txs from history blocks
     if(PocHolder.inst != null && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {

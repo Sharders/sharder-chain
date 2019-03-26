@@ -115,7 +115,7 @@
     .pocContent .template p strong {
         display: inline-block;
         width: 200px;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: bold;
         color: #000;
     }
@@ -138,7 +138,7 @@
     }
 
     .online-rate > div > h3 {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: bold;
         color: #000;
     }
@@ -157,7 +157,7 @@
 
     .pocContent .template-version {
         padding: 16px 0 0;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: normal;
         text-align: right;
         font-style: italic;

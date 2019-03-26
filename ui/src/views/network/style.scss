@@ -44,12 +44,25 @@
 
 .modal {
     //top: calc(50% - 300px);
-    min-width: 1000px!important;
+    //min-width: 1000px!important;
     .modal-dialog .modal-content .modal-body {
         max-height: 480px;
         overflow-y: auto;
     }
 }
+
+.modal-w800 {
+    min-width: 800px!important;
+}
+
+.modal-w900 {
+    min-width: 900px!important;
+}
+
+.modal-w1000 {
+    min-width: 1000px!important;
+}
+
 
 .block_peers {
     display: grid;

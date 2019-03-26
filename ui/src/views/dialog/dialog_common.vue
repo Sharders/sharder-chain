@@ -781,7 +781,7 @@
                     margin-top: 20px;
 
                     th {
-                        width: 160px;
+                        width: 180px;
                     }
 
                     td {

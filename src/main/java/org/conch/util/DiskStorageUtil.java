@@ -43,17 +43,31 @@ public class DiskStorageUtil {
     }
 
     public static Object getObjFromFile(String fileName) {
+        Object object = null;
+        ObjectInputStream ois = null;
         try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(getLocalStoragePath(fileName)));
-            Object object = ois.readObject();
-            return object;
+            File file = new File(getLocalStoragePath(fileName));
+            if(file != null && file.exists()) {
+                ois = new ObjectInputStream(new FileInputStream(file));
+                object = ois.readObject();
+            }
         } catch (Exception e) {
             Logger.logWarningMessage("failed to read file [" + fileName + "]" ,e);
-        }finally {
-            File file = new File(getLocalStoragePath(fileName));
-            file.deleteOnExit();
-            Logger.logWarningMessage("delete local cached file [" + fileName + "]");
-            return null;
+        } finally {
+            if(ois != null) {
+                try {
+                    ois.close();
+                } catch (IOException e) {
+                    Logger.logWarningMessage("ObjectInputStream close failed",e);
+                }
+            }
+            
+            if(object == null) {
+                File file = new File(getLocalStoragePath(fileName));
+                file.deleteOnExit();
+                Logger.logWarningMessage("delete local cached file [" + fileName + "]");
+            }
         }
+        return object;
     }
 }

@@ -305,7 +305,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // close forceConverge after blocks sync completed
                 if(forceConverge) {
                   forceConverge = false;
-                  Generator.autoMining();
+                  Generator.checkOrStartAutoMining();
                 }
               } else {
                 Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
