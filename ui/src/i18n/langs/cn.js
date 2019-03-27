@@ -112,7 +112,7 @@ const cn = {
         'calculate': "计算",
         'calc_short': "计算",
         'secret_key': "秘钥",
-        'send_message': "发送信息",
+        'send_message': "信息",
     },
     transfer: {
         'transfer_title': "转账",
@@ -517,7 +517,7 @@ const cn = {
         'no_connection': "没有连接",
         'no_current_approval_requests': "目前没有批准请求",
         'please_select_asset_for_approval': "请选择一种资产",
-        'send_nxt': "发送 SS",
+        'send_nxt': "发送SS",
         'message': "信息",
         'delete': "删除",
         'error_contact_name_required': "必须输入联系人名称。",
