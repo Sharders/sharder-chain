@@ -6,6 +6,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -13,8 +15,9 @@ import java.util.Enumeration;
  */
 public class IpUtil {
     
-    public static String getIp(String url){
+    public static String domain2Ip(String url){
         try {
+            if(!isDomain(url)) return url;
             return InetAddress.getByName(url).getHostAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -37,7 +40,7 @@ public class IpUtil {
 
     public static boolean matchHost(HttpServletRequest req, String host) {
         String senderIp = getSenderIp(req);
-        return senderIp.equals(getIp(host));
+        return senderIp.equals(domain2Ip(host));
     }
     
     
@@ -71,5 +74,36 @@ public class IpUtil {
         }
     }
 
+    /* domain pattern */
+    public static String PATTERN_L2DOMAIN = "\\w*\\.\\w*:";
+//    public static String PATTERN_IP = "(\\d*\\.){3}\\d*";
+    public static String PATTERN_IP = "((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)";
+    
+    public static boolean isDomain(String url){
+        Pattern ipPattern = Pattern.compile(PATTERN_IP);
+        Matcher matcher = ipPattern.matcher(url);
+        if (matcher.find()) {
+            return false;
+        }
+        return true;
+    }
+    
+    public static String getIpFromUrl(String url) {
+        // return ip if ip pattern matched
+        Pattern ipPattern = Pattern.compile(PATTERN_IP);
+        Matcher matcher = ipPattern.matcher(url);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+
+        // return domain if ip pattern matched
+        Pattern pattern = Pattern.compile(PATTERN_L2DOMAIN);
+        matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            int endIndex = url.lastIndexOf(":");
+            return url.substring(0, endIndex);
+        }
+        return null;
+    }
 
 }
