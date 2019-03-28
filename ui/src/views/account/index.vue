@@ -674,7 +674,7 @@
                     errorCode: false
                 },
                 hubsetting: {
-                    openPunchthrough: true,
+                    openPunchthrough: false,
                     sharderAccount: '',
                     sharderPwd: '',
                     address: '',
@@ -1192,7 +1192,7 @@
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {
-                        if (res.data.code == 200) {
+                        if (res.data.code === 200) {
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
                         } else {
@@ -1775,7 +1775,6 @@
                 const _this = this;
                 _this.$store.state.mask = true;
                 _this.useNATServiceDialog = true;
-                _this.hubsetting.openPunchthrough = true;
             },
             openTradingInfoDialog: function (trading) {
                 this.trading = trading;

@@ -21,6 +21,13 @@ public class UrlManager {
 
     /*=============================================Foundation API START========================================*/
     /**
+     * check sharder hardware product
+     */
+    public static final String GET_HARDER_TYPE_EOLINKER = "https://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/sc/ssHardwareProduct/serialNum/";
+    public static final String GET_HARDER_TYPE_LOCAL = "http://localhost:8080/sc/ssHardwareProduct/serialNum/{serialNum}";
+    public static final String GET_HARDER_TYPE_PATH = "/sc/ssHardwareProduct/serialNum/{serialNum}";
+
+    /**
      * get NAT settings via sharder account
      */
     public static final String HUB_SETTING_ACCOUNT_CHECK_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/bounties/hubDirectory/check.ss";

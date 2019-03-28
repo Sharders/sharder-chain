@@ -877,7 +877,7 @@ public final class Peers {
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
     public static volatile boolean hasMyAddress = StringUtils.isNotEmpty(Conch.getMyAddress());
-    public static final int DEFAULT_TX_CHECKING_COUNT = 10;
+    public static final int DEFAULT_TX_CHECKING_COUNT = 40;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
         if (!sysInitialed && hasMyAddress) {
             Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
