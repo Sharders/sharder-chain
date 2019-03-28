@@ -21,9 +21,16 @@
 
 package org.conch.http;
 
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.common.Constants;
+import org.conch.common.UrlManager;
+import org.conch.peer.Peer;
+import org.conch.util.FileUtil;
 import org.conch.util.Logger;
+import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -44,11 +51,13 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
     static final GetUserConfig INSTANCE = new GetUserConfig();
     static final List<String> EXCLUDE_KEYS = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
+
     private GetUserConfig() {
         super(new APITag[]{APITag.INFO});
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
 
         JSONObject response = new JSONObject();
@@ -61,9 +70,6 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 return response;
             }
             input = new FileInputStream(filename);
-            if (input == null) {
-                return response;
-            }
             prop.load(input);
             Enumeration<?> e = prop.propertyNames();
             while (e.hasMoreElements()) {
@@ -74,8 +80,20 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 String value = prop.getProperty(key);
                 response.put(key, value);
             }
-            // TODO read node serial number
-            // TODO get node type from operating system via serial number
+            // get node type
+            if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
+                response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
+            } else {
+                String filePath = "/root/.hubSetting/.tempCache/.sysCache";
+                File tempFile = new File(filePath);
+                if (!tempFile.exists()) {
+                    response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
+                } else {
+                    String num = FileUtils.readFileToString(tempFile, "UTF-8");
+                    String nodeType = this.getNodeType(num);
+                    response.put("sharder.NodeType", nodeType);
+                }
+            }
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
@@ -90,6 +108,32 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             }
         }
         return response;
+    }
+
+    private String getNodeType(String num) throws IOException {
+        Integer nodeTypeCode = 0;
+        String url = UrlManager.getFoundationUrl(
+                UrlManager.GET_HARDER_TYPE_EOLINKER,
+                UrlManager.GET_HARDER_TYPE_LOCAL,
+                UrlManager.GET_HARDER_TYPE_PATH
+        );
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
+                .get()
+                .addPathParam("serialNum", num)
+                .request();
+        com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
+        if (result.getBoolean(Constants.SUCCESS)) {
+            com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
+            if (data == null) {
+                return Peer.SimpleType.NORMAL.getName();
+            }
+            nodeTypeCode = data.getInteger("type");
+            if (nodeTypeCode == null) {
+                return Peer.SimpleType.NORMAL.getName();
+            }
+        }
+        Logger.logWarningMessage("Failed to get node type!");
+        return Peer.SimpleType.getSimpleTypeNameByCode(nodeTypeCode);
     }
 
     @Override

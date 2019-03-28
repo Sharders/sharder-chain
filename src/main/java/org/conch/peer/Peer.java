@@ -26,6 +26,7 @@ import org.conch.http.APIEnum;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
+import java.util.Arrays;
 import java.util.Set;
 
 public interface Peer extends Comparable<Peer> {
@@ -47,7 +48,7 @@ public interface Peer extends Comparable<Peer> {
         public int getCode() {
             return code;
         }
-        
+
         public String getName() {
             return name;
         }
@@ -60,17 +61,62 @@ public interface Peer extends Comparable<Peer> {
             }
             return null;
         }
-        
+
         public static Type getByCode(String code) {
             if(StringUtils.isEmpty(code)) return null;
-            
+
             for (Type _enum : values()) {
                 if (_enum.code == Integer.valueOf(code).intValue()) {
                     return _enum;
                 }
             }
-            
+
             return null;
+        }
+    }
+
+    /**
+     * 简单类型
+     */
+    enum SimpleType {
+        /**
+         * 普通节点
+         */
+        NORMAL(2, "Normal"),
+        /**
+         * Box节点
+         */
+        BOX(1, "Sharder"),
+        /**
+         * Hub节点
+         */
+        HUB(0, "Sharder");
+
+        private final Integer code;
+        private final String name;
+
+        SimpleType(int code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+
+        public Integer getCode() {
+            return code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public static SimpleType getSimpleTypeByCode(Integer code) {
+            return Arrays.stream(values()).filter(simpleType -> simpleType.getCode().equals(code))
+                    .findFirst().orElse(SimpleType.NORMAL);
+        }
+
+        public static String getSimpleTypeNameByCode(Integer code) {
+            return Arrays.stream(values()).filter(simpleType -> simpleType.getCode().equals(code))
+                    .findFirst().map(SimpleType::getName)
+                    .orElse(SimpleType.NORMAL.getName());
         }
     }
 
@@ -82,7 +128,7 @@ public interface Peer extends Comparable<Peer> {
         CONNECTED,
         DISCONNECTED
     }
-    
+
     enum Service {
         HALLMARK(1),                    // Hallmarked node
         PRUNABLE(2),                    // Stores expired prunable messages
@@ -147,9 +193,9 @@ public interface Peer extends Comparable<Peer> {
     Hallmark getHallmark();
 
     int getWeight();
-    
+
     String getBindRsAccount();
-    
+
     void setBindRsAccount(String bindRsAccount);
 
     boolean shareAddress();
@@ -175,9 +221,9 @@ public interface Peer extends Comparable<Peer> {
     int getLastConnectAttempt();
 
     Type getType();
-    
+
     void setType(Type type);
-    
+
     boolean isType(Type type);
 
     boolean isInbound();
