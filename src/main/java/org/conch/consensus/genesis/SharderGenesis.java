@@ -13,7 +13,6 @@ import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
-import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.security.MessageDigest;
