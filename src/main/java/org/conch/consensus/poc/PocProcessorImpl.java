@@ -1,7 +1,7 @@
 package org.conch.consensus.poc;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -17,14 +17,15 @@ import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
+import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -195,7 +196,7 @@ public class PocProcessorImpl implements PocProcessor {
     synPocTxNow = true;
   }
   
-  private static volatile List<String> synPeerList = Lists.newArrayList();
+  private static volatile Set<String> synPeerList = Sets.newHashSet();
   private static final Runnable peerSynThread = () -> {
     try {
       
@@ -258,10 +259,13 @@ public class PocProcessorImpl implements PocProcessor {
       Logger.logWarningMessage("peer ip[" + ip + "] is null, can't find peer!");
       return;
     }
+    // convert to ip if it is domain
+    ip = IpUtil.domain2Ip(ip);
     
-    // update peer type
     String bindRsAccount = peer.getBindRsAccount();
     if(StringUtils.isEmpty(bindRsAccount)){
+      // connect peer to get account later
+      synPeerList.add(ip);
       Logger.logWarningMessage("bind rs account of peer[ip=" + ip + "] is null, can't finish certified node updated");
       return;
     }

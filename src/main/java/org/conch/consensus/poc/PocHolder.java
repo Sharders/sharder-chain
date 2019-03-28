@@ -7,7 +7,6 @@ import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
-import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.util.IpUtil;
 import org.conch.util.Logger;
@@ -30,12 +29,14 @@ public class PocHolder implements Serializable {
     
     // accountId : pocScore
     Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    
     // height : { accountId : pocScore }
     Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
 
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
     Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
+    
     // peerType : <bindAccountId,peerIp> 
     Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
 
@@ -49,19 +50,12 @@ public class PocHolder implements Serializable {
         inst.certifiedBindAccountMap.put(Peer.Type.HUB,Maps.newConcurrentMap());
         inst.certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
         inst.certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
-
+        
+        // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-        String ip = IpUtil.getIp(bootNodeDomain);
+        String ip = IpUtil.domain2Ip(bootNodeDomain);
         inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(SharderGenesis.CREATOR_ID,ip);
-
-        if(Constants.isDevnet()){
-            List<GenesisRecipient> recipients = GenesisRecipient.getAll();
-            recipients.forEach(recipient -> inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(recipient.id,ip));
-        }else if(Constants.isTestnet()){
-            //TODO default testnet accounts 
-        }else if(Constants.isMainnet()){
-            //TODO default mainnet accounts 
-        }
+        GenesisRecipient.getAll().forEach(recipient -> inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(recipient.id,ip));
     }
 
     private PocHolder(){}
