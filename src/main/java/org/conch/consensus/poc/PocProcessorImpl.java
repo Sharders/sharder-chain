@@ -195,29 +195,40 @@ public class PocProcessorImpl implements PocProcessor {
   public static void notifySynTxNow(){
     synPocTxNow = true;
   }
-  
-  private static volatile Set<String> synPeerList = Sets.newHashSet();
+
+
   private static final Runnable peerSynThread = () -> {
     try {
-      
-      if(synPeerList.size() <= 0) {
+
+      if (PocHolder.synPeers().size() <= 0) {
         Logger.logInfoMessage("no needs to syn peer, sleep 10 minutes...");
         Thread.sleep(10 * 60 * 1000);
       }
 
-      for(String peerAddress : synPeerList){
-        Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
-        if (peer != null) {
-          Peers.addPeer(peer, peerAddress);
-          Peers.connectPeer(peer);
+      Set<String> connectedPeers = Sets.newHashSet();
+      for (String peerAddress : PocHolder.synPeers()) {
+        try {
+          Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
+          if (peer != null) {
+            Peers.addPeer(peer, peerAddress);
+            Peers.connectPeer(peer);
+          }
+          peer = Peers.getPeer(peerAddress);
+          _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
+          connectedPeers.add(peer.getHost());
+        } catch (Exception e) {
+          Logger.logDebugMessage("can't connect peer[%s] in peerSynThread, caused by %s", peerAddress, e.getMessage());
+          continue;
         }
-        peer = Peers.getPeer(peerAddress);
-        _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
       }
-      synPeerList.clear();
-      
+
+      if (connectedPeers.size() > 0) {
+        PocHolder.removeConnectedPeers(connectedPeers);
+        DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+      }
+
     } catch (Exception e) {
-      Logger.logDebugMessage("peer syn thread interrupted");
+      Logger.logDebugMessage("peer syn thread interrupted %s", e.getMessage());
     } catch (Throwable t) {
       Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
       System.exit(1);
@@ -254,18 +265,19 @@ public class PocProcessorImpl implements PocProcessor {
   }
   
   private static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
-    Peer peer = Peers.getPeer(ip);
     if(StringUtils.isEmpty(ip)){
       Logger.logWarningMessage("peer ip[" + ip + "] is null, can't find peer!");
       return;
     }
+
+    Peer peer = Peers.getPeer(ip);
     // convert to ip if it is domain
-    ip = IpUtil.domain2Ip(ip);
+    ip = IpUtil.checkOrToIp(ip);
     
     String bindRsAccount = peer.getBindRsAccount();
     if(StringUtils.isEmpty(bindRsAccount)){
       // connect peer to get account later
-      synPeerList.add(ip);
+      PocHolder.addSynPeer(ip);
       Logger.logWarningMessage("bind rs account of peer[ip=" + ip + "] is null, can't finish certified node updated");
       return;
     }
@@ -299,7 +311,7 @@ public class PocProcessorImpl implements PocProcessor {
   private static PocScore getPocScoreByPeer(int height, String ip){
     Peer peer = Peers.getPeer(ip);
     if(peer == null) {
-      synPeerList.add(ip);
+      PocHolder.addSynPeer(ip);
       return null;
     }
 

@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
  * @since 2018/12/18
  */
 public class IpUtil {
-    
-    public static String domain2Ip(String url){
+
+    public static String checkOrToIp(String url) {
         try {
             if(!isDomain(url)) return url;
             return InetAddress.getByName(url).getHostAddress();
@@ -40,7 +40,7 @@ public class IpUtil {
 
     public static boolean matchHost(HttpServletRequest req, String host) {
         String senderIp = getSenderIp(req);
-        return senderIp.equals(domain2Ip(host));
+        return senderIp.equals(checkOrToIp(host));
     }
     
     

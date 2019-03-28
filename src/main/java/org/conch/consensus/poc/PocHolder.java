@@ -2,6 +2,7 @@ package org.conch.consensus.poc;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
@@ -13,7 +14,9 @@ import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,6 +43,24 @@ public class PocHolder implements Serializable {
     // peerType : <bindAccountId,peerIp> 
     Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
 
+    // syn peers
+    private volatile Set<String> synPeerList = Sets.newHashSet();
+
+    public static Set<String> synPeers() {
+        return inst.synPeerList;
+    }
+
+    public static void addSynPeer(String host) {
+        String ip = IpUtil.checkOrToIp(host);
+        if (inst.synPeerList.contains(ip)) return;
+
+        inst.synPeerList.add(ip);
+    }
+
+    public static void removeConnectedPeers(Set<String> connectedPeers) {
+        inst.synPeerList.removeAll(connectedPeers);
+    }
+
     int lastHeight = -1;
 
     static {
@@ -53,7 +74,7 @@ public class PocHolder implements Serializable {
         
         // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-        String ip = IpUtil.domain2Ip(bootNodeDomain);
+        String ip = IpUtil.checkOrToIp(bootNodeDomain);
         inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(SharderGenesis.CREATOR_ID,ip);
         GenesisRecipient.getAll().forEach(recipient -> inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(recipient.id,ip));
     }

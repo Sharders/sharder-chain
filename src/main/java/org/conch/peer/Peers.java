@@ -1017,8 +1017,8 @@ public final class Peers {
     }
 
     public static Peer getPeer(String host) {
-
-        return peers.get(host);
+        String ip = IpUtil.checkOrToIp(host);
+        return peers.get(ip);
     }
 
     public static List<Peer> getInboundPeers() {
