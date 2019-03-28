@@ -1475,9 +1475,7 @@ public final class Peers {
 
     private static void checkBlockchainState() {
         Peer.BlockchainState state = Constants.isLightClient ? Peer.BlockchainState.LIGHT_CLIENT :
-                //区块链处于下载中 or 区块链中最后一个块的创建时间小于创世块(2013-10-24 12:00:00)的时间 -> 下载中
                 (Conch.getBlockchainProcessor().isDownloading() || Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
-                        //区块链中最后一个块的基础难度除以基础难度大于10并且不是测试网络 -> 分叉 : 最新的
                         (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet()) ? Peer.BlockchainState.FORK :
                                 Peer.BlockchainState.UP_TO_DATE;
         if (state != currentBlockchainState) {

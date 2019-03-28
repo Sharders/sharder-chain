@@ -3,6 +3,7 @@ package org.conch.consensus.poc;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
@@ -52,9 +53,11 @@ public class PocHolder implements Serializable {
 
     public static void addSynPeer(String host) {
         String ip = IpUtil.checkOrToIp(host);
+
+        if (StringUtils.isEmpty(ip) && StringUtils.isEmpty(host)) return;
         if (inst.synPeerList.contains(ip)) return;
 
-        inst.synPeerList.add(ip);
+        inst.synPeerList.add(StringUtils.isEmpty(ip) ? host : ip);
     }
 
     public static void removeConnectedPeers(Set<String> connectedPeers) {
