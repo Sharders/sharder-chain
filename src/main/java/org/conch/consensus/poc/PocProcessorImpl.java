@@ -74,7 +74,7 @@ public class PocProcessorImpl implements PocProcessor {
 
   public static boolean isHubBind(long accountId, String peerIp) {
     String bindPeerIp = PocHolder.getBoundPeerIp(Peer.Type.HUB, accountId);
-   
+    
     return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
   }
 

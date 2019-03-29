@@ -19,9 +19,7 @@
  *
  */
 
-package org.conch.peer;
-
-import org.conch.util.Logger;
+package org.conch.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
