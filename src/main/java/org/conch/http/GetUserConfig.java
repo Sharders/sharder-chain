@@ -23,6 +23,7 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
 import org.conch.common.Constants;
@@ -114,6 +115,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
     private String getNodeType(String num) throws IOException {
         Integer nodeTypeCode = 0;
+        if (StringUtils.isEmpty(num)) {
+            return Peer.SimpleType.NORMAL.getName();
+        }
         String url = UrlManager.getFoundationUrl(
                 UrlManager.GET_HARDWARE_TYPE_EOLINKER,
                 UrlManager.GET_HARDWARE_TYPE_LOCAL,
