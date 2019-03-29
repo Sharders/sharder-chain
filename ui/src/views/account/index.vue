@@ -1194,7 +1194,7 @@
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {
-                        if (res.data.code === 200) {
+                        if (res.data.success) {
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
                         } else {
