@@ -43,7 +43,9 @@ import org.json.simple.JSONObject;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author ben 
@@ -758,20 +760,36 @@ public class Generator implements Comparable<Generator> {
     public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
     public static final String AUTO_MINT_ADDRESS = autoMintAccountRs();
     static boolean autoMintRunning = false;
-    static String autoMintAccountRs(){
+
+    /**
+     * local auto mint rs account
+     *
+     * @return
+     */
+    private static String autoMintAccountRs() {
         String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
         return StringUtils.isEmpty(autoMintPR) ? null : Account.rsAccount(Account.getId(autoMintPR));
     }
-    
-    static long autoMintAccountId(){
+
+    private static long autoMintAccountId() {
         String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
         return StringUtils.isEmpty(autoMintPR) ? 0 : Account.getId(autoMintPR);
     }
 
+    /**
+     * force to open auto mining once
+     */
     public static void forceOpenAutoMining(){
         autoMintRunning = true;
     }
-    
+
+
+    /**
+     * check account is hub bound account or local auto mint account
+     *
+     * @param accountId
+     * @return
+     */
     public static boolean isAutoMiningAccount(long accountId){
         long bindAddrId = Account.rsAccountToId(Generator.HUB_BIND_ADDRESS);
         if(bindAddrId != 0 && bindAddrId == accountId) return true;
@@ -781,9 +799,23 @@ public class Generator implements Comparable<Generator> {
         
         return false;
     }
-    
+
+    /**
+     * sequence: hub bound account > local auto mint account
+     *
+     * @return auto mint rs account
+     */
+    public static String getAutoMiningRS() {
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            return Account.rsAccount(HUB_BIND_PR);
+        }
+
+        return autoMintAccountRs();
+    }
+
     /**
      * Auto mining of Hub or Miner, just execute once
+     * sequence: hub bind account > local auto mint account
      */
     public static void checkOrStartAutoMining(){
         if(autoMintRunning) {

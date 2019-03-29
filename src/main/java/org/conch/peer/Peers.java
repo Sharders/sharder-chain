@@ -29,10 +29,12 @@ import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.consensus.poc.PocHolder;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
+import org.conch.mint.Generator;
 import org.conch.tx.Transaction;
 import org.conch.util.*;
 import org.eclipse.jetty.server.Connector;
@@ -321,15 +323,17 @@ public final class Peers {
 
         myServices = servicesList;
         json.put("services", Long.toUnsignedString(getServicesInLong()));
+
+        String autoMintRs = Generator.getAutoMiningRS();
+        if (StringUtils.isNotEmpty(autoMintRs)) json.put("bindRsAccount", autoMintRs);
+
         Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
 
         myPeerInfo = json;
 
         myLoad = new PeerLoad("127.0.0.1", API.openAPIPort, -1);
 
-
         final List<String> defaultPeers = loadPeersSetting();
-
         wellKnownPeers = parseWellknownPeers();
         
         List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
@@ -838,8 +842,7 @@ public final class Peers {
                     String detail = "\n\rget peer info and update hub peer info [size=" + peerArrayJson.size() + "]\n\r==================>\n\r";
                     Iterator iterator = peerArrayJson.iterator();
                     while (iterator.hasNext()) {
-                        com.alibaba.fastjson.JSONObject peerJson =
-                                (com.alibaba.fastjson.JSONObject) iterator.next();
+                        com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
 
                         String host = peerJson.getString("announcedAddress");
                         if (StringUtils.isEmpty(host)) {
@@ -865,6 +868,7 @@ public final class Peers {
                             detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
                         }
                         peer.setBindRsAccount(bindAddress);
+                        PocHolder.addOrUpdateBoundAccountPeer(Peer.Type.HUB, Account.rsAccountToId(bindAddress), host, true);
                     }
                     detail += "<================== hub peer info updated";
                     Logger.logInfoMessage(detail);
@@ -1481,6 +1485,7 @@ public final class Peers {
                 (Conch.getBlockchainProcessor().isDownloading() || Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
                         (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet()) ? Peer.BlockchainState.FORK :
                                 Peer.BlockchainState.UP_TO_DATE;
+        // generate my peer details
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);
             json.put("blockchainState", state.ordinal());

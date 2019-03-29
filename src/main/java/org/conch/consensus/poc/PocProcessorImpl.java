@@ -294,7 +294,7 @@ public class PocProcessorImpl implements PocProcessor {
     PocHolder.addMinerPeer(height, peerBindAccountId, peer);
     
     //update peer bind account by peer type
-    PocHolder.addBindAccountPeer(type, peerBindAccountId, ip, true);
+    PocHolder.addOrUpdateBoundAccountPeer(type, peerBindAccountId, ip, true);
   }
 
 
@@ -327,7 +327,7 @@ public class PocProcessorImpl implements PocProcessor {
     }
     pocScoreToUpdate.nodeTypeCal(pocNodeType);
 
-    PocHolder.inst.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMapping(pocScoreToUpdate);
 
     _updateCertifiedNodes(pocNodeType.getIp(),pocNodeType.getType(),height);
     
@@ -349,7 +349,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
-    PocHolder.inst.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMapping(pocScoreToUpdate);
     return true;
   }
 
@@ -369,7 +369,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     pocScoreToUpdate.onlineRateCal(peer.getType(),onlineRate);
 
-    PocHolder.inst.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMapping(pocScoreToUpdate);
     return true;
   }
 
@@ -385,7 +385,7 @@ public class PocProcessorImpl implements PocProcessor {
     for(Long missAccountId : missAccountIds){
       PocScore pocScoreToUpdate = new PocScore(missAccountId,height);
       pocScoreToUpdate.blockMissCal(pocBlockMissing);
-      PocHolder.inst.scoreMapping(pocScoreToUpdate);
+      PocHolder.scoreMapping(pocScoreToUpdate);
     }
     return true;
   }
@@ -403,7 +403,7 @@ public class PocProcessorImpl implements PocProcessor {
     long accountId = account.getId();
     PocScore pocScoreToUpdate = new PocScore(accountId,height);
     pocScoreToUpdate.ssScoreCal();
-    PocHolder.inst.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMapping(pocScoreToUpdate);
     return true;
   }
   

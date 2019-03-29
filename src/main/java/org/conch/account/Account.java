@@ -901,6 +901,10 @@ public final class Account {
     public static String rsAccount(long accountId) {
         return Constants.ACCOUNT_PREFIX + Crypto.rsEncode(accountId);
     }
+
+    public static String rsAccount(String secretPhrase) {
+        return rsAccount(getId(secretPhrase));
+    }
     
 
     public static Account addOrGetAccount(long id) {

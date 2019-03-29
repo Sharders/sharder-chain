@@ -40,8 +40,8 @@ public class PocHolder implements Serializable {
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
     private Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = Maps.newConcurrentMap();
-    
-    // peerType : <bindAccountId,peerIp> 
+
+    // peerType : <bindAccountId,peerHost> # peerHost is public ip or announcedAddress(NatIp+Port) 
     private Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
 
     // syn peers
@@ -91,15 +91,15 @@ public class PocHolder implements Serializable {
      * @param peerHost  peer host
      * @param replace   true: replace the exist account id of peer
      */
-    public static void addBindAccountPeer(Peer.Type type, Long accountId, String peerHost, boolean replace) {
+    public static void addOrUpdateBoundAccountPeer(Peer.Type type, Long accountId, String peerHost, boolean replace) {
         Map<Long, String> bindAccountMap = getBindAccountPeerMap(type);
-        String peerIp = IpUtil.checkOrToIp(peerHost);
+//        String peerIp = IpUtil.checkOrToIp(peerHost);
         if (replace && bindAccountMap.containsKey(accountId)) {
-            if (!peerIp.equalsIgnoreCase(bindAccountMap.get(accountId))) {
+            if (!peerHost.equalsIgnoreCase(bindAccountMap.get(accountId))) {
                 bindAccountMap.remove(accountId);
             }
         }
-        bindAccountMap.put(accountId, peerIp);
+        bindAccountMap.put(accountId, peerHost);
     }
 
     public static Map<Long, Peer> getMinerPeerMap(Integer height) {
@@ -170,7 +170,7 @@ public class PocHolder implements Serializable {
      * update the poc score of account
      * @param pocScore a poc score object
      */
-    static synchronized void scoreMapping(PocScore pocScore){
+    public static synchronized void scoreMapping(PocScore pocScore) {
         PocScore _pocScore = pocScore;
         if(inst.scoreMap.containsKey(pocScore.accountId)) {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
