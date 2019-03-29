@@ -28,7 +28,6 @@ import org.conch.Conch;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.peer.Peer;
-import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
@@ -116,9 +115,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
     private String getNodeType(String num) throws IOException {
         Integer nodeTypeCode = 0;
         String url = UrlManager.getFoundationUrl(
-                UrlManager.GET_HARDWAER_TYPE_EOLINKER,
-                UrlManager.GET_HARDWAER_TYPE_LOCAL,
-                UrlManager.GET_HARDWAER_TYPE_PATH
+                UrlManager.GET_HARDWARE_TYPE_EOLINKER,
+                UrlManager.GET_HARDWARE_TYPE_LOCAL,
+                UrlManager.GET_HARDWARE_TYPE_PATH
         );
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
                 .get()

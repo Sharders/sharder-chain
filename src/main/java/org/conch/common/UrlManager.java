@@ -23,9 +23,9 @@ public class UrlManager {
     /**
      * check sharder hardware product
      */
-    public static final String GET_HARDWAER_TYPE_EOLINKER = "https://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/sc/ssHardwareProduct/serialNum/";
-    public static final String GET_HARDWAER_TYPE_LOCAL = "http://localhost:8080/sc/ssHardwareProduct/serialNum/{serialNum}";
-    public static final String GET_HARDWAER_TYPE_PATH = "/sc/ssHardwareProduct/serialNum/{serialNum}";
+    public static final String GET_HARDWARE_TYPE_EOLINKER = "https://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/sc/ssHardwareProduct/serialNum/";
+    public static final String GET_HARDWARE_TYPE_LOCAL = "http://localhost:8080/sc/ssHardwareProduct/serialNum/{serialNum}";
+    public static final String GET_HARDWARE_TYPE_PATH = "/sc/ssHardwareProduct/serialNum/{serialNum}";
 
     /**
      * get NAT settings via sharder account
@@ -75,8 +75,8 @@ public class UrlManager {
      * @return URLs
      */
     public static String getFoundationUrl(String eoLinkerUrl, String localUrl, String path) {
-        if (Constants.isMainnet() || Constants.isTestnet() || Constants.isDevnet()) {
-            return HTTP_SCHEME + Conch.getSharderFoundationURL() + path;
+        if (!Constants.isLocal()) {
+            return HTTPS_SCHEME + Conch.getSharderFoundationURL() + path;
         }
         return USE_EOLINKER ? eoLinkerUrl : localUrl;
     }
