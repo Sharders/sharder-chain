@@ -661,6 +661,7 @@ final class PeerImpl implements Peer {
                     return;
                 }
             }
+            // get peer detail
             JSONObject response = send(Peers.getMyPeerInfoRequest());
             if (response != null) {
                 if (response.get("error") != null) {

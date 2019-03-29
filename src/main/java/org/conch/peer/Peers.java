@@ -816,6 +816,9 @@ public final class Peers {
             UrlManager.PEERS_LIST_PATH
     );
 
+    /**
+     * get and update the local bound rs account of hub
+     */
     private static final Runnable GET_HUB_PEER_THREAD =
             () -> {
                 try {
@@ -836,7 +839,7 @@ public final class Peers {
                     Iterator iterator = peerArrayJson.iterator();
                     while (iterator.hasNext()) {
                         com.alibaba.fastjson.JSONObject peerJson =
-                            (com.alibaba.fastjson.JSONObject) iterator.next();
+                                (com.alibaba.fastjson.JSONObject) iterator.next();
 
                         String host = peerJson.getString("announcedAddress");
                         if (StringUtils.isEmpty(host)) {

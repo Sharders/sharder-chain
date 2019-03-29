@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,25 +48,32 @@ public class PocProcessorImpl implements PocProcessor {
    * @return
    */
   public static Peer.Type bindPeerType(long accountId){
-    if(PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId)) return Peer.Type.HUB;
-    if(PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.COMMUNITY).containsKey(accountId)) return Peer.Type.COMMUNITY;
-    if(PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).containsKey(accountId)) return Peer.Type.FOUNDATION;
+
+    if (PocHolder.boundPeer(Peer.Type.HUB, accountId)) return Peer.Type.HUB;
+    if (PocHolder.boundPeer(Peer.Type.COMMUNITY, accountId)) return Peer.Type.COMMUNITY;
+    if (PocHolder.boundPeer(Peer.Type.FOUNDATION, accountId)) return Peer.Type.FOUNDATION;
     return Peer.Type.NORMAL;
   }
 
-  public static boolean isCertifiedPeerBind(long accountId){
-    boolean hubBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
-    boolean communityBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.COMMUNITY).containsKey(accountId);
-    boolean foundationBindAccount = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).containsKey(accountId);
+  /**
+   * account whether bound to certified peer
+   *
+   * @param accountId
+   * @return
+   */
+  public static boolean isCertifiedPeerBind(long accountId) {
+    boolean hubBindAccount = PocHolder.boundPeer(Peer.Type.HUB, accountId);
+    boolean communityBindAccount = PocHolder.boundPeer(Peer.Type.COMMUNITY, accountId);
+    boolean foundationBindAccount = PocHolder.boundPeer(Peer.Type.FOUNDATION, accountId);
     return hubBindAccount || communityBindAccount || foundationBindAccount;
   }
 
-  public static boolean isHubBind(long accountId){
-    return PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).containsKey(accountId);
+  public static boolean isHubBind(long accountId) {
+    return PocHolder.boundPeer(Peer.Type.HUB, accountId);
   }
-  
-  public static boolean isHubBind(long accountId, String peerIp){
-    String bindPeerIp = PocHolder.inst.certifiedBindAccountMap.get(Peer.Type.HUB).get(accountId);
+
+  public static boolean isHubBind(long accountId, String peerIp) {
+    String bindPeerIp = PocHolder.getBoundPeerIp(Peer.Type.HUB, accountId);
    
     return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
   }
@@ -261,10 +267,10 @@ public class PocProcessorImpl implements PocProcessor {
         PocCalculator.inst.setCurWeightTable(weightTable,block.getHeight());
       }
     }
-    
+
   }
-  
-  private static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
+
+  public static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
     if(StringUtils.isEmpty(ip)){
       Logger.logWarningMessage("peer ip[" + ip + "] is null, can't find peer!");
       return;
@@ -285,26 +291,10 @@ public class PocProcessorImpl implements PocProcessor {
     peer.setType(type);
 
     // update certified nodes
-    Map<Long, Peer> peerMap = PocHolder.inst.certifiedMinerPeerMap.get(height);
-    if(peerMap == null) {
-        peerMap = new ConcurrentHashMap<>();
-    }
-    peerMap.put(peerBindAccountId,peer);
-    PocHolder.inst.certifiedMinerPeerMap.put(height,peerMap);
+    PocHolder.addMinerPeer(height, peerBindAccountId, peer);
     
     //update peer bind account by peer type
-    if(!PocHolder.inst.certifiedBindAccountMap.containsKey(type)) {
-      PocHolder.inst.certifiedBindAccountMap.put(type,new ConcurrentHashMap<>());
-    }
-    
-    Map<Long, String> bindAccountMap = PocHolder.inst.certifiedBindAccountMap.get(type);
-    if(bindAccountMap.containsKey(peerBindAccountId)) {
-      String peerIp = bindAccountMap.get(peerBindAccountId);
-      if(!ip.equalsIgnoreCase(peerIp)) {
-        bindAccountMap.remove(peerBindAccountId);
-      }
-    }
-    bindAccountMap.put(peerBindAccountId,ip);
+    PocHolder.addBindAccountPeer(type, peerBindAccountId, ip, true);
   }
 
 

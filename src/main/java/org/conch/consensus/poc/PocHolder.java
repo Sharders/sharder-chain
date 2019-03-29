@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * PocHolder is a singleton to hold the score map.
+ * PocHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
@@ -32,20 +32,23 @@ public class PocHolder implements Serializable {
     static PocHolder inst = new PocHolder();
     
     // accountId : pocScore
-    Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    private Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
     
     // height : { accountId : pocScore }
-    Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
+    private Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
 
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
-    Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = new ConcurrentHashMap<>();
+    private Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = Maps.newConcurrentMap();
     
     // peerType : <bindAccountId,peerIp> 
-    Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
+    private Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
 
     // syn peers
     private volatile Set<String> synPeerList = Sets.newHashSet();
+
+    int lastHeight = -1;
+
 
     public static Set<String> synPeers() {
         return inst.synPeerList;
@@ -64,7 +67,52 @@ public class PocHolder implements Serializable {
         inst.synPeerList.removeAll(connectedPeers);
     }
 
-    int lastHeight = -1;
+
+    public static Map<Long, String> getBindAccountPeerMap(Peer.Type type) {
+        if (!inst.certifiedBindAccountMap.containsKey(type)) {
+            inst.certifiedBindAccountMap.put(type, new ConcurrentHashMap<>());
+        }
+        return inst.certifiedBindAccountMap.get(type);
+    }
+
+    public static String getBoundPeerIp(Peer.Type type, long account) {
+        return getBindAccountPeerMap(type).get(account);
+    }
+
+    public static boolean boundPeer(Peer.Type type, long account) {
+        return getBindAccountPeerMap(type).containsKey(account);
+    }
+
+    /**
+     * record peer and bind account
+     *
+     * @param type      peer type
+     * @param accountId bind account id
+     * @param peerHost  peer host
+     * @param replace   true: replace the exist account id of peer
+     */
+    public static void addBindAccountPeer(Peer.Type type, Long accountId, String peerHost, boolean replace) {
+        Map<Long, String> bindAccountMap = getBindAccountPeerMap(type);
+        String peerIp = IpUtil.checkOrToIp(peerHost);
+        if (replace && bindAccountMap.containsKey(accountId)) {
+            if (!peerIp.equalsIgnoreCase(bindAccountMap.get(accountId))) {
+                bindAccountMap.remove(accountId);
+            }
+        }
+        bindAccountMap.put(accountId, peerIp);
+    }
+
+    public static Map<Long, Peer> getMinerPeerMap(Integer height) {
+        if (!inst.certifiedMinerPeerMap.containsKey(height)) {
+            inst.certifiedMinerPeerMap.put(height, new ConcurrentHashMap<>());
+        }
+        return inst.certifiedMinerPeerMap.get(height);
+    }
+
+    public static void addMinerPeer(Integer height, long accountId, Peer peer) {
+        getMinerPeerMap(height).put(accountId, peer);
+    }
+
 
     static {
         initBindMiners();
