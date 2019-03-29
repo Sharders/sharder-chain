@@ -3,6 +3,7 @@ package org.conch.peer;
 import org.conch.account.Account;
 import org.conch.util.IpUtil;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
@@ -22,7 +23,7 @@ import java.sql.Timestamp;
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-03-29
  */
-public class CertifiedPeer {
+public class CertifiedPeer implements Serializable {
     int height = -1;
     Peer.Type type;
     //peerHost is public ip or announcedAddress(NatIp+Port) 
