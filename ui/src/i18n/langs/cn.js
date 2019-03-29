@@ -48,6 +48,7 @@ const cn = {
         'register_status_invalid': "无效",
         'register_status_pending': "申请中",
         'register_status_approval': "有效",
+        'create_account': "创建账户",
     },
     register: {
         'register_title': "已为您生成账户密钥",

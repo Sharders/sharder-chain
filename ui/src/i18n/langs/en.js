@@ -48,6 +48,7 @@ const en = {
         'register_status_invalid': "Invalid",
         'register_status_pending': "Pending",
         'register_status_approval': "Valid",
+        'create_account': "Create Account",
     },
     register: {
         'register_title': "Your mnemonic phrase has been generated:",
