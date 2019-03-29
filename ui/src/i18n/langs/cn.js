@@ -45,8 +45,9 @@ const cn = {
         'cancel': "取消",
         'update_hub_setting_success': "成功更新穿透服务配置信息",
         'register_status': "申请状态",
-        'register_status_pending': "待审核",
-        'register_status_approval': "审核通过",
+        'register_status_invalid': "无效",
+        'register_status_pending': "申请中",
+        'register_status_approval': "有效",
     },
     register: {
         'register_title': "已为您生成账户密钥",

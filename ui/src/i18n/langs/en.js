@@ -45,8 +45,9 @@ const en = {
         'cancel': "Cancel",
         'update_hub_setting_success': "Hub Settings Updated",
         'register_status': "Application Status",
-        'register_status_pending': "Pending Approval",
-        'register_status_approval': "Approved",
+        'register_status_invalid': "Invalid",
+        'register_status_pending': "Pending",
+        'register_status_approval': "Valid",
     },
     register: {
         'register_title': "Your mnemonic phrase has been generated:",
