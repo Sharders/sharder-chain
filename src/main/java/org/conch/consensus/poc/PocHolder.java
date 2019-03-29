@@ -9,8 +9,8 @@ import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
-import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * PocHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
+ *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
@@ -39,43 +40,43 @@ public class PocHolder implements Serializable {
 
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
-    private Map<Integer, Map<Long, Peer>> certifiedMinerPeerMap = Maps.newConcurrentMap();
+    private Map<Integer, Map<Long, CertifiedPeer>> certifiedMinerPeerMap = Maps.newConcurrentMap();
 
     // peerType : <bindAccountId,peerHost> # peerHost is public ip or announcedAddress(NatIp+Port) 
-    private Map<Peer.Type, Map<Long, String>> certifiedBindAccountMap = Maps.newConcurrentMap();
+    private Map<Peer.Type, Map<Long, CertifiedPeer>> certifiedBindAccountMap = Maps.newConcurrentMap();
 
-    // syn peers
+    // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
     private volatile Set<String> synPeerList = Sets.newHashSet();
 
     int lastHeight = -1;
-
 
     public static Set<String> synPeers() {
         return inst.synPeerList;
     }
 
+    /**
+     * add host into syn peer list
+     *
+     * @param host
+     */
     public static void addSynPeer(String host) {
-        String ip = IpUtil.checkOrToIp(host);
+        if (StringUtils.isEmpty(host)) return;
 
-        if (StringUtils.isEmpty(ip) && StringUtils.isEmpty(host)) return;
-        if (inst.synPeerList.contains(ip)) return;
-
-        inst.synPeerList.add(StringUtils.isEmpty(ip) ? host : ip);
+        inst.synPeerList.add(host);
     }
 
     public static void removeConnectedPeers(Set<String> connectedPeers) {
         inst.synPeerList.removeAll(connectedPeers);
     }
 
-
-    public static Map<Long, String> getBindAccountPeerMap(Peer.Type type) {
+    public static Map<Long, CertifiedPeer> getBindAccountPeerMap(Peer.Type type) {
         if (!inst.certifiedBindAccountMap.containsKey(type)) {
             inst.certifiedBindAccountMap.put(type, new ConcurrentHashMap<>());
         }
         return inst.certifiedBindAccountMap.get(type);
     }
 
-    public static String getBoundPeerIp(Peer.Type type, long account) {
+    public static CertifiedPeer getBoundPeer(Peer.Type type, long account) {
         return getBindAccountPeerMap(type).get(account);
     }
 
@@ -84,50 +85,61 @@ public class PocHolder implements Serializable {
     }
 
     /**
-     * record peer and bind account
+     * record certified peer and bind account
+     * default action: update the exist certifiedPeer information
      *
      * @param type      peer type
      * @param accountId bind account id
      * @param peerHost  peer host
-     * @param replace   true: replace the exist account id of peer
      */
-    public static void addOrUpdateBoundAccountPeer(Peer.Type type, Long accountId, String peerHost, boolean replace) {
-        Map<Long, String> bindAccountMap = getBindAccountPeerMap(type);
-//        String peerIp = IpUtil.checkOrToIp(peerHost);
-        if (replace && bindAccountMap.containsKey(accountId)) {
-            if (!peerHost.equalsIgnoreCase(bindAccountMap.get(accountId))) {
-                bindAccountMap.remove(accountId);
-            }
-        }
-        bindAccountMap.put(accountId, peerHost);
+    public static void addOrUpdateBoundAccountPeer(Peer.Type type, Long accountId, String peerHost) {
+        addOrUpdateBoundAccountPeer(new CertifiedPeer(type, peerHost, accountId));
     }
 
-    public static Map<Long, Peer> getMinerPeerMap(Integer height) {
+    /**
+     * record certified peer and bind account
+     *
+     * @param newPeer
+     */
+    public static void addOrUpdateBoundAccountPeer(CertifiedPeer newPeer) {
+        Map<Long, CertifiedPeer> bindAccountMap = getBindAccountPeerMap(newPeer.getType());
+
+        if (bindAccountMap.containsKey(newPeer.getBoundAccountId())) {
+            bindAccountMap.get(newPeer.getBoundAccountId()).update(newPeer.getBoundAccountId()).update(newPeer.getType());
+        } else {
+            bindAccountMap.put(newPeer.getBoundAccountId(), newPeer);
+        }
+    }
+
+    private static Map<Long, CertifiedPeer> getMinerPeerMap(Integer height) {
         if (!inst.certifiedMinerPeerMap.containsKey(height)) {
             inst.certifiedMinerPeerMap.put(height, new ConcurrentHashMap<>());
         }
         return inst.certifiedMinerPeerMap.get(height);
     }
 
+    /**
+     * add or update certifiedPeer and append it into 2 maps
+     *
+     * @param height
+     * @param accountId
+     * @param peer
+     */
     public static void addMinerPeer(Integer height, long accountId, Peer peer) {
-        getMinerPeerMap(height).put(accountId, peer);
+        CertifiedPeer certifiedPeer = new CertifiedPeer(height, peer, accountId);
+        getMinerPeerMap(height).put(accountId, certifiedPeer);
+        addOrUpdateBoundAccountPeer(certifiedPeer);
     }
-
 
     static {
         initBindMiners();
     }
 
     private static void initBindMiners(){
-        inst.certifiedBindAccountMap.put(Peer.Type.HUB,Maps.newConcurrentMap());
-        inst.certifiedBindAccountMap.put(Peer.Type.COMMUNITY,Maps.newConcurrentMap());
-        inst.certifiedBindAccountMap.put(Peer.Type.FOUNDATION,Maps.newConcurrentMap());
-        
         // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-        String ip = IpUtil.checkOrToIp(bootNodeDomain);
-        inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(SharderGenesis.CREATOR_ID,ip);
-        GenesisRecipient.getAll().forEach(recipient -> inst.certifiedBindAccountMap.get(Peer.Type.FOUNDATION).put(recipient.id,ip));
+        inst.addOrUpdateBoundAccountPeer(Peer.Type.FOUNDATION, SharderGenesis.CREATOR_ID, bootNodeDomain);
+        GenesisRecipient.getAll().forEach(recipient -> inst.addOrUpdateBoundAccountPeer(Peer.Type.FOUNDATION, recipient.id, bootNodeDomain));
     }
 
     private PocHolder(){}
