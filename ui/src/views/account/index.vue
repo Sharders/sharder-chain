@@ -14,7 +14,8 @@
                         <span class="csp" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</span>
                     </div>
                     <p class="account_asset">
-                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) + $global.unit}}</p>
+                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) +
+                        $global.unit}}</p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
@@ -379,7 +380,7 @@
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
-                        <!--<a @click="register"><span>创建账户</span></a>-->
+                        <a @click="register"><span>创建账户</span></a>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
@@ -630,6 +631,7 @@
                 initHUb: this.$store.state.isHubInit,
                 userConfig: {
                     nodeType: this.$store.state.userConfig['sharder.NodeType'],
+                    xxx: this.$store.state.userConfig['sharder.xxx'],
                     useNATService: this.$store.state.userConfig['sharder.useNATService'] === 'true',
                     natClientSecretKey: this.$store.state.userConfig['sharder.NATClientKey'],
                     publicAddress: this.$store.state.userConfig['sharder.myAddress'],
@@ -849,7 +851,7 @@
             _this.getLatestHubVersion();
         },
         methods: {
-            activeSelectType(type){
+            activeSelectType(type) {
                 return this.selectType === type ? 'active' : ''
             },
             getLatestHubVersion() {
@@ -1007,7 +1009,7 @@
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
-                        _this.$message.error(res.data.errorDescription?res.data.errorDescription:res.data.failedReason);
+                        _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.failedReason);
                     }
                 }).catch(err => _this.$message.error(err.message));
             },
@@ -1028,7 +1030,7 @@
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
-                        _this.$message.error(res.data.errorDescription?res.data.errorDescription:res.data.failedReason);
+                        _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.failedReason);
                     }
                 }).catch(err => {
                     _this.$message.error(err.message);
@@ -1147,7 +1149,7 @@
                 } else if (type === 'register') {
                     _this.$refs['useNATForm'].validate((valid) => {
                         if (valid) {
-                            this.confirmInitHubSetting(confirmFormData, reConfigFormData);
+                            _this.reconfigure(reConfigFormData);
                         } else {
                             console.log('register dialog error submit!!');
                             return false;
@@ -1196,7 +1198,7 @@
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
                         } else {
-                            _this.$message.error(res.data.errorDescription? res.data.errorDescription : res.data.errorType + res.data.errorMessage);
+                            _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.errorType + res.data.errorMessage);
                         }
                     })
                     .catch(err => {
@@ -1253,27 +1255,30 @@
                 if (_this.hubsetting.sharderAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
-                    formData.append("username", _this.hubsetting.sharderAccount);
+                    formData.append("sharderAccount", _this.hubsetting.sharderAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
-                    _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingAccountCheck), formData)
+                    formData.append("serialNum", _this.userConfig.xxx);
+                    formData.append("nodeType", _this.userConfig.nodeType);
+                    _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.fetchNatServiceConfig), formData)
                         .then(res => {
-                            if (res.data.status === 'success') {
-                                _this.hubsetting.address = res.data.data.natServiceAddress;
+                            console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
+                            if (res.data.success && res.data.data) {
+                                _this.hubsetting.address = res.data.data.natServiceIp;
                                 _this.hubsetting.port = res.data.data.natServicePort;
                                 _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
-                                _this.hubsetting.publicAddress = res.data.data.hubAddress;
+                                _this.hubsetting.publicAddress = res.data.data.proxyAddress;
                                 _this.hubsetting.SS_Address = res.data.data.tssAddress;
-                                _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.registerStatus);
-                                _this.hubsetting.register_status = res.data.data.registerStatus;
+                                _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.status);
+                                _this.hubsetting.register_status = res.data.data.status;
                                 _this.needRegister = false;
-                            } else if (res.data.errorType === 'unifiedUserIsNull') {
-                                _this.clearHubSetting();
-                                _this.$message.error(res.data.errorMessage);
-                            } else if (res.data.errorType === 'hubDirectoryIsNull') {
+                            } else if (res.data.success && !res.data.data) {
                                 console.info('HUB配置信息不存在, 需要注册NAT...');
                                 _this.clearHubSetting();
                                 _this.needRegister = true;
                                 _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
+                            } else {
+                                _this.clearHubSetting();
+                                _this.$message.error(res.data.errorMessage);
                             }
                         })
                         .catch(err => {
@@ -2083,9 +2088,11 @@
             formatRegisterStatus(status) {
                 console.info('审核状态', status);
                 if (status === 0) {
-                    return this.$t('hubsetting.register_status_pending');
+                    return this.$t('hubsetting.register_status_invalid');
                 } else if (status === 1) {
                     return this.$t('hubsetting.register_status_approval');
+                } else if (status === 2) {
+                    return this.$t('hubsetting.register_status_pending');
                 }
             },
             whetherShowHubSettingBtn() {
@@ -2256,11 +2263,11 @@
                     _this.messageForm.publicKey = "";
                     _this.getAccount(receiver).then(res => {
                         console.log(res);
-                        if(res.publicKey){
+                        if (res.publicKey) {
                             _this.messageForm.publicKey = res.publicKey;
                             return;
                         }
-                        if(res.errorDescription || !res.publicKey){
+                        if (res.errorDescription || !res.publicKey) {
                             _this.messageForm.errorCode = true;
                             _this.messageForm.hasPublicKey = true;
                         }
@@ -2282,11 +2289,11 @@
                     _this.transfer.receiverPublickey = "";
                     _this.getAccount(receiver).then(res => {
                         console.log(res);
-                        if(res.publicKey){
+                        if (res.publicKey) {
                             _this.transfer.receiverPublickey = res.publicKey;
-                            return ;
+                            return;
                         }
-                        if(res.errorDescription || !res.publicKey){
+                        if (res.errorDescription || !res.publicKey) {
                             _this.transfer.errorCode = true;
                             _this.transfer.hasPublicKey = true;
                         }
