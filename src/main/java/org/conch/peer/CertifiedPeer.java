@@ -125,7 +125,11 @@ public class CertifiedPeer implements Serializable {
     public void setHeight(int height) {
         this.height = height;
     }
-
+    
+    public boolean isType(Peer.Type type){
+        return type == null ? false : type.equals(type);
+    }
+    
     public Peer.Type getType() {
         return type;
     }

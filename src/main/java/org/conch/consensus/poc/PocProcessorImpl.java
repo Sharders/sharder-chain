@@ -18,7 +18,6 @@ import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
-import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
@@ -51,9 +50,9 @@ public class PocProcessorImpl implements PocProcessor {
    */
   public static Peer.Type bindPeerType(long accountId){
 
-    if (PocHolder.boundPeer(Peer.Type.HUB, accountId)) return Peer.Type.HUB;
-    if (PocHolder.boundPeer(Peer.Type.COMMUNITY, accountId)) return Peer.Type.COMMUNITY;
-    if (PocHolder.boundPeer(Peer.Type.FOUNDATION, accountId)) return Peer.Type.FOUNDATION;
+    if (PocHolder.isBoundPeer(Peer.Type.HUB, accountId)) return Peer.Type.HUB;
+    if (PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId)) return Peer.Type.COMMUNITY;
+    if (PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId)) return Peer.Type.FOUNDATION;
     return Peer.Type.NORMAL;
   }
 
@@ -64,20 +63,20 @@ public class PocProcessorImpl implements PocProcessor {
    * @return
    */
   public static boolean isCertifiedPeerBind(long accountId) {
-    boolean hubBindAccount = PocHolder.boundPeer(Peer.Type.HUB, accountId);
-    boolean communityBindAccount = PocHolder.boundPeer(Peer.Type.COMMUNITY, accountId);
-    boolean foundationBindAccount = PocHolder.boundPeer(Peer.Type.FOUNDATION, accountId);
+    boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
+    boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
+    boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
     return hubBindAccount || communityBindAccount || foundationBindAccount;
   }
 
   public static boolean isHubBind(long accountId) {
-    return PocHolder.boundPeer(Peer.Type.HUB, accountId);
+    return PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
   }
 
   public static boolean isHubBind(long accountId, String peerHost) {
-    CertifiedPeer bindPeer = PocHolder.getBoundPeer(Peer.Type.HUB, accountId);
+    CertifiedPeer bindPeer = PocHolder.getBoundPeer(accountId);
 
-    return bindPeer != null && bindPeer.isSame(peerHost);
+    return bindPeer != null && bindPeer.isSame(peerHost) && bindPeer.isType(Peer.Type.HUB);
   }
 
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
@@ -272,28 +271,23 @@ public class PocProcessorImpl implements PocProcessor {
 
   }
 
-  public static void _updateCertifiedNodes(String ip, Peer.Type type, int height){
-    if(StringUtils.isEmpty(ip)){
-      Logger.logWarningMessage("peer ip[" + ip + "] is null, can't find peer!");
+  public static void _updateCertifiedNodes(String host, Peer.Type type, int height) {
+    if(StringUtils.isEmpty(host)){ 
+      Logger.logWarningMessage("peer host[" + host + "] is null, can't find peer!");
       return;
     }
 
-    Peer peer = Peers.getPeer(ip);
-    // convert to ip if it is domain
-    ip = IpUtil.checkOrToIp(ip);
-    
+    Peer peer = Peers.getPeer(host);
+    peer.setType(type);
     String bindRsAccount = peer.getBindRsAccount();
     if(StringUtils.isEmpty(bindRsAccount)){
       // connect peer to get account later
-      PocHolder.addSynPeer(ip);
-      Logger.logWarningMessage("bind rs account of peer[ip=" + ip + "] is null, can't finish certified node updated");
-      return;
+      PocHolder.addSynPeer(host);
+      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetHubDetail thread");
     }
-    long peerBindAccountId = Account.rsAccountToId(bindRsAccount);
-    peer.setType(type);
-
+    
     // update certified nodes
-    PocHolder.addMinerPeer(height, peerBindAccountId, peer);
+    PocHolder.addMinerPeer(height, bindRsAccount, peer);
   }
 
 

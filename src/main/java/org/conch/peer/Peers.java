@@ -868,7 +868,7 @@ public final class Peers {
                             detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
                         }
                         peer.setBindRsAccount(bindAddress);
-                        PocHolder.addOrUpdateBoundAccountPeer(Peer.Type.HUB, Account.rsAccountToId(bindAddress), host);
+                        PocHolder.addOrUpdateBoundPeer(Peer.Type.HUB,host,Account.rsAccountToId(bindAddress));
                     }
                     detail += "<================== hub peer info updated";
                     Logger.logInfoMessage(detail);
@@ -1024,8 +1024,7 @@ public final class Peers {
     }
 
     public static Peer getPeer(String host) {
-        String ip = IpUtil.checkOrToIp(host);
-        return peers.get(ip);
+        return peers.get(host);
     }
 
     public static List<Peer> getInboundPeers() {

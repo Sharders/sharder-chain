@@ -1,6 +1,7 @@
 package org.conch.consensus.poc;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import org.conch.util.Logger;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,11 +42,17 @@ public class PocHolder implements Serializable {
 
     // certified miner: foundation node,sharder hub, community node
     // height : <bindAccountId,peer>
-    private Map<Integer, Map<Long, CertifiedPeer>> certifiedMinerPeerMap = Maps.newConcurrentMap();
+    private Map<Integer, Set<Long>> certifiedMinerPeerMap = Maps.newConcurrentMap();
 
-    // peerType : <bindAccountId,peerHost> # peerHost is public ip or announcedAddress(NatIp+Port) 
-    private Map<Peer.Type, Map<Long, CertifiedPeer>> certifiedBindAccountMap = Maps.newConcurrentMap();
-
+//    // peerType : <bindAccountId,peerHost> # peerHost is public ip or announcedAddress(NatIp+Port) 
+//    private Map<Peer.Type, Set<Long>> certifiedBindAccountMap = Maps.newConcurrentMap();
+    
+    private Map<Long, CertifiedPeer> certifiedPeerMap = Maps.newConcurrentMap();
+    
+    public static final long UN_VERIFIED_ID = -1;
+    
+    private Map<String, CertifiedPeer> unverifiedCertifiedPeers = Maps.newConcurrentMap();
+    
     // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
     private volatile Set<String> synPeerList = Sets.newHashSet();
 
@@ -69,51 +77,54 @@ public class PocHolder implements Serializable {
         inst.synPeerList.removeAll(connectedPeers);
     }
 
-    public static Map<Long, CertifiedPeer> getBindAccountPeerMap(Peer.Type type) {
-        if (!inst.certifiedBindAccountMap.containsKey(type)) {
-            inst.certifiedBindAccountMap.put(type, new ConcurrentHashMap<>());
-        }
-        return inst.certifiedBindAccountMap.get(type);
+//    public static Set<Long> getBindAccountPeerMap(Peer.Type type) {
+//        if (!inst.certifiedBindAccountMap.containsKey(type)) {
+//            inst.certifiedBindAccountMap.put(type, Sets.newHashSet());
+//        }
+//        return inst.certifiedBindAccountMap.get(type);
+//    }
+
+    public static CertifiedPeer getBoundPeer(long account) {
+        return inst.certifiedPeerMap.get(account);
     }
 
-    public static CertifiedPeer getBoundPeer(Peer.Type type, long account) {
-        return getBindAccountPeerMap(type).get(account);
+    public static boolean isBoundPeer(Peer.Type type, long account) {
+        CertifiedPeer certifiedPeer = inst.certifiedPeerMap.get(account);
+        return certifiedPeer == null ? false : certifiedPeer.isType(type);
     }
 
-    public static boolean boundPeer(Peer.Type type, long account) {
-        return getBindAccountPeerMap(type).containsKey(account);
-    }
+//    /**
+//     * record certified peer and bind account
+//     * default action: update the exist certifiedPeer information
+//     *
+//     * @param type      peer type
+//     * @param accountId bind account id
+//     * @param peerHost  peer host
+//     */
+//    public static void addOrUpdateBoundAccountPeer(Peer.Type type, Long accountId, String peerHost) {
+//        addOrUpdateBoundAccountPeer(new CertifiedPeer(type, peerHost, accountId));
+//    }
 
     /**
      * record certified peer and bind account
-     * default action: update the exist certifiedPeer information
      *
-     * @param type      peer type
-     * @param accountId bind account id
-     * @param peerHost  peer host
      */
-    public static void addOrUpdateBoundAccountPeer(Peer.Type type, Long accountId, String peerHost) {
-        addOrUpdateBoundAccountPeer(new CertifiedPeer(type, peerHost, accountId));
-    }
-
-    /**
-     * record certified peer and bind account
-     *
-     * @param newPeer
-     */
-    public static void addOrUpdateBoundAccountPeer(CertifiedPeer newPeer) {
-        Map<Long, CertifiedPeer> bindAccountMap = getBindAccountPeerMap(newPeer.getType());
-
-        if (bindAccountMap.containsKey(newPeer.getBoundAccountId())) {
-            bindAccountMap.get(newPeer.getBoundAccountId()).update(newPeer.getBoundAccountId()).update(newPeer.getType());
+    public static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
+        CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
+        
+        
+        //TODO compare unverified map fisrtly
+        
+        if (inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
+            inst.certifiedPeerMap.get(newPeer.getBoundAccountId()).update(newPeer.getBoundAccountId()).update(newPeer.getType());
         } else {
-            bindAccountMap.put(newPeer.getBoundAccountId(), newPeer);
+            inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
         }
     }
 
-    private static Map<Long, CertifiedPeer> getMinerPeerMap(Integer height) {
+    private static Set<Long> getMinerPeerMap(Integer height) {
         if (!inst.certifiedMinerPeerMap.containsKey(height)) {
-            inst.certifiedMinerPeerMap.put(height, new ConcurrentHashMap<>());
+            inst.certifiedMinerPeerMap.put(height, Sets.newHashSet());
         }
         return inst.certifiedMinerPeerMap.get(height);
     }
@@ -122,13 +133,32 @@ public class PocHolder implements Serializable {
      * add or update certifiedPeer and append it into 2 maps
      *
      * @param height
-     * @param accountId
+     * @param rsAccount
      * @param peer
      */
-    public static void addMinerPeer(Integer height, long accountId, Peer peer) {
-        CertifiedPeer certifiedPeer = new CertifiedPeer(height, peer, accountId);
-        getMinerPeerMap(height).put(accountId, certifiedPeer);
-        addOrUpdateBoundAccountPeer(certifiedPeer);
+    public static void addMinerPeer(Integer height, String rsAccount, Peer peer) {
+        long accountId = StringUtils.isEmpty(rsAccount) ? PocHolder.UN_VERIFIED_ID : Account.rsAccountToId(rsAccount);
+     
+        if(StringUtils.isEmpty(rsAccount)) {
+            inst.unverifiedCertifiedPeers.put(peer.getHost(),new CertifiedPeer(height, peer, accountId));
+        }else {
+            addOrUpdateBoundPeer(peer.getType(), peer.getHost(), accountId);
+        }
+    
+        
+//        getMinerPeerMap(height).put(accountId, certifiedPeer);
+        
+//        // type mapping
+//        if (!inst.certifiedBindAccountMap.containsKey(certifiedPeer.getType())) {
+//            inst.certifiedBindAccountMap.put(certifiedPeer.getType(), Sets.newHashSet());
+//        }
+        
+        // height mapping
+        if (!inst.certifiedMinerPeerMap.containsKey(height)) {
+            inst.certifiedMinerPeerMap.put(height, Sets.newHashSet());
+        }
+        
+       
     }
 
     static {
@@ -138,8 +168,8 @@ public class PocHolder implements Serializable {
     private static void initBindMiners(){
         // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-        inst.addOrUpdateBoundAccountPeer(Peer.Type.FOUNDATION, SharderGenesis.CREATOR_ID, bootNodeDomain);
-        GenesisRecipient.getAll().forEach(recipient -> inst.addOrUpdateBoundAccountPeer(Peer.Type.FOUNDATION, recipient.id, bootNodeDomain));
+        inst.addOrUpdateBoundPeer(Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
+        GenesisRecipient.getAll().forEach(recipient -> inst.addOrUpdateBoundPeer(Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
     }
 
     private PocHolder(){}
