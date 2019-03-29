@@ -267,9 +267,9 @@ public interface Attachment extends Appendix {
 
         @Override
         public int getMySize() {
-            if(Constants.isDevnet()) {
-                System.out.println(toString());
-            }
+//            if(Constants.isDevnet()) {
+//                System.out.println(toString());
+//            }
             return 2 + coinBaseType.name().getBytes().length 
                     + 8 + 8 
                     + consignors.size() * 2 * 8;

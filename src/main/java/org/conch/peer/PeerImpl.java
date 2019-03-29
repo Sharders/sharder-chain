@@ -526,8 +526,9 @@ final class PeerImpl implements Peer {
                 // Send the request using HTTP
                 //
                 URL url = new URL("http://" + Peers.addressHost(host) + ":" + Peers.addressPort(host) + "/sharder");
-                if (communicationLoggingMask != 0)
+                if (communicationLoggingMask != 0) {
                     log = "\"" + url.toString() + "\": " + JSON.toString(request);
+                }
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
