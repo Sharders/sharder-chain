@@ -75,7 +75,7 @@ public class UrlManager {
      * @return URLs
      */
     public static String getFoundationUrl(String eoLinkerUrl, String localUrl, String path) {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
+        if (Constants.isMainnet() || Constants.isTestnet() || Constants.isDevnet()) {
             return HTTP_SCHEME + Conch.getSharderFoundationURL() + path;
         }
         return USE_EOLINKER ? eoLinkerUrl : localUrl;
