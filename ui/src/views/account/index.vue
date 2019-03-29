@@ -380,7 +380,7 @@
                     </el-form-item>
                     <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
                         <el-input v-model="hubsetting.SS_Address"></el-input>
-                        <a @click="register"><span>创建账户</span></a>
+                        <a @click="register"><span>$t('hubsetting.create_account')</span></a>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')">
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
@@ -604,7 +604,7 @@
     import adminPwd from "../dialog/adminPwd";
     import secretPhrase from "../dialog/secretPhrase";
     import rules from "../../utils/rules";
-    import {getCommonFoundationApiUrl, FoundationApiUrls} from "../../utils/apiUrl"
+    import {FoundationApiUrls, getCommonFoundationApiUrl} from "../../utils/apiUrl"
 
     export default {
         name: "Network",
