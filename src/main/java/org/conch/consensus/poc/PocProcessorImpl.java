@@ -12,6 +12,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.db.DbIterator;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
+ *
  * @since 2018/11/27
  */
 public class PocProcessorImpl implements PocProcessor {
@@ -72,10 +74,10 @@ public class PocProcessorImpl implements PocProcessor {
     return PocHolder.boundPeer(Peer.Type.HUB, accountId);
   }
 
-  public static boolean isHubBind(long accountId, String peerIp) {
-    String bindPeerIp = PocHolder.getBoundPeerIp(Peer.Type.HUB, accountId);
-    
-    return bindPeerIp != null && peerIp != null && bindPeerIp.equalsIgnoreCase(peerIp);
+  public static boolean isHubBind(long accountId, String peerHost) {
+    CertifiedPeer bindPeer = PocHolder.getBoundPeer(Peer.Type.HUB, accountId);
+
+    return bindPeer != null && bindPeer.isSame(peerHost);
   }
 
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
@@ -292,9 +294,6 @@ public class PocProcessorImpl implements PocProcessor {
 
     // update certified nodes
     PocHolder.addMinerPeer(height, peerBindAccountId, peer);
-    
-    //update peer bind account by peer type
-    PocHolder.addOrUpdateBoundAccountPeer(type, peerBindAccountId, ip, true);
   }
 
 
