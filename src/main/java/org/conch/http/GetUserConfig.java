@@ -92,6 +92,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                     String num = FileUtils.readFileToString(tempFile, "UTF-8");
                     String nodeType = this.getNodeType(num);
                     response.put("sharder.NodeType", nodeType);
+                    if (!Peer.SimpleType.NORMAL.getName().equalsIgnoreCase(nodeType)) {
+                        response.put("sharder.xxx", num);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -113,9 +116,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
     private String getNodeType(String num) throws IOException {
         Integer nodeTypeCode = 0;
         String url = UrlManager.getFoundationUrl(
-                UrlManager.GET_HARDER_TYPE_EOLINKER,
-                UrlManager.GET_HARDER_TYPE_LOCAL,
-                UrlManager.GET_HARDER_TYPE_PATH
+                UrlManager.GET_HARDWAER_TYPE_EOLINKER,
+                UrlManager.GET_HARDWAER_TYPE_LOCAL,
+                UrlManager.GET_HARDWAER_TYPE_PATH
         );
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
                 .get()
