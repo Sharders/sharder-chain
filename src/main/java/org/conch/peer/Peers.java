@@ -867,11 +867,14 @@ public final class Peers {
                         } else {
                             detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
                         }
-                        peer.setBindRsAccount(bindAddress);
-                        PocHolder.addOrUpdateBoundPeer(Peer.Type.HUB,host,Account.rsAccountToId(bindAddress));
+                        
+                        if(peer != null) {
+                            peer.setBindRsAccount(bindAddress);
+                            PocHolder.addOrUpdateBoundPeer(Peer.Type.HUB,host,Account.rsAccountToId(bindAddress));  
+                        }
                     }
                     detail += "<================== hub peer info updated";
-                    Logger.logInfoMessage(detail);
+                    Logger.logDebugMessage(detail);
                 } catch (Exception e) {
                     Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
                 } catch (Throwable t) {

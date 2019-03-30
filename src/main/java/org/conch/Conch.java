@@ -149,23 +149,12 @@ public final class Conch {
 
         public static void print(){
             if(presetMap == null || presetMap.size() == 0)  System.out.println("preset param map is null, nothing is preset!");
-
-            Set<Constants.Network> networkSet = presetMap.keySet();
-            System.out.println("preset param as following:");
-            for(Constants.Network network : networkSet){
-                System.out.println(presetMap.get(network).toString());
-            }
         }
 
         public static int getPeerPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
             return presetParam != null ?  presetParam.peerPort : DEFAULT_PEER_PORT;
         }
-//
-//        public static int getUiPort(Constants.Network network){
-//            PresetParam presetParam = presetMap.get(network);
-//            return presetParam != null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
-//        }
 
         public static int getApiPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
@@ -206,9 +195,7 @@ public final class Conch {
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(DEFAULT_PROPERTIES, CONCH_DEFAULT_PROPERTIES, true);
-
         PresetParam.print();
-
     }
 
 
