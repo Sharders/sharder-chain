@@ -33,8 +33,8 @@ public class UrlManager {
      * get NAT settings via sharder account
      */
     public static final String HUB_SETTING_ACCOUNT_CHECK_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/bounties/hubDirectory/check.ss";
-    public static final String HUB_SETTING_ACCOUNT_CHECK_LOCAL = "http://localhost:8080/bounties/hubDirectory/check.ss";
-    public static final String HUB_SETTING_ACCOUNT_CHECK_PATH = "/bounties/hubDirectory/check.ss";
+    public static final String HUB_SETTING_ACCOUNT_CHECK_LOCAL = "http://localhost:8080/sc/natServices/fetch";
+    public static final String HUB_SETTING_ACCOUNT_CHECK_PATH = "/sc/natServices/fetch";
 
     /**
      * report node configuration performance

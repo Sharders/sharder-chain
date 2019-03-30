@@ -514,6 +514,9 @@ export default {
     useEoLinker() {
         return SSO.useEoLinker;
     },
+    useLocal() {
+        return SSO.useLocal;
+    },
     getSharderFoundationHost() {
         return (this.isTestNet() || this.isDevNet()) ?
             this.sharderFoundationTestHost : this.sharderFoundationHost;

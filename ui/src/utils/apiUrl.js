@@ -27,7 +27,7 @@ export const FoundationApiUrls = {
  * @returns {*}
  */
 export function getCommonFoundationApiUrl(apiType) {
-    if (common.isMainNet() || common.isTestNet() || common.isDevNet()) {
+    if (!common.useLocal()) {
         return httpsScheme + common.getSharderFoundationHost() + apiType.path;
     }
     return common.useEoLinker() ? apiType.eoLinkerUrl : apiType.local;

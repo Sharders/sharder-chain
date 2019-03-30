@@ -107,6 +107,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("needsAdminPassword", !API.disableAdminPassword);
         response.put("netWorkType", Constants.NetworkDef);
         response.put("useEoLinker", UrlManager.USE_EOLINKER);
+        response.put("useLocal", UrlManager.USE_LOCAL);
         InetAddress externalAddress = UPnP.getExternalAddress();
         if (externalAddress != null) {
             response.put("upnpExternalAddress", externalAddress.getHostAddress());

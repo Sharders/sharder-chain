@@ -72,6 +72,7 @@ var Sso = (function (NRS, $, undefined) {
     NRS.isTestNet = NRS.isTestNet ? NRS.isTestNet : false;
     NRS.netWorkType = 'dev';
     NRS.useEoLinker = true;
+    NRS.useLocal = false;
     NRS.forgingStatus = NRS.constants.UNKNOWN;
     NRS.isAccountForging = false;
     NRS.isLeased = false;
@@ -379,6 +380,9 @@ var Sso = (function (NRS, $, undefined) {
                         }
                         if (key === "useEoLinker") {
                             NRS.useEoLinker = response[key];
+                        }
+                        if (key === "useLocal") {
+                            NRS.useLocal = response[key];
                         }
                     }
 
