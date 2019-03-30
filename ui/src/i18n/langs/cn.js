@@ -32,7 +32,7 @@ const cn = {
         'enable_auto_mining': "是否开启挖矿",
         'set_mnemonic_phrase': "绑定密钥",
         'set_password': "设置管理员密码",
-        'confirm_password': "确认管理员密码:",
+        'confirm_password': "确认管理员密码",
         'confirm_restart': "确认后重启",
         'current_version': "当前版本",
         'discover_new_version': "发现新版本",

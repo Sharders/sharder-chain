@@ -134,8 +134,8 @@
 
                     }
                     .navbar_search_input_active{
-                        transition:500ms width;
-                        width: 300px;
+                        transition: 500ms width;
+                        width: 280px;
                     }
 
                 }
@@ -144,7 +144,7 @@
                 display: flex;
                 height: 80px;
                 .navbar_status {
-                    width:230px;
+                    width:250px;
                     height: 80px;
                     margin-right: 10px;
                     span {
@@ -179,6 +179,7 @@
 
                 }
                 .navbar_exit {
+                    width: 30px;
                     margin-right: 20px;
                     position: relative;
                     line-height: 80px;
