@@ -648,7 +648,19 @@ export default {
             }
             return this.$vue.$t("transaction.transaction_type_system_reward");
         }
-        if (t.type === 12) return this.$vue.$t("transaction.transaction_type_poc");
+        if (t.type === 12) {
+            if (t.subtype === 0) {
+                return this.$vue.$t("transaction.transaction_type_poc_node_type");
+            } else if (t.subtype === 1) {
+                return this.$vue.$t("transaction.transaction_type_poc_node_config");
+            } else if (t.subtype === 2) {
+                return this.$vue.$t("transaction.transaction_type_poc_weight_table");
+            } else if (t.subtype === 4) {
+                return this.$vue.$t("transaction.transaction_type_poc_block_missing");
+            } else {
+                return this.$vue.$t("transaction.transaction_type_poc");
+            }
+        }
     },
     /**
      * 获得交易金额

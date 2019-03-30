@@ -16,6 +16,7 @@ import org.conch.util.Logger;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -156,7 +157,9 @@ public class PocHolder implements Serializable {
         // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
         addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
-        GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
+        List<GenesisRecipient> list = GenesisRecipient.getAll();
+        list.
+                forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
     }
 
     private PocHolder(){}
