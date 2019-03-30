@@ -282,26 +282,35 @@
                             <template slot-scope="props">
                                 <el-form label-position="left" inline>
                                     <el-row>
-                                        <PocContent :pocInfo="props.row.pocInfo"></PocContent>
+                                        <PocDetailContent :rowData="props.row"></PocDetailContent>
                                     </el-row>
                                 </el-form>
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="senderRS" 
+                            prop="senderRS"
+                            align="center"
                             :label="$t('poc.creator')">
                         </el-table-column>
                         <el-table-column
-                            prop="type"
-                            :label="$t('poc.type')">
-                            :formatter=""
+                            prop="subType"
+                            align="center"
+                            :label="$t('poc.type')"
+                            :formatter="parseSubType">
                         </el-table-column>
                         <el-table-column
                             prop="block"
+                            align="center"
                             :label="$t('poc.block')">
                         </el-table-column>
                         <el-table-column
+                            prop="height"
+                            align="center"
+                            :label="$t('poc.height')">
+                        </el-table-column>
+                        <el-table-column
                             prop="transaction"
+                            align="center"
                             :label="$t('poc.tx')">
                         </el-table-column>
                     </el-table>
@@ -391,7 +400,6 @@
 </template>
 
 <script>
-
     export default {
         name: "dialog_all",
         props: {
@@ -473,7 +481,8 @@
                                         senderRS:t.senderRS,
                                         block:t.block,
                                         height:t.height,
-                                        transaction:t.transaction
+                                        transaction:t.transaction,
+                                        subType:t.subtype,
                                     });
                                 }
                             }
@@ -604,7 +613,27 @@
                 _this.blockInfo = [];
                 _this.tabTitle = "account";
                 _this.$emit('isClose', false);
-            }
+            },
+            parseSubType(row, column) {
+                let subtype = row.subType;
+                console.log("poc")
+                switch (subtype) {
+                    case 0:
+                        return this.$root.$t("transaction.transaction_type_poc_node_type");
+                    case 1:
+                        return this.$root.$t("transaction.transaction_type_poc_node_config");
+                    case 2:
+                        return this.$root.$t("transaction.transaction_type_poc_weight_table");
+                    case 3:
+                        return this.$root.$t("transaction.transaction_type_poc_online");
+                    case 4:
+                        return this.$root.$t("transaction.transaction_type_poc_block_missing");
+                    case 5:
+                        return this.$root.$t("transaction.transaction_type_poc_bc_speed");
+                    default:
+                        return this.$root.$t("transaction.transaction_type_poc");
+                }
+            },
         },
         watch: {
             blockInfoOpen: function (val) {
