@@ -95,6 +95,10 @@ const en = {
         'transaction_type_system_reward': "Rewards",
         'transaction_type_block_reward': "Mining Rewards",
         'transaction_type_genesis_reward': "Genesis",
+        'transaction_type_poc_node_type': "PoC Node Type",
+        'transaction_type_poc_node_config': "PoC Node Config",
+        'transaction_type_poc_weight_table': "PoC Weight Table",
+        'transaction_type_poc_block_missing': "PoC Block Missing",
         'transaction_type_poc': "PoC",
         'self': "You",
         'view_details': "View Details",
@@ -899,6 +903,7 @@ const en = {
     poc: {
         'block_reward_tips_phase1': "Testnet phase 1 testing(before the end of 2019.Q2) rewards distribution: 90% - hub miners, 10% - other miners.",
         'creator': "Creator",
+        'type': "Type",
         'block': "Started Block",
         'tx': "Transaction",
         'weight': "Weight Distribution(%)",

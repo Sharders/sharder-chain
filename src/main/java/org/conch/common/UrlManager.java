@@ -16,6 +16,8 @@ public class UrlManager {
 
     public static final Boolean USE_EOLINKER = Optional.ofNullable(Conch.getStringProperty("sharder.dev.useEolinker"))
             .map(Boolean::valueOf).orElse(false);
+    public static final Boolean USE_LOCAL =Optional.ofNullable(Conch.getStringProperty("sharder.dev.local"))
+            .map(Boolean::valueOf).orElse(false);
     private static final String HTTP_SCHEME = "http://";
     private static final String HTTPS_SCHEME = "https://";
 
@@ -63,7 +65,6 @@ public class UrlManager {
     private static final String LATEST_VERSION_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-latest-version";
     private static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-";
     private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-";
-
     /*=============================================HUB UPGRADE API END========================================*/
 
     /**
@@ -75,7 +76,7 @@ public class UrlManager {
      * @return URLs
      */
     public static String getFoundationUrl(String eoLinkerUrl, String localUrl, String path) {
-        if (!Constants.isLocal()) {
+        if (!USE_LOCAL) {
             return HTTPS_SCHEME + Conch.getSharderFoundationURL() + path;
         }
         return USE_EOLINKER ? eoLinkerUrl : localUrl;

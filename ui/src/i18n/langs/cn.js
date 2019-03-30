@@ -95,6 +95,10 @@ const cn = {
         'transaction_type_system_reward': "系统奖励",
         'transaction_type_block_reward': "出块奖励",
         'transaction_type_genesis_reward': "创世交易",
+        'transaction_type_poc_node_type': "PoC节点类型",
+        'transaction_type_poc_node_config': "PoC节点配置",
+        'transaction_type_poc_weight_table': "PoC权重表",
+        'transaction_type_poc_block_missing': "PoC出块错过",
         'transaction_type_poc': "PoC交易",
         'self': "您",
         'view_details': "查看详情",
@@ -897,6 +901,7 @@ const cn = {
     poc: {
         'block_reward_tips_phase1': "开放测试网络第一阶段(2019.Q2前) 90%的挖矿奖励分配给Hub矿工，剩余10%的挖矿奖励分配给其余矿工。",
         'creator': "创建者",
+        'type': "类型",
         'block': "生效区块",
         'tx': "交易",
         'weight': "权重占比(%)",

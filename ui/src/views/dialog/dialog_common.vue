@@ -292,6 +292,11 @@
                             :label="$t('poc.creator')">
                         </el-table-column>
                         <el-table-column
+                            prop="type"
+                            :label="$t('poc.type')">
+                            :formatter=""
+                        </el-table-column>
+                        <el-table-column
                             prop="block"
                             :label="$t('poc.block')">
                         </el-table-column>

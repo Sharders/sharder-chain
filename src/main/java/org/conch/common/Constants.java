@@ -43,11 +43,7 @@ public final class Constants {
          * test environment
          */
         TESTNET("Testnet"),
-        DEVNET("Devnet"),
-        /**
-         * local coding environment
-         */
-        LOCAL("Local");
+        DEVNET("Devnet");
 
         private final String name;
 
@@ -325,10 +321,6 @@ public final class Constants {
 
     public static final boolean isDevnet() {
         return Network.DEVNET.is(NetworkDef);
-    }
-
-    public static final boolean isLocal() {
-        return Network.LOCAL.is(NetworkDef);
     }
 
     public static final boolean isTestnetOrDevnet() {
