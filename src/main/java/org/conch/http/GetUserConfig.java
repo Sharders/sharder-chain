@@ -84,7 +84,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
                 response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
             } else {
-                String filePath = "/root/.hubSetting/.tempCache/.sysCache";
+                String filePath = "~/.hubSetting/.tempCache/.sysCache";
                 File tempFile = new File(filePath);
                 if (!tempFile.exists()) {
                     response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
