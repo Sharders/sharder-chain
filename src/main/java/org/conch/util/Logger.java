@@ -21,11 +21,13 @@
 
 package org.conch.util;
 
+import com.google.common.collect.Maps;
 import org.apache.log4j.PropertyConfigurator;
 import org.conch.Conch;
 import org.conch.env.RuntimeEnvironment;
 
 import java.io.*;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.LogManager;
 
@@ -417,4 +419,61 @@ public final class Logger {
         else
             messageListeners.notify(message, Event.MESSAGE);
     }
+    
+    private  static final int DEFAULT_PRINT_COUNT = 100;
+    static Map<String, Integer> logControlMap = Maps.newHashMap();
+    static Map<String, Integer> printCountMap = Maps.newHashMap();
+
+
+    public synchronized static void modifyControlCount(Class clazz, int printCount){
+        logControlMap.put(clazz.getName(), printCount);
+    }
+
+    /**
+     * init the control count setting, just execute once
+     * @param clazz
+     * @param printCount
+     */
+    public synchronized static void initControlCount(Class clazz, int printCount){
+        String key =  clazz.getName();
+        if(logControlMap.containsKey(key)) return;
+        
+        logControlMap.put(key, printCount);
+        printCountMap.put(key, new Integer(0));
+    }
+
+    /**
+     * init the control count setting and check whether printNow 
+     * @param clazz
+     * @param controlCount
+     * @return
+     */
+    public static boolean printNow(Class clazz, int controlCount){
+        initControlCount(clazz,controlCount);
+        return printNow(clazz);
+    }
+
+    /**
+     * check whether printNow 
+     * 
+     * @param clazz
+     * @return
+     */
+    public static boolean printNow(Class clazz){
+        String key =  clazz.getName();
+        if(!logControlMap.containsKey(key)) {
+            logControlMap.put(key, DEFAULT_PRINT_COUNT);
+            printCountMap.put(key, new Integer(0));
+        }
+        int controlCount = logControlMap.get(key).intValue();
+        int curCount = printCountMap.get(key).intValue();
+        boolean printNow = curCount++ == 0 || curCount++ > controlCount;
+        if(curCount > 1 && printNow) {
+            printCountMap.put(key, 0);
+        }else {
+            printCountMap.put(key, curCount);
+        }
+       
+        return printNow;
+    } 
 }
