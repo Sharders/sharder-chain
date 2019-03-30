@@ -203,7 +203,7 @@ public class PocProcessorImpl implements PocProcessor {
     synPocTxNow = true;
   }
 
-
+  private static int logPrintCount = 0;
   private static final Runnable peerSynThread = () -> {
     try {
 
@@ -224,7 +224,11 @@ public class PocProcessorImpl implements PocProcessor {
           _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
           connectedPeers.add(peer.getHost());
         } catch (Exception e) {
-          Logger.logDebugMessage("can't connect peer[%s] in peerSynThread, caused by %s", peerAddress, e.getMessage());
+          boolean printNow = logPrintCount++ == 0 || logPrintCount++ > 200;
+          if(printNow) {
+            Logger.logDebugMessage("can't connect peer[%s] in peerSynThread, caused by %s", peerAddress, e.getMessage());
+            logPrintCount = 1;
+          }
           continue;
         }
       }
