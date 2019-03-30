@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -84,7 +85,8 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
                 response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
             } else {
-                String filePath = "~/.hubSetting/.tempCache/.sysCache";
+                String filePath = ".hubSetting/.tempCache/.sysCache";
+                String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
                 File tempFile = new File(filePath);
                 if (!tempFile.exists()) {
                     response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
@@ -151,5 +153,4 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
-
 }
