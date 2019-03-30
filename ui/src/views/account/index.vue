@@ -504,24 +504,24 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')" prop="publicAddress">
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
-                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')"
-                                  prop="SS_Address" v-if="!this.needRegister">
-                        <el-input v-model="hubsetting.SS_Address"
-                                  :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough"></el-input>
-                    </el-form-item>
+                    <!--<el-form-item class="create_account" :label="$t('hubsetting.token_address')"-->
+                    <!--prop="SS_Address" v-if="!this.needRegister">-->
+                    <!--<el-input v-model="hubsetting.SS_Address"-->
+                    <!--:disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough"></el-input>-->
+                    <!--</el-form-item>-->
                     <!--<el-form-item :label="$t('hubsetting.enable_auto_mining')">-->
                     <!--<el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>-->
                     <!--</el-form-item>-->
-                    <!--<el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining"-->
-                    <!--prop="modifyMnemonicWord">-->
-                    <!--<el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>-->
-                    <!--</el-form-item>-->
-                    <!--<el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">-->
-                    <!--<el-input type="password" v-model="hubsetting.newPwd"></el-input>-->
-                    <!--</el-form-item>-->
-                    <!--<el-form-item :label="$t('hubsetting.confirm_password')" prop="confirmPwd">-->
-                    <!--<el-input type="password" v-model="hubsetting.confirmPwd"></el-input>-->
-                    <!--</el-form-item>-->
+                    <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining"
+                                  prop="modifyMnemonicWord">
+                        <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.set_password')" prop="newPwd">
+                        <el-input type="password" v-model="hubsetting.newPwd"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.confirm_password')" prop="confirmPwd">
+                        <el-input type="password" v-model="hubsetting.confirmPwd"></el-input>
+                    </el-form-item>
                 </el-form>
                 <div class="footer-btn">
                     <el-button class="common_btn imgBtn" @click="verifyHubSetting('register')"
@@ -1137,6 +1137,7 @@
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
                 confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
+                confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
