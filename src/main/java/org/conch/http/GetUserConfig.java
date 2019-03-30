@@ -87,7 +87,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             } else {
                 String filePath = ".hubSetting/.tempCache/.sysCache";
                 String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
-                File tempFile = new File(filePath);
+                File tempFile = new File(userHome);
                 if (!tempFile.exists()) {
                     response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
                 } else {
