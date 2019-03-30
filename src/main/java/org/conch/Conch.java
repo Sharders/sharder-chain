@@ -103,6 +103,7 @@ public final class Conch {
     private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String SHARDER_FOUNDATION_URL = "sharder.org";
     private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
+    public static String serialNum = "";
 
     public static String getSharderFoundationURL(){
         return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;

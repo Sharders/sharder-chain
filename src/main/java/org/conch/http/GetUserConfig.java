@@ -95,7 +95,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                     String nodeType = this.getNodeType(num);
                     response.put("sharder.NodeType", nodeType);
                     if (!Peer.SimpleType.NORMAL.getName().equalsIgnoreCase(nodeType)) {
+                        num = num.replaceAll("(\\r\\n|\\n)", "");
                         response.put("sharder.xxx", num);
+                        Conch.serialNum = num;
                     }
                 }
             }
@@ -127,7 +129,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
         );
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
                 .get()
-                .addPathParam("serialNum", num)
+                .addPathParam("serialNum", num.replaceAll("(\\r\\n|\\n)", ""))
                 .request();
         com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
         if (result.getBoolean(Constants.SUCCESS)) {
