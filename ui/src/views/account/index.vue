@@ -1062,7 +1062,7 @@
                         formData.append("sharder.useNATService", "false");
                     }
                 } else if (type === 'register') {
-                    formData.append('username', _this.hubsetting.sharderAccount);
+                    formData.append('sharderAccount', _this.hubsetting.sharderAccount);
                     formData.append('password', _this.hubsetting.sharderPwd);
                     formData.append('registerStatus', _this.hubsetting.register_status);
                     formData.append('nodeType', _this.userConfig.nodeType);
@@ -1133,7 +1133,7 @@
                 } else {
                     reConfigFormData.append("isInit", "true");
                 }
-                confirmFormData.append("username", _this.hubsetting.sharderAccount);
+                confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
                 confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);

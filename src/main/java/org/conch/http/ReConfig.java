@@ -124,7 +124,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 String nodeType = Conch.getStringProperty("sharder.NodeType");
                 RestfulHttpClient.HttpResponse verifyResponse = RestfulHttpClient.getClient(URL)
                         .post()
-                        .addPostParam("username", req.getParameter("username"))
+                        .addPostParam("sharderAccount", req.getParameter("username"))
                         .addPostParam("password", req.getParameter("password"))
                         .addPathParam("nodeType", nodeType)
                         .addPathParam("serialNum", Conch.serialNum)
