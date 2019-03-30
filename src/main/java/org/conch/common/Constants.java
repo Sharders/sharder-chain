@@ -35,9 +35,19 @@ public final class Constants {
      * Network definition
      */
     public enum Network {
+        /**
+         * online
+         */
         MAINNET("Mainnet"),
+        /**
+         * test environment
+         */
         TESTNET("Testnet"),
-        DEVNET("Devnet");
+        DEVNET("Devnet"),
+        /**
+         * local coding environment
+         */
+        LOCAL("Local");
 
         private final String name;
 
@@ -315,6 +325,10 @@ public final class Constants {
 
     public static final boolean isDevnet() {
         return Network.DEVNET.is(NetworkDef);
+    }
+
+    public static final boolean isLocal() {
+        return Network.LOCAL.is(NetworkDef);
     }
 
     public static final boolean isTestnetOrDevnet() {

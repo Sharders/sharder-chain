@@ -86,11 +86,11 @@ public interface Peer extends Comparable<Peer> {
         /**
          * Box节点
          */
-        BOX(1, "Sharder"),
+        BOX(1, "Box"),
         /**
          * Hub节点
          */
-        HUB(0, "Sharder");
+        HUB(0, "Hub");
 
         private final Integer code;
         private final String name;
