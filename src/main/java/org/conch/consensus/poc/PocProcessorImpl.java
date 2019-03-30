@@ -279,15 +279,14 @@ public class PocProcessorImpl implements PocProcessor {
 
     Peer peer = Peers.getPeer(host);
     peer.setType(type);
-    String bindRsAccount = peer.getBindRsAccount();
-    if(StringUtils.isEmpty(bindRsAccount)){
+    if(StringUtils.isEmpty(peer.getBindRsAccount())){
       // connect peer to get account later
       PocHolder.addSynPeer(host);
       Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetHubDetail thread");
     }
     
     // update certified nodes
-    PocHolder.addMinerPeer(height, bindRsAccount, peer);
+    PocHolder.addCertifiedPeer(height,peer);
   }
 
 

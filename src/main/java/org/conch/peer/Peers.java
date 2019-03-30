@@ -839,7 +839,7 @@ public final class Peers {
                         }
                     }
 
-                    String detail = "\n\rget peer info and update hub peer info [size=" + peerArrayJson.size() + "]\n\r==================>\n\r";
+                    String detail = "\n\r==================>get peer info and update hub peer info [size=" + peerArrayJson.size() + "]\n\r";
                     Iterator iterator = peerArrayJson.iterator();
                     while (iterator.hasNext()) {
                         com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
