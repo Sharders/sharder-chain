@@ -446,7 +446,7 @@
                     _this.totalCount = res.data.transferAmount;
                     _this.poolCount = res.data.poolCount;
                     _this.systemReward = res.data.coinBaseCount;
-                    _this.averageAmount = res.data.storageCount24H + res.data.storageDataLength24H + res.data.transferCount24H;
+                    _this.averageAmount = res.data.storageCount24H + res.data.transferCount24H;
                 }).catch(function (err) {
                     console.error("error", err);
                 });

@@ -58,6 +58,7 @@ const en = {
         'next_step': "Next",
     },
     account: {
+        'the_latest_block':"The latest block",
         'download_interrupt': "The blockchain download was interrupted and there was no connection",
         'block_fully_downloaded': "The block has not been downloaded completely",
         'remaining_blocks': "remaining blocks",

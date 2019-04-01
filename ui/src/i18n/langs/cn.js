@@ -58,6 +58,7 @@ const cn = {
         'next_step': "下一步",
     },
     account: {
+        'the_latest_block':"最新区块",
         'download_interrupt': "区块链下载中断，没有连接",
         'block_fully_downloaded': "区块还未完整下载",
         'remaining_blocks': "个剩余区块",

@@ -116,7 +116,8 @@
             <div class="download_blocks_loading_active" v-show="isDownloadingState === 'isActive'">
                 <div>
                     <span>{{$t("account.downloading_blockchain")}}</span>
-                    <span v-if="blocksLeft">（{{blocksLeft}}{{$t("account.remaining_blocks")}}）</span>
+                    <span v-if="blocksLeft">（{{blocksLeft + $t("account.remaining_blocks")}}）</span>
+                    <p v-if="lastBlockHeight">{{$t("account.the_latest_block")}} : {{lastBlockHeight}}</p>
                 </div>
                 <div class="download_block_progress">
                     <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18"
@@ -165,11 +166,11 @@
                     value: 'en',
                     label: 'English'
                 }],
-
                 isDownLoadingBlockchain: SSO.downloadingBlockchain,
                 isDownloadingState: SSO.isDownloadingState,
                 percentageTotal: SSO.percentageTotal,
                 blocksLeft: SSO.blocksLeft,
+                lastBlockHeight: '',
             };
         },
         created() {
@@ -232,6 +233,7 @@
                 _this.isDownloadingState = SSO.isDownloadingState;
                 _this.percentageTotal = SSO.percentageTotal;
                 _this.blocksLeft = SSO.blocksLeft;
+                _this.lastBlockHeight = SSO.state.lastBlockchainFeederHeight;
             }, 2000);
         },
         methods: {
@@ -417,7 +419,7 @@
         right: 20px;
         top: 80px;
         width: 320px;
-        height: 80px;
+        min-height: 80px;
         padding: 14px;
         border-radius: 8px;
         background: #fff;
