@@ -944,7 +944,15 @@ const en = {
         'weight_ss_held': "SS Held ",
         'weight_hardware_config': "Hardware Config",
         'weight_network_config': "Network Config",
-        'weight_tx_performance': "Txns Performance"
+        'weight_tx_performance': "Txns Performance",
+        'hardware_cpu': "Cpu Core",
+        'hardware_mhz': "Cpu Speed",
+        'hardware_memory': "RAM",
+        'hardware_disk': "Disk",
+        'hardware_has_ip': "Public IP",
+        'hardware_bandwidth': "Bandwidth",
+        'hardware_tx_performance': "Txns Performance",
+        'hardware_open_services': "Services"
     },
     ...enLocale
 };

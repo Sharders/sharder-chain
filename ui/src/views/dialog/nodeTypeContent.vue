@@ -4,14 +4,8 @@
             <el-row :gutter="20">
                 <el-col :xl="6" :lg="6" :md="6" :sm="24" :xs="24">
                     <el-card shadow="hover">
-                        <strong>IP : </strong>
-                        {{ pocInfo.ip }}
-                    </el-card>
-                </el-col>
-                <el-col :xl="6" :lg="6" :md="6" :sm="24" :xs="24" class="margin-top-20">
-                    <el-card shadow="hover">
-                        <strong>{{ $t('poc.nodeType') }} : </strong>
-                        {{ parseNodeType(pocInfo.type) }}
+                        <p> <strong>IP : </strong>{{ pocInfo.ip }}</p>
+                        <p><strong>{{ $t('poc.nodeType') }} : </strong>{{ parseNodeType(pocInfo.type) }}</p>
                     </el-card>
                 </el-col>
             </el-row>

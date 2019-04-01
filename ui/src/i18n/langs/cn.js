@@ -942,7 +942,15 @@ const cn = {
         'weight_ss_held': "SS抵押量",
         'weight_hardware_config': "硬件配置",
         'weight_network_config': "网络配置",
-        'weight_tx_performance': "交易处理性能"
+        'weight_tx_performance': "交易处理性能",
+        'hardware_cpu': "CPU核心数",
+        'hardware_mhz': "平均兆赫兹",
+        'hardware_memory': "内存大小",
+        'hardware_disk': "硬盘大小",
+        'hardware_has_ip': "是否有公网IP",
+        'hardware_bandwidth': "公网带宽",
+        'hardware_tx_performance': "交易处理性能",
+        'hardware_open_services': "开启服务"
         
     },
     ...zhLocale

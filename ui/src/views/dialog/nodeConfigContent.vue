@@ -10,21 +10,21 @@
                         <span>{{ pocInfo.port }}</span>
                     </div>
                     <div>
-                        <span>CPU核心数 : </span>
+                        <span>{{$t('poc.hardware_cpu')}}: </span>
                         <span>{{ pocInfo.core }}</span>
-                        <span>平均兆赫兹 : </span>
+                        <span>{{$t('poc.hardware_mhz')}}: </span>
                         <span>{{ pocInfo.averageMHz }} MHz</span>
-                        <span>内存大小 : </span>
+                        <span>{{$t('poc.hardware_memory')}}: </span>
                         <span>{{ pocInfo.memoryTotal }} GB</span>
-                        <span>硬盘大小 : </span>
+                        <span>{{$t('poc.hardware_disk')}}: </span>
                         <span>{{ pocInfo.hardDiskSize }} GB</span>
-                        <span>是否有公网IP : </span>
+                        <span>{{$t('poc.hardware_has_ip')}}: </span>
                         <span>{{ pocInfo.hadPublicIp }}</span>
-                        <span>公网带宽: </span>
+                        <span>{{$t('poc.hardware_bandwidth')}}: </span>
                         <span>{{ pocInfo.bandWidth }} Mbps</span>
-                        <span>交易处理性能 : </span>
+                        <span>{{$t('poc.hardware_tx_performance')}}交易处理性能: </span>
                         <span>{{ pocInfo.tradePerformance }}</span>
-                        <span>开启服务 : </span>
+                        <span>{{$t('poc.hardware_open_services')}}开启服务: </span>
                         <el-tag v-for="openServiceCode in pocInfo.openServices">
                             {{ openServicesMapping(openServiceCode) }}
                         </el-tag>
