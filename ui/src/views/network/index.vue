@@ -359,8 +359,8 @@
                 storageCount: 0,
                 transferCount: 0,
                 coinbaseCount: 0,
-                systemReward:0,
-                poolCount:0,
+                systemReward: 0,
+                poolCount: 0,
                 aliasCount: 0,
                 //分页信息
                 currentPage: 1,
@@ -369,77 +369,88 @@
             };
         },
         created: function () {
-            const _this = this;
-            _this.$http.get('/sharder?requestType=getBlocks', {
-                params: {
-                    firstIndex: (_this.currentPage - 1) * 10,
-                    lastIndex: _this.currentPage * 10 - 1
-                }
-            }).then(function (res) {
-                if (!res.data.errorDescription) {
-                    _this.blocklist = res.data.blocks;
-                    console.log("blocklist", _this.blocklist);
-                    // _this.calcAverageAmount(res);
-
-                    if (_this.currentPage === 1) {
-                        _this.totalSize = res.data.blocks[0].height;
-                        _this.coinbaseCount = _this.newestHeight;
-                        _this.newestHeight = res.data.blocks[0].height;
-                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
+            let _this = this;
+            _this.init();
+            if (!window.NETWORK_URL) {
+                window.NETWORK_URL = setInterval(() => {
+                    if (_this.$route.path === '/network') {
+                        _this.init();
                     }
-                } else {
-                    _this.$message.error(res.data.errorDescription);
-                }
-
-            }).catch(function (err) {
-                _this.$message.error(err);
-            });
-
-            _this.$http.get('/sharder?requestType=getPeers').then(function (res) {
-                _this.peerNum = res.data.peers.length;
-                _this.$global.byIPtoCoordinates(res.data.peers).then(res1 => {
-                    let json = JSON.parse(res1);
-                    for (let i of Object.keys(json)) {
-                        if (json[i]["X"] !== "" && json[i]["X"] !== "0"
-                            && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
-                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
-                            let arr = [];
-                            arr.push(json[i]["Y"]);
-                            arr.push(json[i]["X"]);
-                            _this.peersLocationList[i] = arr;
-                            arr = [];
-                            arr.push(i);
-                            arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
-                            _this.peersTimeList.push(arr);
-                        }
-                    }
-                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
-                });
-            }).catch(function (err) {
-                console.error("error", err);
-            });
-
-            _this.$http.get('/sharder?requestType=getNextBlockGenerators&limit=99999').then(function (res) {
-                // console.log("矿工数量：",res);
-                _this.activeCount = res.data.activeCount;
-                _this.minerlist = res.data.generators;
-                console.log("success to fetch miners");
-            }).catch(function (err) {
-                console.error("error", err);
-            });
-
-            _this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
-                _this.transferCount = res.data.transferCount;
-                _this.storageCount = res.data.storageCount;
-                _this.totalCount = res.data.transferAmount;
-                _this.poolCount = res.data.poolCount;
-                _this.systemReward = res.data.coinBaseCount;
-                _this.averageAmount = res.data.storageCount24H + res.data.storageDataLength24H + res.data.transferCount24H;
-            }).catch(function (err) {
-                console.error("error", err);
-            });
+                }, 10000);
+            }
         },
         methods: {
+            init() {
+                const _this = this;
+                _this.$http.get('/sharder?requestType=getBlocks', {
+                    params: {
+                        firstIndex: (_this.currentPage - 1) * 10,
+                        lastIndex: _this.currentPage * 10 - 1
+                    }
+                }).then(function (res) {
+                    if (!res.data.errorDescription) {
+                        _this.blocklist = res.data.blocks;
+                        console.log("blocklist", _this.blocklist);
+                        // _this.calcAverageAmount(res);
+
+                        if (_this.currentPage === 1) {
+                            _this.totalSize = res.data.blocks[0].height;
+                            _this.coinbaseCount = _this.newestHeight;
+                            _this.newestHeight = res.data.blocks[0].height;
+                            _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
+                        }
+                    } else {
+                        _this.$message.error(res.data.errorDescription);
+                    }
+
+                }).catch(function (err) {
+                    _this.$message.error(err);
+                });
+
+                _this.$http.get('/sharder?requestType=getPeers').then(function (res) {
+                    _this.peerNum = res.data.peers.length;
+                    _this.$global.byIPtoCoordinates(res.data.peers).then(res1 => {
+                        let json = JSON.parse(res1);
+                        for (let i of Object.keys(json)) {
+                            if (json[i]["X"] !== "" && json[i]["X"] !== "0"
+                                && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
+                                && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
+                                let arr = [];
+                                arr.push(json[i]["Y"]);
+                                arr.push(json[i]["X"]);
+                                _this.peersLocationList[i] = arr;
+                                arr = [];
+                                arr.push(i);
+                                arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
+                                _this.peersTimeList.push(arr);
+                            }
+                        }
+                        _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
+                    });
+                }).catch(function (err) {
+                    console.error("error", err);
+                });
+
+                _this.$http.get('/sharder?requestType=getNextBlockGenerators&limit=99999').then(function (res) {
+                    // console.log("矿工数量：",res);
+                    _this.activeCount = res.data.activeCount;
+                    _this.minerlist = res.data.generators;
+                    console.log("success to fetch miners");
+                }).catch(function (err) {
+                    console.error("error", err);
+                });
+
+                _this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
+                    _this.transferCount = res.data.transferCount;
+                    _this.storageCount = res.data.storageCount;
+                    _this.totalCount = res.data.transferAmount;
+                    _this.poolCount = res.data.poolCount;
+                    _this.systemReward = res.data.coinBaseCount;
+                    _this.averageAmount = res.data.storageCount24H + res.data.storageDataLength24H + res.data.transferCount24H;
+                }).catch(function (err) {
+                    console.error("error", err);
+                });
+            },
             handleSizeChange(val) {
                 this.getBlockList(val);
             },
@@ -511,38 +522,7 @@
             dateFormat(val) {
                 return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
-        },
-        mounted() {
-            let _this = this;
-            let periodicBlocks = setInterval(() => {
-                if (_this.$route.path === '/network') {
-                    this.$http.get('/sharder?requestType=getBlocks', {
-                        params: {
-                            firstIndex: (_this.currentPage - 1) * 10,
-                            lastIndex: _this.currentPage * 10 - 1
-                        }
-                    }).then(function (res) {
-                        if (!res.data.errorDescription) {
-                            _this.blocklist = res.data.blocks;
-
-                            if (_this.currentPage === 1) {
-                                _this.totalSize = res.data.blocks[0].height;
-                                _this.coinbaseCount = _this.newestHeight;
-                                _this.newestHeight = res.data.blocks[0].height;
-                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
-                            }
-                        } else {
-                            _this.$message.error(res.data.errorDescription);
-                        }
-
-                    }).catch(function (err) {
-                        _this.$message.error(err);
-                    });
-                } else {
-                    clearInterval(periodicBlocks);
-                }
-            }, 5000);
-        },
+        }
     };
 </script>
 <style lang="scss" type="text/scss">
