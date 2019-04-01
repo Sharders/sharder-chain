@@ -3,15 +3,13 @@
         <div class="template">
             <el-row :gutter="20">
                 <el-col :xl="6" :lg="6" :md="6" :sm="24" :xs="24">
-                    <el-card shadow="hover">
-                        <strong>IP : </strong>
-                        {{ pocInfo.ip }}
-                    </el-card>
-                </el-col>
-                <el-col :xl="6" :lg="6" :md="6" :sm="24" :xs="24" class="margin-top-20">
-                    <el-card shadow="hover">
-                        <strong>{{ $t('poc.nodeType') }} : </strong>
-                        {{ parseNodeType(pocInfo.type) }}
+                    <el-card shadow="hover" class="content">
+                        <p> 
+                            <strong>IP: </strong>{{ pocInfo.ip }}
+                        </p>
+                        <p class="node-type"> 
+                            <strong>{{ $t('poc.nodeType') }}: </strong>{{ parseNodeType(pocInfo.type) }}
+                        </p>
                     </el-card>
                 </el-col>
             </el-row>
@@ -45,3 +43,30 @@
         }
     }
 </script>
+
+<style scoped>
+    .nodeTypeContent {
+        padding: 10px;
+    }
+    
+    .nodeTypeContent .template p {
+        margin-bottom: 5px;
+    }
+
+    .nodeTypeContent .template p strong {
+        width: 200px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #000;
+    }
+
+    .nodeTypeContent .template p span {
+        display: inline-block;
+        width: 116px;
+    }
+
+    .nodeTypeContent .template .content {
+        box-shadow: 1px 1px 10px #493eda;
+        border-radius: 4px;
+    }
+</style>
