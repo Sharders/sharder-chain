@@ -3,7 +3,7 @@
         <div class="template">
             <el-row :gutter="20">
                 <el-col :xl="6" :lg="6" :md="6" :sm="24" :xs="24">
-                    <el-card shadow="hover">
+                    <el-card shadow="hover" class="content">
                         <p> 
                             <strong>IP: </strong>{{ pocInfo.ip }}
                         </p>
@@ -65,7 +65,7 @@
         width: 116px;
     }
 
-    .nodeTypeContent .template {
+    .nodeTypeContent .template .content {
         box-shadow: 1px 1px 10px #493eda;
         border-radius: 4px;
     }

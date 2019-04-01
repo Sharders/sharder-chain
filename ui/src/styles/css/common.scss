@@ -692,8 +692,6 @@
 }
 
 .transaction-img {
-    text-align: left;
-    
     span.bg {
         display: inline-block;
         width: 16px !important;
@@ -754,6 +752,10 @@
         background-image: url("../../assets/img/POC.svg");
     }
 
+}
+
+.left-txt {
+    text-align: left!important;    
 }
 
 .el-radio-button__orig-radio:checked + .el-radio-button__inner {
