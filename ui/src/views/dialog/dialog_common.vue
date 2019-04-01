@@ -299,14 +299,14 @@
                             :formatter="parseSubType">
                         </el-table-column>
                         <el-table-column
-                            prop="block"
-                            align="center"
-                            :label="$t('poc.block')">
+                                prop="height"
+                                align="center"
+                                :label="$t('poc.started_height')">
                         </el-table-column>
                         <el-table-column
-                            prop="height"
+                            prop="block"
                             align="center"
-                            :label="$t('poc.height')">
+                            :label="$t('poc.started_block')">
                         </el-table-column>
                         <el-table-column
                             prop="transaction"
