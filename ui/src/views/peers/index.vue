@@ -394,7 +394,7 @@
                 _this.activeHubCount = 0;
                 _this.activePeersCount = 0;
                 data.forEach(function (item) {
-                    if (item.platform === "Sharder Hub") {
+                    if (item.platform === "Sharder Hub ") {
                         _this.activeHubCount++;
                     }
                     if (item.state === 1) {
@@ -477,27 +477,13 @@
         },
         filters: {
             formatByte: function (val) {
-                if (val < 1024) {
-                    return Math.round(val) + " Byte";
-                } else if (val >= 1024) {
+                let unit = [" Byte", " KB", " MB", "  GB", " TB", " PB"];
+                let i = 0;
+                while (val >= 1024) {
                     val = val / 1024;
-                    if (val < 1024) {
-                        return Math.round(val) + " KB";
-                    } else if (val >= 1024) {
-                        val = val / 1024;
-                        if (val < 1024) {
-                            return Math.round(val) + " MB";
-                        } else if (val >= 1024) {
-                            val = val / 1024;
-                            if (val < 1024) {
-                                return Math.round(val) + " GB";
-                            } else if (val >= 1024) {
-                                val = val / 1024;
-                                return Math.round(val) + " TB";
-                            }
-                        }
-                    }
+                    i++;
                 }
+                return Math.round(val) + unit[i];
             },
             getPeerServicesLabel: function (service) {
                 return service.substring(0, 1) + service.substring(service.length - 1);
