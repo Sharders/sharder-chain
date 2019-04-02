@@ -253,9 +253,9 @@
 }
 
 .modal {
-    position: fixed;
+    position: absolute;
     background: #fff;
-    top: 180px;
+    top: 0;
     width: 600px;
     border-radius: 7px;
     margin: 0 auto;
@@ -454,9 +454,9 @@
 }
 
 .modal_info {
-    position: fixed;
+    position: absolute;
     background: #fff;
-    top: 120px;
+    top: 0;
     width: 1200px;
     min-height: 360px;
     border-radius: 4px;
