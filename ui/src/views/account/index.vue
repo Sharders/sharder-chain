@@ -298,7 +298,7 @@
                     <div class="modal-body modal-message">
                         <el-form>
                             <el-form-item :label="$t('transfer.receiver')" class="item_receiver">
-                                <masked-input id="tranfer_receiver" mask="SSA-****-****-****-*****"
+                                <masked-input id="tranfer_receiver" mask="AAA-****-****-****-*****"
                                               v-model="transfer.receiver"/>
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>

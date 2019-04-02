@@ -31,6 +31,7 @@
                 span {
                     font-size: 14px;
                     color: #666;
+
                     &:first-child {
                         font-weight: bold;
                         font-size: 20px;
@@ -52,15 +53,15 @@
 }
 
 .modal-w800 {
-    min-width: 800px!important;
+    min-width: 800px !important;
 }
 
 .modal-w900 {
-    min-width: 900px!important;
+    min-width: 900px !important;
 }
 
 .modal-w1000 {
-    min-width: 1000px!important;
+    min-width: 1000px !important;
 }
 
 
@@ -68,8 +69,49 @@
     display: grid;
     margin-bottom: 20px;
 
+    p {
+        min-height: 30px;
+    }
+
     .w600 {
         background: #fff;
         height: 260px;
+    }
+
+    .trading_situation {
+        width: 600px;
+
+        .trading_situation_info {
+            height: 125px;
+            width: 190px;
+            padding: 40px 0 0 30px;
+            margin-bottom: 10px;
+            background: #fff;
+            border-radius: 8px;
+            display: inline-block;
+
+            img {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                float: left;
+            }
+
+            .section_info {
+                float: left;
+                padding: 10px;
+
+                span:first-child {
+                    font-size: 18px;
+                    font-weight: bold;
+                    display: block;
+                }
+
+                span:last-child {
+                    font-size: 13px;
+                    font-weight: 400;
+                }
+            }
+        }
     }
 }

@@ -34,9 +34,8 @@
                         </a>
                     </span>
                 </p>
-                <span class="cb"></span>
-                <div class="whf xs_section_fa">
-                    <div class="xs_section br4">
+                <div class="trading_situation">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info1.svg"/>
                             <div class="section_info">
@@ -45,7 +44,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info2.svg"/>
                             <div class="section_info">
@@ -53,9 +52,8 @@
                                 <span>{{$t('network.total_trading_volume')}}</span>
                             </div>
                         </div>
-
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info3.svg"/>
                             <div class="section_info">
@@ -64,7 +62,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info4.svg"/>
                             <div class="section_info">
@@ -73,7 +71,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info5.svg"/>
                             <div class="section_info">
@@ -82,7 +80,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info6.svg"/>
                             <div class="section_info">
