@@ -1170,8 +1170,10 @@ public final class Peers {
         if (newAnnouncedAddress != null) {
             String oldHost = selfAnnouncedAddresses.put(newAnnouncedAddress, peer.getHost());
             if (oldHost != null && !peer.getHost().equals(oldHost)) {
-                Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
-                        + ", removing old peer " + oldHost);
+                if(Logger.printNow(Peers.class, 200)){
+                    Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
+                            + ", removing old peer " + oldHost);
+                }
                 oldPeer = peers.remove(oldHost);
                 if (oldPeer != null) {
                     Peers.notifyListeners(oldPeer, Event.REMOVE);
