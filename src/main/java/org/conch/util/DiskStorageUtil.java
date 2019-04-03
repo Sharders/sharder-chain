@@ -1,9 +1,12 @@
 package org.conch.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.conch.Conch;
 import org.conch.db.Db;
+import org.conch.env.DirProvider;
 
 import java.io.*;
+import java.nio.file.Paths;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -20,12 +23,22 @@ public class DiskStorageUtil {
             return LOCAL_STORAGE_FOLDER + File.separator + fileName;
         }
         
+        // storage folder path is same level as db folder
         String dbDir = Db.getDir();
         if (StringUtils.isNotEmpty(dbDir)) {
+            // if storage folder under the application, use it firstly
             File dirFile = new File(dbDir);
-            if (!dirFile.exists()) {
-                dirFile.mkdirs();
-                LOCAL_STORAGE_FOLDER = dirFile.getParentFile().getAbsolutePath() ;
+            if (dirFile.exists()) {
+                LOCAL_STORAGE_FOLDER = dirFile.getParentFile().getAbsolutePath() + File.separator + FOLDER_NAME;
+                storageFolderExist = true;
+            }else{    
+                // append user home as prefix
+                String dbDirUnderUserHome = Paths.get(Conch.getUserHomeDir(),dbDir).toString();
+                dirFile = new File(dbDirUnderUserHome);
+                if(! dirFile.exists()) {
+                    dirFile.mkdirs();
+                }
+                LOCAL_STORAGE_FOLDER = dirFile.getParentFile().getAbsolutePath() + File.separator + FOLDER_NAME;
                 storageFolderExist = true;
             }
         }
