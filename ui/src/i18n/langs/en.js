@@ -50,6 +50,13 @@ const en = {
         'register_status_approval': "Valid",
         'create_account': "Create Account",
     },
+    upgrade: {
+        'title': "COS Upgrade",
+        'current_version': "Current Version",
+        'discover_new_version': "New Version Available",
+        'update': "Upgrade",
+        'cancel': "Cancel",
+    },
     register: {
         'register_title': "Your mnemonic phrase has been generated:",
         'register_tip1': "Please write down or memorize these 12 words. This mnemonic phrase is required to access your Sharder account.",

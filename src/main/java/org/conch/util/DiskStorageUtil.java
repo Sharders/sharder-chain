@@ -42,6 +42,13 @@ public class DiskStorageUtil {
                 storageFolderExist = true;
             }
         }
+        
+        //check or create local storage folder
+        File storageFolder = new File(LOCAL_STORAGE_FOLDER);
+        if(! storageFolder.exists()) {
+            storageFolder.mkdirs();
+        }
+        
         return LOCAL_STORAGE_FOLDER + File.separator + fileName;
     }
 

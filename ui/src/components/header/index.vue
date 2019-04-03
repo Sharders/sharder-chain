@@ -4,7 +4,7 @@
             <div id="logo">
                 <a href="#" class="logo">
                     <img src="../../assets/img/logo.svg"/>
-                    <div>
+                    <div @click="openCosUpgradeDialog()">
                         <span>Sharder</span>
                         <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
                     </div>
@@ -132,11 +132,36 @@
                 <span>{{$t("account.download_interrupt")}}</span>
             </div>
         </div>
+
+        <!--view cos upgrade dialog-->
+        <div class="modal_cosUpgrade" id="cos_upgrade" v-show="cosUpgradeDialog">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    <span>{{$t('upgrade.title')}}</span>
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="version_info">
+                    <span>{{$t('upgrade.current_version')}}</span>
+                    <span>{{blockchainStatus.version}}</span>
+                    <span v-if="isUpdate">{{$t('upgrade.discover_new_version')}}{{latestVersion}}</span>
+                </div>
+                <div class="footer-btn">
+                    <button class="common_btn writeBtn" @click="openAdminDialog('update')">
+                        {{$t('upgrade.update')}}
+                    </button>
+                    <button class="common_btn writeBtn" @click="closeDialog()">{{$t('upgrade.cancel')}}</button>
+                </div>
+            </div>
+        </div>
+
+        <AdminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></AdminPwd>
     </header>
 
 </template>
 
 <script>
+    
     export default {
         name: "Header",
         props: ["openSidebar", "title"],
@@ -147,7 +172,7 @@
                 isRouter: true,
                 placeholder: this.$t('header.search'),
                 activeSearch: false,
-                blockchainStatus: "",
+                blockchainStatus: [],
                 secretPhrase: SSO.secretPhrase,
                 adminPassword: '',
                 accountRS: SSO.accountRS,
@@ -171,6 +196,11 @@
                 percentageTotal: SSO.percentageTotal,
                 blocksLeft: SSO.blocksLeft,
                 lastBlockHeight: '',
+                cosUpgradeDialog: false,
+                adminPasswordTitle: '',
+                adminPasswordDialog: false,
+                latestVersion: '',
+                isUpdate: false,
             };
         },
         created() {
@@ -365,6 +395,22 @@
             closeDialog: function () {
                 this.startForgingDialog = false;
                 this.$store.state.mask = false;
+
+                this.cosUpgradeDialog = false;
+            },
+            openAdminDialog: function (title) {
+                const _this = this;
+                _this.adminPasswordTitle = title;
+                _this.cosUpgradeDialog = false;
+                _this.adminPasswordDialog = true;
+            },
+            getAdminPassword: function (adminPwd) {
+                const _this = this;
+                _this.adminPassword = adminPwd;
+                _this.adminPasswordDialog = false;
+                if (_this.adminPasswordTitle === 'update') {
+                    _this.updateHubVersion(adminPwd);
+                }
             },
             exit: function () {
                 window.location.href = "/";
@@ -372,7 +418,67 @@
             isClose: function () {
                 const _this = this;
                 _this.isSearch = false;
-
+                _this.adminPasswordDialog = false;
+            },
+            getLatestHubVersion() {
+                const _this = this;
+                _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
+                    if (res.data.success) {
+                        console.log("getLastestHubVersion=> " + JSON.stringify(res.data));
+                        console.log("_this.blockchainState=> " + JSON.stringify(_this.blockchainStatus));
+                        _this.latestVersion = res.data.version;
+                        let bool = _this.versionCompare(_this.blockchainStatus.version, _this.latestVersion);
+                        _this.isUpdate = bool;
+                        // console.log("success to fetch latest hub version");
+                    } else {
+                        _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
+                    }
+                }).catch(err => {
+                    _this.$message.error(err.message);
+                });
+            },
+            updateHubVersion(adminPwd) {
+                const _this = this;
+                let data = new FormData();
+                data.append("version", _this.latestVersion);
+                data.append("restart", "true");
+                data.append("adminPassword", adminPwd);
+                this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {
+                    if (res.data.upgraded) {
+                        _this.$message.success(_this.$t('notification.update_success'));
+                        _this.$router.push("/login");
+                        _this.autoRefresh();
+                    } else {
+                        _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
+                    }
+                }).catch(err => {
+                    _this.$message.error(err.message);
+                });
+            },
+            versionCompare(current, latest) {
+                let currentPre = parseFloat(current);
+                let latestPre = parseFloat(latest);
+                let currentNext = current.replace(currentPre + ".", "");
+                let latestPreNext = latest.replace(latestPre + ".", "");
+                if (currentPre > latestPre) {
+                    return false;
+                } else if (currentPre < latestPre) {
+                    return true;
+                } else {
+                    if (currentNext >= latestPreNext) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            },
+            openCosUpgradeDialog: function () {
+                console.info("in openCosUpgradeDialog...")
+                const _this = this;
+                // _this.$store.state.mask = true;
+                _this.cosUpgradeDialog = true;
+                // get last version once
+                _this.getLatestHubVersion();
             },
         },
         watch: {
@@ -432,5 +538,56 @@
         .download_block_progress {
             margin-top: 10px;
         }
+    }
+
+    .modal_cosUpgrade {
+       
+        position: absolute;
+        background: #fff;
+        top: 100px;
+        width: 300px;
+        border-radius: 7px;
+        margin: 0 auto;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        box-shadow: 1px 1px 10px #493eda;
+        
+        .modal-header {
+            .modal-title {
+                text-align: center;
+                font-size: 16px;
+                color: #333;
+                font-weight: bold;
+                line-height: 60px;
+            }
+        }
+        
+        .modal-body {
+            padding: 20px 40px 60px !important;
+
+            .el-form {
+                margin-top: 20px !important;
+
+                .el-form-item {
+                    margin-top: 15px !important;
+                }
+                
+                .create_account a {
+                    position: absolute;
+                    right: 20px;
+                    top: 0;
+                    cursor: pointer;
+                }
+            }
+            .footer-btn {
+                margin-top: 40px;
+            }
+        }
+    }
+    
+    #set_admin_password_modal {
+        top: 100px;
+        width: 300px;
     }
 </style>

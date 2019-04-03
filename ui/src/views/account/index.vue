@@ -596,19 +596,16 @@
         <dialogCommon :tradingInfoOpen="tradingInfoDialog" :trading="trading"
                       :accountInfoOpen="accountInfoDialog" :generatorRS="generatorRS"
                       :blockInfoOpen="blockInfoDialog" :height="height" @isClose="isClose"></dialogCommon>
-        <adminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></adminPwd>
-        <secretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></secretPhrase>
+        <AdminPwd :openDialog="adminPasswordDialog" @getPwd="getAdminPassword" @isClose="isClose"></AdminPwd>
+        <SecretPhrase :openDialog="secretPhraseDialog" @getPwd="getSecretPhrase" @isClose="isClose"></SecretPhrase>
     </div>
 </template>
 <script>
-    import adminPwd from "../dialog/adminPwd";
-    import secretPhrase from "../dialog/secretPhrase";
     import rules from "../../utils/rules";
     import {FoundationApiUrls, getCommonFoundationApiUrl} from "../../utils/apiUrl"
 
     export default {
         name: "Network",
-        components: {adminPwd, secretPhrase},
         data() {
             let required = rules.required(this.$t('rules.mustRequired'));
             let validateSSAddress = rules.ssAddress(
@@ -627,6 +624,7 @@
                 userInfoDialog: false,
                 accountInfoDialog: false,
                 adminPasswordDialog: false,
+                adminPasswordTitle: '',
                 secretPhraseDialog: false,
                 initHUb: this.$store.state.isHubInit,
                 userConfig: {
@@ -742,7 +740,6 @@
                 latesetVersion: '',
                 isUpdate: false,
 
-                adminPasswordTitle: '',
                 params: [],
                 temporaryName: '',
                 ssPublickey: SSO.publicKey,
