@@ -868,7 +868,7 @@
             },
             drawBarchart: function (barchat) {
                 const _this = this;
-                const barchart = _this.$echarts.init(document.getElementById("transaction_amount_bar"));
+                const barchart = _this.$echarts.init(document.getElementById("transaction_amount_bar"),null,{renderer:'svg'});
                 const option = {
                     grid: {
                         left: '15%',
@@ -898,7 +898,7 @@
             },
             drawYield: function (yields) {
                 const _this = this;
-                const yieldCurve = _this.$echarts.init(document.getElementById("yield_curve"));
+                const yieldCurve = _this.$echarts.init(document.getElementById("yield_curve"),null,{renderer:'svg'});
                 const option = {
                     grid: {
                         left: '15%',

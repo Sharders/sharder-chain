@@ -532,7 +532,7 @@ export default {
      */
     drawPeers(peersLocationList, peersTimeList) {
         let _this = this.$vue;
-        let myChart = _this.$echarts.init(document.getElementById("peers-map"));
+        let myChart = _this.$echarts.init(document.getElementById("peers-map"),null,{renderer:'svg'});
 
         function makeMapData(rawData) {
             let mapData = [];
