@@ -100,7 +100,7 @@ public class UrlManager {
      * @return url
      */
     public static String getHubLatestVersionUrl() {
-        return Constants.isMainnet() ? LATEST_VERSION_ONLINE_URL : LATEST_VERSION_DEV_URL;
+        return Constants.isMainnet() || Constants.isTestnet() ? LATEST_VERSION_ONLINE_URL : LATEST_VERSION_DEV_URL;
     }
 
     /**
@@ -110,6 +110,6 @@ public class UrlManager {
      * @return url
      */
     public static String getPackageDownloadUrl(String version) {
-        return Constants.isMainnet() ? DOWNLOAD_PACKAGE_ONLINE_URL + version + ZIP_SUFFIX : DOWNLOAD_PACKAGE_DEV_URL + version + ZIP_SUFFIX;
+        return Constants.isMainnet() || Constants.isTestnet() ? DOWNLOAD_PACKAGE_ONLINE_URL + version + ZIP_SUFFIX : DOWNLOAD_PACKAGE_DEV_URL + version + ZIP_SUFFIX;
     }
 }
