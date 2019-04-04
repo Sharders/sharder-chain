@@ -20,12 +20,13 @@
     }
 
     .tip{
-        height: 60px;
-        margin: 5px auto;
+        //height: 60px;
+        //margin: 5px auto;
+        padding: 10px;
         color: #333333;
         background: #edeff5;
         > div{
-            padding: 10px 0 0 5px;
+            //padding: 10px 0 0 5px;
             font-size: 15px;
         }
     }
