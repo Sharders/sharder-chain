@@ -365,24 +365,24 @@
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough" prop="address">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough" prop="port">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
-                                  v-if="hubsetting.openPunchthrough">
+                                  v-if="hubsetting.openPunchthrough" prop="clientSecretkey">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.public_ip_address')">
+                    <el-form-item :label="$t('hubsetting.public_ip_address')" prop="publicAddress">
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
-                    <el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
-                        <!--<a @click="register"><span>$t('hubsetting.create_account')</span></a>-->
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.enable_auto_mining')">
+                    <!--<el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">-->
+                        <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
+                        <!--&lt;!&ndash;<a @click="register"><span>$t('hubsetting.create_account')</span></a>&ndash;&gt;-->
+                    <!--</el-form-item>-->
+                    <el-form-item :label="$t('hubsetting.enable_auto_mining')" hidden>
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.set_mnemonic_phrase')" v-if="hubsetting.isOpenMining"
@@ -444,10 +444,10 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.publicAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="SS_Address">
-                        <el-input v-model="hubsetting.SS_Address"></el-input>
-                    </el-form-item>
-                    <el-form-item :label="$t('hubsetting.enable_auto_mining')">
+                    <!--<el-form-item :label="$t('hubsetting.token_address')" prop="SS_Address">-->
+                        <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
+                    <!--</el-form-item>-->
+                    <el-form-item :label="$t('hubsetting.enable_auto_mining')" hidden>
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining"
@@ -491,14 +491,14 @@
                     <el-form-item :label="$t('hubsetting.register_status')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.register_status_text" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough" prop="address">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough" prop="port">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
-                                  v-if="hubsetting.openPunchthrough">
+                                  v-if="hubsetting.openPunchthrough" prop="clientSecretkey">
                         <el-input v-model="hubsetting.clientSecretkey" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.public_ip_address')" prop="publicAddress">
@@ -682,7 +682,7 @@
                     clientSecretkey: '',
                     publicAddress: '',
                     SS_Address: '',
-                    isOpenMining: false,
+                    isOpenMining: true,
                     modifyMnemonicWord: '',
                     newPwd: '',
                     confirmPwd: '',
@@ -748,8 +748,10 @@
                     publicAddress: [required],
                     sharderAccount: [required],
                     sharderPwd: [required],
-                    SS_Address: [validateSSAddress],
                     modifyMnemonicWord: [required],
+                    address: [required],
+                    port: [required],
+                    clientSecretkey: [required],
                     newPwd: [
                         {
                             validator: (rule, value, callback) => {
@@ -762,7 +764,8 @@
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd')));
                                 }
                             },
-                            trigger: 'blur'
+                            trigger: 'blur',
+                            required
                         }
                     ],
                     confirmPwd: [
@@ -776,15 +779,19 @@
                                     callback();
                                 }
                             },
-                            trigger: 'blur'
+                            trigger: 'blur',
+                            required
                         }
                     ],
                 },
                 hubReconfigureSettingRules: {
                     sharderAccount: [required],
                     sharderPwd: [required],
-                    SS_Address: [validateSSAddress],
                     modifyMnemonicWord: [required],
+                    address: [required],
+                    port: [required],
+                    clientSecretkey: [required],
+                    publicAddress: [required],
                     newPwd: [
                         {
                             required: false,

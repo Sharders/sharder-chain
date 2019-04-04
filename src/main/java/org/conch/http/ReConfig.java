@@ -77,8 +77,18 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
+
+
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
+
+            if ("sharder.HubBindPassPhrase".equals(paraName)) {
+                String pr = req.getParameter(paraName);
+                String ssAddr = Account.rsAccount(pr);
+                map.put("sharder.HubBindPassPhrase", pr);
+                map.put("sharder.HubBindAddress", ssAddr);
+                continue;
+            }
             if ("newAdminPassword".equals(paraName)) {
                 map.put("sharder.adminPassword", req.getParameter(paraName));
                 continue;
