@@ -25,6 +25,8 @@ import org.apache.commons.io.FileUtils;
 import org.conch.Conch;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
@@ -34,12 +36,9 @@ public class FileUtil {
     /**
      * Unzips a file, placing its contents in the given output location.
      *
-     * @param zipFilePath
-     *            input zip file
-     * @param outputLocation
-     *            zip file output folder
-     * @throws IOException
-     *             if there was an error reading the zip file or writing the unzipped data
+     * @param zipFilePath    input zip file
+     * @param outputLocation zip file output folder
+     * @throws IOException if there was an error reading the zip file or writing the unzipped data
      */
     public static void unzip(final String zipFilePath, final String outputLocation) throws IOException {
         // Open the zip file
@@ -89,6 +88,7 @@ public class FileUtil {
 
         //unzip files in root folder
         String uncompressedDirectory = new File(".").getCanonicalPath() + File.separator;
+        String uncompressedPath = "";
 
         //Iterate over entries
         while (entries.hasMoreElements()) {
@@ -97,6 +97,10 @@ public class FileUtil {
             final File outputFile = new File(uncompressedDirectory + File.separator + name);
 
             if (name.endsWith("/")) {
+                long fileSeparatorCount = name.chars().filter(c -> c == '/').count();
+                if (fileSeparatorCount == 1) {
+                    uncompressedPath = uncompressedDirectory + name;
+                }
                 outputFile.mkdirs();
                 continue;
             }
@@ -114,25 +118,29 @@ public class FileUtil {
         file.close();
 
         replaceConfFiles(uncompressedDirectory);
-       
+
         if (deleteAfterDone) {
             FileUtils.forceDelete(archive);
+            FileUtils.deleteDirectory(new File(uncompressedPath));
             Logger.logDebugMessage("[UPGRADE CLIENT] delete temp upgrade archive file :" + archive.getName());
         }
     }
-    
-    private static void replaceConfFiles(String uncompressedDirectory){
-        String configFolder = uncompressedDirectory + "config";
+
+    private static void replaceConfFiles(String uncompressedDirectory) {
+        String configFolder = uncompressedDirectory + "conf";
         String targetFolder = Conch.getConfDir().getAbsolutePath();
         Logger.logDebugMessage("[UPGRADE CLIENT] copy and replace exist config files: %s -> %s", configFolder, targetFolder);
-        copyFolder(configFolder,targetFolder);
+        copyFolder(configFolder, targetFolder);
     }
 
     public static void copyFolder(String oldPath, String newPath) {
         try {
+            if (oldPath.equalsIgnoreCase(newPath)) {
+                return;
+            }
             File dist = new File(newPath);
-            if(!dist.exists()) dist.mkdirs();
-            
+            if (!dist.exists()) dist.mkdirs();
+
             String[] file = new File(oldPath).list();
             File temp = null;
             for (int i = 0; i < file.length; i++) {
@@ -142,25 +150,28 @@ public class FileUtil {
                     temp = new File(oldPath + File.separator + file[i]);
                 }
 
-                if (temp.isFile()) {
-                    FileInputStream input = new FileInputStream(temp);
-                    FileOutputStream output = new FileOutputStream(newPath + "/" + temp.getName());
-                    byte[] b = new byte[1024 * 5];
-                    int len;
-                    while ((len = input.read(b)) != -1) {
-                        output.write(b, 0, len);
+                if (temp.isFile() && !"sharder.properties".equalsIgnoreCase(temp.getName())) {
+                    try (
+                            FileChannel readChannel = new RandomAccessFile(temp.getAbsolutePath(),"rw").getChannel();
+                            FileChannel writeChannel = new RandomAccessFile(newPath + "/" + temp.getName(),"rw").getChannel()
+                    ) {
+                        ByteBuffer buf = ByteBuffer.allocate(1024 * 5);
+                        int bytesRead;
+                        while ((bytesRead = readChannel.read(buf)) != -1) {
+                            // limit=>position，position=>0
+                            buf.flip();
+                            writeChannel.write(buf);
+                            // position=>0，limit=>capacity
+                            buf.clear();
+                        }
                     }
-                    output.flush();
-                    output.close();
-                    input.close();
                 }
                 //sub folders
                 if (temp.isDirectory()) {
                     copyFolder(oldPath + "/" + file[i], newPath + "/" + file[i]);
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Logger.logErrorMessage("copy and replace files error", e);
         }
     }
