@@ -141,16 +141,20 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <div class="version_info">
-                    <span>{{$t('upgrade.current_version')}}</span>
-                    <span>{{blockchainStatus.version}}</span>
-                    <span v-if="isUpdate">{{$t('upgrade.discover_new_version')}}{{latestVersion}}</span>
+                <div class="version-info">
+                    <span>{{$t('upgrade.current_version')}}{{blockchainStatus.version}}</span><br/>
+                    <span v-if="isUpdate">
+                        {{$t('upgrade.discover_new_version')}}<span class="found-new-version">{{latestVersion}}</span>
+                    </span>
+                    <span class="no-new-version" v-else>
+                        {{$t('upgrade.no_new_version')}}
+                    </span>
                 </div>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="openAdminDialog('update')">
+                    <button class="common_btn writeBtn" @click="closeDialog()">{{$t('upgrade.cancel')}}</button>
+                    <button class="common_btn writeBtn" @click="openAdminDialog('update')" v-if="isUpdate">
                         {{$t('upgrade.update')}}
                     </button>
-                    <button class="common_btn writeBtn" @click="closeDialog()">{{$t('upgrade.cancel')}}</button>
                 </div>
             </div>
         </div>
@@ -564,8 +568,25 @@
         }
         
         .modal-body {
-            padding: 20px 40px 60px !important;
+            padding: 20px 20px 60px !important;
+            
+            .version-info {
+                
+                span:last-child {
+                    display: inline-block;
+                    margin-top: 10px;
+                }
 
+                .found-new-version {
+                    color: #493eda;
+                    font-weight: bold;
+                }
+                
+                .no-new-version {
+                    color: #ccc;
+                }
+            }
+            
             .el-form {
                 margin-top: 20px !important;
 
@@ -581,7 +602,13 @@
                 }
             }
             .footer-btn {
-                margin-top: 40px;
+                width: 150px;
+                float: right;
+                margin: 20px 0 15px 0;
+                
+                button {
+                    padding: 5px 15px 5px 15px;
+                }
             }
         }
     }
