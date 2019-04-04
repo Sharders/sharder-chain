@@ -767,7 +767,7 @@ export default {
      * @returns {string}
      */
     getSSNumberFormat(num, f) {
-        if (Number(num) <= 0) {
+        if (Number(num) <= 0 || !num) {
             return this.placeholder
         } else if (f) {
             return num + this.unit
