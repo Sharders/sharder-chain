@@ -127,7 +127,7 @@ public class CertifiedPeer implements Serializable {
     }
     
     public boolean isType(Peer.Type type){
-        return type == null ? false : type.equals(type);
+        return type == null ? false : this.type.equals(type);
     }
     
     public Peer.Type getType() {

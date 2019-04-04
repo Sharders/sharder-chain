@@ -527,8 +527,14 @@
     /*@import '~scss_vars';*/
     @import './style.scss';
 
-    .el-table th > .cell {
-        background-color: white;
+    .el-table {
+        th > .cell {
+            background-color: white;
+        }
+
+        .cell {
+            font-size: 13px;
+        }
     }
 
     #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
@@ -541,6 +547,7 @@
         font-weight: normal;
         text-align: center;
     }
+
 </style>
 <!--<style scoped>-->
 <!--.modal.w700{-->

@@ -553,7 +553,7 @@ public class Generator implements Comparable<Generator> {
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
         json.put("bindPeerType", PocProcessorImpl.bindPeerType(accountId).getName());
         if(loadPoolInfo) {
-            json.put("bindPeerType", SharderPoolProcessor.getPoolJSON(accountId));
+            json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
         }
         return json;
     }
