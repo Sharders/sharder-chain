@@ -2031,7 +2031,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           new TransactionImpl.BuilderImpl(
                   (byte) 1,
                   publicKey,
-                  RewardCalculator.mintReward(blockCreatorId),
+                  RewardCalculator.mintReward(),
                   0,
                   (short) 10,
                   new Attachment.CoinBase(

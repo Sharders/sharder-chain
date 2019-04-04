@@ -602,7 +602,7 @@
                 }
             }
             .footer-btn {
-                width: 150px;
+                padding: 10px 0px 10px 10px;
                 float: right;
                 margin: 20px 0 15px 0;
                 

@@ -267,11 +267,6 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long creatorId = Long.parseUnsignedLong(request.getParameter("creatorId"));
-            if (!PocProcessorImpl.isCertifiedPeerBind(creatorId) && !Constants.isDevnet()) {
-                String errorDetail = "The account is not bound to an authentication peer";
-                Logger.logInfoMessage(errorDetail);
-                throw new ConchException.NotValidException(errorDetail);
-            }
             return PoolRule.getTemplate(creatorId);
         }
 

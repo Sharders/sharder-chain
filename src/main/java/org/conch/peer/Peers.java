@@ -1163,7 +1163,9 @@ public final class Peers {
         if (oldPeer != null) {
             String oldAnnouncedAddress = oldPeer.getAnnouncedAddress();
             if (oldAnnouncedAddress != null && !oldAnnouncedAddress.equals(newAnnouncedAddress)) {
-                Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
+                if(Logger.printNow(Peers.class)) {
+                    Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
+                }
                 selfAnnouncedAddresses.remove(oldAnnouncedAddress);
             }
         }

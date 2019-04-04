@@ -1,6 +1,9 @@
 package org.conch.consensus.reward;
 
+import org.conch.Conch;
 import org.conch.common.Constants;
+
+import java.math.BigDecimal;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -25,14 +28,18 @@ public class RewardCalculator {
         }
         
     }
-
+    
+    private static final int HALVE_COUNT = 210240;
     /**
      * mint reward calculate
-     * @param accountId
      * @return
      */
-    public static long mintReward(long accountId) {
-        // 300SS reward of one block
-        return Constants.ONE_SS * RewardDef.MINT.getAmount();
+    public static long mintReward() {
+        double turn = 0d;
+        if(Conch.getBlockchain().getHeight() > HALVE_COUNT){
+            turn = Conch.getBlockchain().getHeight() / HALVE_COUNT;
+        }
+        double rate = Math.pow(0.5d,turn);
+        return (long)(Constants.ONE_SS * RewardDef.MINT.getAmount() * rate);
     }
 }
