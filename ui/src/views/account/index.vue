@@ -414,12 +414,12 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <div class="version_info">
-                    <span>{{$t('hubsetting.current_version')}}</span>
-                    <span>{{blockchainState.version}}</span>
-                    <span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>
-                    <span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>
-                </div>
+                <!--<div class="version_info">-->
+                    <!--<span>{{$t('hubsetting.current_version')}}</span>-->
+                    <!--<span>{{blockchainState.version}}</span>-->
+                    <!--<span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>-->
+                    <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
+                <!--</div>-->
                 <el-form label-position="left" label-width="160px" :rules="hubReconfigureSettingRules"
                          :model="hubsetting" ref="reconfigureForm" status-icon>
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
