@@ -39,9 +39,9 @@ public class MessageManager {
         Logger.logErrorMessage(msg, e);
     }
 
-    private static final BlockingQueue<Message> PENDING_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
-    private static final BlockingQueue<Message> SUCCESS_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
-    private static final BlockingQueue<Message> FAILED_MESSAGE_QUEUE = new LinkedBlockingQueue<>(50);
+    private static final BlockingQueue<Message> PENDING_MESSAGE_QUEUE = new LinkedBlockingQueue<>(500);
+    private static final BlockingQueue<Message> SUCCESS_MESSAGE_QUEUE = new LinkedBlockingQueue<>(500);
+    private static final BlockingQueue<Message> FAILED_MESSAGE_QUEUE = new LinkedBlockingQueue<>(500);
     private static final Runnable PENDING_MESSAGE_WORKER;
     private static final Runnable SUCCESS_MESSAGE_WORKER;
     private static final Runnable FAILED_MESSAGE_WORKER;
