@@ -122,8 +122,8 @@ public class FileUtil {
             }
             Path targetPath = fileSystem.getPath(uncompressedDirectory + File.separator + targetName);
             size += Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            upgradeDetail += "create or replace " + targetPath.toString() + " \n";
             count++;
-            upgradeDetail += "create or replace " + zipEntry.getName() + " \n";
         }
         String upgradeSummary = "UPDATE " + count + " files, " + size + " bytes UPGRADE \n\r";
         upgradeDetail += upgradeSummary;
