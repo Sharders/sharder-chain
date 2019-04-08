@@ -122,11 +122,12 @@ public class FileUtil {
             }
             Path targetPath = fileSystem.getPath(uncompressedDirectory + File.separator + targetName);
             size += Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            upgradeDetail += "create or replace " + targetPath.toString() + " \n";
             count++;
-            upgradeDetail += "create or replace " + zipEntry.getName() + " \n";
         }
-        upgradeDetail += "UPGRADE CLIENT " + count + " files, " + size + " bytes upgrade \n\r";
-        Logger.logDebugMessage(upgradeDetail);
+        String upgradeSummary = "UPDATE " + count + " files, " + size + " bytes UPGRADE \n\r";
+        Logger.logInfoMessage(upgradeSummary);
+        Logger.logDebugMessage(upgradeDetail + upgradeSummary);
         
         file.close();
 
