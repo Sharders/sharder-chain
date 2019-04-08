@@ -12,6 +12,7 @@
         #logo {
             margin-right: 35px;
             vertical-align: middle;
+            position: relative;
             .logo {
                 display: flex;
                 height: 80px;
@@ -44,6 +45,16 @@
                         font-size: 12px;
                         padding-top: 3px;
                     }
+                }
+                .update{
+                    display: inline-block;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    background: red;
+                    position: absolute;
+                    top: 30px;
+                    right: 0;
                 }
             }
         }

@@ -5,6 +5,7 @@
                 <a href="#" class="logo">
                     <img src="../../assets/img/logo.svg"/>
                     <div @click="openCosUpgradeDialog()">
+                        <span v-if="isUpdate" title="Update" class="update"></span>
                         <span>Sharder</span>
                         <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
                     </div>
@@ -296,6 +297,7 @@
                     SSO.addToConsole("/sharder?requestType=getPeers", 'GET', res.data, res);
                 });
                 // }
+                _this.getLatestHubVersion();
             },
             startForging: function (b, pwd) {
                 const _this = this;
