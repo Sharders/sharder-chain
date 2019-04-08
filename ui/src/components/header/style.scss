@@ -48,13 +48,13 @@
                 }
                 .update{
                     display: inline-block;
-                    width: 12px;
-                    height: 12px;
+                    width: 60px;
+                    height: 60px;
                     border-radius: 50%;
                     background: red;
                     position: absolute;
-                    top: 30px;
-                    right: 0;
+                    right: -10px;
+                    transform: scale(0.1);
                 }
             }
         }
@@ -178,10 +178,12 @@
                     background: #1bc98e;
                     display: block;
                     position: absolute;
-                    width: 10px;
-                    height: 10px;
+                    width: 120px;
+                    height: 120px;
                     border-radius: 50%;
-                    top: 35px;
+                    top: -20px;
+                    left: -60px;
+                    transform: scale(0.1);
                 }
                 .notForging{
                     background: #e64758;
