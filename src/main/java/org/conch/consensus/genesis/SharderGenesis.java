@@ -81,8 +81,8 @@ public class SharderGenesis {
 
             List<GenesisPeer> testnetPeers = Lists.newArrayList(
                     new GenesisPeer("testboot.sharder.io",Peer.Type.FOUNDATION),
-                    new GenesisPeer("testna.sharder.io",Peer.Type.FOUNDATION),
-                    new GenesisPeer("testnb.sharder.io",Peer.Type.FOUNDATION)
+                    new GenesisPeer("testna.sharder.io",Peer.Type.COMMUNITY),
+                    new GenesisPeer("testnb.sharder.io",Peer.Type.HUB)
             );
 
             List<GenesisPeer> mainnetPeers = Lists.newArrayList(
