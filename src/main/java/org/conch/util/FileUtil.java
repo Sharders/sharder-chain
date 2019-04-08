@@ -134,7 +134,8 @@ public class FileUtil {
 
         if (deleteAfterDone) {
             FileUtils.forceDelete(archive);
-            Logger.logDebugMessage("[UPGRADE CLIENT] delete temp upgrade archive file :" + archive.getName());
+            FileUtils.deleteDirectory(new File(uncompressedDirectory + uncompressedRoot));
+            Logger.logDebugMessage("[UPGRADE CLIENT] delete temp upgrade archive file " + archive.getName());
         }
     }
 
