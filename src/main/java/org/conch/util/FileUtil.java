@@ -85,11 +85,12 @@ public class FileUtil {
         FileSystem fileSystem = FileSystems.getDefault();
         //Get file entries
         Enumeration<? extends ZipEntry> entries = file.entries();
-
+        
         //unzip files into application catalog
         String uncompressedDirectory = new File(".").getCanonicalPath() + File.separator;
         String uncompressedRoot = "";
-        
+
+        Logger.logInfoMessage("[UPGRADE CLIENT] start to upgrade...");
         String upgradeDetail = "UPGRADE CLIENT Detail \n\r";
         int count = 0;
         long size = 0;
@@ -125,7 +126,7 @@ public class FileUtil {
             upgradeDetail += "create or replace " + targetPath.toString() + " \n";
             count++;
         }
-        String upgradeSummary = "UPDATE " + count + " files, " + size + " bytes UPGRADE \n\r";
+        String upgradeSummary = "[UPGRADE CLIENT] UPDATE " + count + " files, " + size + " bytes UPGRADE \n\r";
         Logger.logInfoMessage(upgradeSummary);
         Logger.logDebugMessage(upgradeDetail + upgradeSummary);
         

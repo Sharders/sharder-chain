@@ -817,7 +817,7 @@ const cn = {
         'account_transaction_timestamp': "时间戳",
         'account_transaction_sender_public_key': "发送者公钥",
         'account_transaction_confirm': "确认",
-        'account_transaction_fullHash': "类型完整哈希",
+        'account_transaction_fullHash': "完整哈希",
         'account_transaction_version': "版本",
         'account_transaction_block_height': "区块高度",
         'block_info_title1': "区块 ",

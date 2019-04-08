@@ -83,7 +83,8 @@ public class PocScore implements Serializable {
         // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
         BigInteger rate = PocProcessorImpl.isHubBind(accountId) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
-        return score.multiply(rate).divide(BigInteger.valueOf(100));
+//        return Constants.isDevnet() ? score : score.multiply(rate).divide(BigInteger.valueOf(100));
+        return score;
     }
 
     public void ssScoreCal() {
