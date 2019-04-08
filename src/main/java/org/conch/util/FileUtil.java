@@ -86,43 +86,56 @@ public class FileUtil {
         //Get file entries
         Enumeration<? extends ZipEntry> entries = file.entries();
 
-        //unzip files in root folder
+        //unzip files into application catalog
         String uncompressedDirectory = new File(".").getCanonicalPath() + File.separator;
-        String uncompressedPath = "";
-
+        String uncompressedRoot = "";
+        
+        String upgradeDetail = "UPGRADE CLIENT Detail \n\r";
+        int count = 0;
+        long size = 0;
         //Iterate over entries
         while (entries.hasMoreElements()) {
             ZipEntry zipEntry = entries.nextElement();
             final String name = zipEntry.getName();
             final File outputFile = new File(uncompressedDirectory + File.separator + name);
-
-            if (name.endsWith("/")) {
-                long fileSeparatorCount = name.chars().filter(c -> c == '/').count();
+            
+            // get the root folder of unzip 
+            if (name.endsWith(File.separator)) {
+                long fileSeparatorCount = name.chars().filter(c -> c == File.separatorChar).count();
                 if (fileSeparatorCount == 1) {
-                    uncompressedPath = uncompressedDirectory + name;
+                    uncompressedRoot = name;
                 }
                 outputFile.mkdirs();
                 continue;
             }
-
+        
             final File parent = outputFile.getParentFile();
             if (parent != null) {
                 parent.mkdirs();
             }
-
+            
+            // copy and replace the upgrade files
             InputStream is = file.getInputStream(zipEntry);
-            Path uncompressedFilePath = fileSystem.getPath(uncompressedDirectory + File.separator + name);
-            Files.copy(is, uncompressedFilePath, StandardCopyOption.REPLACE_EXISTING);
-            Logger.logDebugMessage("[UPGRADE CLIENT] create or replace :" + zipEntry.getName());
+            String targetName = name;
+            if(uncompressedRoot.length() > 1){
+                targetName = targetName.replace(uncompressedRoot, "");
+            }
+            Path targetPath = fileSystem.getPath(uncompressedDirectory + File.separator + targetName);
+            size += Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            count++;
+            upgradeDetail += "create or replace " + zipEntry.getName() + " \n";
         }
+        upgradeDetail += "UPGRADE CLIENT " + count + " files, " + size + " bytes upgrade \n\r";
+        Logger.logDebugMessage(upgradeDetail);
+        
         file.close();
 
         replaceConfFiles(uncompressedDirectory);
 
         if (deleteAfterDone) {
             FileUtils.forceDelete(archive);
-            FileUtils.deleteDirectory(new File(uncompressedPath));
-            Logger.logDebugMessage("[UPGRADE CLIENT] delete temp upgrade archive file :" + archive.getName());
+            FileUtils.deleteDirectory(new File(uncompressedDirectory + uncompressedRoot));
+            Logger.logDebugMessage("[UPGRADE CLIENT] delete temp upgrade archive file " + archive.getName());
         }
     }
 
@@ -135,6 +148,7 @@ public class FileUtil {
 
     public static void copyFolder(String oldPath, String newPath) {
         try {
+            
             if (oldPath.equalsIgnoreCase(newPath)) {
                 return;
             }
@@ -153,11 +167,10 @@ public class FileUtil {
                 if (temp.isFile() && !"sharder.properties".equalsIgnoreCase(temp.getName())) {
                     try (
                             FileChannel readChannel = new RandomAccessFile(temp.getAbsolutePath(),"rw").getChannel();
-                            FileChannel writeChannel = new RandomAccessFile(newPath + "/" + temp.getName(),"rw").getChannel()
+                            FileChannel writeChannel = new RandomAccessFile(newPath + File.separator + temp.getName(),"rw").getChannel()
                     ) {
                         ByteBuffer buf = ByteBuffer.allocate(1024 * 5);
-                        int bytesRead;
-                        while ((bytesRead = readChannel.read(buf)) != -1) {
+                        while (readChannel.read(buf) != -1) {
                             // limit=>position，position=>0
                             buf.flip();
                             writeChannel.write(buf);
@@ -168,7 +181,7 @@ public class FileUtil {
                 }
                 //sub folders
                 if (temp.isDirectory()) {
-                    copyFolder(oldPath + "/" + file[i], newPath + "/" + file[i]);
+                    copyFolder(oldPath + File.separator + file[i], newPath + File.separator + file[i]);
                 }
             }
         } catch (Exception e) {
