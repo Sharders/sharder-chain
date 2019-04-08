@@ -163,7 +163,8 @@ public class FileUtil {
                 } else {
                     temp = new File(oldPath + File.separator + file[i]);
                 }
-
+                
+                // don't replace the exist sharder.properties
                 if (temp.isFile() && !"sharder.properties".equalsIgnoreCase(temp.getName())) {
                     try (
                             FileChannel readChannel = new RandomAccessFile(temp.getAbsolutePath(),"rw").getChannel();
