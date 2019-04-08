@@ -126,9 +126,8 @@ public class FileUtil {
             count++;
         }
         String upgradeSummary = "UPDATE " + count + " files, " + size + " bytes UPGRADE \n\r";
-        upgradeDetail += upgradeSummary;
         Logger.logInfoMessage(upgradeSummary);
-        Logger.logDebugMessage(upgradeDetail);
+        Logger.logDebugMessage(upgradeDetail + upgradeSummary);
         
         file.close();
 
