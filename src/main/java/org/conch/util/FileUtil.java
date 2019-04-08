@@ -125,7 +125,9 @@ public class FileUtil {
             count++;
             upgradeDetail += "create or replace " + zipEntry.getName() + " \n";
         }
-        upgradeDetail += "UPGRADE CLIENT " + count + " files, " + size + " bytes upgrade \n\r";
+        String upgradeSummary = "UPDATE " + count + " files, " + size + " bytes UPGRADE \n\r";
+        upgradeDetail += upgradeSummary;
+        Logger.logInfoMessage(upgradeSummary);
         Logger.logDebugMessage(upgradeDetail);
         
         file.close();
