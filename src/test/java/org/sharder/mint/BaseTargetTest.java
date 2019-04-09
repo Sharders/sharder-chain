@@ -65,9 +65,8 @@ public final class BaseTargetTest {
         }
         return baseTarget;
     }
-
-    public static void main(String[] args) {
-
+    
+    private static void cumulativeDifficulty(String[] args) {
         try {
 
             BigInteger testCumulativeDifficulty = BigInteger.ZERO;
@@ -213,6 +212,11 @@ public final class BaseTargetTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+
+    public static void main(String[] args) {
+        System.out.println(calculateBaseTarget(5395370307L, 120));
     }
 
 }

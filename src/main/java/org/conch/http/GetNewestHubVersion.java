@@ -37,7 +37,7 @@ import java.io.IOException;
 public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
 
     static final GetNewestHubVersion INSTANCE = new GetNewestHubVersion();
-    private static final String FAILED_INFO = "failed to fetch latest hub version!";
+    private static final String FAILED_INFO = "failed to fetch latest version!";
 
     private GetNewestHubVersion() {
         super(new APITag[]{APITag.DEBUG});
