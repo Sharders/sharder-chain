@@ -833,7 +833,7 @@ public class Generator implements Comparable<Generator> {
             Generator hubGenerator = ownerMining(HUB_BIND_PR);
             if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(HUB_BIND_ADDRESS))) {
                 stopMining(HUB_BIND_PR);
-                Logger.logInfoMessage("Account" + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
+                Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
             } else {
                 Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " started mining...");
             }

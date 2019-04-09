@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Poc calculator instance 
+ * PoC calculator instance 
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
@@ -18,8 +18,8 @@ public class PocCalculator implements Serializable {
     
     static PocCalculator inst = new PocCalculator();
     
-    // poc score converter: 10 -> 500000000
-    private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(50000000L);
+    // poc score converter
+    private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(125000L);
 
     // the final poc score should divide the PERCENT_DIVISOR
     private static final BigInteger PERCENT_DIVISOR = BigInteger.valueOf(100L);

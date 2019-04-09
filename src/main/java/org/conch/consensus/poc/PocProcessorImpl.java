@@ -395,7 +395,6 @@ public class PocProcessorImpl implements PocProcessor {
     }
     long accountId = account.getId();
     PocScore pocScoreToUpdate = new PocScore(accountId,height);
-    pocScoreToUpdate.ssScoreCal();
     PocHolder.scoreMapping(pocScoreToUpdate);
     return true;
   }

@@ -829,7 +829,7 @@ public final class Peers {
                     String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
                     com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
                     if (StringUtils.isEmpty(peersStr)) {
-                        Logger.logInfoMessage("peer list is null, wait for next round");
+                        Logger.logInfoMessage("peer list is null, no needs to get peers info");
                         return;
                     } else {
                         if (peersStr.startsWith(Constants.BRACKET)) {

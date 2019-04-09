@@ -55,6 +55,8 @@ public class PocScore implements Serializable {
      */
     BigInteger bcScore = BigInteger.ZERO;
     
+    private static BigInteger MULTIPLIER = new BigInteger("10");
+    
     //TODO 
     int luck = 0;
 
@@ -62,7 +64,7 @@ public class PocScore implements Serializable {
         this.accountId = accountId;
         this.height = height;
         this.ssScore = _calBalance(accountId, height);
-        ssScoreCal();
+        PocCalculator.inst.ssHoldCal(this);
     }
 
     public PocScore(int height, PocScore another) {
@@ -83,13 +85,8 @@ public class PocScore implements Serializable {
         // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
         BigInteger rate = PocProcessorImpl.isHubBind(accountId) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
-        return score.multiply(rate).divide(BigInteger.valueOf(100));
+        return score.multiply(MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
     }
-
-    public void ssScoreCal() {
-        PocCalculator.inst.ssHoldCal(this);
-    }
-
 
     public void nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
         PocCalculator.inst.nodeConfCal(this, nodeConf);

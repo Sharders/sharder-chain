@@ -90,6 +90,7 @@ public class FileUtil {
         String uncompressedDirectory = new File(".").getCanonicalPath() + File.separator;
         String uncompressedRoot = "";
 
+        Logger.logInfoMessage("[UPGRADE CLIENT] start to upgrade...");
         String upgradeDetail = "UPGRADE CLIENT Detail \n\r";
         String failedDetail = "FAILED Detail \n\r";
         int count = 0;

@@ -113,7 +113,6 @@ public final class Constants {
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
-//    public static final int MINING_DELAY = 600; // 内测阶段设为10分钟延迟
     public static final int MINING_DELAY = Conch.getIntProperty("sharder.miningDelay");
     public static final int MINING_SPEEDUP = Conch.getIntProperty("sharder.miningSpeedup");
 
@@ -209,7 +208,7 @@ public final class Constants {
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  10 : (isTestnet() ? 10 : 100);
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 1 : 100);
     public static final int TESTNET_PHASE_ONE = 20000;
     public static final int TESTNET_PHASE_TWO = 39000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
