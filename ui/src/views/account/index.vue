@@ -999,7 +999,7 @@
                 let confirmFormData = new FormData();
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("tssAddress", "");
+                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
                 resetData.append("adminPassword", adminPwd);
                 resetData.append("restart", "true");
                 console.log("resetting hub...");
@@ -1022,7 +1022,7 @@
                 let confirmFormData = new FormData();
                 confirmFormData.append("username", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
+                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
                 params.append("adminPassword", adminPwd);
                 _this.hubSettingsConfirmThenDoOperation(confirmFormData, _this.sendUpdateHubSettingRequest, params);
             },
@@ -1140,7 +1140,7 @@
                 confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", _this.hubsetting.SS_Address);
+                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
                 confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
                     _this.$refs['initForm'].validate((valid) => {
@@ -1173,7 +1173,7 @@
                 const _this = this;
                 let data = new FormData();
                 data.append("sharderAccount", this.hubsetting.sharderAccount);
-                data.append("tssAddress", this.hubsetting.SS_Address);
+                data.append("tssAddress", _this.getAccountRsBySecret());
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister), data)
@@ -1218,7 +1218,7 @@
                             console.info('success to update hub setting to remote server');
                             callBack(callBackData);
                         } else {
-                            _this.$message.error(res.data.errorType + res.data.errorMessage);
+                            _this.$message.error(res.data.msg ? res.data.msg : res.data.errorType + res.data.errorMessage);
                         }
                     })
                     .catch(err => _this.$message.error(err.message));
@@ -2154,7 +2154,13 @@
                     && this.userConfig.publicAddress
                     && this.userConfig.natPort
                     && this.userConfig.natAddress;
-            }
+            },
+            getAccountRsBySecret() {
+                let publicKey = global.SSO.getPublicKey(this.hubsetting.modifyMnemonicWord, false);
+                let accountRs = global.SSO.getAccountIdFromPublicKey(publicKey, true);
+                console.log(`accountRs: ${accountRs}`);
+                return accountRs;
+            },
         },
         computed: {
             getLang: function () {
