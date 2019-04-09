@@ -148,9 +148,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocNodeType pocNodeType = (PocTxBody.PocNodeType) transaction.getAttachment();
-
-            PocProcessorImpl.nodeTypeTxProcess(transaction.getHeight(),pocNodeType);
+            PocProcessorImpl.pocTxProcess(transaction);
         }
 
         @Override
@@ -192,8 +190,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocNodeConf pocNodeConf = (PocTxBody.PocNodeConf) transaction.getAttachment();
-            PocProcessorImpl.nodeConfTxProcess(transaction.getHeight(),pocNodeConf);
+            PocProcessorImpl.pocTxProcess(transaction);
         }
 
         @Override
@@ -236,8 +233,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocOnlineRate pocOnlineRate = (PocTxBody.PocOnlineRate) transaction.getAttachment();
-            PocProcessorImpl.onlineRateTxProcess(transaction.getHeight(),pocOnlineRate);
+            PocProcessorImpl.pocTxProcess(transaction);
         }
 
         @Override
@@ -283,9 +279,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocGenerationMissing pocBlockMissing = (PocTxBody.PocGenerationMissing) transaction.getAttachment();
-
-            PocProcessorImpl.blockMissingTxProcess(transaction.getHeight(), pocBlockMissing);
+            PocProcessorImpl.pocTxProcess(transaction);
         }
 
         @Override

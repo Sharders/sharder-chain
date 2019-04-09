@@ -572,7 +572,7 @@ public final class Users {
         if (peerAddress == null) {
             return null;
         }
-        return Peers.getPeer(peerAddress);
+        return Peers.getPeer(peerAddress, false);
     }
 
     static int getIndex(Block block) {

@@ -590,18 +590,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           int pushedForkBlocks = 0;
           if (blockchain.getLastBlock().getId() == commonBlock.getId()) {
             for (BlockImpl block : forkBlocks) {
-              /** temp code**/
-              com.alibaba.fastjson.JSONObject curBlock = new com.alibaba.fastjson.JSONObject();
-              com.alibaba.fastjson.JSONObject remoteBlock = new com.alibaba.fastjson.JSONObject();
-              curBlock.put("height",blockchain.getLastBlock().getHeight());
-              curBlock.put("blockid",blockchain.getLastBlock().getId());
-              curBlock.put("generator",Account.rsAccount(blockchain.getLastBlock().getGeneratorId()));
-
-              remoteBlock.put("height",block.getHeight());
-              remoteBlock.put("blockid",block.getId());
-              remoteBlock.put("generator",Account.rsAccount(block.getGeneratorId()));
-              /** temp code**/
-              
               if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
                 try {
                   pushBlock(block);
