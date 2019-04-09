@@ -128,8 +128,8 @@
                                 <th>{{$t('network.block_list_operating')}}</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <tr v-for="(block,index) in blocklist">
+                            <tbody v-loading="loading">
+                            <tr v-for="block in blocklist">
                                 <td class="pl0"><span>{{block.height}}</span></td>
                                 <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span></td>
                                 <td>
@@ -363,6 +363,7 @@
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 10,
+                loading: true
             };
         },
         created: function () {
@@ -380,6 +381,7 @@
             init() {
                 const _this = this;
                 _this.getBlocks(1).then(res => {
+                    _this.loading = false;
                     _this.blocklist = res.blocks;
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
@@ -438,10 +440,13 @@
             handleCurrentChange(val) {
                 console.log(`当前页: ${val}`);
                 let _this = this;
+                _this.loading = true;
                 _this.getBlocks(val).then(res => {
                     _this.blocklist = res.blocks;
+                    _this.loading = false;
                 }).catch(err => {
                     _this.$message.error(err);
+                    _this.loading = false;
                 });
             },
             turn2peers: function () {
@@ -466,8 +471,8 @@
                 let _this = this;
                 return new Promise(function (resolve, reject) {
                     _this.$global.fetch("GET", {
-                        firstIndex: (currentPage - 1) * 10,
-                        lastIndex: currentPage * 10 - 1
+                        firstIndex: (currentPage - 1) * _this.pageSize,
+                        lastIndex: currentPage * _this.pageSize - 1
                     }, "getBlocks").then(res => {
                         if (res.errorDescription) {
                             _this.$message.error(res.errorDescription);
