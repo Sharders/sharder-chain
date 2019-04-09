@@ -261,15 +261,6 @@
             setInterval(() => {
                 _this.getData();
             }, 30000);
-            setInterval(() => {
-                SSO.updateBlockchainDownloadProgress();
-                SSO.downloadingBlockchain = SSO.state.isDownloading;
-                _this.isDownLoadingBlockchain = SSO.state.isDownloading;
-                _this.isDownloadingState = SSO.isDownloadingState;
-                _this.percentageTotal = SSO.percentageTotal;
-                _this.blocksLeft = SSO.blocksLeft;
-                _this.lastBlockHeight = SSO.state.lastBlockchainFeederHeight;
-            }, 2000);
         },
         methods: {
             getData: function () {
@@ -298,6 +289,17 @@
                 });
                 // }
                 _this.getLatestHubVersion();
+                _this.downloadingBlockChain();
+            },
+            downloadingBlockChain(){
+                const _this = this;
+                SSO.updateBlockchainDownloadProgress();
+                SSO.downloadingBlockchain = SSO.state.isDownloading;
+                _this.isDownLoadingBlockchain = SSO.state.isDownloading;
+                _this.isDownloadingState = SSO.isDownloadingState;
+                _this.percentageTotal = SSO.percentageTotal;
+                _this.blocksLeft = SSO.blocksLeft;
+                _this.lastBlockHeight = SSO.state.lastBlockchainFeederHeight;
             },
             startForging: function (b, pwd) {
                 const _this = this;

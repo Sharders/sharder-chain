@@ -11,6 +11,7 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
+import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
@@ -53,6 +54,8 @@ public class PocHolder implements Serializable {
     
     // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
     private volatile Set<String> synPeerList = Sets.newHashSet();
+    
+    private volatile Set<Long> delayProcessTxs = Sets.newHashSet();
 
     int lastHeight = -1;
 
@@ -149,6 +152,20 @@ public class PocHolder implements Serializable {
         updateHeightMinerMap(height, accountId);
     }
 
+
+    public static Set<Long> delayPocTxs() {
+       return inst.delayProcessTxs;
+    }
+
+    public static void addDelayProcessTx(Long txid) {
+       inst.delayProcessTxs.add(txid);
+    }
+
+    public static void removeProcessedTxs(Set<Long> processedTxs) {
+        inst.delayProcessTxs.removeAll(processedTxs);
+    }
+    
+
     static {
         initDefaultMiners();
     }
@@ -179,7 +196,7 @@ public class PocHolder implements Serializable {
         JSONObject jsonObject = new JSONObject();
         if (!inst.scoreMap.containsKey(accountId)) {
             PocProcessorImpl.notifySynTxNow();
-            _defaultPocScore(accountId,height);
+            _defaultPocScore(accountId, height);
         }
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
         //newest poc score when query height is bigger than last height of poc score

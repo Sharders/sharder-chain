@@ -31,9 +31,11 @@
     border-radius: 4px;
     border: 1px solid #493eda;
 }
-.block_blue.radius_blue{
-    background:#493eda;
+
+.block_blue.radius_blue {
+    background: #493eda;
 }
+
 .block_blue {
     height: 120px;
     width: 390px;
@@ -755,7 +757,7 @@
 }
 
 .left-txt {
-    text-align: left!important;    
+    text-align: left !important;
 }
 
 .el-radio-button__orig-radio:checked + .el-radio-button__inner {
@@ -769,6 +771,15 @@
 
 #blocks_table, #peers_table {
     width: 100%;
+}
+
+#blocks_table {
+    position: relative;
+    tbody {
+        .el-loading-mask {
+            top: 61px;
+        }
+    }
 }
 
 input:focus {

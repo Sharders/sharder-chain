@@ -69,6 +69,10 @@ public class PocProcessorImpl implements PocProcessor {
     return hubBindAccount || communityBindAccount || foundationBindAccount;
   }
 
+  public static boolean isFoundationBind(long accountId) {
+    return PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
+  }
+  
   public static boolean isHubBind(long accountId) {
     return PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
   }
@@ -144,7 +148,7 @@ public class PocProcessorImpl implements PocProcessor {
 
     //if no disk backup, read the poc txs from history blocks
     if(PocHolder.inst != null && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
-        synPocTxNow = true;
+      oldPocTxsProcess = true;
     }
   }
   
@@ -165,30 +169,42 @@ public class PocProcessorImpl implements PocProcessor {
     return PocHolder.getPocWeightTable();
   }
 
+  private static final int peerSynThreadInterval = 60;
+  private static final int pocTxSynThreadInterval = 10;
   public static void init() {
-    ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, 10, TimeUnit.SECONDS);
-    ThreadPool.scheduleThread("PeerSynThread", peerSynThread, 10, TimeUnit.SECONDS);
+    ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
+    ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
   }
 
-  private static boolean synPocTxNow = true;
+  private static boolean oldPocTxsProcess = false;
   private static final Runnable pocTxSynThread = () -> {
     try {
       
-      if(!synPocTxNow) {
-        Logger.logInfoMessage("no needs to syn poc serial txs now, sleep 10 minutes...");
-        Thread.sleep(10 * 60 * 1000);
+      if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
+        Logger.logInfoMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
+//        Thread.sleep(1 * 60 * 1000);
       }
       
-      int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
-      int toHeight = BlockchainImpl.getInstance().getHeight();
+      // delayed poc txs 
+      Logger.logInfoMessage("process delayed poc txs");
+      Set<Long> processedTxs = Sets.newHashSet();
+      PocHolder.delayPocTxs().forEach(txid -> {
+        boolean txProcessed = pocTxProcess(txid);
+        if(txProcessed) {
+          processedTxs.add(txid);
+        }
+      });
+      PocHolder.removeProcessedTxs(processedTxs);
+      
+      if(oldPocTxsProcess) {
+        // total poc txs from last height
+        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
+        int toHeight = BlockchainImpl.getInstance().getHeight();
+        Logger.logInfoMessage("process old poc txs from %d to %d", fromHeight , toHeight);
 
-
-      DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
-      for(BlockImpl block : blocks) {
-          pocSeriesTxProcess(block);
+        BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight).forEach(block -> pocSeriesTxProcess(block));
+        oldPocTxsProcess = false;
       }
-
-      synPocTxNow = false;
       
     } catch (Exception e) {
       Logger.logDebugMessage("poc tx syn thread interrupted");
@@ -200,15 +216,16 @@ public class PocProcessorImpl implements PocProcessor {
   };
   
   public static void notifySynTxNow(){
-    synPocTxNow = true;
+    oldPocTxsProcess = true;
   }
-
+  
+  
   private static final Runnable peerSynThread = () -> {
     try {
 
-      if (PocHolder.synPeers().size() <= 0) {
-        Logger.logInfoMessage("no needs to syn peer, sleep 10 minutes...");
-        Thread.sleep(10 * 60 * 1000);
+      if (PocHolder.synPeers().size() <= 0) { 
+        Logger.logInfoMessage("no needs to syn peer, sleep %d seconds...", peerSynThreadInterval);
+//        Thread.sleep(1 * 60 * 1000);
       }
 
       Set<String> connectedPeers = Sets.newHashSet();
@@ -219,7 +236,7 @@ public class PocProcessorImpl implements PocProcessor {
             Peers.addPeer(peer, peerAddress);
             Peers.connectPeer(peer);
           }
-          peer = Peers.getPeer(peerAddress);
+          peer = Peers.getPeer(peerAddress, true);
           _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
           connectedPeers.add(peer.getHost());
         } catch (Exception e) {
@@ -243,6 +260,10 @@ public class PocProcessorImpl implements PocProcessor {
     }
   };
 
+  /**
+   * process poc txs of block
+   * @param block block
+   */
   private static void pocSeriesTxProcess(Block block) {
     //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
     Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
@@ -251,26 +272,51 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     //just process poc tx
-    for(Transaction tx : block.getTransactions()) {
-      if(TransactionType.TYPE_POC !=  tx.getType().getType()) {
-          continue;
-      }
-      
-      if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
-        nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
-      }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
-        nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
-      }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
-        onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
-      }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
-        blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
-      }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
-        PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
-        PocCalculator.inst.setCurWeightTable(weightTable,block.getHeight());
-      }
-    }
-
+    block.getTransactions().forEach(tx -> pocTxProcess(tx));
   }
+
+  /**
+   * PoC tx process
+   * @param txid poc tx id
+   * @return
+   */
+  private static boolean pocTxProcess(Long txid) {
+    Transaction tx = Conch.getBlockchain().getTransaction(txid);
+    if(tx == null) return false;
+    return pocTxProcess(tx);
+  }
+
+  /**
+   * PoC tx process
+   * @param tx poc tx
+   * @return
+   */
+  public static boolean pocTxProcess(Transaction tx){
+    if(TransactionType.TYPE_POC !=  tx.getType().getType()) {
+      return true;
+    }
+    
+    boolean success = false;
+    if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
+      success = nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
+      success = nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
+      success = onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
+      success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
+      PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
+      PocCalculator.inst.setCurWeightTable(weightTable,tx.getHeight());
+    }
+    
+    // process later
+    if(!success) {
+      PocHolder.addDelayProcessTx(tx.getId());
+    }
+    return success;
+  }
+
 
   public static void _updateCertifiedNodes(String host, Peer.Type type, int height) {
     if(StringUtils.isEmpty(host)){ 
@@ -278,7 +324,7 @@ public class PocProcessorImpl implements PocProcessor {
       return;
     }
 
-    Peer peer = Peers.getPeer(host);
+    Peer peer = Peers.getPeer(host, true);
     peer.setType(type);
     if(StringUtils.isEmpty(peer.getBindRsAccount())){
       // connect peer to get account later
@@ -291,10 +337,10 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
 
-  private static PocScore getPocScoreByPeer(int height, String ip){
-    Peer peer = Peers.getPeer(ip);
-    if(peer == null) {
-      PocHolder.addSynPeer(ip);
+  private static PocScore getPocScoreByPeer(int height, String host){
+    Peer peer = Peers.getPeer(host, true);
+    if(peer == null || StringUtils.isEmpty(peer.getBindRsAccount())) {
+      PocHolder.addSynPeer(host);
       return null;
     }
 
@@ -309,7 +355,7 @@ public class PocProcessorImpl implements PocProcessor {
    * @param pocNodeType PocNodeType tx 
    * @return
    */
-  public static boolean nodeTypeTxProcess(int height,PocTxBody.PocNodeType pocNodeType){
+  private static boolean nodeTypeTxProcess(int height,PocTxBody.PocNodeType pocNodeType){
     if(pocNodeType == null || StringUtils.isEmpty(pocNodeType.getIp())) {
         return false;
     }
@@ -334,7 +380,7 @@ public class PocProcessorImpl implements PocProcessor {
    * @param pocNodeConf PocNodeConf tx
    * @return
    */
-  public static boolean nodeConfTxProcess(int height,PocTxBody.PocNodeConf pocNodeConf){
+  private static boolean nodeConfTxProcess(int height,PocTxBody.PocNodeConf pocNodeConf){
     PocScore pocScoreToUpdate = getPocScoreByPeer(height, pocNodeConf.getIp());
     if(pocScoreToUpdate == null) {
       return false;
@@ -352,8 +398,8 @@ public class PocProcessorImpl implements PocProcessor {
    * @param onlineRate OnlineRate tx
    * @return
    */
-  public static boolean onlineRateTxProcess(int height,PocTxBody.PocOnlineRate onlineRate){
-    Peer peer = Peers.getPeer(onlineRate.getIp());
+  private static boolean onlineRateTxProcess(int height,PocTxBody.PocOnlineRate onlineRate){
+    Peer peer = Peers.getPeer(onlineRate.getIp(), true);
 
     PocScore pocScoreToUpdate = getPocScoreByPeer(height, onlineRate.getIp());
     if(pocScoreToUpdate == null) {
@@ -372,7 +418,7 @@ public class PocProcessorImpl implements PocProcessor {
    * @param pocBlockMissing PocBlockMissing tx
    * @return
    */
-  public static boolean blockMissingTxProcess(int height, PocTxBody.PocGenerationMissing pocBlockMissing){
+  private static boolean blockMissingTxProcess(int height, PocTxBody.PocGenerationMissing pocBlockMissing){
     
     List<Long> missAccountIds = pocBlockMissing.getMissingAccountIds();
     for(Long missAccountId : missAccountIds){

@@ -850,7 +850,7 @@ public final class Peers {
                         }
 
                         String bindAddress = peerJson.getString("bindRs");
-                        Peer peer = Peers.getPeer(host);
+                        Peer peer = Peers.getPeer(host, true);
                         if (StringUtils.isEmpty(bindAddress)) {
                             detail += "can't process hub peer[host=" + host + "] which rs address is null\n\r";
                             continue;
@@ -862,7 +862,7 @@ public final class Peers {
                                 Peers.addPeer(peer, host);
                                 Peers.connectPeer(peer);
                             }
-                            peer = Peers.getPeer(host);
+                            peer = Peers.getPeer(host, true);
                             detail += "create a new hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
                         } else {
                             detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
@@ -1026,10 +1026,23 @@ public final class Peers {
         return result;
     }
 
-    public static Peer getPeer(String host) {
-        return peers.get(host);
+    public static Peer getPeer(String host, boolean checkAnnouncedAddr) {
+        if(!checkAnnouncedAddr) {
+            return peers.get(host);
+        }
+        
+        
+        if(peers.containsKey(host)) return peers.get(host);
+        
+        // check by announced address
+        for(PeerImpl peer : peers.values()){
+            if(host.equals(peer.getAnnouncedAddress())){
+                return peer;
+            }
+        }
+        return null;
     }
-
+    
     public static List<Peer> getInboundPeers() {
         return getPeers(Peer::isInbound);
     }
@@ -1156,8 +1169,15 @@ public final class Peers {
             Logger.logDebugMessage(networkDetail, "ignoring");
         }
     }
-
-
+    
+    private static boolean hostSameAsAddress(Peer peer){
+        if(peer == null) return false;
+        if(StringUtils.isEmpty(peer.getAnnouncedAddress())) return false;
+        if(StringUtils.isEmpty(peer.getHost())) return false;
+        
+        return StringUtils.equalsIgnoreCase(peer.getAnnouncedAddress(), peer.getHost());
+    }
+    
     static void setAnnouncedAddress(PeerImpl peer, String newAnnouncedAddress) {
         Peer oldPeer = peers.get(peer.getHost());
         if (oldPeer != null) {
@@ -1169,6 +1189,7 @@ public final class Peers {
                 selfAnnouncedAddresses.remove(oldAnnouncedAddress);
             }
         }
+        
         if (newAnnouncedAddress != null) {
             String oldHost = selfAnnouncedAddresses.put(newAnnouncedAddress, peer.getHost());
             if (oldHost != null && !peer.getHost().equals(oldHost)) {
@@ -1183,6 +1204,12 @@ public final class Peers {
             }
         }
         peer.setAnnouncedAddress(newAnnouncedAddress);
+    }
+    
+    
+    public static boolean announcedAddrCheck(Peer peer, String newAnnouncedAddress){ 
+       String ip = IpUtil.checkOrToIp(newAnnouncedAddress);
+       return peer.getHost().equalsIgnoreCase(ip);
     }
 
     public static boolean addPeer(Peer peer, String newAnnouncedAddress) {
