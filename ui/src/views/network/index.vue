@@ -366,29 +366,33 @@
                 loading: true
             };
         },
-        created: function () {
+        created() {
             let _this = this;
+            _this.networkUrlBlocks();
             _this.init();
+            _this.handleCurrentChange(_this.currentPage);
+        },
+        mounted() {
+            let _this = this;
             if (!window.NETWORK_URL) {
                 window.NETWORK_URL = setInterval(() => {
                     if (_this.$route.path === '/network') {
                         _this.init();
+                        _this.handleCurrentChange(_this.currentPage);
                     }
-                }, 10000);
+                }, 5678);
+            }
+            if (!window.NETWORK_URL_BLOCKS) {
+                window.NETWORK_URL_BLOCKS = setInterval(() => {
+                    if (_this.$route.path === '/network') {
+                        _this.networkUrlBlocks();
+                    }
+                }, SSO.downloadingBlockchain ? 5678 : 1234);
             }
         },
         methods: {
             init() {
                 const _this = this;
-                _this.getBlocks(1).then(res => {
-                    _this.loading = false;
-                    _this.blocklist = res.blocks;
-                    _this.newestHeight = res.blocks[0].height;
-                    _this.totalSize = _this.newestHeight + 1;
-                    _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
-                }).catch(function (err) {
-                    _this.$message.error(err);
-                });
 
                 _this.$global.fetch("GET", {}, "getPeers").then(res => {
                     _this.peerNum = res.peers.length;
@@ -434,6 +438,16 @@
                     console.info("error", err);
                 });
             },
+            networkUrlBlocks() {
+                const _this = this;
+                _this.getBlocks(1).then(res => {
+                    _this.newestHeight = res.blocks[0].height;
+                    _this.totalSize = _this.newestHeight + 1;
+                    _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
+                }).catch(error => {
+                    console.info('error',error)
+                });
+            },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
             },
@@ -445,6 +459,7 @@
                     _this.blocklist = res.blocks;
                     _this.loading = false;
                 }).catch(err => {
+                    console.info('error',err);
                     _this.$message.error(err);
                     _this.loading = false;
                 });
