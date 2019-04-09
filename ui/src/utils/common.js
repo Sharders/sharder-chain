@@ -23,6 +23,7 @@ export default {
                 dataType: "json",
                 type: type,
                 data: date,
+                timeout:60000,
                 success: function (data) {
                     resolve(data)
                 },
@@ -532,7 +533,7 @@ export default {
      */
     drawPeers(peersLocationList, peersTimeList) {
         let _this = this.$vue;
-        let myChart = _this.$echarts.init(document.getElementById("peers-map"),null,{renderer:'svg'});
+        let myChart = _this.$echarts.init(document.getElementById("peers-map"));
 
         function makeMapData(rawData) {
             let mapData = [];
