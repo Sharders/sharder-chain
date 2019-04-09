@@ -486,6 +486,11 @@
                 // get last version once
                 _this.getLatestHubVersion();
             },
+            autoRefresh() {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 60000);
+            },
         },
         watch: {
             selectLan: function (language) {

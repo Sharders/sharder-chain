@@ -518,7 +518,7 @@ export default {
         return SSO.useLocal;
     },
     getSharderFoundationHost() {
-        return (this.isTestNet() || this.isDevNet()) ?
+        return (this.isDevNet()) ?
             this.sharderFoundationTestHost : this.sharderFoundationHost;
     },
     getCommonFoundationAPI(eoLinkerUrl, path) {
