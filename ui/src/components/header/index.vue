@@ -430,8 +430,8 @@
                 const _this = this;
                 _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
                     if (res.data.success) {
-                        console.log("getLastestHubVersion=> " + JSON.stringify(res.data));
-                        console.log("_this.blockchainState=> " + JSON.stringify(_this.blockchainStatus));
+                        // console.log("getLastestHubVersion=> " + JSON.stringify(res.data));
+                        // console.log("_this.blockchainState=> " + JSON.stringify(_this.blockchainStatus));
                         _this.latestVersion = res.data.version;
                         let bool = _this.versionCompare(_this.blockchainStatus.version, _this.latestVersion);
                         _this.isUpdate = bool;
