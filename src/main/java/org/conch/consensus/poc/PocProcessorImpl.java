@@ -11,7 +11,6 @@ import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
-import org.conch.db.DbIterator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
@@ -169,14 +168,14 @@ public class PocProcessorImpl implements PocProcessor {
     return PocHolder.getPocWeightTable();
   }
 
-  private static final int peerSynThreadInterval = 60;
-  private static final int pocTxSynThreadInterval = 10;
+  private static final int peerSynThreadInterval = 600;
+  private static final int pocTxSynThreadInterval = 60;
   public static void init() {
     ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
     ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
   }
 
-  private static boolean oldPocTxsProcess = false;
+  private static boolean oldPocTxsProcess = true;
   private static final Runnable pocTxSynThread = () -> {
     try {
       
@@ -198,7 +197,8 @@ public class PocProcessorImpl implements PocProcessor {
       
       if(oldPocTxsProcess) {
         // total poc txs from last height
-        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
+//        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
+        int fromHeight = 0;
         int toHeight = BlockchainImpl.getInstance().getHeight();
         Logger.logInfoMessage("process old poc txs from %d to %d", fromHeight , toHeight);
 
@@ -266,13 +266,14 @@ public class PocProcessorImpl implements PocProcessor {
    */
   private static void pocSeriesTxProcess(Block block) {
     //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
+    List<? extends Transaction> txs = block.getTransactions();
     Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
-    if(containPoc == null || !containPoc) {
+    if(txs == null || txs.size() <= 0 || containPoc == null || !containPoc) {
         return;
     }
 
     //just process poc tx
-    block.getTransactions().forEach(tx -> pocTxProcess(tx));
+    txs.forEach(tx -> pocTxProcess(tx));
   }
 
   /**
