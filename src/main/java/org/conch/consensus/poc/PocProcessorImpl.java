@@ -69,6 +69,10 @@ public class PocProcessorImpl implements PocProcessor {
     return hubBindAccount || communityBindAccount || foundationBindAccount;
   }
 
+  public static boolean isFoundationBind(long accountId) {
+    return PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
+  }
+  
   public static boolean isHubBind(long accountId) {
     return PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
   }
