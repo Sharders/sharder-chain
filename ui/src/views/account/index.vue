@@ -850,7 +850,7 @@
                 _this.hubsetting.port = res["sharder.NATServicePort"];
                 _this.hubsetting.clientSecretkey = res["sharder.NATClientKey"];
                 _this.hubsetting.publicAddress = res["sharder.myAddress"];
-                _this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
+                //_this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
             });
             _this.getLatestHubVersion();
         },
@@ -1272,7 +1272,7 @@
                                 _this.hubsetting.port = res.data.data.natServicePort;
                                 _this.hubsetting.clientSecretkey = res.data.data.natClientKey;
                                 _this.hubsetting.publicAddress = res.data.data.proxyAddress;
-                                _this.hubsetting.SS_Address = res.data.data.tssAddress;
+                                //_this.hubsetting.SS_Address = res.data.data.tssAddress;
                                 _this.hubsetting.register_status_text = this.formatRegisterStatus(res.data.data.status);
                                 _this.hubsetting.register_status = res.data.data.status;
                                 _this.needRegister = false;

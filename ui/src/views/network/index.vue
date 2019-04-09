@@ -356,7 +356,6 @@
                 totalCount: 0,
                 storageCount: 0,
                 transferCount: 0,
-                coinbaseCount: 0,
                 systemReward: 0,
                 poolCount: 0,
                 aliasCount: 0,
@@ -380,80 +379,70 @@
         methods: {
             init() {
                 const _this = this;
-                _this.$http.get('/sharder?requestType=getBlocks', {
-                    params: {
-                        firstIndex: (_this.currentPage - 1) * 10,
-                        lastIndex: _this.currentPage * 10 - 1
-                    }
-                }).then(function (res) {
-                    if (!res.data.errorDescription) {
-                        _this.blocklist = res.data.blocks;
-                        console.log("blocklist", _this.blocklist);
-                        // _this.calcAverageAmount(res);
-
-                        if (_this.currentPage === 1) {
-                            _this.totalSize = res.data.blocks[0].height;
-                            _this.coinbaseCount = _this.newestHeight;
-                            _this.newestHeight = res.data.blocks[0].height;
-                            _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
-                        }
-                    } else {
-                        _this.$message.error(res.data.errorDescription);
-                    }
-
+                _this.getBlocks(1).then(res => {
+                    _this.blocklist = res.blocks;
+                    _this.newestHeight = res.blocks[0].height;
+                    _this.totalSize = _this.newestHeight + 1;
+                    _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                 }).catch(function (err) {
                     _this.$message.error(err);
                 });
 
-                _this.$http.get('/sharder?requestType=getPeers').then(function (res) {
-                    _this.peerNum = res.data.peers.length;
-                    _this.$global.byIPtoCoordinates(res.data.peers).then(res1 => {
-                        let json = JSON.parse(res1);
-                        for (let i of Object.keys(json)) {
-                            if (json[i]["X"] !== "" && json[i]["X"] !== "0"
-                                && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
-                                && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
-                                let arr = [];
-                                arr.push(json[i]["Y"]);
-                                arr.push(json[i]["X"]);
-                                _this.peersLocationList[i] = arr;
-                                arr = [];
-                                arr.push(i);
-                                arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
-                                _this.peersTimeList.push(arr);
-                            }
+                _this.$global.fetch("GET", {}, "getPeers").then(res => {
+                    _this.peerNum = res.peers.length;
+                    return _this.$global.byIPtoCoordinates(res.peers);
+                }).then(res => {
+                    let json = JSON.parse(res);
+                    for (let i of Object.keys(json)) {
+                        if (json[i]["X"] !== "" && json[i]["X"] !== "0"
+                            && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
+                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
+                            let arr = [];
+                            arr.push(json[i]["Y"]);
+                            arr.push(json[i]["X"]);
+                            _this.peersLocationList[i] = arr;
+                            arr = [];
+                            arr.push(i);
+                            arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
+                            _this.peersTimeList.push(arr);
                         }
-                        _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
-                    });
-                }).catch(function (err) {
-                    console.error("error", err);
+                    }
+                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
+                }).catch(err => {
+                    console.info("error", err);
                 });
 
-                _this.$http.get('/sharder?requestType=getNextBlockGenerators&limit=99999').then(function (res) {
-                    // console.log("矿工数量：",res);
-                    _this.activeCount = res.data.activeCount;
-                    _this.minerlist = res.data.generators;
-                    console.log("success to fetch miners");
-                }).catch(function (err) {
-                    console.error("error", err);
+                _this.$global.fetch("GET", {
+                    limit: 99999
+                }, "getNextBlockGenerators").then(res => {
+                    _this.activeCount = res.activeCount;
+                    _this.minerlist = res.generators;
+                }).catch(err => {
+                    console.info("error", err);
                 });
 
-                _this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
-                    _this.transferCount = res.data.transferCount;
-                    _this.storageCount = res.data.storageCount;
-                    _this.totalCount = res.data.transferAmount;
-                    _this.poolCount = res.data.poolCount;
-                    _this.systemReward = res.data.coinBaseCount;
-                    _this.averageAmount = res.data.storageCount24H + res.data.transferCount24H;
-                }).catch(function (err) {
-                    console.error("error", err);
+                _this.$global.fetch("GET", {}, "getTxStatistics").then(res => {
+                    _this.transferCount = res.transferCount;
+                    _this.storageCount = res.storageCount;
+                    _this.totalCount = res.transferAmount;
+                    _this.poolCount = res.poolCount;
+                    _this.systemReward = res.coinBaseCount;
+                    _this.averageAmount = res.storageCount24H + res.transferCount24H;
+                }).catch(err => {
+                    console.info("error", err);
                 });
             },
             handleSizeChange(val) {
-                this.getBlockList(val);
+                console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                this.getBlockList(val);
+                console.log(`当前页: ${val}`);
+                let _this = this;
+                _this.getBlocks(val).then(res => {
+                    _this.blocklist = res.blocks;
+                }).catch(err => {
+                    _this.$message.error(err);
+                });
             },
             turn2peers: function () {
                 this.$router.push({
@@ -473,19 +462,21 @@
                 this.$store.state.mask = false;
                 this.minerlistDialog = false;
             },
-            getBlockList(currentPage) {
-                const _this = this;
-                this.$http.get('/sharder?requestType=getBlocks', {
-                    params: {
+            getBlocks(currentPage) {
+                let _this = this;
+                return new Promise(function (resolve, reject) {
+                    _this.$global.fetch("GET", {
                         firstIndex: (currentPage - 1) * 10,
                         lastIndex: currentPage * 10 - 1
-                    }
-                }).then(function (res) {
-                    _this.blocklist = res.data.blocks;
-                    // _this.calcAverageAmount(res);
-                    return res;
-                }).catch(function (err) {
-                    return null;
+                    }, "getBlocks").then(res => {
+                        if (res.errorDescription) {
+                            _this.$message.error(res.errorDescription);
+                            throw (res.errorDescription);
+                        }
+                        resolve(res);
+                    }).catch(err => {
+                        reject(err);
+                    });
                 });
             },
             openBlockInfo(height) {
