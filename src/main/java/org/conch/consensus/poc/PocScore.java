@@ -18,41 +18,14 @@ import java.math.BigInteger;
 public class PocScore implements Serializable {
     Long accountId;
     int height;
-    /**
-     * SS持有得分
-     */
     BigInteger ssScore = BigInteger.ZERO;
-    /**
-     * 节点类型得分
-     */
     BigInteger nodeTypeScore = BigInteger.ZERO;
-    /**
-     * 打开服务得分
-     */
     BigInteger serverScore = BigInteger.ZERO;
-    /**
-     * 硬件配置得分
-     */
     BigInteger hardwareScore = BigInteger.ZERO;
-    /**
-     * 网络配置得分
-     */
     BigInteger networkScore = BigInteger.ZERO;
-    /**
-     * 交易处理性能得分
-     */
     BigInteger performanceScore = BigInteger.ZERO;
-    /**
-     * 在线率奖惩得分
-     */
     BigInteger onlineRateScore = BigInteger.ZERO;
-    /**
-     * 出块错过惩罚分
-     */
     BigInteger blockMissScore = BigInteger.ZERO;
-    /**
-     * 分叉收敛惩罚分
-     */
     BigInteger bcScore = BigInteger.ZERO;
     
     private static BigInteger MULTIPLIER = new BigInteger("10");
@@ -60,13 +33,18 @@ public class PocScore implements Serializable {
     //TODO 
     int luck = 0;
 
+    /**
+     * default poc score that contains the ss score
+     * @param accountId
+     * @param height
+     */
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;
         this.ssScore = _calBalance(accountId, height);
         PocCalculator.inst.ssHoldCal(this);
     }
-
+    
     public PocScore(int height, PocScore another) {
         this.accountId = another.accountId;
         this.ssScore = another.ssScore;
@@ -104,23 +82,30 @@ public class PocScore implements Serializable {
         PocCalculator.inst.blockMissCal(this, pocBlockMissing);
     }
 
+    public void synFrom(PocScore another){
+        combineFrom(another, true); 
+    }
+
+    public void synFromExceptSSHold(PocScore another){
+        combineFrom(another, false);
+    }
+    
     /**
      * replace the attributes of poc
      *
      * @param another
      */
-    public void synScoreFrom(PocScore another) {
-        this.ssScore = another.ssScore;
-        this.nodeTypeScore = another.nodeTypeScore;
-        this.serverScore = another.serverScore;
-        this.hardwareScore = another.hardwareScore;
-        this.networkScore = another.networkScore;
-        this.performanceScore = another.performanceScore;
-        this.onlineRateScore = another.onlineRateScore;
-        this.blockMissScore = another.blockMissScore;
-        this.bcScore = another.bcScore;
+    private void combineFrom(PocScore another, boolean updateSS) {
+        if(BigInteger.ZERO != another.ssScore && updateSS) this.ssScore = another.ssScore;
+        if(BigInteger.ZERO != another.nodeTypeScore) this.nodeTypeScore = another.nodeTypeScore;
+        if(BigInteger.ZERO != another.serverScore) this.serverScore = another.serverScore;
+        if(BigInteger.ZERO != another.hardwareScore) this.hardwareScore = another.hardwareScore;
+        if(BigInteger.ZERO != another.networkScore) this.networkScore = another.networkScore;
+        if(BigInteger.ZERO != another.performanceScore) this.performanceScore = another.performanceScore;
+        if(BigInteger.ZERO != another.onlineRateScore) this.onlineRateScore = another.onlineRateScore;
+        if(BigInteger.ZERO != another.blockMissScore) this.blockMissScore = another.blockMissScore;
+        if(BigInteger.ZERO != another.bcScore) this.bcScore = another.bcScore;
     }
-
 
     /**
      * effective balance is pool balance if the miner own a sharder pool

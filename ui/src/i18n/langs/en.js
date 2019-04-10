@@ -154,7 +154,7 @@ const en = {
         'account_set_name': "Confirm",
         'account_balance': "Account Balance",
         'account_available_balance': "Available Balance",
-        'account_mining_balance': "Minted Balance",
+        'account_mining_balance': "Mined Amount",
         'public_key': "Public Key",
     },
     header: {
@@ -176,7 +176,7 @@ const en = {
         'starting_forging': "Start",
         'search': "Search",
         'search_open': "Search By Account ID/Tx ID/Block ID",
-        'open_console': "Console running. Recording logs…",
+        'open_console': "Console running，recording logs…",
         'console': "console",
     },
     network: {
