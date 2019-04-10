@@ -11,13 +11,11 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
-import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -221,7 +219,7 @@ public class PocHolder implements Serializable {
         PocScore _pocScore = pocScore;
         if(inst.scoreMap.containsKey(pocScore.accountId)) {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
-            _pocScore.synScoreFrom(pocScore);
+            _pocScore.combineFrom(pocScore);
             recordHistoryScore(pocScore);
         }
 
@@ -236,19 +234,40 @@ public class PocHolder implements Serializable {
         PocScore score = map.get(accountId);
         return score !=null ? score.total() : BigInteger.ZERO;
     }
-        
+
     /**
      * record current poc score into history
+     * and update old poc score
+     * @param pocScore
      */
     static void recordHistoryScore(PocScore pocScore){
         Map<Long,PocScore> map = inst.historyScore.get(pocScore.height);
         if(map == null) map = new HashMap<>();
-
         map.put(pocScore.accountId,new PocScore(pocScore.height, pocScore));
-
         inst.historyScore.put(pocScore.height,map);
+        
+        //check and update the old poc score
+        int toHeight = pocScore.getHeight() > 0 ? (pocScore.getHeight() - 1) : 0;
+        for(int i=0; i <= toHeight ; i++) {
+            try{
+                if(!inst.historyScore.containsKey(i)) continue;
+
+                Map<Long,PocScore> heightScoreMap = inst.historyScore.get(i);
+                if(heightScoreMap.containsKey(pocScore.accountId)) {
+                    heightScoreMap.get(pocScore.accountId).combineFrom(pocScore);
+                } 
+            }catch(Exception e) {
+                //ignore to process next
+            }
+        }
     }
 
+    /**
+     * get the poc score according to specified height
+     * @param height
+     * @param accountId
+     * @return
+     */
     static PocScore getHistoryPocScore(int height,long accountId){
         if(!inst.historyScore.containsKey(height)) {
             return null;

@@ -109,18 +109,17 @@ public class PocScore implements Serializable {
      *
      * @param another
      */
-    public void synScoreFrom(PocScore another) {
-        this.ssScore = another.ssScore;
-        this.nodeTypeScore = another.nodeTypeScore;
-        this.serverScore = another.serverScore;
-        this.hardwareScore = another.hardwareScore;
-        this.networkScore = another.networkScore;
-        this.performanceScore = another.performanceScore;
-        this.onlineRateScore = another.onlineRateScore;
-        this.blockMissScore = another.blockMissScore;
-        this.bcScore = another.bcScore;
+    public void combineFrom(PocScore another) {
+        if(BigInteger.ZERO != another.ssScore && this.ssScore.compareTo(another.ssScore) == -1) this.ssScore = another.ssScore;
+        if(BigInteger.ZERO != another.nodeTypeScore && this.nodeTypeScore.compareTo(another.nodeTypeScore) == -1) this.nodeTypeScore = another.nodeTypeScore;
+        if(BigInteger.ZERO != another.serverScore && this.serverScore.compareTo(another.serverScore) == -1) this.serverScore = another.serverScore;
+        if(BigInteger.ZERO != another.hardwareScore && this.hardwareScore.compareTo(another.hardwareScore) == -1) this.hardwareScore = another.hardwareScore;
+        if(BigInteger.ZERO != another.networkScore && this.networkScore.compareTo(another.networkScore) == -1) this.networkScore = another.networkScore;
+        if(BigInteger.ZERO != another.performanceScore && this.performanceScore.compareTo(another.performanceScore) == -1) this.performanceScore = another.performanceScore;
+        if(BigInteger.ZERO != another.onlineRateScore && this.onlineRateScore.compareTo(another.onlineRateScore) == -1) this.onlineRateScore = another.onlineRateScore;
+        if(BigInteger.ZERO != another.blockMissScore && this.blockMissScore.compareTo(another.blockMissScore) == -1) this.blockMissScore = another.blockMissScore;
+        if(BigInteger.ZERO != another.bcScore && this.bcScore.compareTo(another.bcScore) == -1) this.bcScore = another.bcScore;
     }
-
 
     /**
      * effective balance is pool balance if the miner own a sharder pool

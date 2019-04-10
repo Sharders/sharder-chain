@@ -225,7 +225,6 @@ public class PocProcessorImpl implements PocProcessor {
 
       if (PocHolder.synPeers().size() <= 0) { 
         Logger.logInfoMessage("no needs to syn peer, sleep %d seconds...", peerSynThreadInterval);
-//        Thread.sleep(1 * 60 * 1000);
       }
 
       Set<String> connectedPeers = Sets.newHashSet();
