@@ -204,7 +204,7 @@ const en = {
         'block_peers_volume': "Node Volume",
         'miner_info': "Trading Summary",
         'miner_volume': "Miners",
-        'total_trading_volume': "Total Txns",
+        'total_trading_volume': "Total Amount",
         'transfer_transaction': "Transfer Txns",
         'coinbase_transaction': "Pool Txns",
         'store_transaction': "Storage Txns",
