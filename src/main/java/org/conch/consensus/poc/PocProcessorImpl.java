@@ -1,6 +1,5 @@
 package org.conch.consensus.poc;
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
@@ -20,7 +19,6 @@ import org.conch.util.DiskStorageUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -159,7 +157,7 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   private static final int peerSynThreadInterval = 600;
-  private static final int pocTxSynThreadInterval = 10;
+  private static final int pocTxSynThreadInterval = 30;
   public static void init() {
     ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
     ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
@@ -174,8 +172,14 @@ public class PocProcessorImpl implements PocProcessor {
   private static final Runnable pocTxSynThread = () -> {
     try {
       
+      if(Conch.getBlockchainProcessor().isDownloading()) {
+        Logger.logInfoMessage("block is downloading, don't process delayed poc txs till blocks sync finished...");
+        return;
+      }
+      
       if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
         Logger.logInfoMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
+        return;
       }
       
       // delayed poc txs 

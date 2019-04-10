@@ -1,6 +1,5 @@
 package org.conch.consensus.poc;
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -222,7 +221,7 @@ public class PocHolder implements Serializable {
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
         PocScorePrinter.print();
         //TODO use the event to notify (there will have many consumers later): define a event 'POC_SCORE_CHANGED' and notify the listeners: Generator
-        Generator.updatePocScore(pocScore);
+        Generator.updatePocScore(_pocScore);
     }
 
     static BigInteger getTotal(int height,Long accountId){

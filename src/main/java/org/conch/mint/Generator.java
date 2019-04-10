@@ -278,7 +278,17 @@ public class Generator implements Comparable<Generator> {
         }
     }
 
-    public static void init() {}
+    public static void init() {
+        // active generator listener for block pushed
+        Conch.getBlockchainProcessor().addListener(block -> {
+            long generatorId = block.getGeneratorId();
+            synchronized(activeGeneratorMp) {
+                if (!activeGeneratorMp.containsKey(generatorId)) {
+                    activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId));
+                }
+            }
+        }, BlockchainProcessor.Event.BLOCK_PUSHED);
+    }
 
     public static boolean addListener(Listener<Generator> listener, Event eventType) {
         return listeners.addListener(listener, eventType);
@@ -559,16 +569,27 @@ public class Generator implements Comparable<Generator> {
         return json;
     }
     
-    public static boolean updatePocScore(PocScore pocScore){
-        if(!generators.containsKey(pocScore.getAccountId())) return false;
-
-        Generator generator = generators.get(pocScore.getAccountId());
-        if(generator == null)return false;
+    public static void updatePocScore(PocScore pocScore){
+        if(sortedMiners != null) {
+            synchronized (sortedMiners) {
+                sortedMiners.forEach(generator -> {
+                    if (pocScore.getAccountId() == generator.getAccountId()) {
+                        generator.detailedPocScore = pocScore.toJsonObject();
+                        generator.pocScore = pocScore.total();
+                    }
+                });
+            }
+        } 
         
-        generator.detailedPocScore = pocScore.toJsonObject();
-        generator.pocScore = pocScore.total();
+        synchronized (activeGeneratorMp) {
+            if (activeGeneratorMp.containsKey(pocScore.getAccountId())) {
+                Generator generator = activeGeneratorMp.get(pocScore.getAccountId());
+                generator.detailedPocScore = pocScore.toJsonObject();
+                generator.pocScore = pocScore.total();
+            }
+        }
         
-        return true;
+        
     }
     /**
      * calculate the poc score and set the hit
@@ -583,8 +604,8 @@ public class Generator implements Comparable<Generator> {
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
 
-        effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
         PocScore pocScoreObj = PocProcessorImpl.instance.calPocScore(account,lastHeight);
+        effectiveBalance = pocScoreObj.getEffectiveBalance();
         detailedPocScore = pocScoreObj.toJsonObject();
         pocScore = pocScoreObj.total();
 
@@ -658,32 +679,25 @@ public class Generator implements Comparable<Generator> {
     
     /** 3days */
     private static final int MAX_ACTIVE_GENERATOR_LIFECYCLE = 615;
+    
     /**
      * Return a list of generators for the next block.  The caller must hold the blockchain
      * read lock to ensure the integrity of the returned list.
-     *
+     * 
+     * Generators have 2 parts: history block generator and current node miner
+     * - org.conch.mint.Generator#init() add a listener to record block generator
+     * - get current node miner from sortedMiners
+     * 
      * @return List of generator account identifiers
      */
     public static List<ActiveGenerator> getNextGenerators() {
         List<ActiveGenerator> generatorList;
         Blockchain blockchain = Conch.getBlockchain();
         synchronized(activeGeneratorMp) {
-            if (!generatorsInitialized && !Conch.getBlockchainProcessor().isDownloading()) {
+            // load history miners 
+            if (!generatorsInitialized) {
                 Set<Long> generatorIds = BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE));
-                // load history miners 
                 generatorIds.forEach(generatorId -> activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId)));
-                Logger.logDebugMessage(activeGeneratorMp.size() + " generators found");
-                
-                // active generator listener for block pushed
-                Conch.getBlockchainProcessor().addListener(block -> {
-                    long generatorId = block.getGeneratorId();
-                    synchronized(activeGeneratorMp) {
-                        if (!activeGeneratorMp.containsKey(generatorId)) {
-                            activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId));
-                        }
-                    }
-                }, BlockchainProcessor.Event.BLOCK_PUSHED);
-                
                 generatorsInitialized = true;
             }
 
@@ -710,6 +724,7 @@ public class Generator implements Comparable<Generator> {
             generatorList = Lists.newArrayList(minersOnCurNode);
             generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
+            Logger.logDebugMessage(generatorList.size() + " generators found");
         }
         return generatorList;
     }

@@ -27,6 +27,8 @@ public class PocScore implements Serializable {
     BigInteger onlineRateScore = BigInteger.ZERO;
     BigInteger blockMissScore = BigInteger.ZERO;
     BigInteger bcScore = BigInteger.ZERO;
+
+    BigInteger effectiveBalance;
     
     private static BigInteger MULTIPLIER = new BigInteger("10");
     
@@ -41,12 +43,13 @@ public class PocScore implements Serializable {
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;
-        this.ssScore = _calBalance(accountId, height);
+        this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
         PocCalculator.inst.ssHoldCal(this);
     }
     
     public PocScore(int height, PocScore another) {
         this.accountId = another.accountId;
+        this.effectiveBalance = another.effectiveBalance;
         this.ssScore = another.ssScore;
         this.nodeTypeScore = another.nodeTypeScore;
         this.serverScore = another.serverScore;
@@ -131,17 +134,6 @@ public class PocScore implements Serializable {
         return balance;
     }
 
-    /**
-     * effective balance calculate
-     *
-     * @param account
-     * @param height
-     * @return
-     */
-    public static BigInteger calEffectiveBalance(Account account, int height) {
-        return _calBalance(account.getId(), height);
-    }
-
     public JSONObject toJsonObject() {
         JSONObject jsonObject = JSON.parseObject(toJsonString());
         jsonObject.put(PocProcessor.SCORE_KEY, total());
@@ -196,4 +188,7 @@ public class PocScore implements Serializable {
         return bcScore;
     }
 
+    public BigInteger getEffectiveBalance() {
+        return effectiveBalance;
+    }
 }
