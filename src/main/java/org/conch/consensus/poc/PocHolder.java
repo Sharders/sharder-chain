@@ -88,14 +88,14 @@ public class PocHolder implements Serializable {
 
 
     /**
-     * record certified peer and bind account
-     *
+     * add or update certified peer and bind account
+     * 3 callers: PocHolder, PoC tx processor, Hub syn thread in Peers
      */
     public static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
         
         // remove from unverified collection and add it into certified map when account id updated
-        if(inst.unverifiedPeerMap.containsKey(host) && accountId > UN_VERIFIED_ID) {
+        if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
             inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
             inst.unverifiedPeerMap.remove(host);
         }
@@ -132,7 +132,7 @@ public class PocHolder implements Serializable {
     
 
     /**
-     * add certifiedPeer 
+     * add certifiedPeer by poc tx
      *
      * @param height
      * @param peer
@@ -140,11 +140,13 @@ public class PocHolder implements Serializable {
     public static void addCertifiedPeer(Integer height, Peer peer) {
         String rsAccount = peer.getBindRsAccount();
         long accountId = StringUtils.isEmpty(rsAccount) ? PocHolder.UN_VERIFIED_ID : Account.rsAccountToId(rsAccount);
-     
+        String host = peer.getAnnouncedAddress();
+        if(StringUtils.isEmpty(host)) host = peer.getHost();
+            
         if(StringUtils.isEmpty(rsAccount)) {
-            inst.unverifiedPeerMap.put(peer.getHost(),new CertifiedPeer(height, peer, accountId));
+            inst.unverifiedPeerMap.put(host, new CertifiedPeer(height, peer.getType(), host, accountId));
         }else {
-            addOrUpdateBoundPeer(peer.getType(), peer.getHost(), accountId);
+            addOrUpdateBoundPeer(peer.getType(), host, accountId);
         }
 
         updateHeightMinerMap(height, accountId);
@@ -177,12 +179,6 @@ public class PocHolder implements Serializable {
 
     private PocHolder(){}
 
-
-    private static void _defaultPocScore(long accountId,int height){
-        scoreMapping(new PocScore(accountId,height));
-    }
-    
-    
     /**
      * get the poc score and detail of the specified height
      * @param height
@@ -191,21 +187,23 @@ public class PocHolder implements Serializable {
      */
     static JSONObject getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
-        JSONObject jsonObject = new JSONObject();
+        
         if (!inst.scoreMap.containsKey(accountId)) {
             PocProcessorImpl.notifySynTxNow();
-            _defaultPocScore(accountId, height);
+            //defaultPocScore
+            scoreMapping(new PocScore(accountId,height));
         }
+        
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
-        //newest poc score when query height is bigger than last height of poc score
-
+        //get history poc score when query height is bigger than last height of poc score
         if(pocScoreDetail.height > height) {
-            //get from history
             pocScoreDetail = getHistoryPocScore(height, accountId);
         }
 
+        // map to json 
+        JSONObject jsonObject = new JSONObject();
         if(pocScoreDetail != null) {
-            jsonObject.put(PocProcessor.SCORE_KEY,pocScoreDetail.total());
+            jsonObject.put(PocProcessor.SCORE_KEY, pocScoreDetail.total());
             jsonObject.putAll(pocScoreDetail.toJsonObject());
         }
         return jsonObject;

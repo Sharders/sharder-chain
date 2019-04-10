@@ -18,41 +18,14 @@ import java.math.BigInteger;
 public class PocScore implements Serializable {
     Long accountId;
     int height;
-    /**
-     * SS持有得分
-     */
     BigInteger ssScore = BigInteger.ZERO;
-    /**
-     * 节点类型得分
-     */
     BigInteger nodeTypeScore = BigInteger.ZERO;
-    /**
-     * 打开服务得分
-     */
     BigInteger serverScore = BigInteger.ZERO;
-    /**
-     * 硬件配置得分
-     */
     BigInteger hardwareScore = BigInteger.ZERO;
-    /**
-     * 网络配置得分
-     */
     BigInteger networkScore = BigInteger.ZERO;
-    /**
-     * 交易处理性能得分
-     */
     BigInteger performanceScore = BigInteger.ZERO;
-    /**
-     * 在线率奖惩得分
-     */
     BigInteger onlineRateScore = BigInteger.ZERO;
-    /**
-     * 出块错过惩罚分
-     */
     BigInteger blockMissScore = BigInteger.ZERO;
-    /**
-     * 分叉收敛惩罚分
-     */
     BigInteger bcScore = BigInteger.ZERO;
     
     private static BigInteger MULTIPLIER = new BigInteger("10");
@@ -60,6 +33,11 @@ public class PocScore implements Serializable {
     //TODO 
     int luck = 0;
 
+    /**
+     * default poc score that contains the ss score
+     * @param accountId
+     * @param height
+     */
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;

@@ -54,11 +54,6 @@ public class CertifiedPeer implements Serializable {
         this.height = height;
     }
 
-    public CertifiedPeer(int height, Peer peer, long accountId) {
-        this(peer.getType(), peer.getHost(), accountId);
-        this.height = height;
-    }
-
     private void updateTimeSet() {
         try {
             this.updateTime = new Timestamp(System.currentTimeMillis());

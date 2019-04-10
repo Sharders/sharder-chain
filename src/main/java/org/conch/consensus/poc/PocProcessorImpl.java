@@ -236,7 +236,7 @@ public class PocProcessorImpl implements PocProcessor {
             Peers.connectPeer(peer);
           }
           peer = Peers.getPeer(peerAddress, true);
-          _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
+//          _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
           connectedPeers.add(peer.getHost());
         } catch (Exception e) {
           if(Logger.printNow(PocProcessorImpl.class, 200)) {
