@@ -997,9 +997,11 @@
                 const _this = this;
                 let resetData = new FormData();
                 let confirmFormData = new FormData();
-                confirmFormData.append("username", _this.hubsetting.sharderAccount);
+                confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
+                confirmFormData.append("nodeType", _this.userConfig.nodeType);
                 confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
+                confirmFormData.append("serialNum", _this.userConfig.xxx);
                 resetData.append("adminPassword", adminPwd);
                 resetData.append("restart", "true");
                 console.log("resetting hub...");
@@ -1020,9 +1022,11 @@
             updateHubSetting(adminPwd, params) {
                 const _this = this;
                 let confirmFormData = new FormData();
-                confirmFormData.append("username", _this.hubsetting.sharderAccount);
+                confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
+                confirmFormData.append("nodeType", _this.userConfig.nodeType);
                 confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
+                confirmFormData.append("serialNum", _this.userConfig.xxx);
                 params.append("adminPassword", adminPwd);
                 _this.hubSettingsConfirmThenDoOperation(confirmFormData, _this.sendUpdateHubSettingRequest, params);
             },
@@ -1045,54 +1049,32 @@
                 let formData = new FormData();
                 formData.append("restart", true);
                 formData.append("sharder.disableAdminPassword", "false");
-                if (type === 'init' || type === 'reconfigure') {
-                    if (_this.hubsetting.openPunchthrough) {
-                        formData.append("sharder.useNATService", "true");
-                        if (_this.hubsetting.address === '' ||
-                            _this.hubsetting.port === '' ||
-                            _this.hubsetting.clientSecretkey === '') {
-                            if (_this.hubsetting.sharderPwd === '')
-                                _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
-                            else
-                                _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
-                            return false;
-                        } else {
-                            formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
-                            formData.append("sharder.NATServicePort", _this.hubsetting.port);
-                            formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
-                            formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
-                        }
+                formData.append('sharderAccount', _this.hubsetting.sharderAccount);
+                formData.append('password', _this.hubsetting.sharderPwd);
+                formData.append('registerStatus', _this.hubsetting.register_status);
+                formData.append('nodeType', _this.userConfig.nodeType);
+                if (_this.hubsetting.openPunchthrough) {
+                    formData.append("sharder.useNATService", "true");
+                    if (_this.hubsetting.address === '' ||
+                        _this.hubsetting.port === '' ||
+                        _this.hubsetting.clientSecretkey === '') {
+                        if (_this.hubsetting.sharderPwd === '')
+                            _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
+                        else
+                            _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
+                        return false;
                     } else {
-                        formData.append("sharder.useNATService", "false");
-                    }
-                } else if (type === 'register') {
-                    formData.append('sharderAccount', _this.hubsetting.sharderAccount);
-                    formData.append('password', _this.hubsetting.sharderPwd);
-                    formData.append('registerStatus', _this.hubsetting.register_status);
-                    formData.append('nodeType', _this.userConfig.nodeType);
-                    if (!_this.hubsetting.openPunchthrough) {
-                        formData.append("sharder.NATServiceAddress", "");
-                        formData.append("sharder.NATServicePort", "");
-                        formData.append("sharder.NATClientKey", "");
+                        formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
+                        formData.append("sharder.NATServicePort", _this.hubsetting.port);
+                        formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
                         formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
-                        formData.append("sharder.useNATService", "false");
-                    } else {
-                        formData.append("sharder.useNATService", "true");
-                        if (!_this.hubsetting.address
-                            || !_this.hubsetting.port
-                            || !_this.hubsetting.clientSecretkey) {
-                            if (!_this.hubsetting.sharderPwd)
-                                _this.$message.error(_this.$t('notification.hubsetting_no_sharder_account'));
-                            else
-                                _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
-                            return false;
-                        } else {
-                            formData.append("sharder.NATServiceAddress", _this.hubsetting.address);
-                            formData.append("sharder.NATServicePort", _this.hubsetting.port);
-                            formData.append("sharder.NATClientKey", _this.hubsetting.clientSecretkey);
-                            formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
-                        }
                     }
+                } else {
+                    formData.append("sharder.NATServiceAddress", "");
+                    formData.append("sharder.NATServicePort", "");
+                    formData.append("sharder.NATClientKey", "");
+                    formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
+                    formData.append("sharder.useNATService", "false");
                 }
                 if (_this.hubsetting.SS_Address !== '') {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
