@@ -21,18 +21,14 @@
 
 package org.conch.consensus.poc;
 
-import com.alibaba.fastjson.JSONObject;
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
-
-import java.math.BigInteger;
 
 /**
  * @author ben-xy
  */
 public interface PocProcessor {
     
-    public static final String SCORE_KEY = "poc_score";
     /**
      * @param account
      * @param height
