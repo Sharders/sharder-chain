@@ -558,7 +558,18 @@ public class Generator implements Comparable<Generator> {
         }
         return json;
     }
+    
+    public static boolean updatePocScore(PocScore pocScore){
+        if(!generators.containsKey(pocScore.getAccountId())) return false;
 
+        Generator generator = generators.get(pocScore.getAccountId());
+        if(generator == null)return false;
+        
+        generator.detailedPocScore = pocScore.toJsonObject();
+        generator.pocScore = pocScore.total();
+        
+        return true;
+    }
     /**
      * calculate the poc score and set the hit
      * @param lastBlock
@@ -573,8 +584,9 @@ public class Generator implements Comparable<Generator> {
         Account account = Account.getAccount(accountId, lastHeight);
 
         effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
-        detailedPocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
-        pocScore = PocProcessorImpl.instance.getScoreInt(detailedPocScore);
+        PocScore pocScoreObj = PocProcessorImpl.instance.calPocScore(account,lastHeight);
+        detailedPocScore = pocScoreObj.toJsonObject();
+        pocScore = pocScoreObj.total();
 
         if (pocScore.signum() <= 0) {
             hitTime = 0;
@@ -656,7 +668,7 @@ public class Generator implements Comparable<Generator> {
         List<ActiveGenerator> generatorList;
         Blockchain blockchain = Conch.getBlockchain();
         synchronized(activeGeneratorMp) {
-            if (!generatorsInitialized) {
+            if (!generatorsInitialized && !Conch.getBlockchainProcessor().isDownloading()) {
                 Set<Long> generatorIds = BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE));
                 // load history miners 
                 generatorIds.forEach(generatorId -> activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId)));

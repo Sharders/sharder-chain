@@ -36,17 +36,9 @@ public interface PocProcessor {
     /**
      * @param account
      * @param height
-     * @return poc score json
+     * @return poc score 
      */
-    JSONObject calPocScore(Account account, int height);
-
-    /**
-     * return detailed poc data json string
-     *
-     * @param scoreJson
-     * @return poc score
-     */
-    BigInteger getScoreInt(JSONObject scoreJson);
+    PocScore calPocScore(Account account, int height);
 
     /**
      * Get the poc weight table

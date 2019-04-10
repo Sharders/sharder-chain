@@ -143,13 +143,15 @@ public class PocScore implements Serializable {
     }
 
     public JSONObject toJsonObject() {
-        return JSON.parseObject(toJsonString());
+        JSONObject jsonObject = JSON.parseObject(toJsonString());
+        jsonObject.put(PocProcessor.SCORE_KEY, total());
+        return jsonObject;
     }
 
     public String toJsonString() {
         return JSON.toJSONString(this);
     }
-
+    
     public Long getAccountId() {
         return accountId;
     }

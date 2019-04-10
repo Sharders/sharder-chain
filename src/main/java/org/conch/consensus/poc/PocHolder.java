@@ -10,6 +10,7 @@ import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.util.Logger;
@@ -187,7 +188,7 @@ public class PocHolder implements Serializable {
      * @param accountId
      * @return
      */
-    static JSONObject getPocScore(int height, long accountId) {
+    static PocScore getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
         
         if (!inst.scoreMap.containsKey(accountId)) {
@@ -202,13 +203,7 @@ public class PocHolder implements Serializable {
             pocScoreDetail = getHistoryPocScore(height, accountId);
         }
 
-        // map to json 
-        JSONObject jsonObject = new JSONObject();
-        if(pocScoreDetail != null) {
-            jsonObject.put(PocProcessor.SCORE_KEY, pocScoreDetail.total());
-            jsonObject.putAll(pocScoreDetail.toJsonObject());
-        }
-        return jsonObject;
+        return pocScoreDetail;
     }
     
     /**
@@ -226,7 +221,8 @@ public class PocHolder implements Serializable {
         inst.scoreMap.put(pocScore.accountId,_pocScore);
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
         PocScorePrinter.print();
-        //TODO add a event 'POC_SCORE_CHANGED' and notify the listeners: Generator
+        //TODO use the event to notify (there will have many consumers later): define a event 'POC_SCORE_CHANGED' and notify the listeners: Generator
+        Generator.updatePocScore(pocScore);
     }
 
     static BigInteger getTotal(int height,Long accountId){

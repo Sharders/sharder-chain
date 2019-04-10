@@ -27,6 +27,7 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
@@ -483,8 +484,8 @@ public final class BlockImpl implements Block {
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
-            com.alibaba.fastjson.JSONObject scoreJson = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
-            BigInteger pocScore = PocProcessorImpl.instance.getScoreInt(scoreJson);
+            PocScore pocScoreObj = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            BigInteger pocScore = pocScoreObj.total();
             if (pocScore.signum() <= 0) {
                 return false;
             }
