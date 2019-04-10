@@ -27,7 +27,9 @@ import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.Peer;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -72,8 +74,8 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        if (!verifyForNormalNode(req, response)) {
-            System.out.println("failed to configure settings...");
+        if (!verifyFormData(req, response)) {
+            Logger.logErrorMessage("failed to configure settings...");
             return response;
         }
 
@@ -116,28 +118,26 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
      * @param response json object
      * @return true:correct data; false:wrong data
      */
-    private Boolean verifyForNormalNode(HttpServletRequest req, JSONObject response) {
+    private Boolean verifyFormData(HttpServletRequest req, JSONObject response) {
         boolean result = true;
-        boolean isNormalNode = "Normal".equalsIgnoreCase(req.getParameter("nodeType"));
         boolean useNATService = Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("sharder.useNATService"));
         Map<String, String> pageValues = new HashMap<>(16);
-        pageValues.put("registerStatus", Convert.nullToEmpty(req.getParameter("registerStatus")));
-        pageValues.put("natServiceAddress", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
+        pageValues.put("status", Convert.nullToEmpty(req.getParameter("registerStatus")));
+        pageValues.put("natServiceIp", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
         pageValues.put("natServicePort", Convert.nullToEmpty(req.getParameter("sharder.NATServicePort")));
         pageValues.put("natClientKey", Convert.nullToEmpty(req.getParameter("sharder.NATClientKey")));
-        pageValues.put("hubAddress", Convert.nullToEmpty(req.getParameter("sharder.myAddress")));
-        pageValues.put("nodeType", Convert.nullToEmpty(req.getParameter("nodeType")));
+        pageValues.put("proxyAddress", Convert.nullToEmpty(req.getParameter("sharder.myAddress")));
+        pageValues.put("type", Convert.nullToEmpty(req.getParameter("nodeType")));
         Iterator<Map.Entry<String, String>> iterator = pageValues.entrySet().iterator();
 
-        if (isNormalNode && useNATService) {
+        if (useNATService) {
             try {
-                String nodeType = Conch.getStringProperty("sharder.NodeType");
                 RestfulHttpClient.HttpResponse verifyResponse = RestfulHttpClient.getClient(URL)
                         .post()
-                        .addPostParam("sharderAccount", req.getParameter("username"))
+                        .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
                         .addPostParam("password", req.getParameter("password"))
-                        .addPathParam("nodeType", nodeType)
-                        .addPathParam("serialNum", Conch.serialNum)
+                        .addPostParam("nodeType", req.getParameter("nodeType"))
+                        .addPostParam("serialNum", Conch.serialNum)
                         .request();
                 boolean querySuccess = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
                 if (querySuccess) {
@@ -146,7 +146,14 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     );
                     while (iterator.hasNext()) {
                         Map.Entry<String, String> pageValue = iterator.next();
-                        if (!this.doVerify(pageValue.getValue(), hubSetting.getString(pageValue.getKey()))) {
+                        String dbValue;
+                        Object value = pageValue.getValue();
+                        if ("type".equals(pageValue.getKey())) {
+                            dbValue = Peer.SimpleType.getSimpleTypeNameByCode(hubSetting.getInteger(pageValue.getKey()));
+                        } else {
+                            dbValue = hubSetting.getString(pageValue.getKey());
+                        }
+                        if (!this.doVerify(value, dbValue)) {
                             result = false;
                             response.put("reconfiged", false);
                             response.put("failedReason", "tampered data detected! failed to reconfigure!");
