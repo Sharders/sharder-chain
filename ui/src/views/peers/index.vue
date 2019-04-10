@@ -409,14 +409,14 @@
                 formData.append("adminPassword", adminPassword);
                 formData.append("feeNQT", 0);
 
-                this.$http.post('sharder?requestType=addPeer', formData).then(function (res) {
-                    if (typeof res.data.errorDescription === 'undefined') {
+                this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
+                    if (res.data.errorDescription) {
+                        _this.$message.error(res.data.errorDescription);
+                    } else {
                         _this.$message.success("Add a success！");
                         _this.$global.setPeers(_this).then(res => {
                             _this.init(res.data.peers);
                         });
-                    } else {
-                        _this.$message.error(res.data.errorDescription);
                     }
                     _this.closeDialog();
                 });
