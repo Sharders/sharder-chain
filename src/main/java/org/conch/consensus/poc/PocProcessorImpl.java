@@ -21,10 +21,7 @@ import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -169,23 +166,27 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   private static final int peerSynThreadInterval = 600;
-  private static final int pocTxSynThreadInterval = 60;
+  private static final int pocTxSynThreadInterval = 10;
   public static void init() {
     ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
     ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
   }
 
-  private static boolean oldPocTxsProcess = true;
+
+  public static void notifySynTxNow(){
+    oldPocTxsProcess = true;
+  }
+
+  private static boolean oldPocTxsProcess = false;
   private static final Runnable pocTxSynThread = () -> {
     try {
       
       if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
         Logger.logInfoMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
-//        Thread.sleep(1 * 60 * 1000);
       }
       
       // delayed poc txs 
-      Logger.logInfoMessage("process delayed poc txs");
+      Logger.logInfoMessage("process delayed poc txs[size=%d]", PocHolder.delayPocTxs().size());
       Set<Long> processedTxs = Sets.newHashSet();
       PocHolder.delayPocTxs().forEach(txid -> {
         boolean txProcessed = pocTxProcess(txid);
@@ -193,7 +194,15 @@ public class PocProcessorImpl implements PocProcessor {
           processedTxs.add(txid);
         }
       });
-      PocHolder.removeProcessedTxs(processedTxs);
+      
+      // remove processed txs
+      if(processedTxs.size() > 0) {
+        Logger.logInfoMessage("success to process delayed poc txs[size=%d]", processedTxs.size());
+        Logger.logDebugMessage("processed poc txs detail => " + Arrays.toString(processedTxs.toArray()));
+        PocHolder.removeProcessedTxs(processedTxs);
+      }
+
+     
       
       if(oldPocTxsProcess) {
         // total poc txs from last height
@@ -214,11 +223,6 @@ public class PocProcessorImpl implements PocProcessor {
       System.exit(1);
     }
   };
-  
-  public static void notifySynTxNow(){
-    oldPocTxsProcess = true;
-  }
-  
   
   private static final Runnable peerSynThread = () -> {
     try {

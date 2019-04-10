@@ -537,7 +537,7 @@ public class Generator implements Comparable<Generator> {
 
     @Override
     public String toString() {
-        return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
+        return "Miner[id=" + Long.toUnsignedString(accountId) + ", rs=" + rsAddress + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
     }
 
     public JSONObject toJson(boolean loadPoolInfo) {
@@ -714,6 +714,7 @@ public class Generator implements Comparable<Generator> {
         public ActiveGenerator(long accountId, long hitTime, BigInteger hit) {
             this.accountId = accountId;
             this.publicKey = Account.getPublicKey(this.accountId);
+            this.rsAddress = Account.rsAccount(this.accountId);
             this.hitTime = hitTime;
             this.hit = hit;
             setLastBlock(Conch.getBlockchain().getLastBlock());

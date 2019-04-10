@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
@@ -53,6 +54,7 @@ public class PocHolder implements Serializable {
     // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
     private volatile Set<String> synPeerList = Sets.newHashSet();
     
+    // TODO consider sort and store the txs by height, like: height -> {tx1...txn}
     private volatile Set<Long> delayProcessTxs = Sets.newHashSet();
 
     int lastHeight = -1;
@@ -190,7 +192,7 @@ public class PocHolder implements Serializable {
         
         if (!inst.scoreMap.containsKey(accountId)) {
             PocProcessorImpl.notifySynTxNow();
-            //defaultPocScore
+            //default PocScore
             scoreMapping(new PocScore(accountId,height));
         }
         
@@ -217,13 +219,14 @@ public class PocHolder implements Serializable {
         PocScore _pocScore = pocScore;
         if(inst.scoreMap.containsKey(pocScore.accountId)) {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
-            _pocScore.combineFrom(pocScore);
+            _pocScore.synFrom(pocScore);
             recordHistoryScore(pocScore);
         }
 
         inst.scoreMap.put(pocScore.accountId,_pocScore);
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
         PocScorePrinter.print();
+        //TODO add a event 'POC_SCORE_CHANGED' and notify the listeners: Generator
     }
 
     static BigInteger getTotal(int height,Long accountId){
@@ -245,14 +248,15 @@ public class PocHolder implements Serializable {
         inst.historyScore.put(pocScore.height,map);
         
         //check and update the old poc score
-        int toHeight = pocScore.getHeight() > 0 ? (pocScore.getHeight() - 1) : 0;
-        for(int i=0; i <= toHeight ; i++) {
+        int currentHeight = Conch.getBlockchain().getHeight();
+        int fromHeight = pocScore.height < currentHeight ? pocScore.height : currentHeight;
+        for(int i = fromHeight; i <= currentHeight ; i++) {
             try{
                 if(!inst.historyScore.containsKey(i)) continue;
 
                 Map<Long,PocScore> heightScoreMap = inst.historyScore.get(i);
                 if(heightScoreMap.containsKey(pocScore.accountId)) {
-                    heightScoreMap.get(pocScore.accountId).combineFrom(pocScore);
+                    heightScoreMap.get(pocScore.accountId).synFromExceptSSHold(pocScore);
                 } 
             }catch(Exception e) {
                 //ignore to process next
@@ -283,10 +287,10 @@ public class PocHolder implements Serializable {
      */
     private static class PocScorePrinter {
         static int count = 0;
-        static final int printCount = 100;
+        static final int printCount = 1;
         
         protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
-        protected static boolean debugHistory = false;
+        protected static boolean debugHistory = true;
         
         protected static String summary = reset();
         private static final String splitter = "\n\r";
@@ -320,7 +324,7 @@ public class PocHolder implements Serializable {
             // height : { accountId : pocScore }
             Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
 
-            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] size=" + inst.scoreMap.size() + " >>>>>>>>",true);
+            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
             

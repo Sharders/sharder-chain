@@ -44,7 +44,7 @@ public class PocScore implements Serializable {
         this.ssScore = _calBalance(accountId, height);
         PocCalculator.inst.ssHoldCal(this);
     }
-
+    
     public PocScore(int height, PocScore another) {
         this.accountId = another.accountId;
         this.ssScore = another.ssScore;
@@ -82,21 +82,29 @@ public class PocScore implements Serializable {
         PocCalculator.inst.blockMissCal(this, pocBlockMissing);
     }
 
+    public void synFrom(PocScore another){
+        combineFrom(another, true); 
+    }
+
+    public void synFromExceptSSHold(PocScore another){
+        combineFrom(another, false);
+    }
+    
     /**
      * replace the attributes of poc
      *
      * @param another
      */
-    public void combineFrom(PocScore another) {
-        if(BigInteger.ZERO != another.ssScore && this.ssScore.compareTo(another.ssScore) == -1) this.ssScore = another.ssScore;
-        if(BigInteger.ZERO != another.nodeTypeScore && this.nodeTypeScore.compareTo(another.nodeTypeScore) == -1) this.nodeTypeScore = another.nodeTypeScore;
-        if(BigInteger.ZERO != another.serverScore && this.serverScore.compareTo(another.serverScore) == -1) this.serverScore = another.serverScore;
-        if(BigInteger.ZERO != another.hardwareScore && this.hardwareScore.compareTo(another.hardwareScore) == -1) this.hardwareScore = another.hardwareScore;
-        if(BigInteger.ZERO != another.networkScore && this.networkScore.compareTo(another.networkScore) == -1) this.networkScore = another.networkScore;
-        if(BigInteger.ZERO != another.performanceScore && this.performanceScore.compareTo(another.performanceScore) == -1) this.performanceScore = another.performanceScore;
-        if(BigInteger.ZERO != another.onlineRateScore && this.onlineRateScore.compareTo(another.onlineRateScore) == -1) this.onlineRateScore = another.onlineRateScore;
-        if(BigInteger.ZERO != another.blockMissScore && this.blockMissScore.compareTo(another.blockMissScore) == -1) this.blockMissScore = another.blockMissScore;
-        if(BigInteger.ZERO != another.bcScore && this.bcScore.compareTo(another.bcScore) == -1) this.bcScore = another.bcScore;
+    private void combineFrom(PocScore another, boolean updateSS) {
+        if(BigInteger.ZERO != another.ssScore && updateSS) this.ssScore = another.ssScore;
+        if(BigInteger.ZERO != another.nodeTypeScore) this.nodeTypeScore = another.nodeTypeScore;
+        if(BigInteger.ZERO != another.serverScore) this.serverScore = another.serverScore;
+        if(BigInteger.ZERO != another.hardwareScore) this.hardwareScore = another.hardwareScore;
+        if(BigInteger.ZERO != another.networkScore) this.networkScore = another.networkScore;
+        if(BigInteger.ZERO != another.performanceScore) this.performanceScore = another.performanceScore;
+        if(BigInteger.ZERO != another.onlineRateScore) this.onlineRateScore = another.onlineRateScore;
+        if(BigInteger.ZERO != another.blockMissScore) this.blockMissScore = another.blockMissScore;
+        if(BigInteger.ZERO != another.bcScore) this.bcScore = another.bcScore;
     }
 
     /**
