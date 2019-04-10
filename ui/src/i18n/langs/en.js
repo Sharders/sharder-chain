@@ -154,7 +154,7 @@ const en = {
         'account_set_name': "Confirm",
         'account_balance': "Account Balance",
         'account_available_balance': "Available Balance",
-        'account_mining_balance': "Mining Balance",
+        'account_mining_balance': "Minted Balance",
         'public_key': "Public Key",
     },
     header: {
@@ -251,17 +251,19 @@ const en = {
         'join_blacklist': "Add to Blacklist",
         'join_blacklist_tip1': "Are you sure you want to add \"",
         'join_blacklist_tip2': "\" to the blacklist?",
-        'admin_password': "Hub Password",
+        'admin_password': "Admin Password",
         'join': "Add",
         'link_peer': "Connect to node",
         'peer_name': "Node Info",
         'peer': "Node",
+        'peers_add': "Add Node",
         'communication_port': "Communication Port",
         'version': "Version",
         'latest_update': "Latest Update",
         'status': "Status",
         'shared_address': "Share Address",
         'published_address': "Published Address",
+       
     },
     mining: {
         attribute: {
