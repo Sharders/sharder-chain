@@ -124,15 +124,16 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
-        boolean printNow = logPrintCount++ == 0 || logPrintCount++ > 200;
+        boolean printNow = logPrintCount++ == 0 || logPrintCount++ > 100;
         
         if(isBootNode) {
+            Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
             return true;
         }
 
         if(!Conch.isInitialized()) {
             if(printNow) {
-                Logger.logInfoMessage("wait for Conch initialized...");
+                Logger.logWarningMessage("wait for Conch initialized...");
                 logPrintCount = 1;
             }
             return false;
@@ -140,7 +141,7 @@ public class Generator implements Comparable<Generator> {
         
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(printNow) {
-                Logger.logInfoMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
+                Logger.logWarningMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
                         + ", and current height is " + lastBlock.getHeight()
                         + ", don't mint till blocks sync finished...");
                 logPrintCount = 1;
@@ -823,16 +824,6 @@ public class Generator implements Comparable<Generator> {
             return;
         }
         
-        if(Conch.getBlockchain().getHeight() < 0 || Conch.getBlockchain().getHeight() < Constants.LAST_KNOWN_BLOCK) {
-            Logger.logWarningMessage("!! can't start mining: current height < " +  Constants.LAST_KNOWN_BLOCK + " (last known block), need syn blocks");
-            return;
-        }
-        
-        if(Conch.getBlockchainProcessor().isDownloading()) {
-            Logger.logWarningMessage("!! can't start mining: it is downloading the blocks, start mining after blocks downloaded");
-            return;
-        }
-
         // [Hub Miner] if owner bind the passphrase then start mine automatic
         if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
             Generator hubGenerator = ownerMining(HUB_BIND_PR);
