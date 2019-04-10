@@ -121,13 +121,16 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     private Boolean verifyFormData(HttpServletRequest req, JSONObject response) {
         boolean result = true;
         boolean useNATService = Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("sharder.useNATService"));
+        String nodeType = Convert.nullToEmpty(req.getParameter("nodeType"));
         Map<String, String> pageValues = new HashMap<>(16);
-        pageValues.put("status", Convert.nullToEmpty(req.getParameter("registerStatus")));
+        if (nodeType.equals(Peer.SimpleType.NORMAL.getName())) {
+            pageValues.put("status", Convert.nullToEmpty(req.getParameter("registerStatus")));
+        }
         pageValues.put("natServiceIp", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
         pageValues.put("natServicePort", Convert.nullToEmpty(req.getParameter("sharder.NATServicePort")));
         pageValues.put("natClientKey", Convert.nullToEmpty(req.getParameter("sharder.NATClientKey")));
         pageValues.put("proxyAddress", Convert.nullToEmpty(req.getParameter("sharder.myAddress")));
-        pageValues.put("type", Convert.nullToEmpty(req.getParameter("nodeType")));
+        pageValues.put("type", nodeType);
         Iterator<Map.Entry<String, String>> iterator = pageValues.entrySet().iterator();
 
         if (useNATService) {
