@@ -1283,7 +1283,7 @@
                                 _this.$message.error(_this.$t('notification.hubsetting_sharder_account_no_permission'));
                             } else {
                                 _this.clearHubSetting();
-                                _this.$message.error(res.data.errorMessage);
+                                _this.$message.error(res.data.errorMessage ? res.data.errorMessage : res.data.message);
                             }
                         })
                         .catch(err => {
