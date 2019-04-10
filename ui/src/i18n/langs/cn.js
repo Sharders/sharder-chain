@@ -154,7 +154,7 @@ const cn = {
         'account_set_name': "确认",
         'account_balance': "账户余额",
         'account_available_balance': "可用余额",
-        'account_mining_balance': "挖矿余额",
+        'account_mining_balance': "已挖矿",
         'public_key': "公钥",
     },
     header: {
@@ -255,12 +255,14 @@ const cn = {
         'link_peer': "连接节点",
         'peer_name': "节点信息",
         'peer': "节点",
+        'peers_add': "添加节点",
         'communication_port': "通讯端口",
         'version': "版本",
         'latest_update': "最后更新",
         'status': "状态",
         'shared_address': "共享地址",
         'published_address': "公布的地址",
+       
     },
     mining: {
         attribute: {

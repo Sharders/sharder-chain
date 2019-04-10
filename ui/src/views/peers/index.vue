@@ -209,12 +209,12 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog"></button>
-                        <h4 class="modal-title">{{$t("network.peers_add")}}</h4>
+                        <h4 class="modal-title">{{$t("peers.peers_add")}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>{{$t("mining.binding_account.address")}}：</p>
+                        <p>{{$t("peers.peer_address")}}</p>
                         <input v-model="addPeerAddress" type="text">
-                        <p class="mt10">{{$t("password_modal.admin_password")}}：</p>
+                        <p class="mt10">{{$t("peers.admin_password")}}</p>
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
