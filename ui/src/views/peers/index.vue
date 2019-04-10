@@ -209,12 +209,12 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" @click="closeDialog"></button>
-                        <h4 class="modal-title">{{$t("network.peers_add")}}</h4>
+                        <h4 class="modal-title">{{$t("peers.peers_add")}}</h4>
                     </div>
                     <div class="modal-body modal-peer">
-                        <p>{{$t("mining.binding_account.address")}}：</p>
+                        <p>{{$t("peers.peer_address")}}</p>
                         <input v-model="addPeerAddress" type="text">
-                        <p class="mt10">{{$t("password_modal.admin_password")}}：</p>
+                        <p class="mt10">{{$t("peers.admin_password")}}</p>
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
@@ -409,14 +409,14 @@
                 formData.append("adminPassword", adminPassword);
                 formData.append("feeNQT", 0);
 
-                this.$http.post('sharder?requestType=addPeer', formData).then(function (res) {
-                    if (typeof res.data.errorDescription === 'undefined') {
+                this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
+                    if (res.data.errorDescription) {
+                        _this.$message.error(res.data.errorDescription);
+                    } else {
                         _this.$message.success("Add a success！");
                         _this.$global.setPeers(_this).then(res => {
                             _this.init(res.data.peers);
                         });
-                    } else {
-                        _this.$message.error(res.data.errorDescription);
                     }
                     _this.closeDialog();
                 });

@@ -378,7 +378,7 @@
                 window.NETWORK_URL = setInterval(() => {
                     if (_this.$route.path === '/network') {
                         _this.init();
-                        _this.handleCurrentChange(_this.currentPage);
+                        // _this.handleCurrentChange(_this.currentPage);
                     }
                 }, 5678);
             }
@@ -439,11 +439,16 @@
                 });
             },
             networkUrlBlocks() {
+                console.info("networkUrlBlocks");
                 const _this = this;
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
+                    if(_this.currentPage === 1){
+                        _this.blocklist = res.blocks;
+                    }
+                    _this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
                     console.info('error',error)
                 });

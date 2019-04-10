@@ -31,6 +31,7 @@ import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.SizeUtil;
@@ -285,10 +286,22 @@ public final class BlockImpl implements Block {
             List<TransactionImpl> transactions = Collections.unmodifiableList(TransactionDb.findBlockTransactions(getId()));
             for (TransactionImpl transaction : transactions) {
                 transaction.setBlock(this);
+                this.autoExtensionAppend(transaction);
             }
             this.blockTransactions = transactions;
         }
         return this.blockTransactions;
+    }
+
+    public void autoExtensionAppend(TransactionImpl transaction) {
+        // auto extension process for isPoc and isPool
+        if (TransactionType.TYPE_POC == transaction.getType().getType()) {
+            this.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POC, true);
+        }
+
+        if (TransactionType.TYPE_SHARDER_POOL == transaction.getType().getType()) {
+            this.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POOL, true);
+        }
     }
 
     @Override

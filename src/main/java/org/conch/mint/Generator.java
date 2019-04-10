@@ -822,9 +822,13 @@ public class Generator implements Comparable<Generator> {
             return;
         }
         
-        if(Conch.getBlockchain().getHeight() < 0) {
-            Logger.logWarningMessage("!!! current height < 0, need syn blocks or wait genesis block be saved into db");
-            Logger.logWarningMessage("!!! you can restart the client after genesis block created");
+        if(Conch.getBlockchain().getHeight() < 0 || Conch.getBlockchain().getHeight() < Constants.LAST_KNOWN_BLOCK) {
+            Logger.logWarningMessage("!! can't start mining: current height < " +  Constants.LAST_KNOWN_BLOCK + " (last known block), need syn blocks");
+            return;
+        }
+        
+        if(Conch.getBlockchainProcessor().isDownloading()) {
+            Logger.logWarningMessage("!! can't start mining: it is downloading the blocks, start mining after blocks downloaded");
             return;
         }
 
@@ -833,16 +837,16 @@ public class Generator implements Comparable<Generator> {
             Generator hubGenerator = ownerMining(HUB_BIND_PR);
             if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(HUB_BIND_ADDRESS))) {
                 stopMining(HUB_BIND_PR);
-                Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
+                Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
             } else {
-                Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " started mining...");
+                Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " started mining...");
             }
         }else {
             // [Normal Miner] if owner set the passphrase of mint then start mining
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
                 Generator bindGenerator = ownerMining(autoMintPR.trim());
-                Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+                Logger.logInfoMessage("account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
             }
         }
 
