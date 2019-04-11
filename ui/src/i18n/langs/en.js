@@ -31,8 +31,8 @@ const en = {
         'token_address': "SS Token Address",
         'enable_auto_mining': "Enable Mining",
         'set_mnemonic_phrase': "Set Mnemonic Phrase",
-        'set_password': "Set Hub Password",
-        'confirm_password': "Confirm Hub Password",
+        'set_password': "Set Admin Password",
+        'confirm_password': "Confirm admin Password",
         'confirm_restart': "Confirm",
         'current_version': "Current version",
         'discover_new_version': "New version available",
@@ -41,7 +41,7 @@ const en = {
         'restart': "Reboot",
         'title': "Hub Settings",
         'reset_mnemonic_phrase': "Change Mnemonic Phrase",
-        'reset_password': "Reset Hub Password",
+        'reset_password': "Reset Admin Password",
         'cancel': "Cancel",
         'update_hub_setting_success': "Hub Settings Updated",
         'register_status': "Application Status",
@@ -780,8 +780,8 @@ const en = {
         'confirmed': "Confirmed",
     },
     password_modal: {
-        'title': "Enter hub password",
-        'admin_password': "Hub Password",
+        'title': "Enter admin password",
+        'admin_password': "Admin Password",
         'open': "Open",
         'secret_password': "Enter private key",
         'input_tip': "Please enter private key",
@@ -892,7 +892,7 @@ const en = {
         'enter_client': "Enter",
     },
     restart: {
-        'restarting': "Hub is restarting，it will auto-refresh later, please wait...",
+        'restarting': "COS is restarting，it will auto-refresh later, please wait...",
     },
     rules: {
         mustRequired: 'Required Field',
@@ -900,7 +900,7 @@ const en = {
         onlyInteger: 'Must be an integer',
         plz_input_admin_pwd: 'Please input hub password',
         plz_input_admin_pwd_again: 'Please input hub password again',
-        inconsistent_admin_password: 'Hub Passwords do not match',
+        inconsistent_admin_password: 'Admin passwords do not match',
     },
     reward: {
         "exchange_success": "For successful",
