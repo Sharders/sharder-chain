@@ -84,6 +84,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             // get node type
             if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
                 response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
+                Logger.logInfoMessage("System is windows or mac, node type is Normal!");
             } else {
                 String filePath = ".hubSetting/.tempCache/.sysCache";
                 String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
@@ -98,6 +99,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                         num = num.replaceAll("(\\r\\n|\\n)", "");
                         response.put("sharder.xxx", num);
                         Conch.serialNum = num;
+                        Logger.logInfoMessage("Hub info => [serialNum: " + num + " , nodeType: " + nodeType + "]");
                     }
                 }
             }

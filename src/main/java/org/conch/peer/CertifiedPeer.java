@@ -36,7 +36,7 @@ public class CertifiedPeer implements Serializable {
     Timestamp updateTime;
 
     public CertifiedPeer(Peer.Type type, String host, long accountId) {
-        this.type = type;
+        this.type = type != null ? type : Peer.Type.NORMAL;
         this.useNat = Peers.isUseNATService(host);
         this.host = host;
         this.boundAccountId = accountId;
@@ -122,7 +122,7 @@ public class CertifiedPeer implements Serializable {
     }
     
     public boolean isType(Peer.Type type){
-        return type == null ? false : this.type.equals(type);
+        return (type == null || this.type == null)  ? false : this.type.equals(type);
     }
     
     public Peer.Type getType() {

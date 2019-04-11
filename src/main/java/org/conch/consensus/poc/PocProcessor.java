@@ -23,6 +23,8 @@ package org.conch.consensus.poc;
 
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.peer.Peer;
+import org.conch.tx.Transaction;
 
 /**
  * @author ben-xy
@@ -43,4 +45,31 @@ public interface PocProcessor {
      * @return PocWeightTable
      */
     PocTxBody.PocWeightTable getPocWeightTable(Long version);
+
+    /**
+     * notify poc processor to re-process the all poc txs
+     */
+    void notifySynTxNow();
+
+    /**
+     * account whether bound to certified peer
+     *
+     * @param accountId
+     * @return
+     */
+    boolean isCertifiedPeerBind(long accountId);
+
+    /**
+     * get bind peer type
+     * @param accountId
+     * @return
+     */
+    Peer.Type bindPeerType(long accountId);
+
+    /**
+     * PoC tx process
+     * @param tx poc tx
+     * @return
+     */
+    boolean pocTxProcess(Transaction tx);
 }

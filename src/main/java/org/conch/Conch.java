@@ -38,6 +38,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessor;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.db.Db;
@@ -493,6 +494,10 @@ public final class Conch {
         Logger.logMessage(name + " not defined, assuming false");
         return false;
     }
+    
+    public static PocProcessor getPocProcessor(){
+        return PocProcessorImpl.instance;
+    }  
 
     public static Blockchain getBlockchain() {
         return BlockchainImpl.getInstance();
@@ -658,6 +663,7 @@ public final class Conch {
 
                 if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE REAL ACCOUNTS!");
 
+                Peers.sysInitialed = true;
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
                 runtimeMode.alert(e.getMessage() + "\n" +
