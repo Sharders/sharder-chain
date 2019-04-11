@@ -20,6 +20,7 @@ public class Message implements Serializable {
          * node config performance test
          */
         NODE_CONFIG_PERFORMANCE_TEST("nodeConfigPerformanceTest"),
+        NODE_TYPE("nodeType"),
         ;
 
         private String name;
