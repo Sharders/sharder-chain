@@ -117,7 +117,7 @@
             <div class="download_blocks_loading_active" v-show="isDownloadingState === 'isActive'">
                 <div>
                     <span>{{$t("account.downloading_blockchain")}}</span>
-                    <span v-if="blocksLeft">（{{blocksLeft + $t("account.remaining_blocks")}}）</span>
+                    <span v-if="blocksLeft"> ({{blocksLeft + $t("account.remaining_blocks")}})</span>
                     <p v-if="lastBlockHeight">{{$t("account.the_latest_block")}} : {{lastBlockHeight}}</p>
                 </div>
                 <div class="download_block_progress">
