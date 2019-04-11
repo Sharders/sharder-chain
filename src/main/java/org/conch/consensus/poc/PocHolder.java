@@ -221,7 +221,7 @@ public class PocHolder implements Serializable {
         if(height < 0) height = 0;
         
         if (!inst.scoreMap.containsKey(accountId)) {
-            PocProcessorImpl.notifySynTxNow();
+            Conch.getPocProcessor().notifySynTxNow();
             //default PocScore
             scoreMapping(new PocScore(accountId,height));
         }
