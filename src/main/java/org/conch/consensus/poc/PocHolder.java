@@ -103,6 +103,7 @@ public class PocHolder implements Serializable {
         
         // remove from unverified collection and add it into certified map when account id updated
         if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
+            // remove form unverified map and update peer detail later
             inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
             inst.unverifiedPeerMap.remove(host);
         }
@@ -111,28 +112,37 @@ public class PocHolder implements Serializable {
         if (inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
             CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
             existPeer.update(newPeer.getBoundAccountId());
-            
-            // other type -> foundation node
-            if(Peer.Type.FOUNDATION == type && IpUtil.isFoundationDomain(newPeer.getHost())) {
-                existPeer.update(type);
+
+            if(type != null) {
+                // foundation type should check the domain whether valid
+                if(Peer.Type.FOUNDATION == type) {
+                    if(IpUtil.isFoundationDomain(newPeer.getHost())) {
+                        existPeer.update(type);
+                    }
+                }else {
+                    if(Peer.Type.FOUNDATION == existPeer.getType()
+                            && type.getCode() > existPeer.getType().getCode()
+                            && !IpUtil.isFoundationDomain(newPeer.getHost())){
+                        // foundation node -> other type
+                        existPeer.update(type);
+                    }else {
+                        existPeer.update(type);
+                    }
+                }
             }
             
-            // foundation node -> other type
-            if(type != null 
-                && Peer.Type.FOUNDATION == existPeer.getType() 
-                && type.getCode() > existPeer.getType().getCode()
-                && !IpUtil.isFoundationDomain(newPeer.getHost())){
-                existPeer.update(type);
-            }
-            
-            //if(Peer.Type.COMMUNITY == newPeer.getType())
-           
         } else {
-            
-            if(Peer.Type.FOUNDATION == type && IpUtil.isFoundationDomain(newPeer.getHost())) {
-                newPeer.setType(type);
-                inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);  
+            // foundation type should check the domain whether valid
+            if(type != null) {
+                if(Peer.Type.FOUNDATION == type) {
+                    if(IpUtil.isFoundationDomain(newPeer.getHost())){
+                        newPeer.setType(type);
+                    }
+                }else {
+                    newPeer.setType(type);
+                }
             }
+            inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
         }
     }
     
@@ -201,8 +211,10 @@ public class PocHolder implements Serializable {
     static {
         initDefaultMiners();
     }
-
+    
+    private static final boolean initDefaultMiner = false;
     private static void initDefaultMiners(){
+        if(!initDefaultMiner) return;
         // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
         addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
@@ -219,14 +231,14 @@ public class PocHolder implements Serializable {
      */
     static PocScore getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
-        
+
+        //new a default PocScore
         if (!inst.scoreMap.containsKey(accountId)) {
-            Conch.getPocProcessor().notifySynTxNow();
-            //default PocScore
             scoreMapping(new PocScore(accountId,height));
         }
         
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
+        
         //get history poc score when query height is bigger than last height of poc score
         if(pocScoreDetail.height > height) {
             pocScoreDetail = getHistoryPocScore(height, accountId);

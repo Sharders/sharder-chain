@@ -259,7 +259,7 @@ public abstract class PocTxApi {
             return true;
         }
     }
-
+    
     public static final class ReProcessPocTxs extends APIServlet.APIRequestHandler {
         
         static final ReProcessPocTxs INSTANCE = new ReProcessPocTxs();

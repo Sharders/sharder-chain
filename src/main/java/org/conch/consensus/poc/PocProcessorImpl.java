@@ -8,6 +8,8 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.consensus.genesis.GenesisRecipient;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.peer.CertifiedPeer;
@@ -59,7 +61,8 @@ public class PocProcessorImpl implements PocProcessor {
     boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
     boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
     boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
-    return hubBindAccount || communityBindAccount || foundationBindAccount;
+    boolean isGenesisAccount = SharderGenesis.isGenesisCreator(accountId) || SharderGenesis.isGenesisRecipients(accountId);
+    return hubBindAccount || communityBindAccount || foundationBindAccount || isGenesisAccount;
   }
 
   /**
@@ -109,8 +112,6 @@ public class PocProcessorImpl implements PocProcessor {
     oldPocTxsProcess = true;
   }
   
-  
-
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
   
@@ -219,8 +220,6 @@ public class PocProcessorImpl implements PocProcessor {
         PocHolder.removeProcessedTxs(processedTxs);
       }
 
-     
-      
       if(oldPocTxsProcess) {
         // total poc txs from last height
 //        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
@@ -314,12 +313,13 @@ public class PocProcessorImpl implements PocProcessor {
       return;
     }
 
+    Logger.logDebugMessage("update certified peer host=%s type=%s height=%d", host, type.getName(), height);
     Peer peer = Peers.getPeer(host, true);
     peer.setType(type);
     if(StringUtils.isEmpty(peer.getBindRsAccount())){
       // connect peer to get account later
       PocHolder.addSynPeer(host);
-      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetHubDetail thread");
+      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
     }
     
     // update certified nodes
