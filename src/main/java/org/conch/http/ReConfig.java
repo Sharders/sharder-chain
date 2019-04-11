@@ -46,7 +46,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     static final ReConfig INSTANCE = new ReConfig();
     private static final List<String> EXCLUDE_PARAMS = Arrays.asList(
             "restart", "requestType", "newAdminPassword", "isInit", "registerStatus",
-            "adminPassword", "reBind", "username", "password", "nodeType");
+            "adminPassword", "reBind", "username", "password", "nodeType", "sharderAccount");
     private static final String URL = UrlManager.getFoundationUrl(
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_EOLINKER,
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_LOCAL,
