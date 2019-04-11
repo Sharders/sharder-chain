@@ -354,7 +354,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
+                <el-form label-position="left" :model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -420,7 +420,7 @@
                     <!--<span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>-->
                     <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
                 <!--</div>-->
-                <el-form label-position="left" label-width="160px" :rules="hubReconfigureSettingRules"
+                <el-form label-position="left" label-width="160px" :rules="formRules"
                          :model="hubsetting" ref="reconfigureForm" status-icon>
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -472,12 +472,14 @@
         <!-- view use NAT service dialog -->
         <div class="modal_hubSetting" id="use_nat_service" v-show="useNATServiceDialog">
             <div class="modal-header">
+                <button class="common_btn" @click="openAdminDialog('resetNormal')" v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.reset')}}</button>
+                <button class="common_btn" @click="openAdminDialog('restart')" v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.restart')}}</button>
                 <h4 class="modal-title">
                     <span>{{ $t('login.use_nat_server') }}</span>
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :model="hubsetting" status-icon :rules="hubInitSettingRules"
+                <el-form label-position="left" :model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="useNATForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -744,6 +746,10 @@
                 temporaryName: '',
                 ssPublickey: SSO.publicKey,
 
+                operationType: 'init',
+                formRules: {
+
+                },
                 hubInitSettingRules: {
                     publicAddress: [required],
                     sharderAccount: [required],
@@ -821,6 +827,10 @@
                             trigger: 'blur'
                         }
                     ],
+                },
+                resettingRules: {
+                    sharderPwd: [required],
+                    sharderAccount: [required],
                 },
             };
         },
@@ -1000,7 +1010,7 @@
                 confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
+                confirmFormData.append("tssAddress", '');
                 confirmFormData.append("serialNum", _this.userConfig.xxx);
                 resetData.append("adminPassword", adminPwd);
                 resetData.append("restart", "true");
@@ -1114,9 +1124,7 @@
                 let reConfigFormData = new FormData();
                 // check page value first
                 reConfigFormData = _this.verifyHubSettingInfo(type);
-                if (reConfigFormData === false) {
-                    return;
-                } else {
+                if (reConfigFormData !== false) {
                     reConfigFormData.append("isInit", "true");
                 }
                 confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
@@ -1125,6 +1133,7 @@
                 confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
                 confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
+                    this.operationType = 'init';
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
                             this.confirmInitHubSetting(confirmFormData, reConfigFormData);
@@ -1134,9 +1143,14 @@
                         }
                     });
                 } else if (type === 'register') {
-                    _this.$refs['useNATForm'].validate((valid) => {
+                    if (this.whetherShowConfigureNATServiceBtn()) {
+                        this.operationType = 'reConfigNormal';
+                    } else {
+                        this.operationType = 'initNormal';
+                    }
+                    this.$refs['useNATForm'].validate((valid) => {
                         if (valid) {
-                            _this.reconfigure(reConfigFormData);
+                            this.reconfigure(reConfigFormData);
                         } else {
                             console.log('register dialog error submit!!');
                             return false;
@@ -1175,7 +1189,7 @@
             autoRefresh() {
                 setTimeout(() => {
                     window.location.reload();
-                }, 60000);
+                }, 40000);
             },
             hubSettingsConfirm(data, reconfigData) {
                 let _this = this;
@@ -1200,7 +1214,7 @@
                             console.info('success to update hub setting to remote server');
                             callBack(callBackData);
                         } else {
-                            _this.$message.error(res.data.msg ? res.data.msg : res.data.errorType + res.data.errorMessage);
+                            _this.$message.error(res.data.message ? res.data.message : res.data.msg ? res.data.msg : res.data.errorType + res.data.errorMessage);
                         }
                     })
                     .catch(err => _this.$message.error(err.message));
@@ -1210,6 +1224,7 @@
                 _this.$refs[formName].validate((valid) => {
                     if (valid) {
                         _this.hubSettingDialog = false;
+                        _this.useNATServiceDialog = false;
                         _this.adminPasswordDialog = true;
                     } else {
                         console.log(`operation of ${type} missing field`);
@@ -1765,6 +1780,11 @@
             },
             openUseNATDialog() {
                 const _this = this;
+                if (this.whetherShowUseNATServiceBtn()) {
+                    _this.operationType = 'initNormal';
+                } else {
+                    _this.operationType = 'reConfigNormal';
+                }
                 _this.$store.state.mask = true;
                 _this.useNATServiceDialog = true;
             },
@@ -1788,6 +1808,7 @@
                 const _this = this;
                 _this.adminPasswordTitle = title;
                 if (title === 'reConfig') {
+                    this.operationType = 'reConfig';
                     _this.$refs['reconfigureForm'].validate((valid) => {
                         if (valid) {
                             let info = _this.verifyHubSettingInfo('reconfigure');
@@ -1801,9 +1822,15 @@
                         }
                     });
                 } else if (title === 'reset') {
+                    this.operationType = 'reset';
                     _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
+                } else if (title === 'resetNormal') {
+                    this.operationType = 'resetNormal';
+                    this.hubSettingConfirmThenGoAdmin('resetNormal', 'useNATForm');
                 } else {
+                    this.operationType = 'init';
                     _this.hubSettingDialog = false;
+                    _this.useNATServiceDialog = false;
                     _this.adminPasswordDialog = true;
                 }
             },
@@ -1820,7 +1847,7 @@
                 const _this = this;
                 _this.adminPassword = adminPwd;
                 _this.adminPasswordDialog = false;
-                if (_this.adminPasswordTitle === 'reset') {
+                if (_this.adminPasswordTitle === 'reset' || _this.adminPasswordTitle === 'resetNormal') {
                     _this.resettingHub(adminPwd);
                 } else if (_this.adminPasswordTitle === 'restart') {
                     _this.restartHub(adminPwd);
@@ -1844,10 +1871,14 @@
                 }
                 if (this.hubInitDialog && this.$refs['initForm']) {
                     this.$refs["initForm"].resetFields();
+                    this.$refs["initForm"].clearValidate();
                 }
                 if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                     this.$refs["useNATForm"].resetFields();
+                    this.$refs["useNATForm"].clearValidate();
                 }
+
+                this.operationType = 'init';
 
                 this.$store.state.mask = false;
                 this.sendMessageDialog = false;
@@ -2228,6 +2259,32 @@
                     }]
                 },
                 deep: true
+            },
+            operationType(val) {
+                console.log(`OperationType Changed======> ${this.operationType}`);
+                if (this.operationType === 'init') {
+                    this.formRules = this.hubInitSettingRules;
+                } else if (this.operationType === 'initNormal') {
+                    this.formRules = this.hubInitSettingRules;
+                    if (this.useNATServiceDialog && this.$refs['useNATForm']) {
+                        this.$refs["useNATForm"].clearValidate();
+                    }
+                } else if (this.operationType === 'reConfig') {
+                    this.formRules = this.hubReconfigureSettingRules;
+                } else if (this.operationType === 'reConfigNormal') {
+                    this.formRules = this.hubReconfigureSettingRules;
+                    if (this.useNATServiceDialog && this.$refs['useNATForm']) {
+                        this.$refs["useNATForm"].clearValidate();
+                    }
+                } else if (this.operationType === 'reset') {
+                    this.formRules = this.resettingRules;
+                } else if (this.operationType === 'resetNormal') {
+                    this.formRules = this.resettingRules;
+                    if (this.useNATServiceDialog && this.$refs['useNATForm']) {
+                        this.$refs["useNATForm"].clearValidate();
+                    }
+                }
+                console.log(`form rules: ${JSON.stringify(this.formRules)}`)
             }
         },
         mounted() {
