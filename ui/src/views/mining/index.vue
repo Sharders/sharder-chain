@@ -256,7 +256,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{parseInt(maxForgeTime/avgBlocksTime) + $t("mining.index.unit_block")}}（约{{maxForgeTime/60/60}}h）</span>
+                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}}({{parseInt(rule.rule.totalBlocks.max/60)}}h)</span>
                         </p>
                     </div>
                     <div class="pool-set">
@@ -416,7 +416,7 @@
                 }
 
                 _this.$global.fetch("POST", {
-                    period: parseInt(_this.maxForgeTime / _this.avgBlocksTime),
+                    period: _this.rule.rule.totalBlocks.max,
                     secretPhrase: SSO.secretPhrase,
                     deadline: 1440,
                     feeNQT: 100000000,

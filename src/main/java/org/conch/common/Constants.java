@@ -108,7 +108,7 @@ public final class Constants {
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
     /** for the security, you can set the confirmations = 1440 */
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 215 : 615);
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
@@ -237,9 +237,9 @@ public final class Constants {
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
-    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 10; //transaction become effective
-    public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
-    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60*24 : 60*24*3; //pool will be destroyed automatically when it has nobody join
+    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 3; //transaction become effective
+    public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
+    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60*24 : 60*24*7; //pool will be destroyed automatically when it has nobody join
     public static final int SHARDER_REWARD_DELAY = isTestnetOrDevnet() ? 3 : 10;
 
     //Coinbase

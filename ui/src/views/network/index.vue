@@ -380,20 +380,13 @@
                         _this.init();
                         // _this.handleCurrentChange(_this.currentPage);
                     }
-                }, 5678);
-            }
-            if (!window.NETWORK_URL_BLOCKS) {
-                window.NETWORK_URL_BLOCKS = setInterval(() => {
-                    if (_this.$route.path === '/network') {
-                        _this.networkUrlBlocks();
-                    }
-                }, SSO.downloadingBlockchain ? 5678 : 1234);
+                }, SSO.downloadingBlockchain ? 3333 : 9999);
             }
         },
         methods: {
             init() {
                 const _this = this;
-
+                _this.networkUrlBlocks();
                 _this.$global.fetch("GET", {}, "getPeers").then(res => {
                     _this.peerNum = res.peers.length;
                     return _this.$global.byIPtoCoordinates(res.peers);
@@ -445,12 +438,12 @@
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
-                    if(_this.currentPage === 1){
+                    if (_this.currentPage === 1) {
                         _this.blocklist = res.blocks;
                     }
                     _this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
-                    console.info('error',error)
+                    console.info('error', error)
                 });
             },
             handleSizeChange(val) {
@@ -464,7 +457,7 @@
                     _this.blocklist = res.blocks;
                     _this.loading = false;
                 }).catch(err => {
-                    console.info('error',err);
+                    console.info('error', err);
                     _this.$message.error(err);
                     _this.loading = false;
                 });

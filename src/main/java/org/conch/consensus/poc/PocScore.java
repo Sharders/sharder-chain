@@ -134,9 +134,10 @@ public class PocScore implements Serializable {
         return balance;
     }
 
+    private static final String SCORE_KEY = "poc_score";
     public JSONObject toJsonObject() {
         JSONObject jsonObject = JSON.parseObject(toJsonString());
-        jsonObject.put(PocProcessor.SCORE_KEY, total());
+        jsonObject.put(SCORE_KEY, total());
         return jsonObject;
     }
 

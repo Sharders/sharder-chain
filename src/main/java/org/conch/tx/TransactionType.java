@@ -305,6 +305,7 @@ public abstract class TransactionType {
     public abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
     public final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
+        //transfer processing except coinbase tx
         if (transaction.getType().getType() != TYPE_COIN_BASE) {
             long amount = transaction.getAmountNQT();
             long transactionId = transaction.getId();
@@ -436,15 +437,13 @@ public abstract class TransactionType {
 
         @Override
         public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            // closed follow logic and use the coinbase tx to replace it 
-            // coinbase tx you can see org.conch.tx.TransactionType.CoinBase#applyByType
-            // - 2019.01.14 Ben
-//            if (recipientAccount == null) {
-//                Account.getAccount(SharderGenesis.CREATOR_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
-//                        transaction.getId(), transaction.getAmountNQT());
-//            }
+            // exception processing
+            if (recipientAccount == null) {
+                Account.getAccount(SharderGenesis.KEEPER_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
+                        transaction.getId(), transaction.getAmountNQT());
+            }
         }
-
+        
         @Override
         public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
         }
