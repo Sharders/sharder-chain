@@ -44,7 +44,8 @@ public abstract class PoolTxApi {
             if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT - Long.valueOf(req.getParameter("feeNQT")) < 0){
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
-            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
+            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
@@ -102,9 +103,11 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
-            int period = ParameterParser.getInt(request, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
+            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+            long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
+            int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long amount = ParameterParser.getLong(request, "amount", 0, Long.MAX_VALUE, true);
+            long amount = ParameterParser.getLong(request, "amount", investmentRule[0], investmentRule[1], true);
             Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
             return createTransaction(request, account, 0, 0, attachment);
         }

@@ -1,5 +1,6 @@
 package org.conch.mint.pool;
 
+import com.google.common.collect.Maps;
 import org.conch.Conch;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
@@ -17,10 +18,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * TODO bad design, need to refactor - ben 20190411
+ */
 public class PoolRule implements Serializable {
     private static final long serialVersionUID = 7892310437239078209L;
     private Map<String, Long> rule;
     private static Map<String, Object> rules;
+    
+    private static int[] lifeCycleRule = null;
+    private static Map<Role,float[]> rewardRule = Maps.newHashMap();
+    private static Map<Role,long[]> investRule = Maps.newHashMap();
 
     public static void init() {
         phraseRule();
@@ -324,39 +332,45 @@ public class PoolRule implements Serializable {
         return result;
     }
     
-    enum PoolRole {
+    public enum Role {
         MINER,
         USER
     }
+    
+    private static void checkOrLoadPredefinedRules(Role role){
+        if(lifeCycleRule == null) lifeCycleRule = loadLifecycleRule();
+        
+        if(role != null && !rewardRule.containsKey(role)) {
+            rewardRule.put(role, loadRewardRateRule(role));
+        }
+        
+        if(role != null && !investRule.containsKey(role)) {
+            investRule.put(role, loadInvestmentRule(role));
+        }
+    }
 
-    /**
-     * get the predefined life cycle in rule file
-     * @return long[2] - long[0]: min lifecycle, long[1]: max lifecycle
-     */
-    public static long[] predefinedLifecycle() {
+    private static String parseLevelByRole(Role role){
+        if(Role.MINER == role){
+            return "level0";
+        }else if(Role.USER == role){
+            return "level1";
+        }
+        return "level0";
+    }
+
+    private static int[] loadLifecycleRule() {
         // level0 is pool creator
         Map<String, Object> levelMap = (Map<String, Object>) rules.get("level0");
         Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("rule");
         Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("totalBlocks");
-        long maxLife = (long) lifeMap.get("max");
-        long minLife = (long) lifeMap.get("min");
-        return new long[]{minLife,maxLife};
+        Long maxLife = (Long) lifeMap.get("max");
+        Long minLife = (Long) lifeMap.get("min");
+        
+        return new int[]{minLife.intValue(),maxLife.intValue()};
     }
 
-    /**
-     * get the specified role's predefined reward rate in rule file
-     * @param role
-     * @return float[2] - float[0]: min reward rate, float[1]: max reward rate
-     */
-    public static float[] predefinedRewardRate(PoolRole role) {
-        String level = "level0";
-        if(PoolRole.MINER == role){
-            level = "level0";
-        }else if(PoolRole.USER == role){
-            level = "level1"; 
-        }
-
-        Map<String, Object> levelMap = (Map<String, Object>) rules.get(level);
+    private static float[] loadRewardRateRule(Role role){
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get(parseLevelByRole(role));
         Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("forgepool");
         Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("reward");
         float maxLife = (float) lifeMap.get("max");
@@ -364,12 +378,51 @@ public class PoolRule implements Serializable {
         return new float[]{minLife,maxLife};
     }
 
+    public static long[] loadInvestmentRule(Role role) {
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get(parseLevelByRole(role));
+        Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("consignor");
+        Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("amount");
+        long maxAmount = (long) lifeMap.get("max");
+        long minAmount = (long) lifeMap.get("min");
+        return new long[]{minAmount,maxAmount};
+    }
+    
+    /**
+     * get the predefined life cycle in rule file
+     * @return long[2] - long[0]: min lifecycle, long[1]: max lifecycle
+     */
+    public static int[] predefinedLifecycle() {
+        checkOrLoadPredefinedRules(null);
+        return lifeCycleRule;
+    }
 
+    /**
+     * get the specified role's predefined reward rate in rule file
+     * @param role
+     * @return float[2] - float[0]: min reward rate, float[1]: max reward rate
+     */
+    public static float[] predefinedRewardRate(Role role) {
+        checkOrLoadPredefinedRules(role);
+        return rewardRule.get(role);
+    }
+    
+    /**
+     * get the specified role's investment amount in rule file
+     * @param role
+     * @return long[2] - float[0]: min investment amount, long[1]: max investment amount
+     */
+    public static long[] predefinedInvestment(Role role) {
+        checkOrLoadPredefinedRules(role);
+        return investRule.get(role);
+    }
+    
     public static void main(String[] args) {
         PoolRule.init();
 
         System.out.println(Arrays.toString(PoolRule.predefinedLifecycle()));
-        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(PoolRole.MINER)));
-        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(PoolRole.USER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(Role.MINER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(Role.USER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedInvestment(Role.MINER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedInvestment(Role.USER)));
     }
 }
