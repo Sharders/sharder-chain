@@ -491,7 +491,7 @@
             autoRefresh() {
                 setTimeout(() => {
                     window.location.reload();
-                }, 60000);
+                }, 40000);
             },
         },
         watch: {
