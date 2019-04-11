@@ -156,11 +156,17 @@ public abstract class PocTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             UrlManager.validFoundationHost(request);
-            Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String type = request.getParameter("type");
-            Attachment attachment = new PocTxBody.PocNodeType(ip, Peer.Type.getByCode(type));
-            return createTransaction(request, account, 0, 0, attachment);
+            Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
+                    .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
+            Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
+            String nodeTypeJson = Https.getPostData(request);
+            PocTxBody.PocNodeType pocNodeType = Optional.ofNullable(JSONObject.parseObject(nodeTypeJson, PocTxBody.PocNodeType.class))
+                    .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
+            Logger.logInfoMessage("creating node type tx...");
+            Logger.logDebugMessage(Convert.stringTemplate("PoC node type tx:[ip={}, type={}]", pocNodeType.getIp(), pocNodeType.getType()));
+            JSONStreamAware resultJson = createTransaction(request, account, 0, 0, pocNodeType);
+            Logger.logInfoMessage("success to create node type tx...");
+            return resultJson;
         }
     }
 
