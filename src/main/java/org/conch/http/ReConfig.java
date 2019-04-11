@@ -27,6 +27,8 @@ import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.mq.Message;
+import org.conch.mq.MessageManager;
 import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -75,11 +77,18 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
 
         if (!verifyFormData(req, response)) {
-            Logger.logErrorMessage("failed to configure settings...");
+            Logger.logErrorMessage("failed to configure settings...formData invalid!");
+            response.put("reconfiged", false);
+            response.put("failedReason", "failed to configure settings...formData invalid!");
             return response;
         }
 
-
+        if (sendCreateNodeTypeTxRequest(req)) {
+            Logger.logErrorMessage("failed to configure settings...send create node type tx message failed!");
+            response.put("reconfiged", false);
+            response.put("failedReason", "failed to configure settings...send create node type tx message failed!");
+            return response;
+        }
 
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
@@ -189,6 +198,34 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         } else {
             return pageValue.equals(dbValue);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Boolean sendCreateNodeTypeTxRequest(HttpServletRequest req) {
+        boolean result = false;
+        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("ip", myAddress);
+        jsonObject.put("type", req.getParameter("nodeType"));
+        Message message = new Message()
+                .setSender(myAddress)
+                .setRetryCount(0)
+                .setTimestamp(System.currentTimeMillis())
+                .setType(Message.Type.NODE_TYPE.getName())
+                .setDataJson(jsonObject.toJSONString());
+        try {
+            RestfulHttpClient.HttpResponse httpResponse = MessageManager.sendMessageToFoundation(message);
+            Result responseResult = JSON.parseObject(httpResponse.getContent(), Result.class);
+            if (responseResult.getSuccess()) {
+                result = true;
+                Logger.logInfoMessage("[ OK ] Success to send create poc node type tx message!");
+            } else {
+                Logger.logWarningMessage("[ WARN ] Failed to send create poc node type tx message! reason: " + responseResult.getMsg());
+            }
+        } catch (IOException e) {
+            Logger.logErrorMessage("[ ERROR ]Failed to send create poc node type tx message!", e);
+        }
+        return result;
     }
 
     @Override
