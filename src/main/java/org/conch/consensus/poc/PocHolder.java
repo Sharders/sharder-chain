@@ -6,12 +6,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
+import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
@@ -22,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * PocHolder is a singleton to hold the score and reference map.
+ * PoCHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
  *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -88,10 +90,13 @@ public class PocHolder implements Serializable {
         return certifiedPeer == null ? false : certifiedPeer.isType(type);
     }
 
-
     /**
      * add or update certified peer and bind account
      * 3 callers: PocHolder, PoC tx processor, Hub syn thread in Peers
+     * 
+     * @param type peer type
+     * @param host peer host
+     * @param accountId bound account id
      */
     public static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
@@ -104,9 +109,28 @@ public class PocHolder implements Serializable {
         
         // update exist peer infos
         if (inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
-            inst.certifiedPeerMap.get(newPeer.getBoundAccountId()).update(newPeer.getBoundAccountId()).update(newPeer.getType());
+            CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
+            existPeer.update(newPeer.getBoundAccountId());
+            
+            // other type -> foundation node
+            if(Peer.Type.FOUNDATION == newPeer.getType() && IpUtil.isFoundationDomain(newPeer.getHost())) {
+                existPeer.update(newPeer.getType());
+            }
+            
+            // foundation node -> other type
+            if(Peer.Type.FOUNDATION == existPeer.getType() 
+                && newPeer.getType().getCode() > existPeer.getType().getCode()
+                && !IpUtil.isFoundationDomain(newPeer.getHost())){
+                existPeer.update(newPeer.getType());
+            }
+            
+            //if(Peer.Type.COMMUNITY == newPeer.getType())
+           
         } else {
-            inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
+            
+            if(Peer.Type.FOUNDATION == newPeer.getType() && IpUtil.isFoundationDomain(newPeer.getHost())) {
+                inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);  
+            }
         }
     }
     
@@ -344,5 +368,4 @@ public class PocHolder implements Serializable {
             summary = reset();
         }
     }
-
 }

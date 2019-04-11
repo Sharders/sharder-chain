@@ -43,6 +43,15 @@ public class IpUtil {
         return senderIp.equals(checkOrToIp(host));
     }
     
+    public static boolean isFoundationDomain(String host){
+        if(host.endsWith("sharder.io") 
+        || host.endsWith("sharder.org")
+        || host.endsWith("sharder.network")){
+            return true;
+        }
+        
+        return false;
+    }
     
     public static String getNetworkIp() throws SocketException {
         String localip = null;// 本地IP，如果没有配置外网IP则返回它
