@@ -749,6 +749,11 @@
         top: 0 !important;
     }
 
+    .mining-list .el-select .el-input__inner {
+        height: 30px;
+    }
+    
+
     .en_mining .title .el-radio-button__inner {
         width: 140px;
         padding: 12px 25px;
