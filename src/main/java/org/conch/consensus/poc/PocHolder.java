@@ -6,12 +6,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
+import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
@@ -22,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * PocHolder is a singleton to hold the score and reference map.
+ * PoCHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
  *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -88,28 +90,61 @@ public class PocHolder implements Serializable {
         return certifiedPeer == null ? false : certifiedPeer.isType(type);
     }
 
-
     /**
      * add or update certified peer and bind account
      * 3 callers: PocHolder, PoC tx processor, Hub syn thread in Peers
+     * 
+     * @param type peer type
+     * @param host peer host
+     * @param accountId bound account id
      */
-    public static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
+    private static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
         
         // remove from unverified collection and add it into certified map when account id updated
         if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
+            // remove form unverified map and update peer detail later
             inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
             inst.unverifiedPeerMap.remove(host);
         }
         
         // update exist peer infos
         if (inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
-            inst.certifiedPeerMap.get(newPeer.getBoundAccountId()).update(newPeer.getBoundAccountId()).update(newPeer.getType());
+            CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
+            existPeer.update(newPeer.getBoundAccountId());
+
+            if(type != null) {
+                // foundation type should check the domain whether valid
+                if(Peer.Type.FOUNDATION == type) {
+                    if(IpUtil.isFoundationDomain(newPeer.getHost())) {
+                        existPeer.update(type);
+                    }
+                }else {
+                    if(Peer.Type.FOUNDATION == existPeer.getType()
+                            && type.getCode() > existPeer.getType().getCode()
+                            && !IpUtil.isFoundationDomain(newPeer.getHost())){
+                        // foundation node -> other type
+                        existPeer.update(type);
+                    }else {
+                        existPeer.update(type);
+                    }
+                }
+            }
+            
         } else {
+            // foundation type should check the domain whether valid
+            if(type != null) {
+                if(Peer.Type.FOUNDATION == type) {
+                    if(IpUtil.isFoundationDomain(newPeer.getHost())){
+                        newPeer.setType(type);
+                    }
+                }else {
+                    newPeer.setType(type);
+                }
+            }
             inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
         }
     }
-    
     
     private static void updateHeightMinerMap(int height, long accountId){
         // height mapping
@@ -119,6 +154,11 @@ public class PocHolder implements Serializable {
         inst.heightMinerMap.get(height).add(accountId);
     }
 
+
+    public static void updateBoundPeer(String host, long accountId) {
+        addOrUpdateBoundPeer(null, host, accountId);
+    }
+    
     /**
      *  add certifiedPeer 
      *  
@@ -171,8 +211,10 @@ public class PocHolder implements Serializable {
     static {
         initDefaultMiners();
     }
-
+    
+    private static final boolean initDefaultMiner = false;
     private static void initDefaultMiners(){
+        if(!initDefaultMiner) return;
         // genesis account binding
         String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
         addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
@@ -189,14 +231,14 @@ public class PocHolder implements Serializable {
      */
     static PocScore getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
-        
+
+        //new a default PocScore
         if (!inst.scoreMap.containsKey(accountId)) {
-            PocProcessorImpl.notifySynTxNow();
-            //default PocScore
             scoreMapping(new PocScore(accountId,height));
         }
         
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
+        
         //get history poc score when query height is bigger than last height of poc score
         if(pocScoreDetail.height > height) {
             pocScoreDetail = getHistoryPocScore(height, accountId);
@@ -285,7 +327,7 @@ public class PocHolder implements Serializable {
         static final int printCount = 1;
         
         protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
-        protected static boolean debugHistory = true;
+        protected static boolean debugHistory = false;
         
         protected static String summary = reset();
         private static final String splitter = "\n\r";
@@ -345,4 +387,7 @@ public class PocHolder implements Serializable {
         }
     }
 
+    public static void main(String[] args) {
+        System.out.println(Peer.Type.FOUNDATION == null);
+    }
 }

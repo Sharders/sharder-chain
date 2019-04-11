@@ -775,5 +775,15 @@ export default {
         } else {
             return num / 100000000 + this.unit
         }
+    },
+    /**
+     * 获得奖励分配率
+     * @param rule 对象
+     * @param num 小数位数
+     * @returns {string}
+     */
+    getRewardRate(rule,num){
+        let level = (rule.level) || (rule.level1 ? rule.level1 : rule.level0);
+        return Number(level.forgepool.reward.max * 100).toFixed(num || 2) + " %";
     }
 };

@@ -22,6 +22,7 @@
 package org.conch.chain;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
@@ -484,7 +485,7 @@ public final class BlockImpl implements Block {
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
-            PocScore pocScoreObj = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
             BigInteger pocScore = pocScoreObj.total();
             if (pocScore.signum() <= 0) {
                 return false;

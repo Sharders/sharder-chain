@@ -109,8 +109,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.reward_distribution')}}
-                                    {{miningInfo.level.forgepool.reward.max * 100 }}%
+                                    {{$t('mining.attribute.reward_distribution') + $global.getRewardRate(miningInfo)}}
                                 </button>
                             </el-col>
                         </el-row>

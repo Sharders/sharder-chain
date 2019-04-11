@@ -55,85 +55,23 @@
                             <tbody>
                             <tr v-for="(peer,index) in peersList"
                                 v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
-                                <td class="image_text linker tl" @click="openInfo(peer.address)">
-                                    <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 0"
-                                                :content="$t('network.no_connection')">
-                                            <span>
-                                                <img src="../../assets/img/error.svg"/>
-                                                <span>{{peer.address}}</span>
-                                            </span>
-                                    </el-tooltip>
-                                    <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 1"
-                                                :content="$t('network.in_connection')">
-                                            <span>
-                                            <img src="../../assets/img/success.svg"/>
-                                            <span>{{peer.address}}</span>
-                                        </span>
-                                    </el-tooltip>
-                                    <el-tooltip class="item" placement="top" effect="light" v-if="peer.state === 2"
-                                                :content="$t('network.disconnect')">
-                                            <span>
-                                                <img src="../../assets/img/error.svg"/>
+                                <td class="image_text linker" @click="openInfo(peer.address)">
+                                    <el-tooltip class="item" placement="top" effect="light"
+                                                :content="peerState(peer.state)">
+                                            <span class="peer-icon" :class="'icon'+peer.state">
                                                 <span>{{peer.address}}</span>
                                             </span>
                                     </el-tooltip>
                                 </td>
-                                <td>{{peer.downloadedVolume | formatByte}}</td>
-                                <td>{{peer.uploadedVolume | formatByte}}</td>
+                                <td>{{formatByte(peer.downloadedVolume)}}</td>
+                                <td>{{formatByte(peer.uploadedVolume)}}</td>
                                 <td><span class="patch">{{peer.application}}&nbsp;{{peer.version}}</span></td>
                                 <td>{{peer.platform}}</td>
-                                <td class="linker ">
-                                        <span v-for="service in peer.services">
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'HALLMARK'" :content="$t('peers.tag_node')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'PRUNABLE'"
-                                                        :content="$t('peers.stores_modifiable_messages')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'API'" :content="$t('peers.api_service')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'API_SSL'"
-                                                        :content="$t('peers.api_ssl_service')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'CORS'"
-                                                        :content="$t('peers.enable_cors_api')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'BAPI'"
-                                                        :content="$t('peers.commercial_api_services')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'STORAGE'"
-                                                        :content="$t('peers.offline_data_storage')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'MINER'" :content="$t('peers.agent_mining')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'NATER'" :content="$t('peers.nat_server')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-                                            <el-tooltip class="item" placement="top" effect="light"
-                                                        v-if="service === 'PROVER'"
-                                                        :content="$t('peers.certificate_services')">
-                                                <a>{{service | getPeerServicesLabel}}</a>
-                                            </el-tooltip>
-
-                                        </span>
-
-
+                                <td class="linker service">
+                                    <el-tooltip v-for="service in peer.services" class="item" placement="top"
+                                                effect="light" :content="getPeerServicesString(service)">
+                                        <span>{{service}}</span>
+                                    </el-tooltip>
                                 </td>
                                 <td>
                                     <button class="list_button w40" @click="openConnectPeer(peer.address)">
@@ -279,13 +217,13 @@
                         <th>{{$t('peers.shared_address')}}</th>
                         <td>{{peerInfo.announcedAddress}}</td>
                         <th>{{$t('peers.download')}}</th>
-                        <td>{{peerInfo.downloadedVolume | formatByte}}</td>
+                        <td>{{formatByte(peerInfo.downloadedVolume)}}</td>
                     </tr>
                     <tr>
                         <th>Api Port</th>
                         <td>{{peerInfo.apiPort}}</td>
                         <th>{{$t('peers.upload')}}</th>
-                        <td>{{peerInfo.uploadedVolume | formatByte}}</td>
+                        <td>{{formatByte(peerInfo.uploadedVolume)}}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -474,9 +412,17 @@
             },
             handleCurrentChange(val) {
             },
-        },
-        filters: {
-            formatByte: function (val) {
+            peerState(state) {
+                switch (state) {
+                    case 0:
+                        return this.$t("network.no_connection");
+                    case 1:
+                        return this.$t("network.in_connection");
+                    case 2:
+                        return this.$t("network.disconnect");
+                }
+            },
+            formatByte(val) {
                 let unit = [" Byte", " KB", " MB", "  GB", " TB", " PB"];
                 let i = 0;
                 while (val >= 1024) {
@@ -485,9 +431,30 @@
                 }
                 return Math.round(val) + unit[i];
             },
-            getPeerServicesLabel: function (service) {
-                return service.substring(0, 1) + service.substring(service.length - 1);
-            },
+            getPeerServicesString(service) {
+                switch (service) {
+                    case "HALLMARK":
+                        return this.$t('peers.tag_node');
+                    case "PRUNABLE":
+                        return this.$t('peers.stores_modifiable_messages');
+                    case "API":
+                        return this.$t('peers.api_service');
+                    case "API_SSL":
+                        return this.$t('peers.api_ssl_service');
+                    case "CORS":
+                        return this.$t('peers.enable_cors_api');
+                    case "BAPI":
+                        return this.$t('peers.commercial_api_services');
+                    case "STORAGE":
+                        return this.$t('peers.offline_data_storage');
+                    case "MINER":
+                        return this.$t('peers.agent_mining');
+                    case "NATER":
+                        return this.$t('peers.nat_server');
+                    case "PROVER":
+                        return this.$t('peers.certificate_services');
+                }
+            }
         },
         mounted() {
             this.$global.drawPeers(this.peersLocationList, this.peersTimeList);

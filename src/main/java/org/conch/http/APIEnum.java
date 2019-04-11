@@ -319,7 +319,8 @@ public enum APIEnum {
     GET_POC_TEMPLATE ("getPocTemplate", PocTxApi.GetPocTemplate.INSTANCE),
     CREATE_POC_ONLINE_RATE("createPocOnlineRate", PocTxApi.CreateOnlineRate.INSTANCE),
     GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.INSTANCE),
-    CREATE_POC_NODE_TYPE("createPocNodeType", PocTxApi.CreateNodeType.INSTANCE);
+    CREATE_POC_NODE_TYPE("createPocNodeType", PocTxApi.CreateNodeType.INSTANCE),
+    RE_PROCESS_POC_TXS("reProcessPocTxs", PocTxApi.ReProcessPocTxs.INSTANCE);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

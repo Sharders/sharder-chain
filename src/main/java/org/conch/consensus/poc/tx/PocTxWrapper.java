@@ -21,6 +21,7 @@
 
 package org.conch.consensus.poc.tx;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
@@ -148,7 +149,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocProcessorImpl.pocTxProcess(transaction);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override
@@ -190,7 +191,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocProcessorImpl.pocTxProcess(transaction);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override
@@ -233,7 +234,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocProcessorImpl.pocTxProcess(transaction);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override
@@ -279,7 +280,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocProcessorImpl.pocTxProcess(transaction);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override

@@ -259,7 +259,7 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     public static boolean isValid(long generatorId){
-        return PocProcessorImpl.isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
+        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
     }
 
     public static boolean hasGenerationMissingAccount(){
@@ -562,7 +562,7 @@ public class Generator implements Comparable<Generator> {
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
-        json.put("bindPeerType", PocProcessorImpl.bindPeerType(accountId).getName());
+        json.put("bindPeerType", Conch.getPocProcessor().bindPeerType(accountId).getName());
         if(loadPoolInfo) {
             json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
         }
@@ -604,7 +604,7 @@ public class Generator implements Comparable<Generator> {
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
 
-        PocScore pocScoreObj = PocProcessorImpl.instance.calPocScore(account,lastHeight);
+        PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(account,lastHeight);
         effectiveBalance = pocScoreObj.getEffectiveBalance();
         detailedPocScore = pocScoreObj.toJsonObject();
         pocScore = pocScoreObj.total();

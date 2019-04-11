@@ -8,6 +8,8 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.consensus.genesis.GenesisRecipient;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.peer.CertifiedPeer;
@@ -42,12 +44,10 @@ public class PocProcessorImpl implements PocProcessor {
    * @param accountId
    * @return
    */
-  public static Peer.Type bindPeerType(long accountId){
-
-    if (PocHolder.isBoundPeer(Peer.Type.HUB, accountId)) return Peer.Type.HUB;
-    if (PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId)) return Peer.Type.COMMUNITY;
-    if (PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId)) return Peer.Type.FOUNDATION;
-    return Peer.Type.NORMAL;
+  @Override
+  public Peer.Type bindPeerType(long accountId){
+    CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId);
+    return certifiedPeer == null ? Peer.Type.NORMAL : certifiedPeer.getType();
   }
 
   /**
@@ -56,27 +56,62 @@ public class PocProcessorImpl implements PocProcessor {
    * @param accountId
    * @return
    */
-  public static boolean isCertifiedPeerBind(long accountId) {
+  @Override
+  public boolean isCertifiedPeerBind(long accountId) {
     boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
     boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
     boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
-    return hubBindAccount || communityBindAccount || foundationBindAccount;
+    boolean isGenesisAccount = SharderGenesis.isGenesisCreator(accountId) || SharderGenesis.isGenesisRecipients(accountId);
+    return hubBindAccount || communityBindAccount || foundationBindAccount || isGenesisAccount;
   }
 
-  public static boolean isFoundationBind(long accountId) {
-    return PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
+  /**
+   * PoC tx process
+   * @param tx poc tx
+   * @return
+   */
+  @Override
+  public boolean pocTxProcess(Transaction tx){
+    if(TransactionType.TYPE_POC !=  tx.getType().getType()) {
+      return true;
+    }
+
+    boolean success = false;
+    if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
+      success = nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
+      success = nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
+      success = onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
+      success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
+    }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
+      PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
+      PocCalculator.inst.setCurWeightTable(weightTable,tx.getHeight());
+    }
+
+    // process later
+    if(!success) {
+      PocHolder.addDelayProcessTx(tx.getId());
+    }
+    return success;
+  }
+
+  @Override
+  public PocScore calPocScore(Account account, int height) {
+    return PocHolder.getPocScore(height, account.getId());
+  }
+
+  @Override
+  public PocTxBody.PocWeightTable getPocWeightTable(Long version) {
+    return PocHolder.getPocWeightTable();
+  }
+
+  @Override
+  public void notifySynTxNow(){
+    oldPocTxsProcess = true;
   }
   
-  public static boolean isHubBind(long accountId) {
-    return PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
-  }
-
-  public static boolean isHubBind(long accountId, String peerHost) {
-    CertifiedPeer bindPeer = PocHolder.getBoundPeer(accountId);
-
-    return bindPeer != null && bindPeer.isSame(peerHost) && bindPeer.isType(Peer.Type.HUB);
-  }
-
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
   
@@ -145,16 +180,6 @@ public class PocProcessorImpl implements PocProcessor {
       oldPocTxsProcess = true;
     }
   }
-  
-  @Override
-  public PocScore calPocScore(Account account, int height) {
-    return PocHolder.getPocScore(height, account.getId());
-  }
-
-  @Override
-  public PocTxBody.PocWeightTable getPocWeightTable(Long version) {
-    return PocHolder.getPocWeightTable();
-  }
 
   private static final int peerSynThreadInterval = 600;
   private static final int pocTxSynThreadInterval = 30;
@@ -164,21 +189,17 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
 
-  public static void notifySynTxNow(){
-    oldPocTxsProcess = true;
-  }
-
   private static boolean oldPocTxsProcess = false;
   private static final Runnable pocTxSynThread = () -> {
     try {
       
       if(Conch.getBlockchainProcessor().isDownloading()) {
-        Logger.logInfoMessage("block is downloading, don't process delayed poc txs till blocks sync finished...");
+        Logger.logDebugMessage("block is downloading, don't process delayed poc txs till blocks sync finished...");
         return;
       }
       
       if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
-        Logger.logInfoMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
+        Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
       }
       
@@ -186,7 +207,7 @@ public class PocProcessorImpl implements PocProcessor {
       Logger.logInfoMessage("process delayed poc txs[size=%d]", PocHolder.delayPocTxs().size());
       Set<Long> processedTxs = Sets.newHashSet();
       PocHolder.delayPocTxs().forEach(txid -> {
-        boolean txProcessed = pocTxProcess(txid);
+        boolean txProcessed = instance.pocTxProcess(txid);
         if(txProcessed) {
           processedTxs.add(txid);
         }
@@ -199,8 +220,6 @@ public class PocProcessorImpl implements PocProcessor {
         PocHolder.removeProcessedTxs(processedTxs);
       }
 
-     
-      
       if(oldPocTxsProcess) {
         // total poc txs from last height
 //        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
@@ -208,7 +227,7 @@ public class PocProcessorImpl implements PocProcessor {
         int toHeight = BlockchainImpl.getInstance().getHeight();
         Logger.logInfoMessage("process old poc txs from %d to %d", fromHeight , toHeight);
 
-        BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight).forEach(block -> pocSeriesTxProcess(block));
+        BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight).forEach(block -> instance.pocSeriesTxProcess(block));
         oldPocTxsProcess = false;
       }
       
@@ -264,7 +283,7 @@ public class PocProcessorImpl implements PocProcessor {
    * process poc txs of block
    * @param block block
    */
-  private static void pocSeriesTxProcess(Block block) {
+  private void pocSeriesTxProcess(Block block) {
     //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
     List<? extends Transaction> txs = block.getTransactions();
     Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
@@ -281,56 +300,26 @@ public class PocProcessorImpl implements PocProcessor {
    * @param txid poc tx id
    * @return
    */
-  private static boolean pocTxProcess(Long txid) {
+  private boolean pocTxProcess(Long txid) {
     Transaction tx = Conch.getBlockchain().getTransaction(txid);
     if(tx == null) return false;
     return pocTxProcess(tx);
   }
 
-  /**
-   * PoC tx process
-   * @param tx poc tx
-   * @return
-   */
-  public static boolean pocTxProcess(Transaction tx){
-    if(TransactionType.TYPE_POC !=  tx.getType().getType()) {
-      return true;
-    }
-    
-    boolean success = false;
-    if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
-      success = nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
-      success = nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
-      success = onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
-      success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
-      PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
-      PocCalculator.inst.setCurWeightTable(weightTable,tx.getHeight());
-    }
-    
-    // process later
-    if(!success) {
-      PocHolder.addDelayProcessTx(tx.getId());
-    }
-    return success;
-  }
 
-
-  public static void _updateCertifiedNodes(String host, Peer.Type type, int height) {
+  private static void _updateCertifiedNodes(String host, Peer.Type type, int height) {
     if(StringUtils.isEmpty(host)){ 
       Logger.logWarningMessage("peer host[" + host + "] is null, can't find peer!");
       return;
     }
 
+    Logger.logDebugMessage("update certified peer host=%s type=%s height=%d", host, type.getName(), height);
     Peer peer = Peers.getPeer(host, true);
     peer.setType(type);
     if(StringUtils.isEmpty(peer.getBindRsAccount())){
       // connect peer to get account later
       PocHolder.addSynPeer(host);
-      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetHubDetail thread");
+      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
     }
     
     // update certified nodes
