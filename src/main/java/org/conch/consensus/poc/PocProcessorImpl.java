@@ -43,11 +43,8 @@ public class PocProcessorImpl implements PocProcessor {
    * @return
    */
   public static Peer.Type bindPeerType(long accountId){
-
-    if (PocHolder.isBoundPeer(Peer.Type.HUB, accountId)) return Peer.Type.HUB;
-    if (PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId)) return Peer.Type.COMMUNITY;
-    if (PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId)) return Peer.Type.FOUNDATION;
-    return Peer.Type.NORMAL;
+    CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId);
+    return certifiedPeer == null ? Peer.Type.NORMAL : certifiedPeer.getType();
   }
 
   /**
@@ -173,12 +170,12 @@ public class PocProcessorImpl implements PocProcessor {
     try {
       
       if(Conch.getBlockchainProcessor().isDownloading()) {
-        Logger.logInfoMessage("block is downloading, don't process delayed poc txs till blocks sync finished...");
+        Logger.logDebugMessage("block is downloading, don't process delayed poc txs till blocks sync finished...");
         return;
       }
       
       if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
-        Logger.logInfoMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
+        Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
       }
       

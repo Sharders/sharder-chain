@@ -98,7 +98,7 @@ public class PocHolder implements Serializable {
      * @param host peer host
      * @param accountId bound account id
      */
-    public static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
+    private static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
         
         // remove from unverified collection and add it into certified map when account id updated
@@ -113,27 +113,28 @@ public class PocHolder implements Serializable {
             existPeer.update(newPeer.getBoundAccountId());
             
             // other type -> foundation node
-            if(Peer.Type.FOUNDATION == newPeer.getType() && IpUtil.isFoundationDomain(newPeer.getHost())) {
-                existPeer.update(newPeer.getType());
+            if(Peer.Type.FOUNDATION == type && IpUtil.isFoundationDomain(newPeer.getHost())) {
+                existPeer.update(type);
             }
             
             // foundation node -> other type
-            if(Peer.Type.FOUNDATION == existPeer.getType() 
-                && newPeer.getType().getCode() > existPeer.getType().getCode()
+            if(type != null 
+                && Peer.Type.FOUNDATION == existPeer.getType() 
+                && type.getCode() > existPeer.getType().getCode()
                 && !IpUtil.isFoundationDomain(newPeer.getHost())){
-                existPeer.update(newPeer.getType());
+                existPeer.update(type);
             }
             
             //if(Peer.Type.COMMUNITY == newPeer.getType())
            
         } else {
             
-            if(Peer.Type.FOUNDATION == newPeer.getType() && IpUtil.isFoundationDomain(newPeer.getHost())) {
+            if(Peer.Type.FOUNDATION == type && IpUtil.isFoundationDomain(newPeer.getHost())) {
+                newPeer.setType(type);
                 inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);  
             }
         }
     }
-    
     
     private static void updateHeightMinerMap(int height, long accountId){
         // height mapping
@@ -143,6 +144,11 @@ public class PocHolder implements Serializable {
         inst.heightMinerMap.get(height).add(accountId);
     }
 
+
+    public static void updateBoundPeer(String host, long accountId) {
+        addOrUpdateBoundPeer(null, host, accountId);
+    }
+    
     /**
      *  add certifiedPeer 
      *  
@@ -309,7 +315,7 @@ public class PocHolder implements Serializable {
         static final int printCount = 1;
         
         protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
-        protected static boolean debugHistory = true;
+        protected static boolean debugHistory = false;
         
         protected static String summary = reset();
         private static final String splitter = "\n\r";
@@ -367,5 +373,9 @@ public class PocHolder implements Serializable {
             Logger.logDebugMessage(summary);
             summary = reset();
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Peer.Type.FOUNDATION == null);
     }
 }

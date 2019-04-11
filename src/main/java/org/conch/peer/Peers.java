@@ -752,7 +752,6 @@ public final class Peers {
                 Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS", t);
                 System.exit(1);
             }
-
         }
 
         private void updateSavedPeers() {
@@ -821,15 +820,15 @@ public final class Peers {
     );
 
     /**
-     * get and update the local bound rs account of hub
+     * get and update the local bound rs account of certified peer
      */
-    private static final Runnable GET_HUB_PEER_THREAD =
+    private static final Runnable GET_CERTIFIED_PEER_THREAD =
             () -> {
                 try {
                     String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
                     com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
                     if (StringUtils.isEmpty(peersStr)) {
-                        Logger.logInfoMessage("peer list is null, no needs to get peers info");
+                        Logger.logInfoMessage("peer list is null, no needs to get peers info, sleep 30 minutes");
                         return;
                     } else {
                         if (peersStr.startsWith(Constants.BRACKET)) {
@@ -839,7 +838,7 @@ public final class Peers {
                         }
                     }
 
-                    String detail = "\n\r==================>get peer info[" + SC_PEERS_API + "] and update hub peers[size=" + peerArrayJson.size() + "]\n\r";
+                    String detail = "\n\r==================>syn certified peer info from [" + SC_PEERS_API + "] and size is " + peerArrayJson.size() + " \n\r";
                     Iterator iterator = peerArrayJson.iterator();
                     while (iterator.hasNext()) {
                         com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
@@ -863,23 +862,22 @@ public final class Peers {
                                 Peers.connectPeer(peer);
                             }
                             peer = Peers.getPeer(host, true);
-                            detail += "create a new hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+                            detail += "create a new certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
                         } else {
-                            detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+                            detail += "update a certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
                         }
                         
                         if(peer != null) {
                             peer.setBindRsAccount(bindAddress);
-                            PocHolder.addOrUpdateBoundPeer(Peer.Type.HUB,host,Account.rsAccountToId(bindAddress));  
+                            PocHolder.updateBoundPeer(host, Account.rsAccountToId(bindAddress));  
                         }
                     }
-                    detail += "<================== hub peer info updated";
+                    detail += "<================== certified peer info updated";
                     Logger.logDebugMessage(detail);
                 } catch (Exception e) {
                     Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
                 } catch (Throwable t) {
-                    Logger.logErrorMessage(
-                            "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+                    Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
                     System.exit(1);
                 }
             };
@@ -890,21 +888,13 @@ public final class Peers {
     public static final int DEFAULT_TX_CHECKING_COUNT = 40;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
         if (!sysInitialed && hasMyAddress) {
-            Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
-            try {
-                Thread.sleep(30 * 1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 60S...");
+            return;
         }
 
         if (!hasMyAddress) {
-            Logger.logInfoMessage("Current node not initialized yet, sleep 1H...");
-            try {
-                Thread.sleep(3600 * 1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Logger.logInfoMessage("Current node not initialized yet, sleep 60S...");
+            return;
         }
 
         if (hardwareTested) {
@@ -944,13 +934,12 @@ public final class Peers {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
             }
         }
-
-        ThreadPool.scheduleThread("GetHubPeer", Peers.GET_HUB_PEER_THREAD, 30, TimeUnit.MINUTES);
     }
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 30);
+        ThreadPool.scheduleThread("GetCertifiedPeer", Peers.GET_CERTIFIED_PEER_THREAD, 30, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 60);
     }
 
     public static void shutdown() {
@@ -1069,6 +1058,7 @@ public final class Peers {
         if (host != null && (peer = peers.get(host)) != null) {
             return peer;
         }
+        
         try {
             URI uri = new URI("http://" + announcedAddress);
             host = uri.getHost();
