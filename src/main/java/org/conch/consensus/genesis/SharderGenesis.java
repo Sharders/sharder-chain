@@ -27,6 +27,7 @@ public class SharderGenesis {
 
     public static final long GENESIS_BLOCK_ID = 6840612405442242239L;
     public static final long CREATOR_ID = 7690917826419382695L;
+    public static final long KEEPER_ID = -4542396882408079631L;
     public static final byte[] CREATOR_PUBLIC_KEY = {
             -36, 27, -52, -114, -28, 115, -4, -120, 50, -66, -107, 70, -54, -95, 61, -14,
             79, 123, -18, -57, -99, 10, -34, 75, -48, -72, -25, 96, -53, -63, -1, 43

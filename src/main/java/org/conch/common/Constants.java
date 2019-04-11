@@ -108,7 +108,7 @@ public final class Constants {
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
     /** for the security, you can set the confirmations = 1440 */
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 215 : 615);
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
