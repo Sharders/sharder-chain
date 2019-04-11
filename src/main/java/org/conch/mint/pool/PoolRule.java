@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -275,8 +276,7 @@ public class PoolRule implements Serializable {
         return rules;
     }
 
-    public static Map<Long, Long> getRewardMap(
-            Long creator, Long poolId, Long amount, Map<Long, Long> map) {
+    public static Map<Long, Long> getRewardMap(Long creator, Long poolId, Long amount, Map<Long, Long> map) {
         Map<Long, Long> result = new HashMap<>();
         SharderPoolProcessor forgePool = SharderPoolProcessor.getPoolFromAll(creator, poolId);
         int level = forgePool.getLevel();
@@ -323,9 +323,53 @@ public class PoolRule implements Serializable {
 
         return result;
     }
+    
+    enum PoolRole {
+        MINER,
+        USER
+    }
+
+    /**
+     * get the predefined life cycle in rule file
+     * @return long[2] - long[0]: min lifecycle, long[1]: max lifecycle
+     */
+    public static long[] predefinedLifecycle() {
+        // level0 is pool creator
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get("level0");
+        Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("rule");
+        Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("totalBlocks");
+        long maxLife = (long) lifeMap.get("max");
+        long minLife = (long) lifeMap.get("min");
+        return new long[]{minLife,maxLife};
+    }
+
+    /**
+     * get the specified role's predefined reward rate in rule file
+     * @param role
+     * @return float[2] - float[0]: min reward rate, float[1]: max reward rate
+     */
+    public static float[] predefinedRewardRate(PoolRole role) {
+        String level = "level0";
+        if(PoolRole.MINER == role){
+            level = "level0";
+        }else if(PoolRole.USER == role){
+            level = "level1"; 
+        }
+
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get(level);
+        Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("forgepool");
+        Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("reward");
+        float maxLife = (float) lifeMap.get("max");
+        float minLife = (float) lifeMap.get("min");
+        return new float[]{minLife,maxLife};
+    }
+
 
     public static void main(String[] args) {
-        PoolRule poolRule = new PoolRule();
-        poolRule.phraseRule();
+        PoolRule.init();
+
+        System.out.println(Arrays.toString(PoolRule.predefinedLifecycle()));
+        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(PoolRole.MINER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(PoolRole.USER)));
     }
 }
