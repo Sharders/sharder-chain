@@ -1949,9 +1949,9 @@ public final class Account {
         String correctRs = Optional.ofNullable(Conch.getStringProperty("sharder.autoTransactionAddress"))
                 .orElseThrow(() -> new ConchException.AccountControlException("auto transaction address not configured!"));
         if (!correctRs.equals(address)) {
-            throw new ConchException.AccountControlException("Account address does not match!");
+            throw new ConchException.AccountControlException("Auto Poc Tx account address does not match!");
         }
-        Logger.logInfoMessage("Account address is correct!");
+        Logger.logInfoMessage("[ OK ] Auto Poc Tx account address (" + correctRs + ") is correct!");
     }
 
     @Override
