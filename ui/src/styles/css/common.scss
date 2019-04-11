@@ -116,6 +116,24 @@
                         vertical-align: middle
                     }
 
+                    .peer-icon {
+                        display: inline-block;
+                        width: 140px;
+                        text-align: left;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                        padding-left: 16px;
+                        background-repeat: no-repeat;
+                    }
+
+                    .peer-icon.icon0, .peer-icon.icon2 {
+                        background-image: url("../../assets/img/error.svg");
+                    }
+
+                    .peer-icon.icon1 {
+                        background-image: url("../../assets/img/success.svg");
+                    }
+
                     img {
                         vertical-align: middle;
                         width: 14px;
@@ -771,10 +789,16 @@
 
 #blocks_table, #peers_table {
     width: 100%;
+
+    .linker.service {
+        display: flex;
+        justify-content: space-evenly;
+    }
 }
 
 #blocks_table {
     position: relative;
+
     tbody {
         .el-loading-mask {
             top: 61px;

@@ -19,17 +19,6 @@
 .list_table{
     .table{
         td{
-            &:first-child{
-                width: 250px;
-                padding-left: 60px;
-                text-align: left;
-                >span{
-                    overflow:hidden;
-                    text-overflow:ellipsis;
-                    width:180px;
-                    display: inline;
-                }
-            }
             &:nth-child(6){
                 width: 100%;
                 display: inline-block;

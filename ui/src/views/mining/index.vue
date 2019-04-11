@@ -93,13 +93,12 @@
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
                                         <span>
-                                            {{$t('mining.index.Income_distribution')}}
-                                            {{mining.rule.level1 ? (mining.rule.level1.forgepool.reward.max * 100) : (mining.rule.level0.forgepool.reward.max * 100)}}%
+                                            {{$t('mining.index.Income_distribution') + $global.getRewardRate(mining.rule)}}
                                         </span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.startBlockNo > newestBlock.height ? mining.endBlockNo - mining.startBlockNo : mining.endBlockNo - newestBlock.height}}{{$t('mining.index.unit_block')}}</span>
+                                        <span>{{$t('mining.index.remaining_mining') + getMinerBlock(mining) + $t('mining.index.unit_block')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -266,13 +265,13 @@
                         </h1>
                         <!--创建矿池时默认投入-->
                         <!--<div class="pool-data">-->
-                            <!--<p>-->
-                                <!--<span class="strong">{{$t('mining.index.invest_ss')}}</span>-->
-                                <!--<span class="user-input">-->
-                                    <!--<el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>-->
-                                <!--</span>-->
-                            <!--</p>-->
-                            <!--<p>{{$t('mining.index.invest_ss_tip')}}</p>-->
+                        <!--<p>-->
+                        <!--<span class="strong">{{$t('mining.index.invest_ss')}}</span>-->
+                        <!--<span class="user-input">-->
+                        <!--<el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>-->
+                        <!--</span>-->
+                        <!--</p>-->
+                        <!--<p>{{$t('mining.index.invest_ss_tip')}}</p>-->
                         <!--</div>-->
                         <div class="pool-data">
                             <p>
@@ -344,7 +343,7 @@
                 accountName: SSO.accountInfo.name,
                 incomeDistribution: 0,
                 investment: '',
-                newestBlock: [],
+                newestBlock: '',
                 newBlockReward: 0,
                 newestBlockCreator: '',
                 totalAssets: 0,
@@ -493,7 +492,7 @@
 
                 _this.getPools({sort: _this.sortFun});
 
-                _this.$global.fetch("POST", {limit:99999}, "getNextBlockGenerators").then(res => {
+                _this.$global.fetch("POST", {limit: 99999}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
@@ -580,6 +579,17 @@
                     _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
                 });
+            },
+            getMinerBlock(mining) {
+                let _t = this;
+                if (!_t.newestBlock) {
+                    return _t.$global.placeholder
+                }
+                if (mining.startBlockNo > _t.newestBlock.height) {
+                    return mining.endBlockNo - mining.startBlockNo
+                } else {
+                    return mining.endBlockNo - _t.newestBlock.height
+                }
             }
         },
         created: function () {
