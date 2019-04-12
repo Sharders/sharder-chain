@@ -1,5 +1,6 @@
 package org.conch.peer;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
 import org.conch.util.IpUtil;
 
@@ -163,5 +164,10 @@ public class CertifiedPeer implements Serializable {
 
     public Timestamp getUpdateTime() {
         return updateTime;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

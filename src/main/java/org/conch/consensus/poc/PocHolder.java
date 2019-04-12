@@ -146,53 +146,6 @@ public class PocHolder implements Serializable {
         }
 
     }
-//    private static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
-//        CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
-//        
-//        // remove from unverified collection and add it into certified map when account id updated
-//        if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
-//            // remove form unverified map and update peer detail later
-//            inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
-//            inst.unverifiedPeerMap.remove(host);
-//        }
-//        
-//        // update exist peer infos
-//        if (inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
-//            CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
-//            existPeer.update(newPeer.getBoundAccountId());
-//
-//            if(type != null) {
-//                // foundation type should check the domain whether valid
-//                if(Peer.Type.FOUNDATION == type) {
-//                    if(IpUtil.isFoundationDomain(newPeer.getHost())) {
-//                        existPeer.update(type);
-//                    }
-//                }else {
-//                    if(Peer.Type.FOUNDATION == existPeer.getType()
-//                            && type.getCode() > existPeer.getType().getCode()
-//                            && !IpUtil.isFoundationDomain(newPeer.getHost())){
-//                        // foundation node -> other type
-//                        existPeer.update(type);
-//                    }else {
-//                        existPeer.update(type);
-//                    }
-//                }
-//            }
-//            
-//        } else {
-//            // foundation type should check the domain whether valid
-//            if(type != null) {
-//                if(Peer.Type.FOUNDATION == type) {
-//                    if(IpUtil.isFoundationDomain(newPeer.getHost())){
-//                        newPeer.setType(type);
-//                    }
-//                }else {
-//                    newPeer.setType(type);
-//                }
-//            }
-//            inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
-//        }
-//    }
     
     private static void updateHeightMinerMap(int height, long accountId){
         // height mapping
