@@ -1947,9 +1947,9 @@ public final class Account {
 
     public static void checkApiAutoTxAccount(String address) throws ConchException.AccountControlException {
         String correctRs = Optional.ofNullable(Conch.getStringProperty("sharder.autoTransactionAddress"))
-                .orElseThrow(() -> new ConchException.AccountControlException("auto transaction address not configured!"));
+                .orElseThrow(() -> new ConchException.AccountControlException("auto transaction address not configured! please set sharder.autoTransactionAddress configuration"));
         if (!correctRs.equals(address)) {
-            throw new ConchException.AccountControlException("Auto Poc Tx account address does not match!");
+            throw new ConchException.AccountControlException("Auto Poc Tx account address does not match! please reset sharder.autoTransactionAddress configuration");
         }
         Logger.logInfoMessage("[ OK ] Auto Poc Tx account address (" + correctRs + ") is correct!");
     }
