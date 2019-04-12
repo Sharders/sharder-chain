@@ -105,6 +105,7 @@ public final class Conch {
     private static final String FOUNDATION_URL = "sharder.org";
     private static final String FOUNDATION_TEST_URL = "test.sharder.org";
     public static String serialNum = "";
+    public static String nodeType;
 
     public static String getSharderFoundationURL(){
         return Constants.isDevnet() ? FOUNDATION_TEST_URL : FOUNDATION_URL;
