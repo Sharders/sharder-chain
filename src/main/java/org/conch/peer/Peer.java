@@ -21,19 +21,27 @@
 
 package org.conch.peer;
 
+import com.alibaba.fastjson.annotation.JSONType;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.http.APIEnum;
+import org.conch.util.PeerTypeEnumDeserializer;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import java.util.Arrays;
 import java.util.Set;
 
+/**
+ * @author ben-xy
+ */
 public interface Peer extends Comparable<Peer> {
-    //peer type
+    @JSONType(deserializer = PeerTypeEnumDeserializer.class)
     enum Type {
-        BOX(5,"Sharder Box"),
-        HUB(4,"Sharder Hub"),
+        /**
+         *
+         */
+        BOX(5, "Sharder Box"),
+        HUB(4, "Sharder Hub"),
         NORMAL(3, "Normal Node"),
         COMMUNITY(2, "Community Node"),
         FOUNDATION(1, "Foundation Node");
@@ -63,7 +71,7 @@ public interface Peer extends Comparable<Peer> {
         }
 
         public static Type getByCode(String code) {
-            if(StringUtils.isEmpty(code)) return null;
+            if (StringUtils.isEmpty(code)) return null;
 
             for (Type _enum : values()) {
                 if (_enum.code == Integer.valueOf(code).intValue()) {
@@ -73,23 +81,26 @@ public interface Peer extends Comparable<Peer> {
 
             return null;
         }
+
+        public static Type getTypeByName(String name) {
+            return Arrays.stream(values()).filter(type -> type.getName().equalsIgnoreCase(name))
+                    .findFirst().orElse(null);
+        }
+
+        public static Type getTypeBySimpleType(SimpleType simpleType) {
+            return Arrays.stream(values()).filter(type -> type.getName().contains(simpleType.getName()))
+                    .findFirst().orElse(null);
+        }
     }
 
-    /**
-     * 简单类型
-     */
     enum SimpleType {
         /**
-         * 普通节点
+         *
          */
+        FOUNDATION(4, "Foundation"),
+        COMMUNITY(3, "Community"),
         NORMAL(2, "Normal"),
-        /**
-         * Box节点
-         */
         BOX(1, "Box"),
-        /**
-         * Hub节点
-         */
         HUB(0, "Hub");
 
         private final Integer code;
@@ -118,6 +129,11 @@ public interface Peer extends Comparable<Peer> {
                     .findFirst().map(SimpleType::getName)
                     .orElse(SimpleType.NORMAL.getName());
         }
+
+        public static SimpleType getSimpleTypeByName(String name) {
+            return Arrays.stream(values()).filter(simpleType -> simpleType.getName().equalsIgnoreCase(name))
+                    .findFirst().orElse(null);
+        }
     }
 
     enum State {
@@ -130,17 +146,50 @@ public interface Peer extends Comparable<Peer> {
     }
 
     enum Service {
-        HALLMARK(1),                    // Hallmarked node
-        PRUNABLE(2),                    // Stores expired prunable messages
-        API(4),                         // Open API access over http
-        API_SSL(8),                     // Open API access over https
-        CORS(16),                       // API CORS enabled
-        BAPI(32),                       // Business API access over http => watcher role
-        STORAGE(64),                    // Off-chain data storage => Storer role
-        MINER(128),                     // Proxy mining => Miner role
-        NATER(256),                     // Nat service => Traversal role (TBD)
-        PROVER(512);                    // Prove service => Prover role (TBD)
-        private final long code;        // Service code - must be a power of 2
+        /**
+         * Hallmarked node
+         */
+        HALLMARK(1),
+        /**
+         * Stores expired prunable messages
+         */
+        PRUNABLE(2),
+        /**
+         * Open API access over http
+         */
+        API(4),
+        /**
+         *  Open API access over https
+         */
+        API_SSL(8),
+        /**
+         * API CORS enabled
+         */
+        CORS(16),
+        /**
+         * Business API access over http => watcher role
+         */
+        BAPI(32),
+        /**
+         * Off-chain data storage => Storer role
+         */
+        STORAGE(64),
+        /**
+         * Proxy mining => Miner role
+         */
+        MINER(128),
+        /**
+         * Nat service => Traversal role (TBD)
+         */
+        NATER(256),
+        /**
+         * Prove service => Prover role (TBD)
+         */
+        PROVER(512);
+        /**
+         * Service code - must be a power of 2
+         */
+        private final long code;
 
         Service(int code) {
             this.code = code;
@@ -152,10 +201,22 @@ public interface Peer extends Comparable<Peer> {
     }
 
     enum BlockchainState {
-        UP_TO_DATE, //最新的
-        DOWNLOADING, //下载中
-        LIGHT_CLIENT, //轻客户端
-        FORK //分叉
+        /**
+         * 最新的
+         */
+        UP_TO_DATE,
+        /**
+         * 下载中
+         */
+        DOWNLOADING,
+        /**
+         * 轻客户端
+         */
+        LIGHT_CLIENT,
+        /**
+         * 分叉
+         */
+        FORK
     }
 
     boolean providesService(Service service);
