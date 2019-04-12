@@ -131,16 +131,13 @@ public interface PocTxBody {
 
         @Override
         public int getMySize() {
-            return 4 + 2 + ip.getBytes().length;
+            return 4 * 2 + ip.getBytes().length + Convert.countEnumJsonBytes(type);
         }
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            buffer.putInt(type.getCode());
-
-            byte[] ip = Convert.toBytes(this.ip);
-            buffer.putShort((short) ip.length);
-            buffer.put(ip);
+            Convert.writeString(buffer, ip);
+            Convert.writeEnum(buffer, type);
         }
 
         @Override
