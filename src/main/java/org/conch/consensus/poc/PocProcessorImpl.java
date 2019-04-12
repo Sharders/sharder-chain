@@ -8,7 +8,6 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;

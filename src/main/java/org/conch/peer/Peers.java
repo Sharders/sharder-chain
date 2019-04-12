@@ -838,7 +838,7 @@ public final class Peers {
                         }
                     }
 
-                    String detail = "\n\r==================>syn certified peer info from [" + SC_PEERS_API + "] and size is " + peerArrayJson.size() + " \n\r";
+                    String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size is " + peerArrayJson.size() + " \n\r";
                     Iterator iterator = peerArrayJson.iterator();
                     while (iterator.hasNext()) {
                         com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
@@ -851,7 +851,7 @@ public final class Peers {
                         String bindAddress = peerJson.getString("bindRs");
                         Peer peer = Peers.getPeer(host, true);
                         if (StringUtils.isEmpty(bindAddress)) {
-                            detail += "can't process hub peer[host=" + host + "] which rs address is null\n\r";
+                            detail += "can't process peer[host=" + host + "] which rs address is null\n\r";
                             continue;
                         }
 
@@ -875,7 +875,7 @@ public final class Peers {
                     detail += "<================== certified peer info updated";
                     Logger.logDebugMessage(detail);
                 } catch (Exception e) {
-                    Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
+                    Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
                 } catch (Throwable t) {
                     Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
                     System.exit(1);
@@ -888,7 +888,7 @@ public final class Peers {
     public static final int DEFAULT_TX_CHECKING_COUNT = 40;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
         if (!sysInitialed && hasMyAddress) {
-            Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 60S...");
+            Logger.logInfoMessage("Wait Conch initialized to test the hardware performance, sleep 60S...");
             return;
         }
 

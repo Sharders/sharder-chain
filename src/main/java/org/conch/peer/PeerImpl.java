@@ -41,12 +41,13 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
-
+    // ip
     private final String host;
     private final PeerWebSocket webSocket;
     private volatile PeerWebSocket inboundSocket;
     private volatile boolean useWebSocket;
     private volatile boolean useNATService;
+    // domain or full NAT address
     private volatile String announcedAddress;
     private volatile int port;
     private volatile String bindRsAccount;
