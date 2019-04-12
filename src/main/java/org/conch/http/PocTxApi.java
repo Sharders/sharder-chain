@@ -113,7 +113,7 @@ public abstract class PocTxApi {
                 Logger.logInfoMessage("success to create node config performance tx");
             } catch (Exception e) {
                 Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
-                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.toString());
+                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
             return ResultUtil.ok(Constants.SUCCESS);
         }
@@ -156,18 +156,27 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            UrlManager.validFoundationHost(request);
-            Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
-                    .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
-            Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
-            String nodeTypeJson = Https.getPostData(request);
-            PocTxBody.PocNodeType pocNodeType = Optional.ofNullable(JSONObject.parseObject(nodeTypeJson, PocTxBody.PocNodeType.class))
-                    .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
-            Logger.logInfoMessage("creating node type tx...");
-            Logger.logDebugMessage(Convert.stringTemplate("PoC node type tx:[ip={}, type={}]", pocNodeType.getIp(), pocNodeType.getType()));
-            JSONStreamAware resultJson = createTransaction(request, account, 0, 0, pocNodeType);
-            Logger.logInfoMessage("success to create node type tx...");
-            return resultJson;
+            try {
+                UrlManager.validFoundationHost(request);
+                Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
+                        .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
+                Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
+                String nodeTypeJsonStr = Https.getPostData(request);
+                JSONObject nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
+                        .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
+                PocTxBody.PocNodeType pocNodeType = new PocTxBody.PocNodeType(
+                        nodeTypeJson.getString("ip"),
+                        Peer.Type.getTypeBySimpleType(Peer.SimpleType.getSimpleTypeByName(nodeTypeJson.getString("type")))
+                );
+                Logger.logInfoMessage("creating node type tx...");
+                Logger.logDebugMessage(Convert.stringTemplate("PoC node type tx:[ip={}, type={}]", pocNodeType.getIp(), pocNodeType.getType()));
+                createTransaction(request, account, 0, 0, pocNodeType);
+                Logger.logInfoMessage("success to create node type tx...");
+            } catch (ConchException e) {
+                Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
+                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
+            }
+            return ResultUtil.ok(Constants.SUCCESS);
         }
     }
 
