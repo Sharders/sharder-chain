@@ -82,8 +82,10 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 response.put(key, value);
             }
             // get node type
+            // TODO if initialized, get node type from certified peer map , then get from file system.
             if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
                 response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
+                Conch.nodeType = Peer.SimpleType.NORMAL.getName();
                 Logger.logInfoMessage("System is windows or mac, node type is Normal!");
             } else {
                 String filePath = ".hubSetting/.tempCache/.sysCache";
@@ -91,10 +93,12 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 File tempFile = new File(userHome);
                 if (!tempFile.exists()) {
                     response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
+                    Conch.nodeType = Peer.SimpleType.NORMAL.getName();
                 } else {
                     String num = FileUtils.readFileToString(tempFile, "UTF-8");
                     String nodeType = this.getNodeType(num);
                     response.put("sharder.NodeType", nodeType);
+                    Conch.nodeType = nodeType;
                     if (!Peer.SimpleType.NORMAL.getName().equalsIgnoreCase(nodeType)) {
                         num = num.replaceAll("(\\r\\n|\\n)", "");
                         response.put("sharder.xxx", num);
