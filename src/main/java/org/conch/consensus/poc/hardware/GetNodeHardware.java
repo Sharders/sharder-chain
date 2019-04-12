@@ -1,6 +1,7 @@
 package org.conch.consensus.poc.hardware;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
@@ -10,6 +11,7 @@ import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
+import org.eclipse.jetty.util.StringUtil;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
@@ -201,7 +203,11 @@ public class GetNodeHardware {
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
-        systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
+        if (StringUtils.isEmpty(Conch.nodeType)) {
+            throw new ConchException.NotValidException("node type can not be empty");
+        }
+        systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip)
+                .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.nodeType);
         Logger.logDebugMessage("==============Now start testing configuration performance...==============");
         cpu(systemInfo);
         memory(systemInfo);
