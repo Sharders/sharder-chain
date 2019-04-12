@@ -13,6 +13,7 @@ import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.http.handler.QueryTransactionsHandler;
 import org.conch.http.handler.impl.QueryTransactionsCondition;
+import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.util.Convert;
 import org.conch.util.Https;
