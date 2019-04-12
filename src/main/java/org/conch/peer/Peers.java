@@ -29,7 +29,6 @@ import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
-import org.conch.consensus.poc.PocHolder;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
@@ -818,69 +817,75 @@ public final class Peers {
             UrlManager.PEERS_LIST_LOCAL,
             UrlManager.PEERS_LIST_PATH
     );
+    
+    public static boolean synCertifiedPeers() throws Exception {
+        String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
+        com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
+        if (StringUtils.isEmpty(peersStr)) {
+            Logger.logInfoMessage("peer list is null, no needs to get peers info, sleep 30 minutes");
+            return false;
+        } else {
+            if (peersStr.startsWith(Constants.BRACKET)) {
+                peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
+            } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
+                peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
+            }
+        }
+
+        String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size is " + peerArrayJson.size() + " \n\r";
+        Iterator iterator = peerArrayJson.iterator();
+        while (iterator.hasNext()) {
+            com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
+
+            String host = peerJson.getString("announcedAddress");
+            if (StringUtils.isEmpty(host)) {
+                host = peerJson.getString("address");
+            }
+
+            String bindAddress = peerJson.getString("bindRs");
+            Peer peer = Peers.getPeer(host, true);
+            if (StringUtils.isEmpty(bindAddress)) {
+                detail += "can't process peer[host=" + host + "] which rs address is null\n\r";
+                continue;
+            }
+
+            if (peer == null) {
+                peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
+                if (peer != null) {
+                    Peers.addPeer(peer, host);
+                    Peers.connectPeer(peer);
+                }
+                peer = Peers.getPeer(host, true);
+                detail += "create a new certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+            } else {
+                detail += "update a certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+            }
+
+            if(peer != null) {
+                peer.setBindRsAccount(bindAddress);
+                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
+            }
+        }
+        detail += "<================== certified peer info updated";
+        Logger.logDebugMessage(detail);
+        return true;
+    }
 
     /**
      * get and update the local bound rs account of certified peer
      */
-    private static final Runnable GET_CERTIFIED_PEER_THREAD =
-            () -> {
-                try {
-                    String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
-                    com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
-                    if (StringUtils.isEmpty(peersStr)) {
-                        Logger.logInfoMessage("peer list is null, no needs to get peers info, sleep 30 minutes");
-                        return;
-                    } else {
-                        if (peersStr.startsWith(Constants.BRACKET)) {
-                            peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
-                        } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
-                            peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
-                        }
-                    }
-
-                    String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size is " + peerArrayJson.size() + " \n\r";
-                    Iterator iterator = peerArrayJson.iterator();
-                    while (iterator.hasNext()) {
-                        com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
-
-                        String host = peerJson.getString("announcedAddress");
-                        if (StringUtils.isEmpty(host)) {
-                            host = peerJson.getString("address");
-                        }
-
-                        String bindAddress = peerJson.getString("bindRs");
-                        Peer peer = Peers.getPeer(host, true);
-                        if (StringUtils.isEmpty(bindAddress)) {
-                            detail += "can't process peer[host=" + host + "] which rs address is null\n\r";
-                            continue;
-                        }
-
-                        if (peer == null) {
-                            peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
-                            if (peer != null) {
-                                Peers.addPeer(peer, host);
-                                Peers.connectPeer(peer);
-                            }
-                            peer = Peers.getPeer(host, true);
-                            detail += "create a new certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
-                        } else {
-                            detail += "update a certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
-                        }
-                        
-                        if(peer != null) {
-                            peer.setBindRsAccount(bindAddress);
-                            PocHolder.updateBoundPeer(host, Account.rsAccountToId(bindAddress));  
-                        }
-                    }
-                    detail += "<================== certified peer info updated";
-                    Logger.logDebugMessage(detail);
-                } catch (Exception e) {
-                    Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
-                } catch (Throwable t) {
-                    Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-                    System.exit(1);
-                }
-            };
+    private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
+        try {
+            
+            synCertifiedPeers();
+            
+        } catch (Exception e) {
+            Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;

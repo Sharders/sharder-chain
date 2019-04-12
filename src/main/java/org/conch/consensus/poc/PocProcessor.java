@@ -67,6 +67,19 @@ public interface PocProcessor {
     Peer.Type bindPeerType(long accountId);
 
     /**
+     * update bound account of certified peer
+     * @param host peer host 
+     * @param accountId bind acccount id
+     */
+    void updateBoundPeer(String host, long accountId);
+
+    /**
+     * clear current certified peers and re-syn 
+     * @return 
+     */
+    boolean resetCertifiedPeers();
+
+    /**
      * PoC tx process
      * @param tx poc tx
      * @return

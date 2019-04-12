@@ -111,6 +111,17 @@ public class PocProcessorImpl implements PocProcessor {
     oldPocTxsProcess = true;
   }
   
+  @Override
+  public void updateBoundPeer(String host, long accountId){
+    PocHolder.updateBoundPeer(host, accountId);
+  }
+
+  @Override
+  public boolean resetCertifiedPeers(){
+    return PocHolder.resetCertifiedPeers();
+  }
+
+  
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
   
