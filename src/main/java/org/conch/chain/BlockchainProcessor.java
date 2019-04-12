@@ -48,7 +48,9 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
     boolean isScanning();
 
     boolean isDownloading();
-
+    
+    boolean isUpToDate();
+    
     boolean isProcessingBlock();
 
     int getMinRollbackHeight();

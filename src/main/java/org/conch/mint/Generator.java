@@ -148,10 +148,10 @@ public class Generator implements Comparable<Generator> {
             }
             return false;
         }
-        
-        if(Conch.getBlockchainProcessor().isDownloading()){
+
+        if(!Conch.getBlockchainProcessor().isUpToDate()) {
             if(printNow) {
-                Logger.logInfoMessage("block is downloading, don't mint till blocks sync finished...");
+                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't process delayed poc txs till blocks sync finished...");
                 logPrintCount = 1;
             }
             return false;
@@ -724,7 +724,9 @@ public class Generator implements Comparable<Generator> {
             generatorList = Lists.newArrayList(minersOnCurNode);
             generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
-            Logger.logDebugMessage(generatorList.size() + " generators found");
+            if(Logger.printNow(Generator.class)){
+                Logger.logDebugMessage(generatorList.size() + " generators found");
+            }
         }
         return generatorList;
     }

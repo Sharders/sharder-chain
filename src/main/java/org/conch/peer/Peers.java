@@ -1504,11 +1504,16 @@ public final class Peers {
     }
 
     private static void checkBlockchainState() {
-        Peer.BlockchainState state = Constants.isLightClient ? Peer.BlockchainState.LIGHT_CLIENT :
-                (Conch.getBlockchainProcessor().isDownloading() || Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
-                        (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet()) ? Peer.BlockchainState.FORK :
-                                Peer.BlockchainState.UP_TO_DATE;
-        // generate my peer details
+        Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
+        if(!Constants.isLightClient) {
+            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
+            boolean isbiggerTarget = Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10;
+            
+            state = (Conch.getBlockchainProcessor().isDownloading() || isObsoleteTime) ? Peer.BlockchainState.DOWNLOADING :
+                    (isbiggerTarget && !Constants.isTestnet()) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
+        }
+        
+        // generate my peer details and update state
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);
             json.put("blockchainState", state.ordinal());
