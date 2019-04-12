@@ -128,16 +128,18 @@ public interface PocTxBody {
             this.type = Peer.Type.getByCode((Integer) attachmentData.get("type"));
         }
 
-
         @Override
         public int getMySize() {
-            return 4 * 2 + ip.getBytes().length + Convert.countEnumJsonBytes(type);
+            return 4 + 2 + ip.getBytes().length;
         }
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            Convert.writeString(buffer, ip);
-            Convert.writeEnum(buffer, type);
+            buffer.putInt(type.getCode());
+
+            byte[] ip = Convert.toBytes(this.ip);
+            buffer.putShort((short) ip.length);
+            buffer.put(ip);
         }
 
         @Override
