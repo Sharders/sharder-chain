@@ -8,7 +8,6 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -112,6 +111,17 @@ public class PocProcessorImpl implements PocProcessor {
     oldPocTxsProcess = true;
   }
   
+  @Override
+  public void updateBoundPeer(String host, long accountId){
+    PocHolder.updateBoundPeer(host, accountId);
+  }
+
+  @Override
+  public boolean resetCertifiedPeers(){
+    return PocHolder.resetCertifiedPeers();
+  }
+
+  
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
   
@@ -192,12 +202,11 @@ public class PocProcessorImpl implements PocProcessor {
   private static boolean oldPocTxsProcess = false;
   private static final Runnable pocTxSynThread = () -> {
     try {
-      
-      if(Conch.getBlockchainProcessor().isDownloading()) {
-        Logger.logDebugMessage("block is downloading, don't process delayed poc txs till blocks sync finished...");
+      if(!Conch.getBlockchainProcessor().isUpToDate()) {
+        Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't process delayed poc txs till blocks sync finished...");
         return;
       }
-      
+ 
       if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
         Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
@@ -207,8 +216,7 @@ public class PocProcessorImpl implements PocProcessor {
       Logger.logInfoMessage("process delayed poc txs[size=%d]", PocHolder.delayPocTxs().size());
       Set<Long> processedTxs = Sets.newHashSet();
       PocHolder.delayPocTxs().forEach(txid -> {
-        boolean txProcessed = instance.pocTxProcess(txid);
-        if(txProcessed) {
+        if(instance.pocTxProcess(txid)) {
           processedTxs.add(txid);
         }
       });

@@ -8,17 +8,12 @@ import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocTemplate;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTxBody;
-import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.http.handler.QueryTransactionsHandler;
 import org.conch.http.handler.impl.QueryTransactionsCondition;
-import org.conch.mint.pool.SharderPoolProcessor;
-import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
-import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Https;
 import org.conch.util.Logger;
@@ -26,7 +21,9 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * create various of PoC transactions
@@ -289,6 +286,49 @@ public abstract class PocTxApi {
             org.json.simple.JSONObject response = new org.json.simple.JSONObject();
             try {
                 Conch.getPocProcessor().notifySynTxNow();
+                response.put("done", true);
+            } catch (RuntimeException e) {
+                JSONData.putException(response, e);
+            }
+            return response;
+        }
+
+        @Override
+        protected final boolean requirePost() {
+            return true;
+        }
+
+        @Override
+        protected boolean requirePassword() {
+            return true;
+        }
+
+        @Override
+        protected boolean allowRequiredBlockParameters() {
+            return false;
+        }
+
+        @Override
+        protected boolean requireBlockchain() {
+            return false;
+        }
+
+    }
+    
+    public static final class ResetCertifiedPeers extends APIServlet.APIRequestHandler {
+        
+        static final ResetCertifiedPeers INSTANCE = new ResetCertifiedPeers();
+
+        ResetCertifiedPeers() {
+            super(new APITag[]{APITag.DEBUG});
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected JSONStreamAware processRequest(HttpServletRequest req) {
+            org.json.simple.JSONObject response = new org.json.simple.JSONObject();
+            try {
+                Conch.getPocProcessor().resetCertifiedPeers();
                 response.put("done", true);
             } catch (RuntimeException e) {
                 JSONData.putException(response, e);

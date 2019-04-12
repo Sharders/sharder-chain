@@ -6,13 +6,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
-import org.conch.common.UrlManager;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
+import org.conch.peer.Peers;
 import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
@@ -24,14 +24,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * PoCHolder is a singleton to hold the score and reference map.
+ * PocHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
- *
+ * 
+ * PocHolder is just available for poc package 
+ * 
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
 
-public class PocHolder implements Serializable {
+class PocHolder implements Serializable {
 
     static PocHolder inst = new PocHolder();
     
@@ -60,9 +62,27 @@ public class PocHolder implements Serializable {
     private volatile Set<Long> delayProcessTxs = Sets.newHashSet();
 
     int lastHeight = -1;
-
+    
     public static Set<String> synPeers() {
         return inst.synPeerList;
+    }
+    
+    public static boolean resetCertifiedPeers(){
+        synchronized (inst.certifiedPeerMap) {
+            inst.certifiedPeerMap.clear();
+        }
+        
+        synchronized (inst.unverifiedPeerMap) {
+            inst.unverifiedPeerMap.clear();
+        }
+        
+        try{
+            Peers.synCertifiedPeers(); 
+        }catch(Exception e) {
+            Logger.logErrorMessage("reset certified peers occur error", e);
+        }
+        
+        return true;
     }
 
     /**
@@ -100,38 +120,15 @@ public class PocHolder implements Serializable {
      */
     private static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
-        
+
         // remove from unverified collection and add it into certified map when account id updated
         if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
             // remove form unverified map and update peer detail later
             inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
             inst.unverifiedPeerMap.remove(host);
         }
-        
-        // update exist peer infos
-        if (inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
-            CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
-            existPeer.update(newPeer.getBoundAccountId());
 
-            if(type != null) {
-                // foundation type should check the domain whether valid
-                if(Peer.Type.FOUNDATION == type) {
-                    if(IpUtil.isFoundationDomain(newPeer.getHost())) {
-                        existPeer.update(type);
-                    }
-                }else {
-                    if(Peer.Type.FOUNDATION == existPeer.getType()
-                            && type.getCode() > existPeer.getType().getCode()
-                            && !IpUtil.isFoundationDomain(newPeer.getHost())){
-                        // foundation node -> other type
-                        existPeer.update(type);
-                    }else {
-                        existPeer.update(type);
-                    }
-                }
-            }
-            
-        } else {
+        if (!inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
             // foundation type should check the domain whether valid
             if(type != null) {
                 if(Peer.Type.FOUNDATION == type) {
@@ -143,7 +140,31 @@ public class PocHolder implements Serializable {
                 }
             }
             inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
+            return;
         }
+        
+        // update exist peer infos
+        CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
+        existPeer.update(newPeer.getBoundAccountId());
+
+        if(type == null) return;
+        
+        // foundation type should check the domain whether valid
+        if(Peer.Type.FOUNDATION == type) {
+            if(IpUtil.isFoundationDomain(newPeer.getHost())) {
+                existPeer.update(type);
+            }
+        }else {
+            if(Peer.Type.FOUNDATION == existPeer.getType()
+                    && type.getCode() > existPeer.getType().getCode()
+                    && !IpUtil.isFoundationDomain(newPeer.getHost())){
+                // foundation node -> other type
+                existPeer.update(type);
+            }else {
+                existPeer.update(type);
+            }
+        }
+
     }
     
     private static void updateHeightMinerMap(int height, long accountId){
@@ -154,7 +175,7 @@ public class PocHolder implements Serializable {
         inst.heightMinerMap.get(height).add(accountId);
     }
 
-
+    
     public static void updateBoundPeer(String host, long accountId) {
         addOrUpdateBoundPeer(null, host, accountId);
     }
@@ -200,14 +221,17 @@ public class PocHolder implements Serializable {
     }
 
     public static void addDelayProcessTx(Long txid) {
-       inst.delayProcessTxs.add(txid);
+        synchronized (inst.delayProcessTxs) {
+            inst.delayProcessTxs.add(txid);
+        }
     }
 
     public static void removeProcessedTxs(Set<Long> processedTxs) {
-        inst.delayProcessTxs.removeAll(processedTxs);
+        synchronized (inst.delayProcessTxs) {
+            inst.delayProcessTxs.removeAll(processedTxs); 
+        }
     }
     
-
     static {
         initDefaultMiners();
     }
