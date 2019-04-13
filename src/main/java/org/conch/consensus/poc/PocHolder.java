@@ -139,7 +139,7 @@ class PocHolder implements Serializable {
                     newPeer.setType(type);
                 }
             }
-            Logger.logDebugMessage("[addOrUpdateBoundPeer] add a new certified peer {}", newPeer);
+            Logger.logDebugMessage("#addOrUpdateBoundPeer# add a new certified peer {}", newPeer);
             inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
             return;
         }
@@ -147,7 +147,7 @@ class PocHolder implements Serializable {
         // update exist peer infos
         CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
         existPeer.update(newPeer.getBoundAccountId());
-        Logger.logDebugMessage("[addOrUpdateBoundPeer] update a certified peer {}", existPeer);
+        Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer {}", existPeer);
         
         if(type == null) return;
         
@@ -166,7 +166,7 @@ class PocHolder implements Serializable {
                 existPeer.update(type);
             }
         }
-        Logger.logDebugMessage("[addOrUpdateBoundPeer] update a certified peer {}", existPeer);
+        Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer {}", existPeer);
     }
     
     private static void updateHeightMinerMap(int height, long accountId){
