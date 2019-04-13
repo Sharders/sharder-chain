@@ -228,7 +228,7 @@ public class GetNodeHardware {
      * @return true报告成功，false失败
      * @throws IOException 请求异常
      */
-    public static Boolean report(SystemInfo systemInfo) throws IOException {
+    public static Boolean report(SystemInfo systemInfo) {
         try{
             if(systemInfo == null) return false;
             
