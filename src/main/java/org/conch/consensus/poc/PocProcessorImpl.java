@@ -11,6 +11,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.db.DbIterator;
 import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
@@ -199,8 +200,8 @@ public class PocProcessorImpl implements PocProcessor {
     ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
   }
 
-
-  private static boolean oldPocTxsProcess = false;
+  // execute once when restart the cos application
+  private static boolean oldPocTxsProcess = true;
   private static final Runnable pocTxSynThread = () -> {
     try {
       if(!Conch.getBlockchainProcessor().isUpToDate()) {
@@ -231,12 +232,18 @@ public class PocProcessorImpl implements PocProcessor {
 
       if(oldPocTxsProcess) {
         // total poc txs from last height
+        //TODO use the last persist height as begin height
 //        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
         int fromHeight = 0;
         int toHeight = BlockchainImpl.getInstance().getHeight();
-        Logger.logInfoMessage("process old poc txs from %d to %d", fromHeight , toHeight);
-      
-        BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight).forEach(block -> instance.pocSeriesTxProcess(block));
+        Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight , toHeight);
+        DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
+        int count = 0;
+        for(BlockImpl block : blocks){
+          count += instance.pocSeriesTxProcess(block);
+        }
+
+        Logger.logInfoMessage("old poc txs processed[from %d to %d] [processed size=%d]", fromHeight , toHeight, count);
         oldPocTxsProcess = false;
       }
       

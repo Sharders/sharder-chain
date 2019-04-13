@@ -471,7 +471,7 @@ public final class Conch {
             Logger.logMessage(name + " = \"" + (doNotLog ? "{not logged}" : value) + "\"");
             return value;
         } else {
-            Logger.logMessage(name + " not defined");
+            Logger.logMessage(name + " not defined, using default value = \"" + (doNotLog ? "{not logged}" : defaultValue) + "\"");
             return defaultValue;
         }
     }
