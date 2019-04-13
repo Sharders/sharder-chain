@@ -1025,7 +1025,6 @@ public final class Peers {
             return peers.get(host);
         }
         
-        
         if(peers.containsKey(host)) return peers.get(host);
         
         // check by announced address
@@ -1201,12 +1200,6 @@ public final class Peers {
         peer.setAnnouncedAddress(newAnnouncedAddress);
     }
     
-    
-    public static boolean announcedAddrCheck(Peer peer, String newAnnouncedAddress){ 
-       String ip = IpUtil.checkOrToIp(newAnnouncedAddress);
-       return peer.getHost().equalsIgnoreCase(ip);
-    }
-
     public static boolean addPeer(Peer peer, String newAnnouncedAddress) {
         setAnnouncedAddress((PeerImpl) peer, newAnnouncedAddress.toLowerCase());
         return addPeer(peer);

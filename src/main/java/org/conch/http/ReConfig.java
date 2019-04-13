@@ -132,7 +132,8 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean useNATService = Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("sharder.useNATService"));
         String nodeType = Convert.nullToEmpty(req.getParameter("nodeType"));
         Map<String, String> pageValues = new HashMap<>(16);
-        if (nodeType.equals(Peer.SimpleType.NORMAL.getName())) {
+
+        if (Peer.Type.NORMAL.matchSimpleName(nodeType)) {
             pageValues.put("status", Convert.nullToEmpty(req.getParameter("registerStatus")));
         }
         pageValues.put("natServiceIp", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
@@ -161,7 +162,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                         String dbValue;
                         Object value = pageValue.getValue();
                         if ("type".equals(pageValue.getKey())) {
-                            dbValue = Peer.SimpleType.getSimpleTypeNameByCode(hubSetting.getInteger(pageValue.getKey()));
+                            dbValue = Peer.Type.getSimpleName(hubSetting.getInteger(pageValue.getKey()));
                         } else {
                             dbValue = hubSetting.getString(pageValue.getKey());
                         }

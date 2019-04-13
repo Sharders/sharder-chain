@@ -11,6 +11,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
@@ -234,7 +235,7 @@ public class PocProcessorImpl implements PocProcessor {
         int fromHeight = 0;
         int toHeight = BlockchainImpl.getInstance().getHeight();
         Logger.logInfoMessage("process old poc txs from %d to %d", fromHeight , toHeight);
-
+      
         BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight).forEach(block -> instance.pocSeriesTxProcess(block));
         oldPocTxsProcess = false;
       }
@@ -242,8 +243,7 @@ public class PocProcessorImpl implements PocProcessor {
     } catch (Exception e) {
       Logger.logDebugMessage("poc tx syn thread interrupted");
     } catch (Throwable t) {
-      Logger.logErrorMessage(
-          "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
       System.exit(1);
     }
   };
@@ -288,19 +288,28 @@ public class PocProcessorImpl implements PocProcessor {
   };
 
   /**
+  
+   */
+  /**
    * process poc txs of block
    * @param block block
+   * @return processed count
    */
-  private void pocSeriesTxProcess(Block block) {
+  private int pocSeriesTxProcess(Block block) {
+    int count = 0;
     //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
     List<? extends Transaction> txs = block.getTransactions();
     Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
     if(txs == null || txs.size() <= 0 || containPoc == null || !containPoc) {
-        return;
+        return count;
     }
-
+  
     //just process poc tx
-    txs.forEach(tx -> pocTxProcess(tx));
+    for(Transaction tx : txs) {
+      if(pocTxProcess(tx)) count++;
+    }
+    
+    return count;
   }
 
   /**
@@ -322,6 +331,20 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     Logger.logDebugMessage("update certified peer host=%s type=%s height=%d", host, type.getName(), height);
+    
+    // local node
+    String localRS = Generator.getAutoMiningRS();
+    if(Conch.matchMyAddress(host)) {
+      if(StringUtils.isNotEmpty(localRS)) {
+        PocHolder.addCertifiedPeer(height, type, host, Account.rsAccountToId(localRS));
+      }else {
+        PocHolder.addSynPeer(host);
+        Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
+      }
+      return;
+    }
+    
+    // connected nodes
     Peer peer = Peers.getPeer(host, true);
     peer.setType(type);
     if(StringUtils.isEmpty(peer.getBindRsAccount())){
@@ -329,7 +352,6 @@ public class PocProcessorImpl implements PocProcessor {
       PocHolder.addSynPeer(host);
       Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
     }
-    
     // update certified nodes
     PocHolder.addCertifiedPeer(height,peer);
   }

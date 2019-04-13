@@ -83,30 +83,30 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             }
             // get node type
             // TODO if initialized, get node type from certified peer map , then get from file system.
-            if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
-                response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
-                Conch.nodeType = Peer.SimpleType.NORMAL.getName();
-                Logger.logInfoMessage("System is windows or mac, node type is Normal!");
-            } else {
+            Conch.nodeType = Peer.Type.NORMAL.getSimpleName();
+            
+            // when os isn't windows and mac, it should be hub/box or server node
+            if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
                 String filePath = ".hubSetting/.tempCache/.sysCache";
                 String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
                 File tempFile = new File(userHome);
-                if (!tempFile.exists()) {
-                    response.put("sharder.NodeType", Peer.SimpleType.NORMAL.getName());
-                    Conch.nodeType = Peer.SimpleType.NORMAL.getName();
-                } else {
+                
+                // hub node check if serial number exist
+                if (tempFile.exists()) {
                     String num = FileUtils.readFileToString(tempFile, "UTF-8");
-                    String nodeType = this.getNodeType(num);
-                    response.put("sharder.NodeType", nodeType);
-                    Conch.nodeType = nodeType;
-                    if (!Peer.SimpleType.NORMAL.getName().equalsIgnoreCase(nodeType)) {
-                        num = num.replaceAll("(\\r\\n|\\n)", "");
-                        response.put("sharder.xxx", num);
-                        Conch.serialNum = num;
-                        Logger.logInfoMessage("Hub info => [serialNum: " + num + " , nodeType: " + nodeType + "]");
+                    Conch.nodeType = this.getTypeSimpleName(num);
+                    
+                    if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
+                        Conch.serialNum = num.replaceAll("(\\r\\n|\\n)", "");
+                        response.put("sharder.xxx", Conch.serialNum);
+                        Logger.logInfoMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
                     }
                 }
             }
+
+            Logger.logInfoMessage("current os is %s and its node type is %s", SystemUtils.OS_NAME, Conch.nodeType);
+            response.put("sharder.NodeType", Conch.nodeType);
+            
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
@@ -123,33 +123,43 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
         return response;
     }
 
-    private String getNodeType(String num) throws IOException {
-        Integer nodeTypeCode = 0;
+    /**
+     * get simple name according to serial num, default type is node if there is no num exist.
+     * @param num serial number
+     * @return
+     * @throws IOException
+     */
+    private String getTypeSimpleName(String num) throws IOException {
+      
         if (StringUtils.isEmpty(num)) {
-            return Peer.SimpleType.NORMAL.getName();
+            return Peer.Type.NORMAL.getSimpleName();
         }
+        
         String url = UrlManager.getFoundationUrl(
                 UrlManager.GET_HARDWARE_TYPE_EOLINKER,
                 UrlManager.GET_HARDWARE_TYPE_LOCAL,
                 UrlManager.GET_HARDWARE_TYPE_PATH
         );
+        
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
                 .get()
                 .addPathParam("serialNum", num.replaceAll("(\\r\\n|\\n)", ""))
                 .request();
         com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
+
+        Integer nodeTypeCode = Peer.Type.HUB.getSimpleCode();
         if (result.getBoolean(Constants.SUCCESS)) {
             com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
-            if (data == null) {
-                return Peer.SimpleType.NORMAL.getName();
+            if (data == null || data.getInteger("type") == null) {
+                return Peer.Type.NORMAL.getSimpleName();
             }
+            
             nodeTypeCode = data.getInteger("type");
-            if (nodeTypeCode == null) {
-                return Peer.SimpleType.NORMAL.getName();
-            }
+        } else{
+            Logger.logWarningMessage(String.format("failed to get node type by serial number[%s]!", num));
         }
-        Logger.logWarningMessage("Failed to get node type!");
-        return Peer.SimpleType.getSimpleTypeNameByCode(nodeTypeCode);
+  
+        return Peer.Type.getSimpleName(nodeTypeCode);
     }
 
     @Override

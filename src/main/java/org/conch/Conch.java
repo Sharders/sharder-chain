@@ -21,7 +21,6 @@
 
 package org.conch;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
@@ -40,6 +39,7 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.PocProcessor;
 import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbBackup;
@@ -55,6 +55,7 @@ import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.MessageManager;
+import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.shuffle.Shuffling;
 import org.conch.shuffle.ShufflingParticipant;
@@ -96,16 +97,19 @@ public final class Conch {
     public static final String CONCH_PROPERTIES = "sharder.properties";
     public static final String CONFIG_DIR = "conf";
 
-    private static final String myAddress;
-
     private static final RuntimeMode runtimeMode;
     public static final DirProvider dirProvider;
 
     private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String FOUNDATION_URL = "sharder.org";
     private static final String FOUNDATION_TEST_URL = "test.sharder.org";
+    
+    //TODO refactor myAddress, serialNum and nodetype into systemInfo
+    private static final String myAddress;
     public static String serialNum = "";
-    public static String nodeType;
+    public static String nodeType = Peer.Type.NORMAL.getSimpleName();
+    
+    public static SystemInfo systemInfo = null;
 
     public static String getSharderFoundationURL(){
         return Constants.isDevnet() ? FOUNDATION_TEST_URL : FOUNDATION_URL;
@@ -205,6 +209,13 @@ public final class Conch {
     public static String getMyAddress(){
         return myAddress;
     }
+    
+    public static boolean matchMyAddress(String host){
+        if(Conch.useNATService && IpUtil.isDomain(host)) {
+            return myAddress.equalsIgnoreCase(host);
+        }
+        return IpUtil.getNetworkIp().equalsIgnoreCase(IpUtil.getIpFromUrl(host));
+    }
 
     private static void redirectSystemStreams(String streamName) {
         String isStandardRedirect = System.getProperty("sharder.redirect.system." + streamName);
@@ -240,12 +251,9 @@ public final class Conch {
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
-
-        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
         
-        if(StringUtils.isEmpty(myAddress)){
-            //TODO use the ip of local
-        }
+        // use the external ip as its myAddress default value
+        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", IpUtil.getNetworkIp()).trim());
         
         // check port of myAddress whether equal to port of TESTNET
         if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
