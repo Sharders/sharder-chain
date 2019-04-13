@@ -27,7 +27,6 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
@@ -480,7 +479,9 @@ public final class BlockImpl implements Block {
     public boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
         try {
-
+            // ignore bad blocks
+            if(this.id == 7216035264418228285L || this.id == 3942820433315229521L) return true;
+            
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
@@ -500,9 +501,8 @@ public final class BlockImpl implements Block {
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
-            
-            return Generator.verifyHit(hit, pocScore, previousBlock, timestamp) 
-                    || isKnownBadBlock(this.getId());
+            boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
+            return validHit || isKnownBadBlock(this.getId());
 
         } catch (RuntimeException e) {
             Logger.logMessage("Error verifying block generation signature", e);

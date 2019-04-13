@@ -85,4 +85,10 @@ public interface PocProcessor {
      * @return
      */
     boolean pocTxProcess(Transaction tx);
+
+    /**
+     * 
+     * @return
+     */
+    boolean pocTxsProcessed();
 }
