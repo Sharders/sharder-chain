@@ -88,10 +88,13 @@ public class UrlManager {
      * @param request HttpServletRequest
      * @throws ConchException.NotValidException
      */
-    public static void validFoundationHost(HttpServletRequest request) throws ConchException.NotValidException {
+    public static boolean validFoundationHost(HttpServletRequest request) throws ConchException.NotValidException {
         if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-            throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getSharderFoundationURL()));
+            return false;
+//            throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getSharderFoundationURL()));
         }
+
+        return true;
     }
 
     /**

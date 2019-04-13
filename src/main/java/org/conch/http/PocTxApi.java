@@ -1,6 +1,7 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.conch.Conch;
@@ -49,7 +50,6 @@ public abstract class PocTxApi {
     }
 
     private static org.json.simple.JSONObject universalGetTransactions(HttpServletRequest request, QueryTransactionsHandler.HandleType handleType) throws ConchException.NotValidException, ParameterException {
-        UrlManager.validFoundationHost(request);
         String ip = Convert.emptyToNull(request.getParameter("ip"));
         String port = Convert.emptyToNull(request.getParameter("port"));
         long expectVersion = ParameterParser.getLong(request, "version", Long.MIN_VALUE, Long.MAX_VALUE, false);
@@ -97,7 +97,7 @@ public abstract class PocTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) {
             try {
-                UrlManager.validFoundationHost(request);
+                Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
                 String nodeTypeConfigJson = Https.getPostData(request);
                 Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
                         .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
@@ -110,7 +110,6 @@ public abstract class PocTxApi {
                 createTransaction(request, account, 0, 0, attachment);
                 Logger.logInfoMessage("success to create node config performance tx");
             } catch (Exception e) {
-                Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
             return ResultUtil.ok(Constants.SUCCESS);
@@ -155,7 +154,7 @@ public abstract class PocTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             try {
-                UrlManager.validFoundationHost(request);
+                Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
                 Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
                         .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
                 Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
@@ -188,7 +187,7 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            UrlManager.validFoundationHost(request);
+            Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
             String templateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
             PocTemplate customPocTemp = JSONObject.parseObject(
@@ -235,7 +234,7 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            UrlManager.validFoundationHost(request);
+            Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
             String onlineRateStr = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
             JSONObject onlineRateJson = JSONObject.parseObject(onlineRateStr);

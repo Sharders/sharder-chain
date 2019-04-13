@@ -898,7 +898,7 @@ public final class Peers {
         }
 
         if (!hasMyAddress) {
-            Logger.logInfoMessage("Current node not initialized yet, sleep 60S...");
+            Logger.logInfoMessage("Current node configuration not initialized yet, sleep 60S...");
             return;
         }
 
