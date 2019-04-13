@@ -346,8 +346,7 @@
                 formData.append("peer", address);
                 formData.append("adminPassword", adminPassword);
                 formData.append("feeNQT", 0);
-
-                this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
+                _this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
                     if (res.data.errorDescription) {
                         _this.$message.error(res.data.errorDescription);
                     } else {
@@ -365,7 +364,7 @@
                 formData.append("peer", address);
                 formData.append("adminPassword", _this.adminPassword);
 
-                this.$http.post('sharder?requestType=blacklistPeer', formData).then(function (res) {
+                this.$http.post('/sharder?requestType=blacklistPeer', formData).then(function (res) {
                     if (!res.data.errorDescription) {
                         _this.$message({
                             showClose: true,
@@ -389,7 +388,7 @@
                 let formData = new FormData();
                 formData.append("peer", address);
                 formData.append("adminPassword", _this.adminPassword);
-                this.$http.post('sharder?requestType=addPeer', formData).then(function (res) {
+                this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
                     if (!res.data.errorDescription) {
                         _this.$message({
                             showClose: true,

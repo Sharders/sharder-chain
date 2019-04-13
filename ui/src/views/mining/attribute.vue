@@ -204,7 +204,7 @@
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
-                this.$http.get('sharder?requestType=getBlockchainTransactions', {
+                this.$http.get('/sharder?requestType=getBlockchainTransactions', {
                     params: {
                         account: SSO.accountRS,
                         type: 8

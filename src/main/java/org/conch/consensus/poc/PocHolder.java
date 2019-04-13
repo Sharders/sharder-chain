@@ -118,7 +118,7 @@ class PocHolder implements Serializable {
      * @param host peer host
      * @param accountId bound account id
      */
-    private static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
+    private synchronized static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
 
         // remove from unverified collection and add it into certified map when account id updated
@@ -147,9 +147,11 @@ class PocHolder implements Serializable {
         // update exist peer infos
         CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
         existPeer.update(newPeer.getBoundAccountId());
-        Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
         
-        if(type == null) return;
+        if(type == null) {
+            Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
+            return;
+        }
         
         // foundation type should check the domain whether valid
         if(Peer.Type.FOUNDATION == type) {
@@ -169,7 +171,7 @@ class PocHolder implements Serializable {
         Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
     }
     
-    private static void updateHeightMinerMap(int height, long accountId){
+    private synchronized static void updateHeightMinerMap(int height, long accountId){
         // height mapping
         if (!inst.heightMinerMap.containsKey(height)) {
             inst.heightMinerMap.put(height, Sets.newHashSet());
