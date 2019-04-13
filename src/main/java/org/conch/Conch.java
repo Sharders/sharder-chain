@@ -105,10 +105,11 @@ public final class Conch {
     private static final String FOUNDATION_URL = "sharder.org";
     private static final String FOUNDATION_TEST_URL = "test.sharder.org";
     
-    //TODO refactor myAddress, serialNum and nodetype into systemInfo
+    //TODO refactor myAddress, serialNum, nodeIp and nodetype into systemInfo
     private static final String myAddress;
     public static String serialNum = "";
     public static String nodeType = Peer.Type.NORMAL.getSimpleName();
+    public static String nodeIp = IpUtil.getNetworkIp();
     
     public static SystemInfo systemInfo = null;
 
@@ -217,7 +218,10 @@ public final class Conch {
         if(Conch.useNATService && IpUtil.isDomain(host)) {
             return myAddress.equalsIgnoreCase(host);
         }
-        return IpUtil.getNetworkIp().equalsIgnoreCase(IpUtil.getIpFromUrl(host));
+        
+        if(StringUtils.isEmpty(nodeIp)) nodeIp = IpUtil.getNetworkIp();
+        
+        return nodeIp.equalsIgnoreCase(IpUtil.getIpFromUrl(host));
     }
 
     private static void redirectSystemStreams(String streamName) {
