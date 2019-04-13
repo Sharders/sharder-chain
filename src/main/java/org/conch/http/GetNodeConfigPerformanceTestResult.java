@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Preconditions;
 import org.conch.common.ConchException;
 import org.conch.common.UrlManager;
 import org.conch.mq.Message;
@@ -50,9 +51,8 @@ public final class GetNodeConfigPerformanceTestResult extends APIServlet.APIRequ
     protected JSONStreamAware processRequest(HttpServletRequest request) {
 
         try {
-            UrlManager.validFoundationHost(request);
+           Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
         } catch (ConchException.NotValidException e) {
-            e.printStackTrace();
             return ResultUtil.error500(e.getMessage());
         }
 
