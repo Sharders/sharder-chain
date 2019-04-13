@@ -7,7 +7,20 @@ package org.conch.util;
 public class IpUtilTest {
 
     public static void getIpFromUrl(){
+        System.out.println(IpUtil.getIpFromUrl("192.168.31.1"));
+        System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io"));
+        System.out.println(IpUtil.getIpFromUrl("testboot.sharder.io"));
+        System.out.println(IpUtil.getIpFromUrl("testboot.sharder.io:7717"));
+        System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io"));
+        System.out.println(IpUtil.getIpFromUrl("192.168.31.1:8080"));
+        System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io:8080"));  
+    }
+    
+    public static void getHostFromUrl(){
         System.out.println(IpUtil.getHostFromUrl("192.168.31.1"));
+        System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io"));
+        System.out.println(IpUtil.getHostFromUrl("testboot.sharder.io"));
+        System.out.println(IpUtil.getHostFromUrl("testboot.sharder.io:7717"));
         System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io"));
         System.out.println(IpUtil.getHostFromUrl("192.168.31.1:8080"));
         System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io:8080"));  
@@ -20,7 +33,11 @@ public class IpUtilTest {
         System.out.println(IpUtil.isDomain("devboot.sharder.io:8080")); 
     }
     public static void main(String[] args) {
-        isDomainTest();
+//        isDomainTest();
+        getHostFromUrl();
+        System.out.println("-----");
         getIpFromUrl();
+        System.out.println("-----");
+        System.out.println(IpUtil.getNetworkIp());
     }
 }

@@ -132,6 +132,13 @@ public class IpUtil {
      * @return host: domain or public ip
      */
     public static String getHostFromUrl(String url) {
+        if(isDomain(url) 
+            && !url.contains(":") 
+            && !url.contains("/") 
+            && !url.contains("http")) {
+            return url;
+        }
+        
         // return ip if ip pattern matched
         Pattern ipPattern = Pattern.compile(PATTERN_IP);
         Matcher matcher = ipPattern.matcher(url);
@@ -157,5 +164,9 @@ public class IpUtil {
     public static String getIpFromUrl(String url) {
         String host = getHostFromUrl(url);
         return checkOrToIp(host);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getHostFromUrl("testboot.sharder.io"));
     }
 }
