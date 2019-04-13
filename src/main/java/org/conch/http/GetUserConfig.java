@@ -26,8 +26,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -81,10 +83,10 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 String value = prop.getProperty(key);
                 response.put(key, value);
             }
+            
             // get node type
-            // TODO if initialized, get node type from certified peer map , then get from file system.
             Conch.nodeType = Peer.Type.NORMAL.getSimpleName();
-
+            String getFrom = "default";
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
                 String filePath = ".hubSetting/.tempCache/.sysCache";
@@ -101,10 +103,17 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                         response.put("sharder.xxx", Conch.serialNum);
                         Logger.logInfoMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
                     }
+                    getFrom = "serial number";
                 }
+            }else {
+                Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
+                if(type != null) {
+                    Conch.nodeType = type.getSimpleName();
+                    getFrom = "certified peer map";
+                } 
             }
-
-            Logger.logDebugMessage("current os is %s and its node type is %s", SystemUtils.OS_NAME, Conch.nodeType);
+            
+            Logger.logDebugMessage("current os is %s and its node type get from %s is %s", SystemUtils.OS_NAME, getFrom, Conch.nodeType);
             response.put("sharder.NodeType", Conch.nodeType);
 
         } catch (IOException e) {

@@ -208,7 +208,7 @@ const cn = {
         'coinbase_transaction': "矿池交易数",
         'store_transaction': "存储交易数",
         'alias_modification': "账户修改数",
-        'system_reward': "系统奖励数",
+        'system_reward': "系统交易数",
         'peers_info': "节点概况",
         'peers_add': "添加节点",
         'peers_detail': "节点详情",

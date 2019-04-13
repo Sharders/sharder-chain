@@ -479,9 +479,6 @@ public final class BlockImpl implements Block {
     public boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
         try {
-            // ignore bad blocks
-            if(this.id == 7216035264418228285L || this.id == 3942820433315229521L) return true;
-            
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
