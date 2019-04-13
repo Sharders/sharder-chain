@@ -270,7 +270,7 @@
                                 <el-button class="calculate_fee" @click="getMessageFee()">
                                     {{$t('sendMessage.calc_short')}}
                                 </el-button>
-                                <input class="el-input__inner" v-model="messageForm.fee" type="number" />
+                                <input class="el-input__inner" v-model="messageForm.fee" type="number"/>
                                 <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.secret_key')" v-if="!secretPhrase">
@@ -302,7 +302,7 @@
                                 <img src="../../assets/img/account_directory.svg"/>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.receiver_public_key')" v-if="transfer.hasPublicKey">
-                                <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
+                                <el-input v-model="transfer.publicKey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.amount')">
                                 <input class="el-input__inner" v-model="transfer.number" type="number"/>
@@ -362,10 +362,12 @@
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough" prop="address">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough"
+                                  prop="address">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough" prop="port">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough"
+                                  prop="port">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
@@ -376,8 +378,8 @@
                         <el-input v-model="hubsetting.publicAddress" :disabled="hubsetting.openPunchthrough"></el-input>
                     </el-form-item>
                     <!--<el-form-item class="create_account" :label="$t('hubsetting.token_address')" prop="SS_Address">-->
-                        <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
-                        <!--&lt;!&ndash;<a @click="register"><span>$t('hubsetting.create_account')</span></a>&ndash;&gt;-->
+                    <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
+                    <!--&lt;!&ndash;<a @click="register"><span>$t('hubsetting.create_account')</span></a>&ndash;&gt;-->
                     <!--</el-form-item>-->
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')" hidden>
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
@@ -412,10 +414,10 @@
             </div>
             <div class="modal-body">
                 <!--<div class="version_info">-->
-                    <!--<span>{{$t('hubsetting.current_version')}}</span>-->
-                    <!--<span>{{blockchainState.version}}</span>-->
-                    <!--<span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>-->
-                    <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
+                <!--<span>{{$t('hubsetting.current_version')}}</span>-->
+                <!--<span>{{blockchainState.version}}</span>-->
+                <!--<span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>-->
+                <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
                 <!--</div>-->
                 <el-form label-position="left" label-width="160px" :rules="formRules"
                          :model="hubsetting" ref="reconfigureForm" status-icon>
@@ -442,7 +444,7 @@
                         <el-input v-model="hubsetting.publicAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <!--<el-form-item :label="$t('hubsetting.token_address')" prop="SS_Address">-->
-                        <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
+                    <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
                     <!--</el-form-item>-->
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')" hidden>
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
@@ -469,8 +471,12 @@
         <!-- view use NAT service dialog -->
         <div class="modal_hubSetting" id="use_nat_service" v-show="useNATServiceDialog">
             <div class="modal-header">
-                <button class="common_btn" @click="openAdminDialog('resetNormal')" v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.reset')}}</button>
-                <button class="common_btn" @click="openAdminDialog('restart')" v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.restart')}}</button>
+                <button class="common_btn" @click="openAdminDialog('resetNormal')"
+                        v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.reset')}}
+                </button>
+                <button class="common_btn" @click="openAdminDialog('restart')"
+                        v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.restart')}}
+                </button>
                 <h4 class="modal-title">
                     <span>{{ $t('login.use_nat_server') }}</span>
                 </h4>
@@ -490,10 +496,12 @@
                     <el-form-item :label="$t('hubsetting.register_status')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.register_status_text" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough" prop="address">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough"
+                                  prop="address">
                         <el-input v-model="hubsetting.address" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough" prop="port">
+                    <el-form-item :label="$t('hubsetting.nat_traversal_port')" v-if="hubsetting.openPunchthrough"
+                                  prop="port">
                         <el-input v-model="hubsetting.port" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_clent_privateKey')"
@@ -669,7 +677,7 @@
                     isEncrypted: false,
                     password: "",
                     hasPublicKey: false,
-                    receiverPublickey: "",
+                    publicKey: "",
                     errorCode: false
                 },
                 hubsetting: {
@@ -744,9 +752,7 @@
                 ssPublickey: SSO.publicKey,
 
                 operationType: 'init',
-                formRules: {
-
-                },
+                formRules: {},
                 hubInitSettingRules: {
                     publicAddress: [required],
                     sharderAccount: [required],
@@ -882,7 +888,7 @@
             },
             drawBarchart: function (barchat) {
                 const _this = this;
-                const barchart = _this.$echarts.init(document.getElementById("transaction_amount_bar"),null,{renderer:'svg'});
+                const barchart = _this.$echarts.init(document.getElementById("transaction_amount_bar"), null, {renderer: 'svg'});
                 const option = {
                     grid: {
                         left: '15%',
@@ -912,7 +918,7 @@
             },
             drawYield: function (yields) {
                 const _this = this;
-                const yieldCurve = _this.$echarts.init(document.getElementById("yield_curve"),null,{renderer:'svg'});
+                const yieldCurve = _this.$echarts.init(document.getElementById("yield_curve"), null, {renderer: 'svg'});
                 const option = {
                     grid: {
                         left: '15%',
@@ -1443,12 +1449,12 @@
                                 _this.$message.warning(_this.$t('notification.sendmessage_null_secret_key'));
                                 return;
                             }
-                            if (_this.transfer.receiverPublickey === "") {
+                            if (_this.transfer.publicKey === "") {
                                 _this.$message.warning(_this.$t('notification.transfer_null_public_key'));
                                 return;
                             }
                             options.account = _this.transfer.receiver;
-                            options.publicKey = _this.transfer.receiverPublickey;
+                            options.publicKey = _this.transfer.publicKey;
                             encrypted = SSO.encryptNote(_this.transfer.message, options, _this.secretPhrase || _this.transfer.password);
                             formData.append("encrypt_message", '1');
                             formData.append("encryptedMessageData", encrypted.message);
@@ -1601,7 +1607,7 @@
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
                 }
-                if (_this.transfer.receiverPublickey === "") {
+                if (_this.transfer.publicKey === "") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account_public'));
                     return;
                 }
@@ -1626,7 +1632,7 @@
                         return;
                     }
                     formData.append("recipient", _this.transfer.receiver);
-                    formData.append("recipientPublicKey", _this.transfer.receiverPublickey);
+                    formData.append("recipientPublicKey", _this.transfer.publicKey);
                     formData.append("deadline", "1440");
                     formData.append("phased", 'false');
                     formData.append("phasingLinkedFullHash", '');
@@ -1641,7 +1647,7 @@
                         if (_this.transfer.isEncrypted) {
 
                             options.account = _this.transfer.receiver;
-                            options.publicKey = _this.transfer.receiverPublickey;
+                            options.publicKey = _this.transfer.publicKey;
                             encrypted = SSO.encryptNote(_this.transfer.message, options, _this.secretPhrase || _this.transfer.password);
                             formData.append("encrypt_message", '1');
                             formData.append("encryptedMessageData", encrypted.message);
@@ -1908,7 +1914,7 @@
                 _this.transfer.isEncrypted = false;
                 _this.transfer.password = "";
                 _this.transfer.hasPublicKey = false;
-                _this.transfer.receiverPublickey = "";
+                _this.transfer.publicKey = "";
                 _this.transfer.errorCode = false;
 
                 _this.isShowName = true;
@@ -2170,6 +2176,32 @@
                 console.log(`accountRs: ${accountRs}`);
                 return accountRs;
             },
+            validationReceiver(val) {
+                let _this = this;
+                let receiver = _this[val].receiver;
+                if (receiver === "___-____-____-____-_____" || receiver === "SSA-____-____-____-_____") {
+                    return
+                }
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                if (!receiver.toUpperCase().match(pattern)) {
+                    return _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
+                }
+                if (receiver === _this.accountInfo.accountRS) {
+                    _this.$message.warning(_this.$t('notification.account_is_self'));
+                    _this[val].errorCode = true;
+                }
+                _this[val].publicKey = "";
+                _this.getAccount(receiver).then(res => {
+                    console.log(res);
+                    if (res.errorDescription || !res.publicKey) {
+                        _this[val].errorCode = true;
+                        _this[val].hasPublicKey = true;
+                    }
+                    if (res.publicKey) {
+                        _this[val].publicKey = res.publicKey;
+                    }
+                });
+            }
         },
         computed: {
             getLang: function () {
@@ -2187,7 +2219,7 @@
                     if (isNaN(Number(_this.transfer.number)) || _this.transfer.number < 0) {
                         _this.transfer.number = 0;
                     }
-                    if(isNaN(_this.transfer.fee) || _this.transfer.fee < 1){
+                    if (isNaN(_this.transfer.fee) || _this.transfer.fee < 1) {
                         _this.transfer.fee = 1;
                     }
                 },
@@ -2196,7 +2228,7 @@
             messageForm: {
                 handler: function (oldValue, newValue) {
                     const _this = this;
-                    if(isNaN(_this.messageForm.fee) || _this.messageForm.fee < 1){
+                    if (isNaN(_this.messageForm.fee) || _this.messageForm.fee < 1) {
                         _this.messageForm.fee = 1;
                     }
                 },
@@ -2278,56 +2310,10 @@
             }, 4000);
 
             $('#receiver').on("blur", function () {
-                let receiver = _this.messageForm.receiver;
-                if (receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____") {
-                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                    if (!receiver.toUpperCase().match(pattern)) {
-                        _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
-                        return;
-                    }
-                    if (receiver === _this.accountInfo.accountRS) {
-                        _this.$message.warning(_this.$t('notification.account_is_self'));
-                        _this.messageForm.errorCode = true;
-                    }
-                    _this.messageForm.publicKey = "";
-                    _this.getAccount(receiver).then(res => {
-                        console.log(res);
-                        if (res.publicKey) {
-                            _this.messageForm.publicKey = res.publicKey;
-                            return;
-                        }
-                        if (res.errorDescription || !res.publicKey) {
-                            _this.messageForm.errorCode = true;
-                            _this.messageForm.hasPublicKey = true;
-                        }
-                    });
-                }
+                _this.validationReceiver("messageForm");
             });
             $('#tranfer_receiver').on("blur", function () {
-                let receiver = _this.transfer.receiver;
-                if (receiver !== "___-____-____-____-_____" && receiver !== "SSA-____-____-____-_____") {
-                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
-                    if (!receiver.toUpperCase().match(pattern)) {
-                        _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
-                        return;
-                    }
-                    if (receiver === _this.accountInfo.accountRS) {
-                        _this.$message.warning(_this.$t('notification.account_is_self'));
-                        _this.transfer.errorCode = true;
-                    }
-                    _this.transfer.receiverPublickey = "";
-                    _this.getAccount(receiver).then(res => {
-                        console.log(res);
-                        if (res.publicKey) {
-                            _this.transfer.receiverPublickey = res.publicKey;
-                            return;
-                        }
-                        if (res.errorDescription || !res.publicKey) {
-                            _this.transfer.errorCode = true;
-                            _this.transfer.hasPublicKey = true;
-                        }
-                    });
-                }
+                _this.validationReceiver("transfer");
             });
         },
     };
