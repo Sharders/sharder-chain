@@ -43,7 +43,7 @@ public class CertifiedPeer implements Serializable {
         this.boundAccountId = accountId;
         this.boundRS = Account.rsAccount(accountId);
         try {
-            this.ip = IpUtil.checkOrToIp(host);
+            this.ip = IpUtil.getIpFromUrl(host);
         } catch (Exception ignore) {
             //ignore
         }
@@ -87,7 +87,7 @@ public class CertifiedPeer implements Serializable {
     }
 
     public boolean isSame(String peerHost) {
-        String peerIp = IpUtil.checkOrToIp(peerHost);
+        String peerIp = IpUtil.getIpFromUrl(peerHost);
         if (useNat) {
             return host.equalsIgnoreCase(peerHost);
         } else {

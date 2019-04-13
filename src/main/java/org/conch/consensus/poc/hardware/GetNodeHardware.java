@@ -119,7 +119,7 @@ public class GetNodeHardware {
                 return true;
         }
     }
-
+    
     public static SystemInfo network(SystemInfo systemInfo) throws Exception {
         Sigar sigar = new Sigar();
 
@@ -198,7 +198,7 @@ public class GetNodeHardware {
         String myAddress = Optional.ofNullable(Conch.getMyAddress())
                 .orElseThrow(() -> new ConchException.NotValidException("my address is null"));
         // nat service: open - myAddress should be proxy address; nat service : close - myAddress should be public address
-        String ip = Conch.addressHost(myAddress);
+        String host = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
@@ -207,7 +207,7 @@ public class GetNodeHardware {
             //don't report
             return null;
         }
-        systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip)
+        systemInfo.setIp(host).setPort(Integer.toString(port)).setAddress(host)
                 .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.nodeType);
         Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
         cpu(systemInfo);
@@ -217,6 +217,7 @@ public class GetNodeHardware {
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
         Logger.logDebugMessage("============== The configuration performance test is completed ==============");
+        Conch.systemInfo = systemInfo;
         return systemInfo;
     }
 

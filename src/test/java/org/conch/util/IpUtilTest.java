@@ -7,10 +7,10 @@ package org.conch.util;
 public class IpUtilTest {
 
     public static void getIpFromUrl(){
-        System.out.println(IpUtil.getIpFromUrl("192.168.31.1"));
-        System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io"));
-        System.out.println(IpUtil.getIpFromUrl("192.168.31.1:8080"));
-        System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io:8080"));  
+        System.out.println(IpUtil.getHostFromUrl("192.168.31.1"));
+        System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io"));
+        System.out.println(IpUtil.getHostFromUrl("192.168.31.1:8080"));
+        System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io:8080"));  
     }
     
     public static void isDomainTest(){

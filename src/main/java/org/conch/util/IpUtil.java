@@ -1,5 +1,7 @@
 package org.conch.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -15,6 +17,10 @@ import java.util.regex.Pattern;
  */
 public class IpUtil {
 
+    /**
+     * @param url can't include the port
+     * @return
+     */
     public static String checkOrToIp(String url) {
         try {
             if(!isDomain(url)) return url;
@@ -25,6 +31,10 @@ public class IpUtil {
         return "";
     }
 
+    /**
+     * @param url can't include the port
+     * @return
+     */
     public static String getHost(String url){
         try {
             return InetAddress.getByName(url).getHostName();
@@ -43,6 +53,11 @@ public class IpUtil {
         return senderIp.equals(checkOrToIp(host));
     }
     
+    public static boolean matchHost(String host, String ip) {
+        if(StringUtils.isEmpty(ip)) return false;
+        return ip.equals(checkOrToIp(host));
+    }
+    
     public static boolean isFoundationDomain(String host){
         if(host.endsWith("sharder.io") 
         || host.endsWith("sharder.org")
@@ -53,11 +68,17 @@ public class IpUtil {
         return false;
     }
     
-    public static String getNetworkIp() throws SocketException {
+    public static String getNetworkIp() {
         String localip = null;// 本地IP，如果没有配置外网IP则返回它
         String netip = null;// 外网IP
 
-        Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
+        Enumeration<NetworkInterface> netInterfaces = null;
+        try {
+            netInterfaces = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            return "";
+        }
+        
         InetAddress ip = null;
         boolean finded = false;// 是否找到外网IP
         while (netInterfaces.hasMoreElements() && !finded) {
@@ -85,9 +106,14 @@ public class IpUtil {
 
     /* domain pattern */
     public static String PATTERN_L2DOMAIN = "\\w*\\.\\w*:";
-//    public static String PATTERN_IP = "(\\d*\\.){3}\\d*";
+    //    public static String PATTERN_IP = "(\\d*\\.){3}\\d*";
     public static String PATTERN_IP = "((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)";
-    
+
+    /**
+     * url whether is domain
+     * @param url 
+     * @return
+     */
     public static boolean isDomain(String url){
         Pattern ipPattern = Pattern.compile(PATTERN_IP);
         Matcher matcher = ipPattern.matcher(url);
@@ -96,8 +122,13 @@ public class IpUtil {
         }
         return true;
     }
-    
-    public static String getIpFromUrl(String url) {
+
+    /**
+     * get host from url
+     * @param url domain ot url contains port
+     * @return host: domain or public ip
+     */
+    public static String getHostFromUrl(String url) {
         // return ip if ip pattern matched
         Pattern ipPattern = Pattern.compile(PATTERN_IP);
         Matcher matcher = ipPattern.matcher(url);
@@ -113,6 +144,16 @@ public class IpUtil {
             return url.substring(0, endIndex);
         }
         return null;
+    }
+
+    /**
+     * get external ip from url
+     * @param url domain ot url contains port
+     * @return public network ip
+     */
+    public static String getIpFromUrl(String url) {
+        String host = getHostFromUrl(url);
+        return checkOrToIp(host);
     }
 
 }
