@@ -167,7 +167,7 @@ public abstract class PocTxApi {
                         Peer.Type.getBySimpleName(nodeTypeJson.getString("type"))
                 );
                 Logger.logInfoMessage("creating node type tx...");
-                Logger.logDebugMessage(Convert.stringTemplate("PoC node type tx:[ip={}, type={}]", pocNodeType.getIp(), pocNodeType.getType()));
+                Logger.logDebugMessage("PoC node type tx:[ip=%s, type=%s]", pocNodeType.getIp(), pocNodeType.getType());
                 createTransaction(request, account, 0, 0, pocNodeType);
                 Logger.logInfoMessage("success to create node type tx...");
             } catch (ConchException e) {
