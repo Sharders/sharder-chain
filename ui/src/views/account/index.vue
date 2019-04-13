@@ -1153,7 +1153,7 @@
                     }
                     this.$refs['useNATForm'].validate((valid) => {
                         if (valid) {
-                            this.reconfigure(reConfigFormData);
+                            this.confirmInitHubSetting(confirmFormData, reConfigFormData);
                         } else {
                             console.log('register dialog error submit!!');
                             return false;
