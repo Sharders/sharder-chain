@@ -350,11 +350,12 @@ public class PocProcessorImpl implements PocProcessor {
     // local node
     String localRS = Generator.getAutoMiningRS();
     if(Conch.matchMyAddress(host)) {
-      if(StringUtils.isNotEmpty(localRS)) {
+      if(StringUtils.isNotEmpty(localRS)) { 
+        Logger.logWarningMessage("current node[%s] is expected peer, update local miner account", host, localRS);
         PocHolder.addCertifiedPeer(height, type, host, Account.rsAccountToId(localRS));
       }else {
         PocHolder.addSynPeer(host);
-        Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
+        Logger.logWarningMessage("local bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
       }
       return;
     }
@@ -373,14 +374,28 @@ public class PocProcessorImpl implements PocProcessor {
 
 
   private static PocScore getPocScoreByPeer(int height, String host){
-    Peer peer = Peers.getPeer(host, true);
-    if(peer == null || StringUtils.isEmpty(peer.getBindRsAccount())) {
-      PocHolder.addSynPeer(host);
-      return null;
-    }
+    String rs = null;
 
-    long peerBindAccountId = Account.rsAccountToId(peer.getBindRsAccount());
-    return new PocScore(peerBindAccountId,height);
+    // local node
+    if(Conch.matchMyAddress(host)) { 
+      String localRS = Generator.getAutoMiningRS();
+      if(StringUtils.isNotEmpty(localRS)) {
+          rs = localRS;
+      }else {
+          PocHolder.addSynPeer(host);
+          return null;
+      }
+    }else {
+        Peer peer = Peers.getPeer(host, true);
+        if(peer == null || StringUtils.isEmpty(peer.getBindRsAccount())) {
+            PocHolder.addSynPeer(host);
+            return null;
+        }else {
+            rs = peer.getBindRsAccount();
+        }
+    }
+   
+    return new PocScore(Account.rsAccountToId(rs),height);
   }
   
 

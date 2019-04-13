@@ -285,6 +285,10 @@ public final class Logger {
         doLog(Level.WARN, message, null);
     }
 
+    public static void logWarningMessage(String format, Object ... args) {
+        doLog(Level.WARN, String.format(format, args), null);
+    }
+
     /**
      * Log a WARNING exception
      *
