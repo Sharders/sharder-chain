@@ -22,7 +22,6 @@
 package org.conch.peer;
 
 import com.alibaba.fastjson.annotation.JSONType;
-import org.apache.commons.lang3.StringUtils;
 import org.conch.http.APIEnum;
 import org.conch.util.PeerTypeEnumDeserializer;
 import org.json.simple.JSONObject;
@@ -35,22 +34,29 @@ import java.util.Set;
  * @author ben-xy
  */
 public interface Peer extends Comparable<Peer> {
+
+    /**
+     * Type defined and mapping
+     * - code and name used by COS
+     * - simpleCode and simpleName used by outside system
+     */
     @JSONType(deserializer = PeerTypeEnumDeserializer.class)
     enum Type {
-        /**
-         *
-         */
-        BOX(5, "Sharder Box"),
-        HUB(4, "Sharder Hub"),
-        NORMAL(3, "Normal Node"),
-        COMMUNITY(2, "Community Node"),
-        FOUNDATION(1, "Foundation Node");
+        BOX(5, "Sharder Box", 1, "Box"),
+        HUB(4, "Sharder Hub", 0,"Hub"),
+        NORMAL(3, "Normal Node", 2,"Normal"),
+        COMMUNITY(2, "Community Node", 3, "Community"),
+        FOUNDATION(1, "Foundation Node",4, "Foundation");
         private final int code;
         private final String name;
+        private final int simpleCode;
+        private final String simpleName;
 
-        Type(int code, String name) {
+        Type(int code, String name, int simpleCode,  String simpleName) {
             this.code = code;
             this.name = name;
+            this.simpleCode = simpleCode;
+            this.simpleName = simpleName;
         }
 
         public int getCode() {
@@ -61,6 +67,18 @@ public interface Peer extends Comparable<Peer> {
             return name;
         }
 
+        public int getSimpleCode() {
+            return simpleCode;
+        }
+        
+        public String getSimpleName() {
+            return simpleName;
+        }
+
+        public boolean matchSimpleName(String simpleName) {
+            return this.simpleName.equalsIgnoreCase(simpleName);
+        }
+        
         public static Type getByCode(int code) {
             for (Type _enum : values()) {
                 if (_enum.code == code) {
@@ -69,71 +87,24 @@ public interface Peer extends Comparable<Peer> {
             }
             return null;
         }
-
-        public static Type getByCode(String code) {
-            if (StringUtils.isEmpty(code)) return null;
-
-            for (Type _enum : values()) {
-                if (_enum.code == Integer.valueOf(code).intValue()) {
-                    return _enum;
-                }
-            }
-
-            return null;
-        }
-
-        public static Type getTypeByName(String name) {
+        
+        public static Type getByName(String name) {
             return Arrays.stream(values()).filter(type -> type.getName().equalsIgnoreCase(name))
                     .findFirst().orElse(null);
         }
 
-        public static Type getTypeBySimpleType(SimpleType simpleType) {
-            return Arrays.stream(values()).filter(type -> type.getName().contains(simpleType.getName()))
+        public static Type getBySimpleName(String simpleName) {
+            return Arrays.stream(values()).filter(type -> type.getSimpleName().equalsIgnoreCase(simpleName))
                     .findFirst().orElse(null);
         }
-    }
-
-    enum SimpleType {
-        /**
-         *
-         */
-        FOUNDATION(4, "Foundation"),
-        COMMUNITY(3, "Community"),
-        NORMAL(2, "Normal"),
-        BOX(1, "Box"),
-        HUB(0, "Hub");
-
-        private final Integer code;
-        private final String name;
-
-        SimpleType(int code, String name) {
-            this.code = code;
-            this.name = name;
+        
+        public static String getSimpleName(int simpleCode) {
+            return Arrays.stream(values()).filter(type -> type.getSimpleCode() == (simpleCode))
+                    .findFirst().map(Type::getSimpleName)
+                    .orElse(Type.NORMAL.getSimpleName());
         }
-
-        public Integer getCode() {
-            return code;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public static SimpleType getSimpleTypeByCode(Integer code) {
-            return Arrays.stream(values()).filter(simpleType -> simpleType.getCode().equals(code))
-                    .findFirst().orElse(SimpleType.NORMAL);
-        }
-
-        public static String getSimpleTypeNameByCode(Integer code) {
-            return Arrays.stream(values()).filter(simpleType -> simpleType.getCode().equals(code))
-                    .findFirst().map(SimpleType::getName)
-                    .orElse(SimpleType.NORMAL.getName());
-        }
-
-        public static SimpleType getSimpleTypeByName(String name) {
-            return Arrays.stream(values()).filter(simpleType -> simpleType.getName().equalsIgnoreCase(name))
-                    .findFirst().orElse(null);
-        }
+        
+        
     }
 
     enum State {

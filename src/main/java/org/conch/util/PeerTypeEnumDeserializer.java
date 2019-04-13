@@ -20,7 +20,7 @@ public class PeerTypeEnumDeserializer implements ObjectDeserializer {
         String str = defaultJSONParser.parseObject(String.class);
         JSONObject jsonObject = JSON.parseObject(str);
         String peerTypeName = jsonObject.getString("name");
-        return (T) Peer.Type.getTypeByName(peerTypeName);
+        return (T) Peer.Type.getByName(peerTypeName);
     }
 
     @Override

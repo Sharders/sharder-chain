@@ -164,7 +164,7 @@ public abstract class PocTxApi {
                         .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
                 PocTxBody.PocNodeType pocNodeType = new PocTxBody.PocNodeType(
                         nodeTypeJson.getString("ip"),
-                        Peer.Type.getTypeBySimpleType(Peer.SimpleType.getSimpleTypeByName(nodeTypeJson.getString("type")))
+                        Peer.Type.getBySimpleName(nodeTypeJson.getString("type"))
                 );
                 Logger.logInfoMessage("creating node type tx...");
                 Logger.logDebugMessage(Convert.stringTemplate("PoC node type tx:[ip={}, type={}]", pocNodeType.getIp(), pocNodeType.getType()));
