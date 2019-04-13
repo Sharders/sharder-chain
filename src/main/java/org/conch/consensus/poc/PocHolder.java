@@ -127,7 +127,7 @@ class PocHolder implements Serializable {
             inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
             inst.unverifiedPeerMap.remove(host);
         }
-
+        
         if (!inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
             // foundation type should check the domain whether valid
             if(type != null) {
@@ -139,6 +139,7 @@ class PocHolder implements Serializable {
                     newPeer.setType(type);
                 }
             }
+            Logger.logDebugMessage("add a new certified peer {}", newPeer);
             inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
             return;
         }
@@ -146,7 +147,8 @@ class PocHolder implements Serializable {
         // update exist peer infos
         CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
         existPeer.update(newPeer.getBoundAccountId());
-
+        Logger.logDebugMessage("update a certified peer {}", existPeer);
+        
         if(type == null) return;
         
         // foundation type should check the domain whether valid
@@ -164,7 +166,7 @@ class PocHolder implements Serializable {
                 existPeer.update(type);
             }
         }
-
+        Logger.logDebugMessage("update a certified peer {}", existPeer);
     }
     
     private static void updateHeightMinerMap(int height, long accountId){
