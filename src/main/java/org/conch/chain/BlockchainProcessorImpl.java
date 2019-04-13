@@ -27,7 +27,6 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
@@ -1472,7 +1471,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
-      block.verifyGenerationSignature();
       throw new BlockNotAcceptedException("Generation signature verification failed, poc score is " + pocScoreObj.total(), block);
     }
     if (!block.verifyBlockSignature()) {

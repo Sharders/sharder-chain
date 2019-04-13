@@ -29,7 +29,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.env.RuntimeEnvironment;
@@ -110,8 +109,8 @@ public class Generator implements Comparable<Generator> {
         
     }
 
-    private static int logPrintCount = 0;
     private static final boolean isBootNode = bootNodeCheck();
+    private static final boolean stillWait = false;
     private static final boolean bootNodeCheck() {
         String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
         if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
@@ -124,35 +123,40 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
-        boolean printNow = logPrintCount++ == 0 || logPrintCount++ > 100;
-        
         if(isBootNode) {
             Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
             return true;
         }
 
         if(!Conch.isInitialized()) {
-            if(printNow) {
+            if(Logger.printNow(Generator.class)) {
                 Logger.logWarningMessage("wait for Conch initialized...");
-                logPrintCount = 1;
             }
             return false;
         }
         
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-            if(printNow) {
+            if(Logger.printNow(Generator.class)) {
                 Logger.logWarningMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
                         + ", and current height is " + lastBlock.getHeight()
                         + ", don't mint till blocks sync finished...");
-                logPrintCount = 1;
             }
             return false;
         }
 
+        
+        if(!stillWait) return true;
+        
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
-            if(printNow) {
-                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't process delayed poc txs till blocks sync finished...");
-                logPrintCount = 1;
+            if(Logger.printNow(Generator.class)) {
+                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't start mining till blocks sync finished...");
+            }
+            return false;
+        }
+        
+        if(!Conch.getPocProcessor().pocTxsProcessed()) {
+            if(Logger.printNow(Generator.class)) {
+                Logger.logDebugMessage("delayed poc txs or old poc txs haven't processed, don't start mining till blocks sync finished...");
             }
             return false;
         }

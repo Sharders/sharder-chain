@@ -123,7 +123,12 @@ public class PocProcessorImpl implements PocProcessor {
     return PocHolder.resetCertifiedPeers();
   }
 
-  
+  @Override
+  public boolean pocTxsProcessed() {
+    // whether contains delayed poc txs or old poc txs need to process
+    return !oldPocTxsProcess && PocHolder.delayPocTxs().size() <= 0;
+  }
+
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
   
