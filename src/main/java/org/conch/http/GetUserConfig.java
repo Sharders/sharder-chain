@@ -104,7 +104,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 }
             }
 
-            Logger.logInfoMessage("current os is %s and its node type is %s", SystemUtils.OS_NAME, Conch.nodeType);
+            Logger.logDebugMessage("current os is %s and its node type is %s", SystemUtils.OS_NAME, Conch.nodeType);
             response.put("sharder.NodeType", Conch.nodeType);
             
         } catch (IOException e) {
