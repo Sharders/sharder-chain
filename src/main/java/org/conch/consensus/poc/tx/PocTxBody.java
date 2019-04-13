@@ -125,7 +125,9 @@ public interface PocTxBody {
         public PocNodeType(JSONObject attachmentData) {
             super(attachmentData);
             this.ip = (String) attachmentData.get("ip");
-            this.type = Peer.Type.getByCode((Integer) attachmentData.get("type"));
+            Object obj = attachmentData.get("type");
+            Integer code = obj instanceof Long ? ((Long) obj).intValue() : (Integer)obj;
+            this.type = Peer.Type.getByCode(code);
         }
 
         @Override
