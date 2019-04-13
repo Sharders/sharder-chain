@@ -208,6 +208,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ip", myAddress);
         jsonObject.put("type", req.getParameter("nodeType"));
+        jsonObject.put("network", Conch.getNetworkType());
         Message message = new Message()
                 .setSender(myAddress)
                 .setRetryCount(0)
