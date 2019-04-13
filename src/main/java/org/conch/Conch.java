@@ -55,6 +55,7 @@ import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.MessageManager;
+import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.shuffle.Shuffling;
 import org.conch.shuffle.ShufflingParticipant;
@@ -105,7 +106,7 @@ public final class Conch {
     private static final String FOUNDATION_URL = "sharder.org";
     private static final String FOUNDATION_TEST_URL = "test.sharder.org";
     public static String serialNum = "";
-    public static String nodeType;
+    public static String nodeType = Peer.Type.NORMAL.getSimpleName();
 
     public static String getSharderFoundationURL(){
         return Constants.isDevnet() ? FOUNDATION_TEST_URL : FOUNDATION_URL;

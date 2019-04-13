@@ -11,7 +11,6 @@ import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
-import org.eclipse.jetty.util.StringUtil;
 import org.hyperic.sigar.*;
 import sun.net.util.IPAddressUtil;
 
@@ -203,19 +202,21 @@ public class GetNodeHardware {
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
+        
         if (StringUtils.isEmpty(Conch.nodeType)) {
-            throw new ConchException.NotValidException("node type can not be empty");
+            //don't report
+            return null;
         }
         systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip)
                 .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.nodeType);
-        Logger.logDebugMessage("==============Now start testing configuration performance...==============");
+        Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
-        Logger.logDebugMessage("==============The configuration performance test is completed==============");
+        Logger.logDebugMessage("============== The configuration performance test is completed ==============");
         return systemInfo;
     }
 
@@ -228,6 +229,8 @@ public class GetNodeHardware {
      */
     public static Boolean report(SystemInfo systemInfo) throws IOException {
         try{
+            if(systemInfo == null) return false;
+            
             RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
                     .post()
                     .body(systemInfo)
