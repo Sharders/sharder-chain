@@ -343,7 +343,7 @@ public class PocProcessorImpl implements PocProcessor {
       return;
     }
 
-    Logger.logDebugMessage("update certified peer host=%s type=%s height=%d", host, type.getName(), height);
+    Logger.logDebugMessage("update certified peer host=%s, type=%s, height=%d", host, type.getName(), height);
     
     // local node
     String localRS = Generator.getAutoMiningRS();
