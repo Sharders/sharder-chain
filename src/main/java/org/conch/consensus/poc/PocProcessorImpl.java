@@ -234,6 +234,8 @@ public class PocProcessorImpl implements PocProcessor {
         Logger.logInfoMessage("success to process delayed poc txs[size=%d]", processedTxs.size());
         Logger.logDebugMessage("processed poc txs detail => " + Arrays.toString(processedTxs.toArray()));
         PocHolder.removeProcessedTxs(processedTxs);
+      } else if(!oldPocTxsProcess) {
+        Logger.logDebugMessage("!!delayed poc txs process failed");
       }
 
       if(oldPocTxsProcess) {
