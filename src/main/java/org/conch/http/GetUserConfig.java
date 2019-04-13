@@ -84,18 +84,18 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             // get node type
             // TODO if initialized, get node type from certified peer map , then get from file system.
             Conch.nodeType = Peer.Type.NORMAL.getSimpleName();
-            
+
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
                 String filePath = ".hubSetting/.tempCache/.sysCache";
                 String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
                 File tempFile = new File(userHome);
-                
+
                 // hub node check if serial number exist
                 if (tempFile.exists()) {
                     String num = FileUtils.readFileToString(tempFile, "UTF-8");
                     Conch.nodeType = this.getTypeSimpleName(num);
-                    
+
                     if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
                         Conch.serialNum = num.replaceAll("(\\r\\n|\\n)", "");
                         response.put("sharder.xxx", Conch.serialNum);
@@ -106,7 +106,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
             Logger.logDebugMessage("current os is %s and its node type is %s", SystemUtils.OS_NAME, Conch.nodeType);
             response.put("sharder.NodeType", Conch.nodeType);
-            
+
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
@@ -125,22 +125,23 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
     /**
      * get simple name according to serial num, default type is node if there is no num exist.
+     *
      * @param num serial number
-     * @return
+     * @return Peer Type Simple Name
      * @throws IOException
      */
     private String getTypeSimpleName(String num) throws IOException {
-      
+
         if (StringUtils.isEmpty(num)) {
             return Peer.Type.NORMAL.getSimpleName();
         }
-        
+
         String url = UrlManager.getFoundationUrl(
                 UrlManager.GET_HARDWARE_TYPE_EOLINKER,
                 UrlManager.GET_HARDWARE_TYPE_LOCAL,
                 UrlManager.GET_HARDWARE_TYPE_PATH
         );
-        
+
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
                 .get()
                 .addPathParam("serialNum", num.replaceAll("(\\r\\n|\\n)", ""))
@@ -153,12 +154,12 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             if (data == null || data.getInteger("type") == null) {
                 return Peer.Type.NORMAL.getSimpleName();
             }
-            
+
             nodeTypeCode = data.getInteger("type");
-        } else{
+        } else {
             Logger.logWarningMessage(String.format("failed to get node type by serial number[%s]!", num));
         }
-  
+
         return Peer.Type.getSimpleName(nodeTypeCode);
     }
 

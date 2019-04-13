@@ -83,7 +83,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        if (sendCreateNodeTypeTxRequest(req)) {
+        if (!sendCreateNodeTypeTxRequest(req)) {
             Logger.logErrorMessage("failed to configure settings...send create node type tx message failed!");
             response.put("reconfiged", false);
             response.put("failedReason", "failed to configure settings...send create node type tx message failed!");
