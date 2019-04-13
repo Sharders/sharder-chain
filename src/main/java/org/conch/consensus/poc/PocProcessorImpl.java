@@ -200,7 +200,7 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   private static final int peerSynThreadInterval = 600;
-  private static final int pocTxSynThreadInterval = 30;
+  private static final int pocTxSynThreadInterval = 60;
   public static void init() {
     ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
     ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
