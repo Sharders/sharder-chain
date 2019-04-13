@@ -270,8 +270,7 @@
                                 <el-button class="calculate_fee" @click="getMessageFee()">
                                     {{$t('sendMessage.calc_short')}}
                                 </el-button>
-                                <input class="el-input__inner" v-model="messageForm.fee" type="number" min="1"
-                                       max="100000" :step="0.1"/>
+                                <input class="el-input__inner" v-model="messageForm.fee" type="number" />
                                 <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item :label="$t('sendMessage.secret_key')" v-if="!secretPhrase">
@@ -306,16 +305,14 @@
                                 <el-input v-model="transfer.receiverPublickey" type="password"></el-input>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.amount')">
-                                <input class="el-input__inner" v-model="transfer.number" min="0" :max="1000000000"
-                                       type="number"/>
+                                <input class="el-input__inner" v-model="transfer.number" type="number"/>
                                 <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item :label="$t('transfer.fee')">
                                 <el-button class="calculate_fee" @click="getTransferFee()">
                                     {{$t('transfer.calc_short')}}
                                 </el-button>
-                                <input class="el-input__inner" v-model="transfer.fee" min="1" max="100000" :step="0.1"
-                                       type="number"/>
+                                <input class="el-input__inner" v-model="transfer.fee" type="number"/>
                                 <label class="input_suffix">{{$global.unit}}</label>
                             </el-form-item>
                             <el-form-item label="">
@@ -1761,8 +1758,7 @@
             },
             openTransferDialog: function () {
                 if (SSO.downloadingBlockchain) {
-                    this.$message.warning(this.$t("account.synchronization_block"));
-                    return;
+                    return this.$message.warning(this.$t("account.synchronization_block"));
                 }
                 this.$store.state.mask = true;
                 this.tranferAccountsDialog = true;
@@ -2188,36 +2184,19 @@
                         _this.transfer.message = "";
                         _this.transfer.isEncrypted = false;
                     }
-
-                    const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
-
-                    if (_this.transfer.fee === '') {
-                        _this.transfer.fee = 1;
-                    } else if (!_this.transfer.fee.toString().match(pattern)) {
+                    if (isNaN(Number(_this.transfer.number)) || _this.transfer.number < 0) {
+                        _this.transfer.number = 0;
+                    }
+                    if(isNaN(_this.transfer.fee) || _this.transfer.fee < 1){
                         _this.transfer.fee = 1;
                     }
-
-                    const pattern2 = /(^[1-9]\d{0,8}$)|(^1000000000$)|(^0$)/;
-
-
-                    if (_this.transfer.number === '') {
-                        _this.transfer.number = 1;
-                    } else if (!_this.transfer.number.toString().match(pattern2)) {
-                        _this.transfer.number = 1;
-                    }
-
                 },
                 deep: true
             },
             messageForm: {
                 handler: function (oldValue, newValue) {
                     const _this = this;
-                    const pattern = /(^[1-9]\d{0,4}$)|(^[1-9]\d{0,4}\.\d$)|(^100000$)/;
-
-
-                    if (_this.messageForm.fee === '') {
-                        _this.messageForm.fee = 1;
-                    } else if (!_this.messageForm.fee.toString().match(pattern)) {
+                    if(isNaN(_this.messageForm.fee) || _this.messageForm.fee < 1){
                         _this.messageForm.fee = 1;
                     }
                 },
