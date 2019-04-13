@@ -209,7 +209,7 @@ const en = {
         'coinbase_transaction': "Pool Txns",
         'store_transaction': "Storage Txns",
         'alias_modification': "Account Txns",
-        'system_reward': "Reward Txns",
+        'system_reward': "System Txns",
         'peers_info': "Node Summary",
         'peers_add': "Add Node",
         'peers_detail': "Node Details",
