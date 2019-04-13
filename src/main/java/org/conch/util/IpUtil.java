@@ -115,12 +115,11 @@ public class IpUtil {
      * @return
      */
     public static boolean isDomain(String url){
+        if(StringUtils.isEmpty(url)) return false;
+        
         Pattern ipPattern = Pattern.compile(PATTERN_IP);
         Matcher matcher = ipPattern.matcher(url);
-        if (matcher.find()) {
-            return false;
-        }
-        return true;
+        return !matcher.find();
     }
 
     /**
@@ -155,5 +154,4 @@ public class IpUtil {
         String host = getHostFromUrl(url);
         return checkOrToIp(host);
     }
-
 }

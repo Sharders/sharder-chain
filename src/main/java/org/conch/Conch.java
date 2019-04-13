@@ -21,6 +21,7 @@
 
 package org.conch;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.*;
@@ -211,6 +212,8 @@ public final class Conch {
     }
     
     public static boolean matchMyAddress(String host){
+        if(StringUtils.isEmpty(host)) return false;
+        
         if(Conch.useNATService && IpUtil.isDomain(host)) {
             return myAddress.equalsIgnoreCase(host);
         }
