@@ -101,10 +101,12 @@ public final class Conch {
     private static final RuntimeMode runtimeMode;
     public static final DirProvider dirProvider;
 
+
     private static final Properties DEFAULT_PROPERTIES = new Properties();
     private static final String FOUNDATION_URL = "sharder.org";
     private static final String FOUNDATION_TEST_URL = "test.sharder.org";
-    
+
+    public static final Peer.RunningMode runningMode;
     //TODO refactor myAddress, serialNum, nodeIp and nodeType into systemInfo
     private static final String myAddress;
     public static String serialNum = "";
@@ -204,6 +206,7 @@ public final class Conch {
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(DEFAULT_PROPERTIES, CONCH_DEFAULT_PROPERTIES, true);
+        runningMode = getRunningMode();
         PresetParam.print();
     }
 
@@ -681,7 +684,7 @@ public final class Conch {
 
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
 
-                if (isDesktopApplicationEnabled()) launchDesktopApplication();
+                if (isDesktopMode()) runtimeMode.launchDesktopApplication();
 
                 if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE REAL ACCOUNTS!");
 
@@ -804,12 +807,33 @@ public final class Conch {
         runtimeMode.setServerStatus(status, wallet, dirProvider.getLogFileDir());
     }
 
-    public static boolean isDesktopApplicationEnabled() {
-        return RuntimeEnvironment.isDesktopApplicationEnabled() && Conch.getBooleanProperty("sharder.launchDesktopApplication");
+    public static boolean isDesktopMode() {
+        return Peer.RunningMode.DESKTOP.equals(runningMode);
     }
 
-    private static void launchDesktopApplication() {
-        runtimeMode.launchDesktopApplication();
+    /**
+     * running mode
+     *
+     * @return
+     */
+    private static Peer.RunningMode getRunningMode(){
+        Peer.RunningMode mode = Peer.RunningMode.OTHERS;
+        // server node should not running on the windows and mac os
+        if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
+            Path serialFile = Paths.get(System.getProperty("user.home")).resolve(".hubSetting/.tempCache/.sysCache");
+            if(Files.exists(serialFile)){
+                mode = Peer.RunningMode.COMMAND;
+            }else if(RuntimeEnvironment.isDesktopApplicationEnabled()
+                    && Conch.getBooleanProperty("sharder.launchDesktopApplication")) {
+                mode = Peer.RunningMode.DESKTOP;
+            }
+        }else {
+            if(!RuntimeEnvironment.isDesktopApplicationEnabled()
+                    || !Conch.getBooleanProperty("sharder.launchDesktopApplication")) {
+                mode = Peer.RunningMode.COMMAND;
+            }
+        }
+        return mode;
     }
 
     private Conch() {} // never

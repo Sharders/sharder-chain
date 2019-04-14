@@ -45,7 +45,7 @@ public final class AddOns {
         });
         addOns = Collections.unmodifiableList(addOnsList);
         if (!addOns.isEmpty() && !Conch.getBooleanProperty("sharder.disableSecurityPolicy")) {
-            System.setProperty("java.security.policy", Conch.isDesktopApplicationEnabled() ? "desktop.policy" : "sharder.policy");
+            System.setProperty("java.security.policy", Conch.isDesktopMode() ? "desktop.policy" : "sharder.policy");
             Logger.logMessage("Setting security manager with policy " + System.getProperty("java.security.policy"));
             System.setSecurityManager(new SecurityManager() {
                 @Override

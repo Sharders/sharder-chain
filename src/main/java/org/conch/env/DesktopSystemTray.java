@@ -26,8 +26,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
-import org.conch.db.Db;
-import org.conch.http.API;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
@@ -155,7 +153,7 @@ public class DesktopSystemTray {
         }
         MenuItem showDesktopApplication = new MenuItem(getItemDisplay("ShowDA"));
         MenuItem refreshDesktopApplication = new MenuItem(getItemDisplay("RefreshW"));
-        if (!Conch.isDesktopApplicationEnabled()) {
+        if (!Conch.isDesktopMode()) {
             showDesktopApplication.setEnabled(false);
             refreshDesktopApplication.setEnabled(false);
         }

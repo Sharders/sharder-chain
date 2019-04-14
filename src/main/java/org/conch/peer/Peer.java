@@ -190,6 +190,36 @@ public interface Peer extends Comparable<Peer> {
         FORK
     }
 
+    enum RunningMode {
+        DESKTOP("DESKTOP"),
+        COMMAND("COMMAND"),
+        LIGHT("LIGHT"),
+        OTHERS("OTHERS");
+        private final String name;
+
+        RunningMode(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean matchName(String name) {
+            return this.name.equalsIgnoreCase(name);
+        }
+
+        public static RunningMode getByCode(int code) {
+            return Arrays.stream(values()).filter(mode -> mode.ordinal() == code)
+                    .findFirst().orElse(null);
+        }
+
+        public static RunningMode getByName(String name) {
+            return Arrays.stream(values()).filter(mode -> mode.getName().equalsIgnoreCase(name))
+                    .findFirst().orElse(null);
+        }
+    }
+
     boolean providesService(Service service);
 
     boolean providesServices(long services);

@@ -137,6 +137,7 @@ public final class Peers {
     private static String bestPeer = "127.0.0.1";
     private static PeerLoad myLoad;
 
+    /** my peer info, it be generated in the static block **/
     private static final JSONObject myPeerInfo;
     private static List<Peer.Service> myServices;
     private static volatile Peer.BlockchainState currentBlockchainState;
@@ -160,8 +161,10 @@ public final class Peers {
         return Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers") : Conch.getStringListProperty("sharder.defaultPeers");
     }
 
+    /**
+     * generate my peer info in static block to ake sure the final params is right
+     */
     static {
-
         String platform = Conch.getStringProperty("sharder.myPlatform", System.getProperty("os.name") + " " + System.getProperty("os.arch"));
         if (platform.length() > MAX_PLATFORM_LENGTH) {
             platform = platform.substring(0, MAX_PLATFORM_LENGTH);
@@ -236,7 +239,9 @@ public final class Peers {
             }
         }
         List<Peer.Service> servicesList = new ArrayList<>();
-        JSONObject json = new JSONObject();
+        JSONObject myPeerInfoJson = new JSONObject();
+
+        /** announced address and host of my peer **/
         if (Conch.getMyAddress() != null) {
             try {
                 URI uri = new URI("http://" + Conch.getMyAddress());
@@ -256,30 +261,34 @@ public final class Peers {
                 if (announcedAddress == null || announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
                     throw new RuntimeException("Invalid announced address length: " + announcedAddress);
                 }
-                json.put("announcedAddress", announcedAddress);
+                myPeerInfoJson.put("announcedAddress", announcedAddress);
             } catch (URISyntaxException e) {
                 Logger.logMessage("Your announce address is invalid: " + Conch.getMyAddress());
                 throw new RuntimeException(e.toString(), e);
             }
         }
+
+        /** basic infos **/
         if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
-            json.put("hallmark", Peers.myHallmark);
+            myPeerInfoJson.put("hallmark", Peers.myHallmark);
             servicesList.add(Peer.Service.HALLMARK);
         }
-        json.put("useNATService", Conch.getUseNATService());
-        json.put("application", Conch.APPLICATION);
-        json.put("version", Conch.VERSION);
-        json.put("platform", Peers.myPlatform);
-        json.put("shareAddress", Peers.shareMyAddress);
+        myPeerInfoJson.put("useNATService", Conch.getUseNATService());
+        myPeerInfoJson.put("application", Conch.APPLICATION);
+        myPeerInfoJson.put("version", Conch.VERSION);
+        myPeerInfoJson.put("platform", Peers.myPlatform);
+        myPeerInfoJson.put("shareAddress", Peers.shareMyAddress);
+
+        /** apis of my peer **/
         if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
             servicesList.add(Peer.Service.PRUNABLE);
         }
         if (API.openAPIPort > 0) {
-            json.put("apiPort", API.openAPIPort);
+            myPeerInfoJson.put("apiPort", API.openAPIPort);
             servicesList.add(Peer.Service.API);
         }
         if (API.openAPISSLPort > 0) {
-            json.put("apiSSLPort", API.openAPISSLPort);
+            myPeerInfoJson.put("apiSSLPort", API.openAPISSLPort);
             servicesList.add(Peer.Service.API_SSL);
         }
 
@@ -299,42 +308,41 @@ public final class Peers {
                     }
                 }
             });
-            json.put("disabledAPIs", APIEnum.enumSetToBase64String(disabledAPISet));
-
-            json.put("apiServerIdleTimeout", API.apiServerIdleTimeout);
-
+            myPeerInfoJson.put("disabledAPIs", APIEnum.enumSetToBase64String(disabledAPISet));
+            myPeerInfoJson.put("apiServerIdleTimeout", API.apiServerIdleTimeout);
             if (API.apiServerCORS) {
                 servicesList.add(Peer.Service.CORS);
             }
         }
 
+        /** services of my peer **/
         // Add Business API service
         if (enableBizAPIs) {
-            json.put("enableBizAPIs", true);
+            myPeerInfoJson.put("enableBizAPIs", true);
             servicesList.add(Peer.Service.BAPI);
         }
-
         // Add Storage service
         if (enableStorage) {
-            json.put("enableStorage", true);
+            myPeerInfoJson.put("enableStorage", true);
             servicesList.add(Peer.Service.STORAGE);
         }
-
         myServices = servicesList;
-        json.put("services", Long.toUnsignedString(getServicesInLong()));
+        myPeerInfoJson.put("services", Long.toUnsignedString(getServicesInLong()));
 
+        /** mint accounts of my peer **/
         String autoMintRs = Generator.getAutoMiningRS();
-        if (StringUtils.isNotEmpty(autoMintRs)) json.put("bindRsAccount", autoMintRs);
+        if (StringUtils.isNotEmpty(autoMintRs)) myPeerInfoJson.put("bindRsAccount", autoMintRs);
 
-        Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
+        /** running mode of my peer **/
+        myPeerInfoJson.put("runningMode", Conch.runningMode.getName());
 
-        myPeerInfo = json;
-
+        Logger.logDebugMessage("My peer info:\n" + myPeerInfoJson.toJSONString());
+        myPeerInfo = myPeerInfoJson;
         myLoad = new PeerLoad("127.0.0.1", API.openAPIPort, -1);
 
         final List<String> defaultPeers = loadPeersSetting();
         wellKnownPeers = parseWellknownPeers();
-        
+
         List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
         if (knownBlacklistedPeersList.isEmpty()) {
             knownBlacklistedPeers = Collections.emptySet();
@@ -1501,7 +1509,27 @@ public final class Peers {
         return services;
     }
 
-    private static void checkBlockchainState() {
+    private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
+        // generate my peer details and update state
+        if (state != currentBlockchainState) {
+            JSONObject json = new JSONObject(myPeerInfo);
+            json.put("blockchainState", state.ordinal());
+            json.put("peerLoad", getBestPeerLoad().toJson());
+            myPeerInfoResponse = JSON.prepare(json);
+            json.put("requestType", "getInfo");
+            json.put("bestPeer", getBestPeerUri());
+            json.put("bestPeer", getBestPeerUri());
+            myPeerInfoRequest = JSON.prepareRequest(json);
+            currentBlockchainState = state;
+        }
+    }
+
+    /**
+     * check current block chain status and generate my peer info request.
+     * peer info request used to tell my peer info to other peers when connected
+     *
+     */
+    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest() {
         Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
         if(!Constants.isLightClient) {
             boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
@@ -1511,31 +1539,21 @@ public final class Peers {
                     (isBiggerTarget && !Constants.isTestnet()) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
         }
         
-        // generate my peer details and update state
-        if (state != currentBlockchainState) {
-            JSONObject json = new JSONObject(myPeerInfo);
-            json.put("blockchainState", state.ordinal());
-            json.put("peerLoad", getBestPeerLoad().toJson());
-            myPeerInfoResponse = JSON.prepare(json);
-            json.put("requestType", "getInfo");
-            json.put("bestPeer", getBestPeerUri());
-            myPeerInfoRequest = JSON.prepareRequest(json);
-            currentBlockchainState = state;
-        }
+        generateMyPeerInfoRequest(state);
     }
 
     public static JSONStreamAware getMyPeerInfoRequest() {
-        checkBlockchainState();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest();
         return myPeerInfoRequest;
     }
 
     public static JSONStreamAware getMyPeerInfoResponse() {
-        checkBlockchainState();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest();
         return myPeerInfoResponse;
     }
 
     public static Peer.BlockchainState getMyBlockchainState() {
-        checkBlockchainState();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest();
         return currentBlockchainState;
     }
 
