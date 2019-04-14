@@ -105,7 +105,7 @@ public final class Conch {
     private static final String FOUNDATION_URL = "sharder.org";
     private static final String FOUNDATION_TEST_URL = "test.sharder.org";
     
-    //TODO refactor myAddress, serialNum, nodeIp and nodetype into systemInfo
+    //TODO refactor myAddress, serialNum, nodeIp and nodeType into systemInfo
     private static final String myAddress;
     public static String serialNum = "";
     public static String nodeType = Peer.Type.NORMAL.getSimpleName();
@@ -215,13 +215,19 @@ public final class Conch {
     public static boolean matchMyAddress(String host){
         if(StringUtils.isEmpty(host)) return false;
         
-        if(Conch.useNATService && IpUtil.isDomain(host)) {
+        if(Conch.useNATService) {
             return myAddress.equalsIgnoreCase(host);
         }
-        
-        if(StringUtils.isEmpty(nodeIp)) nodeIp = IpUtil.getNetworkIp();
-        
-        return nodeIp.equalsIgnoreCase(IpUtil.getIpFromUrl(host));
+
+        if(IpUtil.isDomain(host)) {
+            if(myAddress.equalsIgnoreCase(host)) return true;
+            return IpUtil.getHost(myAddress).equalsIgnoreCase(IpUtil.getHost(host));
+        }
+
+        return false;
+        // FIXME to improve the security, need check the public network ip of current node
+//        if(StringUtils.isEmpty(nodeIp)) nodeIp = IpUtil.getNetworkIp();
+//        return nodeIp.equalsIgnoreCase(IpUtil.getIpFromUrl(host));
     }
 
     private static void redirectSystemStreams(String streamName) {
