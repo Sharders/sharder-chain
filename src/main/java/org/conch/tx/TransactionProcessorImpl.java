@@ -706,7 +706,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             try {
                 Db.db.beginTransaction();
                 if (Conch.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
-                    throw new ConchException.NotCurrentlyValidException("Blockchain not ready to accept transactions");
+                    throw new ConchException.NotCurrentlyValidException(String.format("Blockchain not ready to accept transactions caused by current height %d is less than %d", Conch.getBlockchain().getHeight() , Constants.LAST_KNOWN_BLOCK));
                 }
 
                 if (getUnconfirmedTransaction(transaction.getDbKey()) != null || TransactionDb.hasTransaction(transaction.getId())) {

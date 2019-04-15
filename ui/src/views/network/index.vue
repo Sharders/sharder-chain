@@ -131,7 +131,10 @@
                             <tbody v-loading="loading">
                             <tr v-for="block in blocklist">
                                 <td class="pl0"><span>{{block.height}}</span></td>
-                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span></td>
+                                <td>
+                                    <span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span><br>
+                                    <span class="utc-time">{{$global.formatTime(block.timestamp)}}+UTC</span>
+                                </td>
                                 <td>
                                     <span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span>
                                 </td>
@@ -368,7 +371,7 @@
         },
         created() {
             let _this = this;
-            _this.networkUrlBlocks();
+            // _this.networkUrlBlocks();
             _this.init();
             _this.handleCurrentChange(_this.currentPage);
         },

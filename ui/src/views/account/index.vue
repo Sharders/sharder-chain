@@ -179,7 +179,10 @@
                             </thead>
                             <tbody>
                             <tr v-for="(transaction,index) in accountTransactionList">
-                                <td class="tc pl0">{{$global.myFormatTime(transaction.timestamp, 'YMDHMS',true)}}</td>
+                                <td class="tc pl0">
+                                    <span>{{$global.myFormatTime(transaction.timestamp, 'YMDHMS',true)}}</span><br>
+                                    <span class="utc-time">{{$global.formatTime(transaction.timestamp)}}+UTC</span>
+                                </td>
                                 <td class="linker" @click="openBlockInfoDialog(transaction.height)">
                                     {{$global.returnObj(transaction.block,transaction.height)}}
                                 </td>

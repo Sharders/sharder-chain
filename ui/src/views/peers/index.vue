@@ -3,7 +3,7 @@
         <div>
             <div class="block_network mb20">
                 <p class="block_title csp">
-                    <a @click="turn2network">
+                    <a @click="$router.back()">
                         <span>{{$t('peers.return_network')}}</span>
                     </a>
                 </p>
@@ -114,7 +114,8 @@
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="addBlacklist(blacklistPeer)">{{$t('peers.join')}}
+                        <button type="button" v-loading="loading" class="btn" @click="addBlacklist(blacklistPeer)">
+                            {{$t('peers.join')}}
                         </button>
                     </div>
                 </div>
@@ -135,7 +136,8 @@
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="addConnectPeer(connectPeer)">{{$t('peers.link')}}
+                        <button type="button" v-loading="loading" class="btn" @click="addConnectPeer(connectPeer)">
+                            {{$t('peers.link')}}
                         </button>
                     </div>
                 </div>
@@ -156,7 +158,8 @@
                         <input v-model="adminPassword" type="password"/>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn" @click="addPeer(addPeerAddress,adminPassword)">
+                        <button type="button" v-loading="loading" class="btn"
+                                @click="addPeer(addPeerAddress,adminPassword)">
                             {{$t("peers.join")}}
                         </button>
                     </div>
@@ -260,7 +263,7 @@
                 adminPassword: '',
                 //加入节点
                 addPeerAddress: '',
-
+                loading: false,
                 peersLocationList: this.$route.params.peersLocationList,
                 peersTimeList: this.$route.params.peersTimeList,
             };
@@ -274,9 +277,6 @@
                 this.peersList = peersList;
                 this.totalSize = peersList.length;
                 this.getPeersInfo(peersList);
-            },
-            turn2network: function () {
-                this.$router.push("/network");
             },
             openBlackDialog: function (address) {
                 let _this = this;
@@ -342,68 +342,68 @@
             },
             addPeer: function (address, adminPassword) {
                 let _this = this;
+                if (!adminPassword || !address) {
+                    return _this.$message.warning(_this.$t('rules.plz_input_address_admin_pwd'));
+                }
                 let formData = new FormData();
                 formData.append("peer", address);
                 formData.append("adminPassword", adminPassword);
                 formData.append("feeNQT", 0);
+                _this.loading = true;
                 _this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
+                    _this.loading = false;
                     if (res.data.errorDescription) {
-                        _this.$message.error(res.data.errorDescription);
-                    } else {
-                        _this.$message.success("Add a success！");
-                        _this.$global.setPeers(_this).then(res => {
-                            _this.init(res.data.peers);
-                        });
+                        return _this.$message.error(res.data.errorDescription);
                     }
+                    _this.$message.success("Add a success！");
+                    _this.$global.setPeers(_this).then(res => {
+                        _this.init(res.data.peers);
+                    });
                     _this.closeDialog();
+                }).catch(function (err) {
+                    _this.loading = false;
+                    console.log(err);
                 });
             },
             addBlacklist: function (address) {
                 let _this = this;
+                if (!_this.adminPassword) {
+                    return _this.$message.warning(_this.$t('rules.plz_input_admin_pwd'));
+                }
                 let formData = new FormData();
                 formData.append("peer", address);
                 formData.append("adminPassword", _this.adminPassword);
-
-                this.$http.post('/sharder?requestType=blacklistPeer', formData).then(function (res) {
-                    if (!res.data.errorDescription) {
-                        _this.$message({
-                            showClose: true,
-                            message: _this.$t('peers.join_blacklist_success1') + address + _this.$t('peers.join_blacklist_success2'),
-                            type: "success"
-                        });
-                    } else {
-                        _this.$message({
-                            showClose: true,
-                            message: _this.$t('peers.join_blacklist_error'),
-                            type: "error"
-                        });
+                _this.loading = true;
+                _this.$http.post('/sharder?requestType=blacklistPeer', formData).then(function (res) {
+                    _this.loading = false;
+                    if (res.data.errorDescription) {
+                        return _this.$message.error(res.data.errorDescription);
                     }
+                    _this.$message.success(_this.$t('peers.join_blacklist_success1') + address + _this.$t('peers.join_blacklist_success2'));
                     _this.closeDialog();
                 }).catch(function (err) {
+                    _this.loading = false;
                     console.log(err);
                 });
             },
             addConnectPeer: function (address) {
                 let _this = this;
+                if (!_this.adminPassword) {
+                    return _this.$message.warning(_this.$t('rules.plz_input_admin_pwd'));
+                }
                 let formData = new FormData();
                 formData.append("peer", address);
                 formData.append("adminPassword", _this.adminPassword);
+                _this.loading = true;
                 this.$http.post('/sharder?requestType=addPeer', formData).then(function (res) {
-                    if (!res.data.errorDescription) {
-                        _this.$message({
-                            showClose: true,
-                            message: _this.$t('notification.join_link_peer_success1') + address + _this.$t('notification.join_link_peer_success2'),
-                            type: "success"
-                        });
-                    } else {
-                        _this.$message({
-                            showClose: true,
-                            message: _this.$t('notification.join_link_peer_error'),
-                            type: "error"
-                        });
+                    _this.loading = false;
+                    if (res.data.errorDescription) {
+                        return _this.$message.error(res.data.errorDescription);
                     }
+                    _this.$message.success(_this.$t('notification.join_link_peer_success1') + address + _this.$t('notification.join_link_peer_success2'));
                     _this.closeDialog();
                 }).catch(function (err) {
+                    _this.loading = false;
                     console.log(err);
                 });
             },

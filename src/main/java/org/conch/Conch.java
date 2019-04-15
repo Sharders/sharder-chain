@@ -217,6 +217,17 @@ public final class Conch {
         return myAddress;
     }
     
+    
+//    public static boolean address(String newAnnouncedAddress){
+//        URI uri = new URI("http://" + newAnnouncedAddress);
+//        int announcedPort = uri.getPort() == -1 ? Conch.getPeerPort() : uri.getPort();
+//        InetAddress address = InetAddress.getByName(Peers.addressHost(host));
+//        for (InetAddress inetAddress : InetAddress.getAllByName(uri.getHost())) {
+//            if (inetAddress.equals(address)) {
+//                return true;
+//            }
+//        }
+//    }
     public static boolean matchMyAddress(String host){
         if(StringUtils.isEmpty(host)) return false;
         

@@ -165,8 +165,4 @@ public class IpUtil {
         String host = getHostFromUrl(url);
         return checkOrToIp(host);
     }
-
-    public static void main(String[] args) {
-        System.out.println(getHostFromUrl("testboot.sharder.io"));
-    }
 }
