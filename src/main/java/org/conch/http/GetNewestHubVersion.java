@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.conch.common.UrlManager;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -37,7 +38,7 @@ import java.io.IOException;
 public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
 
     static final GetNewestHubVersion INSTANCE = new GetNewestHubVersion();
-    private static final String FAILED_INFO = "failed to fetch latest version!";
+    private static final String FAILED_INFO = String.format("failed to fetch latest version from %s !" , UrlManager.getHubLatestVersionUrl());
 
     private GetNewestHubVersion() {
         super(new APITag[]{APITag.DEBUG});
