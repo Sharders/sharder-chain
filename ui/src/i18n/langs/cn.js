@@ -855,7 +855,7 @@ const cn = {
         'hubsetting_inconsistent_password': "两次输入的管理员密码不一致！",
         'new_account_warning': "您有一个全新的帐户，请先给它充值。",
         'null_information_warning': "请检查是否还有未填的信息",
-        'sendmessage_null_account': "请输入接收者账户ID",
+        'sendmessage_null_account': "请输入接收者账户",
         'sendmessage_account_error_format': "接收者账户格式错误",
         'sendmessage_null_account_public': "请输入接收者账户公钥",
         'sendmessage_null_secret_key': "必须输入您的秘钥来加密此信息",
