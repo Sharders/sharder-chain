@@ -66,7 +66,7 @@ const cn = {
         'next_step': "下一步",
     },
     account: {
-        'the_latest_block':"最新区块",
+        'the_latest_block': "最新区块",
         'download_interrupt': "区块链下载中断，没有连接",
         'block_fully_downloaded': "区块还未完整下载",
         'remaining_blocks': "个剩余区块",
@@ -262,7 +262,7 @@ const cn = {
         'status': "状态",
         'shared_address': "共享地址",
         'published_address': "公布的地址",
-       
+
     },
     mining: {
         attribute: {
@@ -783,6 +783,9 @@ const cn = {
         'open': "开启",
         'secret_password': "输入私钥",
         'input_tip': "请输入私钥",
+        'input_account': "请输入账户",
+        'account_error': "账户错误",
+        'input_tip_length': "密钥小于50位长度存在被破解的安全隐患，请设置50位长度以上的密钥",
     },
     dialog: {
         'account_info_title1': "账户",
@@ -844,7 +847,6 @@ const cn = {
     },
     notification: {
         'update_success': "更新成功",
-        'secret_phrase_length': "私钥数量错误",
         'restart_success': "请稍后再次打开页面",
         'hubsetting_no_sharder_account': "请输入Sharder账号获取Hub配置",
         'hubsetting_sharder_account_no_permission': "请联系管理员获取Hub设置",
@@ -901,17 +903,17 @@ const cn = {
         plz_input_admin_pwd_again: '请再次输入管理员密码',
         inconsistent_admin_password: "两次输入的管理员密码不一致！",
     },
-    reward:{
-        "exchange_success":"兑换成功",
-        "exchange_error":"兑换失败",
-        "transfer_failed":"转账失败",
-        "sharder_binding_acconut":"请去官网绑定该地址",
-        "binding_account":"绑定账户",
-        "no_binding_account":"没绑定账户",
-        "immediately_binding":"立刻绑定",
-        "exchange":"兑换",
-        "exchange_sharder_account":"兑换到Sharder账户:  {account}"
-    }, 
+    reward: {
+        "exchange_success": "兑换成功",
+        "exchange_error": "兑换失败",
+        "transfer_failed": "转账失败",
+        "sharder_binding_acconut": "请去官网绑定该地址",
+        "binding_account": "绑定账户",
+        "no_binding_account": "没绑定账户",
+        "immediately_binding": "立刻绑定",
+        "exchange": "兑换",
+        "exchange_sharder_account": "兑换到Sharder账户:  {account}"
+    },
     poc: {
         'block_reward_tips_phase1': "开放测试网络第一阶段(2019.Q2前) 90%的挖矿奖励分配给Hub矿工，剩余10%的挖矿奖励分配给其余矿工。",
         'creator': "创建者",
@@ -964,7 +966,7 @@ const cn = {
         'hardware_bandwidth': "公网带宽",
         'hardware_tx_performance': "交易处理性能",
         'hardware_open_services': "开启服务"
-        
+
     },
     ...zhLocale
 };

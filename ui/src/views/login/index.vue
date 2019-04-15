@@ -11,7 +11,7 @@
                        :placeholder="$t('login.login_placeholder')"/>
                 <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
                               mask="AAA-****-****-****-*****" :placeholder="$t('login.sharder_account')"/>
-                <el-button class="common_btn writeBtn" @click="login">{{$t('login.login')}}</el-button>
+                <el-button class="common_btn writeBtn" @click="loginSharder()">{{$t('login.login')}}</el-button>
             </el-col>
 
             <el-col :span="24">
@@ -82,17 +82,6 @@
             SSO.init();
         },
         methods: {
-            getAccount() {
-                if (this.tabTitle === "key") {
-                    this.type = 1;
-                    SSO.secretPhrase = this.secretPhrase;
-                    return this.secretPhrase ? this.secretPhrase : "";
-                }
-                if (this.tabTitle === "account") {
-                    this.type = 0;
-                    return this.account ? this.account : "";
-                }
-            },
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
@@ -163,48 +152,6 @@
                           };
                       },*/
 
-            login: function () {
-                let _this = this;
-                let val = _this.getAccount();
-                console.log(val);
-                if (val === "") {
-                    return _this.$message.warning(_this.$t('notification.login_no_input_error'));
-                }
-                if (!_this.validation()) {
-                    return _this.$message.warning(_this.$t('notification.secret_phrase_length'));
-                }
-                if (_this.tabTitle === "account") {
-                    if (val === "SSA-____-____-____-_____" || val === "___-____-____-____-_____") {
-                        _this.$message.info(_this.$t('notification.login_no_input_error'));
-                        return;
-                    }
-                    this.$http.get('/sharder?requestType=getAccount', {
-                        params: {
-                            account: val,
-                        }
-                    }).then(function (res) {
-                        if (typeof res.data.errorDescription !== 'undefined') {
-                            _this.$message.error(_this.$t("login.no_found_account"));
-                        } else {
-                            Login.login(_this.type, val, _this, function () {
-                                _this.$global.setEpochBeginning(_this).then(res => {
-                                    _this.$store.state.isLogin = true;
-                                    _this.$router.push("/account");
-                                });
-                            });
-                        }
-                    }).catch(function (err) {
-                        _this.$message.error(err);
-                    });
-                } else {
-                    Login.login(_this.type, val, _this, function () {
-                        _this.$global.setEpochBeginning(_this).then(res => {
-                            _this.$store.state.isLogin = true;
-                            _this.$router.push("/account");
-                        });
-                    });
-                }
-            },
             register: function () {
                 this.$store.state.mask = false;
                 this.$router.push("/register");
@@ -213,12 +160,55 @@
                 console.log(language);
                 this.label_width = '200px'
             },
-            validation() {
+            loginSharder() {
                 let _this = this;
-                if (_this.tabTitle === "key" && _this.secretPhrase) {
-                    return _this.secretPhrase.replace(/\s*/g, "").length > 50;
+                if (!_this.validationInfo()) return;
+                if (_this.tabTitle === "account") {
+                    _this.$global.fetch("GET", {account: _this.account}, "getAccount").then(res => {
+                        if (res.errorDescription) {
+                            return _this.$message.error(_this.$t("login.no_found_account"));
+                        }
+                        Login.login(0, _this.account, _this, function () {
+                            _this.$global.setEpochBeginning(_this).then(res => {
+                                _this.$store.state.isLogin = true;
+                                _this.$router.push("/account");
+                            });
+                        });
+                    })
+                } else if (_this.tabTitle === "key") {
+                    SSO.secretPhrase = _this.secretPhrase;
+                    Login.login(1, _this.secretPhrase, _this, function () {
+                        _this.$global.setEpochBeginning(_this).then(res => {
+                            _this.$store.state.isLogin = true;
+                            _this.$router.push("/account");
+                        });
+                    });
                 }
-                return true;
+            },
+            validationInfo() {
+                let _this = this;
+                if (_this.tabTitle === "key") {
+                    if (!_this.secretPhrase) {
+                        _this.$message.warning(_this.$t("password_modal.input_tip"));
+                        return false;
+                    }
+                    if (_this.secretPhrase.replace(/\s*/g, "").length < 50) {
+                        _this.$message.warning(_this.$t("password_modal.input_tip_length"));
+                        return false;
+                    }
+                    return true;
+                }
+                if (_this.tabTitle === "account") {
+                    if (!_this.account) {
+                        _this.$message.warning(_this.$t("password_modal.input_account"));
+                        return false;
+                    }
+                    if (!_this.account.toUpperCase().match(/^(SSA)-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{5})/)) {
+                        _this.$message.warning(_this.$t("password_modal.account_error"));
+                        return false;
+                    }
+                    return true;
+                }
             }
         }
     };
