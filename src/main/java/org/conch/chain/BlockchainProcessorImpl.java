@@ -558,7 +558,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 try {
                   pushBlock(block);
                 }catch(GeneratorNotAcceptedException e) {
-                  Generator.blackGenerator(e.getGeneratoId());
+                  Generator.blackGenerator(e.getGeneratorId());
                 }catch (BlockNotAcceptedException e) {
                   peerBlock.getPeer().blacklist(e);
                 }
@@ -598,7 +598,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   peer.blacklist(e);
                   break;
                 } catch (GeneratorNotAcceptedException e) {
-                  Generator.blackGenerator(e.getGeneratoId());
+                  Generator.blackGenerator(e.getGeneratorId());
                   break;
                 }
               }
@@ -632,7 +632,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 Logger.logErrorMessage("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(),e);
                 break;
               } catch (GeneratorNotAcceptedException e) {
-                Generator.blackGenerator(e.getGeneratoId());
+                Generator.blackGenerator(e.getGeneratorId());
                 break;
               }
             }
@@ -2112,7 +2112,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Logger.logDebugMessage("Generate block failed: " + e.getMessage());
       throw e;
     } catch (GeneratorNotAcceptedException e) {
-      Generator.blackGenerator(e.getGeneratoId());
+      Generator.blackGenerator(e.getGeneratorId());
       throw e;
     }
   }
