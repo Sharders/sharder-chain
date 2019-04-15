@@ -287,7 +287,10 @@ class PocHolder implements Serializable {
         
         //get history poc score when query height is bigger than last height of poc score
         if(pocScoreDetail.height > height) {
-            pocScoreDetail = getHistoryPocScore(height, accountId);
+            PocScore historyScore = getHistoryPocScore(height, accountId);
+            if(historyScore != null) {
+                pocScoreDetail = historyScore;
+            }
         }
 
         return pocScoreDetail;
@@ -373,7 +376,7 @@ class PocHolder implements Serializable {
         static final int printCount = 1;
         
         protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
-        protected static boolean debugHistory = false;
+        protected static boolean debugHistory = true;
         
         protected static String summary = reset();
         private static final String splitter = "\n\r";
