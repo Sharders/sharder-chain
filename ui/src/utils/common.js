@@ -785,7 +785,7 @@ export default {
      */
     getTransactionBlockTimestamp(t) {
         if (t.block) {
-            return t.blockTimestamp + ' | ' + this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + "+UTC"
+            return t.blockTimestamp + ' | ' + this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + " +UTC"
         }
         return this.placeholder
     },
