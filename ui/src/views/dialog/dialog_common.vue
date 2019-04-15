@@ -37,7 +37,7 @@
                                 <tr v-for="transactions in accountTransactionInfo">
                                     <td>
                                         <span>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
-                                        <span class="utc-time">{{$global.formatTime(transactions.timestamp)}}+UTC</span>
+                                        <span class="utc-time">{{$global.formatTime(transactions.timestamp)}} +UTC</span>
                                     </td>
                                     <td class="transaction-img">
                                         <span class="bg"
@@ -182,7 +182,7 @@
                         <tr v-for="(transaction,index) in blockInfo.transactions">
                             <td>
                                 <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
-                                <span class="utc-time">{{$global.formatTime(transaction.timestamp)}}+UTC</span>
+                                <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
                             <td class="transaction-img">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>

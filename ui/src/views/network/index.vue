@@ -133,7 +133,7 @@
                                 <td class="pl0"><span>{{block.height}}</span></td>
                                 <td>
                                     <span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span><br>
-                                    <span class="utc-time">{{$global.formatTime(block.timestamp)}}+UTC</span>
+                                    <span class="utc-time">{{$global.formatTime(block.timestamp)}} +UTC</span>
                                 </td>
                                 <td>
                                     <span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span>
