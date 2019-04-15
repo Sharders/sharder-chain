@@ -902,6 +902,7 @@ const en = {
         onlyNonNegativeInteger: 'Must be a positive integer',
         onlyInteger: 'Must be an integer',
         plz_input_admin_pwd: 'Please input hub password',
+        plz_input_address_admin_pwd: 'Please enter the node address and administrator password',
         plz_input_admin_pwd_again: 'Please input hub password again',
         inconsistent_admin_password: 'Admin passwords do not match',
     },
