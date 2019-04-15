@@ -846,6 +846,7 @@ const en = {
     },
     notification: {
         'update_success': "Update Successful",
+        'secret_phrase_length': "Private key number error",
         'restart_success': "Please access the page later",
         'hubsetting_no_sharder_account': "Please enter your Sharder account for hub configuration info",
         'hubsetting_sharder_account_no_permission': "Please contact an admin for hub settings",

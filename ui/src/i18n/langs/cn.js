@@ -844,6 +844,7 @@ const cn = {
     },
     notification: {
         'update_success': "更新成功",
+        'secret_phrase_length': "私钥数量错误",
         'restart_success': "请稍后再次打开页面",
         'hubsetting_no_sharder_account': "请输入Sharder账号获取Hub配置",
         'hubsetting_sharder_account_no_permission': "请联系管理员获取Hub设置",
