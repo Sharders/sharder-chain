@@ -642,6 +642,7 @@ public class Generator implements Comparable<Generator> {
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
         if(!isMintHeightReached(lastBlock)) return false;
+        if(!isValid(this.accountId)) return false;
         
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
@@ -896,5 +897,9 @@ public class Generator implements Comparable<Generator> {
         Logger.logInfoMessage("account " + stopAccount + " stop mining...");
         stopMining(stopAccount);
         autoMintRunning = false;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Account.rsAccount(2792673654720227339L));
     }
 }
