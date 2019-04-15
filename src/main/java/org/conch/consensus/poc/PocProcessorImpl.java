@@ -8,7 +8,6 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -84,7 +83,7 @@ public class PocProcessorImpl implements PocProcessor {
       PocCalculator.inst.setCurWeightTable(weightTable,tx.getHeight());
       success = true;
     }else {
-      if(reachLastKnownBlock()) {
+      if(Conch.reachLastKnownBlock()) {
         if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
           success = nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
         }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
@@ -99,7 +98,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     // process later
     if(!success) {
-      PocHolder.addDelayProcessTx(tx.getId());
+      PocHolder.addDelayPocTx(tx);
     }
     return success;
   }
@@ -130,10 +129,37 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   @Override
-  public boolean pocTxsProcessed() {
+  public boolean pocTxsProcessed(int height) {
     // whether contains delayed poc txs or old poc txs need to process
-    return !oldPocTxsProcess && PocHolder.delayPocTxs().size() <= 0;
+    return !oldPocTxsProcess && PocHolder.delayPocTxs(height).size() <= 0;
   }
+
+  @Override
+  public boolean processDelayedPocTxs(int height){
+    
+    if(!Conch.reachLastKnownBlock()) return false;
+    
+    // delayed poc txs 
+    List<Long> delayedPocTxs = PocHolder.delayPocTxs(height);
+    Logger.logInfoMessage("process delayed poc txs[size=%d]", delayedPocTxs.size());
+    Set<Long> processedTxs = Sets.newHashSet();
+    delayedPocTxs.forEach(txid -> {
+      if(instance.pocTxProcess(txid)) {
+        processedTxs.add(txid);
+      }
+    });
+    
+    // remove processed txs
+    if(processedTxs.size() > 0) {
+      Logger.logInfoMessage("success to process delayed poc txs[size=%d]", processedTxs.size());
+      Logger.logDebugMessage("processed poc txs detail => " + Arrays.toString(processedTxs.toArray()));
+      PocHolder.removeProcessedTxs(processedTxs);
+    } else if(!oldPocTxsProcess) {
+      Logger.logDebugMessage("!!delayed poc txs process failed");
+    }
+    return PocHolder.delayPocTxs(height).size() <= 0;
+  }
+  
 
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
@@ -203,15 +229,7 @@ public class PocProcessorImpl implements PocProcessor {
       oldPocTxsProcess = true;
     }
   }
-
-  private static boolean reachLastKnownBlock(){
-    int height = Conch.getBlockchain().getHeight();
-    if (height < Constants.LAST_KNOWN_BLOCK) {
-      Logger.logDebugMessage("current height %d is less than last known height %s, don't process poc txs till blocks sync finished..." , height , Constants.LAST_KNOWN_BLOCK);
-      return false;
-    }
-    return true;
-  }
+  
   
   private static final int peerSynThreadInterval = 600;
   private static final int pocTxSynThreadInterval = 60;
@@ -224,37 +242,21 @@ public class PocProcessorImpl implements PocProcessor {
   private static boolean oldPocTxsProcess = true;
   private static final Runnable pocTxSynThread = () -> {
     try {
-      if(!Conch.getBlockchainProcessor().isUpToDate()) {
-        Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't process delayed poc txs till blocks sync finished...");
-        return;
-      }
- 
-      if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
+//      if(!Conch.getBlockchainProcessor().isUpToDate()) {
+//        Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't process delayed poc txs till blocks sync finished...");
+//        return;
+//      }
+      int currentHeight = Conch.getBlockchain().getHeight();
+      if(PocHolder.delayPocTxs(currentHeight).size() <= 0 && !oldPocTxsProcess) {
         Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
       }
       
-      if (!reachLastKnownBlock()) {
+      if (!Conch.reachLastKnownBlock()) {
         return ;
       }
-      
-      // delayed poc txs 
-      Logger.logInfoMessage("process delayed poc txs[size=%d]", PocHolder.delayPocTxs().size());
-      Set<Long> processedTxs = Sets.newHashSet();
-      PocHolder.delayPocTxs().forEach(txid -> {
-        if(instance.pocTxProcess(txid)) {
-          processedTxs.add(txid);
-        }
-      });
-      
-      // remove processed txs
-      if(processedTxs.size() > 0) {
-        Logger.logInfoMessage("success to process delayed poc txs[size=%d]", processedTxs.size());
-        Logger.logDebugMessage("processed poc txs detail => " + Arrays.toString(processedTxs.toArray()));
-        PocHolder.removeProcessedTxs(processedTxs);
-      } else if(!oldPocTxsProcess) {
-        Logger.logDebugMessage("!!delayed poc txs process failed");
-      }
+
+      instance.processDelayedPocTxs(currentHeight);
 
       if(oldPocTxsProcess) {
         // total poc txs from last height

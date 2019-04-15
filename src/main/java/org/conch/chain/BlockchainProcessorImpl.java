@@ -1361,9 +1361,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException,GeneratorNotAcceptedException {
 
     int curTime = Conch.getEpochTime();
-
     blockchain.writeLock();
     try {
+        
+      if(Conch.reachLastKnownBlock() &&  !Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight())) {
+          Logger.logDebugMessage("should process delayed poc txs <= [ height = %d ] before accepting blocks", Conch.getBlockchain().getHeight()); 
+          return;
+      }
+        
       BlockImpl previousLastBlock = null;
       try {
         Db.db.beginTransaction();

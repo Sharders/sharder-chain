@@ -46,10 +46,6 @@ public interface PocProcessor {
      */
     PocTxBody.PocWeightTable getPocWeightTable(Long version);
 
-    /**
-     * notify poc processor to re-process the all poc txs
-     */
-    void notifySynTxNow();
 
     /**
      * account whether bound to certified peer
@@ -87,8 +83,20 @@ public interface PocProcessor {
     boolean pocTxProcess(Transaction tx);
 
     /**
+     * process delayed poc txs
+     * @return
+     */
+    boolean processDelayedPocTxs(int height);
+            
+    /**
      * 
      * @return
      */
-    boolean pocTxsProcessed();
+    boolean pocTxsProcessed(int height);
+
+
+    /**
+     * notify poc processor to re-process the all poc txs
+     */
+    void notifySynTxNow();
 }

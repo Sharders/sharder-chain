@@ -21,7 +21,6 @@
 
 package org.conch;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -51,7 +50,6 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
-import org.conch.http.Recovery;
 import org.conch.market.*;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
@@ -847,6 +845,15 @@ public final class Conch {
             }
         }
         return mode;
+    }
+
+    public static boolean reachLastKnownBlock(){
+        int height = Conch.getBlockchain().getHeight();
+        if (height < Constants.LAST_KNOWN_BLOCK) {
+            Logger.logDebugMessage("current height %d is less than last known height %s, don't process poc txs till blocks sync finished..." , height , Constants.LAST_KNOWN_BLOCK);
+            return false;
+        }
+        return true;
     }
 
     private Conch() {} // never

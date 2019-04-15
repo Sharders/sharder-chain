@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -13,12 +14,14 @@ import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.tx.Transaction;
 import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,6 +42,7 @@ class PocHolder implements Serializable {
     
     // accountId : pocScore
     private Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    int lastHeight = -1;
     
     // height : { accountId : pocScore }
     private Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
@@ -58,10 +62,9 @@ class PocHolder implements Serializable {
     // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
     private volatile Set<String> synPeerList = Sets.newHashSet();
     
-    // TODO consider sort and store the txs by height, like: height -> {tx1...txn}
-    private volatile Set<Long> delayProcessTxs = Sets.newHashSet();
+    private volatile Map<Integer, List<Long>> delayPocTxsByHeight = Maps.newConcurrentMap();
+    private static volatile int pocTxHeight = -1;
 
-    int lastHeight = -1;
     
     public static Set<String> synPeers() {
         return inst.synPeerList;
@@ -220,19 +223,34 @@ class PocHolder implements Serializable {
     }
 
 
-    public static Set<Long> delayPocTxs() {
-       return inst.delayProcessTxs;
+    public static List<Long> delayPocTxs(int queryHeight) {
+        List<Long> txs = Lists.newArrayList();
+        //order by height number 
+        for(int i = 0 ; i <= queryHeight ; i++) {
+            if(inst.delayPocTxsByHeight.containsKey(i)) {
+                txs.addAll(inst.delayPocTxsByHeight.get(i));
+            }
+        }
+        return txs;
     }
 
-    public static void addDelayProcessTx(Long txid) {
-        synchronized (inst.delayProcessTxs) {
-            inst.delayProcessTxs.add(txid);
+    public static void addDelayPocTx(Transaction tx) {
+        synchronized (inst.delayPocTxsByHeight) {
+            if(!inst.delayPocTxsByHeight.containsKey(tx.getHeight())) {
+                inst.delayPocTxsByHeight.put(tx.getHeight(), Lists.newArrayList());
+            }
+            List<Long> txIds = inst.delayPocTxsByHeight.get(tx.getHeight());
+            if(!txIds.contains(tx.getId())) txIds.add(tx.getId());
         }
     }
 
     public static void removeProcessedTxs(Set<Long> processedTxs) {
-        synchronized (inst.delayProcessTxs) {
-            inst.delayProcessTxs.removeAll(processedTxs); 
+        synchronized (inst.delayPocTxsByHeight) {
+            Set<Integer> heights = inst.delayPocTxsByHeight.keySet();
+            heights.forEach(height -> {
+                inst.delayPocTxsByHeight.get(height).removeAll(processedTxs);
+                if(height > inst.pocTxHeight) inst.pocTxHeight = height;
+            });
         }
     }
     
