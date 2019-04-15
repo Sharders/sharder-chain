@@ -35,7 +35,10 @@
                             <table class="table">
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo">
-                                    <td>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</td>
+                                    <td>
+                                        <span>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
+                                        <span class="utc-time">{{$global.formatTime(transactions.timestamp)}}+UTC</span>
+                                    </td>
                                     <td class="transaction-img">
                                         <span class="bg"
                                               :class="'type' + transactions.type + transactions.subtype"></span>
@@ -177,7 +180,10 @@
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
-                            <td>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</td>
+                            <td>
+                                <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
+                                <span class="utc-time">{{$global.formatTime(transaction.timestamp)}}+UTC</span>
+                            </td>
                             <td class="transaction-img">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
@@ -359,13 +365,6 @@
                     <tr>
                         <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
                         <td>{{$global.getTransactionBlockTimestamp(transactionInfo)}}</td>
-                    </tr>
-                    <tr>
-                        <th>{{$t('dialog.account_transaction_timestamp')}}</th>
-                        <td>
-                            {{transactionInfo.timestamp}} |
-                            {{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
-                        </td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
@@ -780,7 +779,7 @@
                     td {
                         border: none !important;
                         text-align: center;
-                        line-height: 40px;
+                        line-height: 20px;
                         font-size: 12px;
                         padding: 0;
 
@@ -889,7 +888,7 @@
                             border: none !important;
                             width: 190px;
                             text-align: center;
-                            line-height: 40px;
+                            /*line-height: 40px;*/
                             font-size: 12px;
                             padding: 0;
 

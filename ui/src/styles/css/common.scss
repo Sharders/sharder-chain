@@ -120,8 +120,8 @@
                         display: inline-block;
                         width: 140px;
                         text-align: left;
-                        overflow:hidden;
-                        text-overflow:ellipsis;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                         padding-left: 16px;
                         background-repeat: no-repeat;
                     }
@@ -804,6 +804,11 @@
             top: 61px;
         }
     }
+}
+
+.utc-time {
+    font-size: 10px;
+    color: #555;
 }
 
 input:focus {

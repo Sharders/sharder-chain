@@ -23,7 +23,7 @@ export default {
                 dataType: "json",
                 type: type,
                 data: date,
-                timeout:60000,
+                timeout: 60000,
                 success: function (data) {
                     resolve(data)
                 },
@@ -112,6 +112,7 @@ export default {
      * 获取在创世时间后的时间
      * @param value
      * @param type
+     * @param hasEpochBeginning
      * @returns {string}
      */
     myFormatTime(value, type, hasEpochBeginning) {
@@ -143,6 +144,33 @@ export default {
 
         }
         return dataTime;//将格式化后的字符串输出到前端显示
+    },
+    /**
+     * 获取在创世时间后的时间
+     * @param time
+     * @param fmt
+     * @param tz 本地时区(默认)或UTC时区
+     */
+    formatTime(time, tz, fmt) {
+        const _this = this;
+        fmt = fmt || "yyyy-MM-dd hh:mm:ss";
+        tz = tz || 0;
+        let date = new Date(time * 1000 + _this.epochBeginning + tz * 3600000);
+        let o = {
+            "M+": date.getUTCMonth() + 1,                          //月份
+            "d+": date.getUTCDate(),                               //日
+            "h+": date.getUTCHours(),                              //小时
+            "m+": date.getUTCMinutes(),                            //分
+            "s+": date.getUTCSeconds(),                            //秒
+            "q+": Math.floor((date.getUTCMonth() + 3) / 3),     //季度
+            "S": date.getUTCMilliseconds()                         //毫秒
+        };
+        if (/(y+)/.test(fmt))
+            fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt))
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
     },
     /**
      *格式化时间 加0
@@ -757,7 +785,7 @@ export default {
      */
     getTransactionBlockTimestamp(t) {
         if (t.block) {
-            return t.blockTimestamp + ' | ' + this.myFormatTime(t.blockTimestamp, 'YMDHMS', true)
+            return t.blockTimestamp + ' | ' + this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + "+UTC"
         }
         return this.placeholder
     },
@@ -782,7 +810,7 @@ export default {
      * @param num 小数位数
      * @returns {string}
      */
-    getRewardRate(rule,num){
+    getRewardRate(rule, num) {
         let level = (rule.level) || (rule.level1 ? rule.level1 : rule.level0);
         return Number(level.forgepool.reward.max * 100).toFixed(num || 2) + " %";
     }
