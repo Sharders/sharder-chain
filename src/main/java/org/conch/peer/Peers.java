@@ -840,7 +840,7 @@ public final class Peers {
             }
         }
 
-        String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size is " + peerArrayJson.size() + " \n\r";
+        String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size " + peerArrayJson.size() + " peers\n\r";
         Iterator iterator = peerArrayJson.iterator();
         while (iterator.hasNext()) {
             com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
