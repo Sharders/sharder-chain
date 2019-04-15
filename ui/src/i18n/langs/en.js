@@ -66,7 +66,7 @@ const en = {
         'next_step': "Next",
     },
     account: {
-        'the_latest_block':"The latest block",
+        'the_latest_block': "The latest block",
         'download_interrupt': "The blockchain download was interrupted and there was no connection",
         'block_fully_downloaded': "The block has not been downloaded completely",
         'remaining_blocks': " remaining blocks",
@@ -263,7 +263,7 @@ const en = {
         'status': "Status",
         'shared_address': "Share Address",
         'published_address': "Published Address",
-       
+
     },
     mining: {
         attribute: {
@@ -785,6 +785,9 @@ const en = {
         'open': "Open",
         'secret_password': "Enter private key",
         'input_tip': "Please enter private key",
+        'input_account': "Please enter your account",
+        'account_error': "account error",
+        'input_tip_length': "There is a security risk that the key is less than 50 bits long, please set the key of more than 50 bits long",
     },
     dialog: {
         'account_info_title1': "Account",
