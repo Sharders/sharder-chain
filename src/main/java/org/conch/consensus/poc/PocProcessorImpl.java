@@ -79,20 +79,25 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     boolean success = false;
-    if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
-      success = nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
-      success = nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
-      success = onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
-      success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
-    }else if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
+    if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
+      
       PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
       PocCalculator.inst.setCurWeightTable(weightTable,tx.getHeight());
       success = true;
+    }else {
+      if(reachLastKnownBlock()) {
+        if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
+          success = nodeTypeTxProcess(tx.getHeight(), (PocTxBody.PocNodeType)tx.getAttachment());
+        }else if(PocTxWrapper.SUBTYPE_POC_NODE_CONF == tx.getType().getSubtype()){
+          success = nodeConfTxProcess(tx.getHeight(), (PocTxBody.PocNodeConf)tx.getAttachment());
+        }else if(PocTxWrapper.SUBTYPE_POC_ONLINE_RATE == tx.getType().getSubtype()){
+          success = onlineRateTxProcess(tx.getHeight(), (PocTxBody.PocOnlineRate)tx.getAttachment());
+        }else if(PocTxWrapper.SUBTYPE_POC_BLOCK_MISSING == tx.getType().getSubtype()){
+          success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing)tx.getAttachment());
+        }
+      }
     }
-
+    
     // process later
     if(!success) {
       PocHolder.addDelayProcessTx(tx.getId());
@@ -200,6 +205,15 @@ public class PocProcessorImpl implements PocProcessor {
     }
   }
 
+  private static boolean reachLastKnownBlock(){
+    int height = Conch.getBlockchain().getHeight();
+    if (height < Constants.LAST_KNOWN_BLOCK) {
+      Logger.logDebugMessage("current height %d is less than last known height %s, don't process poc txs till blocks sync finished..." , height , Constants.LAST_KNOWN_BLOCK);
+      return false;
+    }
+    return true;
+  }
+  
   private static final int peerSynThreadInterval = 600;
   private static final int pocTxSynThreadInterval = 60;
   public static void init() {
@@ -221,9 +235,7 @@ public class PocProcessorImpl implements PocProcessor {
         return;
       }
       
-      int height = Conch.getBlockchain().getHeight();
-      if (height < Constants.LAST_KNOWN_BLOCK) {
-        Logger.logDebugMessage("current height %d is less than last known height %s, don't process delayed poc till blocks sync finished..." , height , Constants.LAST_KNOWN_BLOCK);
+      if (!reachLastKnownBlock()) {
         return ;
       }
       
