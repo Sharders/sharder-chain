@@ -784,6 +784,6 @@ export default {
      */
     getRewardRate(rule,num){
         let level = (rule.level) || (rule.level1 ? rule.level1 : rule.level0);
-        return Number(level.forgepool.reward.max * 100).toFixed(num || 2) + " %";
+        return Number(level.forgepool.reward.max * 100).toFixed(num || 2) + "%";
     }
 };
