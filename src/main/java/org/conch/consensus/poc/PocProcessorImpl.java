@@ -8,6 +8,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -218,6 +219,12 @@ public class PocProcessorImpl implements PocProcessor {
       if(PocHolder.delayPocTxs().size() <= 0 && !oldPocTxsProcess) {
         Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
+      }
+      
+      int height = Conch.getBlockchain().getHeight();
+      if (height < Constants.LAST_KNOWN_BLOCK) {
+        Logger.logDebugMessage("current height %d is less than last known height %s, don't process delayed poc till blocks sync finished..." , height , Constants.LAST_KNOWN_BLOCK);
+        return ;
       }
       
       // delayed poc txs 
