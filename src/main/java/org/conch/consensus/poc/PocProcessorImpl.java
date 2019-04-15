@@ -80,7 +80,6 @@ public class PocProcessorImpl implements PocProcessor {
 
     boolean success = false;
     if(PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()){
-      
       PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable)tx.getAttachment();
       PocCalculator.inst.setCurWeightTable(weightTable,tx.getHeight());
       success = true;
