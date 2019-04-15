@@ -110,7 +110,7 @@ public class Generator implements Comparable<Generator> {
     }
 
     private static final boolean isBootNode = bootNodeCheck();
-    private static final boolean stillWait = false;
+    private static final boolean stillWait = Conch.getBooleanProperty("sharder.stillWait");
     private static final boolean bootNodeCheck() {
         String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
         if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
