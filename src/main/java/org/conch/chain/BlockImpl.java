@@ -499,7 +499,11 @@ public final class BlockImpl implements Block {
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
-            return validHit || isKnownBadBlock(this.getId());
+            boolean skipBadBlock = isKnownBadBlock(this.getId());
+            if(skipBadBlock) {
+                Logger.logWarningMessage("Known bad block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
+            }
+            return validHit || skipBadBlock;
 
         } catch (RuntimeException e) {
             Logger.logMessage("Error verifying block generation signature", e);
@@ -508,11 +512,14 @@ public final class BlockImpl implements Block {
     }
     
     // known bad blocks
-    private static final long[] knownBadBlocks = new long[] {};
+    private static final long[] knownBadBlocks = new long[] {
+            //Testnet
+            //3372111334693782640L, 
+            //-4480353193679323309L
+    };
     static {
         Arrays.sort(knownBadBlocks);
     }
-    
     static boolean isKnownBadBlock(long blockId){
         return Arrays.binarySearch(knownBadBlocks, blockId) >= 0;
     }

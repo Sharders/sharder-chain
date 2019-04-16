@@ -1446,12 +1446,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
   
-  private static Set<Long> knownBadBlocks = Sets.newHashSet(3372111334693782640L, -4480353193679323309L);
+
   private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException, GeneratorNotAcceptedException {
-    if(Constants.isTestnet() && knownBadBlocks.contains(block.getId())) {
-      Logger.logWarningMessage("Known bad block[id=%d, height=%d] in %s, skip validation", block.getId(), (previousLastBlock.getHeight()+1), Constants.getNetwork().getName());
-      return;
-    }
     
     if(!Generator.isValid(block.getGeneratorId())) {
       throw new GeneratorNotAcceptedException("Invalid generator",block.getGeneratorId());

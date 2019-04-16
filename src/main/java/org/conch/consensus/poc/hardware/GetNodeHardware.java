@@ -187,7 +187,7 @@ public class GetNodeHardware {
             Logger.logDebugMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
             return report(read(systemInfo, executeTime));
         } catch (ConchException.NotValidException e) {
-            Logger.logErrorMessage("<=== failed to report configuration performance, hub isn't initialized yet", e);
+            Logger.logErrorMessage(String.format("<=== failed to report configuration performance[caused by %s], maybe hub isn't initialized yet", e.getMessage()));
         } catch (Exception e) {
             Logger.logErrorMessage("<=== failed to report configuration performance, local error", e);
         }
@@ -196,12 +196,12 @@ public class GetNodeHardware {
 
     public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
         String myAddress = Optional.ofNullable(Conch.getMyAddress())
-                .orElseThrow(() -> new ConchException.NotValidException("my address is null"));
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's myAddress is null"));
         // nat service: open - myAddress should be proxy address; nat service : close - myAddress should be public address
         String host = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
-                .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's bind SS address is null"));
         
         if (StringUtils.isEmpty(Conch.nodeType)) {
             //don't report
@@ -248,7 +248,7 @@ public class GetNodeHardware {
             Logger.logErrorMessage("connection refused[" + NODE_CONFIG_REPORT_URL + "]");
             return false;
         }catch(Exception e){
-            Logger.logErrorMessage("unkonwn exception[" + NODE_CONFIG_REPORT_URL + "]", e);
+            Logger.logErrorMessage("unknown exception[" + NODE_CONFIG_REPORT_URL + "]", e);
             return false;
         }
     }
