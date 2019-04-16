@@ -239,8 +239,8 @@ public final class API {
             gzipHandler.setMinGzipSize(Peers.MIN_COMPRESS_SIZE);
             apiHandler.setGzipHandler(gzipHandler);
 
-            apiHandler.addServlet(APITestServlet.class, "/test");
-            apiHandler.addServlet(APITestServlet.class, "/test-proxy");
+            apiHandler.addServlet(APITestServlet.class, "/debug");
+            apiHandler.addServlet(APITestServlet.class, "/debug-proxy");
             apiHandler.addServlet(DbShellServlet.class, "/dbshell");
 
             if (apiServerCORS) {

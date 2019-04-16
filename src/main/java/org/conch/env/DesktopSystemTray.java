@@ -122,9 +122,9 @@ public class DesktopSystemTray {
         itemNameMap.put("InitializationeE",new ItemName("Initialization Error","初始化出错"));
     }
 
-    private static final String ICON_PATH_DEFAULT = "html/www/img/sharder-icon-def-256x256.png";
+    private static final String ICON_PATH_DEFAULT = "html/www/img/sharder-icon-def-128x128.png";
     private static final String TRAY_ICON_PATH_DEFAULT = "html/www/img/tray-icon-def-64x64.png";
-    private static final String TRAY_ICON_PATH_MAC = "html/www/img/tray-icon-mac-32x32.png";
+    private static final String TRAY_ICON_PATH_MAC = "html/www/img/tray-icon-mac-320x320.png";
     private String getTrayIconPath(){
         String os = System.getProperty("os.name");
         if(os == null || "".equals(os)) return TRAY_ICON_PATH_DEFAULT;

@@ -106,9 +106,6 @@ public class DesktopApplication extends Application {
         System.out.println("JavaFX platform shutdown complete");
     }
 
-
-    private static final String ICON_PATH_DEFAULT = "html/www/img/sharder-icon-def-256x256.png";
-
     @Override
     public void start(Stage stage) throws Exception {
         DesktopApplication.stage = stage;
@@ -182,7 +179,7 @@ public class DesktopApplication extends Application {
 
         Scene scene = new Scene(browser);
         String address = API.getServerRootUri().toString();
-        stage.getIcons().add(new Image(address + "/img/sharder-icon-32x32.png"));
+        stage.getIcons().add(new Image(address + "/img/sharder-icon-64x64.png"));
         stage.initStyle(StageStyle.DECORATED);
         stage.setScene(scene);
         stage.sizeToScene();
