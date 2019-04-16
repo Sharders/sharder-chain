@@ -110,7 +110,7 @@ public class Generator implements Comparable<Generator> {
     }
 
     private static final boolean isBootNode = bootNodeCheck();
-    private static final boolean stillWait = Conch.getBooleanProperty("sharder.stillWait");
+    private static final boolean dontWait = Conch.getBooleanProperty("sharder.stillWait");
     private static final boolean bootNodeCheck() {
         String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
         if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
@@ -143,9 +143,8 @@ public class Generator implements Comparable<Generator> {
             }
             return false;
         }
-
         
-        if(!stillWait) return true;
+        if(dontWait) return true;
         
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
             if(Logger.printNow(Generator.class)) {

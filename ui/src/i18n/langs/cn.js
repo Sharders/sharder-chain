@@ -59,7 +59,7 @@ const cn = {
         'cancel': "取消",
     },
     register: {
-        'register_title': "已为您生成账户密钥",
+        'register_title': "您的账户密钥如下",
         'register_tip1': "请写下来或记住这12个单词，该密钥用于访问您的SHARDER账户。",
         'register_tip2': "注意：永远不要透露您的密钥，如果丢失您将无法访问您的账户！",
         'cancel': "取消",
@@ -888,7 +888,7 @@ const cn = {
         'success_to_register_nat': "NAT服务申请成功，请等待审核",
     },
     enter: {
-        'enter_tip': "您的密钥非常重要！为确保您已保存它, 请填写上一步生生成的密钥",
+        'enter_tip': "您的密钥非常重要，请确保您已妥善备份！请填写上一步生成的密钥",
         'enter_cancel': "取消",
         'enter_client': "进入客户端",
     },

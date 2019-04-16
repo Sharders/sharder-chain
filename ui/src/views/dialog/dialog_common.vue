@@ -5,13 +5,13 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span>{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
+                    <span>{{accountInfo.accountRS}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
-                    <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} | </span>
-                    <span>{{$t('dialog.account_info_available_asset') + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
+                    <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + ': ' + accountInfo.name}} | </span>
+                    <span>{{$t('dialog.account_info_available_asset') + ': ' + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -75,7 +75,7 @@
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
-                    <button class="fr common_btn" @click="openAccountInfo(accountInfo.accountRS)">
+                    <button class="fr writeBtn" @click="openAccountInfo(accountInfo.accountRS)">
                         {{$t('dialog.account_transaction_return')}}
                     </button>
                     <div class="cb"></div>

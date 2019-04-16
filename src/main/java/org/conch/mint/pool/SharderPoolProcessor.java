@@ -272,9 +272,8 @@ public class SharderPoolProcessor implements Serializable {
         }
         
         if(Generator.isAutoMiningAccount(sharderPool.creatorId)){
-            Logger.logInfoMessage("current creator %s of pool %s isn't mining on this node, force to open auto mining now.", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
+            Logger.logInfoMessage("current creator %s of pool %s isn't mining on this node, force to open auto mining", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
             Generator.forceOpenAutoMining();
-            Generator.checkOrStartAutoMining();
         }
     }
 
