@@ -134,7 +134,7 @@ public class PocProcessorImpl implements PocProcessor {
   @Override
   public boolean pocTxsProcessed(int height) {
     // whether contains delayed poc txs or old poc txs need to process
-    return !oldPocTxsProcess && PocHolder.delayPocTxs(height).size() <= 0;
+    return PocHolder.delayPocTxs(height).size() <= 0;
   }
 
   @Override
@@ -218,6 +218,7 @@ public class PocProcessorImpl implements PocProcessor {
     Object holderObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
     if(holderObj != null) {
       PocHolder.inst = (PocHolder) holderObj;
+      PocHolder.inst.lastHeight = -1;
     }
 
     Logger.logInfoMessage("load exist poc calculator instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR) + "]");
@@ -242,7 +243,7 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   // execute once when restart the cos application
-  private static boolean oldPocTxsProcess = true;
+  private static boolean oldPocTxsProcess = false;
   private static final Runnable pocTxSynThread = () -> {
     try {
 //      if(!Conch.getBlockchainProcessor().isUpToDate()) {
@@ -263,9 +264,8 @@ public class PocProcessorImpl implements PocProcessor {
 
       if(oldPocTxsProcess) {
         // total poc txs from last height
-        //TODO use the last persist height as begin height
-//        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
-        int fromHeight = 0;
+        int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
+//        int fromHeight = 0;
         int toHeight = BlockchainImpl.getInstance().getHeight();
         Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight , toHeight);
         DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
