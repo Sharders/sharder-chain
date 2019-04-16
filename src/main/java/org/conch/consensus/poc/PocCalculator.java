@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
@@ -205,4 +206,10 @@ public class PocCalculator implements Serializable {
     static void bcCal(PocScore pocScore, Account account, PocTxBody.PocBcSpeed pocBcSpeed){
         //TODO un-impl now -20181230
     }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
 }

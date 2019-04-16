@@ -1,5 +1,6 @@
 package org.conch.mint.pool;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -552,4 +553,10 @@ public class SharderPoolProcessor implements Serializable {
 
         return poolId == forgePool.poolId;
     }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
@@ -210,8 +211,7 @@ class PocHolder implements Serializable {
     public static void addCertifiedPeer(Integer height, Peer peer) {
         String rsAccount = peer.getBindRsAccount();
         long accountId = StringUtils.isEmpty(rsAccount) ? PocHolder.UN_VERIFIED_ID : Account.rsAccountToId(rsAccount);
-        String host = peer.getAnnouncedAddress();
-        if(StringUtils.isEmpty(host)) host = peer.getHost();
+        String host = peer.getAddress();
             
         if(StringUtils.isEmpty(rsAccount)) {
             inst.unverifiedPeerMap.put(host, new CertifiedPeer(height, peer.getType(), host, accountId));
@@ -349,6 +349,12 @@ class PocHolder implements Serializable {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
 
     /**
      * get the poc score according to specified height

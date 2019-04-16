@@ -232,6 +232,13 @@ public interface Peer extends Comparable<Peer> {
 
     String getAnnouncedAddress();
 
+    /**
+     * return announced address firstly if announced address exist. 
+     * else return host
+     * @return
+     */
+    String getAddress();
+
     State getState();
 
     String getVersion();

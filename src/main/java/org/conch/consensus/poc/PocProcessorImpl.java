@@ -31,7 +31,9 @@ import java.util.concurrent.TimeUnit;
  * @since 2018/11/27
  */
 public class PocProcessorImpl implements PocProcessor {
-
+  
+  /** !! Don't use this instance directly, 
+   * please call org.conch.Conch#getPocProcessor() to get instance **/
   public static PocProcessorImpl instance = getOrCreate();
 
   private PocProcessorImpl() {}
@@ -120,6 +122,7 @@ public class PocProcessorImpl implements PocProcessor {
   
   @Override
   public void updateBoundPeer(String host, long accountId){
+    if(StringUtils.isEmpty(host) || accountId == 0 ) return;
     PocHolder.updateBoundPeer(host, accountId);
   }
 

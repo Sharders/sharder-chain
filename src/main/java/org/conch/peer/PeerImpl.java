@@ -21,6 +21,7 @@
 
 package org.conch.peer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.BlockchainProcessor;
@@ -307,6 +308,11 @@ final class PeerImpl implements Peer {
     @Override
     public String getAnnouncedAddress() {
         return announcedAddress;
+    }
+    
+    @Override
+    public String getAddress() {
+        return StringUtils.isNotEmpty(announcedAddress) ? announcedAddress : host;
     }
 
     void setAnnouncedAddress(String announcedAddress) {
@@ -721,6 +727,9 @@ final class PeerImpl implements Peer {
                 } else if (!isBlacklisted()) {
                     blacklist("Old version: " + version);
                 }
+                // update the peer ref RS account when connected
+                Conch.getPocProcessor().updateBoundPeer(getAddress(), Account.rsAccountToId(bindRsAccount));
+                
             } else {
                 //Logger.logDebugMessage("Failed to connect to peer " + peerAddress);
                 setState(State.NON_CONNECTED);
