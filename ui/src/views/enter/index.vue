@@ -9,7 +9,7 @@
             <el-input type="textarea" :autosize=notAutoSize v-model="confirmPassphrase"></el-input>
         </el-col>
 
-        <el-col :span="24">
+        <el-col :span="24" style="margin-top: 10px;">
             <el-button class="common_btn_contrary medium" @click="cancel">{{$t('enter.enter_cancel')}}</el-button>
             <el-button class="common_btn medium" @click="enter">{{$t('enter.enter_client')}}</el-button>
         </el-col>
@@ -24,7 +24,7 @@
         data() {
             return {
                 notAutoSize: {
-                    minRows: 4,
+                    minRows: 3,
                     maxRows: 4
                 },
                 passphrase: this.$route.params.passPhrase,
