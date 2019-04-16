@@ -367,10 +367,18 @@ public class SharderPoolProcessor implements Serializable {
                                     }
                                 }
                             }
-                            DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
-                            DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
+                            saveToDisk();
                         },
                         BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+    }
+
+    /**
+     * save the pools to disk,
+     * If be called outside, the caller should be org.conch.Conch#shutdown()
+     */
+    public static void saveToDisk(){
+        DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
+        DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
     }
 
     public static void init() {

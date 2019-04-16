@@ -222,6 +222,17 @@ class PocHolder implements Serializable {
         updateHeightMinerMap(height, accountId);
     }
 
+    public static int countDelayPocTxs(int queryHeight) {
+        int count = 0;
+        //order by height number 
+        for(int i = 0 ; i <= queryHeight ; i++) {
+            if(inst.delayPocTxsByHeight.containsKey(i)) {
+                count += inst.delayPocTxsByHeight.get(i).size();
+            }
+        }
+        return count;
+    }
+
 
     public static List<Long> delayPocTxs(int queryHeight) {
         List<Long> txs = Lists.newArrayList();

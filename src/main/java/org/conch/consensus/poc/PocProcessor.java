@@ -99,4 +99,6 @@ public interface PocProcessor {
      * notify poc processor to re-process the all poc txs
      */
     void notifySynTxNow();
+    
+    void saveToDisk();
 }

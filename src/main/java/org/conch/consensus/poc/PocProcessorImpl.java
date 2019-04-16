@@ -133,8 +133,8 @@ public class PocProcessorImpl implements PocProcessor {
 
   @Override
   public boolean pocTxsProcessed(int height) {
-    // whether contains delayed poc txs or old poc txs need to process
-    return PocHolder.delayPocTxs(height).size() <= 0;
+    // poc isn't processed: whether contains delayed poc txs or old poc txs need to process
+    return !oldPocTxsProcess && PocHolder.countDelayPocTxs(height) <= 0;
   }
 
   @Override
@@ -160,7 +160,7 @@ public class PocProcessorImpl implements PocProcessor {
     } else if(!oldPocTxsProcess) {
       Logger.logDebugMessage("!!delayed poc txs process failed");
     }
-    return PocHolder.delayPocTxs(height).size() <= 0;
+    return PocHolder.countDelayPocTxs(height) <= 0;
   }
   
 
@@ -187,7 +187,7 @@ public class PocProcessorImpl implements PocProcessor {
       //save to disk when poc score changed case of contains poc txs in block or account balance changed
       if(someAccountBalanceChanged || blockContainPocTxs) {
         //save the poc holder and calculator to disk
-        saveToDisk();
+        instance.saveToDisk();
       }
     }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     
@@ -198,13 +198,15 @@ public class PocProcessorImpl implements PocProcessor {
       }
     }, Account.Event.BALANCE);
 
-    loadFromDisk();
+    instance.loadFromDisk();
   }
 
   /**
-   * save the poc holder and calculator to disk
+   * save the poc holder and calculator to disk,
+   * If be called outside, the caller should be org.conch.Conch#shutdown()
    */
-  private static void saveToDisk() {
+  @Override
+  public void saveToDisk() {
     DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
     DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
   }
@@ -212,7 +214,7 @@ public class PocProcessorImpl implements PocProcessor {
   /**
    * load the poc holder backup from local disk
    */
-  private static void loadFromDisk() {
+  private void loadFromDisk() {
     // read the disk backup
     Logger.logInfoMessage("load exist poc holder instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
     Object holderObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
@@ -251,7 +253,7 @@ public class PocProcessorImpl implements PocProcessor {
 //        return;
 //      }
       int currentHeight = Conch.getBlockchain().getHeight();
-      if(PocHolder.delayPocTxs(currentHeight).size() <= 0 && !oldPocTxsProcess) {
+      if(instance.processDelayedPocTxs(currentHeight)) {
         Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
       }
