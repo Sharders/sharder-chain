@@ -11,11 +11,11 @@
                         <span>{{accountInfo.accountRS}}</span>
                         <img class="csp" src="../../assets/img/copy.svg" v-clipboard:copy="accountInfo.accountRS"
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
-                        <span class="csp" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</span>
                     </div>
+                    <p class="account_info" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</p>
                     <p class="account_asset">
-                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) +
-                        $global.unit}}</p>
+                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) + $global.unit}}
+                    </p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
                             <span class="icon">
