@@ -209,6 +209,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         jsonObject.put("ip", myAddress);
         jsonObject.put("type", req.getParameter("nodeType"));
         jsonObject.put("network", Conch.getNetworkType());
+        jsonObject.put("bindRs", Conch.getStringProperty("sharder.HubBindAddress"));
         Message message = new Message()
                 .setSender(myAddress)
                 .setRetryCount(0)
