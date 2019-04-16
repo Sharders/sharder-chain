@@ -21,6 +21,7 @@
 
 package org.conch.chain;
 
+import com.google.common.collect.Sets;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -1364,7 +1365,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     blockchain.writeLock();
     try {
         
-      if(Conch.reachLastKnownBlock() &&  !Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight())) {
+      if(Conch.reachLastKnownBlock() 
+          && !Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight())) {
           Logger.logDebugMessage("should process delayed poc txs <= [ height = %d ] before accepting blocks", Conch.getBlockchain().getHeight()); 
           return;
       }
@@ -1443,8 +1445,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
   }
-
+  
+  private static Set<Long> knownBadBlocks = Sets.newHashSet(3372111334693782640L, -4480353193679323309L);
   private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException, GeneratorNotAcceptedException {
+    if(Constants.isTestnet() && knownBadBlocks.contains(block.getId())) {
+      Logger.logWarningMessage("Known bad block[id=%d, height=%d] in %s, skip validation", block.getId(), (previousLastBlock.getHeight()+1), Constants.getNetwork().getName());
+      return;
+    }
+    
     if(!Generator.isValid(block.getGeneratorId())) {
       throw new GeneratorNotAcceptedException("Invalid generator",block.getGeneratorId());
     }
@@ -1476,7 +1484,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
-      throw new BlockNotAcceptedException("Generation signature verification failed, poc score is " + pocScoreObj.total() + " at height " + previousLastBlock.getHeight()+1, block);
+      throw new BlockNotAcceptedException("Generation signature verification failed, poc score is " + pocScoreObj.total() + " at height " + (previousLastBlock.getHeight()+1), block);
     }
     if (!block.verifyBlockSignature()) {
       throw new BlockNotAcceptedException("Block signature verification failed", block);

@@ -154,11 +154,11 @@ public class PocProcessorImpl implements PocProcessor {
     
     // remove processed txs
     if(processedTxs.size() > 0) {
-      Logger.logInfoMessage("success to process delayed poc txs[size=%d]", processedTxs.size());
+      Logger.logInfoMessage("success to process delayed poc txs[processed size=%d, wish size=%d]", processedTxs.size(), delayedPocTxs.size());
       Logger.logDebugMessage("processed poc txs detail => " + Arrays.toString(processedTxs.toArray()));
       PocHolder.removeProcessedTxs(processedTxs);
-    } else if(!oldPocTxsProcess) {
-      Logger.logDebugMessage("!!delayed poc txs process failed");
+    } else if(processedTxs.size() <= 0 && delayedPocTxs.size() > 0) {
+      Logger.logDebugMessage("!!delayed poc txs process failed, wish to process %d poc txs", delayedPocTxs.size());
     }
     return PocHolder.countDelayPocTxs(height) <= 0;
   }
@@ -220,6 +220,7 @@ public class PocProcessorImpl implements PocProcessor {
     Object holderObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
     if(holderObj != null) {
       PocHolder.inst = (PocHolder) holderObj;
+    }else {
       PocHolder.inst.lastHeight = -1;
     }
 
@@ -228,7 +229,6 @@ public class PocProcessorImpl implements PocProcessor {
     if(calcObj != null) {
       PocCalculator.inst = (PocCalculator) calcObj;
     }
-    
 
     //if no disk backup, read the poc txs from history blocks
     if(PocHolder.inst != null && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {

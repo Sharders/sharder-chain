@@ -153,6 +153,13 @@ public class Generator implements Comparable<Generator> {
             return false;
         }
         
+        if(!Conch.getBlockchainProcessor().isDownloading()) {
+            if(Logger.printNow(Generator.class)) {
+                Logger.logDebugMessage("block chain state is downloading, don't start mining till blocks sync finished...");
+            }
+            return false;
+        }
+        
         if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
             if(Logger.printNow(Generator.class)) {
                 Logger.logDebugMessage("delayed poc txs or old poc txs haven't processed, don't start mining till blocks sync finished...");
