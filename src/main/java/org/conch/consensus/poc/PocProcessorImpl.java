@@ -207,7 +207,8 @@ public class PocProcessorImpl implements PocProcessor {
    */
   @Override
   public void saveToDisk() {
-    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+//    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+    DiskStorageUtil.saveObjToFile(new PocHolder(), LOCAL_STORAGE_POC_HOLDER);
     DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
   }
 

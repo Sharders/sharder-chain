@@ -38,9 +38,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 class PocHolder implements Serializable {
-
-    static PocHolder inst = new PocHolder();
     
+    // you can use the key word 'transient' exclude the attribute to persist
+    
+    static PocHolder inst = new PocHolder();
+
     // accountId : pocScore
     private Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
     int lastHeight = -1;
@@ -278,7 +280,7 @@ class PocHolder implements Serializable {
         GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
     }
 
-    private PocHolder(){}
+    public PocHolder(){}
 
     /**
      * get the poc score and detail of the specified height

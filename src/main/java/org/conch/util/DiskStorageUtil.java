@@ -3,7 +3,6 @@ package org.conch.util;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.db.Db;
-import org.conch.env.DirProvider;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -13,56 +12,73 @@ import java.nio.file.Paths;
  * @since 2018/12/12
  */
 public class DiskStorageUtil {
+    private DiskStorageUtil(){}
+    
     //private static final String LOCAL_STORAGE_FOLDER = Db.getDir() + File.separator + "localstorage";
     private static final String FOLDER_NAME = "localstorage";
     private static String LOCAL_STORAGE_FOLDER = "";
-    private static boolean storageFolderExist = false;
-
-    public static String getLocalStoragePath(String fileName) {
-        if(storageFolderExist) {
-            return LOCAL_STORAGE_FOLDER + File.separator + fileName;
-        }
-        
+    
+    static {
+        storageFolderExist();
+    }
+    
+    public static void storageFolderExist(){
+        System.out.println("storageFolderExist");
         // storage folder path is same level as db folder
-        String dbDir = Db.getDir();
-        if (StringUtils.isNotEmpty(dbDir)) {
+//        String dbDir = Db.getDir();
+        String baseDir = Db.getDir();
+        if (StringUtils.isNotEmpty(baseDir)) {
             // if storage folder under the application, use it firstly
-            File dirFile = new File(dbDir);
+            File dirFile = new File(baseDir);
             if (dirFile.exists()) {
-                LOCAL_STORAGE_FOLDER = dirFile.getParentFile().getAbsolutePath() + File.separator + FOLDER_NAME;
-                storageFolderExist = true;
-            }else{    
+//                LOCAL_STORAGE_FOLDER = Paths.get(dirFile.getAbsolutePath()).resolve(FOLDER_NAME).toString();
+                LOCAL_STORAGE_FOLDER = Paths.get(dirFile.getParentFile().getAbsolutePath()).resolve(FOLDER_NAME).toString();
+            }else{
                 // append user home as prefix
-                String dbDirUnderUserHome = Paths.get(Conch.getUserHomeDir(),dbDir).toString();
+                String dbDirUnderUserHome = Paths.get(Conch.getUserHomeDir(),baseDir).toString();
                 dirFile = new File(dbDirUnderUserHome);
-                if(! dirFile.exists()) {
-                    dirFile.mkdirs();
+                if(!dirFile.exists()) {
+                    dirFile.mkdir();
                 }
                 LOCAL_STORAGE_FOLDER = dirFile.getParentFile().getAbsolutePath() + File.separator + FOLDER_NAME;
-                storageFolderExist = true;
             }
         }
-        
+
         //check or create local storage folder
         File storageFolder = new File(LOCAL_STORAGE_FOLDER);
-        if(! storageFolder.exists()) {
-            storageFolder.mkdirs();
-        }
-        
-        return LOCAL_STORAGE_FOLDER + File.separator + fileName;
+        if(!storageFolder.exists()) storageFolder.mkdir();
+        System.out.println("storageFolderExist done");
+    }
+    
+    
+    public static String getLocalStoragePath(String fileName) {
+        return Paths.get(LOCAL_STORAGE_FOLDER).resolve(fileName).toString();
     }
 
     public static void saveObjToFile(Object o, String fileName) {
+        System.out.println("saveObjToFile");
+        FileOutputStream fileOutputStream = null;
+        ObjectOutputStream oos = null;
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(getLocalStoragePath(fileName)));
+            fileOutputStream = new FileOutputStream(getLocalStoragePath(fileName));
+            oos = new ObjectOutputStream(fileOutputStream);
             oos.writeObject(o);
-            oos.close();
         } catch (Exception e) {
             Logger.logErrorMessage("save file failed[" + fileName + "]",e);
+        }finally {
+            if(oos != null) {
+                try {
+                    oos.close();
+                } catch (IOException e) {
+                    Logger.logWarningMessage("ObjectOutputStream close failed",e);
+                }
+            }
         }
+        System.out.println("saveObjToFile done");
     }
 
     public static Object getObjFromFile(String fileName) {
+        System.out.println("getObjFromFile");
         Object object = null;
         ObjectInputStream ois = null;
         try {
@@ -88,6 +104,7 @@ public class DiskStorageUtil {
                 Logger.logWarningMessage("delete local cached file [" + fileName + "]");
             }
         }
+        System.out.println("getObjFromFile done");
         return object;
     }
 }
