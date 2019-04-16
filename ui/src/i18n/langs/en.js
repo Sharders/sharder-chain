@@ -59,7 +59,7 @@ const en = {
         'cancel': "Cancel",
     },
     register: {
-        'register_title': "Your mnemonic phrase has been generated:",
+        'register_title': "Your mnemonic phrase has been generated",
         'register_tip1': "Please write down or memorize these 12 words. This mnemonic phrase is required to access your Sharder account.",
         'register_tip2': "Attention: Do not disclose your mnemonic phrase. Once lost, you will lose access to your account!",
         'cancel': "Cancel",
@@ -890,7 +890,7 @@ const en = {
         'success_to_register_nat': "Success to register NAT service, please wait for the review",
     },
     enter: {
-        'enter_tip': "Your mnemonic phrase is very important! In order to be sure that you have saved it, please enter your mnemonic phrase below",
+        'enter_tip': "Your mnemonic phrase is very important, in order to be sure that you have saved it! Please enter your mnemonic phrase below",
         'enter_cancel': "Cancel",
         'enter_client': "Enter",
     },
