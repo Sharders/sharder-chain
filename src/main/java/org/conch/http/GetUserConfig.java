@@ -101,7 +101,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                     if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
                          Conch.serialNum= num.replaceAll("(\\r\\n|\\n)", "");
                         response.put("sharder.xxx", Conch.serialNum);
-                        Logger.logInfoMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
+                        Logger.logDebugMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
                     }
                     getFrom = "serial number";
                 }

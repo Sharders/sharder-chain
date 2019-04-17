@@ -280,7 +280,7 @@ class PocHolder implements Serializable {
         GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
     }
 
-    public PocHolder(){}
+    private PocHolder(){}
 
     /**
      * get the poc score and detail of the specified height

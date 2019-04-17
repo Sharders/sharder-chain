@@ -139,7 +139,7 @@ public final class Peers {
 
     /** my peer info, it be generated in the static block **/
     private static final JSONObject myPeerInfo;
-    private static List<Peer.Service> myServices;
+    private static List<Peer.Service> myServices = Lists.newArrayList();
     private static volatile Peer.BlockchainState currentBlockchainState;
     private static volatile JSONStreamAware myPeerInfoRequest;
     private static volatile JSONStreamAware myPeerInfoResponse;
@@ -161,6 +161,54 @@ public final class Peers {
         return Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers") : Conch.getStringListProperty("sharder.defaultPeers");
     }
 
+//    /**
+//     * this method must be called after #checkOpenServices()
+//     * @param service 
+//     * @return
+//     */
+//    public static boolean openService(Peer.Service service){ 
+//        for(Peer.Service myService : myServices){
+//            if(myService.ordinal() == service.ordinal()) {
+//                return true;
+//            }
+//        }
+//       return false;
+//    }
+    
+    private static List<Peer.Service> checkOpenServices() {
+        List<Peer.Service> servicesList = Lists.newArrayList();
+        /** basic infos **/
+        if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
+            servicesList.add(Peer.Service.HALLMARK);
+        }
+
+        /** apis of my peer **/
+        if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
+            servicesList.add(Peer.Service.PRUNABLE);
+        }
+        if (API.openAPIPort > 0) {
+            servicesList.add(Peer.Service.API);
+        }
+        if (API.openAPISSLPort > 0) {
+            servicesList.add(Peer.Service.API_SSL);
+        }
+
+        if ((API.openAPIPort > 0 || API.openAPISSLPort > 0) && API.apiServerCORS) {
+            servicesList.add(Peer.Service.CORS);
+        }
+
+        /** services of my peer **/
+        // Add Business API service
+        if (enableBizAPIs) {
+            servicesList.add(Peer.Service.BAPI);
+        }
+        // Add Storage service
+        if (enableStorage) {
+            servicesList.add(Peer.Service.STORAGE);
+        }
+        return servicesList;
+    }
+    
     /**
      * generate my peer info in static block to ake sure the final params is right
      */
@@ -269,29 +317,11 @@ public final class Peers {
         }
 
         /** basic infos **/
-        if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
-            myPeerInfoJson.put("hallmark", Peers.myHallmark);
-            servicesList.add(Peer.Service.HALLMARK);
-        }
         myPeerInfoJson.put("useNATService", Conch.getUseNATService());
         myPeerInfoJson.put("application", Conch.APPLICATION);
         myPeerInfoJson.put("version", Conch.VERSION);
         myPeerInfoJson.put("platform", Peers.myPlatform);
         myPeerInfoJson.put("shareAddress", Peers.shareMyAddress);
-
-        /** apis of my peer **/
-        if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
-            servicesList.add(Peer.Service.PRUNABLE);
-        }
-        if (API.openAPIPort > 0) {
-            myPeerInfoJson.put("apiPort", API.openAPIPort);
-            servicesList.add(Peer.Service.API);
-        }
-        if (API.openAPISSLPort > 0) {
-            myPeerInfoJson.put("apiSSLPort", API.openAPISSLPort);
-            servicesList.add(Peer.Service.API_SSL);
-        }
-
         if (API.openAPIPort > 0 || API.openAPISSLPort > 0) {
             EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
@@ -310,23 +340,31 @@ public final class Peers {
             });
             myPeerInfoJson.put("disabledAPIs", APIEnum.enumSetToBase64String(disabledAPISet));
             myPeerInfoJson.put("apiServerIdleTimeout", API.apiServerIdleTimeout);
-            if (API.apiServerCORS) {
-                servicesList.add(Peer.Service.CORS);
-            }
         }
 
-        /** services of my peer **/
-        // Add Business API service
-        if (enableBizAPIs) {
+        /** apis of my peer **/
+        myServices = checkOpenServices();
+        
+        if(myServices.contains(Peer.Service.HALLMARK)) {
+            myPeerInfoJson.put("hallmark", Peers.myHallmark);
+        }
+        
+        if(myServices.contains(Peer.Service.API)) {
+            myPeerInfoJson.put("apiPort", API.openAPIPort);
+        }
+        
+        if(myServices.contains(Peer.Service.API_SSL)) {
+            myPeerInfoJson.put("apiSSLPort", API.openAPISSLPort);
+        }
+        
+        if(myServices.contains(Peer.Service.BAPI)) {
             myPeerInfoJson.put("enableBizAPIs", true);
-            servicesList.add(Peer.Service.BAPI);
         }
-        // Add Storage service
-        if (enableStorage) {
+        
+        if(myServices.contains(Peer.Service.STORAGE)) {
             myPeerInfoJson.put("enableStorage", true);
-            servicesList.add(Peer.Service.STORAGE);
         }
-        myServices = servicesList;
+  
         myPeerInfoJson.put("services", Long.toUnsignedString(getServicesInLong()));
 
         /** mint accounts of my peer **/
@@ -830,7 +868,7 @@ public final class Peers {
         String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
         com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
         if (StringUtils.isEmpty(peersStr)) {
-            Logger.logInfoMessage("peer list is null, no needs to get peers info, sleep 30 minutes");
+            Logger.logInfoMessage("ge peer list from %s is null, no needs to get peer info", SC_PEERS_API);
             return false;
         } else {
             if (peersStr.startsWith(Constants.BRACKET)) {
