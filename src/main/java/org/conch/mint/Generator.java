@@ -148,14 +148,7 @@ public class Generator implements Comparable<Generator> {
         
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
             if(Logger.printNow(Generator.class)) {
-                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't start mining till blocks sync finished...");
-            }
-            return false;
-        }
-        
-        if(!Conch.getBlockchainProcessor().isDownloading()) {
-            if(Logger.printNow(Generator.class)) {
-                Logger.logDebugMessage("block chain state is downloading, don't start mining till blocks sync finished...");
+                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
             }
             return false;
         }

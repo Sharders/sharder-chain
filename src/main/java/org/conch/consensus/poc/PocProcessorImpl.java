@@ -36,11 +36,57 @@ public class PocProcessorImpl implements PocProcessor {
    * please call org.conch.Conch#getPocProcessor() to get instance **/
   public static PocProcessorImpl instance = getOrCreate();
 
+  // execute once when restart the cos application
+  private static boolean oldPocTxsProcess = false;
+
+  private static final int peerSynThreadInterval = 600;
+  private static final int pocTxSynThreadInterval = 10;
+
+  private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
+  private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
+
+  private static Map<Long,Account> balanceChangedMap = new HashMap<>();
+
+
   private PocProcessorImpl() {}
 
   private static synchronized PocProcessorImpl getOrCreate() {
     return instance != null ? instance : new PocProcessorImpl();
   }
+
+  static {
+    // new block accepted
+    Conch.getBlockchainProcessor().addListener((Block block) -> {
+      // ss hold score re-calculate
+      // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
+      boolean someAccountBalanceChanged = balanceChangedMap.size() > 0;
+      if(someAccountBalanceChanged) {
+        for(Account account : balanceChangedMap.values()){
+          balanceChangedProcess(block.getHeight(),account);
+        }
+        balanceChangedMap.clear();
+      }
+
+      Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
+      boolean blockContainPocTxs = containPoc == null ? false : containPoc;
+
+      //save to disk when poc score changed case of contains poc txs in block or account balance changed
+      if(someAccountBalanceChanged || blockContainPocTxs) {
+        //save the poc holder and calculator to disk
+        instance.saveToDisk();
+      }
+    }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
+
+    // balance changed
+    Account.addListener((Account account) -> {
+      if(!balanceChangedMap.containsKey(account.getId())) {
+        balanceChangedMap.put(account.getId(), account);
+      }
+    }, Account.Event.BALANCE);
+
+    instance.loadFromDisk();
+  }
+
 
   /**
    * get bind peer type
@@ -163,52 +209,13 @@ public class PocProcessorImpl implements PocProcessor {
     return PocHolder.countDelayPocTxs(height) <= 0;
   }
   
-
-  private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
-  private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
-  
-  private static Map<Long,Account> balanceChangedMap = new HashMap<>();
-  static {
-    // new block accepted
-    Conch.getBlockchainProcessor().addListener((Block block) -> {
-      // ss hold score re-calculate
-      // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
-      boolean someAccountBalanceChanged = balanceChangedMap.size() > 0;
-      if(someAccountBalanceChanged) {
-        for(Account account : balanceChangedMap.values()){
-          balanceChangedProcess(block.getHeight(),account);
-        }
-        balanceChangedMap.clear();
-      }
-      
-      Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
-      boolean blockContainPocTxs = containPoc == null ? false : containPoc;
-      
-      //save to disk when poc score changed case of contains poc txs in block or account balance changed
-      if(someAccountBalanceChanged || blockContainPocTxs) {
-        //save the poc holder and calculator to disk
-        instance.saveToDisk();
-      }
-    }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
-    
-    // balance changed
-    Account.addListener((Account account) -> {
-      if(!balanceChangedMap.containsKey(account.getId())) {
-        balanceChangedMap.put(account.getId(), account);
-      }
-    }, Account.Event.BALANCE);
-
-    instance.loadFromDisk();
-  }
-
   /**
    * save the poc holder and calculator to disk,
    * If be called outside, the caller should be org.conch.Conch#shutdown()
    */
   @Override
   public void saveToDisk() {
-//    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
-    DiskStorageUtil.saveObjToFile(new PocHolder(), LOCAL_STORAGE_POC_HOLDER);
+    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
     DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
   }
 
@@ -238,15 +245,12 @@ public class PocProcessorImpl implements PocProcessor {
   }
   
   
-  private static final int peerSynThreadInterval = 600;
-  private static final int pocTxSynThreadInterval = 60;
   public static void init() {
     ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
     ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
   }
 
-  // execute once when restart the cos application
-  private static boolean oldPocTxsProcess = false;
+
   private static final Runnable pocTxSynThread = () -> {
     try {
 //      if(!Conch.getBlockchainProcessor().isUpToDate()) {
@@ -254,7 +258,7 @@ public class PocProcessorImpl implements PocProcessor {
 //        return;
 //      }
       int currentHeight = Conch.getBlockchain().getHeight();
-      if(instance.processDelayedPocTxs(currentHeight)) {
+      if(instance.processDelayedPocTxs(currentHeight) && !oldPocTxsProcess) {
         Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
         return;
       }
