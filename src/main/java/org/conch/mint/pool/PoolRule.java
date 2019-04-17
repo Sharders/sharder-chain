@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TODO bad design, need to refactor - ben 20190411
+ * TODO bad design and coding, need to refactor - ben 20190411
  */
 public class PoolRule implements Serializable {
     private static final long serialVersionUID = 7892310437239078209L;
@@ -257,7 +257,11 @@ public class PoolRule implements Serializable {
      * @return
      */
     public static boolean validateConsignor(int level, Attachment attachment, Map<String, Object> ruleInstance) {
-        Map<String, Object> ruleMap = (Map<String, Object>) ruleInstance.get("level" + level);
+        // TODO temporary logic to fix pool tx issue, combine the level0 and level1 to one rule object
+        Map<String, Object> ruleMap = (Map<String, Object>) ruleInstance.get("level0");
+        if(ruleMap == null) {
+            ruleMap =  (Map<String, Object>) ruleInstance.get("level1");
+        }
         Map<String, Object> consignorMap = (Map<String, Object>) ruleMap.get("consignor");
 
         for (Field field : attachment.getClass().getDeclaredFields()) {
