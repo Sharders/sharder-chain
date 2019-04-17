@@ -167,7 +167,7 @@ export default {
         };
         if (/(y+)/.test(fmt))
             fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
-        for (var k in o)
+        for (let k in o)
             if (new RegExp("(" + k + ")").test(fmt))
                 fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
         return fmt;
@@ -701,8 +701,8 @@ export default {
      * @returns {string}
      */
     getTransactionAmountNQT(t, accountRS) {
-        let amountNQT = t.amountNQT / 100000000;
-        if (amountNQT === 0) {
+        let amountNQT = new BigNumber(t.amountNQT).dividedBy("100000000").toFixed();
+        if (amountNQT <= 0) {
             return this.placeholder
         } else if (t.senderRS === accountRS && t.type !== 9) {
             return -amountNQT + this.unit
@@ -716,10 +716,10 @@ export default {
      * @returns {string}
      */
     getTransactionFeeNQT(t) {
-        if (t.feeNQT === "1" || t.feeNQT === "0") {
+        if (t.feeNQT <= 0) {
             return this.placeholder;
         }
-        return t.feeNQT / 100000000 + this.unit;
+        return new BigNumber(t.feeNQT).dividedBy("100000000").toFixed() + this.unit;
     },
     /**
      * 返回对象 或 占位符
@@ -764,20 +764,20 @@ export default {
      * @param totalFeeNQT
      */
     getBlockTotalFeeNQT(totalFeeNQT) {
-        if (totalFeeNQT === '0') {
+        if (totalFeeNQT <= 0) {
             return this.placeholder
         }
-        return totalFeeNQT / 100000000 + this.unit
+        return new BigNumber(totalFeeNQT).dividedBy("100000000").toFixed()
     },
     /**
      * 获得区块总金额
      * @param totalAmountNQT
      */
     getBlocKTotalAmountNQT(totalAmountNQT) {
-        if (totalAmountNQT === '0') {
+        if (totalAmountNQT <= 0) {
             return this.placeholder
         }
-        return totalAmountNQT / 100000000 + this.unit
+        return new BigNumber(totalAmountNQT).dividedBy("100000000").toFixed() + this.unit;
     },
     /**
      * 获得交易的区块时间
@@ -796,12 +796,12 @@ export default {
      * @returns {string}
      */
     getSSNumberFormat(num, f) {
-        if (Number(num) <= 0 || !num) {
+        if (!num || num <= 0) {
             return this.placeholder
         } else if (f) {
             return num + this.unit
         } else {
-            return num / 100000000 + this.unit
+            return new BigNumber(num).dividedBy("100000000").toFixed() + this.unit
         }
     },
     /**
@@ -812,6 +812,6 @@ export default {
      */
     getRewardRate(rule, num) {
         let level = (rule.level) || (rule.level1 ? rule.level1 : rule.level0);
-        return Number(level.forgepool.reward.max * 100).toFixed(num || 2) + "%";
+        return new BigNumber(level.forgepool.reward.max).multipliedBy("100").toFixed(num) + "%";
     }
 };

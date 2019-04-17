@@ -25,6 +25,7 @@
 
     global.pako = require("./util/pako");
     global.BigInteger = require("jsbn").BigInteger;
+    global.BigNumber = require("bignumber.js");
     global.converters = require("./util/converters");
     global.CryptoJS = require("crypto-js");
     global.curve25519 = require("./util/curve25519");
