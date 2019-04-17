@@ -90,7 +90,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         
         // send to foundation to create node type tx once in initial processing
         if(isInit) {
-            if (!sendCreateNodeTypeTxRequestToFoundation(req)) {
+            if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
                 Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
                 response.put("reconfiged", false);
                 response.put("failedReason", "failed to configure settings caused by send create node type tx message to foundation failed!!");
@@ -208,16 +208,17 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return pageValue.equals(dbValue);
         }
     }
-
+    
+    //TODO need refactor
     @SuppressWarnings("unchecked")
-    private Boolean sendCreateNodeTypeTxRequestToFoundation(HttpServletRequest req) {
+    private Boolean sendCreateNodeTypeTxRequestToFoundation(HttpServletRequest req, String rsAddress) {
         boolean result = false;
         String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("ip", myAddress);
         jsonObject.put("type", req.getParameter("nodeType"));
         jsonObject.put("network", Conch.getNetworkType());
-        jsonObject.put("bindRs", Conch.getStringProperty("sharder.HubBindAddress"));
+        jsonObject.put("bindRs", rsAddress);
         jsonObject.put("from", "NodeInitialStage#Reconfig");
         Message message = new Message()
                 .setSender(myAddress)
