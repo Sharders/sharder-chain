@@ -68,7 +68,12 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
-        long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
+
+        String bindRs = Conch.getStringProperty("sharder.HubBindAddress");
+        if(isInit) {
+            bindRs = Account.rsAccount(req.getParameter("sharder.HubBindPassPhrase"));
+        }
+        long creatorId = Account.rsAccountToId(bindRs);
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
@@ -77,33 +82,36 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
 
         if (!verifyFormData(req, response)) {
-            Logger.logErrorMessage("failed to configure settings...formData invalid!");
+            Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
             response.put("reconfiged", false);
-            response.put("failedReason", "failed to configure settings...formData invalid!");
+            response.put("failedReason", "failed to configure settings caused by formData invalid!");
             return response;
         }
-
-        if (!sendCreateNodeTypeTxRequest(req)) {
-            Logger.logErrorMessage("failed to configure settings...send create node type tx message failed!");
-            response.put("reconfiged", false);
-            response.put("failedReason", "failed to configure settings...send create node type tx message failed!");
-            return response;
+        
+        // send to foundation to create node type tx once in initial processing
+        if(isInit) {
+            if (!sendCreateNodeTypeTxRequestToFoundation(req)) {
+                Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
+                response.put("reconfiged", false);
+                response.put("failedReason", "failed to configure settings caused by send create node type tx message to foundation failed!!");
+                return response;
+            }
         }
 
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
 
             if ("sharder.HubBindPassPhrase".equals(paraName)) {
-                String pr = req.getParameter(paraName);
-                String ssAddr = Account.rsAccount(pr);
-                map.put("sharder.HubBindPassPhrase", pr);
-                map.put("sharder.HubBindAddress", ssAddr);
+                String prFromRequest = req.getParameter(paraName);
+                map.put("sharder.HubBindPassPhrase", prFromRequest);
+                map.put("sharder.HubBindAddress", Account.rsAccount(prFromRequest));
                 continue;
             }
             if ("newAdminPassword".equals(paraName)) {
                 map.put("sharder.adminPassword", req.getParameter(paraName));
                 continue;
             }
+            //if it ins't initial, use the current pr get from local properties file
             if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew && !isInit) {
                 map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
                 continue;
@@ -202,7 +210,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private Boolean sendCreateNodeTypeTxRequest(HttpServletRequest req) {
+    private Boolean sendCreateNodeTypeTxRequestToFoundation(HttpServletRequest req) {
         boolean result = false;
         String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
         JSONObject jsonObject = new JSONObject();
@@ -210,6 +218,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         jsonObject.put("type", req.getParameter("nodeType"));
         jsonObject.put("network", Conch.getNetworkType());
         jsonObject.put("bindRs", Conch.getStringProperty("sharder.HubBindAddress"));
+        jsonObject.put("from", "NodeInitialStage#Reconfig");
         Message message = new Message()
                 .setSender(myAddress)
                 .setRetryCount(0)
