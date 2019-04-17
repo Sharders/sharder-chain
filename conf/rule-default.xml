@@ -25,8 +25,8 @@
         <consignor>
             <!--投入SS区间-->
             <amount>
-                <min>2000000000000</min>
-                <max>500000100000000</max>
+                <min>1000000000000</min>
+                <max>480001000000000</max>
             </amount>
         </consignor>
     </level0>
