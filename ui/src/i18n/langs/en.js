@@ -269,7 +269,7 @@ const en = {
         attribute: {
             'exceeding_total': "Exceeding pool upper limit",
             'pool_destruction': "Pool deleted",
-            'join_number_info': "The input quantity must be greater than 1",
+            'join_number_info': "Input quantity must be greater than {min} and less than {Max}",
             'join_success': "Joined",
             'delete_success': "Deleted",
             'not_join': "Not joined",

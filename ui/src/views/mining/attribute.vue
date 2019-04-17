@@ -17,7 +17,9 @@
                             class="number">{{newestBlock.height}}</span>{{$t('mining.attribute.mining_current_number2')}}
                         </h1>
                     </div>
-                    <div class="earnings">{{$t('mining.attribute.income') + "+" + $global.getSSNumberFormat(miningInfo.income)}}</div>
+                    <div class="earnings">{{$t('mining.attribute.income') + "+" +
+                        $global.getSSNumberFormat(miningInfo.income)}}
+                    </div>
                 </div>
                 <div class="my-info">
                     <h1>
@@ -126,7 +128,8 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}}|
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal
+                    - miningInfo.currentInvestment)}}|
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
                 <p class="input">
@@ -319,8 +322,13 @@
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
-                if (this.joinPool <= 1) {
-                    return this.$message.error(this.$t("mining.attribute.join_number_info"));
+                let min = this.miningInfo.level.consignor.amount.min / 100000000;
+                let max = this.miningInfo.level.consignor.amount.max / 100000000;
+                if (this.joinPool < min || this.joinPool > max) {
+                    return this.$message.error(this.$t("mining.attribute.join_number_info", {
+                        min: min,
+                        max: max
+                    }));
                 }
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));
