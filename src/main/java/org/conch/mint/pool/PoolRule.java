@@ -117,8 +117,7 @@ public class PoolRule implements Serializable {
             if ((long) value < max && (long) value > min) {
                 return true;
             } else {
-                Logger.logDebugMessage(
-                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         } else if (value instanceof Integer) {
@@ -127,8 +126,7 @@ public class PoolRule implements Serializable {
             if ((int) value < max && (int) value > min) {
                 return true;
             } else {
-                Logger.logDebugMessage(
-                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         } else {
@@ -137,8 +135,7 @@ public class PoolRule implements Serializable {
             if ((double) value < max && (double) value > min) {
                 return true;
             } else {
-                Logger.logDebugMessage(
-                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         }
@@ -236,8 +233,7 @@ public class PoolRule implements Serializable {
         levelRule.put("forgepool", levelForgePool);
         Map<String, Object> levelConsignor = new HashMap<>();
         for (Object o : consignor.keySet()) {
-            Map<String, Object> field =
-                    (Map<String, Object>) ((Map<String, Object>) ruleMap.get("consignor")).get(o);
+            Map<String, Object> field = (Map<String, Object>) ((Map<String, Object>) ruleMap.get("consignor")).get(o);
             if (!validate(field, consignor.get(o))) {
                 return null;
             }
@@ -253,16 +249,23 @@ public class PoolRule implements Serializable {
         return levelRules;
     }
 
-    public static boolean validateConsignor(Long creatorId, Attachment attachment, Map<String, Object> ruleInstance) {
-        int level = getLevel(creatorId);
+    /**
+     * validate accorfing to specified level
+     * @param level
+     * @param attachment
+     * @param ruleInstance
+     * @return
+     */
+    public static boolean validateConsignor(int level, Attachment attachment, Map<String, Object> ruleInstance) {
         Map<String, Object> ruleMap = (Map<String, Object>) ruleInstance.get("level" + level);
+        Map<String, Object> consignorMap = (Map<String, Object>) ruleMap.get("consignor");
 
         for (Field field : attachment.getClass().getDeclaredFields()) {
-            if (((Map<String, Object>) ruleMap.get("consignor")).containsKey(field.getName())) {
+            if (consignorMap.containsKey(field.getName())) {
                 try {
                     field.setAccessible(true);
                     Object value = field.get(attachment);
-                    if (!validate( (Map<String, Object>)((Map<String, Object>) ruleMap.get("consignor")).get(field.getName()),value)) {
+                    if (!validate((Map<String, Object>)consignorMap.get(field.getName()),value)) {
                         return false;
                     }
                 } catch (IllegalAccessException e) {
@@ -272,6 +275,12 @@ public class PoolRule implements Serializable {
             }
         }
         return true;
+    }
+
+
+    public static boolean validateConsignor(Long creatorId, Attachment attachment, Map<String, Object> ruleInstance) {
+        int level = getLevel(creatorId);
+        return validateConsignor(level, attachment, ruleInstance);
     }
 
     public static Map<String, Object> getRules() {

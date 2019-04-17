@@ -405,8 +405,8 @@ public class SharderPoolProcessor implements Serializable {
     public static SharderPoolProcessor getPool(long poolId) {
         return sharderPools.get(poolId);
     }
-
-    public long getCreatorIdByPoolId(long poolId) {
+    
+    public static long getCreatorIdByPoolId(long poolId) {
         SharderPoolProcessor poolProcessor = getPool(poolId);
         return poolProcessor != null ? poolProcessor.getCreatorId() : -1;
     }
@@ -501,6 +501,12 @@ public class SharderPoolProcessor implements Serializable {
 
     public Map<String, Object> getRule() {
         return rule;
+    }
+
+    public HashMap<String, Object> getRootRuleMap(){
+        Object rootRuleMap = getRule().get("level0");
+        rootRuleMap = rootRuleMap != null ? rootRuleMap : getRule().get("level1");
+        return (HashMap<String, Object>) rootRuleMap;
     }
 
     public long getPower() {
