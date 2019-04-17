@@ -3625,13 +3625,20 @@ public abstract class TransactionType {
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
                     throw new ConchException.NotValidException("Sharder pool will be destroyed at " + endHeight + " before transaction apply at " + curHeight);
                 }
-                if (!PoolRule.validateConsignor(SharderPoolProcessor.getPool(join.getPoolId()).getCreatorId(), join, forgePool.getRule())) {
+                
+                // default level is creator
+                // 0-pool creator, 1-investor 
+                int level = 0;
+                if(SharderPoolProcessor.getCreatorIdByPoolId(join.getPoolId()) != transaction.getSenderId()) {
+                    level = 1;
+                }
+                
+                if (!PoolRule.validateConsignor(level, join, forgePool.getRule())) {
                     throw new ConchException.NotValidException("current condition is out of rule");
                 }
 
-                Object rule = forgePool.getRule().get("level0") != null ? forgePool.getRule().get("level0") : forgePool.getRule().get("level1");
                 com.alibaba.fastjson.JSONObject json = new com.alibaba.fastjson.JSONObject();
-                json.putAll((HashMap<String, Object>) rule);
+                json.putAll(forgePool.getRootRuleMap());
                 long maxCapacity = json.getJSONObject("consignor").getJSONObject("amount").getLong("max");
                 if (join.getAmount() + forgePool.getPower() > maxCapacity) {
                     throw new ConchException.NotValidException("exceeding total upper limit of pool");
