@@ -144,7 +144,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     // delayed poc txs 
     List<Long> delayedPocTxs = PocHolder.delayPocTxs(height);
-    Logger.logInfoMessage("process delayed poc txs[size=%d]", delayedPocTxs.size());
+    Logger.logDebugMessage("process delayed poc txs[size=%d]", delayedPocTxs.size());
     Set<Long> processedTxs = Sets.newHashSet();
     delayedPocTxs.forEach(txid -> {
       if(instance.pocTxProcess(txid)) {
