@@ -406,6 +406,11 @@ public class SharderPoolProcessor implements Serializable {
         return sharderPools.get(poolId);
     }
 
+    public long getCreatorIdByPoolId(long poolId) {
+        SharderPoolProcessor poolProcessor = getPool(poolId);
+        return poolProcessor != null ? poolProcessor.getCreatorId() : -1;
+    }
+
     public static JSONObject getPoolsFromNow(){
         List<SharderPoolProcessor> pasts = new ArrayList<>();
         for(SharderPoolProcessor forgePool : sharderPools.values()){

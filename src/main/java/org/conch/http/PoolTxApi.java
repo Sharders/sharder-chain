@@ -74,8 +74,7 @@ public abstract class PoolTxApi {
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
-
-
+    
     public static final class QuitPoolTx extends CreateTransaction {
         static final QuitPoolTx instance = new QuitPoolTx();
 
@@ -87,7 +86,7 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long txId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+            long txId = ParameterParser.getUnsignedLong(request, "txId", true);
             Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
             return createTransaction(request, account, 0, 0, attachment);
         }
@@ -95,7 +94,7 @@ public abstract class PoolTxApi {
 
     public static final class JoinPoolTx extends CreateTransaction {
         static final JoinPoolTx instance = new JoinPoolTx();
-
+        
         private JoinPoolTx() {
             super(new APITag[]{APITag.FORGING, APITag.CREATE_TRANSACTION}, "poolId", "period", "amount");
         }
@@ -112,7 +111,7 @@ public abstract class PoolTxApi {
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
-
+    
     public static final class GetPools extends APIServlet.APIRequestHandler {
         static final GetPools instance = new GetPools();
 
