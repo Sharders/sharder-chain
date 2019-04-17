@@ -126,7 +126,7 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}}|
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
                 <p class="input">
