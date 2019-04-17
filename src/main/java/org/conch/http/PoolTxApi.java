@@ -4,7 +4,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.mint.pool.Consignor;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
@@ -38,7 +37,7 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
             if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
-                String errorDetail = "current account can't create mint pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to certified peer";
+                String errorDetail = "Can't create mining pool, because account " + account.getRsAddress() + " is not be bind to certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
