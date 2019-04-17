@@ -308,32 +308,15 @@ public class Generator implements Comparable<Generator> {
         return listeners.removeListener(listener, eventType);
     }
 
-    /**
-     * the owner of node start mining
-     * @param secretPhrase
-     * @return
-     */
-    public static Generator ownerMining(String secretPhrase) {
-        return startMining(secretPhrase,true);
-    }
 
-    /**
-     * normal accountS start mining
-     * @param secretPhrase
-     * @return
-     */
     public static Generator startMining(String secretPhrase) {
-        return startMining(secretPhrase,false);
-    }
-
-    private static Generator startMining(String secretPhrase, boolean isOwner) {
+        if(StringUtils.isEmpty(secretPhrase)) return null;
+        
+        boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
         // if miner is not the owner of the node
-        if(!isOwner) {
-            if(!Peers.isOpenService(Peer.Service.MINER)) {
-                throw new RuntimeException("the proxy mint service of this node isn't open, can't allow miners to mining!");
-            }else if(generators.size() >= MAX_MINERS) {
-                throw new RuntimeException("the limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
-            }
+        if(!isOwner && generators.size() >= MAX_MINERS) {
+            throw new RuntimeException("the limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
+            
 //            long accountId = Account.getId(secretPhrase);
 //            if(!PocProcessorImpl.isHubBind(accountId)) {
 //                Logger.logInfoMessage("Account[id=" + accountId  + "] is not be bind to hub");
@@ -854,6 +837,19 @@ public class Generator implements Comparable<Generator> {
 
         return autoMintAccountRs();
     }
+    
+    /**
+     * sequence: hub bound account > local auto mint account
+     *
+     * @return pr of auto mining account
+     */
+    private static String getAutoMiningPR() {
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            return HUB_BIND_PR;
+        }
+
+        return Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+    }
 
     /**
      * Auto mining of Hub or Miner, just execute once
@@ -866,7 +862,7 @@ public class Generator implements Comparable<Generator> {
         
         // [Hub Miner] if owner bind the passphrase then start mine automatic
         if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
-            Generator hubGenerator = ownerMining(HUB_BIND_PR);
+            Generator hubGenerator = startMining(HUB_BIND_PR);
             if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(HUB_BIND_ADDRESS))) {
                 stopMining(HUB_BIND_PR);
                 Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
@@ -877,7 +873,7 @@ public class Generator implements Comparable<Generator> {
             // [Normal Miner] if owner set the passphrase of mint then start mining
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
-                Generator bindGenerator = ownerMining(autoMintPR.trim());
+                Generator bindGenerator = startMining(autoMintPR.trim());
                 Logger.logInfoMessage("account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
             }
         }
