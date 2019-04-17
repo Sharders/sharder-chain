@@ -81,16 +81,15 @@ public class PoolRule implements Serializable {
     }
 
     public static int getLevel(long creatorId) {
-        SharderPoolProcessor poolProcessor =
-                SharderPoolProcessor.newPoolFromDestroyed(creatorId);
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.newPoolFromDestroyed(creatorId);
         if (poolProcessor == null) {
             return 0;
         }
+        
         int level = 0;
         for (String key : rules.keySet()) {
-            if (key.equals("version")) {
-                continue;
-            }
+            if (key.equals("version")) continue;
+            
             Map<String, Object> objectMap = (Map<String, Object>) rules.get(key);
             Map<String, Object> map = (Map<String, Object>) objectMap.get("rule");
             for (String ruleKey : map.keySet()) {
@@ -254,8 +253,7 @@ public class PoolRule implements Serializable {
         return levelRules;
     }
 
-    public static boolean validateConsignor(
-            Long creatorId, Attachment attachment, Map<String, Object> ruleInstance) {
+    public static boolean validateConsignor(Long creatorId, Attachment attachment, Map<String, Object> ruleInstance) {
         int level = getLevel(creatorId);
         Map<String, Object> ruleMap = (Map<String, Object>) ruleInstance.get("level" + level);
 
@@ -264,15 +262,11 @@ public class PoolRule implements Serializable {
                 try {
                     field.setAccessible(true);
                     Object value = field.get(attachment);
-                    if (!validate(
-                            (Map<String, Object>)
-                                    ((Map<String, Object>) ruleMap.get("consignor")).get(field.getName()),
-                            value)) {
+                    if (!validate( (Map<String, Object>)((Map<String, Object>) ruleMap.get("consignor")).get(field.getName()),value)) {
                         return false;
                     }
                 } catch (IllegalAccessException e) {
-                    Logger.logErrorMessage(
-                            "can't access the attachment field when validate attachment rule ", e);
+                    Logger.logErrorMessage("can't access the attachment field when validate attachment rule ", e);
                     return false;
                 }
             }
@@ -378,7 +372,7 @@ public class PoolRule implements Serializable {
         return new float[]{minLife,maxLife};
     }
 
-    public static long[] loadInvestmentRule(Role role) {
+    private static long[] loadInvestmentRule(Role role) {
         Map<String, Object> levelMap = (Map<String, Object>) rules.get(parseLevelByRole(role));
         Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("consignor");
         Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("amount");
