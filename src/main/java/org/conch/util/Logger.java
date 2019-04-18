@@ -44,6 +44,8 @@ public final class Logger {
     /** Log levels */
     public enum Level {
         DEBUG, INFO, WARN, ERROR
+        
+        
     }
 
     /** Message listeners */
@@ -60,7 +62,8 @@ public final class Logger {
 
     /** Enable log traceback */
     private static final boolean enableLogTraceback;
-
+    
+    private static String level;
     /**
      * No constructor
      */
@@ -94,7 +97,7 @@ public final class Logger {
         if (!(LogManager.getLogManager() instanceof ConchLogManager)) {
             System.setProperty("java.util.logging.manager",
                     (oldManager != null ? oldManager : "java.util.logging.LogManager"));
-        }
+        }   
         
         Properties loggingProperties = new Properties();
         String defaultPropertieFile = Conch.getConfDir() + File.separator + "logging-default.properties";
@@ -120,6 +123,7 @@ public final class Logger {
                     inStream.close();
                     outStream.close();
                 }
+                level = loggingProperties.getProperty("log4j.appender.D.Threshold");
                 BriefLogFormatter.init();
             } catch (IOException e) {
                 throw new RuntimeException("Error loading logging properties", e);
@@ -145,7 +149,21 @@ public final class Logger {
             ((ConchLogManager) LogManager.getLogManager()).conchShutdown();
         }
     }
-
+    
+    public static boolean isLevel(Level checkLevel){
+        switch (checkLevel) {
+            case DEBUG:
+                return "DEBUG".equalsIgnoreCase(level);
+            case INFO:
+                return "INFO".equalsIgnoreCase(level);
+            case WARN:
+                return "WARN".equalsIgnoreCase(level);
+            case ERROR:
+                return "ERROR".equalsIgnoreCase(level);
+        }
+        return false;
+    }
+    
     /**
      * Set the log level
      *
