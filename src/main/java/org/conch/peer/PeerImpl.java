@@ -493,7 +493,7 @@ final class PeerImpl implements Peer {
     public JSONObject send(JSONStreamAware request, int maxResponseSize) {
         JSONObject response = null;
         String log = null;
-        boolean showLog = false;
+        boolean showLog = Logger.isDebugEnabled();
         HttpURLConnection connection = null;
         int communicationLoggingMask = Peers.communicationLoggingMask;
 
