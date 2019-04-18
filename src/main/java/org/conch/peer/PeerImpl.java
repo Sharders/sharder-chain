@@ -384,10 +384,15 @@ final class PeerImpl implements Peer {
         blacklist(cause.toString() == null || Peers.hideErrorDetails ? cause.getClass().getName() : cause.toString());
     }
     
-    boolean isProctectPeer(){
+    boolean isProtectPeer(){
+        if(!IpUtil.isFoundationDomain(this.announcedAddress) 
+            && !IpUtil.isFoundationDomain(this.host)) {
+            return false;
+        }
+        
         for(SharderGenesis.GenesisPeer genesisPeer : SharderGenesis.GenesisPeer.getAll()){
-            if(IpUtil.isFoundationDomain(this.host)) {
-                return IpUtil.matchHost(genesisPeer.domain, this.host);
+            if(IpUtil.matchHost(genesisPeer.domain, this.host)) {
+                return true;
             }
         }
         return false;
@@ -395,7 +400,7 @@ final class PeerImpl implements Peer {
     
     @Override
     public void blacklist(String cause) {
-        if(isProctectPeer()) return;
+        if(isProtectPeer()) return;
         
         blacklistingTime = Conch.getEpochTime();
         blacklistingCause = cause;
