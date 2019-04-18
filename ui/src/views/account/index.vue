@@ -399,7 +399,7 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" @click="verifyHubSetting('init')">{{
+                    <button class="common_btn writeBtn" v-loading="hubsetting.executing" @click="verifyHubSetting('init')">{{
                         $t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
@@ -698,6 +698,7 @@
                     confirmPwd: '',
                     register_status: '',
                     register_status_text: '',
+                    executing: false,
                 },
                 unconfirmedTransactionsList: [],
                 blockchainState: this.$global.blockchainState,
@@ -1125,6 +1126,7 @@
                 return formData;
             },
             verifyHubSetting: function (type) {
+                this.hubsetting.executing = true;
                 const _this = this;
                 let confirmFormData = new FormData();
                 let reConfigFormData = new FormData();
@@ -1142,7 +1144,7 @@
                     this.operationType = 'init';
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
-                            this.confirmInitHubSetting(confirmFormData, reConfigFormData);
+                            this.hubSettingsConfirm(confirmFormData, reConfigFormData);
                         } else {
                             console.log('init dialog error submit!!');
                             return false;
@@ -1156,19 +1158,13 @@
                     }
                     this.$refs['useNATForm'].validate((valid) => {
                         if (valid) {
-                            this.confirmInitHubSetting(confirmFormData, reConfigFormData);
+                            this.hubSettingsConfirm(confirmFormData, reConfigFormData);
                         } else {
                             console.log('register dialog error submit!!');
                             return false;
                         }
                     });
                 }
-            },
-            confirmInitHubSetting(confirmFormData, reConfigFormData) {
-                // firstly confirm settings, save real address and ssAddress to operate system
-                // secondly reconfigure hub and create a new sharder.properties file
-                // finally redirect to login page, and auto refresh after 30s
-                this.hubSettingsConfirm(confirmFormData, reConfigFormData);
             },
             registerNatService() {
                 console.info("registering nat service for normal node...");
@@ -1198,9 +1194,14 @@
                 }, 40000);
             },
             hubSettingsConfirm(data, reconfigData) {
+                // firstly confirm settings, save real address and ssAddress to operate system
+                // secondly reconfigure hub and create a new sharder.properties file
+                // finally redirect to login page, and auto refresh after 30s
+                
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {
+                        this.hubsetting.executing = false;
                         if (res.data.success) {
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
