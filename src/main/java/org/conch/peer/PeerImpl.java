@@ -27,6 +27,7 @@ import org.conch.account.Account;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
 import org.conch.util.*;
@@ -382,9 +383,20 @@ final class PeerImpl implements Peer {
         }
         blacklist(cause.toString() == null || Peers.hideErrorDetails ? cause.getClass().getName() : cause.toString());
     }
-
+    
+    boolean isProctectPeer(){
+        for(SharderGenesis.GenesisPeer genesisPeer : SharderGenesis.GenesisPeer.getAll()){
+            if(IpUtil.isFoundationDomain(this.host)) {
+                return IpUtil.matchHost(genesisPeer.domain, this.host);
+            }
+        }
+        return false;
+    }
+    
     @Override
     public void blacklist(String cause) {
+        if(isProctectPeer()) return;
+        
         blacklistingTime = Conch.getEpochTime();
         blacklistingCause = cause;
         setState(State.NON_CONNECTED);
@@ -394,9 +406,8 @@ final class PeerImpl implements Peer {
 
     @Override
     public void unBlacklist() {
-        if (blacklistingTime == 0 ) {
-            return;
-        }
+        if (blacklistingTime == 0 ) return;
+        
         Logger.logDebugMessage("Unblacklisting " + host);
         setState(State.NON_CONNECTED);
         blacklistingTime = 0;
@@ -405,21 +416,19 @@ final class PeerImpl implements Peer {
     }
 
     void updateBlacklistedStatus(int curTime) {
-        if (blacklistingTime > 0 && blacklistingTime + Peers.blacklistingPeriod <= curTime) {
+        if (blacklistingTime > 0 
+            && blacklistingTime + Peers.blacklistingPeriod <= curTime) {
             unBlacklist();
         }
-        if (isOldVersion && lastUpdated < curTime - 3600) {
+        if (isOldVersion 
+            && lastUpdated < curTime - 3600) {
             isOldVersion = false;
         }
     }
 
     @Override
     public void deactivate() {
-        if (state == State.CONNECTED) {
-            setState(State.DISCONNECTED);
-        } else {
-            setState(State.NON_CONNECTED);
-        }
+        setState(state == State.CONNECTED ? State.DISCONNECTED : State.NON_CONNECTED);
         Peers.notifyListeners(this, Peers.Event.DEACTIVATE);
     }
 

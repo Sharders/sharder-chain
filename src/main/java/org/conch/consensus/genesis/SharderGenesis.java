@@ -64,11 +64,11 @@ public class SharderGenesis {
 
 
     public static class GenesisPeer {
-        String ip;
-        Peer.Type type ;
+        public String domain;
+        public Peer.Type type ;
 
-        private GenesisPeer(String ip,Peer.Type type){
-            this.ip = ip;
+        private GenesisPeer(String domain,Peer.Type type){
+            this.domain = domain;
             this.type = type;
         }
 
@@ -215,7 +215,7 @@ public class SharderGenesis {
         List<TransactionImpl> transactions = Lists.newArrayList();
 
         GenesisPeer.getAll().forEach(genesisPeer -> {
-            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeType(genesisPeer.ip,genesisPeer.type);
+            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeType(genesisPeer.domain,genesisPeer.type);
             try {
                 transactions.add(new TransactionImpl.BuilderImpl(
                         (byte) 0,
