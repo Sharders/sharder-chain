@@ -399,7 +399,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" v-loading="hubsetting.executing" @click="verifyHubSetting('init')">{{
+                    <button class="common_btn writeBtn" v-loading="hubsetting.executing"
+                            @click="verifyHubSetting('init')">{{
                         $t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
@@ -585,15 +586,19 @@
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.balanceNQT||0)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.balanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_available_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceSS || 0,true)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceSS,true)}}</td>
+                    </tr>
+                    <tr>
+                        <th>{{$t('account_info.frozen_balance_nqt')}}</th>
+                        <td>{{$global.getSSNumberFormat(accountInfo.frozenBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_mining_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT || 0)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.public_key')}}</th>
@@ -1197,7 +1202,7 @@
                 // firstly confirm settings, save real address and ssAddress to operate system
                 // secondly reconfigure hub and create a new sharder.properties file
                 // finally redirect to login page, and auto refresh after 30s
-                
+
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {
