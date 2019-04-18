@@ -226,7 +226,12 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
 
-    public static long ownOnePool(long creator) {
+    public static boolean checkOwnPoolState(long creator, State state) {
+        SharderPoolProcessor poolProcessor = getPool(creator);
+        return (poolProcessor != null) && state.equals(poolProcessor.getState());
+    }
+
+    public static long findOwnPoolId(long creator) {
         for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creator) {
                 return forgePool.poolId;
@@ -295,81 +300,91 @@ public class SharderPoolProcessor implements Serializable {
             destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) destroyedPoolsObj;
         }
 
-        /**
-         * After block accepted:
-         * - Update the pool state
-         * - Update the remaining block numbers of pool
-         * - Destroy pool when lifecycle finished
-         * - Coinbase reward unfreeze
-         * - Persistence the pool to local disk
-         */
-        Conch.getBlockchainProcessor().addListener(
-                        block -> {
-                            int height = block.getHeight();
-                            for (SharderPoolProcessor sharderPool : sharderPools.values()) {
-                                sharderPool.updateHeight = height;
-                                
-                                if (sharderPool.consignors.size() == 0 && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
-                                    sharderPool.destroySharderPool(height);
-                                    continue;
-                                }
-                                if (sharderPool.endBlockNo == height) {
-                                    sharderPool.destroySharderPool(height);
-                                    continue;
-                                }
-                                // check the miner whether running before poll started
-                                if(sharderPool.startBlockNo-height <=3 && sharderPool.startBlockNo > height){
-                                    checkOrAddIntoActiveGenerator(sharderPool);
-                                }
-                                if (sharderPool.startBlockNo == height) {
-                                    sharderPool.state = State.WORKING;
-                                    continue;
-                                }
-                                // TODO auto destroy pool because the number or amount of pool is too small
-                                if (sharderPool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height && sharderPool.consignors.size() == 0) {
-                                    sharderPool.destroySharderPool(height);
-                                    continue;
-                                }
-                                // transaction is time out
-                                for (Consignor consignor : sharderPool.consignors.values()) {
-                                    long amount = consignor.validateHeight(height);
-                                    if (amount != 0) {
-                                        sharderPool.power -= amount;
-                                        Account.getAccount(consignor.getId()).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
-                                    }
-                                }
+        // AFTER_BLOCK_APPLY event listener
+        Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block), 
+                BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+    }
 
-                                if (sharderPool.startBlockNo < height) {
-                                    sharderPool.totalBlocks++;
-                                }
-                                if (sharderPool.totalBlocks == 0) {
-                                    sharderPool.chance = 0;
-                                } else {
-                                    sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
-                                }
-                            }
-                            
-                            // update pool summary
-                            long id = ownOnePool(block.getGeneratorId());
-                            updateHistoricalFees(id, block.getTotalFeeNQT());
-                            
-                            //unfreeze the reward
-                            if (height > Constants.SHARDER_REWARD_DELAY) {
-                                Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
-                                for (Transaction transaction : pastBlock.getTransactions()) {
-                                    Attachment attachment = transaction.getAttachment();
-                                    if(attachment instanceof Attachment.CoinBase){
-                                        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
-                                        if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinbaseBody.getCoinBaseType()){
-                                            long mintReward = TransactionType.CoinBase.unFreezeMintReward(transaction);
-                                            updateHistoricalRewards(id,mintReward);
-                                        }
-                                    }
-                                }
-                            }
-                            saveToDisk();
-                        },
-                        BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+    /**
+     * After block accepted:
+     * - Update the pool state
+     * - Update the remaining block numbers of pool
+     * - Destroy pool when lifecycle finished
+     * - Coinbase reward unfreeze
+     * - Persistence the pool to local disk
+     */
+    private static void processNewBlockAccepted(Block block){
+        int height = block.getHeight();
+        for (SharderPoolProcessor sharderPool : sharderPools.values()) {
+            sharderPool.updateHeight = height;
+
+            if (sharderPool.consignors.size() == 0 
+                && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
+                sharderPool.destroySharderPool(height);
+                continue;
+            }
+            if (sharderPool.endBlockNo == height) {
+                sharderPool.destroySharderPool(height);
+                continue;
+            }
+            
+            // check the miner whether running before poll started
+            if(sharderPool.startBlockNo-height <=3 
+                && sharderPool.startBlockNo > height){
+                checkOrAddIntoActiveGenerator(sharderPool);
+            }
+            
+            if (sharderPool.startBlockNo == height) {
+                sharderPool.state = State.WORKING;
+                continue;
+            }
+            // TODO auto destroy pool because the number or amount of pool is too small
+            if (sharderPool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height 
+                && sharderPool.consignors.size() == 0) {
+                sharderPool.destroySharderPool(height);
+                continue;
+            }
+            //  time out transaction
+            for (Consignor consignor : sharderPool.consignors.values()) {
+                long amount = consignor.validateHeight(height);
+                if (amount != 0) {
+                    sharderPool.power -= amount;
+                    Account account = Account.getAccount(consignor.getId());
+                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+                }
+            }
+
+            if (sharderPool.startBlockNo < height) {
+                sharderPool.totalBlocks++;
+            }
+            if (sharderPool.totalBlocks == 0) {
+                sharderPool.chance = 0;
+            } else {
+                sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
+            }
+            
+        }
+
+        // update pool summary
+        long id = findOwnPoolId(block.getGeneratorId());
+        updateHistoricalFees(id, block.getTotalFeeNQT());
+
+        //unfreeze the reward
+        if (height > Constants.SHARDER_REWARD_DELAY) {
+            Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+            for (Transaction transaction : pastBlock.getTransactions()) {
+                Attachment attachment = transaction.getAttachment();
+                if(attachment instanceof Attachment.CoinBase){
+                    Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+                    if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinbaseBody.getCoinBaseType()){
+                        long mintReward = TransactionType.CoinBase.mintReward(transaction,true);
+                        updateHistoricalRewards(id,mintReward);
+                    }
+                }
+            }
+        }
+
+        saveToDisk();
     }
 
     /**

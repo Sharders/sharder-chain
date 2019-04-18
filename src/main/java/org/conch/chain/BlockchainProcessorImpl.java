@@ -2006,7 +2006,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // Single miner -> empty rewards map (send rewards to miner)
       long blockCreatorId = Account.getId(publicKey);
       Map<Long, Long> map = new HashMap<>();
-      long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
+      long poolId = SharderPoolProcessor.findOwnPoolId(blockCreatorId);
       if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
         poolId = blockCreatorId;
       } else {

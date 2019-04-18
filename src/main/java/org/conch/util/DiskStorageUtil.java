@@ -23,7 +23,6 @@ public class DiskStorageUtil {
     }
     
     public static void storageFolderExist(){
-        System.out.println("storageFolderExist");
         // storage folder path is same level as db folder
         
         if (StringUtils.isNotEmpty(baseDir)) {
@@ -44,7 +43,6 @@ public class DiskStorageUtil {
         //check or create local storage folder
         File storageFolder = new File(LOCAL_STORAGE_FOLDER);
         if(!storageFolder.exists()) storageFolder.mkdir();
-        System.out.println("storageFolderExist done");
     }
     
     
@@ -71,7 +69,7 @@ public class DiskStorageUtil {
             }
         }
     }
-
+    
     public static Object getObjFromFile(String fileName) {
         Object object = null;
         ObjectInputStream ois = null;

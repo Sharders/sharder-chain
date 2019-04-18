@@ -25,7 +25,7 @@ public class IpUtil {
             if(!isDomain(url)) return url;
             return InetAddress.getByName(url).getHostAddress();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            Logger.logErrorMessage("can't finish checkOrToIp with url[" + url + "] caused by " + e.getMessage());
         }
         return "";
     }
@@ -38,7 +38,7 @@ public class IpUtil {
         try {
             return InetAddress.getByName(url).getHostName();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            Logger.logErrorMessage("can't finish getHost with url[" + url + "] caused by " + e.getMessage());
         }
         return "";
     }
@@ -104,6 +104,7 @@ public class IpUtil {
                 return localIp;
             }
         }catch (Exception e) {
+            Logger.logErrorMessage("can't finish getNetworkIp caused by " + e.getMessage());
             return "";
         }
     }

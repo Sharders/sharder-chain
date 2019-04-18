@@ -227,17 +227,20 @@ public final class Conch {
 //        }
 //    }
     public static boolean matchMyAddress(String host){
-        if(StringUtils.isEmpty(host)) return false;
-        
-        if(Conch.useNATService) {
-            return myAddress.equalsIgnoreCase(host);
-        }
+        try{
+            if(StringUtils.isEmpty(host)) return false;
 
-        if(IpUtil.isDomain(host)) {
-            if(myAddress.equalsIgnoreCase(host)) return true;
-            return IpUtil.getHost(myAddress).equalsIgnoreCase(IpUtil.getHost(host));
-        }
+            if(Conch.useNATService) {
+                return myAddress.equalsIgnoreCase(host);
+            }
 
+            if(IpUtil.isDomain(host)) {
+                if(myAddress.equalsIgnoreCase(host)) return true;
+                return IpUtil.getHost(myAddress).equalsIgnoreCase(IpUtil.getHost(host));
+            } 
+        } catch(Exception e){
+            Logger.logErrorMessage("can't finish matchMyAddress with host[" + host + "] caused by " + e.getMessage());
+        }
         return false;
         // FIXME to improve the security, need check the public network ip of current node
 //        if(StringUtils.isEmpty(nodeIp)) nodeIp = IpUtil.getNetworkIp();
@@ -858,6 +861,7 @@ public final class Conch {
     }
 
     public static boolean reachLastKnownBlock(){
+        if(Constants.isDevnet()) return true;
         int height = Conch.getBlockchain().getHeight();
         if (height < Constants.LAST_KNOWN_BLOCK) {
             Logger.logDebugMessage("current height %d is less than last known height %s and current state is %s, wait till blocks sync finished..." 

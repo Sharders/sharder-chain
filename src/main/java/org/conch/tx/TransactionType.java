@@ -526,23 +526,36 @@ public abstract class TransactionType {
         }
 
         /**
-         * unfreeze mining balance use by pool, the caller of this method should be SharderPoolProcessor
-         *
-         * @param transaction
+         * total 2 stages: 
+         * stage one is in tx accepted, the rewards need be lock; 
+         * stage two is the block confirmations reached, means unlock the rewards and record mined amount
+         * @param transaction reward tx
+         * @param releaseReward true - stage two; false - stage one
+         * @return
          */
-        public static long unFreezeMintReward(Transaction transaction) {
+        public static long mintReward(Transaction transaction, boolean releaseReward) {
             Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             Map<Long, Long> consignors = coinBase.getConsignors();
+            
+            //account.frozenAndUnconfirmedBalanceNQT
             if (consignors.size() == 0) {
-                senderAccount.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -transaction.getAmountNQT());
-                senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
+                long amount = releaseReward ? (-transaction.getAmountNQT()) : transaction.getAmountNQT();
+                senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                senderAccount.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                if(releaseReward) {
+                    senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
+                }
             } else {
                 Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for (long id : rewardList.keySet()) {
                     Account account = Account.getAccount(id);
-                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -rewardList.get(id));
-                    account.addToMintedBalanceNQT(rewardList.get(id));
+                    long amount = releaseReward ? (-rewardList.get(id)) : rewardList.get(id);
+                    account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                    account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                    if(releaseReward){
+                        account.addToMintedBalanceNQT(rewardList.get(id));
+                    }
                 }
             }
             return transaction.getAmountNQT();
@@ -584,7 +597,7 @@ public abstract class TransactionType {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
                     Map<Long, Long> consignors = coinBase.getConsignors();
-                    long id = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
+                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId());
                     if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
                             && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
                         throw new ConchException.NotValidException("allocation rule is wrong");
@@ -599,18 +612,7 @@ public abstract class TransactionType {
             private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
-                    Map<Long, Long> consignors = coinBase.getConsignors();
-                    if (consignors.size() == 0) {
-                        senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                        senderAccount.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), transaction.getAmountNQT());
-                    } else {
-                        Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
-                        for (long id : rewardList.keySet()) {
-                            Account account = Account.getAccount(id);
-                            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
-                            account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), rewardList.get(id));
-                        }
-                    }
+                    mintReward(transaction,false);
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {
                         if (Constants.isDevnet()) {
@@ -3468,7 +3470,7 @@ public abstract class TransactionType {
                 //TODO node certify
                 
                 // forge pool total No.
-                long poolId = SharderPoolProcessor.ownOnePool(transaction.getSenderId());
+                long poolId = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId());
                 if (poolId != -1) {
                     throw new ConchException.NotValidException("Creator already owned one forge pool " + poolId);
                 }
