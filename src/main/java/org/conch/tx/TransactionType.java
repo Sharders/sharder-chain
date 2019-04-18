@@ -546,6 +546,7 @@ public abstract class TransactionType {
                 if(releaseReward) {
                     senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
                 }
+                Logger.logDebugMessage("send mine reward in stage %s to %s with amount %d in tx %d at height %d", releaseReward ? "two":"one", senderAccount.getRsAddress(), amount, transaction.getId() , transaction.getHeight());
             } else {
                 Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for (long id : rewardList.keySet()) {

@@ -1361,9 +1361,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     int curTime = Conch.getEpochTime();
     blockchain.writeLock();
     try {
-        
+      boolean delayedPocTxsProcessed = (Constants.isDevnet() && Generator.isBootNode) 
+              || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight()));
       if(Conch.reachLastKnownBlock() 
-          && !Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight())) {
+          && !delayedPocTxsProcessed) {
           Logger.logDebugMessage("should process delayed poc txs <= [ height = %d ] before accepting blocks", Conch.getBlockchain().getHeight()); 
           return;
       }

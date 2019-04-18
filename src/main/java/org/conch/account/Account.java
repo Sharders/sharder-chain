@@ -1326,7 +1326,7 @@ public final class Account {
         try {
             int fromHeight = currentHeight - numberOfConfirmations;
             if(fromHeight < 0){
-                fromHeight = -1;
+                fromHeight = 0;
             } 
             if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
                     || fromHeight > Conch.getBlockchain().getHeight()) {

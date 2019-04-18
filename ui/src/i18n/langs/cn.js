@@ -154,7 +154,7 @@ const cn = {
         'account_set_name': "确认",
         'account_balance': "账户余额",
         'account_available_balance': "可用余额",
-        'frozen_balance_nqt': "冻结余额",
+        'frozen_balance_nqt': "冻结金额",
         'account_mining_balance': "已挖矿",
         'public_key': "公钥",
     },

@@ -350,6 +350,7 @@ public class SharderPoolProcessor implements Serializable {
                 if (amount != 0) {
                     sharderPool.power -= amount;
                     Account account = Account.getAccount(consignor.getId());
+                    Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account[%s]", -amount, account.getRsAddress());
                     account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
                 }
             }

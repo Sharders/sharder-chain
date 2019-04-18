@@ -154,7 +154,7 @@ const en = {
         'account_set_name': "Confirm",
         'account_balance': "Account Balance",
         'account_available_balance': "Available Balance",
-        'frozen_balance_nqt': "Freeze Balance",
+        'frozen_balance_nqt': "Freeze Amount",
         'account_mining_balance': "Mined Amount",
         'public_key': "Public Key",
     },

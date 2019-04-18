@@ -78,7 +78,7 @@ public class Generator implements Comparable<Generator> {
         static int count = 0;
         static boolean debug = true;
         private static String generatorSummary = reset();
-
+        private static final int MAX_COUNT = Constants.isDevnet() ? 1 : 100; 
         private static final String splitter = "\n\r";
 
         static private String appendSplitter(String str, boolean appendEnd) {
@@ -104,7 +104,7 @@ public class Generator implements Comparable<Generator> {
         }
 
         static void print(){
-            if(!debug || (count++  <= 100)) return;
+            if(!debug || (count++  <= MAX_COUNT)) return;
             putin();
             Logger.logDebugMessage(generatorSummary);
             generatorSummary = reset();
@@ -112,7 +112,7 @@ public class Generator implements Comparable<Generator> {
         
     }
 
-    private static final boolean isBootNode = bootNodeCheck();
+    public static final boolean isBootNode = bootNodeCheck();
     private static final boolean dontWait = Conch.getBooleanProperty("sharder.stillWait");
     private static final boolean bootNodeCheck() {
         String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
@@ -120,6 +120,7 @@ public class Generator implements Comparable<Generator> {
         
         return Boolean.valueOf(isBootNode);
     }
+    
     /**
      * check current height whether reached last known block
      * @param lastBlock
@@ -628,9 +629,10 @@ public class Generator implements Comparable<Generator> {
      * @throws BlockchainProcessor.GeneratorNotAcceptedException
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
-        if(!isMintHeightReached(lastBlock)) return false;
-        if(!isValid(this.accountId)) return false;
-        
+        if(!isBootNode && !Constants.isDevnet()) {
+            if(!isMintHeightReached(lastBlock)) return false;
+            if(!isValid(this.accountId)) return false;
+        }
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
