@@ -304,15 +304,22 @@ public final class Conch {
         
         try {
             if (isUseNAT()) {
-                Logger.logInfoMessage("Node joins the network via sharder foundation or 3rd part NAT|DDNS service");
+                Logger.logInfoMessage("[NAT] Node joins the network via sharder foundation or 3rd part NAT|DDNS service");
                 
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
 
                 if(natCmdFile.exists()){
                     StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "cmd /c nat_client.exe" : "./nat_client");
-                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
+                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null ? addressHost(myAddress) : NAT_SERVICE_ADDRESS)
                             .append(" -p ").append(NAT_SERVICE_PORT)
                             .append(" -k ").append(NAT_CLIENT_KEY);
+                    // nat log file
+                    if(SystemUtils.IS_OS_WINDOWS ) {
+                        cmd.append(" >> ./logs/nat.log");
+                    }else {
+                        cmd.append(" > ./logs/nat.log 2>&1");
+                    }
+                    
                     Process process = Runtime.getRuntime().exec(cmd.toString());
                     // any error message?
                     StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
@@ -337,7 +344,7 @@ public final class Conch {
                         //TODO windows support, set the as a msc.service
                     }
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
-                    Logger.logInfoMessage("NAT client executed: " + cmd.toString());
+                    Logger.logInfoMessage("[NAT] NAT client executed: " + cmd.toString());
                 }else{
                     Logger.logWarningMessage("[NAT] useNatService is true but command file not exist");
                 }
