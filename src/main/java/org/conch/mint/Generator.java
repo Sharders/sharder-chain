@@ -69,7 +69,10 @@ public class Generator implements Comparable<Generator> {
     private static volatile Set<Long> blackedGenerators = Sets.newConcurrentHashSet();
     private static long lastBlockId;
     private static int delayTime = Constants.MINING_DELAY;
-    
+
+
+    private static final String mintHeightPrintCheckKey = Generator.class.getName() + "#isMintHeightReached";
+    private static final String generatorPrintCheckKey = Generator.class.getName() + "#getNextGenerators";
     
     private static class MinerPrinter {
         static int count = 0;
@@ -124,19 +127,21 @@ public class Generator implements Comparable<Generator> {
      */
     private static boolean isMintHeightReached(Block lastBlock){
         if(isBootNode) {
-            Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
+            if(Logger.printNow(mintHeightPrintCheckKey)) {
+                Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
+            }
             return true;
         }
 
         if(!Conch.isInitialized()) {
-            if(Logger.printNow(Generator.class)) {
+            if(Logger.printNow(mintHeightPrintCheckKey)) {
                 Logger.logWarningMessage("wait for Conch initialized...");
             }
             return false;
         }
         
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-            if(Logger.printNow(Generator.class)) {
+            if(Logger.printNow(mintHeightPrintCheckKey)) {
                 Logger.logWarningMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
                         + ", and current height is " + lastBlock.getHeight()
                         + ", don't mint till blocks sync finished...");
@@ -147,14 +152,14 @@ public class Generator implements Comparable<Generator> {
         if(dontWait) return true;
         
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
-            if(Logger.printNow(Generator.class)) {
+            if(Logger.printNow(mintHeightPrintCheckKey)) {
                 Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
             }
             return false;
         }
         
         if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
-            if(Logger.printNow(Generator.class)) {
+            if(Logger.printNow(mintHeightPrintCheckKey)) {
                 Logger.logDebugMessage("delayed poc txs or old poc txs haven't processed, don't start mining till blocks sync finished...");
             }
             return false;
@@ -711,7 +716,7 @@ public class Generator implements Comparable<Generator> {
             generatorList = Lists.newArrayList(minersOnCurNode);
             generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
-            if(Logger.printNow(Generator.class)){
+            if(Logger.printNow(generatorPrintCheckKey)){
                 Logger.logDebugMessage(generatorList.size() + " generators found");
             }
         }

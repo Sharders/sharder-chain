@@ -326,9 +326,6 @@ public final class BlockImpl implements Block {
 
     @Override
     public int getHeight() {
-//        if (height == -1) {
-//            throw new IllegalStateException("Block height not yet set");
-//        }
         return height;
     }
 
@@ -515,7 +512,7 @@ public final class BlockImpl implements Block {
     private static final long[] knownBadBlocks = new long[] {
             //Testnet
             //3372111334693782640L, 
-            //-4480353193679323309L
+            //-7463130015806395221L
     };
     static {
         Arrays.sort(knownBadBlocks);

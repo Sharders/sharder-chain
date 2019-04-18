@@ -312,7 +312,7 @@ public class PocProcessorImpl implements PocProcessor {
 //          _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
           connectedPeers.add(peer.getHost());
         } catch (Exception e) {
-          if(Logger.printNow(PocProcessorImpl.class, 200)) {
+          if(Logger.printNow(PocProcessorImpl.class.getName(), 200)) {
             Logger.logDebugMessage("can't connect peer[%s] in peerSynThread, caused by %s", peerAddress, e.getMessage());
           }
           continue;

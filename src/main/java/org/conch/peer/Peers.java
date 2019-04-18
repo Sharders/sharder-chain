@@ -1223,7 +1223,7 @@ public final class Peers {
         if (oldPeer != null) {
             String oldAnnouncedAddress = oldPeer.getAnnouncedAddress();
             if (oldAnnouncedAddress != null && !oldAnnouncedAddress.equals(newAnnouncedAddress)) {
-                if(Logger.printNow(Peers.class)) {
+                if(Logger.printNow(Peers.class.getName())) {
                     Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
                 }
                 selfAnnouncedAddresses.remove(oldAnnouncedAddress);
@@ -1233,7 +1233,7 @@ public final class Peers {
         if (newAnnouncedAddress != null) {
             String oldHost = selfAnnouncedAddresses.put(newAnnouncedAddress, peer.getHost());
             if (oldHost != null && !peer.getHost().equals(oldHost)) {
-                if(Logger.printNow(Peers.class, 200)){
+                if(Logger.printNow(Peers.class.getName(), 200)){
                     Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
                             + ", removing old peer " + oldHost);
                 }

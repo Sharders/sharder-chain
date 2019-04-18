@@ -456,6 +456,7 @@ class PocHolder implements Serializable {
     }
 
     public static void main(String[] args) {
-        System.out.println(Peer.Type.FOUNDATION == null);
+        System.out.println(Peer.BlockchainState.UP_TO_DATE);
     }
+
 }

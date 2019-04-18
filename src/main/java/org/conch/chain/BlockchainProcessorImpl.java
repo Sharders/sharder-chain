@@ -21,7 +21,6 @@
 
 package org.conch.chain;
 
-import com.google.common.collect.Sets;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -97,6 +96,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private volatile boolean isRestoring;
   private volatile boolean alreadyInitialized = false;
 
+  private static long lastDownloadMS = System.currentTimeMillis();
+  private static final long MAX_DOWNLOAD_TIME = 3 * 60 * 60 * 1000L;
+  
   private final Runnable getMoreBlocksThread =
       new Runnable() {
 
@@ -152,52 +154,49 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             System.exit(1);
           }
         }
-
-        private int peerConnectCheckCount = 0;
+        
+   
         private void downloadPeer() throws InterruptedException {
           try {
             long startTime = System.currentTimeMillis();
-            int numberOfForkConfirmations = Math.min(1, defaultNumberOfForkConfirmations);
+            int limitConnectedSize = Math.min(1, defaultNumberOfForkConfirmations);
             connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
-            if (connectedPublicPeers.size() <= numberOfForkConfirmations) {
-                boolean printNow = peerConnectCheckCount++ == 0 || peerConnectCheckCount++ > 100;
-                if(printNow) {
-                  Logger.logMessage("No enough connected peers[limit size=" + (numberOfForkConfirmations + 1)
-                                  + ",current connected size=" + connectedPublicPeers.size() + "], break syn blocks...");
-                  peerConnectCheckCount = 1;
+            int connectedSize = connectedPublicPeers.size();
+            if (connectedSize <= limitConnectedSize) {
+                if(Logger.printNow(BlockchainProcessorImpl.class.getName())) {
+                  Logger.logDebugMessage("No enough connected peers[limit size=" + (limitConnectedSize + 1) + ",current connected size=" + connectedSize + "], break syn blocks...");
+                  Logger.logDebugMessage("Current peers => " + Arrays.toString(connectedPublicPeers.toArray()));
+                }
+                // restart the cos if download not finished in 8 hours
+                if(System.currentTimeMillis() - lastDownloadMS >  MAX_DOWNLOAD_TIME) {
+                  new Thread(() -> Conch.restartApplication(null)).start();
                 }
               return;
             }
+            lastDownloadMS = System.currentTimeMillis();
             peerHasMore = true;
             final Peer peer = Peers.getWeightedPeer(connectedPublicPeers);
-            if (peer == null) {
-              return;
-            }
+            if (peer == null) return;
+            
             // [NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getCumulativeDifficulty");
             request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
-            if (response == null) {
-              return;
-            }
-            BigInteger curCumulativeDifficulty =
-                blockchain.getLastBlock().getCumulativeDifficulty();
+            if (response == null) return;
+            
+            BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
             String peerCumulativeDifficulty = (String) response.get("cumulativeDifficulty");
-            if (peerCumulativeDifficulty == null) {
-              return;
-            }
+            if (peerCumulativeDifficulty == null) return;
+            
             BigInteger betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
-            if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) {
-              return;
-            }
+            if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
+            
             if (response.get("blockchainHeight") != null) {
               lastBlockchainFeeder = peer;
               lastBlockchainFeederHeight = ((Long) response.get("blockchainHeight")).intValue();
             }
-            if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) {
-              return;
-            }
+            if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) return;
 
             // milestone block
             long commonMilestoneBlockId = SharderGenesis.GENESIS_BLOCK_ID;
@@ -205,9 +204,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (blockchain.getLastBlock().getId() != SharderGenesis.GENESIS_BLOCK_ID) {
               commonMilestoneBlockId = getCommonMilestoneBlockId(peer);
             }
-            if (commonMilestoneBlockId == 0 || !peerHasMore) {
-              return;
-            }
+            if (commonMilestoneBlockId == 0 || !peerHasMore)  return;
 
             chainBlockIds = getBlockIdsAfterCommon(peer, commonMilestoneBlockId, false);
             if (chainBlockIds.size() < 2 || !peerHasMore) {
@@ -244,7 +241,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
               int confirmations = 0;
               for (Peer otherPeer : connectedPublicPeers) {
-                if (confirmations >= numberOfForkConfirmations) {
+                if (confirmations >= limitConnectedSize) {
                   break;
                 }
                 if (peer.getHost().equals(otherPeer.getHost())) {
@@ -1480,7 +1477,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
-      throw new BlockNotAcceptedException("Generation signature verification failed, poc score is " + pocScoreObj.total() + " at height " + (previousLastBlock.getHeight()+1), block);
+      String errorMsg = "Generation signature verification failed, poc score is " + pocScoreObj.total() + " and block id is " + block.getId() + " at height " + (previousLastBlock.getHeight()+1);
+      throw new BlockNotAcceptedException(errorMsg, block);
     }
     if (!block.verifyBlockSignature()) {
       throw new BlockNotAcceptedException("Block signature verification failed", block);

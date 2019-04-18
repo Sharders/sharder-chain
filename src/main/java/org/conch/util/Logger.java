@@ -435,36 +435,39 @@ public final class Logger {
 
     /**
      * init the control count setting, just execute once
-     * @param clazz
+     * @param key
      * @param printCount
      */
-    public synchronized static void initControlCount(Class clazz, int printCount){
-        String key =  clazz.getName();
+    public synchronized static void initControlCount(String key, int printCount){
         if(logControlMap.containsKey(key)) return;
         
         logControlMap.put(key, printCount);
         printCountMap.put(key, new Integer(0));
     }
-
+    
+    
+    // FIXME a) add annotation for method to defined the print count check
+    //       auto check according to method map
+    //       b) add a new method isPrintNow
     /**
      * init the control count setting and check whether printNow 
-     * @param clazz
+     * @param key
      * @param controlCount
      * @return
      */
-    public static boolean printNow(Class clazz, int controlCount){
-        initControlCount(clazz,controlCount);
-        return printNow(clazz);
+    public static boolean printNow(String key, int controlCount){
+        initControlCount(key,controlCount);
+        return printNow(key);
     }
 
     /**
      * check whether printNow 
      * 
-     * @param clazz
+     * @param key
      * @return
      */
-    public static boolean printNow(Class clazz){
-        String key =  clazz.getName();
+    public static boolean printNow(String key){
+//        String key =  clazz.getName();
         if(!logControlMap.containsKey(key)) {
             logControlMap.put(key, DEFAULT_PRINT_COUNT);
             printCountMap.put(key, new Integer(0));

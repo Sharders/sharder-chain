@@ -852,7 +852,7 @@ public final class Conch {
     public static boolean reachLastKnownBlock(){
         int height = Conch.getBlockchain().getHeight();
         if (height < Constants.LAST_KNOWN_BLOCK) {
-            Logger.logDebugMessage("current height %d is less than last known height %s, don't process poc txs till blocks sync finished..." , height , Constants.LAST_KNOWN_BLOCK);
+            Logger.logDebugMessage("current height %d is less than last known height %s and current state is %s, wait till blocks sync finished..." , height , Peers.getMyBlockchainState(),  Constants.LAST_KNOWN_BLOCK);
             return false;
         }
         return true;

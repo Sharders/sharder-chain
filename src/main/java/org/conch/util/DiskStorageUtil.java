@@ -78,7 +78,6 @@ public class DiskStorageUtil {
         boolean fileExist = false;
         try {
             File file = new File(getLocalStoragePath(fileName));
-            ;
             if(file != null && (fileExist=file.exists())) {
                 ois = new ObjectInputStream(new FileInputStream(file));
                 object = ois.readObject();
