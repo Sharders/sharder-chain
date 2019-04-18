@@ -400,7 +400,10 @@ final class PeerImpl implements Peer {
     
     @Override
     public void blacklist(String cause) {
-        if(isProtectPeer()) return;
+        if(isProtectPeer()) {
+            Logger.logDebugMessage("peer %s[%s] is the protected peer, don't black it now", announcedAddress, host);
+            return;
+        }
         
         blacklistingTime = Conch.getEpochTime();
         blacklistingCause = cause;
