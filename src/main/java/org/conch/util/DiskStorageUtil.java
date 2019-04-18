@@ -14,9 +14,9 @@ import java.nio.file.Paths;
 public class DiskStorageUtil {
     private DiskStorageUtil(){}
     
-    //private static final String LOCAL_STORAGE_FOLDER = Db.getDir() + File.separator + "localstorage";
     private static final String FOLDER_NAME = "localstorage";
     private static String LOCAL_STORAGE_FOLDER = "";
+    private static String baseDir = Db.getDir();
     
     static {
         storageFolderExist();
@@ -25,13 +25,11 @@ public class DiskStorageUtil {
     public static void storageFolderExist(){
         System.out.println("storageFolderExist");
         // storage folder path is same level as db folder
-//        String dbDir = Db.getDir();
-        String baseDir = Db.getDir();
+        
         if (StringUtils.isNotEmpty(baseDir)) {
             // if storage folder under the application, use it firstly
             File dirFile = new File(baseDir);
             if (dirFile.exists()) {
-//                LOCAL_STORAGE_FOLDER = Paths.get(dirFile.getAbsolutePath()).resolve(FOLDER_NAME).toString();
                 LOCAL_STORAGE_FOLDER = Paths.get(dirFile.getParentFile().getAbsolutePath()).resolve(FOLDER_NAME).toString();
             }else{
                 // append user home as prefix
@@ -43,7 +41,6 @@ public class DiskStorageUtil {
                 LOCAL_STORAGE_FOLDER = dirFile.getParentFile().getAbsolutePath() + File.separator + FOLDER_NAME;
             }
         }
-
         //check or create local storage folder
         File storageFolder = new File(LOCAL_STORAGE_FOLDER);
         if(!storageFolder.exists()) storageFolder.mkdir();
@@ -56,7 +53,6 @@ public class DiskStorageUtil {
     }
 
     public static void saveObjToFile(Object o, String fileName) {
-        System.out.println("saveObjToFile");
         FileOutputStream fileOutputStream = null;
         ObjectOutputStream oos = null;
         try {
@@ -74,16 +70,16 @@ public class DiskStorageUtil {
                 }
             }
         }
-        System.out.println("saveObjToFile done");
     }
 
     public static Object getObjFromFile(String fileName) {
-        System.out.println("getObjFromFile");
         Object object = null;
         ObjectInputStream ois = null;
+        boolean fileExist = false;
         try {
             File file = new File(getLocalStoragePath(fileName));
-            if(file != null && file.exists()) {
+            ;
+            if(file != null && (fileExist=file.exists())) {
                 ois = new ObjectInputStream(new FileInputStream(file));
                 object = ois.readObject();
             }
@@ -97,14 +93,13 @@ public class DiskStorageUtil {
                     Logger.logWarningMessage("ObjectInputStream close failed",e);
                 }
             }
-            
-            if(object == null) {
+
+            if(fileExist && object == null) {
                 File file = new File(getLocalStoragePath(fileName));
                 file.deleteOnExit();
                 Logger.logWarningMessage("delete local cached file [" + fileName + "]");
             }
         }
-        System.out.println("getObjFromFile done");
         return object;
     }
 }
