@@ -524,39 +524,41 @@ public abstract class TransactionType {
         public final boolean isPhasingSafe() {
             return true;
         }
-
+        
+        
+        private static void calAndSetMiningReward(Account account, Transaction transaction,long amount, boolean stageTwo){
+            if(!stageTwo) {
+                account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
+                        amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+            }else{
+                account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+                account.addToMintedBalanceNQT(amount);
+                Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
+                        amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+            }
+        }
         /**
          * total 2 stages: 
          * stage one is in tx accepted, the rewards need be lock; 
          * stage two is the block confirmations reached, means unlock the rewards and record mined amount
          * @param transaction reward tx
-         * @param releaseReward true - stage two; false - stage one
+         * @param stageTwo true - stage two; false - stage one
          * @return
          */
-        public static long mintReward(Transaction transaction, boolean releaseReward) {
+        public static long mintReward(Transaction transaction, boolean stageTwo) {
             Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             Map<Long, Long> consignors = coinBase.getConsignors();
             
-            //account.frozenAndUnconfirmedBalanceNQT
             if (consignors.size() == 0) {
-                long amount = releaseReward ? (-transaction.getAmountNQT()) : transaction.getAmountNQT();
-                senderAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                senderAccount.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                if(releaseReward) {
-                    senderAccount.addToMintedBalanceNQT(transaction.getAmountNQT());
-                }
-                Logger.logDebugMessage("send mine reward in stage %s to %s with amount %d in tx %d at height %d", releaseReward ? "two":"one", senderAccount.getRsAddress(), amount, transaction.getId() , transaction.getHeight());
+                calAndSetMiningReward(senderAccount, transaction, transaction.getAmountNQT(), stageTwo);
             } else {
                 Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for (long id : rewardList.keySet()) {
                     Account account = Account.getAccount(id);
-                    long amount = releaseReward ? (-rewardList.get(id)) : rewardList.get(id);
-                    account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                    account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                    if(releaseReward){
-                        account.addToMintedBalanceNQT(rewardList.get(id));
-                    }
+                    calAndSetMiningReward(account, transaction, rewardList.get(id), stageTwo);
                 }
             }
             return transaction.getAmountNQT();
