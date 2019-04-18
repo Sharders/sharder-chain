@@ -30,6 +30,7 @@
                     <span class="block_title fl">
                         <img src="../../assets/img/peerlist.svg"/>
                         <span>{{$t('peers.peer_list')}}</span>
+                        <span>{{$t('peers.peer_list_link')}}</span>
                     </span>
                     <span class="hrefbtn fr block_title csp">
                         <a @click="openAddPeer">
