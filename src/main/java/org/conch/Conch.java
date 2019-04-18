@@ -296,17 +296,16 @@ public final class Conch {
     public static final int NAT_SERVICE_PORT = Conch.getIntProperty("sharder.NATServicePort");
     static final String NAT_CLIENT_KEY = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
 
-    public static boolean getUseNATService(){
+    public static boolean isUseNAT(){
         return useNATService;
     }
 
     static {
-        // [NAT] NAT Service check
-        if (Conch.getUseNATService()) {
-            Logger.logInfoMessage("Node joins the network via sharder official or 3rd part NAT|DDNS service");
-        }
+        
         try {
-            if (useNATService) {
+            if (isUseNAT()) {
+                Logger.logInfoMessage("Node joins the network via sharder foundation or 3rd part NAT|DDNS service");
+                
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
 
                 if(natCmdFile.exists()){
@@ -324,28 +323,30 @@ public final class Conch {
                     outputGobbler.start();
 
                     if(SystemUtils.IS_OS_UNIX) {
-                        Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
-                        InputStreamReader isr = new InputStreamReader(findName.getInputStream());
+                        Process natProcess = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
+                        InputStreamReader isr = new InputStreamReader(natProcess.getInputStream());
                         BufferedReader br = new BufferedReader(isr);
                         if (br.readLine() == null){
-                            Logger.logInfoMessage("Open NAT Client Auto Start");
+                            Logger.logInfoMessage("set net_client auto start");
                             //use the installation folder of Sharder as execution path
                             Process autoStart = Runtime.getRuntime().exec("cp " + Conch.getUserHomeDir() + " /etc/init.d");
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
                         }
-                        Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> natProcess.destroy()));
                     }else if(SystemUtils.IS_OS_WINDOWS){
                         //TODO windows support, set the as a msc.service
                     }
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
-                    Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
+                    Logger.logInfoMessage("NAT client executed: " + cmd.toString());
                 }else{
-                    Logger.logWarningMessage("!!! useNatService is true but command file not exist");
+                    Logger.logWarningMessage("[NAT] useNatService is true but command file not exist");
                 }
+            }else{
+                Logger.logInfoMessage("[NAT] NAT service be set to close");
             }
         } catch (Exception e) {
             useNATService = false;
-            Logger.logErrorMessage("NAT Client execute Error", e);
+            Logger.logErrorMessage("[NAT] NAT Client execute Error", e);
         }
 
     }

@@ -90,7 +90,7 @@ public final class Peers {
     }
 
     public static boolean isUseNATService() {
-        return Conch.getUseNATService();
+        return Conch.isUseNAT();
     }
     
     static Map<String,Object> natAndAddrMap = null;
@@ -317,7 +317,7 @@ public final class Peers {
         }
 
         /** basic infos **/
-        myPeerInfoJson.put("useNATService", Conch.getUseNATService());
+        myPeerInfoJson.put("useNATService", Conch.isUseNAT());
         myPeerInfoJson.put("application", Conch.APPLICATION);
         myPeerInfoJson.put("version", Conch.VERSION);
         myPeerInfoJson.put("platform", Peers.myPlatform);
