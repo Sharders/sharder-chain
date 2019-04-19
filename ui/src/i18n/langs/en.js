@@ -396,7 +396,7 @@ const en = {
             'my_income': "My Earnings: ",
             'view_ranking': "View Ranking",
             'net_income': "Network Total ",
-            'mining_description': "Sharder Pool Info",
+            'mining_description': "Sharder Pool Rules",
             'join_friends': "Refer friends for rewards",
             'rule_description': "Rules",
             'my_pool': "My Pool",
