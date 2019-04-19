@@ -866,7 +866,7 @@ public class Generator implements Comparable<Generator> {
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
                 Generator bindGenerator = startMining(autoMintPR.trim());
-                Logger.logInfoMessage("account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+                Logger.logInfoMessage("account " + Account.rsAccount(bindGenerator.getAccountId()) + " start to mining...");
             }
         }
 

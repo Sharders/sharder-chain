@@ -3467,17 +3467,16 @@ public abstract class TransactionType {
             }
 
             @Override
-            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+            public void validateAttachment(Transaction tx) throws ConchException.ValidationException {
                 //TODO node certify
                 
                 // forge pool total No.
-                long poolId = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId());
-                if (poolId != -1) {
-                    throw new ConchException.NotValidException("Creator already owned one forge pool " + poolId);
-                }
-                Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
-                if (!PoolRule.validateRule(transaction.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
-                    throw new ConchException.NotValidException("pool is invalid," + transaction.getSenderId());
+                long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId());
+                if (poolId != -1) throw new ConchException.NotValidException("Creator already owned one forge pool[id=%d]",  poolId);
+                
+                Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
+                if (!PoolRule.validateRule(tx.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
+                    throw new ConchException.NotValidException("pool[id=%d, creator id=%s] rule not matched", poolId, Account.rsAccount(tx.getSenderId()));
                 }
                 //TODO unconfirmed transaction already has create pool, remove the pool if tx be rejected
                 //TransactionProcessorImpl.getInstance().getUnconfirmedTransaction();
@@ -3540,7 +3539,7 @@ public abstract class TransactionType {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
-                    throw new ConchException.NotValidException("Sharder pool " + destroy.getPoolId() + " doesn't exists");
+                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
                 }
                 if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
                     throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " +
@@ -3549,10 +3548,10 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 int endHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
-                    throw new ConchException.NotValidException("Sharder pool will be destroyed at " + endHeight + " before transaction apply at " + curHeight);
+                    throw new ConchException.NotValidException("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight);
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
-                    throw new ConchException.NotValidException("Sharder pool can't be destroyed because current height " + curHeight + " is out of range, start height is " + forgePool.getStartBlockNo());
+                    throw new ConchException.NotValidException("Pool can't be destroyed, because it start at %d and current height %d is out of manual destroy range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
                 }
 
             }
@@ -3619,9 +3618,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if (forgePool == null) {
-                    throw new ConchException.NotValidException("Sharder pool doesn't exists");
-                }
+                if (forgePool == null)  throw new ConchException.NotValidException("Can't process join tx caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" ,join.getPoolId());
 
                 //TODO join a forge pool before it is working
 

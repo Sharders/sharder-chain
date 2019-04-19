@@ -114,7 +114,8 @@ public class PoolRule implements Serializable {
         if (value instanceof Long) {
             long min = (long) map.get("min");
             long max = (long) map.get("max");
-            if ((long) value < max && (long) value > min) {
+            
+            if ((long) value <= max && (long) value >= min) {
                 return true;
             } else {
                 Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
@@ -123,7 +124,7 @@ public class PoolRule implements Serializable {
         } else if (value instanceof Integer) {
             long min = (long) map.get("min");
             long max = (long) map.get("max");
-            if ((int) value < max && (int) value > min) {
+            if ((int) value <= max && (int) value >= min) {
                 return true;
             } else {
                 Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
@@ -132,7 +133,7 @@ public class PoolRule implements Serializable {
         } else {
             float min = (float) map.get("min");
             float max = (float) map.get("max");
-            if ((double) value < max && (double) value > min) {
+            if ((double) value <= max && (double) value >= min) {
                 return true;
             } else {
                 Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);

@@ -158,6 +158,7 @@ const cn = {
         'account_mining_balance': "已挖矿",
         'public_key': "公钥",
     },
+    header: {
         'version': "版本",
         'account': "账户",
         'network': "网络",

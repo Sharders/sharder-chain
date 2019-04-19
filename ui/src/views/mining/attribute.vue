@@ -7,7 +7,9 @@
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
+                            {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
+                            <!-- close chance of pool -->
+                            <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
                         </span>
                         <span class="pool-attribute-info" @click="miningMask('isAttribute')">{{$t('mining.attribute.pool_details')}}</span>
                     </div>
@@ -233,7 +235,7 @@
                         }
 
                     }
-                    _this.$message.warning("Request submitted ...");
+                    _this.$message.warning("Request submitted");
                     _this.$store.state.mask = false;
                     _this.isExitPool = false;
                 }).catch(err => {

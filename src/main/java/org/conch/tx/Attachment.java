@@ -93,13 +93,13 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        public final void validate(Transaction transaction) throws ConchException.ValidationException {
-            getTransactionType().validateAttachment(transaction);
+        public final void validate(Transaction tx) throws ConchException.ValidationException {
+            getTransactionType().validateAttachment(tx);
         }
 
         @Override
-        public final void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            getTransactionType().apply((TransactionImpl) transaction, senderAccount, recipientAccount);
+        public final void apply(Transaction tx, Account senderAccount, Account recipientAccount) {
+            getTransactionType().apply((TransactionImpl) tx, senderAccount, recipientAccount);
         }
 
         @Override
