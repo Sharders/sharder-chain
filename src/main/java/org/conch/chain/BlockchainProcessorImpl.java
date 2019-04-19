@@ -99,9 +99,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private static long lastDownloadMS = System.currentTimeMillis();
   private static final long MAX_DOWNLOAD_TIME = 3 * 60 * 60 * 1000L;
   
-  private final Runnable getMoreBlocksThread =
-      new Runnable() {
-
+  private final Runnable getMoreBlocksThread =  new Runnable() {
         private final JSONStreamAware getCumulativeDifficultyRequest;
         {
           JSONObject request = new JSONObject();
@@ -163,7 +161,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
             int connectedSize = connectedPublicPeers.size();
             if (connectedSize <= limitConnectedSize) {
-                if(Logger.printNow(BlockchainProcessorImpl.class.getName())) {
+                if(Logger.printNow(Constants.BlockchainProcessor_P_downloadPeer)) {
                   Logger.logDebugMessage("No enough connected peers[limit size=" + (limitConnectedSize + 1) + ",current connected size=" + connectedSize + "], break syn blocks...");
                   Logger.logDebugMessage("Current peers => " + Arrays.toString(connectedPublicPeers.toArray()));
                 }
@@ -1051,6 +1049,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         false);
 
     if (!Constants.isLightClient && !Constants.isOffline) {
+      Logger.logInfoMessage("current node mode[light client=%s, offline=%s], don't connect peers to download blocks", Constants.isLightClient, Constants.isOffline);
       ThreadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 1);
     }
   }

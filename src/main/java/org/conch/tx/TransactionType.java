@@ -498,8 +498,7 @@ public abstract class TransactionType {
 
     public static abstract class CoinBase extends TransactionType {
 
-        private CoinBase() {
-        }
+        private CoinBase() {}
 
         @Override
         public final byte getType() {
@@ -512,8 +511,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        }
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {}
 
         @Override
         public final boolean canHaveRecipient() {
@@ -3578,9 +3576,11 @@ public abstract class TransactionType {
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
+                boolean isGenesis = transaction.getTimestamp() == 0 
+                                    && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY);
                 //Balance and genesis creator check
                 if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT
-                        && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY))) {
+                        && !isGenesis) {
                     return false;
                 }
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, 0);
@@ -3590,8 +3590,7 @@ public abstract class TransactionType {
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
-                        amountNQT, 0);
+                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), amountNQT, 0);
             }
 
             @Override

@@ -401,7 +401,7 @@ final class PeerImpl implements Peer {
     @Override
     public void blacklist(String cause) {
         if(isProtectPeer()) {
-            Logger.logDebugMessage("peer %s[%s] is the protected peer, don't black it now", announcedAddress, host);
+            Logger.logDebugMessage("peer %s[%s] is the protected peer, can't black it now", announcedAddress, host);
             return;
         }
         
@@ -551,7 +551,7 @@ final class PeerImpl implements Peer {
                 //
                 URL url = new URL("http://" + Peers.addressHost(host) + ":" + Peers.addressPort(host) + "/sharder");
                 if (communicationLoggingMask != 0) {
-                    log = "\"" + url.toString() + "\": " + JSON.toString(request);
+                    log += "\"" + url.toString() + "\": " + JSON.toString(request);
                 }
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
@@ -645,7 +645,7 @@ final class PeerImpl implements Peer {
                 connection.disconnect();
             }
         }
-        if (showLog) {
+        if (showLog && StringUtils.isNotEmpty(log)) {
             Logger.logMessage(log + "\n");
         }
 

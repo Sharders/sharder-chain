@@ -51,7 +51,7 @@ public abstract class PoolTxApi {
                 String rule = req.getParameter("rule");
                 rules = (JSONObject) (new JSONParser().parse(rule));
             } catch (Exception e) {
-                Logger.logErrorMessage("cant obtain rule when create mint pool");
+                Logger.logErrorMessage("Can't obtain rule when create mint pool");
             }
             Map<String, Object> rule = PoolRule.jsonObjectToMap(rules);
             Attachment attachment = new Attachment.SharderPoolCreate(period, rule);

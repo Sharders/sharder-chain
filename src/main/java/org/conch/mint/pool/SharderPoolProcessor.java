@@ -30,7 +30,7 @@ public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
     private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = new ConcurrentHashMap<>();
     private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = new ConcurrentHashMap<>();
-    public static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
+    public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
 
     public enum State {
         /**
@@ -118,8 +118,23 @@ public class SharderPoolProcessor implements Serializable {
         }
        return endBlockNo;
     }
+    
+//    private static void joinOrQuitPool(Account account,AccountLedger.LedgerEvent ledgerEvent, long amount, int height, boolean quit){
+//        if(!quit) {
+//            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+//            account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+//            Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it at height %d",
+//                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+//        }else{
+//            account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+//            account.addToMintedBalanceNQT(amount);
+//            Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
+//                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+//        }
+//    }
 
-    public static void createSharderPool( long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+    public static void createSharderPool(long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+        int height = startBlockNo - Constants.SHARDER_POOL_DELAY;
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
         Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
@@ -147,12 +162,16 @@ public class SharderPoolProcessor implements Serializable {
             pool.rule = rule;
             Logger.logDebugMessage(creatorId + " create a new mint pool");
         }
-        
         sharderPools.put(pool.poolId, pool);
 
         checkOrAddIntoActiveGenerator(pool);
     }
 
+    /**
+     * - set the attributes of pool
+     * - calculate and reset the ref balances of pool owner and joiners
+     * @param height
+     */
     public void destroySharderPool(int height) {
         state = State.DESTROYED;
         endBlockNo = height;
