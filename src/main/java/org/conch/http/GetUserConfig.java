@@ -22,7 +22,6 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -43,10 +42,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * @author jiangbubai
+ * @date 2019-04-19 updated by Ben
  */
 public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
@@ -113,7 +116,6 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             
             Logger.logDebugMessage("current os is %s and its node type get from %s is %s", SystemUtils.OS_NAME, getFrom, Conch.nodeType);
             response.put("sharder.NodeType", Conch.nodeType);
-            response.putAll(getLoginMode());
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
@@ -170,25 +172,6 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
         return Peer.Type.getSimpleName(nodeTypeCode);
     }
     
-    private static Map<String,String> getLoginMode(){
-        Map<String,String> autoLoginMap = Maps.newHashMap();
-        String loginMode = Conch.getStringProperty("sharder.login.mode");
-        if(StringUtils.isNotEmpty(loginMode) && "auto".equals(loginMode)){
-            autoLoginMap.put("loginMode",loginMode);
-            String loginSp = Conch.getStringProperty("sharder.login.sp");
-            String loginTo = Conch.getStringProperty("sharder.login.to");
-            if(StringUtils.isEmpty(loginSp)) {
-                Logger.logWarningMessage("Please set the auto login sp[sharder.login.sp] when mode is auto login");
-            }
-            if(StringUtils.isEmpty(loginTo)) {
-                Logger.logWarningMessage("Please set the page[sharder.login.to] after auto login");
-            }
-            autoLoginMap.put("loginSp",loginSp);
-            autoLoginMap.put("loginTo",loginTo);
-        }
-        return autoLoginMap;
-    }
-
     @Override
     protected boolean allowRequiredBlockParameters() {
         return false;
