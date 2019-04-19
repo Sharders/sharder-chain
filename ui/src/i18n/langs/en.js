@@ -436,7 +436,7 @@ const en = {
             'ss_volume': "SS Amount",
             'unit_ming': "Name",
             'pool_properties': "Pool Properties",
-            'pool_volume': "Pool Amount",
+            'pool_volume': "Pool Limit",
             'current_account': "Current Account",
             'pool_capacity': "Pool Capacity",
             'mining_time': "Mining Time",

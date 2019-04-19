@@ -644,7 +644,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     continue;
                 }
                 
-                if (getUnconfirmedTransaction(transaction.getDbKey()) != null || TransactionDb.hasTransaction(transaction.getId())) {
+                if (getUnconfirmedTransaction(transaction.getDbKey()) != null 
+                        || TransactionDb.hasTransaction(transaction.getId())) {
                     continue;
                 }
                 transaction.validate();

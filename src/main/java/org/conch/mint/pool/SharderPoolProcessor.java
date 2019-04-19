@@ -392,15 +392,16 @@ public class SharderPoolProcessor implements Serializable {
         //unfreeze the reward
         if (height > Constants.SHARDER_REWARD_DELAY) {
             Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+
             for (Transaction transaction : pastBlock.getTransactions()) {
                 Attachment attachment = transaction.getAttachment();
-                if(attachment instanceof Attachment.CoinBase){
-                    Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
-                    if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinbaseBody.getCoinBaseType()){
-                        long mintReward = TransactionType.CoinBase.mintReward(transaction,true);
-                        updateHistoricalRewards(id,mintReward);
-                    }
-                }
+                if(!(attachment instanceof Attachment.CoinBase)) continue;
+                
+                Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+                if(!coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)) continue;
+                
+                long mintReward = TransactionType.CoinBase.mintReward(transaction,true);
+                updateHistoricalRewards(id,mintReward);
             }
         }
 

@@ -158,7 +158,6 @@ const cn = {
         'account_mining_balance': "已挖矿",
         'public_key': "公钥",
     },
-    header: {
         'version': "版本",
         'account': "账户",
         'network': "网络",
@@ -434,7 +433,7 @@ const cn = {
             'ss_volume': "SS数量",
             'unit_ming': "名",
             'pool_properties': "矿池属性",
-            'pool_volume': "矿池数量",
+            'pool_volume': "矿池数上限",
             'current_account': "当前账户",
             'pool_capacity': "矿池容量",
             'mining_time': "挖矿时长",

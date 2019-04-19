@@ -395,7 +395,7 @@ class PocHolder implements Serializable {
         static final int printCount = 1;
         
         protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
-        protected static boolean debugHistory = true;
+        protected static boolean debugHistory = Constants.isDevnet() ? true : false;
         
         protected static String summary = reset();
         private static final String splitter = "\n\r";

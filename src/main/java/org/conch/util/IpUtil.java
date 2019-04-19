@@ -1,5 +1,6 @@
 package org.conch.util;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -7,6 +8,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,12 +31,35 @@ public class IpUtil {
         }
         return "";
     }
+    
+    private final static List<String> natServers = Lists.newArrayList(
+            "nat.sharder.network",
+            "nat.sharder.org",
+            "nat.sharder.io");
+    
+    private static String checkOrParseNatUrl(String url){
+        if(StringUtils.isEmpty(url)) return "";
+        for(String natServer : natServers) {
+            if(!url.contains(natServer)) continue;
+            
+            // get domain
+            int portIndex = url.indexOf(":");
+            if(portIndex > 0) {
+               return url.substring(0,portIndex);
+            }
+        }
+        return "";
+    }
 
     /**
      * @param url can't include the port
-     * @return
      */
     public static String getHost(String url){
+        if(StringUtils.isEmpty(url)) return "";
+        
+        String parsedUrl = checkOrParseNatUrl(url);
+        if(StringUtils.isNotBlank(parsedUrl)) return parsedUrl;
+        
         try {
             return InetAddress.getByName(url).getHostName();
         } catch (UnknownHostException e) {
@@ -58,6 +83,8 @@ public class IpUtil {
     }
     
     public static boolean isFoundationDomain(String host){
+        if(StringUtils.isEmpty(host)) return false;
+        
         if(host.endsWith("sharder.io") 
         || host.endsWith("sharder.org")
         || host.endsWith("sharder.network")){

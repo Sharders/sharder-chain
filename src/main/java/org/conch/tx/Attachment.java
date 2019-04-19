@@ -343,6 +343,10 @@ public interface Attachment extends Appendix {
                 return map;
             }
         }
+        
+        public boolean isType(CoinBaseType type){
+            return (type != null && this.coinBaseType != null) && (type == this.coinBaseType);
+        }
     }
 
     // the message payload is in the Appendix
