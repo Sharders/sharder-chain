@@ -963,7 +963,7 @@
     }
 
     .grid-content .info h2 {
-        font-size: 18px;
+        font-size: 16px;
         padding: 5px 0 8px 0;
         margin: 0;
     }
