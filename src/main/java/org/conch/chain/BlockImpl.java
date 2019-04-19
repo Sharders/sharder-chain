@@ -514,7 +514,7 @@ public final class BlockImpl implements Block {
     // known bad blocks
     private static final long[] knownIgnoreBlocks = new long[] {
             //Testnet
-            -5978167163803902145L
+            -8556361949057624360L
     };
 //    private static final String[] knownIgnoreBlocksSignatu = new String[] {
 //            //Testnet
