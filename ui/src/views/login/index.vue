@@ -78,7 +78,7 @@
         },
         methods: {
             autoLogin(val) {
-                if (val["sharder.login.mode"] !== "auto") return;
+                if (val["sharder.login.mode"] !== "auto" || sessionStorage.getItem("sharder.login.mode")) return;
                 let _this = this;
                 SSO.secretPhrase = val["sharder.login.sp"] || "confusion difference taste whatever pattern caress inhale hunt passion rest someone chin";
                 Login.login(1, SSO.secretPhrase, _this, function () {

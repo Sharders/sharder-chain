@@ -421,6 +421,7 @@
                 }
             },
             exit: function () {
+                sessionStorage.setItem("sharder.login.mode",'true');
                 window.location.href = "/";
             },
             isClose: function () {
