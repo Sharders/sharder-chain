@@ -1251,7 +1251,9 @@
                         console.log('success to reconfigure settings...');
                         _this.$message.success(_this.$t('restart.restarting'));
                         data = new FormData();
-                        _this.$router.push("/login");
+                        this.store.state.mask=false;
+                        window.location.href = "/";
+                        // _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
                         let msg = res1.data.errorDescription ? res1.data.errorDescription :
