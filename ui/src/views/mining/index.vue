@@ -256,7 +256,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}}({{parseInt(rule.rule.totalBlocks.max/60)}}h)</span>
+                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}} (≈ {{getMinerTime()}}h)</span>
                         </p>
                     </div>
                     <div class="pool-set">
@@ -365,6 +365,20 @@
             }
         },
         methods: {
+            getMinerTime() {
+                let u;
+                switch (SSO.netWorkType) {
+                    case "Devnet":
+                        u = 1;
+                        break;
+                    case "Testnet":
+                        u = 7;
+                        break;
+                    default:
+                        u = 1;
+                }
+                return new BigNumber(this.rule.rule.totalBlocks.max).dividedBy(60).multipliedBy(u).toFixed();
+            },
             getAllIncome() {
                 let _this = this;
                 _this.$global.fetch("GET", {allIncome: "allIncome"}, "getAccount").then(res => {
@@ -763,7 +777,7 @@
     .mining-list .el-select .el-input__inner {
         height: 30px;
     }
-    
+
 
     .en_mining .title .el-radio-button__inner {
         width: 140px;
