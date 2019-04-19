@@ -46,7 +46,9 @@ base.plugins.push(
   new webpack.optimize.UglifyJsPlugin({
     sourceMap: false,
     compress: {
-      warnings: false
+      warnings: false,
+      drop_console: true,
+      pure_funcs: ['console.log']
     },
     output: {
       comments: false

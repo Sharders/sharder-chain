@@ -409,7 +409,7 @@ const cn = {
             'pool_income': "矿池收益 ",
             'Income_distribution': "收益分配 ",
             'remaining_mining': "剩余挖矿 ",
-            'unit_block': "块",
+            'unit_block': " 块",
             'welfare_title1': "请扫描二维码下载cAmp钱包,",
             'welfare_title2': "进入\"豆匣矿场\"应用免费领取",
             'reward_title': "TSS为SHARDER测试网络中的原生加密数字货币，为了回馈参与测试网络的社区成员开放SS兑换功能，数量有限先到先得。",

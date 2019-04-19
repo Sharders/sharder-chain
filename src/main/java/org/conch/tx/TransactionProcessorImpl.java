@@ -240,7 +240,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
         try {
             try {
-                if (Conch.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
+                if (Conch.getBlockchainProcessor().isDownloading() 
+                        && ! testUnconfirmedTransactions) {
                     return;
                 }
                 Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
@@ -266,7 +267,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 }
                 try {
                     processPeerTransactions(transactionsData);
-                } catch (ConchException.ValidationException |RuntimeException e) {
+                } catch (ConchException.ValidationException | RuntimeException e) {
                     peer.blacklist(e);
                 }
             } catch (Exception e) {

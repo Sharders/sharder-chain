@@ -80,7 +80,9 @@
                         <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
+                                    <h2>{{$t('mining.index.pool')}}</h2>
+                                    <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
+                                    <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
                                     <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
                                     <el-progress
                                         :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
@@ -410,6 +412,12 @@
                     _this.isVisible('isSetName');
                 });
             },
+            poolOwnerRs(rs) {
+                if(rs != null && rs.indexOf("SSA-") != -1) {
+                    return rs.substring(4);
+                }
+                return "";
+            },
             idToAccountRs(id) {
                 let nxtAddress = new NxtAddress();
                 let accountRS = "";
@@ -668,7 +676,6 @@
         width: 1200px !important;
         margin: auto;
     }
-
 
     .el-select-dropdown__item.selected, .el-pager li.active {
         color: #fff !important;
@@ -947,7 +954,7 @@
     }
 
     .grid-content .info {
-        width: 120px;
+        width: 170px;
         height: 120px;
         text-align: center;
         background-color: #513ac8;
@@ -957,7 +964,7 @@
 
     .grid-content .info h2 {
         font-size: 18px;
-        padding: 30px 0;
+        padding: 5px 0 8px 0;
         margin: 0;
     }
 
@@ -966,23 +973,31 @@
         padding-bottom: 10px;
     }
 
+    .grid-content .info .pool-no {
+        font-size: 12px;
+        /*margin-bottom: 5px;*/
+    }
+    
+    .grid-content .info .pool-owner {
+        font-size: 12px;
+    }
+
     .grid-content .tag {
-        width: 230px;
+        width: 200px;
         height: 120px;
         color: #000;
         padding: 0;
-        font-size: 15px;
+        font-size: 14px;
         position: relative;
     }
 
     .grid-content .tag p {
-        padding-bottom: 13px;
+        padding-bottom: 15px;
         position: relative;
-        top: -6px;
     }
 
     .grid-content .tag img {
-        padding: 0 12px 0 18px;
+        padding: 0 10px 0px 10px;;
     }
 
     .mining-paging {

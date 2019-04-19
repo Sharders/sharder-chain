@@ -448,15 +448,8 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static JSONObject getPoolsFromNow(){
-        List<SharderPoolProcessor> pasts = new ArrayList<>();
-        for(SharderPoolProcessor forgePool : sharderPools.values()){
-            pasts.add(forgePool);
-        }
         JSONArray array = new JSONArray();
-        for (SharderPoolProcessor forgePool : pasts) {
-
-            array.add(forgePool.toJsonObject());
-        }
+        sharderPools.values().forEach(pool -> array.add(pool.toJsonObject()));
         JSONObject json = new JSONObject();
         json.put("pools",array);
         return json;
@@ -494,7 +487,7 @@ public class SharderPoolProcessor implements Serializable {
         JSONObject jsonObject = new JSONObject();
         if (pastPools.size() == 0) {
             jsonObject.put("errorCode", 1);
-            jsonObject.put("errorDescription", "current id doesn't create any mint pool");
+            jsonObject.put("errorDescription", "current id doesn't create any mining pool");
             return jsonObject;
         }
 
@@ -580,6 +573,7 @@ public class SharderPoolProcessor implements Serializable {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("poolId", String.valueOf(poolId));
         jsonObject.put("creatorID", String.valueOf(creatorId));
+        jsonObject.put("creatorRS", Account.rsAccount(creatorId));
         jsonObject.put("level", level);
         jsonObject.put("number", number);
         jsonObject.put("power", power);
