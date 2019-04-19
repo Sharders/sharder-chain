@@ -68,20 +68,26 @@
             console.info("Net work type is:", SSO.netWorkType);
 
             this.$global.getUserConfig(this).then(res => {
-
-                if (typeof res["sharder.HubBindAddress"] === 'undefined' || res["sharder.HubBindAddress"] === "") {
-                    // console.log("HUbSetting is undefined");
-                    _this.$store.state.userConfig = res;
-                    _this.$store.state.isHubInit = true;
-                } else {
-                    _this.$store.state.userConfig = res;
-                    _this.$store.state.isHubInit = false;
-                }
+                console.log(res, "getUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfig");
+                _this.$store.state.isHubInit = res["sharder.HubBindAddress"] ? false : true;
+                _this.$store.state.userConfig = res;
+                _this.autoLogin(res);
             });
 
             SSO.init();
         },
         methods: {
+            autoLogin(val) {
+                if (val["sharder.login.mode"] !== "auto") return;
+                let _this = this;
+                SSO.secretPhrase = val["sharder.login.sp"] || "confusion difference taste whatever pattern caress inhale hunt passion rest someone chin";
+                Login.login(1, SSO.secretPhrase, _this, function () {
+                    _this.$global.setEpochBeginning(_this).then(res => {
+                        _this.$store.state.isLogin = true;
+                        _this.$router.push(val["sharder.login.to"] || "/network");
+                    });
+                });
+            },
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
