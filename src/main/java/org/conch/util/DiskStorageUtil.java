@@ -54,7 +54,11 @@ public class DiskStorageUtil {
         FileOutputStream fileOutputStream = null;
         ObjectOutputStream oos = null;
         try {
-            fileOutputStream = new FileOutputStream(getLocalStoragePath(fileName));
+            File storeFile = new File(getLocalStoragePath(fileName));
+            if(!storeFile.exists()) {
+                storeFile.createNewFile();
+            }
+            fileOutputStream = new FileOutputStream(storeFile);
             oos = new ObjectOutputStream(fileOutputStream);
             oos.writeObject(o);
         } catch (Exception e) {

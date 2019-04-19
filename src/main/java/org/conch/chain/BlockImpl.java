@@ -483,6 +483,7 @@ public final class BlockImpl implements Block {
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
             BigInteger pocScore = pocScoreObj.total();
             if (pocScore.signum() <= 0) {
+                Logger.logDebugMessage("poc score is less than 0 in this block calculate generation signature is and get from previous bli");
                 return false;
             }
 
@@ -491,16 +492,18 @@ public final class BlockImpl implements Block {
             digest.update(previousBlock.generationSignature);
             generationSignatureHash = digest.digest(getGeneratorPublicKey());
             if (!Arrays.equals(generationSignature, generationSignatureHash)) {
+                Logger.logDebugMessage("current calculate generation signature is and get from previous bli");
                 return false;
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
-            boolean skipBadBlock = isKnownBadBlock(this.getId());
-            if(skipBadBlock) {
-                Logger.logWarningMessage("Known bad block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
+            
+            boolean isIgnoreBlock = isKnownIgnoreBlock();
+            if(isIgnoreBlock) {
+                Logger.logWarningMessage("Known ignore block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
             }
-            return validHit || skipBadBlock;
+            return validHit || isIgnoreBlock;
 
         } catch (RuntimeException e) {
             Logger.logMessage("Error verifying block generation signature", e);
@@ -509,16 +512,19 @@ public final class BlockImpl implements Block {
     }
     
     // known bad blocks
-    private static final long[] knownBadBlocks = new long[] {
+    private static final long[] knownIgnoreBlocks = new long[] {
             //Testnet
-            //3372111334693782640L, 
-            //-7463130015806395221L
+            -5978167163803902145L
     };
+//    private static final String[] knownIgnoreBlocksSignatu = new String[] {
+//            //Testnet
+//            "9c90a182cbc5ffc047f2e056cfdebc510c03e900a097f808a80accb2f1852503e50d9b6c0ca95ffc0b6d35beda52379765a43dc9d246b7bbe6e94d58acbf492f"
+//    };
     static {
-        Arrays.sort(knownBadBlocks);
+        Arrays.sort(knownIgnoreBlocks);
     }
-    static boolean isKnownBadBlock(long blockId){
-        return Arrays.binarySearch(knownBadBlocks, blockId) >= 0;
+    boolean isKnownIgnoreBlock(){
+        return Arrays.binarySearch(knownIgnoreBlocks, this.id) >= 0;
     }
 
     public void apply() {
@@ -624,10 +630,4 @@ public final class BlockImpl implements Block {
         return ToStringBuilder.reflectionToString(this);
     }
 
-
-  public static void main(String[] args) {
-    //
-      String str = "{\"isPoc\":true}";
-    System.out.println(str + "\n\t" + str.getBytes().length);
-  }
 }
