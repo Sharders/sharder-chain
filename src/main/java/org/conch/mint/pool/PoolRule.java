@@ -1,5 +1,7 @@
 package org.conch.mint.pool;
 
+import com.google.common.collect.Maps;
+import org.conch.Conch;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -12,13 +14,21 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * TODO bad design and coding, need to refactor - ben 20190411
+ */
 public class PoolRule implements Serializable {
     private static final long serialVersionUID = 7892310437239078209L;
     private Map<String, Long> rule;
     private static Map<String, Object> rules;
+    
+    private static int[] lifeCycleRule = null;
+    private static Map<Role,float[]> rewardRule = Maps.newHashMap();
+    private static Map<Role,long[]> investRule = Maps.newHashMap();
 
     public static void init() {
         phraseRule();
@@ -28,7 +38,7 @@ public class PoolRule implements Serializable {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbFactory.newDocumentBuilder();
-            Document ruleFile = db.parse("conf" + File.separator + "rule-default.xml");
+            Document ruleFile = db.parse(Conch.getConfDir() + File.separator + "rule-default.xml");
             rules = (Map<String, Object>) toMap(ruleFile.getChildNodes()).get("rules");
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to load rule file ", e);
@@ -71,16 +81,15 @@ public class PoolRule implements Serializable {
     }
 
     public static int getLevel(long creatorId) {
-        SharderPoolProcessor poolProcessor =
-                SharderPoolProcessor.newPoolFromDestroyed(creatorId);
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.newPoolFromDestroyed(creatorId);
         if (poolProcessor == null) {
             return 0;
         }
+        
         int level = 0;
         for (String key : rules.keySet()) {
-            if (key.equals("version")) {
-                continue;
-            }
+            if (key.equals("version")) continue;
+            
             Map<String, Object> objectMap = (Map<String, Object>) rules.get(key);
             Map<String, Object> map = (Map<String, Object>) objectMap.get("rule");
             for (String ruleKey : map.keySet()) {
@@ -105,31 +114,29 @@ public class PoolRule implements Serializable {
         if (value instanceof Long) {
             long min = (long) map.get("min");
             long max = (long) map.get("max");
-            if ((long) value < max && (long) value > min) {
+            
+            if ((long) value <= max && (long) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage(
-                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         } else if (value instanceof Integer) {
             long min = (long) map.get("min");
             long max = (long) map.get("max");
-            if ((int) value < max && (int) value > min) {
+            if ((int) value <= max && (int) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage(
-                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         } else {
             float min = (float) map.get("min");
             float max = (float) map.get("max");
-            if ((double) value < max && (double) value > min) {
+            if ((double) value <= max && (double) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage(
-                        "validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
                 return false;
             }
         }
@@ -176,8 +183,7 @@ public class PoolRule implements Serializable {
         JSONObject consignor = (JSONObject) jsonObject.get("consignor");
         Map<String, Object> levelForgePool = new HashMap<>();
         for (Object o : forgePool.keySet()) {
-            Map<String, Object> field =
-                    (Map<String, Object>) ((Map<String, Object>) ruleMap.get("forgepool")).get(o);
+            Map<String, Object> field = (Map<String, Object>) ((Map<String, Object>) ruleMap.get("forgepool")).get(o);
             if (!validate(field, forgePool.get(o))) {
                 return false;
             }
@@ -197,12 +203,12 @@ public class PoolRule implements Serializable {
             // field.put("max",consignor.get(o));
             // levelConsignor.put((String)o,field);
         }
-    /*levelRule.put("consignor",levelConsignor);
-    Map<String,Object> levelRules = new HashMap<>();
-    levelRules.put("level" + level,levelRule);
-    Map<String,Object> tempRules = new HashMap<>();
-    tempRules.put("rules",levelRules);
-    rules = tempRules;*/
+        /*levelRule.put("consignor",levelConsignor);
+        Map<String,Object> levelRules = new HashMap<>();
+        levelRules.put("level" + level,levelRule);
+        Map<String,Object> tempRules = new HashMap<>();
+        tempRules.put("rules",levelRules);
+        rules = tempRules;*/
         return true;
     }
 
@@ -228,8 +234,7 @@ public class PoolRule implements Serializable {
         levelRule.put("forgepool", levelForgePool);
         Map<String, Object> levelConsignor = new HashMap<>();
         for (Object o : consignor.keySet()) {
-            Map<String, Object> field =
-                    (Map<String, Object>) ((Map<String, Object>) ruleMap.get("consignor")).get(o);
+            Map<String, Object> field = (Map<String, Object>) ((Map<String, Object>) ruleMap.get("consignor")).get(o);
             if (!validate(field, consignor.get(o))) {
                 return null;
             }
@@ -245,25 +250,31 @@ public class PoolRule implements Serializable {
         return levelRules;
     }
 
-    public static boolean validateConsignor(
-            Long creatorId, Attachment attachment, Map<String, Object> ruleInstance) {
-        int level = getLevel(creatorId);
-        Map<String, Object> ruleMap = (Map<String, Object>) ruleInstance.get("level" + level);
+    /**
+     * validate accorfing to specified level
+     * @param level
+     * @param attachment
+     * @param ruleInstance
+     * @return
+     */
+    public static boolean validateConsignor(int level, Attachment attachment, Map<String, Object> ruleInstance) {
+        // TODO temporary logic to fix pool tx issue, combine the level0 and level1 to one rule object
+        Map<String, Object> ruleMap = (Map<String, Object>) ruleInstance.get("level0");
+        if(ruleMap == null) {
+            ruleMap =  (Map<String, Object>) ruleInstance.get("level1");
+        }
+        Map<String, Object> consignorMap = (Map<String, Object>) ruleMap.get("consignor");
 
         for (Field field : attachment.getClass().getDeclaredFields()) {
-            if (((Map<String, Object>) ruleMap.get("consignor")).containsKey(field.getName())) {
+            if (consignorMap.containsKey(field.getName())) {
                 try {
                     field.setAccessible(true);
                     Object value = field.get(attachment);
-                    if (!validate(
-                            (Map<String, Object>)
-                                    ((Map<String, Object>) ruleMap.get("consignor")).get(field.getName()),
-                            value)) {
+                    if (!validate((Map<String, Object>)consignorMap.get(field.getName()),value)) {
                         return false;
                     }
                 } catch (IllegalAccessException e) {
-                    Logger.logErrorMessage(
-                            "can't access the attachment field when validate attachment rule ", e);
+                    Logger.logErrorMessage("can't access the attachment field when validate attachment rule ", e);
                     return false;
                 }
             }
@@ -271,12 +282,17 @@ public class PoolRule implements Serializable {
         return true;
     }
 
+
+    public static boolean validateConsignor(Long creatorId, Attachment attachment, Map<String, Object> ruleInstance) {
+        int level = getLevel(creatorId);
+        return validateConsignor(level, attachment, ruleInstance);
+    }
+
     public static Map<String, Object> getRules() {
         return rules;
     }
 
-    public static Map<Long, Long> getRewardMap(
-            Long creator, Long poolId, Long amount, Map<Long, Long> map) {
+    public static Map<Long, Long> getRewardMap(Long creator, Long poolId, Long amount, Map<Long, Long> map) {
         Map<Long, Long> result = new HashMap<>();
         SharderPoolProcessor forgePool = SharderPoolProcessor.getPoolFromAll(creator, poolId);
         int level = forgePool.getLevel();
@@ -323,9 +339,98 @@ public class PoolRule implements Serializable {
 
         return result;
     }
+    
+    public enum Role {
+        MINER,
+        USER
+    }
+    
+    private static void checkOrLoadPredefinedRules(Role role){
+        if(lifeCycleRule == null) lifeCycleRule = loadLifecycleRule();
+        
+        if(role != null && !rewardRule.containsKey(role)) {
+            rewardRule.put(role, loadRewardRateRule(role));
+        }
+        
+        if(role != null && !investRule.containsKey(role)) {
+            investRule.put(role, loadInvestmentRule(role));
+        }
+    }
 
+    private static String parseLevelByRole(Role role){
+        if(Role.MINER == role){
+            return "level0";
+        }else if(Role.USER == role){
+            return "level1";
+        }
+        return "level0";
+    }
+
+    private static int[] loadLifecycleRule() {
+        // level0 is pool creator
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get("level0");
+        Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("rule");
+        Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("totalBlocks");
+        Long maxLife = (Long) lifeMap.get("max");
+        Long minLife = (Long) lifeMap.get("min");
+        
+        return new int[]{minLife.intValue(),maxLife.intValue()};
+    }
+
+    private static float[] loadRewardRateRule(Role role){
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get(parseLevelByRole(role));
+        Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("forgepool");
+        Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("reward");
+        float maxLife = (float) lifeMap.get("max");
+        float minLife = (float) lifeMap.get("min");
+        return new float[]{minLife,maxLife};
+    }
+
+    private static long[] loadInvestmentRule(Role role) {
+        Map<String, Object> levelMap = (Map<String, Object>) rules.get(parseLevelByRole(role));
+        Map<String, Object> poolMap = (Map<String, Object>) levelMap.get("consignor");
+        Map<String, Object> lifeMap = (Map<String, Object>) poolMap.get("amount");
+        long maxAmount = (long) lifeMap.get("max");
+        long minAmount = (long) lifeMap.get("min");
+        return new long[]{minAmount,maxAmount};
+    }
+    
+    /**
+     * get the predefined life cycle in rule file
+     * @return long[2] - long[0]: min lifecycle, long[1]: max lifecycle
+     */
+    public static int[] predefinedLifecycle() {
+        checkOrLoadPredefinedRules(null);
+        return lifeCycleRule;
+    }
+
+    /**
+     * get the specified role's predefined reward rate in rule file
+     * @param role
+     * @return float[2] - float[0]: min reward rate, float[1]: max reward rate
+     */
+    public static float[] predefinedRewardRate(Role role) {
+        checkOrLoadPredefinedRules(role);
+        return rewardRule.get(role);
+    }
+    
+    /**
+     * get the specified role's investment amount in rule file
+     * @param role
+     * @return long[2] - float[0]: min investment amount, long[1]: max investment amount
+     */
+    public static long[] predefinedInvestment(Role role) {
+        checkOrLoadPredefinedRules(role);
+        return investRule.get(role);
+    }
+    
     public static void main(String[] args) {
-        PoolRule poolRule = new PoolRule();
-        poolRule.phraseRule();
+        PoolRule.init();
+
+        System.out.println(Arrays.toString(PoolRule.predefinedLifecycle()));
+        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(Role.MINER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedRewardRate(Role.USER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedInvestment(Role.MINER)));
+        System.out.println(Arrays.toString(PoolRule.predefinedInvestment(Role.USER)));
     }
 }

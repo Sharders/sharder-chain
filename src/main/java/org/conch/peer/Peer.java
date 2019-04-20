@@ -21,37 +21,64 @@
 
 package org.conch.peer;
 
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.fastjson.annotation.JSONType;
 import org.conch.http.APIEnum;
+import org.conch.util.PeerTypeEnumDeserializer;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
+import java.util.Arrays;
 import java.util.Set;
 
+/**
+ * @author ben-xy
+ */
 public interface Peer extends Comparable<Peer> {
-    //peer type
+
+    /**
+     * Type defined and mapping
+     * - code and name used by COS
+     * - simpleCode and simpleName used by outside system
+     */
+    @JSONType(deserializer = PeerTypeEnumDeserializer.class)
     enum Type {
-        BOX(5,"Sharder Box"),
-        HUB(4,"Sharder Hub"),
-        NORMAL(3, "Normal Node"),
-        COMMUNITY(2, "Community Node"),
-        FOUNDATION(1, "Foundation Node");
+        BOX(5, "Sharder Box", 1, "Box"),
+        HUB(4, "Sharder Hub", 0,"Hub"),
+        NORMAL(3, "Normal Node", 2,"Normal"),
+        COMMUNITY(2, "Community Node", 3, "Community"),
+        FOUNDATION(1, "Foundation Node",4, "Foundation");
         private final int code;
         private final String name;
+        private final int simpleCode;
+        private final String simpleName;
 
-        Type(int code, String name) {
+        Type(int code, String name, int simpleCode,  String simpleName) {
             this.code = code;
             this.name = name;
+            this.simpleCode = simpleCode;
+            this.simpleName = simpleName;
         }
 
         public int getCode() {
             return code;
         }
-        
+
         public String getName() {
             return name;
         }
 
+        public int getSimpleCode() {
+            return simpleCode;
+        }
+        
+        public String getSimpleName() {
+            return simpleName;
+        }
+
+        public boolean matchSimpleName(String simpleName) {
+            return this.simpleName.equalsIgnoreCase(simpleName);
+        }
+        
         public static Type getByCode(int code) {
             for (Type _enum : values()) {
                 if (_enum.code == code) {
@@ -61,17 +88,23 @@ public interface Peer extends Comparable<Peer> {
             return null;
         }
         
-        public static Type getByCode(String code) {
-            if(StringUtils.isEmpty(code)) return null;
-            
-            for (Type _enum : values()) {
-                if (_enum.code == Integer.valueOf(code).intValue()) {
-                    return _enum;
-                }
-            }
-            
-            return null;
+        public static Type getByName(String name) {
+            return Arrays.stream(values()).filter(type -> type.getName().equalsIgnoreCase(name))
+                    .findFirst().orElse(null);
         }
+
+        public static Type getBySimpleName(String simpleName) {
+            return Arrays.stream(values()).filter(type -> type.getSimpleName().equalsIgnoreCase(simpleName))
+                    .findFirst().orElse(null);
+        }
+        
+        public static String getSimpleName(int simpleCode) {
+            return Arrays.stream(values()).filter(type -> type.getSimpleCode() == (simpleCode))
+                    .findFirst().map(Type::getSimpleName)
+                    .orElse(Type.NORMAL.getSimpleName());
+        }
+        
+        
     }
 
     enum State {
@@ -82,19 +115,52 @@ public interface Peer extends Comparable<Peer> {
         CONNECTED,
         DISCONNECTED
     }
-    
+
     enum Service {
-        HALLMARK(1),                    // Hallmarked node
-        PRUNABLE(2),                    // Stores expired prunable messages
-        API(4),                         // Open API access over http
-        API_SSL(8),                     // Open API access over https
-        CORS(16),                       // API CORS enabled
-        BAPI(32),                       // Business API access over http => watcher role
-        STORAGE(64),                    // Off-chain data storage => Storer role
-        MINER(128),                     // Proxy mining => Miner role
-        NATER(256),                     // Nat service => Traversal role (TBD)
-        PROVER(512);                    // Prove service => Prover role (TBD)
-        private final long code;        // Service code - must be a power of 2
+        /**
+         * Hallmarked node
+         */
+        HALLMARK(1),
+        /**
+         * Stores expired prunable messages
+         */
+        PRUNABLE(2),
+        /**
+         * Open API access over http
+         */
+        API(4),
+        /**
+         *  Open API access over https
+         */
+        API_SSL(8),
+        /**
+         * API CORS enabled
+         */
+        CORS(16),
+        /**
+         * Business API access over http => watcher role
+         */
+        BAPI(32),
+        /**
+         * Off-chain data storage => Storer role
+         */
+        STORAGE(64),
+        /**
+         * Proxy mining => Miner role
+         */
+        MINER(128),
+        /**
+         * Nat service => Traversal role (TBD)
+         */
+        NATER(256),
+        /**
+         * Prove service => Prover role (TBD)
+         */
+        PROVER(512);
+        /**
+         * Service code - must be a power of 2
+         */
+        private final long code;
 
         Service(int code) {
             this.code = code;
@@ -106,10 +172,52 @@ public interface Peer extends Comparable<Peer> {
     }
 
     enum BlockchainState {
-        UP_TO_DATE, //最新的
-        DOWNLOADING, //下载中
-        LIGHT_CLIENT, //轻客户端
-        FORK //分叉
+        /**
+         * 最新的
+         */
+        UP_TO_DATE,
+        /**
+         * 下载中
+         */
+        DOWNLOADING,
+        /**
+         * 轻客户端
+         */
+        LIGHT_CLIENT,
+        /**
+         * 分叉
+         */
+        FORK
+    }
+
+    enum RunningMode {
+        DESKTOP("DESKTOP"),
+        COMMAND("COMMAND"),
+        LIGHT("LIGHT"),
+        OTHERS("OTHERS");
+        private final String name;
+
+        RunningMode(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean matchName(String name) {
+            return this.name.equalsIgnoreCase(name);
+        }
+
+        public static RunningMode getByCode(int code) {
+            return Arrays.stream(values()).filter(mode -> mode.ordinal() == code)
+                    .findFirst().orElse(null);
+        }
+
+        public static RunningMode getByName(String name) {
+            return Arrays.stream(values()).filter(mode -> mode.getName().equalsIgnoreCase(name))
+                    .findFirst().orElse(null);
+        }
     }
 
     boolean providesService(Service service);
@@ -123,6 +231,13 @@ public interface Peer extends Comparable<Peer> {
     int getPort();
 
     String getAnnouncedAddress();
+
+    /**
+     * return announced address firstly if announced address exist. 
+     * else return host
+     * @return
+     */
+    String getAddress();
 
     State getState();
 
@@ -147,9 +262,9 @@ public interface Peer extends Comparable<Peer> {
     Hallmark getHallmark();
 
     int getWeight();
-    
+
     String getBindRsAccount();
-    
+
     void setBindRsAccount(String bindRsAccount);
 
     boolean shareAddress();
@@ -175,9 +290,9 @@ public interface Peer extends Comparable<Peer> {
     int getLastConnectAttempt();
 
     Type getType();
-    
+
     void setType(Type type);
-    
+
     boolean isType(Type type);
 
     boolean isInbound();

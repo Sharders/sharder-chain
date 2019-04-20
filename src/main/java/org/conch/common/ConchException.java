@@ -90,6 +90,10 @@ public abstract class ConchException extends Exception {
         public NotValidException(String message) {
             super(message);
         }
+        
+        public NotValidException(String message, Object... args) {
+            super(String.format(message, args));
+        }
 
         public NotValidException(String message, Throwable cause) {
             super(message, cause);

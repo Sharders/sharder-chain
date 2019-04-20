@@ -339,7 +339,10 @@ public class APITestServlet extends HttpServlet {
     }
 
     private static boolean isPassword(String parameter) {
-        return "secretPhrase".equals(parameter) || "adminPassword".equals(parameter) || "recipientSecretPhrase".equals(parameter);
+        return "secretPhrase".equals(parameter)
+                || "passphrase".equals(parameter)
+                || "adminPassword".equals(parameter)
+                || "recipientSecretPhrase".equals(parameter);
     }
 
     private static boolean isTextArea(String parameter) {

@@ -44,9 +44,11 @@ base.plugins.push(
     "process.env.NODE_ENV": JSON.stringify("production")
   }),
   new webpack.optimize.UglifyJsPlugin({
-    sourceMap: true,
+    sourceMap: false,
     compress: {
-      warnings: false
+      warnings: false,
+      drop_console: true,
+      pure_funcs: ['console.log']
     },
     output: {
       comments: false

@@ -71,11 +71,23 @@ import dialogCommon from "./views/dialog/dialog_common";
 import maskedInput from "vue-masked-input";
 import ReceiveAlert from "./views/mining/receiveAlert";
 import ExchangeReward from "./views/mining/exchange-reward";
+import PocContent from "./views/dialog/pocContent";
+import NodeTypeContent from "./views/dialog/nodeTypeContent";
+import NodeConfigContent from "./views/dialog/nodeConfigContent";
+import PocDetailContent from "./views/dialog/pocDetailContent";
+import AdminPwd from "./views/dialog/adminPwd";
+import SecretPhrase from "./views/dialog/secretPhrase";
 //注册组件
+Vue.component("PocContent",PocContent);
+Vue.component("NodeTypeContent",NodeTypeContent);
+Vue.component("NodeConfigContent",NodeConfigContent);
+Vue.component("PocDetailContent",PocDetailContent);
 Vue.component("dialogCommon",dialogCommon);
 Vue.component("masked-input",maskedInput);
 Vue.component("ReceiveAlert",ReceiveAlert);
 Vue.component("ExchangeReward",ExchangeReward);
+Vue.component("AdminPwd",AdminPwd);
+Vue.component("SecretPhrase",SecretPhrase);
 
 
 sync(store, router);

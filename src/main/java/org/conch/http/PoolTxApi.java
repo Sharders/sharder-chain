@@ -1,9 +1,9 @@
 package org.conch.http;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.mint.pool.Consignor;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
@@ -36,21 +36,22 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
-            if (!PocProcessorImpl.isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
-                String errorDetail = "current account can't create mint pool, because account[id=" + account.getId() + ",rs=" + account.getRsAddress() + "] is not be bind to certified peer";
+            if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
+                String errorDetail = "Can't create mining pool, because account " + account.getRsAddress() + " is not be bind to certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
             if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT - Long.valueOf(req.getParameter("feeNQT")) < 0){
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
-            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
+            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+            int period = Constants.isDevnet() ? 50 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
                 rules = (JSONObject) (new JSONParser().parse(rule));
             } catch (Exception e) {
-                Logger.logErrorMessage("cant obtain rule when create mint pool");
+                Logger.logErrorMessage("Can't obtain rule when create mint pool");
             }
             Map<String, Object> rule = PoolRule.jsonObjectToMap(rules);
             Attachment attachment = new Attachment.SharderPoolCreate(period, rule);
@@ -73,8 +74,7 @@ public abstract class PoolTxApi {
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
-
-
+    
     public static final class QuitPoolTx extends CreateTransaction {
         static final QuitPoolTx instance = new QuitPoolTx();
 
@@ -86,7 +86,7 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long txId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+            long txId = ParameterParser.getUnsignedLong(request, "txId", true);
             Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
             return createTransaction(request, account, 0, 0, attachment);
         }
@@ -94,7 +94,7 @@ public abstract class PoolTxApi {
 
     public static final class JoinPoolTx extends CreateTransaction {
         static final JoinPoolTx instance = new JoinPoolTx();
-
+        
         private JoinPoolTx() {
             super(new APITag[]{APITag.FORGING, APITag.CREATE_TRANSACTION}, "poolId", "period", "amount");
         }
@@ -102,14 +102,16 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
-            int period = ParameterParser.getInt(request, "period", Constants.SHARDER_POOL_DELAY, 65535, true);
+            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+            long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
+            int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long amount = ParameterParser.getLong(request, "amount", 0, Long.MAX_VALUE, true);
+            long amount = ParameterParser.getLong(request, "amount", investmentRule[0], investmentRule[1], true);
             Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
             return createTransaction(request, account, 0, 0, attachment);
         }
     }
-
+    
     public static final class GetPools extends APIServlet.APIRequestHandler {
         static final GetPools instance = new GetPools();
 
@@ -267,11 +269,6 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long creatorId = Long.parseUnsignedLong(request.getParameter("creatorId"));
-            if (!PocProcessorImpl.isCertifiedPeerBind(creatorId) && !Constants.isDevnet()) {
-                String errorDetail = "The account is not bound to an authentication peer";
-                Logger.logInfoMessage(errorDetail);
-                throw new ConchException.NotValidException(errorDetail);
-            }
             return PoolRule.getTemplate(creatorId);
         }
 

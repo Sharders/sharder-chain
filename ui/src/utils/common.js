@@ -14,6 +14,8 @@ export default {
     peers: [],
     userConfig: [],
     $vue: {},
+    placeholder: "--",
+    unit: " SS",
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -21,6 +23,7 @@ export default {
                 dataType: "json",
                 type: type,
                 data: date,
+                timeout: 60000,
                 success: function (data) {
                     resolve(data)
                 },
@@ -109,6 +112,7 @@ export default {
      * 获取在创世时间后的时间
      * @param value
      * @param type
+     * @param hasEpochBeginning
      * @returns {string}
      */
     myFormatTime(value, type, hasEpochBeginning) {
@@ -140,6 +144,33 @@ export default {
 
         }
         return dataTime;//将格式化后的字符串输出到前端显示
+    },
+    /**
+     * 获取在创世时间后的时间
+     * @param time
+     * @param fmt
+     * @param tz 本地时区(默认)或UTC时区
+     */
+    formatTime(time, tz, fmt) {
+        const _this = this;
+        fmt = fmt || "yyyy-MM-dd hh:mm:ss";
+        tz = tz || 0;
+        let date = new Date(time * 1000 + _this.epochBeginning + tz * 3600000);
+        let o = {
+            "M+": date.getUTCMonth() + 1,                          //月份
+            "d+": date.getUTCDate(),                               //日
+            "h+": date.getUTCHours(),                              //小时
+            "m+": date.getUTCMinutes(),                            //分
+            "s+": date.getUTCSeconds(),                            //秒
+            "q+": Math.floor((date.getUTCMonth() + 3) / 3),     //季度
+            "S": date.getUTCMilliseconds()                         //毫秒
+        };
+        if (/(y+)/.test(fmt))
+            fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (let k in o)
+            if (new RegExp("(" + k + ")").test(fmt))
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
     },
     /**
      *格式化时间 加0
@@ -512,8 +543,11 @@ export default {
     useEoLinker() {
         return SSO.useEoLinker;
     },
+    useLocal() {
+        return SSO.useLocal;
+    },
     getSharderFoundationHost() {
-        return (this.isTestNet() || this.isDevNet()) ?
+        return (this.isDevNet()) ?
             this.sharderFoundationTestHost : this.sharderFoundationHost;
     },
     getCommonFoundationAPI(eoLinkerUrl, path) {
@@ -646,7 +680,19 @@ export default {
             }
             return this.$vue.$t("transaction.transaction_type_system_reward");
         }
-        if (t.type === 12) return this.$vue.$t("transaction.transaction_type_poc");
+        if (t.type === 12) {
+            if (t.subtype === 0) {
+                return this.$vue.$t("transaction.transaction_type_poc_node_type");
+            } else if (t.subtype === 1) {
+                return this.$vue.$t("transaction.transaction_type_poc_node_config");
+            } else if (t.subtype === 2) {
+                return this.$vue.$t("transaction.transaction_type_poc_weight_table");
+            } else if (t.subtype === 4) {
+                return this.$vue.$t("transaction.transaction_type_poc_block_missing");
+            } else {
+                return this.$vue.$t("transaction.transaction_type_poc");
+            }
+        }
     },
     /**
      * 获得交易金额
@@ -655,14 +701,117 @@ export default {
      * @returns {string}
      */
     getTransactionAmountNQT(t, accountRS) {
-        let amountNQT = t.amountNQT / 100000000;
-        if (amountNQT === 0) {
-            return "--"
+        let amountNQT = new BigNumber(t.amountNQT).dividedBy("100000000").toFixed();
+        if (amountNQT <= 0) {
+            return this.placeholder
         } else if (t.senderRS === accountRS && t.type !== 9) {
-            return -amountNQT
+            return -amountNQT + this.unit
         } else {
-            return "+" + amountNQT
+            return "+" + amountNQT + this.unit
         }
+    },
+    /**
+     * 获得手续费
+     * @param t
+     * @returns {string}
+     */
+    getTransactionFeeNQT(t) {
+        if (t.feeNQT <= 0) {
+            return this.placeholder;
+        }
+        return new BigNumber(t.feeNQT).dividedBy("100000000").toFixed() + this.unit;
+    },
+    /**
+     * 返回对象 或 占位符
+     * @param o1
+     * @param o2
+     * @returns {string}
+     */
+    returnObj(o1, o2) {
+        return o1 !== undefined && o2 !== undefined ? o2 : this.placeholder;
+    },
+    /**
+     * 获得发送者或接受者
+     * @param t
+     */
+    getSenderOrRecipient(t) {
+        if (t.type === 9 && this.$vue.$store.state.account === t.recipientRS) {
+            return t.senderRS
+        } else if (t.type === 9 && this.$vue.$store.state.account !== t.recipientRS) {
+            return this.$vue.$t('dialog.account_transaction_own')
+        } else if (this.$vue.$store.state.account === t.recipientRS) {
+            return this.$vue.$t('dialog.account_transaction_own')
+        } else if (typeof t.recipientRS === 'undefined') {
+            return this.placeholder
+        } else if (this.$vue.$store.state.account !== t.recipientRS) {
+            return t.recipientRS
+        }
+    },
+    /**
+     * 获得发送者
+     */
+    getSenderRSOrWo(t) {
+        if (t.type === 9) {
+            return "System";
+        } else if (this.$vue.$store.state.account !== t.senderRS) {
+            return t.senderRS
+        } else if (this.$vue.$store.state.account === t.senderRS) {
+            return this.$vue.$t('dialog.account_transaction_own')
+        }
+    },
+    /**
+     * 获得区块总手续费
+     * @param totalFeeNQT
+     */
+    getBlockTotalFeeNQT(totalFeeNQT) {
+        if (totalFeeNQT <= 0) {
+            return this.placeholder
+        }
+        return new BigNumber(totalFeeNQT).dividedBy("100000000").toFixed()
+    },
+    /**
+     * 获得区块总金额
+     * @param totalAmountNQT
+     */
+    getBlocKTotalAmountNQT(totalAmountNQT) {
+        if (totalAmountNQT <= 0) {
+            return this.placeholder
+        }
+        return new BigNumber(totalAmountNQT).dividedBy("100000000").toFixed() + this.unit;
+    },
+    /**
+     * 获得交易的区块时间
+     * @param t
+     */
+    getTransactionBlockTimestamp(t) {
+        if (t.block) {
+            return t.blockTimestamp + ' | ' + this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + " +UTC"
+        }
+        return this.placeholder
+    },
+    /**
+     * 格式化SS数量 + "SS"
+     * @param num
+     * @param f
+     * @returns {string}
+     */
+    getSSNumberFormat(num, f) {
+        if (!num || num <= 0) {
+            return this.placeholder
+        } else if (f) {
+            return num + this.unit
+        } else {
+            return new BigNumber(num).dividedBy("100000000").toFixed() + this.unit
+        }
+    },
+    /**
+     * 获得奖励分配率
+     * @param rule 对象
+     * @param num 小数位数
+     * @returns {string}
+     */
+    getRewardRate(rule, num) {
+        let level = (rule.level) || (rule.level1 ? rule.level1 : rule.level0);
+        return new BigNumber(level.forgepool.reward.max).multipliedBy("100").toFixed(num || 2) + "%";
     }
-
 };

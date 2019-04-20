@@ -38,10 +38,10 @@ public class ClientUpgradeTool {
         fetchUpgradePackageThread.start();
         return fetchUpgradePackageThread;
     }
-
+    
     public static void fetchUpgradePackage(String version) throws IOException {
         File projectPath = new File("temp/");
-        File archive = new File(projectPath, "cos-hub-" + version + ".zip");
+        File archive = new File(projectPath, "cos-" + version + ".zip");
         if (!archive.exists()) {
             Logger.logDebugMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
             FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);

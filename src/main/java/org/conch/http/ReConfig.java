@@ -27,7 +27,11 @@ import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.mq.Message;
+import org.conch.mq.MessageManager;
+import org.conch.peer.Peer;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -44,7 +48,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     static final ReConfig INSTANCE = new ReConfig();
     private static final List<String> EXCLUDE_PARAMS = Arrays.asList(
             "restart", "requestType", "newAdminPassword", "isInit", "registerStatus",
-            "adminPassword", "reBind", "username", "password", "nodeType");
+            "adminPassword", "reBind", "username", "password", "nodeType", "sharderAccount");
     private static final String URL = UrlManager.getFoundationUrl(
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_EOLINKER,
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_LOCAL,
@@ -64,7 +68,12 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
-        long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
+
+        String bindRs = Conch.getStringProperty("sharder.HubBindAddress");
+        if(isInit) {
+            bindRs = Account.rsAccount(req.getParameter("sharder.HubBindPassPhrase"));
+        }
+        long creatorId = Account.rsAccountToId(bindRs);
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
@@ -72,17 +81,37 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        if (!verifyForNormalNode(req, response)) {
-            System.out.println("failed to configure settings...");
+        if (!verifyFormData(req, response)) {
+            Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
+            response.put("reconfiged", false);
+            response.put("failedReason", "failed to configure settings caused by formData invalid!");
             return response;
+        }
+        
+        // send to foundation to create node type tx once in initial processing
+        if(isInit) {
+            if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
+                Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
+                response.put("reconfiged", false);
+                response.put("failedReason", "failed to configure settings caused by send create node type tx message to foundation failed!!");
+                return response;
+            }
         }
 
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
+
+            if ("sharder.HubBindPassPhrase".equals(paraName)) {
+                String prFromRequest = req.getParameter(paraName);
+                map.put("sharder.HubBindPassPhrase", prFromRequest);
+                map.put("sharder.HubBindAddress", Account.rsAccount(prFromRequest));
+                continue;
+            }
             if ("newAdminPassword".equals(paraName)) {
                 map.put("sharder.adminPassword", req.getParameter(paraName));
                 continue;
             }
+            //if it ins't initial, use the current pr get from local properties file
             if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew && !isInit) {
                 map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
                 continue;
@@ -106,25 +135,30 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
      * @param response json object
      * @return true:correct data; false:wrong data
      */
-    private Boolean verifyForNormalNode(HttpServletRequest req, JSONObject response) {
+    private Boolean verifyFormData(HttpServletRequest req, JSONObject response) {
         boolean result = true;
-        boolean isNormalNode = "Normal".equalsIgnoreCase(req.getParameter("nodeType"));
         boolean useNATService = Boolean.TRUE.toString().equalsIgnoreCase(req.getParameter("sharder.useNATService"));
+        String nodeType = Convert.nullToEmpty(req.getParameter("nodeType"));
         Map<String, String> pageValues = new HashMap<>(16);
-        pageValues.put("registerStatus", Convert.nullToEmpty(req.getParameter("registerStatus")));
-        pageValues.put("natServiceAddress", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
+
+        if (Peer.Type.NORMAL.matchSimpleName(nodeType)) {
+            pageValues.put("status", Convert.nullToEmpty(req.getParameter("registerStatus")));
+        }
+        pageValues.put("natServiceIp", Convert.nullToEmpty(req.getParameter("sharder.NATServiceAddress")));
         pageValues.put("natServicePort", Convert.nullToEmpty(req.getParameter("sharder.NATServicePort")));
         pageValues.put("natClientKey", Convert.nullToEmpty(req.getParameter("sharder.NATClientKey")));
-        pageValues.put("hubAddress", Convert.nullToEmpty(req.getParameter("sharder.myAddress")));
-        pageValues.put("nodeType", Convert.nullToEmpty(req.getParameter("nodeType")));
+        pageValues.put("proxyAddress", Convert.nullToEmpty(req.getParameter("sharder.myAddress")));
+        pageValues.put("type", nodeType);
         Iterator<Map.Entry<String, String>> iterator = pageValues.entrySet().iterator();
 
-        if (isNormalNode && useNATService) {
+        if (useNATService) {
             try {
                 RestfulHttpClient.HttpResponse verifyResponse = RestfulHttpClient.getClient(URL)
                         .post()
-                        .addPostParam("username", req.getParameter("username"))
+                        .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
                         .addPostParam("password", req.getParameter("password"))
+                        .addPostParam("nodeType", req.getParameter("nodeType"))
+                        .addPostParam("serialNum", Conch.serialNum)
                         .request();
                 boolean querySuccess = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
                 if (querySuccess) {
@@ -133,7 +167,14 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     );
                     while (iterator.hasNext()) {
                         Map.Entry<String, String> pageValue = iterator.next();
-                        if (!this.doVerify(pageValue.getValue(), hubSetting.getString(pageValue.getKey()))) {
+                        String dbValue;
+                        Object value = pageValue.getValue();
+                        if ("type".equals(pageValue.getKey())) {
+                            dbValue = Peer.Type.getSimpleName(hubSetting.getInteger(pageValue.getKey()));
+                        } else {
+                            dbValue = hubSetting.getString(pageValue.getKey());
+                        }
+                        if (!this.doVerify(value, dbValue)) {
                             result = false;
                             response.put("reconfiged", false);
                             response.put("failedReason", "tampered data detected! failed to reconfigure!");
@@ -166,6 +207,39 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         } else {
             return pageValue.equals(dbValue);
         }
+    }
+    
+    //TODO need refactor
+    @SuppressWarnings("unchecked")
+    private Boolean sendCreateNodeTypeTxRequestToFoundation(HttpServletRequest req, String rsAddress) {
+        boolean result = false;
+        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("ip", myAddress);
+        jsonObject.put("type", req.getParameter("nodeType"));
+        jsonObject.put("network", Conch.getNetworkType());
+        jsonObject.put("bindRs", rsAddress);
+        jsonObject.put("from", "NodeInitialStage#Reconfig");
+        Message message = new Message()
+                .setSender(myAddress)
+                .setRetryCount(0)
+                .setTimestamp(System.currentTimeMillis())
+                .setType(Message.Type.NODE_TYPE.getName())
+                .setDataJson(jsonObject.toJSONString());
+        Logger.logDebugMessage("send to foundation to create NodeType tx "+ message.toString());
+        try {
+            RestfulHttpClient.HttpResponse httpResponse = MessageManager.sendMessageToFoundation(message);
+            Result responseResult = JSON.parseObject(httpResponse.getContent(), Result.class);
+            if (responseResult.getSuccess()) {
+                result = true;
+                Logger.logInfoMessage("[ OK ] Success to send create poc node type tx message!");
+            } else {
+                Logger.logWarningMessage("[ WARN ] Failed to send create poc node type tx message! reason: " + responseResult.getMsg());
+            }
+        } catch (IOException e) {
+            Logger.logErrorMessage("[ ERROR ]Failed to send create poc node type tx message!", e);
+        }
+        return result;
     }
 
     @Override

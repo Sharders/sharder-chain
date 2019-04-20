@@ -27,7 +27,7 @@ import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
-import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
@@ -46,6 +46,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
+
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -94,9 +96,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private volatile boolean isRestoring;
   private volatile boolean alreadyInitialized = false;
 
-  private final Runnable getMoreBlocksThread =
-      new Runnable() {
-
+  private static long lastDownloadMS = System.currentTimeMillis();
+  private static final long MAX_DOWNLOAD_TIME = 3 * 60 * 60 * 1000L;
+  
+  private final Runnable getMoreBlocksThread =  new Runnable() {
         private final JSONStreamAware getCumulativeDifficultyRequest;
         {
           JSONObject request = new JSONObject();
@@ -149,63 +152,57 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             System.exit(1);
           }
         }
-
-        // 交换库存
+        
+   
         private void downloadPeer() throws InterruptedException {
           try {
             long startTime = System.currentTimeMillis();
-            int numberOfForkConfirmations = Math.min(1, defaultNumberOfForkConfirmations);
+            int limitConnectedSize = Math.min(1, defaultNumberOfForkConfirmations);
             connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
-            if (connectedPublicPeers.size() <= numberOfForkConfirmations) {
-              Logger.logMessage(
-                  "No enough peers[limit size="
-                      + (numberOfForkConfirmations + 1)
-                      + ",current connected size="
-                      + connectedPublicPeers.size()
-                      + "], break syn blocks...");
+            int connectedSize = connectedPublicPeers.size();
+            if (connectedSize <= limitConnectedSize) {
+                if(Logger.printNow(Constants.BlockchainProcessor_P_downloadPeer)) {
+                  Logger.logDebugMessage("No enough connected peers[limit size=" + (limitConnectedSize + 1) + ",current connected size=" + connectedSize + "], break syn blocks...");
+                  Logger.logDebugMessage("Current peers => " + Arrays.toString(connectedPublicPeers.toArray()));
+                }
+                // restart the cos if download not finished in 8 hours
+                if(System.currentTimeMillis() - lastDownloadMS >  MAX_DOWNLOAD_TIME) {
+                  new Thread(() -> Conch.restartApplication(null)).start();
+                }
               return;
             }
+            lastDownloadMS = System.currentTimeMillis();
             peerHasMore = true;
             final Peer peer = Peers.getWeightedPeer(connectedPublicPeers);
-            if (peer == null) {
-              return;
-            }
+            if (peer == null) return;
+            
             // [NAT] inject useNATService property to the request params
             JSONObject request = new JSONObject();
             request.put("requestType", "getCumulativeDifficulty");
-            request.put("useNATService", Peers.isUseNATService());
-            request.put("announcedAddress", Peers.getMyAddress());
+            request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
-            if (response == null) {
-              return;
-            }
-            BigInteger curCumulativeDifficulty =
-                blockchain.getLastBlock().getCumulativeDifficulty();
+            if (response == null) return;
+            
+            BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
             String peerCumulativeDifficulty = (String) response.get("cumulativeDifficulty");
-            if (peerCumulativeDifficulty == null) {
-              return;
-            }
+            if (peerCumulativeDifficulty == null) return;
+            
             BigInteger betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
-            if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) {
-              return;
-            }
+            if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
+            
             if (response.get("blockchainHeight") != null) {
               lastBlockchainFeeder = peer;
               lastBlockchainFeederHeight = ((Long) response.get("blockchainHeight")).intValue();
             }
-            if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) {
-              return;
-            }
+            if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) return;
 
-            // 里程碑区块
+            // milestone block
             long commonMilestoneBlockId = SharderGenesis.GENESIS_BLOCK_ID;
 
             if (blockchain.getLastBlock().getId() != SharderGenesis.GENESIS_BLOCK_ID) {
               commonMilestoneBlockId = getCommonMilestoneBlockId(peer);
             }
-            if (commonMilestoneBlockId == 0 || !peerHasMore) {
-              return;
-            }
+            if (commonMilestoneBlockId == 0 || !peerHasMore)  return;
 
             chainBlockIds = getBlockIdsAfterCommon(peer, commonMilestoneBlockId, false);
             if (chainBlockIds.size() < 2 || !peerHasMore) {
@@ -216,10 +213,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             final Block commonBlock = blockchain.getBlock(commonBlockId);
             if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
               if (commonBlock != null) {
-                Logger.logDebugMessage(
-                    peer
-                        + " advertised chain with better difficulty, but the last common block is at height "
-                        + commonBlock.getHeight());
+                Logger.logDebugMessage(peer + " advertised chain with better difficulty, but the last common block is at height " + commonBlock.getHeight());
               }
               return;
             }
@@ -234,9 +228,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             blockchain.updateLock();
             try {
-              if (betterCumulativeDifficulty.compareTo(
-                      blockchain.getLastBlock().getCumulativeDifficulty())
-                  <= 0) {
+              if (betterCumulativeDifficulty.compareTo(blockchain.getLastBlock().getCumulativeDifficulty()) <= 0) {
                 return;
               }
               long lastBlockId = blockchain.getLastBlock().getId();
@@ -247,7 +239,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
               int confirmations = 0;
               for (Peer otherPeer : connectedPublicPeers) {
-                if (confirmations >= numberOfForkConfirmations) {
+                if (confirmations >= limitConnectedSize) {
                   break;
                 }
                 if (peer.getHost().equals(otherPeer.getHost())) {
@@ -270,8 +262,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // [NAT] inject useNATService property to the request params
                 request.clear();
                 request.put("requestType", "getCumulativeDifficulty");
-                request.put("useNATService", Peers.isUseNATService());
-                request.put("announcedAddress", Peers.getMyAddress());
+                request.putAll(Peers.getNatAndAddressMap());
                 JSONObject otherPeerResponse = peer.send(JSON.prepareRequest(request));
                 if (otherPeerResponse == null
                     || (otherPeerCumulativeDifficulty =
@@ -306,6 +297,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             * (lastBlockchainFeederHeight - blockchain.getHeight())
                             / ((long) totalBlocks * 1000 * 60)
                         + " min left");
+
+                // close forceConverge after blocks sync completed
+                if(forceConverge) {
+                  forceConverge = false;
+                  Generator.checkOrStartAutoMining();
+                }
               } else {
                 Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
               }
@@ -329,8 +326,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             JSONObject milestoneBlockIdsRequest = new JSONObject();
             milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
             // [NAT] inject useNATService property to the request params
-            milestoneBlockIdsRequest.put("useNATService", Peers.isUseNATService());
-            milestoneBlockIdsRequest.put("announcedAddress", Peers.getMyAddress());
+            milestoneBlockIdsRequest.putAll(Peers.getNatAndAddressMap());
             if (lastMilestoneBlockId == null) {
               milestoneBlockIdsRequest.put("lastBlockId", blockchain.getLastBlock().getStringId());
             } else {
@@ -352,10 +348,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             // prevent overloading with blockIds
             if (milestoneBlockIds.size() > 20) {
-              Logger.logDebugMessage(
-                  "Obsolete or rogue peer "
-                      + peer.getHost()
-                      + " sends too many milestoneBlockIds, blacklisting");
+              Logger.logDebugMessage("Obsolete or rogue peer " + peer.getHost() + " sends too many milestoneBlockIds, blacklisting");
               peer.blacklist("Too many milestoneBlockIds");
               return 0;
             }
@@ -386,10 +379,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             JSONObject request = new JSONObject();
             // [NAT] inject useNATService property to the request params
             request.put("requestType", "getNextBlockIds");
-            request.put("useNATService", Peers.isUseNATService());
-            request.put("announcedAddress", Peers.getMyAddress());
             request.put("blockId", Long.toUnsignedString(matchId));
             request.put("limit", limit);
+            request.putAll(Peers.getNatAndAddressMap());
             JSONObject response = peer.send(JSON.prepareRequest(request));
             if (response == null) {
               return Collections.emptyList();
@@ -478,19 +470,24 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             for (GetNextBlocks nextBlocks : getList) {
               Peer peer;
-              if (nextBlocks.getRequestCount() > 1) {
-                break download;
-              }
-              if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
-                peer = feederPeer;
-              } else {
-                if (nextPeerIndex >= connectedPublicPeers.size()) {
-                  nextPeerIndex = 0;
+              if(forceConverge){
+                //TODO connected to foundation peers to get the blocks only
+                peer = null;
+              }else{
+                if (nextBlocks.getRequestCount() > 1) {
+                  break download;
                 }
-                peer = connectedPublicPeers.get(nextPeerIndex++);
-              }
-              if (nextBlocks.getPeer() == peer) {
-                break download;
+                if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
+                  peer = feederPeer;
+                } else {
+                  if (nextPeerIndex >= connectedPublicPeers.size()) {
+                    nextPeerIndex = 0;
+                  }
+                  peer = connectedPublicPeers.get(nextPeerIndex++);
+                }
+                if (nextBlocks.getPeer() == peer) {
+                  break download;
+                }
               }
               nextBlocks.setPeer(peer);
               Future<List<BlockImpl>> future = networkService.submit(nextBlocks);
@@ -557,7 +554,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 try {
                   pushBlock(block);
                 }catch(GeneratorNotAcceptedException e) {
-                  Generator.blackGenerator(e.getGeneratoId());
+                  Generator.blackGenerator(e.getGeneratorId());
                 }catch (BlockNotAcceptedException e) {
                   peerBlock.getPeer().blacklist(e);
                 }
@@ -568,10 +565,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             // Process a fork
             //
-            int myForkSize = blockchain.getHeight() - startHeight;
-            if (!forkBlocks.isEmpty() && myForkSize < 720) {
-              Logger.logDebugMessage("Will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
-              processFork(feederPeer, forkBlocks, commonBlock);
+            if(!forceConverge) {
+              int myForkSize = blockchain.getHeight() - startHeight;
+              if (!forkBlocks.isEmpty() && myForkSize < 720) {
+                Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+                processFork(feederPeer, forkBlocks, commonBlock);
+              }
             }
           } finally {
             blockchain.writeUnlock();
@@ -579,11 +578,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         private void processFork(final Peer peer, final List<BlockImpl> forkBlocks, final Block commonBlock) {
-
+          // record the current difficulty and popoff the chain to common block(genesis block or last known block)
           BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
-
           List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
-
+          
+          // push the fork blocks into chain
           int pushedForkBlocks = 0;
           if (blockchain.getLastBlock().getId() == commonBlock.getId()) {
             for (BlockImpl block : forkBlocks) {
@@ -595,13 +594,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   peer.blacklist(e);
                   break;
                 } catch (GeneratorNotAcceptedException e) {
-                  Generator.blackGenerator(e.getGeneratoId());
+                  Generator.blackGenerator(e.getGeneratorId());
                   break;
                 }
               }
             }
           }
-
+          
+          // check original difficulty(before pushed fork blocks) of chain with difficulty of pushed chain 
           if (pushedForkBlocks > 0
               && blockchain
                       .getLastBlock()
@@ -616,7 +616,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
             }
           }
-
+          
+          // put the popoff blocks back to chain 
           if (pushedForkBlocks == 0) {
             Logger.logDebugMessage("Didn't accept any blocks, pushing back my previous blocks");
             for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
@@ -627,7 +628,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 Logger.logErrorMessage("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(),e);
                 break;
               } catch (GeneratorNotAcceptedException e) {
-                Generator.blackGenerator(e.getGeneratoId());
+                Generator.blackGenerator(e.getGeneratorId());
                 break;
               }
             }
@@ -639,6 +640,29 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
       };
+
+  private static boolean forceConverge = false;
+  /**
+   * force converge if the fork can't be converge itself
+   * @return
+   */
+  private boolean forceForkConverge(HttpServletRequest reqSender,final Block commonBlock) throws ConchException.NotValidException {
+    // authority check
+    if (!IpUtil.matchHost(reqSender, Conch.getBootNode())) {
+      throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getBootNode()));
+    }
+    
+    // just connected to foundation node in download peers when forceConverge is true
+    forceConverge = true;
+
+    // check and stop mining
+    Generator.stopAutoMining();
+
+    // popoff to specified block or height
+    List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
+
+    return true;
+  }
 
   /** Callable method to get the next block segment from the selected peer */
   private static class GetNextBlocks implements Callable<List<BlockImpl>> {
@@ -696,10 +720,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // [NAT] inject useNATService property to the request params
       JSONObject request = new JSONObject();
       request.put("requestType", "getNextBlocks");
-      request.put("useNATService", Peers.isUseNATService());
-      request.put("announcedAddress", Peers.getMyAddress());
       request.put("blockIds", idList);
       request.put("blockId", Long.toUnsignedString(blockIds.get(start)));
+      request.putAll(Peers.getNatAndAddressMap());
       long startTime = System.currentTimeMillis();
       JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
       responseTime = System.currentTimeMillis() - startTime;
@@ -925,8 +948,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
           // [NAT] inject useNATService property to the request params
           request.put("requestType", "getTransactions");
-          request.put("useNATService", Peers.isUseNATService());
-          request.put("announcedAddress", Peers.getMyAddress());
+          request.putAll(Peers.getNatAndAddressMap());
           request.put("transactionIds", requestList);
           JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
           if (response == null) {
@@ -1027,6 +1049,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         false);
 
     if (!Constants.isLightClient && !Constants.isOffline) {
+      Logger.logInfoMessage("current node mode[light client=%s, offline=%s], don't connect peers to download blocks", Constants.isLightClient, Constants.isOffline);
       ThreadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 1);
     }
   }
@@ -1107,6 +1130,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   @Override
   public boolean isDownloading() {
     return isDownloading;
+  }
+
+  @Override
+  public boolean isUpToDate() {
+    if(isDownloading()) return false;
+    return Peers.getMyBlockchainState() == Peer.BlockchainState.UP_TO_DATE;
   }
 
   @Override
@@ -1329,9 +1358,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException,GeneratorNotAcceptedException {
 
     int curTime = Conch.getEpochTime();
-
     blockchain.writeLock();
     try {
+      boolean delayedPocTxsProcessed = (Constants.isDevnet() && Generator.isBootNode) 
+              || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight()));
+      if(Conch.reachLastKnownBlock() 
+          && !delayedPocTxsProcessed) {
+          Logger.logDebugMessage("should process delayed poc txs <= [ height = %d ] before accepting blocks", Conch.getBlockchain().getHeight()); 
+          return;
+      }
+        
       BlockImpl previousLastBlock = null;
       try {
         Db.db.beginTransaction();
@@ -1406,8 +1442,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
   }
+  
 
   private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException, GeneratorNotAcceptedException {
+    
     if(!Generator.isValid(block.getGeneratorId())) {
       throw new GeneratorNotAcceptedException("Invalid generator",block.getGeneratorId());
     }
@@ -1438,9 +1476,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
-      BigInteger score = PocProcessorImpl.instance.calPocScore(generatorAccount,previousLastBlock.getHeight());
-//      long generatorBalance = generatorAccount == null ? 0 : generatorAccount.getEffectiveBalanceSS();
-      throw new BlockNotAcceptedException("Generation signature verification failed, poc score " + score, block);
+      PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
+      String errorMsg = "Generation signature verification failed, poc score is " + pocScoreObj.total() + " and block id is " + block.getId() + " at height " + (previousLastBlock.getHeight()+1);
+      throw new BlockNotAcceptedException(errorMsg, block);
     }
     if (!block.verifyBlockSignature()) {
       throw new BlockNotAcceptedException("Block signature verification failed", block);
@@ -1567,7 +1605,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       payloadLength += transaction.getFullSize();
       digest.update(transaction.bytes());
 
-      autoExtensionAppend(block, transaction);
+      block.autoExtensionAppend(transaction);
     }
     
     if (calculatedTotalAmount != block.getTotalAmountNQT()
@@ -1595,17 +1633,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (coinBaseNum != 1) {
       throw new BlockNotAcceptedException(
           "The number of CoinBase transaction doesn't match 1", block);
-    }
-  }
-
-  private void autoExtensionAppend(BlockImpl block, TransactionImpl transaction) {
-    // auto extension process for isPoc and isPool
-    if (TransactionType.TYPE_POC == transaction.getType().getType()) {
-      block.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POC, true);
-    }
-
-    if (TransactionType.TYPE_SHARDER_POOL == transaction.getType().getType()) {
-      block.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POOL, true);
     }
   }
 
@@ -1949,8 +1976,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
     if (blockchain.getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
-      try (DbIterator<TransactionImpl> phasedTransactions =
-          PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
+      try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
         for (TransactionImpl phasedTransaction : phasedTransactions) {
           try {
             phasedTransaction.validate();
@@ -1980,7 +2006,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // Single miner -> empty rewards map (send rewards to miner)
       long blockCreatorId = Account.getId(publicKey);
       Map<Long, Long> map = new HashMap<>();
-      long poolId = SharderPoolProcessor.ownOnePool(blockCreatorId);
+      long poolId = SharderPoolProcessor.findOwnPoolId(blockCreatorId);
       if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
         poolId = blockCreatorId;
       } else {
@@ -1992,7 +2018,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           new TransactionImpl.BuilderImpl(
                   (byte) 1,
                   publicKey,
-                  RewardCalculator.mintReward(blockCreatorId),
+                  RewardCalculator.mintReward(),
                   0,
                   (short) 10,
                   new Attachment.CoinBase(
@@ -2093,7 +2119,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Logger.logDebugMessage("Generate block failed: " + e.getMessage());
       throw e;
     } catch (GeneratorNotAcceptedException e) {
-      Generator.blackGenerator(e.getGeneratoId());
+      Generator.blackGenerator(e.getGeneratorId());
       throw e;
     }
   }

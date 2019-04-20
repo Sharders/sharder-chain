@@ -91,7 +91,7 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
             ArrayList list = mapper.readValue(dtrJson, new TypeReference<List<Map<String, Object>>>(){});
             response.addAll(list);
         } catch (IOException e) {
-            Logger.logErrorMessage(e.getMessage());
+            Logger.logErrorMessage("can't parse blocks detail in GetBizBlocks Api process");
             return JSONResponses.BIZ_JSON_IO_ERROR;
         }
 

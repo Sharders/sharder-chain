@@ -23,7 +23,9 @@ package org.conch.common;
 
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.env.RuntimeEnvironment;
+import org.conch.mint.Generator;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +37,13 @@ public final class Constants {
      * Network definition
      */
     public enum Network {
+        /**
+         * online
+         */
         MAINNET("Mainnet"),
+        /**
+         * test environment
+         */
         TESTNET("Testnet"),
         DEVNET("Devnet");
 
@@ -91,7 +99,7 @@ public final class Constants {
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
     
     /** another initial env => target: 6000, min-limit: 17, max-limit=22, base-gamma: 21 */
-    public static final long INITIAL_BASE_TARGET = 153722867 * 8;
+    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153722867 * 67) : (153722867 * 8);
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
@@ -102,12 +110,11 @@ public final class Constants {
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
     /** for the security, you can set the confirmations = 1440 */
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 : 205;
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
-//    public static final int MINING_DELAY = 600; // 内测阶段设为10分钟延迟
     public static final int MINING_DELAY = Conch.getIntProperty("sharder.miningDelay");
     public static final int MINING_SPEEDUP = Conch.getIntProperty("sharder.miningSpeedup");
 
@@ -202,7 +209,12 @@ public final class Constants {
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  0 : (isTestnet() ? 0 : 0);
+    
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 2 : 100);
+    public static final int TESTNET_PHASE_ONE = 20000;
+    public static final int TESTNET_PHASE_TWO = 39000;
+    public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
+    public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -227,10 +239,10 @@ public final class Constants {
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
-    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 10; //transaction become effective
-    public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 10; //pool can be destroyed by manual
-    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60*24 : 60*24*3; //pool will be destroyed automatically when it has nobody join
-    public static final int SHARDER_REWARD_DELAY = isTestnetOrDevnet() ? 3 : 10;
+    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 3; //transaction become effective
+    public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
+    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60*24 : 60*24*7; //pool will be destroyed automatically when it has nobody join
+    public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 10);
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
@@ -359,4 +371,12 @@ public final class Constants {
     public static final String BRACKET = "[";
 
     public static final String HOST_FILTER_INFO = "Not valid host! ONLY {} can do this operation!";
+    
+    
+    /** log count check key **/
+    public static final String Generator_getNextGenerators = Generator.class.getName() + "#getNextGenerators";
+    public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
+    public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
+    public static final String BlockchainProcessor_P_downloadPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer";
+
 }

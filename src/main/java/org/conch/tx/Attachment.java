@@ -93,13 +93,13 @@ public interface Attachment extends Appendix {
         }
 
         @Override
-        public final void validate(Transaction transaction) throws ConchException.ValidationException {
-            getTransactionType().validateAttachment(transaction);
+        public final void validate(Transaction tx) throws ConchException.ValidationException {
+            getTransactionType().validateAttachment(tx);
         }
 
         @Override
-        public final void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            getTransactionType().apply((TransactionImpl) transaction, senderAccount, recipientAccount);
+        public final void apply(Transaction tx, Account senderAccount, Account recipientAccount) {
+            getTransactionType().apply((TransactionImpl) tx, senderAccount, recipientAccount);
         }
 
         @Override
@@ -267,7 +267,12 @@ public interface Attachment extends Appendix {
 
         @Override
         public int getMySize() {
-            return 2 + coinBaseType.name().getBytes().length + 8 + 8 + consignors.size() * 2 * 8;
+//            if(Constants.isDevnet()) {
+//                System.out.println(toString());
+//            }
+            return 2 + coinBaseType.name().getBytes().length 
+                    + 8 + 8 
+                    + consignors.size() * 2 * 8;
         }
 
         @Override
@@ -337,6 +342,10 @@ public interface Attachment extends Appendix {
                 }
                 return map;
             }
+        }
+        
+        public boolean isType(CoinBaseType type){
+            return (type != null && this.coinBaseType != null) && (type == this.coinBaseType);
         }
     }
 
@@ -4295,5 +4304,9 @@ public interface Attachment extends Appendix {
         public long getStorerId() {
             return storerId;
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Account.rsAccount(3790328149872734783L));
     }
 }

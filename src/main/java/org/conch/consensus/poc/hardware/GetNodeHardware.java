@@ -1,6 +1,7 @@
 package org.conch.consensus.poc.hardware;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
@@ -118,7 +119,7 @@ public class GetNodeHardware {
                 return true;
         }
     }
-
+    
     public static SystemInfo network(SystemInfo systemInfo) throws Exception {
         Sigar sigar = new Sigar();
 
@@ -183,10 +184,10 @@ public class GetNodeHardware {
     public static boolean readAndReport(Integer executeTime) {
         SystemInfo systemInfo = new SystemInfo();
         try {
-            Logger.logInfoMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
+            Logger.logDebugMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
             return report(read(systemInfo, executeTime));
         } catch (ConchException.NotValidException e) {
-            Logger.logErrorMessage("<=== failed to report configuration performance, hub isn't initialized yet", e);
+            Logger.logErrorMessage(String.format("<=== failed to report configuration performance[caused by %s], maybe hub isn't initialized yet", e.getMessage()));
         } catch (Exception e) {
             Logger.logErrorMessage("<=== failed to report configuration performance, local error", e);
         }
@@ -195,21 +196,28 @@ public class GetNodeHardware {
 
     public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
         String myAddress = Optional.ofNullable(Conch.getMyAddress())
-                .orElseThrow(() -> new ConchException.NotValidException("my address is null"));
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's myAddress is null"));
         // nat service: open - myAddress should be proxy address; nat service : close - myAddress should be public address
-        String ip = Conch.addressHost(myAddress);
+        String host = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
-        String bindRs = Optional.ofNullable(Generator.HUB_BIND_ADDRESS)
-                .orElseThrow(() -> new ConchException.NotValidException("Current Hub is initialized, but bind ss address is null"));
-        systemInfo.setIp(ip).setPort(Integer.toString(port)).setAddress(ip).setBindRs(bindRs).setNetworkType(Conch.getNetworkType());
-        Logger.logInfoMessage("==============Now start testing configuration performance...==============");
+        String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's bind SS address is null"));
+        
+        if (StringUtils.isEmpty(Conch.nodeType)) {
+            //don't report
+            return null;
+        }
+        systemInfo.setIp(host).setPort(Integer.toString(port)).setAddress(host)
+                .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.nodeType);
+        Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
         cpu(systemInfo);
         memory(systemInfo);
         disk(systemInfo);
         network(systemInfo);
         txPerformance(systemInfo, executeTime);
         openingServices(systemInfo);
-        Logger.logInfoMessage("==============The configuration performance test is completed==============");
+        Logger.logDebugMessage("============== The configuration performance test is completed ==============");
+        Conch.systemInfo = systemInfo;
         return systemInfo;
     }
 
@@ -220,8 +228,10 @@ public class GetNodeHardware {
      * @return true报告成功，false失败
      * @throws IOException 请求异常
      */
-    public static Boolean report(SystemInfo systemInfo) throws IOException {
+    public static Boolean report(SystemInfo systemInfo) {
         try{
+            if(systemInfo == null) return false;
+            
             RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
                     .post()
                     .body(systemInfo)
@@ -238,7 +248,7 @@ public class GetNodeHardware {
             Logger.logErrorMessage("connection refused[" + NODE_CONFIG_REPORT_URL + "]");
             return false;
         }catch(Exception e){
-            Logger.logErrorMessage("unkonwn exception[" + NODE_CONFIG_REPORT_URL + "]", e);
+            Logger.logErrorMessage("unknown exception[" + NODE_CONFIG_REPORT_URL + "]", e);
             return false;
         }
     }

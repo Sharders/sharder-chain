@@ -34,9 +34,8 @@
                         </a>
                     </span>
                 </p>
-                <span class="cb"></span>
-                <div class="whf xs_section_fa">
-                    <div class="xs_section br4">
+                <div class="trading_situation">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info1.svg"/>
                             <div class="section_info">
@@ -45,7 +44,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info2.svg"/>
                             <div class="section_info">
@@ -53,9 +52,8 @@
                                 <span>{{$t('network.total_trading_volume')}}</span>
                             </div>
                         </div>
-
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info3.svg"/>
                             <div class="section_info">
@@ -64,16 +62,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info4.svg"/>
                             <div class="section_info">
-                                <span>{{coinbaseCount}}</span>
+                                <span>{{poolCount}}</span>
                                 <span>{{$t('network.coinbase_transaction')}}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info5.svg"/>
                             <div class="section_info">
@@ -82,12 +80,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="xs_section br4">
+                    <div class="trading_situation_info">
                         <div>
                             <img src="../../assets/img/miner-info6.svg"/>
                             <div class="section_info">
-                                <span>{{aliasCount}}</span>
-                                <span>{{$t('network.alias_modification')}}</span>
+                                <span>{{systemReward}}</span>
+                                <span>{{$t('network.system_reward')}}</span>
                             </div>
                         </div>
                     </div>
@@ -130,17 +128,18 @@
                                 <th>{{$t('network.block_list_operating')}}</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <tr v-for="(block,index) in blocklist">
+                            <tbody v-loading="loading">
+                            <tr v-for="block in blocklist">
                                 <td class="pl0"><span>{{block.height}}</span></td>
-                                <td><span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span></td>
                                 <td>
-                                    <span v-if="block.totalAmountNQT === '0'">-</span>
-                                    <span v-else>{{block.totalAmountNQT/100000000}} SS</span>
+                                    <span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span><br>
+                                    <span class="utc-time">{{$global.formatTime(block.timestamp)}} +UTC</span>
                                 </td>
                                 <td>
-                                    <span v-if="block.totalFeeNQT === '0'">-</span>
-                                    <span v-else>{{block.totalFeeNQT/100000000}} SS</span>
+                                    <span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span>
+                                </td>
+                                <td>
+                                    <span>{{$global.getBlockTotalFeeNQT(block.totalFeeNQT)}}</span>
                                 </td>
                                 <td><span>{{block.numberOfTransactions}}</span></td>
                                 <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}
@@ -164,7 +163,7 @@
                 </div>
             </div>
         </div>
-        <div class="modal w700" id="miner_list" v-show="minerlistDialog">
+        <div class="modal modal-w900" id="miner_list" v-show="minerlistDialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -317,6 +316,7 @@
                     </div>
                 </div>
             </div>
+            <p class="testnet-tips">{{$t('poc.block_reward_tips_phase1')}}</p>
         </div>
         <dialogCommon :accountInfoOpen="accountInfoDialog" :blockInfoOpen="blockInfoDialog" :height="blockInfoHeight"
                       :generatorRS="generatorRS" @isClose="isClose" @openTransaction="openTransaction"></dialogCommon>
@@ -359,45 +359,42 @@
                 totalCount: 0,
                 storageCount: 0,
                 transferCount: 0,
-                coinbaseCount: 0,
+                systemReward: 0,
+                poolCount: 0,
                 aliasCount: 0,
                 //分页信息
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 10,
+                loading: true
             };
         },
-        created: function () {
-            const _this = this;
-            _this.$http.get('/sharder?requestType=getBlocks', {
-                params: {
-                    firstIndex: (_this.currentPage - 1) * 10,
-                    lastIndex: _this.currentPage * 10 - 1
-                }
-            }).then(function (res) {
-                if (!res.data.errorDescription) {
-                    _this.blocklist = res.data.blocks;
-                    console.log("blocklist", _this.blocklist);
-                    // _this.calcAverageAmount(res);
-
-                    if (_this.currentPage === 1) {
-                        _this.totalSize = res.data.blocks[0].height;
-                        _this.coinbaseCount = _this.newestHeight;
-                        _this.newestHeight = res.data.blocks[0].height;
-                        _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
+        created() {
+            let _this = this;
+            // _this.networkUrlBlocks();
+            _this.init();
+            _this.handleCurrentChange(_this.currentPage);
+        },
+        mounted() {
+            let _this = this;
+            if (!window.NETWORK_URL) {
+                window.NETWORK_URL = setInterval(() => {
+                    if (_this.$route.path === '/network') {
+                        _this.init();
+                        // _this.handleCurrentChange(_this.currentPage);
                     }
-                } else {
-                    _this.$message.error(res.data.errorDescription);
-                }
-
-            }).catch(function (err) {
-                _this.$message.error(err);
-            });
-
-            _this.$http.get('/sharder?requestType=getPeers').then(function (res) {
-                _this.peerNum = res.data.peers.length;
-                _this.$global.byIPtoCoordinates(res.data.peers).then(res1 => {
-                    let json = JSON.parse(res1);
+                }, SSO.downloadingBlockchain ? 3333 : 9999);
+            }
+        },
+        methods: {
+            init() {
+                const _this = this;
+                _this.networkUrlBlocks();
+                _this.$global.fetch("GET", {}, "getPeers").then(res => {
+                    _this.peerNum = res.peers.length;
+                    return _this.$global.byIPtoCoordinates(res.peers);
+                }).then(res => {
+                    let json = JSON.parse(res);
                     for (let i of Object.keys(json)) {
                         if (json[i]["X"] !== "" && json[i]["X"] !== "0"
                             && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
@@ -413,35 +410,60 @@
                         }
                     }
                     _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
+                }).catch(err => {
+                    console.info("error", err);
                 });
-            }).catch(function (err) {
-                console.error("error", err);
-            });
 
-            _this.$http.get('/sharder?requestType=getNextBlockGenerators').then(function (res) {
-                // console.log("矿工数量：",res);
-                _this.activeCount = res.data.activeCount;
-                _this.minerlist = res.data.generators;
-                console.log("success to fetch miners");
-            }).catch(function (err) {
-                console.error("error", err);
-            });
+                _this.$global.fetch("GET", {
+                    limit: 99999
+                }, "getNextBlockGenerators").then(res => {
+                    _this.activeCount = res.activeCount;
+                    _this.minerlist = res.generators;
+                }).catch(err => {
+                    console.info("error", err);
+                });
 
-            _this.$http.get('/sharder?requestType=getTxStatistics').then(function (res) {
-                _this.transferCount = res.data.transferCount;
-                _this.storageCount = res.data.storageCount;
-                _this.totalCount = res.data.transferAmount;
-                _this.averageAmount = res.data.storageCount24H + res.data.storageDataLength24H + res.data.transferCount24H;
-            }).catch(function (err) {
-                console.error("error", err);
-            });
-        },
-        methods: {
+                _this.$global.fetch("GET", {}, "getTxStatistics").then(res => {
+                    _this.transferCount = res.transferCount;
+                    _this.storageCount = res.storageCount;
+                    _this.totalCount = res.transferAmount;
+                    _this.poolCount = res.poolCount;
+                    _this.systemReward = res.coinBaseCount;
+                    _this.averageAmount = res.storageCount24H + res.transferCount24H;
+                }).catch(err => {
+                    console.info("error", err);
+                });
+            },
+            networkUrlBlocks() {
+                console.info("networkUrlBlocks");
+                const _this = this;
+                _this.getBlocks(1).then(res => {
+                    _this.newestHeight = res.blocks[0].height;
+                    _this.totalSize = _this.newestHeight + 1;
+                    _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
+                    if (_this.currentPage === 1) {
+                        _this.blocklist = res.blocks;
+                    }
+                    _this.$forceUpdate();//通知Vue渲染
+                }).catch(error => {
+                    console.info('error', error)
+                });
+            },
             handleSizeChange(val) {
-                this.getBlockList(val);
+                console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                this.getBlockList(val);
+                console.log(`当前页: ${val}`);
+                let _this = this;
+                _this.loading = true;
+                _this.getBlocks(val).then(res => {
+                    _this.blocklist = res.blocks;
+                    _this.loading = false;
+                }).catch(err => {
+                    console.info('error', err);
+                    _this.$message.error(err);
+                    _this.loading = false;
+                });
             },
             turn2peers: function () {
                 this.$router.push({
@@ -461,19 +483,21 @@
                 this.$store.state.mask = false;
                 this.minerlistDialog = false;
             },
-            getBlockList(currentPage) {
-                const _this = this;
-                this.$http.get('/sharder?requestType=getBlocks', {
-                    params: {
-                        firstIndex: (currentPage - 1) * 10,
-                        lastIndex: currentPage * 10 - 1
-                    }
-                }).then(function (res) {
-                    _this.blocklist = res.data.blocks;
-                    // _this.calcAverageAmount(res);
-                    return res;
-                }).catch(function (err) {
-                    return null;
+            getBlocks(currentPage) {
+                let _this = this;
+                return new Promise(function (resolve, reject) {
+                    _this.$global.fetch("GET", {
+                        firstIndex: (currentPage - 1) * _this.pageSize,
+                        lastIndex: currentPage * _this.pageSize - 1
+                    }, "getBlocks").then(res => {
+                        if (res.errorDescription) {
+                            _this.$message.error(res.errorDescription);
+                            throw (res.errorDescription);
+                        }
+                        resolve(res);
+                    }).catch(err => {
+                        reject(err);
+                    });
                 });
             },
             openBlockInfo(height) {
@@ -508,51 +532,34 @@
             dateFormat(val) {
                 return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
-        },
-        mounted() {
-            let _this = this;
-            let periodicBlocks = setInterval(() => {
-                if (_this.$route.path === '/network') {
-                    this.$http.get('/sharder?requestType=getBlocks', {
-                        params: {
-                            firstIndex: (_this.currentPage - 1) * 10,
-                            lastIndex: _this.currentPage * 10 - 1
-                        }
-                    }).then(function (res) {
-                        if (!res.data.errorDescription) {
-                            _this.blocklist = res.data.blocks;
-
-                            if (_this.currentPage === 1) {
-                                _this.totalSize = res.data.blocks[0].height;
-                                _this.coinbaseCount = _this.newestHeight;
-                                _this.newestHeight = res.data.blocks[0].height;
-                                _this.newestTime = _this.$global.myFormatTime(res.data.blocks[0].timestamp, 'YMDHMS', true);
-                            }
-                        } else {
-                            _this.$message.error(res.data.errorDescription);
-                        }
-
-                    }).catch(function (err) {
-                        _this.$message.error(err);
-                    });
-                } else {
-                    clearInterval(periodicBlocks);
-                }
-            }, 5000);
-        },
+        }
     };
 </script>
 <style lang="scss" type="text/scss">
     /*@import '~scss_vars';*/
     @import './style.scss';
 
-    .el-table th > .cell {
-        background-color: white;
+    .el-table {
+        th > .cell {
+            background-color: white;
+        }
+
+        .cell {
+            font-size: 13px;
+        }
     }
 
     #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
         color: #99a9bf !important;
     }
+
+    .testnet-tips {
+        padding: 10px 0 20px 0;
+        font-size: 13px;
+        font-weight: normal;
+        text-align: center;
+    }
+
 </style>
 <!--<style scoped>-->
 <!--.modal.w700{-->

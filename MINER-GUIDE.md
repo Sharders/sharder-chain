@@ -1,7 +1,5 @@
 # Miner Guide #
 
-## How to Mint ##
-
 
 ## Env ##
  
@@ -21,10 +19,12 @@
 
 # 矿工手册 #
 
-## 如何挖矿 ##
 有3种方式可以开启挖矿：
+
 a) 手动挖矿：下载并安装豆匣客户端，使用私钥登录，点击开始挖矿按钮。
+
 b) Hub挖矿：如果是Hub节点，客户端启动后会自动识别并显示绑定Hub按钮，点击绑定Hub按钮后按照页面提示进行操作，将Hub和对应的豆匣账号进行绑定后即可，重启Hub完成自动挖矿。
+
 c) 自动挖矿：在sharder.properties中配置以下参数，重新启动客户端即可开启自动挖矿：
 > sharder.autoMint.secretPhrase=your secret phrase
 

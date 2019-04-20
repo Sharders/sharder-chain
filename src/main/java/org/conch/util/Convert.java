@@ -21,10 +21,13 @@
 
 package org.conch.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.peer.Peer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -226,6 +229,13 @@ public final class Convert {
         return toBytes(JSONObject.toJSONString(obj)).length;
     }
 
+    @SuppressWarnings("unchecked")
+    public static int countEnumJsonBytes(Object object) {
+        SerializeConfig serializeConfig = new SerializeConfig();
+        serializeConfig.configEnumAsJavaBean(Peer.Type.class);
+        return toBytes(JSONObject.toJSONString(object, serializeConfig)).length;
+    }
+
     public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws ConchException.NotValidException {
         if (numBytes > 3 * maxLength) {
             throw new ConchException.NotValidException("Max parameter length exceeded");
@@ -262,6 +272,13 @@ public final class Convert {
 
     public static int writeObject(ByteBuffer buffer, Object object) {
         return writeString(buffer, JSONObject.toJSONString(object));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static int writeEnum(ByteBuffer buffer, Object object) {
+        SerializeConfig serializeConfig = new SerializeConfig();
+        serializeConfig.configEnumAsJavaBean(Peer.Type.class);
+        return writeString(buffer, JSON.toJSONString(object, serializeConfig));
     }
 
     public static String truncate(String s, String replaceNull, int limit, boolean dots) {

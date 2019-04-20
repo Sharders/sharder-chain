@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Poc calculator instance 
+ * PoC calculator instance 
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
@@ -18,8 +19,8 @@ public class PocCalculator implements Serializable {
     
     static PocCalculator inst = new PocCalculator();
     
-    // poc score converter: 10 -> 500000000
-    private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(50000000L);
+    // poc score converter
+    private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(125000L);
 
     // the final poc score should divide the PERCENT_DIVISOR
     private static final BigInteger PERCENT_DIVISOR = BigInteger.valueOf(100L);
@@ -47,7 +48,7 @@ public class PocCalculator implements Serializable {
 
     static void ssHoldCal(PocScore pocScore) {
         BigInteger ssHoldWeight = getWeight(PocTxBody.WeightTableOptions.SS_HOLD);
-        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore);
+        pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore).divide(PERCENT_DIVISOR);
     }
     
     
@@ -137,6 +138,7 @@ public class PocCalculator implements Serializable {
     private static BigInteger predefineOnlineRateLevel(Peer.Type peerType,PocTxBody.OnlineStatusDef statusDef){
         return BigInteger.valueOf(inst.pocWeightTable.getOnlineRateTemplate().get(peerType.getCode()).get(statusDef.getValue()));
     }
+    
     static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
         BigInteger onlineRateScore = BigInteger.ZERO;
 
@@ -204,4 +206,10 @@ public class PocCalculator implements Serializable {
     static void bcCal(PocScore pocScore, Account account, PocTxBody.PocBcSpeed pocBcSpeed){
         //TODO un-impl now -20181230
     }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
 }

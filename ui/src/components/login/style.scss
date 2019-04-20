@@ -15,12 +15,13 @@
         width: 600px;
         height: 640px;
         margin:auto;
-        padding-top: 120px;
+        padding-top: 40px;
         .content_operation{
+            background: url("../../assets/img/logo-lan.png") no-repeat 20px 20px;
             height: 530px;
             background-color: #fff;
             box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
-            border-radius:2px;
+            border-radius:3px;
             .content_container{
                 margin: 0 auto;
                 width: 510px;
@@ -39,7 +40,8 @@
             margin: 30px 30px;
         }
         .sharder_style{
-            font-size: 22px;
+            margin: 30px auto;
+            font-size: 16px;
             text-align: center;
             img{
                 width:100px;
@@ -48,7 +50,7 @@
         .content_message{
             background-color: #fff;
             box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
-            border-radius:2px;
+            border-radius:4px;
             height: 90px;
             margin-bottom: 20px;
             text-align:center;
@@ -57,6 +59,7 @@
                 margin-top:4%;
                 a{
                     color: #ff0f0f;
+                    font-size: 16px;
                 }
             }
         }

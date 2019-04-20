@@ -4,10 +4,10 @@
     <!--创建矿工-->
     <level0 id="0">
         <rule>
-            <!--生命周期，最大获取块数-->
+            <!--生命周期，最大获取块数 3075-15days-->
             <totalBlocks>
                 <min>0</min>
-                <max>200</max>
+                <max>3075</max>
             </totalBlocks>
         </rule>
         <forgepool>
@@ -25,8 +25,8 @@
         <consignor>
             <!--投入SS区间-->
             <amount>
-                <min>100000000</min>
-                <max>50000100000000</max>
+                <min>1000000000000</min>
+                <max>480001000000000</max>
             </amount>
         </consignor>
     </level0>
@@ -35,7 +35,7 @@
         <rule>
             <totalBlocks>
                 <min>1</min>
-                <max>200</max>
+                <max>3075</max>
             </totalBlocks>
         </rule>
 
@@ -52,8 +52,8 @@
 
         <consignor>
             <amount>
-                <min>100000000</min>
-                <max>50000100000000</max>
+                <min>1000000000000</min>
+                <max>480001000000000</max>
             </amount>
         </consignor>
     </level1>

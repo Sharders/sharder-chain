@@ -21,12 +21,13 @@
 
 package org.conch.util;
 
+import com.google.common.collect.Maps;
 import org.apache.log4j.PropertyConfigurator;
 import org.conch.Conch;
+import org.conch.env.RuntimeEnvironment;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.LogManager;
 
@@ -43,6 +44,8 @@ public final class Logger {
     /** Log levels */
     public enum Level {
         DEBUG, INFO, WARN, ERROR
+        
+        
     }
 
     /** Message listeners */
@@ -59,12 +62,26 @@ public final class Logger {
 
     /** Enable log traceback */
     private static final boolean enableLogTraceback;
-
+    
+    private static String level;
     /**
      * No constructor
      */
     private Logger() {}
+    
+    static void appendPrefix(Properties loggingProperties){
+        // append USER_HOME as prefix under desktop mode
+        if(RuntimeEnvironment.isDesktopApplicationEnabled()) {
+            String logFileName = "log4j.appender.D.File";
+            String errorFileName = "log4j.appender.E.File";
+            String logFilePath = Conch.getUserHomeDir() + File.separator + loggingProperties.getProperty(logFileName);
+            String errorFilePath = Conch.getUserHomeDir() + File.separator + loggingProperties.getProperty(errorFileName);
 
+            loggingProperties.setProperty(logFileName,logFilePath);
+            loggingProperties.setProperty(errorFileName,errorFilePath);
+        }
+    }
+    
     /**
      * Logger initialization
      *
@@ -80,15 +97,25 @@ public final class Logger {
         if (!(LogManager.getLogManager() instanceof ConchLogManager)) {
             System.setProperty("java.util.logging.manager",
                     (oldManager != null ? oldManager : "java.util.logging.LogManager"));
+        }   
+        
+        Properties loggingProperties = new Properties();
+        String defaultPropertieFile = Conch.getConfDir() + File.separator + "logging-default.properties";
+        try (InputStream fis = new FileInputStream(defaultPropertieFile)) {
+            loggingProperties.load(fis);
+            appendPrefix(loggingProperties);
+        } catch (IOException e) {
+            System.err.println(String.format("Error loading default logging properties from %s", defaultPropertieFile));
         }
-        PropertyConfigurator.configure("conf/logging-default.properties");
+        PropertyConfigurator.configure(loggingProperties);
+        
         if (! Boolean.getBoolean("sharder.doNotConfigureLogging")) {
             try {
-                Properties loggingProperties = new Properties();
                 Conch.loadProperties(loggingProperties, "logging-default.properties", true);
                 Conch.loadProperties(loggingProperties, "logging.properties", false);
                 Conch.updateLogFileHandler(loggingProperties);
                 if (loggingProperties.size() > 0) {
+                    appendPrefix(loggingProperties);
                     ByteArrayOutputStream outStream = new ByteArrayOutputStream();
                     loggingProperties.store(outStream, "logging properties");
                     ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
@@ -96,11 +123,13 @@ public final class Logger {
                     inStream.close();
                     outStream.close();
                 }
+                level = loggingProperties.getProperty("log4j.appender.D.Threshold");
                 BriefLogFormatter.init();
             } catch (IOException e) {
                 throw new RuntimeException("Error loading logging properties", e);
             }
         }
+        
         log = org.slf4j.LoggerFactory.getLogger(Conch.class);
         enableStackTraces = Conch.getBooleanProperty("sharder.enableStackTraces");
         enableLogTraceback = Conch.getBooleanProperty("sharder.enableLogTraceback");
@@ -120,7 +149,21 @@ public final class Logger {
             ((ConchLogManager) LogManager.getLogManager()).conchShutdown();
         }
     }
-
+    
+    public static boolean isLevel(Level checkLevel){
+        switch (checkLevel) {
+            case DEBUG:
+                return "DEBUG".equalsIgnoreCase(level);
+            case INFO:
+                return "INFO".equalsIgnoreCase(level);
+            case WARN:
+                return "WARN".equalsIgnoreCase(level);
+            case ERROR:
+                return "ERROR".equalsIgnoreCase(level);
+        }
+        return false;
+    }
+    
     /**
      * Set the log level
      *
@@ -260,6 +303,10 @@ public final class Logger {
         doLog(Level.WARN, message, null);
     }
 
+    public static void logWarningMessage(String format, Object ... args) {
+        doLog(Level.WARN, String.format(format, args), null);
+    }
+
     /**
      * Log a WARNING exception
      *
@@ -394,4 +441,64 @@ public final class Logger {
         else
             messageListeners.notify(message, Event.MESSAGE);
     }
+    
+    private  static final int DEFAULT_PRINT_COUNT = 100;
+    static Map<String, Integer> logControlMap = Maps.newHashMap();
+    static Map<String, Integer> printCountMap = Maps.newHashMap();
+
+
+    public synchronized static void modifyControlCount(Class clazz, int printCount){
+        logControlMap.put(clazz.getName(), printCount);
+    }
+
+    /**
+     * init the control count setting, just execute once
+     * @param key
+     * @param printCount
+     */
+    public synchronized static void initControlCount(String key, int printCount){
+        if(logControlMap.containsKey(key)) return;
+        
+        logControlMap.put(key, printCount);
+        printCountMap.put(key, new Integer(0));
+    }
+    
+    
+    // FIXME a) add annotation for method to defined the print count check
+    //       auto check according to method map
+    //       b) add a new method isPrintNow
+    /**
+     * init the control count setting and check whether printNow 
+     * @param key
+     * @param controlCount
+     * @return
+     */
+    public static boolean printNow(String key, int controlCount){
+        initControlCount(key,controlCount);
+        return printNow(key);
+    }
+
+    /**
+     * check whether printNow 
+     * 
+     * @param key
+     * @return
+     */
+    public static boolean printNow(String key){
+//        String key =  clazz.getName();
+        if(!logControlMap.containsKey(key)) {
+            logControlMap.put(key, DEFAULT_PRINT_COUNT);
+            printCountMap.put(key, new Integer(0));
+        }
+        int controlCount = logControlMap.get(key).intValue();
+        int curCount = printCountMap.get(key).intValue();
+        boolean printNow = curCount++ == 0 || curCount++ > controlCount;
+        if(curCount > 1 && printNow) {
+            printCountMap.put(key, 0);
+        }else {
+            printCountMap.put(key, curCount);
+        }
+       
+        return printNow;
+    } 
 }

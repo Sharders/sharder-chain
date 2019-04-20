@@ -17,6 +17,7 @@
         "async": "^2.6.1",
         "axios": "^0.17.1",
         "babel-runtime": "^6.23.0",
+        "bignumber.js": "^8.1.1",
         "browser": "^0.2.6",
         "cache": "^2.1.0",
         "crypto-js": "^3.1.9-1",

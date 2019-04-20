@@ -1,45 +1,43 @@
 # Sharder #
-
-## What is Sharder ##
-Sharder is a blockchain-based multi-chain storage Network.
+Sharder is a blockchain-based multi-chain storage network.
 
 ## Project Structure ##
-Java project，UI uses the vue.
+Java project，the UI uses the vue.
 
     sharder-chain           // project root 
         |- classes/         // compiled class files 
         |- conf/            // configuration files 
-        |- lib/             // 3rd or required library 
-        |- html/            // compiled html file of ui 
+        |- lib/             // 3rd party or required library 
+        |- html/            // compiled UI html file
         |- logs/            // logs 
-        |- sharder_*_db/    // database of sharder-chain
-        |- src/             // source code of sharder-chain
-        |- ui/              // source code of ui
+        |- sharder_*_db/    // sharder-chain database
+        |- src/             // sharder-chain source code 
+        |- ui/              // UI source code 
         |- run.sh           // shell for linux and osx 
         |- run.bat          // bat for windows 
         |- 3RD-PARTY-LICENSES  
         |- LICENSE 
         |- README.md 
-NOTE：If you specify the compilation folder manually, you must set the compilation folder as above classes folder under the project root.  
+NOTE：If you manually specify the compiled directory, you must then set the compiled directory to the above classes folder. Otherwise, the run.sh and run.bat files will not run normally. 
 
-## Run Sharder client ##
-You can use the follow ways to run client：
-* Way one
+## Running the Sharder Client ##
+You can use the following methods to run the client：
+* Method one
     
-        1. Download the client from [official site](https://sharder.org) base on your OS.
+        1. Download the client from [official site](https://sharder.org) according to your OS.
         2. Install the client on your computer.
         3. Run the client program.
-* Way two
+* Method two
     
-        1. Clone this project to your local disk
-        2. Modify the conf/sharder.properties to set the network attribute to `sharder.network=$NETWORK`。the values of $NETWORK are: `Testnet` or `Mainnet`, the default value is `Testnet`.
-        3. Enter the ui folder, run `npm run build` to compile ui files, the localtion of compiled files is at `html` folder。
-        4. Run the `Main` method of org.conch.Conch, or execute the `run.sh/run.bat` to start the Sharder Client.
+        1. Clone this project to your local disk.
+        2. Modify the conf/sharder.properties to set the network attribute to `sharder.network=$NETWORK`. The values of $NETWORK are: `Testnet` or `Mainnet`, the default value is `Testnet`.
+        3. Enter the UI folder and run `npm run build` to compile UI files, the location of compiled files is at `html` folder。
+        4. Run the `Main` method of `org.conch.Conch` or execute the `run.sh/run.bat` to start the Sharder Client.
 
-## Start mine ##
+## Start Mining ##
 Please read the [MINER-GUIDE.md](./MINER-GUIDE.md)
 
-## Follow us ##
+## Follow Us ##
   - Website: https://sharder.org
   - Twitter: @SharderChain
   - Telegram: https://t.me/sharder_talk
@@ -49,8 +47,6 @@ Please read the [MINER-GUIDE.md](./MINER-GUIDE.md)
 ----
 
 # 豆匣 #
-
-## 豆匣是什么? ##
 豆匣是多链架构区块链存储网络。
 
 ## 工程说明 ##

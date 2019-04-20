@@ -341,12 +341,10 @@ public final class PeerServlet extends WebSocketServlet {
 
             peer.updateDownloadedVolume(cr.getCount());
             if (request.get("protocol") == null || ((Number)request.get("protocol")).intValue() != 1) {
-                Logger.logDebugMessage("Unsupported protocol "
-
-                        + request.get("protocol"));
+                Logger.logDebugMessage("Unsupported protocol " + request.get("protocol"));
                 return UNSUPPORTED_PROTOCOL;
             }
-            PeerRequestHandler peerRequestHandler = peerRequestHandlers.get((String)request.get("requestType"));
+            PeerRequestHandler peerRequestHandler = peerRequestHandlers.get(request.get("requestType"));
             if (peerRequestHandler == null) {
                 return UNSUPPORTED_REQUEST_TYPE;
             }

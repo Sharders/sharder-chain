@@ -26,8 +26,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
-import org.conch.db.Db;
-import org.conch.http.API;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
@@ -124,9 +122,9 @@ public class DesktopSystemTray {
         itemNameMap.put("InitializationeE",new ItemName("Initialization Error","初始化出错"));
     }
 
-    private static final String ICON_PATH_DEFAULT = "html/www/img/sharder-icon-def-256x256.png";
+    private static final String ICON_PATH_DEFAULT = "html/www/img/sharder-icon-def-128x128.png";
     private static final String TRAY_ICON_PATH_DEFAULT = "html/www/img/tray-icon-def-64x64.png";
-    private static final String TRAY_ICON_PATH_MAC = "html/www/img/tray-icon-mac-32x32.png";
+    private static final String TRAY_ICON_PATH_MAC = "html/www/img/tray-icon-mac-320x320.png";
     private String getTrayIconPath(){
         String os = System.getProperty("os.name");
         if(os == null || "".equals(os)) return TRAY_ICON_PATH_DEFAULT;
@@ -155,7 +153,7 @@ public class DesktopSystemTray {
         }
         MenuItem showDesktopApplication = new MenuItem(getItemDisplay("ShowDA"));
         MenuItem refreshDesktopApplication = new MenuItem(getItemDisplay("RefreshW"));
-        if (!Conch.isDesktopApplicationEnabled()) {
+        if (!Conch.isDesktopMode()) {
             showDesktopApplication.setEnabled(false);
             refreshDesktopApplication.setEnabled(false);
         }

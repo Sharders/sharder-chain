@@ -1,33 +1,35 @@
 <template>
     <div class="rule-description">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <div class="description">
-            <h1 class="description-title">{{$t('mining.rule_description.rule_description_title')}}</h1>
-            <p class="description-info">{{$t('mining.rule_description.rule_description_subtitle')}}</p>
+            <h1 class="description-title">{{$t('mining.rule_description.rule_title')}}</h1>
+            <p class="description-info"></p>
+            <!--<p class="description-info">{{$t('mining.rule_description.rule_subtitle')}}</p>-->
             <div class="info">
-                <h3>{{$t('mining.rule_description.sharder_mine')}}</h3>
+                <h3>{{$t('mining.rule_description.sharder_pool')}}</h3>
                 <p>
-                    {{$t('mining.rule_description.sharder_mine_tip1')}}
-                    {{$t('mining.rule_description.sharder_mine_tip2')}}.
+                    {{$t('mining.rule_description.sharder_pool_tip1')}}
+                    {{$t('mining.rule_description.sharder_pool_tip2')}}.
                 </p>
             </div>
             <div class="info">
-                <h3>{{$t('mining.rule_description.mining')}}</h3>
-                <p>{{$t('mining.rule_description.mining_tip1')}}
-                    {{$t('mining.rule_description.mining_tip2')}}
+                <h3>{{$t('mining.rule_description.ss')}}</h3>
+                <p>{{$t('mining.rule_description.ss_tip1')}}
+                    {{$t('mining.rule_description.ss_tip2')}}
                 </p>
             </div>
             <div class="info">
-                <h3>{{$t('mining.rule_description.pool')}}</h3>
+                <h3>{{$t('mining.rule_description.poc')}}</h3>
                 <p>
-                    {{$t('mining.rule_description.pool_tip1')}}
-                    {{$t('mining.rule_description.pool_tip2')}}
+                    {{$t('mining.rule_description.poc_tip1')}}
+                    {{$t('mining.rule_description.poc_tip2')}}
                 </p>
             </div>
             <div class="info">
-                <h3>{{$t('mining.rule_description.income_distribution')}}</h3>
+                <h3>{{$t('mining.rule_description.reward_distribution')}}</h3>
                 <p>
-                    {{$t('mining.rule_description.income_distribution_tip1')}}
+                    {{$t('mining.rule_description.reward_distribution_tip1')}}
+                    {{$t('mining.rule_description.reward_distribution_tip2')}}
                 </p>
             </div>
         </div>

@@ -38,7 +38,9 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.PocProcessor;
 import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbBackup;
@@ -54,8 +56,8 @@ import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.MessageManager;
+import org.conch.peer.Peer;
 import org.conch.peer.Peers;
-import org.conch.peer.StreamGobbler;
 import org.conch.shuffle.Shuffling;
 import org.conch.shuffle.ShufflingParticipant;
 import org.conch.storage.StorageBackup;
@@ -86,7 +88,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.1";
+    public static final String VERSION = "0.1.2";
     public static final String STAGE = "-Alpha";
     public static final String APPLICATION = "COS";
 
@@ -96,24 +98,37 @@ public final class Conch {
     public static final String CONCH_PROPERTIES = "sharder.properties";
     public static final String CONFIG_DIR = "conf";
 
-    private static final String myAddress;
-
     private static final RuntimeMode runtimeMode;
     public static final DirProvider dirProvider;
 
-    private static final Properties DEFAULT_PROPERTIES = new Properties();
-    private static final String SHARDER_FOUNDATION_URL = "sharder.org";
-    private static final String SHARDER_FOUNDATION_TEST_URL = "test.sharder.org";
 
+    private static final Properties DEFAULT_PROPERTIES = new Properties();
+    private static final String FOUNDATION_URL = "sharder.org";
+    private static final String FOUNDATION_TEST_URL = "test.sharder.org";
+
+    public static final Peer.RunningMode runningMode;
+    //TODO refactor myAddress, serialNum, nodeIp and nodeType into systemInfo
+    private static final String myAddress;
+    public static String serialNum = "";
+    public static String nodeType = Peer.Type.NORMAL.getSimpleName();
+    public static String nodeIp = IpUtil.getNetworkIp();
+    
+    public static SystemInfo systemInfo = null;
 
     public static String getSharderFoundationURL(){
-        return Constants.isTestnetOrDevnet() ? SHARDER_FOUNDATION_TEST_URL : SHARDER_FOUNDATION_URL;
+        return Constants.isDevnet() ? FOUNDATION_TEST_URL : FOUNDATION_URL;
     }
 
     public static String getNetworkType() {
         return Constants.isMainnet() ? "beta" : Constants.isTestnet() ? "alpha" : "dev";
     }
 
+    public static String getBootNode(){
+        if(Constants.isDevnet()) return "devboot.sharder.io";
+        if(Constants.isTestnet()) return "testboot.sharder.io";
+        return "mainboot.sharder.io";
+    }
+    
     /**
      * Preset parameters
      */
@@ -139,29 +154,18 @@ public final class Conch {
             //preset params
             presetMap.clear();
             presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 9215, 9217));
-            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 8218, 8215, 8217));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 7218, 7215, 7217));
             presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 3215, 3217));
         }
 
         public static void print(){
             if(presetMap == null || presetMap.size() == 0)  System.out.println("preset param map is null, nothing is preset!");
-
-            Set<Constants.Network> networkSet = presetMap.keySet();
-            System.out.println("preset param as following:");
-            for(Constants.Network network : networkSet){
-                System.out.println(presetMap.get(network).toString());
-            }
         }
 
         public static int getPeerPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
             return presetParam != null ?  presetParam.peerPort : DEFAULT_PEER_PORT;
         }
-//
-//        public static int getUiPort(Constants.Network network){
-//            PresetParam presetParam = presetMap.get(network);
-//            return presetParam != null ?  presetParam.uiServerPort : DEFAULT_UI_SERVER_PORT;
-//        }
 
         public static int getApiPort(Constants.Network network){
             PresetParam presetParam = presetMap.get(network);
@@ -180,22 +184,14 @@ public final class Conch {
     }
 
     public static int getPeerPort(){
-//        return Conch.getIntProperty("sharder.peerServerPort");
         return PresetParam.getPeerPort(Constants.getNetwork());
     }
 
-//    public static int getUiPort(){
-////        return Conch.getIntProperty("sharder.uiServerPort");
-//        return PresetParam.getUiPort(Constants.getNetwork());
-//    }
-
     public static int getApiPort(){
-//        return Conch.getIntProperty("sharder.apiServerPort");
         return PresetParam.getApiPort(Constants.getNetwork());
     }
 
     public static int getApiSSLPort(){
-//        return Conch.getIntProperty("sharder.apiServerSSLPort");
         return PresetParam.getApiSSLPort(Constants.getNetwork());
     }
 
@@ -210,14 +206,45 @@ public final class Conch {
         dirProvider = RuntimeEnvironment.getDirProvider();
         System.out.println("User home folder " + dirProvider.getUserHomeDir());
         loadProperties(DEFAULT_PROPERTIES, CONCH_DEFAULT_PROPERTIES, true);
-
+        runningMode = getRunningMode();
         PresetParam.print();
-
     }
 
 
     public static String getMyAddress(){
         return myAddress;
+    }
+    
+    
+//    public static boolean address(String newAnnouncedAddress){
+//        URI uri = new URI("http://" + newAnnouncedAddress);
+//        int announcedPort = uri.getPort() == -1 ? Conch.getPeerPort() : uri.getPort();
+//        InetAddress address = InetAddress.getByName(Peers.addressHost(host));
+//        for (InetAddress inetAddress : InetAddress.getAllByName(uri.getHost())) {
+//            if (inetAddress.equals(address)) {
+//                return true;
+//            }
+//        }
+//    }
+    public static boolean matchMyAddress(String host){
+        try{
+            if(StringUtils.isEmpty(host)) return false;
+
+            if(Conch.useNATService) {
+                return myAddress.equalsIgnoreCase(host);
+            }
+
+            if(IpUtil.isDomain(host)) {
+                if(myAddress.equalsIgnoreCase(host)) return true;
+                return IpUtil.getHost(myAddress).equalsIgnoreCase(IpUtil.getHost(host));
+            } 
+        } catch(Exception e){
+            Logger.logErrorMessage("can't finish matchMyAddress with host[" + host + "] caused by " + e.getMessage());
+        }
+        return false;
+        // FIXME to improve the security, need check the public network ip of current node
+//        if(StringUtils.isEmpty(nodeIp)) nodeIp = IpUtil.getNetworkIp();
+//        return nodeIp.equalsIgnoreCase(IpUtil.getIpFromUrl(host));
     }
 
     private static void redirectSystemStreams(String streamName) {
@@ -254,12 +281,9 @@ public final class Conch {
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
-
-        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
         
-        if(StringUtils.isEmpty(myAddress)){
-            //TODO use the ip of local
-        }
+        // use the external ip as its myAddress default value
+        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", IpUtil.getNetworkIp()).trim());
         
         // check port of myAddress whether equal to port of TESTNET
         if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
@@ -275,24 +299,30 @@ public final class Conch {
     public static final int NAT_SERVICE_PORT = Conch.getIntProperty("sharder.NATServicePort");
     static final String NAT_CLIENT_KEY = Convert.emptyToNull(Conch.getStringProperty("sharder.NATClientKey"));
 
-    public static boolean getUseNATService(){
+    public static boolean isUseNAT(){
         return useNATService;
     }
 
     static {
-        // [NAT] NAT Service check
-        if (Conch.getUseNATService()) {
-            Logger.logInfoMessage("Node joins the network via sharder official or 3rd part NAT|DDNS service");
-        }
+        
         try {
-            if (useNATService) {
+            if (isUseNAT()) {
+                Logger.logInfoMessage("[NAT] Node joins the network via sharder foundation or 3rd part NAT|DDNS service");
+                
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
 
                 if(natCmdFile.exists()){
                     StringBuilder cmd = new StringBuilder(SystemUtils.IS_OS_WINDOWS ? "cmd /c nat_client.exe" : "./nat_client");
-                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null?addressHost(myAddress):NAT_SERVICE_ADDRESS)
+                    cmd.append(" -s ").append(NAT_SERVICE_ADDRESS == null ? addressHost(myAddress) : NAT_SERVICE_ADDRESS)
                             .append(" -p ").append(NAT_SERVICE_PORT)
                             .append(" -k ").append(NAT_CLIENT_KEY);
+                    // nat log file
+                    if(SystemUtils.IS_OS_WINDOWS ) {
+                        cmd.append(" >> ./logs/nat.log");
+                    }else {
+                        cmd.append(" > ./logs/nat.log 2>&1");
+                    }
+                    
                     Process process = Runtime.getRuntime().exec(cmd.toString());
                     // any error message?
                     StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR");
@@ -303,28 +333,30 @@ public final class Conch {
                     outputGobbler.start();
 
                     if(SystemUtils.IS_OS_UNIX) {
-                        Process findName = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
-                        InputStreamReader isr = new InputStreamReader(findName.getInputStream());
+                        Process natProcess = Runtime.getRuntime().exec("find /etc/init.d/ -name net_client");
+                        InputStreamReader isr = new InputStreamReader(natProcess.getInputStream());
                         BufferedReader br = new BufferedReader(isr);
                         if (br.readLine() == null){
-                            Logger.logInfoMessage("Open NAT Client Auto Start");
+                            Logger.logInfoMessage("set net_client auto start");
                             //use the installation folder of Sharder as execution path
                             Process autoStart = Runtime.getRuntime().exec("cp " + Conch.getUserHomeDir() + " /etc/init.d");
                             Runtime.getRuntime().addShutdownHook(new Thread(() -> autoStart.destroy()));
                         }
-                        Runtime.getRuntime().addShutdownHook(new Thread(() -> findName.destroy()));
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> natProcess.destroy()));
                     }else if(SystemUtils.IS_OS_WINDOWS){
                         //TODO windows support, set the as a msc.service
                     }
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> process.destroy()));
-                    Logger.logInfoMessage("NAT Client execute: " + cmd.toString());
+                    Logger.logInfoMessage("[NAT] NAT client executed: " + cmd.toString());
                 }else{
-                    Logger.logWarningMessage("!!! useNatService is true but command file not exist");
+                    Logger.logWarningMessage("[NAT] useNatService is true but command file not exist");
                 }
+            }else{
+                Logger.logInfoMessage("[NAT] NAT service be set to close");
             }
         } catch (Exception e) {
             useNATService = false;
-            Logger.logErrorMessage("NAT Client execute Error", e);
+            Logger.logErrorMessage("[NAT] NAT Client execute Error", e);
         }
 
     }
@@ -477,7 +509,7 @@ public final class Conch {
             Logger.logMessage(name + " = \"" + (doNotLog ? "{not logged}" : value) + "\"");
             return value;
         } else {
-            Logger.logMessage(name + " not defined");
+            Logger.logMessage(name + " not defined, using default value = \"" + (doNotLog ? "{not logged}" : defaultValue) + "\"");
             return defaultValue;
         }
     }
@@ -509,6 +541,10 @@ public final class Conch {
         Logger.logMessage(name + " not defined, assuming false");
         return false;
     }
+    
+    public static PocProcessor getPocProcessor(){
+        return PocProcessorImpl.instance;
+    }  
 
     public static Blockchain getBlockchain() {
         return BlockchainImpl.getInstance();
@@ -578,6 +614,8 @@ public final class Conch {
         BlockchainProcessorImpl.getInstance().shutdown();
         Peers.shutdown();
         Db.shutdown();
+        getPocProcessor().saveToDisk();
+        SharderPoolProcessor.saveToDisk();
         Logger.logShutdownMessage("COS server " + VERSION + " stopped.");
         Logger.shutdown();
         runtimeMode.shutdown();
@@ -585,7 +623,7 @@ public final class Conch {
 
     private static class Init {
 
-        private static volatile boolean initialized = false;
+        static volatile boolean initialized = false;
 
         static {
             try {
@@ -666,19 +704,15 @@ public final class Conch {
                 Logger.logMessage("COS server " + getFullVersion() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
-                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI is at " + API.getWelcomePageUri());
+                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI URL is " + API.getWelcomePageUri());
 
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
 
-                if (isDesktopApplicationEnabled()) launchDesktopApplication();
+                if (isDesktopMode()) runtimeMode.launchDesktopApplication();
 
-                if (Constants.isTestnet()) Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
-
-                if (Constants.isDevnet()) Logger.logMessage("RUNNING ON DEVNET - DO NOT USE REAL ACCOUNTS!");
-
+                if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE REAL ACCOUNTS!");
 
                 Peers.sysInitialed = true;
-
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
                 runtimeMode.alert(e.getMessage() + "\n" +
@@ -760,6 +794,10 @@ public final class Conch {
             }
         } catch (InterruptedException ignore) {}
     }
+    
+    public static boolean isInitialized(){
+        return Init.initialized;
+    }
 
     public static String getProcessId() {
         String runtimeName = ManagementFactory.getRuntimeMXBean().getName();
@@ -793,12 +831,46 @@ public final class Conch {
         runtimeMode.setServerStatus(status, wallet, dirProvider.getLogFileDir());
     }
 
-    public static boolean isDesktopApplicationEnabled() {
-        return RuntimeEnvironment.isDesktopApplicationEnabled() && Conch.getBooleanProperty("sharder.launchDesktopApplication");
+    public static boolean isDesktopMode() {
+        return Peer.RunningMode.DESKTOP.equals(runningMode);
     }
 
-    private static void launchDesktopApplication() {
-        runtimeMode.launchDesktopApplication();
+    /**
+     * running mode
+     *
+     * @return
+     */
+    private static Peer.RunningMode getRunningMode(){
+        Peer.RunningMode mode = Peer.RunningMode.OTHERS;
+        // server node should not running on the windows and mac os
+        if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
+            Path serialFile = Paths.get(System.getProperty("user.home")).resolve(".hubSetting/.tempCache/.sysCache");
+            if(Files.exists(serialFile)){
+                mode = Peer.RunningMode.COMMAND;
+            }else if(RuntimeEnvironment.isDesktopApplicationEnabled()
+                    && Conch.getBooleanProperty("sharder.launchDesktopApplication")) {
+                mode = Peer.RunningMode.DESKTOP;
+            }
+        }else {
+            if(!RuntimeEnvironment.isDesktopApplicationEnabled()
+                    || !Conch.getBooleanProperty("sharder.launchDesktopApplication")) {
+                mode = Peer.RunningMode.COMMAND;
+            }
+        }
+        return mode;
+    }
+
+    public static boolean reachLastKnownBlock(){
+        if(Constants.isDevnet() && Generator.isBootNode) return true;
+        int height = Conch.getBlockchain().getHeight();
+        if (height < Constants.LAST_KNOWN_BLOCK) {
+            if(Logger.printNow(Constants.CONCH_P_reachLastKnownBlock)) {
+                Logger.logDebugMessage("current height %d is less than last known height %s and current state is %s, wait till blocks sync finished..."
+                        , height, Constants.LAST_KNOWN_BLOCK, Peers.getMyBlockchainState());
+            }
+            return false;
+        }
+        return true;
     }
 
     private Conch() {} // never

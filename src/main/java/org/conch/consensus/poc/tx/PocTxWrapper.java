@@ -21,6 +21,7 @@
 
 package org.conch.consensus.poc.tx;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
@@ -148,9 +149,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocNodeType pocNodeType = (PocTxBody.PocNodeType) transaction.getAttachment();
-
-            PocProcessorImpl.nodeTypeTxProcess(transaction.getHeight(),pocNodeType);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override
@@ -192,8 +191,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocNodeConf pocNodeConf = (PocTxBody.PocNodeConf) transaction.getAttachment();
-            PocProcessorImpl.nodeConfTxProcess(transaction.getHeight(),pocNodeConf);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override
@@ -236,8 +234,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocOnlineRate pocOnlineRate = (PocTxBody.PocOnlineRate) transaction.getAttachment();
-            PocProcessorImpl.onlineRateTxProcess(transaction.getHeight(),pocOnlineRate);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override
@@ -283,9 +280,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            PocTxBody.PocGenerationMissing pocBlockMissing = (PocTxBody.PocGenerationMissing) transaction.getAttachment();
-
-            PocProcessorImpl.blockMissingTxProcess(transaction.getHeight(), pocBlockMissing);
+            Conch.getPocProcessor().pocTxProcess(transaction);
         }
 
         @Override

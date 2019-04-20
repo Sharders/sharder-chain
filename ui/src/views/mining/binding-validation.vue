@@ -1,6 +1,6 @@
 <template>
     <div class="binding-validation">
-        <p @click="$router.back()" class="mining-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+        <p @click="$router.back()" class="mining-back">{{$t('mining.attribute.return_previous')}}</p>
         <!--绑定手机-->
         <div v-if="binding.typeInfo === 'mobile-phone'" class="mobile-phone binding">
             <h1 class="title">{{$t('mining.binding_validation.bind_phone')}}</h1>

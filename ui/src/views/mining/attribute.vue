@@ -1,13 +1,15 @@
 <template>
     <div class="pool-attribute">
         <div>
-            <p @click="$router.back()" class="pool-back">&lt;&lt;{{$t('mining.attribute.return_previous')}}</p>
+            <p @click="$router.back()" class="pool-back">{{$t('mining.attribute.return_previous')}}</p>
             <div class="pool-content">
                 <div class="attribute-info">
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}} | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%
+                            {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
+                            <!-- close chance of pool -->
+                            <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
                         </span>
                         <span class="pool-attribute-info" @click="miningMask('isAttribute')">{{$t('mining.attribute.pool_details')}}</span>
                     </div>
@@ -17,7 +19,9 @@
                             class="number">{{newestBlock.height}}</span>{{$t('mining.attribute.mining_current_number2')}}
                         </h1>
                     </div>
-                    <div class="earnings">{{$t('mining.attribute.income')}}+{{miningInfo.income/100000000}}SS</div>
+                    <div class="earnings">{{$t('mining.attribute.income') + "+" +
+                        $global.getSSNumberFormat(miningInfo.income)}}
+                    </div>
                 </div>
                 <div class="my-info">
                     <h1>
@@ -42,10 +46,7 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.gain_profit')}}</p>
-                                    <p class="strong">
-                                        <!--{{(miningInfo.joinAmount/miningInfo.investmentTotal)*miningInfo.income / 100000000}} SS-->
-                                        {{miningInfo.income / 100000000}} SS
-                                    </p>
+                                    <p class="strong">{{$global.getSSNumberFormat(miningInfo.income)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
@@ -112,8 +113,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.reward_distribution')}}
-                                    {{miningInfo.level.forgepool.reward.max * 100 }}%
+                                    {{$t('mining.attribute.reward_distribution') + $global.getRewardRate(miningInfo)}}
                                 </button>
                             </el-col>
                         </el-row>
@@ -130,9 +130,9 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available')}}
-                    {{(miningInfo.investmentTotal - miningInfo.currentInvestment)/100000000}}SS |
-                    {{$t('mining.attribute.pool_capacity')}}{{miningInfo.investmentTotal/100000000}}SS
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal
+                    - miningInfo.currentInvestment)}}|
+                    {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
                 <p class="input">
                     <el-input v-model="joinPool" type="number"
@@ -209,7 +209,7 @@
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
-                this.$http.get('sharder?requestType=getBlockchainTransactions', {
+                this.$http.get('/sharder?requestType=getBlockchainTransactions', {
                     params: {
                         account: SSO.accountRS,
                         type: 8
@@ -235,7 +235,7 @@
                         }
 
                     }
-                    _this.$message.warning("Request submitted ...");
+                    _this.$message.warning("Request submitted");
                     _this.$store.state.mask = false;
                     _this.isExitPool = false;
                 }).catch(err => {
@@ -324,8 +324,13 @@
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
-                if (this.joinPool <= 1) {
-                    return this.$message.error(this.$t("mining.attribute.join_number_info"));
+                let min = this.miningInfo.level.consignor.amount.min / 100000000;
+                let max = this.miningInfo.level.consignor.amount.max / 100000000;
+                if (this.joinPool < min || this.joinPool > max) {
+                    return this.$message.error(this.$t("mining.attribute.join_number_info", {
+                        min: min,
+                        max: max
+                    }));
                 }
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));
@@ -399,7 +404,7 @@
     .attribute-info .pool-attribute-info {
         float: right;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 13px;
         border-bottom: 1px solid #fff;
     }
 

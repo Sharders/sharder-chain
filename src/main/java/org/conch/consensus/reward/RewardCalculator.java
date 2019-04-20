@@ -1,7 +1,9 @@
 package org.conch.consensus.reward;
 
+import org.conch.Conch;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
+
+import java.math.BigDecimal;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -26,16 +28,18 @@ public class RewardCalculator {
         }
         
     }
-
+    
+    private static final int HALVE_COUNT = 210240;
     /**
      * mint reward calculate
-     * @param accountId
      * @return
      */
-    public static long mintReward(long accountId) {
-        // 300SS reward of one block 
-        // 90% for hub miner, 10% for other miner in Testnet phase1 (before end of 2019.Q2)
-        double rate = PocProcessorImpl.isHubBind(accountId) ? 0.9d : 0.1d;
-        return (long) (Constants.ONE_SS * RewardDef.MINT.getAmount() * rate);
+    public static long mintReward() {
+        double turn = 0d;
+        if(Conch.getBlockchain().getHeight() > HALVE_COUNT){
+            turn = Conch.getBlockchain().getHeight() / HALVE_COUNT;
+        }
+        double rate = Math.pow(0.5d,turn);
+        return (long)(Constants.ONE_SS * RewardDef.MINT.getAmount() * rate);
     }
 }

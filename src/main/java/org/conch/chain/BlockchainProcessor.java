@@ -21,9 +21,9 @@
 
 package org.conch.chain;
 
+import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.db.DerivedDbTable;
-import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
@@ -48,7 +48,9 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
     boolean isScanning();
 
     boolean isDownloading();
-
+    
+    boolean isUpToDate();
+    
     boolean isProcessingBlock();
 
     int getMinRollbackHeight();
@@ -98,25 +100,25 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
     class GeneratorNotAcceptedException extends ConchException {
 
-        private final long generatoId;
+        private final long generatorId;
 
-        public GeneratorNotAcceptedException(String message, long generatoId) {
+        public GeneratorNotAcceptedException(String message, long generatorId) {
             super(message);
-            this.generatoId = generatoId;
+            this.generatorId = generatorId;
         }
 
-        public GeneratorNotAcceptedException(Throwable cause, long generatoId) {
+        public GeneratorNotAcceptedException(Throwable cause, long generatorId) {
             super(cause);
-            this.generatoId = generatoId;
+            this.generatorId = generatorId;
         }
         
-        public long getGeneratoId(){
-            return this.generatoId;
+        public long getGeneratorId(){
+            return this.generatorId;
         }
 
         @Override
         public String getMessage() {
-            return super.getMessage() + ", generator[" + generatoId + "]";
+            return super.getMessage() + "[id=" + generatorId + ", rs=" + Account.rsAccount(generatorId) + "]";
         }
 
     }

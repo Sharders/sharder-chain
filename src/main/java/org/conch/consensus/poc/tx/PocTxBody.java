@@ -21,10 +21,10 @@ import java.util.Map;
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2018/12/12
  */
-public interface PocTxBody  {
-     int MAX_POC_ITEM_BYTEBUFFER = 10240;
+public interface PocTxBody {
+    int MAX_POC_ITEM_BYTEBUFFER = 10240;
 
-     enum WeightTableOptions {
+    enum WeightTableOptions {
         NODE_TYPE("node"),
         SERVER_OPEN("serverOpen"),
         SS_HOLD("ssHold"),
@@ -89,7 +89,12 @@ public interface PocTxBody  {
     }
 
 
-     final class PocNodeType extends Attachment.TxBodyBase {
+    final class PocNodeType extends Attachment.TxBodyBase {
+        /**
+         * TODO need refactor
+         * ip = socket address => host:port (my address)
+         * IP Socket Address (IP address + port number) It can also be a pair (hostname + port number)
+         */
         private String ip;
         private Peer.Type type;
 
@@ -102,8 +107,8 @@ public interface PocTxBody  {
         }
 
         public PocNodeType(String ip, Peer.Type type) {
-          this.ip = ip;
-          this.type = type;
+            this.ip = ip;
+            this.type = type;
         }
 
 
@@ -111,18 +116,19 @@ public interface PocTxBody  {
             super(buffer, transactionVersion);
             this.type = Peer.Type.getByCode(buffer.getInt());
             try {
-                this.ip = Convert.readString(buffer,buffer.getShort(),10);
+                this.ip = Convert.readString(buffer, buffer.getShort(), 10);
             } catch (ConchException.NotValidException e) {
                 e.printStackTrace();
             }
         }
 
         public PocNodeType(JSONObject attachmentData) {
-          super(attachmentData);
-          this.ip = (String) attachmentData.get("ip");
-          this.type =  Peer.Type.getByCode((Integer) attachmentData.get("type"));
+            super(attachmentData);
+            this.ip = (String) attachmentData.get("ip");
+            Object obj = attachmentData.get("type");
+            Integer code = obj instanceof Long ? ((Long) obj).intValue() : (Integer)obj;
+            this.type = Peer.Type.getByCode(code);
         }
-
 
         @Override
         public int getMySize() {
@@ -146,7 +152,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-          return PocTxWrapper.POC_NODE_TYPE;
+            return PocTxWrapper.POC_NODE_TYPE;
         }
     }
 
@@ -159,7 +165,7 @@ public interface PocTxBody  {
         private Map<Integer, Integer> networkConfigTemplate;
         private Map<Integer, Integer> txPerformanceTemplate;
 
-        private Map<Peer.Type,Map<Integer, Integer>> onlineRateTemplate;
+        private Map<Peer.Type, Map<Integer, Integer>> onlineRateTemplate;
 
         private Map<Integer, Integer> generationMissingTemplate;
         private Map<Integer, Integer> bocSpeedTemplate;
@@ -198,11 +204,11 @@ public interface PocTxBody  {
             this.onlineRateTemplate = onlineRateTemplate;
         }
 
-        public Map<Integer, Integer> getOnlineRateTemplate(Peer.Type type){
-           if(type == null || onlineRateTemplate == null || onlineRateTemplate.size() <= 0) {
-               return null;
-           }
-           return onlineRateTemplate.get(type);
+        public Map<Integer, Integer> getOnlineRateTemplate(Peer.Type type) {
+            if (type == null || onlineRateTemplate == null || onlineRateTemplate.size() <= 0) {
+                return null;
+            }
+            return onlineRateTemplate.get(type);
         }
 
         public Map<Integer, Integer> getGenerationMissingTemplate() {
@@ -223,10 +229,11 @@ public interface PocTxBody  {
 
         /**
          * 根据权重表模板生成权重表
-         * @author : yyunsen
-         * @date : 2019/1/8 20:41
+         *
          * @param pocTemplate : 默认模板或自定义模板
          * @return : org.conch.consensus.poc.tx.PocTxBody.PocWeightTable 权重表
+         * @author : yyunsen
+         * @date : 2019/1/8 20:41
          */
         public static PocWeightTable pocWeightTableBuilder(PocTemplate pocTemplate) {
             Map<String, Integer> weightMap = new HashMap<>();
@@ -245,11 +252,11 @@ public interface PocTxBody  {
             nodeTypeTP.put(Peer.Type.NORMAL.getCode(), pocTemplate.getNormalNodeScore().intValue());
 
             Map<Long, Integer> serverOpenTP = new HashMap<>();
-            serverOpenTP.put(Peer.Service.MINER.getCode(),pocTemplate.getMinerScore().intValue());
-            serverOpenTP.put(Peer.Service.BAPI.getCode(),pocTemplate.getBapiScore().intValue());
-            serverOpenTP.put(Peer.Service.NATER.getCode(),pocTemplate.getNaterScore().intValue());
-            serverOpenTP.put(Peer.Service.STORAGE.getCode(),pocTemplate.getStorageScore().intValue());
-            serverOpenTP.put(Peer.Service.PROVER.getCode(),pocTemplate.getProverScore().intValue());
+            serverOpenTP.put(Peer.Service.MINER.getCode(), pocTemplate.getMinerScore().intValue());
+            serverOpenTP.put(Peer.Service.BAPI.getCode(), pocTemplate.getBapiScore().intValue());
+            serverOpenTP.put(Peer.Service.NATER.getCode(), pocTemplate.getNaterScore().intValue());
+            serverOpenTP.put(Peer.Service.STORAGE.getCode(), pocTemplate.getStorageScore().intValue());
+            serverOpenTP.put(Peer.Service.PROVER.getCode(), pocTemplate.getProverScore().intValue());
 
             Map<Integer, Integer> hardwareConfigTP = new HashMap<>();
             hardwareConfigTP.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadHardwareScore().intValue());
@@ -273,9 +280,9 @@ public interface PocTxBody  {
             onlineRateFoundationTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), pocTemplate.getFoundationFrom0000To9700().intValue());
 
             Map<Integer, Integer> onlineRateCommunityTP = new HashMap<>();
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(),pocTemplate.getCommunityFrom9700To9900().intValue());
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(),pocTemplate.getCommunityFrom9000To9700().intValue());
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(),pocTemplate.getCommunityFrom0000To9000().intValue());
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getCommunityFrom9700To9900().intValue());
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(), pocTemplate.getCommunityFrom9000To9700().intValue());
+            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getCommunityFrom0000To9000().intValue());
 
             Map<Integer, Integer> onlineRateHubBoxTP = new HashMap<>();
             onlineRateHubBoxTP.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), pocTemplate.getHbFrom9900To100().intValue());
@@ -286,12 +293,12 @@ public interface PocTxBody  {
             onlineRateNormalTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getNormalFrom9700To100().intValue());
             onlineRateNormalTP.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), pocTemplate.getNormalFrom9000To100().intValue());
 
-            Map<Peer.Type,Map<Integer, Integer>> onlineRateMap = new HashMap<>();
-            onlineRateMap.put(Peer.Type.FOUNDATION,onlineRateFoundationTP);
-            onlineRateMap.put(Peer.Type.COMMUNITY,onlineRateCommunityTP);
-            onlineRateMap.put(Peer.Type.HUB,onlineRateHubBoxTP);
-            onlineRateMap.put(Peer.Type.BOX,onlineRateHubBoxTP);
-            onlineRateMap.put(Peer.Type.NORMAL,onlineRateNormalTP);
+            Map<Peer.Type, Map<Integer, Integer>> onlineRateMap = new HashMap<>();
+            onlineRateMap.put(Peer.Type.FOUNDATION, onlineRateFoundationTP);
+            onlineRateMap.put(Peer.Type.COMMUNITY, onlineRateCommunityTP);
+            onlineRateMap.put(Peer.Type.HUB, onlineRateHubBoxTP);
+            onlineRateMap.put(Peer.Type.BOX, onlineRateHubBoxTP);
+            onlineRateMap.put(Peer.Type.NORMAL, onlineRateNormalTP);
 
             Map<Integer, Integer> blockingMissTemplate = new HashMap<>();
             blockingMissTemplate.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadBlockingMissScore().intValue());
@@ -304,17 +311,15 @@ public interface PocTxBody  {
             bocSpeedTemplate.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleBocSpeedScore().intValue());
 
             Long weightTableVersion = pocTemplate.getVersion();
-            return new PocWeightTable(weightMap,nodeTypeTP,serverOpenTP,hardwareConfigTP,networkConfigTP,txPerformanceTP,onlineRateMap,blockingMissTemplate,bocSpeedTemplate,weightTableVersion);
+            return new PocWeightTable(weightMap, nodeTypeTP, serverOpenTP, hardwareConfigTP, networkConfigTP, txPerformanceTP, onlineRateMap, blockingMissTemplate, bocSpeedTemplate, weightTableVersion);
         }
 
         /**
-         *
+         * @return : org.conch.consensus.poc.tx.PocTxBody.PocWeightTable 默认PoC权重表
          * @author : yyunsen
          * @date : 2019/1/8 20:40
-
-         * @return : org.conch.consensus.poc.tx.PocTxBody.PocWeightTable 默认PoC权重表
          */
-        public static PocWeightTable defaultPocWeightTable(){
+        public static PocWeightTable defaultPocWeightTable() {
             return pocWeightTableBuilder(new PocTemplate());
         }
 
@@ -380,15 +385,15 @@ public interface PocTxBody  {
         @Override
         public void putMyBytes(ByteBuffer buffer) {
             buffer.putLong(weightTableVersion);
-            Convert.writeMap(buffer,weightMap);
-            Convert.writeMap(buffer,nodeTypeTemplate);
-            Convert.writeMap(buffer,serverOpenTemplate);
-            Convert.writeMap(buffer,hardwareConfigTemplate);
-            Convert.writeMap(buffer,networkConfigTemplate);
-            Convert.writeMap(buffer,txPerformanceTemplate);
-            Convert.writeMap(buffer,onlineRateTemplate);
+            Convert.writeMap(buffer, weightMap);
+            Convert.writeMap(buffer, nodeTypeTemplate);
+            Convert.writeMap(buffer, serverOpenTemplate);
+            Convert.writeMap(buffer, hardwareConfigTemplate);
+            Convert.writeMap(buffer, networkConfigTemplate);
+            Convert.writeMap(buffer, txPerformanceTemplate);
+            Convert.writeMap(buffer, onlineRateTemplate);
             Convert.writeMap(buffer, generationMissingTemplate);
-            Convert.writeMap(buffer,bocSpeedTemplate);
+            Convert.writeMap(buffer, bocSpeedTemplate);
         }
 
         @Override
@@ -407,7 +412,7 @@ public interface PocTxBody  {
 
         @Override
         public TransactionType getTransactionType() {
-          return PocTxWrapper.POC_WEIGHT_TABLE;
+            return PocTxWrapper.POC_WEIGHT_TABLE;
         }
     }
 
@@ -523,7 +528,7 @@ public interface PocTxBody  {
 
         @Override
         public int getMySize() {
-            return 4 + 4*2 + ip.getBytes().length + port.getBytes().length;
+            return 4 + 4 * 2 + ip.getBytes().length + port.getBytes().length;
         }
 
         @Override
@@ -564,9 +569,9 @@ public interface PocTxBody  {
         }
 
         public PocGenerationMissing(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
-             super(buffer, transactionVersion);
-             this.missingAccountIds = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer,buffer.getInt(),MAX_POC_ITEM_BYTEBUFFER),List.class);
-             this.missingTimeStamp = buffer.getInt();
+            super(buffer, transactionVersion);
+            this.missingAccountIds = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), List.class);
+            this.missingTimeStamp = buffer.getInt();
         }
 
         public PocGenerationMissing(JSONObject attachmentData) {
@@ -588,8 +593,8 @@ public interface PocTxBody  {
 
         @Override
         public void putMyJSON(JSONObject json) {
-              json.put("missingAccountIds", missingAccountIds);
-              json.put("missingTimeStamp", missingTimeStamp);
+            json.put("missingAccountIds", missingAccountIds);
+            json.put("missingTimeStamp", missingTimeStamp);
         }
 
         @Override

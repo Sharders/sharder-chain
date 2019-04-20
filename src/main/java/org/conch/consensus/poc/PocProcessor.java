@@ -21,32 +21,22 @@
 
 package org.conch.consensus.poc;
 
-import com.alibaba.fastjson.JSONObject;
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
-
-import java.math.BigInteger;
+import org.conch.peer.Peer;
+import org.conch.tx.Transaction;
 
 /**
  * @author ben-xy
  */
 public interface PocProcessor {
-
+    
     /**
      * @param account
      * @param height
-     * @return
+     * @return poc score 
      */
-    BigInteger calPocScore(Account account, int height);
-
-    /**
-     * return detailed poc data json string
-     *
-     * @param account
-     * @param height
-     * @return json string
-     */
-    JSONObject calDetailedPocScore(Account account, int height);
+    PocScore calPocScore(Account account, int height);
 
     /**
      * Get the poc weight table
@@ -55,4 +45,60 @@ public interface PocProcessor {
      * @return PocWeightTable
      */
     PocTxBody.PocWeightTable getPocWeightTable(Long version);
+
+
+    /**
+     * account whether bound to certified peer
+     *
+     * @param accountId
+     * @return
+     */
+    boolean isCertifiedPeerBind(long accountId);
+
+    /**
+     * get bind peer type
+     * @param accountId
+     * @return
+     */
+    Peer.Type bindPeerType(long accountId);
+
+    /**
+     * update bound account of certified peer
+     * @param host peer host 
+     * @param accountId bind acccount id
+     */
+    void updateBoundPeer(String host, long accountId);
+
+    /**
+     * clear current certified peers and re-syn 
+     * @return 
+     */
+    boolean resetCertifiedPeers();
+
+    /**
+     * PoC tx process
+     * @param tx poc tx
+     * @return
+     */
+    boolean pocTxProcess(Transaction tx);
+
+    /**
+     * process delayed poc txs
+     * @return
+     */
+    boolean processDelayedPocTxs(int height);
+            
+    /**
+     * 
+     * @return
+     */
+    boolean pocTxsProcessed(int height);
+
+
+    /**
+     * notify poc processor to re-process the all poc txs
+     */
+    void notifySynTxNow();
+    
+    void saveToDisk();
 }

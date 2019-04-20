@@ -2,6 +2,7 @@ package org.conch.consensus.genesis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
 import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
@@ -15,9 +16,7 @@ import org.conch.tx.TransactionImpl;
 import org.conch.util.Logger;
 
 import java.security.MessageDigest;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Sharder Genesis 
@@ -28,6 +27,7 @@ public class SharderGenesis {
 
     public static final long GENESIS_BLOCK_ID = 6840612405442242239L;
     public static final long CREATOR_ID = 7690917826419382695L;
+    public static final long KEEPER_ID = -4542396882408079631L;
     public static final byte[] CREATOR_PUBLIC_KEY = {
             -36, 27, -52, -114, -28, 115, -4, -120, 50, -66, -107, 70, -54, -95, 61, -14,
             79, 123, -18, -57, -99, 10, -34, 75, -48, -72, -25, 96, -53, -63, -1, 43
@@ -45,30 +45,68 @@ public class SharderGenesis {
     public static final byte[] GENESIS_PAYLOAD_HASH = new byte[]{
             -68, 29, 41, -120, -78, -7, -86, -93, -10, -89, -77, -46, 109, -49, 30, 72, -115, 77, 73, -19, -85, 125, -43, -13, -3, -44, -124, -62, 123, -68, 69, -81
     };
-
+    
     private static boolean enableGenesisAccount = false;
     public static final void enableGenesisAccount(){
         if(enableGenesisAccount) {
             return;
         }
 
-        Logger.logDebugMessage("Enable genesis account[size=" + (GenesisRecipient.recipients.size() + 1) + "]");
+        Logger.logDebugMessage("Enable genesis account[size=" + (GenesisRecipient.getAll().size() + 1) + "]");
 
         Account.addOrGetAccount(CREATOR_ID).apply(CREATOR_PUBLIC_KEY);
         
-        for(GenesisRecipient genesisRecipient : GenesisRecipient.recipients){
+        for(GenesisRecipient genesisRecipient : GenesisRecipient.getAll()){
             Account.addOrGetAccount(genesisRecipient.id).apply(genesisRecipient.publicKey);
         }
         enableGenesisAccount = true;
     }
 
-    public static boolean isGenesisRecipients(long accountId){
-        for(GenesisRecipient genesisRecipient : GenesisRecipient.recipients){
-            if(genesisRecipient.id == accountId){
-                return true;
-            }
+
+    public static class GenesisPeer {
+        public String domain;
+        public Peer.Type type ;
+
+        private GenesisPeer(String domain,Peer.Type type){
+            this.domain = domain;
+            this.type = type;
         }
-        return false;
+
+        static Map<Constants.Network, List<GenesisPeer>> genesisPeers = new HashMap<>();
+        static {
+            List<GenesisPeer> devnetPeers = Lists.newArrayList(
+                    new GenesisPeer("devboot.sharder.io",Peer.Type.FOUNDATION),
+                    new GenesisPeer("devna.sharder.io",Peer.Type.FOUNDATION),
+                    new GenesisPeer("devnb.sharder.io",Peer.Type.FOUNDATION)
+            );
+
+            List<GenesisPeer> testnetPeers = Lists.newArrayList(
+                    new GenesisPeer("testboot.sharder.io",Peer.Type.FOUNDATION),
+                    new GenesisPeer("testna.sharder.io",Peer.Type.COMMUNITY),
+                    new GenesisPeer("testnb.sharder.io",Peer.Type.HUB)
+            );
+
+            List<GenesisPeer> mainnetPeers = Lists.newArrayList(
+
+            );
+            genesisPeers.put(Constants.Network.DEVNET,devnetPeers);
+            genesisPeers.put(Constants.Network.TESTNET,testnetPeers);
+            genesisPeers.put(Constants.Network.MAINNET,mainnetPeers);
+        }
+
+        public static List<GenesisPeer> getAll(){
+            return genesisPeers.get(Constants.getNetwork());
+        }
+
+        @Override
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this);
+        }
+    }
+    
+    public static boolean isGenesisRecipients(long accountId){
+        GenesisRecipient recipient = GenesisRecipient.getByAccountId(accountId);
+        return recipient == null ? false : true;
     }
     
     public static boolean isGenesisCreator(long accountId){
@@ -77,7 +115,7 @@ public class SharderGenesis {
 
     private static long genesisBlockAmount(){
         long total = 0;
-        for(GenesisRecipient genesisRecipient : GenesisRecipient.recipients){
+        for(GenesisRecipient genesisRecipient : GenesisRecipient.getAll()){
             total += genesisRecipient.amount * Constants.ONE_SS;
         }
         return total;
@@ -85,14 +123,25 @@ public class SharderGenesis {
     
     private SharderGenesis() {}
 
-
+    /**
+     * all genesis txs
+     * @return
+     * @throws ConchException.NotValidException
+     */
     public static List<TransactionImpl> genesisTxs() throws ConchException.NotValidException {
         List<TransactionImpl> transactions = coinbaseTxs();
         transactions.add(defaultPocWeightTableTx());
+        transactions.addAll(nodeTypeTxs());
         Collections.sort(transactions, Comparator.comparingLong(Transaction::getId));
         return transactions;
     }
 
+    /**
+     * genesis block:
+     * @param fixedPayloadHash
+     * @return
+     * @throws ConchException.NotValidException
+     */
     private static BlockImpl genesisBlock(boolean fixedPayloadHash) throws ConchException.NotValidException {
         byte[] payloadHash = SharderGenesis.GENESIS_PAYLOAD_HASH;
         List<TransactionImpl> transactions = genesisTxs();
@@ -103,6 +152,7 @@ public class SharderGenesis {
             }
             payloadHash = digest.digest();
         }
+        
         int blockVersion = -1;
         BlockImpl genesisBlock = BlockImpl.newGenesisBlock(
                         SharderGenesis.GENESIS_BLOCK_ID,
@@ -124,38 +174,39 @@ public class SharderGenesis {
     }
     
     /**
-     * original coinbase, initial supply of ss
+     * original coinbase, initial ss supply
      * @return coinbase txs
      */
     private static List<TransactionImpl> coinbaseTxs(){
         List<TransactionImpl> transactions = Lists.newArrayList();
 
         // coinbase txs
-        try{
-            long genesisCreatorId = Account.getId(SharderGenesis.CREATOR_PUBLIC_KEY);
-            for(GenesisRecipient genesisRecipient : GenesisRecipient.recipients){
+        long genesisCreatorId = Account.getId(SharderGenesis.CREATOR_PUBLIC_KEY);
+        GenesisRecipient.getAll().forEach(recipient -> {
+            try {
                 transactions.add(new TransactionImpl.BuilderImpl(
                         (byte) 1,
-                        genesisRecipient.publicKey,
-                        genesisRecipient.amount * Constants.ONE_SS,
+                        recipient.publicKey,
+                        recipient.amount * Constants.ONE_SS,
                         0,
                         (short) 0,
-                        new Attachment.CoinBase(Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, genesisRecipient.id, Maps.newHashMap()))
+                        new Attachment.CoinBase(Attachment.CoinBase.CoinBaseType.GENESIS, genesisCreatorId, recipient.id, Maps.newHashMap()))
                         .timestamp(0)
-                        .recipientId(genesisRecipient.id)
-                        .signature(genesisRecipient.signature)
+                        .recipientId(recipient.id)
+                        .signature(recipient.signature)
                         .height(0)
                         .ecBlockHeight(0)
                         .ecBlockId(0)
                         .build());
+            } catch (ConchException.NotValidException e) {
+                e.printStackTrace();
             }
-        }catch (ConchException.NotValidException e) {
-            e.printStackTrace();
-        }
-
+        });
+            
         return transactions;
     }
 
+    
     /**
      * default node type tx for known peers
      * @return node-type txs
@@ -163,14 +214,9 @@ public class SharderGenesis {
     private static List<TransactionImpl> nodeTypeTxs() {
         List<TransactionImpl> transactions = Lists.newArrayList();
 
-        // nodeType txs
-        try{
-            int knownPeerCount = 0;
-            for(int i = 0; i < knownPeerCount; i++){
-                String peer= "";
-                Peer.Type type = null;
-
-                Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeType(peer,type);
+        GenesisPeer.getAll().forEach(genesisPeer -> {
+            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeType(genesisPeer.domain,genesisPeer.type);
+            try {
                 transactions.add(new TransactionImpl.BuilderImpl(
                         (byte) 0,
                         SharderGenesis.CREATOR_PUBLIC_KEY,
@@ -184,10 +230,10 @@ public class SharderGenesis {
                         .ecBlockHeight(0)
                         .ecBlockId(0)
                         .build());
+            } catch (ConchException.NotValidException e) {
+                e.printStackTrace();
             }
-        }catch (ConchException.NotValidException e) {
-            e.printStackTrace();
-        }
+        });
         return transactions;
     }
 
@@ -222,6 +268,12 @@ public class SharderGenesis {
      */
     public static BlockImpl genesisBlock() throws ConchException.NotValidException {
         return genesisBlock(true);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(GenesisPeer.genesisPeers.get(Constants.Network.MAINNET).toArray()));
+        System.out.println(Arrays.toString(GenesisPeer.genesisPeers.get(Constants.Network.DEVNET).toArray()));
+        System.out.println(Arrays.toString(GenesisPeer.genesisPeers.get(Constants.Network.TESTNET).toArray()));
     }
     
 }

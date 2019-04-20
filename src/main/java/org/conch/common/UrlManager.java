@@ -16,16 +16,25 @@ public class UrlManager {
 
     public static final Boolean USE_EOLINKER = Optional.ofNullable(Conch.getStringProperty("sharder.dev.useEolinker"))
             .map(Boolean::valueOf).orElse(false);
+    public static final Boolean USE_LOCAL =Optional.ofNullable(Conch.getStringProperty("sharder.dev.local"))
+            .map(Boolean::valueOf).orElse(false);
     private static final String HTTP_SCHEME = "http://";
     private static final String HTTPS_SCHEME = "https://";
 
     /*=============================================Foundation API START========================================*/
     /**
+     * check sharder hardware product
+     */
+    public static final String GET_HARDWARE_TYPE_EOLINKER = "https://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://localhost:8080/sc/ssHardwareProduct/serialNum/";
+    public static final String GET_HARDWARE_TYPE_LOCAL = "http://localhost:8080/sc/ssHardwareProduct/serialNum/{serialNum}";
+    public static final String GET_HARDWARE_TYPE_PATH = "/sc/ssHardwareProduct/serialNum/{serialNum}";
+
+    /**
      * get NAT settings via sharder account
      */
     public static final String HUB_SETTING_ACCOUNT_CHECK_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/bounties/hubDirectory/check.ss";
-    public static final String HUB_SETTING_ACCOUNT_CHECK_LOCAL = "http://localhost:8080/bounties/hubDirectory/check.ss";
-    public static final String HUB_SETTING_ACCOUNT_CHECK_PATH = "/bounties/hubDirectory/check.ss";
+    public static final String HUB_SETTING_ACCOUNT_CHECK_LOCAL = "http://localhost:8080/sc/natServices/fetch";
+    public static final String HUB_SETTING_ACCOUNT_CHECK_PATH = "/sc/natServices/fetch";
 
     /**
      * report node configuration performance
@@ -54,9 +63,8 @@ public class UrlManager {
     private static final String ZIP_SUFFIX = ".zip";
     private static final String LATEST_VERSION_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-latest-version";
     private static final String LATEST_VERSION_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-latest-version";
-    private static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-hub-";
-    private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-hub-";
-
+    private static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-";
+    private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-";
     /*=============================================HUB UPGRADE API END========================================*/
 
     /**
@@ -68,8 +76,8 @@ public class UrlManager {
      * @return URLs
      */
     public static String getFoundationUrl(String eoLinkerUrl, String localUrl, String path) {
-        if (Constants.isMainnet() || Constants.isTestnet()) {
-            return HTTP_SCHEME + Conch.getSharderFoundationURL() + path;
+        if (!USE_LOCAL) {
+            return HTTPS_SCHEME + Conch.getSharderFoundationURL() + path;
         }
         return USE_EOLINKER ? eoLinkerUrl : localUrl;
     }
@@ -80,10 +88,13 @@ public class UrlManager {
      * @param request HttpServletRequest
      * @throws ConchException.NotValidException
      */
-    public static void validFoundationHost(HttpServletRequest request) throws ConchException.NotValidException {
+    public static boolean validFoundationHost(HttpServletRequest request) throws ConchException.NotValidException {
         if (!IpUtil.matchHost(request, Conch.getSharderFoundationURL())) {
-            throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getSharderFoundationURL()));
+            return false;
+//            throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getSharderFoundationURL()));
         }
+
+        return true;
     }
 
     /**
@@ -92,7 +103,7 @@ public class UrlManager {
      * @return url
      */
     public static String getHubLatestVersionUrl() {
-        return Constants.isMainnet() ? LATEST_VERSION_ONLINE_URL : LATEST_VERSION_DEV_URL;
+        return Constants.isMainnet() || Constants.isTestnet() ? LATEST_VERSION_ONLINE_URL : LATEST_VERSION_DEV_URL;
     }
 
     /**
@@ -102,6 +113,6 @@ public class UrlManager {
      * @return url
      */
     public static String getPackageDownloadUrl(String version) {
-        return Constants.isMainnet() ? DOWNLOAD_PACKAGE_ONLINE_URL + version + ZIP_SUFFIX : DOWNLOAD_PACKAGE_DEV_URL + version + ZIP_SUFFIX;
+        return Constants.isMainnet() || Constants.isTestnet() ? DOWNLOAD_PACKAGE_ONLINE_URL + version + ZIP_SUFFIX : DOWNLOAD_PACKAGE_DEV_URL + version + ZIP_SUFFIX;
     }
 }

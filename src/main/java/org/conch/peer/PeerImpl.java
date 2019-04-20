@@ -21,11 +21,13 @@
 
 package org.conch.peer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
 import org.conch.util.*;
@@ -41,12 +43,13 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
-
+    // ip
     private final String host;
     private final PeerWebSocket webSocket;
     private volatile PeerWebSocket inboundSocket;
     private volatile boolean useWebSocket;
     private volatile boolean useNATService;
+    // domain or full NAT address
     private volatile String announcedAddress;
     private volatile int port;
     private volatile String bindRsAccount;
@@ -307,6 +310,11 @@ final class PeerImpl implements Peer {
     public String getAnnouncedAddress() {
         return announcedAddress;
     }
+    
+    @Override
+    public String getAddress() {
+        return StringUtils.isNotEmpty(announcedAddress) ? announcedAddress : host;
+    }
 
     void setAnnouncedAddress(String announcedAddress) {
         if (announcedAddress != null && announcedAddress.length() > Peers.MAX_ANNOUNCED_ADDRESS_LENGTH) {
@@ -375,9 +383,28 @@ final class PeerImpl implements Peer {
         }
         blacklist(cause.toString() == null || Peers.hideErrorDetails ? cause.getClass().getName() : cause.toString());
     }
-
+    
+    boolean isProtectPeer(){
+        if(!IpUtil.isFoundationDomain(this.announcedAddress) 
+            && !IpUtil.isFoundationDomain(this.host)) {
+            return false;
+        }
+        
+        for(SharderGenesis.GenesisPeer genesisPeer : SharderGenesis.GenesisPeer.getAll()){
+            if(IpUtil.matchHost(genesisPeer.domain, this.host)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     @Override
     public void blacklist(String cause) {
+        if(isProtectPeer()) {
+            Logger.logDebugMessage("peer %s[%s] is the protected peer, can't black it now", announcedAddress, host);
+            return;
+        }
+        
         blacklistingTime = Conch.getEpochTime();
         blacklistingCause = cause;
         setState(State.NON_CONNECTED);
@@ -387,9 +414,8 @@ final class PeerImpl implements Peer {
 
     @Override
     public void unBlacklist() {
-        if (blacklistingTime == 0 ) {
-            return;
-        }
+        if (blacklistingTime == 0 ) return;
+        
         Logger.logDebugMessage("Unblacklisting " + host);
         setState(State.NON_CONNECTED);
         blacklistingTime = 0;
@@ -398,21 +424,19 @@ final class PeerImpl implements Peer {
     }
 
     void updateBlacklistedStatus(int curTime) {
-        if (blacklistingTime > 0 && blacklistingTime + Peers.blacklistingPeriod <= curTime) {
+        if (blacklistingTime > 0 
+            && blacklistingTime + Peers.blacklistingPeriod <= curTime) {
             unBlacklist();
         }
-        if (isOldVersion && lastUpdated < curTime - 3600) {
+        if (isOldVersion 
+            && lastUpdated < curTime - 3600) {
             isOldVersion = false;
         }
     }
 
     @Override
     public void deactivate() {
-        if (state == State.CONNECTED) {
-            setState(State.DISCONNECTED);
-        } else {
-            setState(State.NON_CONNECTED);
-        }
+        setState(state == State.CONNECTED ? State.DISCONNECTED : State.NON_CONNECTED);
         Peers.notifyListeners(this, Peers.Event.DEACTIVATE);
     }
 
@@ -485,8 +509,8 @@ final class PeerImpl implements Peer {
     @Override
     public JSONObject send(JSONStreamAware request, int maxResponseSize) {
         JSONObject response = null;
-        String log = null;
-        boolean showLog = false;
+        String log = "";
+        boolean showLog = Logger.isLevel(Logger.Level.DEBUG);
         HttpURLConnection connection = null;
         int communicationLoggingMask = Peers.communicationLoggingMask;
 
@@ -526,8 +550,9 @@ final class PeerImpl implements Peer {
                 // Send the request using HTTP
                 //
                 URL url = new URL("http://" + Peers.addressHost(host) + ":" + Peers.addressPort(host) + "/sharder");
-                if (communicationLoggingMask != 0)
-                    log = "\"" + url.toString() + "\": " + JSON.toString(request);
+                if (communicationLoggingMask != 0) {
+                    log += "\"" + url.toString() + "\": " + JSON.toString(request);
+                }
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setDoOutput(true);
@@ -620,7 +645,7 @@ final class PeerImpl implements Peer {
                 connection.disconnect();
             }
         }
-        if (showLog) {
+        if (showLog && StringUtils.isNotEmpty(log)) {
             Logger.logMessage(log + "\n");
         }
 
@@ -661,6 +686,7 @@ final class PeerImpl implements Peer {
                     return;
                 }
             }
+            // get peer detail
             JSONObject response = send(Peers.getMyPeerInfoRequest());
             if (response != null) {
                 if (response.get("error") != null) {
@@ -718,6 +744,9 @@ final class PeerImpl implements Peer {
                 } else if (!isBlacklisted()) {
                     blacklist("Old version: " + version);
                 }
+                // update the peer ref RS account when connected
+                Conch.getPocProcessor().updateBoundPeer(getAddress(), Account.rsAccountToId(bindRsAccount));
+                
             } else {
                 //Logger.logDebugMessage("Failed to connect to peer " + peerAddress);
                 setState(State.NON_CONNECTED);

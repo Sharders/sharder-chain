@@ -1,8 +1,10 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
@@ -10,12 +12,10 @@ import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocTemplate;
 import org.conch.consensus.poc.hardware.SystemInfo;
 import org.conch.consensus.poc.tx.PocTxBody;
-import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.http.handler.QueryTransactionsHandler;
 import org.conch.http.handler.impl.QueryTransactionsCondition;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
-import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Https;
 import org.conch.util.Logger;
@@ -50,7 +50,6 @@ public abstract class PocTxApi {
     }
 
     private static org.json.simple.JSONObject universalGetTransactions(HttpServletRequest request, QueryTransactionsHandler.HandleType handleType) throws ConchException.NotValidException, ParameterException {
-        UrlManager.validFoundationHost(request);
         String ip = Convert.emptyToNull(request.getParameter("ip"));
         String port = Convert.emptyToNull(request.getParameter("port"));
         long expectVersion = ParameterParser.getLong(request, "version", Long.MIN_VALUE, Long.MAX_VALUE, false);
@@ -98,7 +97,7 @@ public abstract class PocTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) {
             try {
-                UrlManager.validFoundationHost(request);
+                Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
                 String nodeTypeConfigJson = Https.getPostData(request);
                 Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
                         .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
@@ -111,8 +110,7 @@ public abstract class PocTxApi {
                 createTransaction(request, account, 0, 0, attachment);
                 Logger.logInfoMessage("success to create node config performance tx");
             } catch (Exception e) {
-                Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
-                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.toString());
+                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
             return ResultUtil.ok(Constants.SUCCESS);
         }
@@ -155,12 +153,27 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            UrlManager.validFoundationHost(request);
-            Account account = ParameterParser.getSenderAccount(request);
-            String ip = request.getParameter("ip");
-            String type = request.getParameter("type");
-            Attachment attachment = new PocTxBody.PocNodeType(ip, Peer.Type.getByCode(type));
-            return createTransaction(request, account, 0, 0, attachment);
+            try {
+                Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
+                Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
+                        .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
+                Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
+                String nodeTypeJsonStr = Https.getPostData(request);
+                JSONObject nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
+                        .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
+                PocTxBody.PocNodeType pocNodeType = new PocTxBody.PocNodeType(
+                        nodeTypeJson.getString("ip"),
+                        Peer.Type.getBySimpleName(nodeTypeJson.getString("type"))
+                );
+                Logger.logInfoMessage("creating node type tx...");
+                Logger.logDebugMessage("PoC node type tx:[ip=%s, type=%s]", pocNodeType.getIp(), pocNodeType.getType());
+                createTransaction(request, account, 0, 0, pocNodeType);
+                Logger.logInfoMessage("success to create node type tx...");
+            } catch (ConchException e) {
+                Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
+                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
+            }
+            return ResultUtil.ok(Constants.SUCCESS);
         }
     }
 
@@ -174,7 +187,7 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            UrlManager.validFoundationHost(request);
+            Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
             String templateJson = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
             PocTemplate customPocTemp = JSONObject.parseObject(
@@ -221,7 +234,7 @@ public abstract class PocTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            UrlManager.validFoundationHost(request);
+            Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
             String onlineRateStr = Https.getPostData(request);
             Account account = ParameterParser.getSenderAccount(request);
             JSONObject onlineRateJson = JSONObject.parseObject(onlineRateStr);
@@ -257,6 +270,92 @@ public abstract class PocTxApi {
         protected boolean requireFullClient() {
             return true;
         }
+    }
+    
+    public static final class ReProcessPocTxs extends APIServlet.APIRequestHandler {
+        
+        static final ReProcessPocTxs INSTANCE = new ReProcessPocTxs();
+        
+        ReProcessPocTxs() {
+            super(new APITag[]{APITag.DEBUG});
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected JSONStreamAware processRequest(HttpServletRequest req) {
+            org.json.simple.JSONObject response = new org.json.simple.JSONObject();
+            try {
+                Conch.getPocProcessor().notifySynTxNow();
+                response.put("done", true);
+            } catch (RuntimeException e) {
+                JSONData.putException(response, e);
+            }
+            return response;
+        }
+
+        @Override
+        protected final boolean requirePost() {
+            return true;
+        }
+
+        @Override
+        protected boolean requirePassword() {
+            return true;
+        }
+
+        @Override
+        protected boolean allowRequiredBlockParameters() {
+            return false;
+        }
+
+        @Override
+        protected boolean requireBlockchain() {
+            return false;
+        }
+
+    }
+    
+    public static final class ResetCertifiedPeers extends APIServlet.APIRequestHandler {
+        
+        static final ResetCertifiedPeers INSTANCE = new ResetCertifiedPeers();
+
+        ResetCertifiedPeers() {
+            super(new APITag[]{APITag.DEBUG});
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected JSONStreamAware processRequest(HttpServletRequest req) {
+            org.json.simple.JSONObject response = new org.json.simple.JSONObject();
+            try {
+                Conch.getPocProcessor().resetCertifiedPeers();
+                response.put("done", true);
+            } catch (RuntimeException e) {
+                JSONData.putException(response, e);
+            }
+            return response;
+        }
+
+        @Override
+        protected final boolean requirePost() {
+            return true;
+        }
+
+        @Override
+        protected boolean requirePassword() {
+            return true;
+        }
+
+        @Override
+        protected boolean allowRequiredBlockParameters() {
+            return false;
+        }
+
+        @Override
+        protected boolean requireBlockchain() {
+            return false;
+        }
+
     }
 
 }

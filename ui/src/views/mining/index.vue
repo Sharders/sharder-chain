@@ -31,7 +31,7 @@
                 <div class="state">
                     <div class="state-info">
                         <span>{{$t('mining.attribute.mining')}}</span><br/>
-                        <span>{{$t('mining.index.net_income')}} {{allIncome}} SS</span>
+                        <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
                     </div>
                 </div>
                 <div class="instructions" @click="$router.push({name: 'rule-description'})">
@@ -55,8 +55,8 @@
             <div class="mining-notice">
                 <img src="../../assets/img/guangbo.png" class="notice-img">
                 <span class="notice-info">
-                    {{$t('mining.index.mineral')}}{{$t('mining.index.net_mining_number',{number:newestBlock.height})}} |
-                    {{$t('mining.index.blocker')}}{{newestBlockCreator}} | {{$t('mining.index.reward')}} {{newBlockReward}}SS
+                    {{$t('mining.index.mineral') + $t('mining.index.net_mining_number',{number:newestBlock.height})}} |
+                    {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getSSNumberFormat(newBlockReward)}}
             </span>
             </div>
             <div class="mining-list">
@@ -64,6 +64,7 @@
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
+                        <span>{{$t('mining.index.pool_list_block')}}</span>
                     </div>
                     <el-select v-model="sortFun" v-if="miningList.length > 0">
                         <el-option
@@ -79,7 +80,9 @@
                         <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>{{$t('mining.index.pool')}}{{index+1}}</h2>
+                                    <h2>{{$t('mining.index.pool')}}</h2>
+                                    <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
+                                    <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
                                     <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
                                     <el-progress
                                         :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
@@ -88,18 +91,17 @@
                                 <div class="tag">
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income')}}{{mining.mintRewards/100000000}} SS</span>
+                                        <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
                                         <span>
-                                            {{$t('mining.index.Income_distribution')}}
-                                            {{mining.rule.level1 ? (mining.rule.level1.forgepool.reward.max * 100) : (mining.rule.level0.forgepool.reward.max * 100)}}%
+                                            {{$t('mining.index.Income_distribution') + $global.getRewardRate(mining.rule)}}
                                         </span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining')}}{{mining.startBlockNo > newestBlock.height ? mining.endBlockNo - mining.startBlockNo : mining.endBlockNo - newestBlock.height}}{{$t('mining.index.unit_block')}}</span>
+                                        <span>{{$t('mining.index.remaining_mining') + getMinerBlock(mining) + $t('mining.index.unit_block')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -225,8 +227,8 @@
                         </tr>
                     </table>
                     <div class="my-assets">
-                        {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}} SS
-                        | {{$t('mining.index.sort')}} {{myRanking}} {{$t('mining.index.unit_ming')}}
+                        {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
+                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -252,11 +254,11 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{maxPoolInvestment/100000000}}SS</span>
+                            <span>{{$global.getSSNumberFormat(maxPoolInvestment)}}</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{parseInt(maxForgeTime/avgBlocksTime)}}块（约{{maxForgeTime/60/60}}小时）</span>
+                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}} (≈ {{getMinerTime()}}h)</span>
                         </p>
                     </div>
                     <div class="pool-set">
@@ -264,15 +266,16 @@
                             <img src="../../assets/img/kuangchi_set.png">
                             <span>{{$t('mining.index.mining_setting')}}</span>
                         </h1>
-                        <!--                        <div class="pool-data">
-                                                    <p>
-                                                        <span class="strong">{{$t('mining.index.invest_ss')}}</span>
-                                                        <span class="user-input">
-                                                            <el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>
-                                                        </span>
-                                                    </p>
-                                                    <p>{{$t('mining.index.invest_ss_tip')}}</p>
-                                                </div>-->
+                        <!--创建矿池时默认投入-->
+                        <!--<div class="pool-data">-->
+                        <!--<p>-->
+                        <!--<span class="strong">{{$t('mining.index.invest_ss')}}</span>-->
+                        <!--<span class="user-input">-->
+                        <!--<el-input v-model="investment" :placeholder="$t('mining.index.invest_tip')"></el-input>-->
+                        <!--</span>-->
+                        <!--</p>-->
+                        <!--<p>{{$t('mining.index.invest_ss_tip')}}</p>-->
+                        <!--</div>-->
                         <div class="pool-data">
                             <p>
                                 <span class="strong">{{$t('mining.index.income_distribution')}}</span>
@@ -343,7 +346,7 @@
                 accountName: SSO.accountInfo.name,
                 incomeDistribution: 0,
                 investment: '',
-                newestBlock: [],
+                newestBlock: '',
                 newBlockReward: 0,
                 newestBlockCreator: '',
                 totalAssets: 0,
@@ -364,11 +367,25 @@
             }
         },
         methods: {
+            getMinerTime() {
+                let u;
+                switch (SSO.netWorkType) {
+                    case "Devnet":
+                        u = 1;
+                        break;
+                    case "Testnet":
+                        u = 7;
+                        break;
+                    default:
+                        u = 1;
+                }
+                return new BigNumber(this.rule.rule.totalBlocks.max).dividedBy(60).multipliedBy(u).toFixed();
+            },
             getAllIncome() {
                 let _this = this;
                 _this.$global.fetch("GET", {allIncome: "allIncome"}, "getAccount").then(res => {
                     if (res.success) {
-                        _this.allIncome = res.cutIncome[0]["NUM"] / 100000000;
+                        _this.allIncome = res.cutIncome[0]["NUM"];
                     }
                 });
             },
@@ -395,6 +412,12 @@
                     _this.isVisible('isSetName');
                 });
             },
+            poolOwnerRs(rs) {
+                if(rs != null && rs.indexOf("SSA-") != -1) {
+                    return rs.substring(4);
+                }
+                return "";
+            },
             idToAccountRs(id) {
                 let nxtAddress = new NxtAddress();
                 let accountRS = "";
@@ -415,7 +438,7 @@
                 }
 
                 _this.$global.fetch("POST", {
-                    period: parseInt(_this.maxForgeTime / _this.avgBlocksTime),
+                    period: _this.rule.rule.totalBlocks.max,
                     secretPhrase: SSO.secretPhrase,
                     deadline: 1440,
                     feeNQT: 100000000,
@@ -492,7 +515,7 @@
 
                 _this.getPools({sort: _this.sortFun});
 
-                _this.$global.fetch("POST", {}, "getNextBlockGenerators").then(res => {
+                _this.$global.fetch("POST", {limit: 99999}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
@@ -544,7 +567,7 @@
                 }, "getBlock").then(res => {
                     for (let t of res.transactions) {
                         if (t.type === 9) {
-                            _this.newBlockReward = t.amountNQT / 100000000;
+                            _this.newBlockReward = t.amountNQT;
                             break;
                         }
                     }
@@ -579,6 +602,17 @@
                     _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
                 });
+            },
+            getMinerBlock(mining) {
+                let _t = this;
+                if (!_t.newestBlock) {
+                    return _t.$global.placeholder
+                }
+                if (mining.startBlockNo > _t.newestBlock.height) {
+                    return mining.endBlockNo - mining.startBlockNo
+                } else {
+                    return mining.endBlockNo - _t.newestBlock.height
+                }
             }
         },
         created: function () {
@@ -642,7 +676,6 @@
         width: 1200px !important;
         margin: auto;
     }
-
 
     .el-select-dropdown__item.selected, .el-pager li.active {
         color: #fff !important;
@@ -747,6 +780,11 @@
     .mining-list .el-select .el-input .el-select__caret {
         top: 0 !important;
     }
+
+    .mining-list .el-select .el-input__inner {
+        height: 30px;
+    }
+
 
     .en_mining .title .el-radio-button__inner {
         width: 140px;
@@ -916,7 +954,7 @@
     }
 
     .grid-content .info {
-        width: 120px;
+        width: 170px;
         height: 120px;
         text-align: center;
         background-color: #513ac8;
@@ -925,8 +963,8 @@
     }
 
     .grid-content .info h2 {
-        font-size: 18px;
-        padding: 30px 0;
+        font-size: 16px;
+        padding: 5px 0 8px 0;
         margin: 0;
     }
 
@@ -935,23 +973,31 @@
         padding-bottom: 10px;
     }
 
+    .grid-content .info .pool-no {
+        font-size: 12px;
+        /*margin-bottom: 5px;*/
+    }
+    
+    .grid-content .info .pool-owner {
+        font-size: 12px;
+    }
+
     .grid-content .tag {
-        width: 230px;
+        width: 200px;
         height: 120px;
         color: #000;
         padding: 0;
-        font-size: 15px;
+        font-size: 14px;
         position: relative;
     }
 
     .grid-content .tag p {
-        padding-bottom: 13px;
+        padding-bottom: 15px;
         position: relative;
-        top: -6px;
     }
 
     .grid-content .tag img {
-        padding: 0 12px 0 18px;
+        padding: 0 10px 0px 10px;;
     }
 
     .mining-paging {

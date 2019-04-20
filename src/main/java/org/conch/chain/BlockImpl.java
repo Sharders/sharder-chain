@@ -22,15 +22,17 @@
 package org.conch.chain;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
+import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.SizeUtil;
@@ -285,10 +287,22 @@ public final class BlockImpl implements Block {
             List<TransactionImpl> transactions = Collections.unmodifiableList(TransactionDb.findBlockTransactions(getId()));
             for (TransactionImpl transaction : transactions) {
                 transaction.setBlock(this);
+                this.autoExtensionAppend(transaction);
             }
             this.blockTransactions = transactions;
         }
         return this.blockTransactions;
+    }
+
+    public void autoExtensionAppend(TransactionImpl transaction) {
+        // auto extension process for isPoc and isPool
+        if (TransactionType.TYPE_POC == transaction.getType().getType()) {
+            this.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POC, true);
+        }
+
+        if (TransactionType.TYPE_SHARDER_POOL == transaction.getType().getType()) {
+            this.addExtension(BlockImpl.ExtensionEnum.CONTAIN_POOL, true);
+        }
     }
 
     @Override
@@ -312,9 +326,6 @@ public final class BlockImpl implements Block {
 
     @Override
     public int getHeight() {
-        if (height == -1) {
-            throw new IllegalStateException("Block height not yet set");
-        }
         return height;
     }
 
@@ -465,14 +476,14 @@ public final class BlockImpl implements Block {
     public boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
         try {
-
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
-
-            BigInteger pocScore = PocProcessorImpl.instance.calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            BigInteger pocScore = pocScoreObj.total();
             if (pocScore.signum() <= 0) {
+                Logger.logDebugMessage("poc score is less than 0 in this block calculate generation signature is and get from previous bli");
                 return false;
             }
 
@@ -481,12 +492,18 @@ public final class BlockImpl implements Block {
             digest.update(previousBlock.generationSignature);
             generationSignatureHash = digest.digest(getGeneratorPublicKey());
             if (!Arrays.equals(generationSignature, generationSignatureHash)) {
+                Logger.logDebugMessage("current calculate generation signature is and get from previous bli");
                 return false;
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
+            boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
             
-            return Generator.verifyHit(hit, pocScore, previousBlock, timestamp) || isKnownBadBlock(this.getId());
+            boolean isIgnoreBlock = isKnownIgnoreBlock();
+            if(isIgnoreBlock) {
+                Logger.logWarningMessage("Known ignore block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
+            }
+            return validHit || isIgnoreBlock;
 
         } catch (RuntimeException e) {
             Logger.logMessage("Error verifying block generation signature", e);
@@ -495,13 +512,20 @@ public final class BlockImpl implements Block {
     }
     
     // known bad blocks
-    private static final long[] knownBadBlocks = new long[] {};
+    private static final long[] knownIgnoreBlocks = new long[] {
+            //Testnet
+            -8556361949057624360L,
+            211456030592803100L
+    };
+//    private static final String[] knownIgnoreBlocksSignatu = new String[] {
+//            //Testnet
+//            "9c90a182cbc5ffc047f2e056cfdebc510c03e900a097f808a80accb2f1852503e50d9b6c0ca95ffc0b6d35beda52379765a43dc9d246b7bbe6e94d58acbf492f"
+//    };
     static {
-        Arrays.sort(knownBadBlocks);
+        Arrays.sort(knownIgnoreBlocks);
     }
-    
-    static boolean isKnownBadBlock(long blockId){
-        return Arrays.binarySearch(knownBadBlocks, blockId) >= 0;
+    boolean isKnownIgnoreBlock(){
+        return Arrays.binarySearch(knownIgnoreBlocks, this.id) >= 0;
     }
 
     public void apply() {
@@ -581,9 +605,8 @@ public final class BlockImpl implements Block {
             if (baseTarget > twofoldCurBaseTarget) {
                 baseTarget = twofoldCurBaseTarget;
             }
-        } else if (previousBlock.getHeight() % 2 == 0) {
+        } else if (previousBlock.getHeight() != 0 && previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-//            int blocktimeAverage = (this.timestamp - block.timestamp) / 3;
             int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.getBlockGapSeconds();
             if (blocktimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
@@ -608,15 +631,4 @@ public final class BlockImpl implements Block {
         return ToStringBuilder.reflectionToString(this);
     }
 
-
-//    public void setExtension(String extension) {
-//        this.extension = extension;
-//    }
-    
-
-  public static void main(String[] args) {
-    //
-      String str = "{\"isPoc\":true}";
-    System.out.println(str + "\n\t" + str.getBytes().length);
-  }
 }

@@ -1,11 +1,13 @@
 package org.conch.mint.pool;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
+import org.conch.mint.Generator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -14,12 +16,10 @@ import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,9 +28,9 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
-    private static final ConcurrentMap<Long, SharderPoolProcessor> sharderPools;
-    private static final ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools;
-    public static final long PLEDGE_AMOUNT = 10000 * Constants.ONE_SS;
+    private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = new ConcurrentHashMap<>();
+    public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
 
     public enum State {
         /**
@@ -89,8 +89,53 @@ public class SharderPoolProcessor implements Serializable {
         this.endBlockNo = endBlockNo;
         this.level = PoolRule.getLevel(creatorId);
     }
+    
+    static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public static void createSharderPool( long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+    /**
+     * check the end block to verify the pool life cycle can't exceed the end date
+     * @param endBlockNo
+     * @return
+     */
+    private static int checkAndReturnEndBlockNo(int endBlockNo){
+        try {
+            Date phaseOneEndDate = dateFormat.parse(Constants.TESTNET_PHASE_ONE_TIME);
+            Date now = new Date();
+            // phase one check
+            if(now.before(phaseOneEndDate)){
+                if(endBlockNo > Constants.TESTNET_PHASE_ONE) {
+                    return Constants.TESTNET_PHASE_ONE;
+                }
+            }else {
+            // phase two check
+                Date phaseTwoEndDate = dateFormat.parse(Constants.TESTNET_PHASE_TWO_TIME);
+                if(now.before(phaseTwoEndDate) && endBlockNo > Constants.TESTNET_PHASE_TWO) {
+                    return Constants.TESTNET_PHASE_TWO;
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+       return endBlockNo;
+    }
+    
+//    private static void joinOrQuitPool(Account account,AccountLedger.LedgerEvent ledgerEvent, long amount, int height, boolean quit){
+//        if(!quit) {
+//            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+//            account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+//            Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it at height %d",
+//                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+//        }else{
+//            account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+//            account.addToMintedBalanceNQT(amount);
+//            Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
+//                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+//        }
+//    }
+
+    public static void createSharderPool(long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+        int height = startBlockNo - Constants.SHARDER_POOL_DELAY;
+        endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
         Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
@@ -117,10 +162,16 @@ public class SharderPoolProcessor implements Serializable {
             pool.rule = rule;
             Logger.logDebugMessage(creatorId + " create a new mint pool");
         }
-        
         sharderPools.put(pool.poolId, pool);
+
+        checkOrAddIntoActiveGenerator(pool);
     }
 
+    /**
+     * - set the attributes of pool
+     * - calculate and reset the ref balances of pool owner and joiners
+     * @param height
+     */
     public void destroySharderPool(int height) {
         state = State.DESTROYED;
         endBlockNo = height;
@@ -194,7 +245,12 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
 
-    public static long ownOnePool(long creator) {
+    public static boolean checkOwnPoolState(long creator, State state) {
+        SharderPoolProcessor poolProcessor = getPool(creator);
+        return (poolProcessor != null) && state.equals(poolProcessor.getState());
+    }
+
+    public static long findOwnPoolId(long creator) {
         for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creator) {
                 return forgePool.poolId;
@@ -233,101 +289,132 @@ public class SharderPoolProcessor implements Serializable {
             pool.mintRewards += reward;
         }
     }
+    
+    private static void checkOrAddIntoActiveGenerator(SharderPoolProcessor sharderPool){
+        if(Generator.containMiner(sharderPool.creatorId)) {
+            Logger.logInfoMessage("current creator %s of pool %s already mining on this node", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
+            return;
+        }
+        
+        if(Generator.isAutoMiningAccount(sharderPool.creatorId)){
+            Logger.logInfoMessage("current creator %s of pool %s isn't mining on this node, force to open auto mining", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
+            Generator.forceOpenAutoMining();
+        }
+    }
 
     private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
     private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
 
     static {
-        File file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS));
-        if (file.exists()) {
-            sharderPools =
-                    (ConcurrentMap<Long, SharderPoolProcessor>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
-        } else {
-            // TODO delete by user ,pop off get block from network
-            sharderPools = new ConcurrentHashMap<>();
+        // load pools from local cached files
+        Logger.logInfoMessage("load exist pools info from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS) + "]");
+        Object poolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
+        if(poolsObj != null) {
+            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) poolsObj;
         }
 
-        file = new File(DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS));
-        if (file.exists()) {
-            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
-        } else {
-            // TODO delete by user
-            destroyedPools = new ConcurrentHashMap<>();
+        Logger.logInfoMessage("load exist destroyed pools info from local [" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS) + "]");
+        Object destroyedPoolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
+        if(destroyedPoolsObj != null) {
+            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) destroyedPoolsObj;
         }
 
-        /**
-         * After block accepted:
-         * - Update the pool state
-         * - Update the remaining block numbers of pool
-         * - Destroy pool when lifecycle finished
-         * - Coinbase reward unfreeze
-         * - Persistence the pool to local disk
-         */
-        Conch.getBlockchainProcessor().addListener(
-                        block -> {
-                            int height = block.getHeight();
-                            for (SharderPoolProcessor sharderPool : sharderPools.values()) {
-                                sharderPool.updateHeight = height;
-                                
-                                if (sharderPool.consignors.size() == 0 && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
-                                    sharderPool.destroySharderPool(height);
-                                    continue;
-                                }
-                                if (sharderPool.endBlockNo == height) {
-                                    sharderPool.destroySharderPool(height);
-                                    continue;
-                                }
-                                if (sharderPool.startBlockNo == height) {
-                                    sharderPool.state = State.WORKING;
-                                    // TODO add to generator list
-                                    continue;
-                                }
-                                // TODO auto destroy pool because the number or amount of pool is too small
-                                if (sharderPool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height && sharderPool.consignors.size() == 0) {
-                                    sharderPool.destroySharderPool(height);
-                                    continue;
-                                }
-                                // transaction is time out
-                                for (Consignor consignor : sharderPool.consignors.values()) {
-                                    long amount = consignor.validateHeight(height);
-                                    if (amount != 0) {
-                                        sharderPool.power -= amount;
-                                        Account.getAccount(consignor.getId()).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
-                                    }
-                                }
+        // AFTER_BLOCK_APPLY event listener
+        Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block), 
+                BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+    }
 
-                                if (sharderPool.startBlockNo < height) {
-                                    sharderPool.totalBlocks++;
-                                }
-                                if (sharderPool.totalBlocks == 0) {
-                                    sharderPool.chance = 0;
-                                } else {
-                                    sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
-                                }
-                            }
-                            
-                            // update pool summary
-                            long id = ownOnePool(block.getGeneratorId());
-                            updateHistoricalFees(id, block.getTotalFeeNQT());
-                            
-                            //unfreeze the reward
-                            if (height > Constants.SHARDER_REWARD_DELAY) {
-                                Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
-                                for (Transaction transaction : pastBlock.getTransactions()) {
-                                    Attachment attachment = transaction.getAttachment();
-                                    if(attachment instanceof Attachment.CoinBase){
-                                        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
-                                        if(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinbaseBody.getCoinBaseType()){
-                                            long mintReward = TransactionType.CoinBase.unFreezeMintReward(transaction);
-                                            updateHistoricalRewards(id,mintReward);
-                                        }
-                                    }
-                                }
-                            }
-                            DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
-                            DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
-                        },
-                        BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+    /**
+     * After block accepted:
+     * - Update the pool state
+     * - Update the remaining block numbers of pool
+     * - Destroy pool when lifecycle finished
+     * - Coinbase reward unfreeze
+     * - Persistence the pool to local disk
+     */
+    private static void processNewBlockAccepted(Block block){
+        int height = block.getHeight();
+        for (SharderPoolProcessor sharderPool : sharderPools.values()) {
+            sharderPool.updateHeight = height;
+
+            if (sharderPool.consignors.size() == 0 
+                && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
+                sharderPool.destroySharderPool(height);
+                continue;
+            }
+            if (sharderPool.endBlockNo == height) {
+                sharderPool.destroySharderPool(height);
+                continue;
+            }
+            
+            // check the miner whether running before poll started
+            if(sharderPool.startBlockNo-height <=3 
+                && sharderPool.startBlockNo > height){
+                checkOrAddIntoActiveGenerator(sharderPool);
+            }
+            
+            if (sharderPool.startBlockNo == height) {
+                sharderPool.state = State.WORKING;
+                continue;
+            }
+            // TODO auto destroy pool because the number or amount of pool is too small
+            if (sharderPool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height 
+                && sharderPool.consignors.size() == 0) {
+                sharderPool.destroySharderPool(height);
+                continue;
+            }
+            //  time out transaction
+            for (Consignor consignor : sharderPool.consignors.values()) {
+                long amount = consignor.validateHeight(height);
+                if (amount != 0) {
+                    sharderPool.power -= amount;
+                    Account account = Account.getAccount(consignor.getId());
+                    Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account[%s]", -amount, account.getRsAddress());
+                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+                }
+            }
+
+            if (sharderPool.startBlockNo < height) {
+                sharderPool.totalBlocks++;
+            }
+            if (sharderPool.totalBlocks == 0) {
+                sharderPool.chance = 0;
+            } else {
+                sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
+            }
+            
+        }
+
+        // update pool summary
+        long id = findOwnPoolId(block.getGeneratorId());
+        updateHistoricalFees(id, block.getTotalFeeNQT());
+
+        //unfreeze the reward
+        if (height > Constants.SHARDER_REWARD_DELAY) {
+            Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+
+            for (Transaction transaction : pastBlock.getTransactions()) {
+                Attachment attachment = transaction.getAttachment();
+                if(!(attachment instanceof Attachment.CoinBase)) continue;
+                
+                Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+                if(!coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)) continue;
+                
+                long mintReward = TransactionType.CoinBase.mintReward(transaction,true);
+                updateHistoricalRewards(id,mintReward);
+            }
+        }
+
+        saveToDisk();
+    }
+
+    /**
+     * save the pools to disk,
+     * If be called outside, the caller should be org.conch.Conch#shutdown()
+     */
+    public static void saveToDisk(){
+        DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
+        DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
     }
 
     public static void init() {
@@ -354,17 +441,15 @@ public class SharderPoolProcessor implements Serializable {
     public static SharderPoolProcessor getPool(long poolId) {
         return sharderPools.get(poolId);
     }
+    
+    public static long getCreatorIdByPoolId(long poolId) {
+        SharderPoolProcessor poolProcessor = getPool(poolId);
+        return poolProcessor != null ? poolProcessor.getCreatorId() : -1;
+    }
 
     public static JSONObject getPoolsFromNow(){
-        List<SharderPoolProcessor> pasts = new ArrayList<>();
-        for(SharderPoolProcessor forgePool : sharderPools.values()){
-            pasts.add(forgePool);
-        }
         JSONArray array = new JSONArray();
-        for (SharderPoolProcessor forgePool : pasts) {
-
-            array.add(forgePool.toJsonObject());
-        }
+        sharderPools.values().forEach(pool -> array.add(pool.toJsonObject()));
         JSONObject json = new JSONObject();
         json.put("pools",array);
         return json;
@@ -402,7 +487,7 @@ public class SharderPoolProcessor implements Serializable {
         JSONObject jsonObject = new JSONObject();
         if (pastPools.size() == 0) {
             jsonObject.put("errorCode", 1);
-            jsonObject.put("errorDescription", "current id doesn't create any mint pool");
+            jsonObject.put("errorDescription", "current id doesn't create any mining pool");
             return jsonObject;
         }
 
@@ -447,6 +532,12 @@ public class SharderPoolProcessor implements Serializable {
         return rule;
     }
 
+    public HashMap<String, Object> getRootRuleMap(){
+        Object rootRuleMap = getRule().get("level0");
+        rootRuleMap = rootRuleMap != null ? rootRuleMap : getRule().get("level1");
+        return (HashMap<String, Object>) rootRuleMap;
+    }
+
     public long getPower() {
         return power;
     }
@@ -482,6 +573,7 @@ public class SharderPoolProcessor implements Serializable {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("poolId", String.valueOf(poolId));
         jsonObject.put("creatorID", String.valueOf(creatorId));
+        jsonObject.put("creatorRS", Account.rsAccount(creatorId));
         jsonObject.put("level", level);
         jsonObject.put("number", number);
         jsonObject.put("power", power);
@@ -510,4 +602,10 @@ public class SharderPoolProcessor implements Serializable {
 
         return poolId == forgePool.poolId;
     }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
 }

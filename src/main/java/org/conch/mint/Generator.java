@@ -21,7 +21,6 @@
 
 package org.conch.mint;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -30,9 +29,9 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
+import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
@@ -43,7 +42,9 @@ import org.json.simple.JSONObject;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author ben 
@@ -68,13 +69,12 @@ public class Generator implements Comparable<Generator> {
     private static volatile Set<Long> blackedGenerators = Sets.newConcurrentHashSet();
     private static long lastBlockId;
     private static int delayTime = Constants.MINING_DELAY;
-    
-    
+
     private static class MinerPrinter {
         static int count = 0;
         static boolean debug = true;
         private static String generatorSummary = reset();
-
+        private static final int MAX_COUNT = Constants.isDevnet() ? 1 : 100; 
         private static final String splitter = "\n\r";
 
         static private String appendSplitter(String str, boolean appendEnd) {
@@ -90,18 +90,79 @@ public class Generator implements Comparable<Generator> {
             count=0;
             return generatorSummary;
         }
-        static void putin(Generator generator){
-            generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore 
-                    + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+        static void putin(){
+            if(sortedMiners != null && sortedMiners.size() > 0){
+                for(Generator generator : sortedMiners){
+                    generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
+                            + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+                }
+            }
         }
 
         static void print(){
-            if(!debug || (count++  <= 100)) return;
-           
+            if(!debug || (count++  <= MAX_COUNT)) return;
+            putin();
             Logger.logDebugMessage(generatorSummary);
             generatorSummary = reset();
         }
         
+    }
+
+    public static final boolean isBootNode = bootNodeCheck();
+    private static final boolean dontWait = Conch.getBooleanProperty("sharder.stillWait");
+    private static final boolean bootNodeCheck() {
+        String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
+        if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
+        
+        return Boolean.valueOf(isBootNode);
+    }
+    
+    /**
+     * check current height whether reached last known block
+     * @param lastBlock
+     * @return
+     */
+    private static boolean isMintHeightReached(Block lastBlock){
+        if(isBootNode) {
+            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
+            }
+            return true;
+        }
+
+        if(!Conch.isInitialized()) {
+            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                Logger.logWarningMessage("wait for Conch initialized...");
+            }
+            return false;
+        }
+        
+        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
+            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                Logger.logWarningMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
+                        + ", and current height is " + lastBlock.getHeight()
+                        + ", don't mint till blocks sync finished...");
+            }
+            return false;
+        }
+        
+        if(dontWait) return true;
+        
+        if(!Conch.getBlockchainProcessor().isUpToDate()) {
+            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
+            }
+            return false;
+        }
+        
+        if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
+            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                Logger.logDebugMessage("delayed poc txs or old poc txs haven't processed, don't start mining till blocks sync finished...");
+            }
+            return false;
+        }
+        
+        return true;
     }
     
     private static final Runnable generateBlocksThread = new Runnable() {
@@ -112,15 +173,15 @@ public class Generator implements Comparable<Generator> {
         public void run() {
             try {
                 try {
-                    autoMining();
+                 
                     
                     BlockchainImpl.getInstance().updateLock();
                     try {
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
-                        //wait for last known block
-                        if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-                            return;
-                        }
+                        
+                        if(!isMintHeightReached(lastBlock)) return;
+
+                        checkOrStartAutoMining();
 
                         final int generationLimit = Conch.getEpochTime() - delayTime;
                         if (lastBlock.getId() != lastBlockId || sortedMiners == null || sortedMiners.size() == 0) {
@@ -148,7 +209,6 @@ public class Generator implements Comparable<Generator> {
                                 generator.setLastBlock(lastBlock);
                                 if (generator.pocScore.signum() > 0) {
                                     forgers.add(generator);
-                                    MinerPrinter.putin(generator);
                                 }
                             }
 
@@ -204,7 +264,7 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     public static boolean isValid(long generatorId){
-        return PocProcessorImpl.isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
+        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
     }
 
     public static boolean hasGenerationMissingAccount(){
@@ -219,11 +279,21 @@ public class Generator implements Comparable<Generator> {
 
     static {
         if (!Constants.isLightClient) {
-            ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 500, TimeUnit.MILLISECONDS);
+            ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 10000, TimeUnit.MILLISECONDS);
         }
     }
 
-    public static void init() {}
+    public static void init() {
+        // active generator listener for block pushed
+        Conch.getBlockchainProcessor().addListener(block -> {
+            long generatorId = block.getGeneratorId();
+            synchronized(activeGeneratorMp) {
+                if (!activeGeneratorMp.containsKey(generatorId)) {
+                    activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId));
+                }
+            }
+        }, BlockchainProcessor.Event.BLOCK_PUSHED);
+    }
 
     public static boolean addListener(Listener<Generator> listener, Event eventType) {
         return listeners.addListener(listener, eventType);
@@ -233,32 +303,15 @@ public class Generator implements Comparable<Generator> {
         return listeners.removeListener(listener, eventType);
     }
 
-    /**
-     * the owner of node start mining
-     * @param secretPhrase
-     * @return
-     */
-    public static Generator ownerMining(String secretPhrase) {
-        return startMining(secretPhrase,true);
-    }
 
-    /**
-     * normal accountS start mining
-     * @param secretPhrase
-     * @return
-     */
     public static Generator startMining(String secretPhrase) {
-        return startMining(secretPhrase,false);
-    }
-
-    private static Generator startMining(String secretPhrase, boolean isOwner) {
+        if(StringUtils.isEmpty(secretPhrase)) return null;
+        
+        boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
         // if miner is not the owner of the node
-        if(!isOwner) {
-            if(!Peers.isOpenService(Peer.Service.MINER)) {
-                throw new RuntimeException("the proxy mint service of this node isn't open, can't allow miners to mining!");
-            }else if(generators.size() >= MAX_MINERS) {
-                throw new RuntimeException("the limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
-            }
+        if(!isOwner && generators.size() >= MAX_MINERS) {
+            throw new RuntimeException("the limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
+            
 //            long accountId = Account.getId(secretPhrase);
 //            if(!PocProcessorImpl.isHubBind(accountId)) {
 //                Logger.logInfoMessage("Account[id=" + accountId  + "] is not be bind to hub");
@@ -320,7 +373,16 @@ public class Generator implements Comparable<Generator> {
     public static Collection<Generator> getAllGenerators() {
         return allGenerators;
     }
-
+    
+    public static boolean containMiner(long minerId){
+        for(Generator generator : allGenerators) {
+            if(generator.accountId == minerId) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public static List<Generator> getSortedMiners() {
         List<Generator> forgers = sortedMiners;
         return forgers == null ? Collections.emptyList() : forgers;
@@ -357,10 +419,10 @@ public class Generator implements Comparable<Generator> {
     public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
-            Logger.logDebugMessage("this generator missing the generation turn because the elapsed time <=0");
+            Logger.logDebugMessage("verify hit failed caused by this generator missing the generation turn because the elapsed time[%d] <=0", elapsedTime);
             return false;
         }else if(elapsedTime < Constants.getBlockGapSeconds()){
-            Logger.logDebugMessage("this generator is in the block gap because the elapsed time < block gap[" + Constants.getBlockGapSeconds() + "]");
+            Logger.logDebugMessage("verify hit failed caused by this generator's elapsed time[%d] is in the block gap[%d]", elapsedTime,Constants.getBlockGapSeconds() );
             return false;
         }
         
@@ -368,18 +430,14 @@ public class Generator implements Comparable<Generator> {
         BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - Constants.getBlockGapSeconds() - 1));
         BigInteger target = prevTarget.add(effectiveBaseTarget);
         // check the elapsed time(in second) after previous block generated
-        boolean elapsed = Constants.isTestnetOrDevnet() ? elapsedTime > 300 : elapsedTime > 3600;
-        return hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
+        boolean elapsed = elapsedTime > Constants.getBlockGapSeconds();
         
-//        BigInteger effectiveBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget()).multiply(effectiveBalance);
-//        BigInteger prevTarget = effectiveBaseTarget.multiply(BigInteger.valueOf(elapsedTime - 421));
-//        BigInteger target = prevTarget.add(effectiveBaseTarget);
-//        return hit.compareTo(target) < 0
-//                && (previousBlock.getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_8
-//                || hit.compareTo(prevTarget) >= 0
-////                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 3600)
-//                || (Constants.isTestnet ? elapsedTime > 300 : elapsedTime > 300)
-//                || Constants.isOffline);
+        // 3 right situations: a) last hit < current hit < current target b) this block is elapsed c) in offline mode
+        boolean validHit = hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
+        if(!validHit) {
+            Logger.logDebugMessage("verify hit failed[hit=%d, target=[%d], previous target=[%d], elapsed time=%d]",hit, target,prevTarget, elapsedTime);
+        }
+        return validHit;
     }
 
     public static boolean allowsFakeMining(byte[] publicKey) {
@@ -421,6 +479,7 @@ public class Generator implements Comparable<Generator> {
 
 
     protected long accountId;
+    protected String rsAddress;
     protected byte[] publicKey;
     protected volatile long hitTime;
     protected volatile BigInteger hit;
@@ -437,6 +496,7 @@ public class Generator implements Comparable<Generator> {
         this.secretPhrase = secretPhrase;
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.accountId = Account.getId(publicKey);
+        this.rsAddress = Account.rsAccount(accountId);
         Conch.getBlockchain().updateLock();
         try {
             if (Conch.getBlockchain().getHeight() >= Constants.LAST_KNOWN_BLOCK) {
@@ -472,7 +532,7 @@ public class Generator implements Comparable<Generator> {
 
     @Override
     public String toString() {
-        return "Miner[id=" + Long.toUnsignedString(accountId) + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
+        return "Miner[id=" + Long.toUnsignedString(accountId) + ", rs=" + rsAddress + ", poc score=" + pocScore + "] deadline " + getDeadline() + " hit " + hitTime;
     }
 
     public JSONObject toJson(boolean loadPoolInfo) {
@@ -486,26 +546,52 @@ public class Generator implements Comparable<Generator> {
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
-        json.put("bindPeerType", PocProcessorImpl.bindPeerType(accountId).getName());
+        json.put("bindPeerType", Conch.getPocProcessor().bindPeerType(accountId).getName());
         if(loadPoolInfo) {
-            json.put("bindPeerType", SharderPoolProcessor.getPoolJSON(accountId));
+            json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
         }
         return json;
     }
-
+    
+    public static void updatePocScore(PocScore pocScore){
+        if(sortedMiners != null) {
+            synchronized (sortedMiners) {
+                sortedMiners.forEach(generator -> {
+                    if (pocScore.getAccountId() == generator.getAccountId()) {
+                        generator.detailedPocScore = pocScore.toJsonObject();
+                        generator.pocScore = pocScore.total();
+                    }
+                });
+            }
+        } 
+        
+        synchronized (activeGeneratorMp) {
+            if (activeGeneratorMp.containsKey(pocScore.getAccountId())) {
+                Generator generator = activeGeneratorMp.get(pocScore.getAccountId());
+                generator.detailedPocScore = pocScore.toJsonObject();
+                generator.pocScore = pocScore.total();
+            }
+        }
+        
+        
+    }
     /**
      * calculate the poc score and set the hit
      * @param lastBlock
      */
     protected void calAndSetHit(Block lastBlock) {
+        if(lastBlock == null) {
+            Logger.logWarningMessage("last block is null, can't calculate the poc score and hit of account[" + rsAddress + ",id=" + accountId + "]");
+            return;
+        }
+        
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
 
-        effectiveBalance = PocScore.calEffectiveBalance(account,lastHeight);
-
-        pocScore = PocProcessorImpl.instance.calPocScore(account,lastHeight);
-
-        detailedPocScore = PocProcessorImpl.instance.calDetailedPocScore(account, lastHeight);
+        PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(account,lastHeight);
+        effectiveBalance = pocScoreObj.getEffectiveBalance();
+        detailedPocScore = pocScoreObj.toJsonObject();
+        pocScore = pocScoreObj.total();
 
         if (pocScore.signum() <= 0) {
             hitTime = 0;
@@ -535,11 +621,16 @@ public class Generator implements Comparable<Generator> {
      * @throws BlockchainProcessor.GeneratorNotAcceptedException
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
+        if(!isBootNode && !Constants.isDevnet()) {
+            if(!isMintHeightReached(lastBlock)) return false;
+            if(!isValid(this.accountId)) return false;
+        }
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
             return false;
         }
+        
         int start = Conch.getEpochTime();
         while (true) {
             try {
@@ -574,54 +665,54 @@ public class Generator implements Comparable<Generator> {
     
     /** 3days */
     private static final int MAX_ACTIVE_GENERATOR_LIFECYCLE = 615;
+    
     /**
      * Return a list of generators for the next block.  The caller must hold the blockchain
      * read lock to ensure the integrity of the returned list.
-     *
+     * 
+     * Generators have 2 parts: history block generator and current node miner
+     * - org.conch.mint.Generator#init() add a listener to record block generator
+     * - get current node miner from sortedMiners
+     * 
      * @return List of generator account identifiers
      */
     public static List<ActiveGenerator> getNextGenerators() {
         List<ActiveGenerator> generatorList;
         Blockchain blockchain = Conch.getBlockchain();
         synchronized(activeGeneratorMp) {
+            // load history miners 
             if (!generatorsInitialized) {
                 Set<Long> generatorIds = BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE));
                 generatorIds.forEach(generatorId -> activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId)));
-                Logger.logDebugMessage(activeGeneratorMp.size() + " generators found");
-                
-                // Active generator listener for block pushed
-                Conch.getBlockchainProcessor().addListener(block -> {
-                    long generatorId = block.getGeneratorId();
-                    synchronized(activeGeneratorMp) {
-                        if (!activeGeneratorMp.containsKey(generatorId)) {
-                            activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId));
-                        }
-                    }
-                }, BlockchainProcessor.Event.BLOCK_PUSHED);
-                
                 generatorsInitialized = true;
             }
 
-            Block lastBlock = blockchain.getLastBlock();
-            List<ActiveGenerator> curMiners = new ArrayList<>();
-            //add active miners of local node 
-            for(Generator generator : sortedMiners){
-                if(activeGeneratorMp.containsKey(generator.getAccountId())) {
-                    continue;
+            // add active miners of local node 
+            List<ActiveGenerator> minersOnCurNode = new ArrayList<>();
+            if(sortedMiners != null && sortedMiners.size() > 0) {
+                for(Generator generator : sortedMiners){
+                    if(activeGeneratorMp.containsKey(generator.getAccountId())) {
+                        continue;
+                    }
+                    ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
+                    minersOnCurNode.add(activeMiner);
                 }
-                ActiveGenerator activeMiner = new ActiveGenerator(generator.accountId,generator.hitTime,generator.hit);
-                curMiners.add(activeMiner);
             }
 
+            // re-calculate poc score and hit according to last block
+            Block lastBlock = blockchain.getLastBlock();
             if (lastBlock.getId() != activeBlockId) {
                 activeBlockId = lastBlock.getId();
-                curMiners.forEach(generator -> generator.setLastBlock(lastBlock));
+                minersOnCurNode.forEach(generator -> generator.setLastBlock(lastBlock));
                 activeGeneratorMp.forEach((id, generator)-> generator.setLastBlock(lastBlock));
             }
 
-            generatorList = Lists.newArrayList(curMiners);
+            generatorList = Lists.newArrayList(minersOnCurNode);
             generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
+            if(Logger.printNow(Constants.Generator_getNextGenerators)){
+                Logger.logDebugMessage(generatorList.size() + " generators found");
+            }
         }
         return generatorList;
     }
@@ -633,15 +724,16 @@ public class Generator implements Comparable<Generator> {
     public static class ActiveGenerator extends Generator {
 
         public ActiveGenerator(long accountId) {
-            this.accountId = accountId;
-            this.hitTime = Long.MAX_VALUE;
-            this.hit = BigInteger.ZERO;;
+            this(accountId,Long.MAX_VALUE,BigInteger.ZERO);
         }
         
         public ActiveGenerator(long accountId, long hitTime, BigInteger hit) {
             this.accountId = accountId;
+            this.publicKey = Account.getPublicKey(this.accountId);
+            this.rsAddress = Account.rsAccount(this.accountId);
             this.hitTime = hitTime;
             this.hit = hit;
+            setLastBlock(Conch.getBlockchain().getLastBlock());
         }
 
         public long getEffectiveBalance() {
@@ -651,6 +743,8 @@ public class Generator implements Comparable<Generator> {
         public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {
+            if(lastBlock == null) return;
+            
             if (publicKey == null) {
                 publicKey = Account.getPublicKey(accountId);
                 if (publicKey == null) {
@@ -677,45 +771,102 @@ public class Generator implements Comparable<Generator> {
     }
 
 
-    // Hub setting
-    public static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
+    // Hub auto mining setting
+    private static final String HUB_BIND_ADDRESS = Conch.getStringProperty("sharder.HubBindAddress");
     public static final Boolean HUB_IS_BIND = Conch.getBooleanProperty("sharder.HubBind");
-    public static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
-    public static final String AUTO_MINT_ADDRESS = autoMintRs();
+    private static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
+    private static final String AUTO_MINT_ADDRESS = autoMintAccountRs();
     static boolean autoMintRunning = false;
-    static String autoMintRs(){
+
+    /**
+     * local auto mint rs account
+     *
+     * @return
+     */
+    private static String autoMintAccountRs() {
         String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
         return StringUtils.isEmpty(autoMintPR) ? null : Account.rsAccount(Account.getId(autoMintPR));
     }
+
+    private static long autoMintAccountId() {
+        String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+        return StringUtils.isEmpty(autoMintPR) ? 0 : Account.getId(autoMintPR);
+    }
+
+    /**
+     * force to open auto mining once
+     */
+    public static void forceOpenAutoMining(){
+        autoMintRunning = true;
+    }
+
+
+    /**
+     * check account is hub bound account or local auto mint account
+     *
+     * @param accountId
+     * @return
+     */
+    public static boolean isAutoMiningAccount(long accountId){
+        long bindAddrId = Account.rsAccountToId(Generator.HUB_BIND_ADDRESS);
+        if(bindAddrId != 0 && bindAddrId == accountId) return true;
+
+        long autoMintAccountId = autoMintAccountId();
+        if(autoMintAccountId != 0 && autoMintAccountId == accountId) return true;
+        
+        return false;
+    }
+
+    /**
+     * sequence: hub bound account > local auto mint account
+     *
+     * @return auto mint rs account
+     */
+    public static String getAutoMiningRS() {
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            return Account.rsAccount(HUB_BIND_PR);
+        }
+
+        return autoMintAccountRs();
+    }
+    
+    /**
+     * sequence: hub bound account > local auto mint account
+     *
+     * @return pr of auto mining account
+     */
+    private static String getAutoMiningPR() {
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            return HUB_BIND_PR;
+        }
+
+        return Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+    }
+
     /**
      * Auto mining of Hub or Miner, just execute once
+     * sequence: hub bind account > local auto mint account
      */
-    public static void autoMining(){
+    public static void checkOrStartAutoMining(){
         if(autoMintRunning) {
             return;
         }
         
-        if(Conch.getBlockchain().getHeight() < 0) {
-            Logger.logWarningMessage("!!! current height < 0, need syn blocks or wait genesis block be saved into db");
-            Logger.logWarningMessage("!!! you can restart the client after genesis block created");
-            return;
-        }
-
         // [Hub Miner] if owner bind the passphrase then start mine automatic
         if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
-            Generator hubGenerator = ownerMining(HUB_BIND_PR);
+            Generator hubGenerator = startMining(HUB_BIND_PR);
             if(hubGenerator != null && (hubGenerator.getAccountId() != Account.rsAccountToId(HUB_BIND_ADDRESS))) {
                 stopMining(HUB_BIND_PR);
-                Logger.logInfoMessage("Account" + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
+                Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
             } else {
-                Logger.logInfoMessage("Account " + HUB_BIND_ADDRESS + " started mining...");
+                Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " started mining...");
             }
         }else {
             // [Normal Miner] if owner set the passphrase of mint then start mining
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
-                Generator bindGenerator = ownerMining(autoMintPR.trim());
-                Logger.logInfoMessage("Account " + Account.rsAccount(bindGenerator.getAccountId()) + "started mining...");
+                Generator bindGenerator = startMining(autoMintPR.trim());
+                Logger.logInfoMessage("account " + Account.rsAccount(bindGenerator.getAccountId()) + " start to mining...");
             }
         }
 
@@ -724,5 +875,25 @@ public class Generator implements Comparable<Generator> {
             Peers.checkAndAddOpeningServices(Lists.newArrayList(Peer.Service.MINER));
         }
         autoMintRunning = true;
+    }
+
+    /**
+     * Stop auto mining of Hub or Miner
+     */
+    public static void stopAutoMining(){
+       String stopAccount = null;
+        if (HUB_IS_BIND && StringUtils.isNotEmpty(HUB_BIND_PR)) {
+            stopAccount = HUB_BIND_PR;
+        }else {
+            stopAccount = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
+        }
+
+        Logger.logInfoMessage("account " + stopAccount + " stop mining...");
+        stopMining(stopAccount);
+        autoMintRunning = false;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Account.rsAccount(2792673654720227339L));
     }
 }

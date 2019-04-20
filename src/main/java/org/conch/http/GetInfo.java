@@ -30,6 +30,8 @@ public class GetInfo extends APIServlet.APIRequestHandler{
         json.put("peerLoad",Peers.getMyPeerLoad().toJson());
         json.put("bestPeer",Peers.getBestPeerUri());
         json.put("uri","127.0.0.1:" + API.openAPIPort);
+//        json.put("bindRsAccount", Generator.checkOrStartAutoMining());
+//        json.put("services", "");
         JSONStreamAware response = JSON.prepare(json);
         return response;
     }

@@ -74,6 +74,11 @@ public class SystemInfo implements Serializable {
      */
     private String networkType;
 
+    /**
+     * 简单节点类型
+     */
+    private String nodeType;
+
     public String getIp() {
         return ip;
     }
@@ -189,6 +194,14 @@ public class SystemInfo implements Serializable {
     public SystemInfo setNetworkType(String networkType) {
         this.networkType = networkType;
         return this;
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType;
     }
 
     @Override

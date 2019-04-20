@@ -22,14 +22,12 @@
 package org.conch.http;
 
 import org.apache.commons.lang3.StringUtils;
-import org.conch.Conch;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 
 /**
  * @author jiangbubai

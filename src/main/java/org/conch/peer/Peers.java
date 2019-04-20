@@ -22,17 +22,18 @@
 package org.conch.peer;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
+import org.conch.mint.Generator;
 import org.conch.tx.Transaction;
 import org.conch.util.*;
 import org.eclipse.jetty.server.Connector;
@@ -89,7 +90,17 @@ public final class Peers {
     }
 
     public static boolean isUseNATService() {
-        return Conch.getUseNATService();
+        return Conch.isUseNAT();
+    }
+    
+    static Map<String,Object> natAndAddrMap = null;
+    public static Map<String,Object> getNatAndAddressMap(){
+        if(natAndAddrMap == null) {
+            natAndAddrMap = Maps.newHashMap();
+            natAndAddrMap.put("useNATService", Peers.isUseNATService());
+            natAndAddrMap.put("announcedAddress", Peers.getMyAddress());
+        }
+        return natAndAddrMap;
     }
 
     public static boolean isMyAddressAnnounced() {
@@ -126,8 +137,9 @@ public final class Peers {
     private static String bestPeer = "127.0.0.1";
     private static PeerLoad myLoad;
 
+    /** my peer info, it be generated in the static block **/
     private static final JSONObject myPeerInfo;
-    private static List<Peer.Service> myServices;
+    private static List<Peer.Service> myServices = Lists.newArrayList();
     private static volatile Peer.BlockchainState currentBlockchainState;
     private static volatile JSONStreamAware myPeerInfoRequest;
     private static volatile JSONStreamAware myPeerInfoResponse;
@@ -149,8 +161,58 @@ public final class Peers {
         return Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers") : Conch.getStringListProperty("sharder.defaultPeers");
     }
 
-    static {
+//    /**
+//     * this method must be called after #checkOpenServices()
+//     * @param service 
+//     * @return
+//     */
+//    public static boolean openService(Peer.Service service){ 
+//        for(Peer.Service myService : myServices){
+//            if(myService.ordinal() == service.ordinal()) {
+//                return true;
+//            }
+//        }
+//       return false;
+//    }
+    
+    private static List<Peer.Service> checkOpenServices() {
+        List<Peer.Service> servicesList = Lists.newArrayList();
+        /** basic infos **/
+        if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
+            servicesList.add(Peer.Service.HALLMARK);
+        }
 
+        /** apis of my peer **/
+        if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
+            servicesList.add(Peer.Service.PRUNABLE);
+        }
+        if (API.openAPIPort > 0) {
+            servicesList.add(Peer.Service.API);
+        }
+        if (API.openAPISSLPort > 0) {
+            servicesList.add(Peer.Service.API_SSL);
+        }
+
+        if ((API.openAPIPort > 0 || API.openAPISSLPort > 0) && API.apiServerCORS) {
+            servicesList.add(Peer.Service.CORS);
+        }
+
+        /** services of my peer **/
+        // Add Business API service
+        if (enableBizAPIs) {
+            servicesList.add(Peer.Service.BAPI);
+        }
+        // Add Storage service
+        if (enableStorage) {
+            servicesList.add(Peer.Service.STORAGE);
+        }
+        return servicesList;
+    }
+    
+    /**
+     * generate my peer info in static block to ake sure the final params is right
+     */
+    static {
         String platform = Conch.getStringProperty("sharder.myPlatform", System.getProperty("os.name") + " " + System.getProperty("os.arch"));
         if (platform.length() > MAX_PLATFORM_LENGTH) {
             platform = platform.substring(0, MAX_PLATFORM_LENGTH);
@@ -225,7 +287,9 @@ public final class Peers {
             }
         }
         List<Peer.Service> servicesList = new ArrayList<>();
-        JSONObject json = new JSONObject();
+        JSONObject myPeerInfoJson = new JSONObject();
+
+        /** announced address and host of my peer **/
         if (Conch.getMyAddress() != null) {
             try {
                 URI uri = new URI("http://" + Conch.getMyAddress());
@@ -245,33 +309,19 @@ public final class Peers {
                 if (announcedAddress == null || announcedAddress.length() > MAX_ANNOUNCED_ADDRESS_LENGTH) {
                     throw new RuntimeException("Invalid announced address length: " + announcedAddress);
                 }
-                json.put("announcedAddress", announcedAddress);
+                myPeerInfoJson.put("announcedAddress", announcedAddress);
             } catch (URISyntaxException e) {
                 Logger.logMessage("Your announce address is invalid: " + Conch.getMyAddress());
                 throw new RuntimeException(e.toString(), e);
             }
         }
-        if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
-            json.put("hallmark", Peers.myHallmark);
-            servicesList.add(Peer.Service.HALLMARK);
-        }
-        json.put("useNATService", Conch.getUseNATService());
-        json.put("application", Conch.APPLICATION);
-        json.put("version", Conch.VERSION);
-        json.put("platform", Peers.myPlatform);
-        json.put("shareAddress", Peers.shareMyAddress);
-        if (!Constants.ENABLE_PRUNING && Constants.INCLUDE_EXPIRED_PRUNABLE) {
-            servicesList.add(Peer.Service.PRUNABLE);
-        }
-        if (API.openAPIPort > 0) {
-            json.put("apiPort", API.openAPIPort);
-            servicesList.add(Peer.Service.API);
-        }
-        if (API.openAPISSLPort > 0) {
-            json.put("apiSSLPort", API.openAPISSLPort);
-            servicesList.add(Peer.Service.API_SSL);
-        }
 
+        /** basic infos **/
+        myPeerInfoJson.put("useNATService", Conch.isUseNAT());
+        myPeerInfoJson.put("application", Conch.APPLICATION);
+        myPeerInfoJson.put("version", Conch.VERSION);
+        myPeerInfoJson.put("platform", Peers.myPlatform);
+        myPeerInfoJson.put("shareAddress", Peers.shareMyAddress);
         if (API.openAPIPort > 0 || API.openAPISSLPort > 0) {
             EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
@@ -288,40 +338,49 @@ public final class Peers {
                     }
                 }
             });
-            json.put("disabledAPIs", APIEnum.enumSetToBase64String(disabledAPISet));
-
-            json.put("apiServerIdleTimeout", API.apiServerIdleTimeout);
-
-            if (API.apiServerCORS) {
-                servicesList.add(Peer.Service.CORS);
-            }
+            myPeerInfoJson.put("disabledAPIs", APIEnum.enumSetToBase64String(disabledAPISet));
+            myPeerInfoJson.put("apiServerIdleTimeout", API.apiServerIdleTimeout);
         }
 
-        // Add Business API service
-        if (enableBizAPIs) {
-            json.put("enableBizAPIs", true);
-            servicesList.add(Peer.Service.BAPI);
+        /** apis of my peer **/
+        myServices = checkOpenServices();
+        
+        if(myServices.contains(Peer.Service.HALLMARK)) {
+            myPeerInfoJson.put("hallmark", Peers.myHallmark);
         }
-
-        // Add Storage service
-        if (enableStorage) {
-            json.put("enableStorage", true);
-            servicesList.add(Peer.Service.STORAGE);
+        
+        if(myServices.contains(Peer.Service.API)) {
+            myPeerInfoJson.put("apiPort", API.openAPIPort);
         }
+        
+        if(myServices.contains(Peer.Service.API_SSL)) {
+            myPeerInfoJson.put("apiSSLPort", API.openAPISSLPort);
+        }
+        
+        if(myServices.contains(Peer.Service.BAPI)) {
+            myPeerInfoJson.put("enableBizAPIs", true);
+        }
+        
+        if(myServices.contains(Peer.Service.STORAGE)) {
+            myPeerInfoJson.put("enableStorage", true);
+        }
+  
+        myPeerInfoJson.put("services", Long.toUnsignedString(getServicesInLong()));
 
-        myServices = servicesList;
-        json.put("services", Long.toUnsignedString(getServicesInLong()));
-        Logger.logDebugMessage("My peer info:\n" + json.toJSONString());
+        /** mint accounts of my peer **/
+        String autoMintRs = Generator.getAutoMiningRS();
+        if (StringUtils.isNotEmpty(autoMintRs)) myPeerInfoJson.put("bindRsAccount", autoMintRs);
 
-        myPeerInfo = json;
+        /** running mode of my peer **/
+        myPeerInfoJson.put("runningMode", Conch.runningMode.getName());
 
+        Logger.logDebugMessage("My peer info:\n" + myPeerInfoJson.toJSONString());
+        myPeerInfo = myPeerInfoJson;
         myLoad = new PeerLoad("127.0.0.1", API.openAPIPort, -1);
 
-
         final List<String> defaultPeers = loadPeersSetting();
-
         wellKnownPeers = parseWellknownPeers();
-        
+
         List<String> knownBlacklistedPeersList = Conch.getStringListProperty("sharder.knownBlacklistedPeers");
         if (knownBlacklistedPeersList.isEmpty()) {
             knownBlacklistedPeers = Collections.emptySet();
@@ -421,11 +480,18 @@ public final class Peers {
         
         List<String> hosts = Lists.newArrayList();
         for(String peerStr : peers){
-            String[] peerArray = peerStr.split("#");
-            String host = peerArray[0];
-            String type = peerArray[1];
-            hosts.add(host);
-            //TODO[valid-node] consider add these wellknown peers into certified node list
+            String host = peerStr;
+            String type;
+            if(StringUtils.isNotEmpty(peerStr) && peerStr.contains("#")){
+                String[] peerArray = peerStr.split("#");
+                host = peerArray[0];
+                type = peerArray[1];
+            }
+            
+            if(StringUtils.isNotEmpty(host)) {
+                hosts.add(host);
+                //TODO[valid-node] consider add these wellknown peers into certified node list
+            }
         }
         return Collections.unmodifiableList(hosts);
     }
@@ -731,7 +797,6 @@ public final class Peers {
                 Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS", t);
                 System.exit(1);
             }
-
         }
 
         private void updateSavedPeers() {
@@ -798,86 +863,89 @@ public final class Peers {
             UrlManager.PEERS_LIST_LOCAL,
             UrlManager.PEERS_LIST_PATH
     );
+    
+    public static boolean synCertifiedPeers() throws Exception {
+        String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
+        com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
+        if (StringUtils.isEmpty(peersStr)) {
+            Logger.logInfoMessage("ge peer list from %s is null, no needs to get peer info", SC_PEERS_API);
+            return false;
+        } else {
+            if (peersStr.startsWith(Constants.BRACKET)) {
+                peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
+            } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
+                peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
+            }
+        }
 
-    private static final Runnable GET_HUB_PEER_THREAD =
-            () -> {
-                try {
-                    String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
-                    com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
-                    if (StringUtils.isEmpty(peersStr)) {
-                        Logger.logInfoMessage("peer list is null, wait for next round");
-                        return;
-                    } else {
-                        if (peersStr.startsWith(Constants.BRACKET)) {
-                            peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
-                        } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
-                            peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
-                        }
-                    }
+        String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size " + peerArrayJson.size() + " peers\n\r";
+        Iterator iterator = peerArrayJson.iterator();
+        while (iterator.hasNext()) {
+            com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
 
-                    String detail = "\n\rget peer info and update hub peer info [size=" + peerArrayJson.size() + "]\n\r==================>\n\r";
-                    Iterator iterator = peerArrayJson.iterator();
-                    while (iterator.hasNext()) {
-                        com.alibaba.fastjson.JSONObject peerJson =
-                            (com.alibaba.fastjson.JSONObject) iterator.next();
+            String host = peerJson.getString("announcedAddress");
+            if (StringUtils.isEmpty(host)) {
+                host = peerJson.getString("address");
+            }
 
-                        String host = peerJson.getString("announcedAddress");
-                        if (StringUtils.isEmpty(host)) {
-                            host = peerJson.getString("address");
-                        }
+            String bindAddress = peerJson.getString("bindRs");
+            Peer peer = Peers.getPeer(host, true);
+            if (StringUtils.isEmpty(bindAddress)) {
+                detail += "can't process peer[host=" + host + "] which rs address is null\n\r";
+                continue;
+            }
 
-                        String bindAddress = peerJson.getString("bindRs");
-                        Peer peer = Peers.getPeer(host);
-                        if (StringUtils.isEmpty(bindAddress)) {
-                            detail += "can't process hub peer[host=" + host + "] which rs address is null\n\r";
-                            continue;
-                        }
-
-                        if (peer == null) {
-                            peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
-                            if (peer != null) {
-                                Peers.addPeer(peer, host);
-                                Peers.connectPeer(peer);
-                            }
-                            peer = Peers.getPeer(host);
-                            detail += "create a new hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
-                        } else {
-                            detail += "update a hub peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
-                        }
-                        peer.setBindRsAccount(bindAddress);
-                    }
-                    detail += "<================== hub peer info updated";
-                    Logger.logInfoMessage(detail);
-                } catch (Exception e) {
-                    Logger.logErrorMessage("syn valid node thread interrupted, wait for next round", e);
-                } catch (Throwable t) {
-                    Logger.logErrorMessage(
-                            "CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-                    System.exit(1);
+            if (peer == null) {
+                peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
+                if (peer != null) {
+                    Peers.addPeer(peer, host);
+                    Peers.connectPeer(peer);
                 }
-            };
+                peer = Peers.getPeer(host, true);
+                detail += "create a new certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+            } else {
+                detail += "update a certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+            }
+
+            if(peer != null) {
+                peer.setBindRsAccount(bindAddress);
+                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
+            }
+        }
+        detail += "<================== certified peer info updated";
+        Logger.logDebugMessage(detail);
+        return true;
+    }
+
+    /**
+     * get and update the local bound rs account of certified peer
+     */
+    private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
+        try {
+            
+            synCertifiedPeers();
+            
+        } catch (Exception e) {
+            Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
     public static volatile boolean hasMyAddress = StringUtils.isNotEmpty(Conch.getMyAddress());
-    public static final int DEFAULT_TX_CHECKING_COUNT = 10;
+    public static final int DEFAULT_TX_CHECKING_COUNT = 40;
     private static final Runnable HARDWARE_TESTING_THREAD = () -> {
         if (!sysInitialed && hasMyAddress) {
-            Logger.logInfoMessage("Wait Conch initial to test the hardware performance, sleep 30S...");
-            try {
-                Thread.sleep(30 * 1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Logger.logInfoMessage("Wait Conch initialized to test the hardware performance, sleep 60S...");
+            return;
         }
 
         if (!hasMyAddress) {
-            Logger.logInfoMessage("Current node not initialized yet, sleep 1H...");
-            try {
-                Thread.sleep(3600 * 1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Logger.logInfoMessage("Current node configuration not initialized yet, sleep 60S...");
+            return;
         }
 
         if (hardwareTested) {
@@ -917,13 +985,12 @@ public final class Peers {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
             }
         }
-
-        ThreadPool.scheduleThread("GetHubPeer", Peers.GET_HUB_PEER_THREAD, 30, TimeUnit.MINUTES);
     }
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 30);
+        ThreadPool.scheduleThread("GetCertifiedPeer", Peers.GET_CERTIFIED_PEER_THREAD, 1, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 60);
     }
 
     public static void shutdown() {
@@ -999,11 +1066,22 @@ public final class Peers {
         return result;
     }
 
-    public static Peer getPeer(String host) {
-
-        return peers.get(host);
+    public static Peer getPeer(String host, boolean checkAnnouncedAddr) {
+        if(!checkAnnouncedAddr) {
+            return peers.get(host);
+        }
+        
+        if(peers.containsKey(host)) return peers.get(host);
+        
+        // check by announced address
+        for(PeerImpl peer : peers.values()){
+            if(host.equals(peer.getAnnouncedAddress())){
+                return peer;
+            }
+        }
+        return null;
     }
-
+    
     public static List<Peer> getInboundPeers() {
         return getPeers(Peer::isInbound);
     }
@@ -1030,6 +1108,7 @@ public final class Peers {
         if (host != null && (peer = peers.get(host)) != null) {
             return peer;
         }
+        
         try {
             URI uri = new URI("http://" + announcedAddress);
             host = uri.getHost();
@@ -1130,22 +1209,34 @@ public final class Peers {
             Logger.logDebugMessage(networkDetail, "ignoring");
         }
     }
-
-
+    
+    private static boolean hostSameAsAddress(Peer peer){
+        if(peer == null) return false;
+        if(StringUtils.isEmpty(peer.getAnnouncedAddress())) return false;
+        if(StringUtils.isEmpty(peer.getHost())) return false;
+        
+        return StringUtils.equalsIgnoreCase(peer.getAnnouncedAddress(), peer.getHost());
+    }
+    
     static void setAnnouncedAddress(PeerImpl peer, String newAnnouncedAddress) {
         Peer oldPeer = peers.get(peer.getHost());
         if (oldPeer != null) {
             String oldAnnouncedAddress = oldPeer.getAnnouncedAddress();
             if (oldAnnouncedAddress != null && !oldAnnouncedAddress.equals(newAnnouncedAddress)) {
-                Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
+                if(Logger.printNow(Peers.class.getName())) {
+                    Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
+                }
                 selfAnnouncedAddresses.remove(oldAnnouncedAddress);
             }
         }
+        
         if (newAnnouncedAddress != null) {
             String oldHost = selfAnnouncedAddresses.put(newAnnouncedAddress, peer.getHost());
             if (oldHost != null && !peer.getHost().equals(oldHost)) {
-                Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
-                        + ", removing old peer " + oldHost);
+                if(Logger.printNow(Peers.class.getName(), 200)){
+                    Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
+                            + ", removing old peer " + oldHost);
+                }
                 oldPeer = peers.remove(oldHost);
                 if (oldPeer != null) {
                     Peers.notifyListeners(oldPeer, Event.REMOVE);
@@ -1154,7 +1245,7 @@ public final class Peers {
         }
         peer.setAnnouncedAddress(newAnnouncedAddress);
     }
-
+    
     public static boolean addPeer(Peer peer, String newAnnouncedAddress) {
         setAnnouncedAddress((PeerImpl) peer, newAnnouncedAddress.toLowerCase());
         return addPeer(peer);
@@ -1456,13 +1547,8 @@ public final class Peers {
         return services;
     }
 
-    private static void checkBlockchainState() {
-        Peer.BlockchainState state = Constants.isLightClient ? Peer.BlockchainState.LIGHT_CLIENT :
-                //区块链处于下载中 or 区块链中最后一个块的创建时间小于创世块(2013-10-24 12:00:00)的时间 -> 下载中
-                (Conch.getBlockchainProcessor().isDownloading() || Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600) ? Peer.BlockchainState.DOWNLOADING :
-                        //区块链中最后一个块的基础难度除以基础难度大于10并且不是测试网络 -> 分叉 : 最新的
-                        (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10 && !Constants.isTestnet()) ? Peer.BlockchainState.FORK :
-                                Peer.BlockchainState.UP_TO_DATE;
+    private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
+        // generate my peer details and update state
         if (state != currentBlockchainState) {
             JSONObject json = new JSONObject(myPeerInfo);
             json.put("blockchainState", state.ordinal());
@@ -1470,23 +1556,42 @@ public final class Peers {
             myPeerInfoResponse = JSON.prepare(json);
             json.put("requestType", "getInfo");
             json.put("bestPeer", getBestPeerUri());
+            json.put("bestPeer", getBestPeerUri());
             myPeerInfoRequest = JSON.prepareRequest(json);
             currentBlockchainState = state;
         }
     }
 
+    /**
+     * check current block chain status and generate my peer info request.
+     * peer info request used to tell my peer info to other peers when connected
+     *
+     */
+    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest() {
+        Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
+        if(!Constants.isLightClient) {
+            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
+            boolean isBiggerTarget = Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10;
+            
+            state = (Conch.getBlockchainProcessor().isDownloading() || isObsoleteTime) ? Peer.BlockchainState.DOWNLOADING :
+                    (isBiggerTarget && !Constants.isTestnet()) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
+        }
+        
+        generateMyPeerInfoRequest(state);
+    }
+
     public static JSONStreamAware getMyPeerInfoRequest() {
-        checkBlockchainState();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest();
         return myPeerInfoRequest;
     }
 
     public static JSONStreamAware getMyPeerInfoResponse() {
-        checkBlockchainState();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest();
         return myPeerInfoResponse;
     }
 
     public static Peer.BlockchainState getMyBlockchainState() {
-        checkBlockchainState();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest();
         return currentBlockchainState;
     }
 
@@ -1521,4 +1626,5 @@ public final class Peers {
     public static boolean isOpenService(Peer.Service service) {
         return myServices.contains(service);
     }
+
 }

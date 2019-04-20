@@ -240,7 +240,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
         try {
             try {
-                if (Conch.getBlockchainProcessor().isDownloading() && ! testUnconfirmedTransactions) {
+                if (Conch.getBlockchainProcessor().isDownloading() 
+                        && ! testUnconfirmedTransactions) {
                     return;
                 }
                 Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
@@ -266,7 +267,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 }
                 try {
                     processPeerTransactions(transactionsData);
-                } catch (ConchException.ValidationException |RuntimeException e) {
+                } catch (ConchException.ValidationException | RuntimeException e) {
                     peer.blacklist(e);
                 }
             } catch (Exception e) {
@@ -644,7 +645,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     continue;
                 }
                 
-                if (getUnconfirmedTransaction(transaction.getDbKey()) != null || TransactionDb.hasTransaction(transaction.getId())) {
+                if (getUnconfirmedTransaction(transaction.getDbKey()) != null 
+                        || TransactionDb.hasTransaction(transaction.getId())) {
                     continue;
                 }
                 transaction.validate();
@@ -705,8 +707,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         try {
             try {
                 Db.db.beginTransaction();
-                if (Conch.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
-                    throw new ConchException.NotCurrentlyValidException("Blockchain not ready to accept transactions");
+                if (Conch.getBlockchain().getHeight() < Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
+                    throw new ConchException.NotCurrentlyValidException(String.format("Blockchain not ready to accept transactions caused by current height %d is less than %d", Conch.getBlockchain().getHeight() , Constants.LAST_KNOWN_BLOCK));
                 }
 
                 if (getUnconfirmedTransaction(transaction.getDbKey()) != null || TransactionDb.hasTransaction(transaction.getId())) {

@@ -22,8 +22,7 @@
             </el-col>
 
             <el-col :span="24" class="sharder_style">
-                <img src="../../assets/img/logo.svg"/><br/>
-                <a>Sharder</a>
+                <img src="../../assets/img/logo.svg"/>
             </el-col>
 
            <div class="content_operation">

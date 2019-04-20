@@ -21,9 +21,18 @@
 
 package org.conch.http;
 
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.account.Account;
+import org.conch.common.Constants;
+import org.conch.common.UrlManager;
+import org.conch.mint.Generator;
+import org.conch.peer.Peer;
 import org.conch.util.Logger;
+import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -32,6 +41,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -39,16 +49,19 @@ import java.util.Properties;
 
 /**
  * @author jiangbubai
+ * @date 2019-04-19 updated by Ben
  */
 public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
     static final GetUserConfig INSTANCE = new GetUserConfig();
     static final List<String> EXCLUDE_KEYS = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
+
     private GetUserConfig() {
         super(new APITag[]{APITag.INFO});
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
 
         JSONObject response = new JSONObject();
@@ -61,9 +74,6 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 return response;
             }
             input = new FileInputStream(filename);
-            if (input == null) {
-                return response;
-            }
             prop.load(input);
             Enumeration<?> e = prop.propertyNames();
             while (e.hasMoreElements()) {
@@ -74,8 +84,38 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                 String value = prop.getProperty(key);
                 response.put(key, value);
             }
-            // TODO read node serial number
-            // TODO get node type from operating system via serial number
+            
+            // get node type
+            Conch.nodeType = Peer.Type.NORMAL.getSimpleName();
+            String getFrom = "default";
+            // when os isn't windows and mac, it should be hub/box or server node
+            if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
+                String filePath = ".hubSetting/.tempCache/.sysCache";
+                String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
+                File tempFile = new File(userHome);
+
+                // hub node check if serial number exist
+                if (tempFile.exists()) {
+                    String num = FileUtils.readFileToString(tempFile, "UTF-8");
+                    Conch.nodeType = this.getTypeSimpleName(num);
+
+                    if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
+                         Conch.serialNum= num.replaceAll("(\\r\\n|\\n)", "");
+                        response.put("sharder.xxx", Conch.serialNum);
+                        Logger.logDebugMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
+                    }
+                    getFrom = "serial number";
+                }
+            }else {
+                Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
+                if(type != null) {
+                    Conch.nodeType = type.getSimpleName();
+                    getFrom = "certified peer map";
+                } 
+            }
+            
+            Logger.logDebugMessage("current os is %s and its node type get from %s is %s", SystemUtils.OS_NAME, getFrom, Conch.nodeType);
+            response.put("sharder.NodeType", Conch.nodeType);
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
@@ -92,6 +132,46 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
         return response;
     }
 
+    /**
+     * get simple name according to serial num, default type is node if there is no num exist.
+     *
+     * @param num serial number
+     * @return Peer Type Simple Name
+     * @throws IOException
+     */
+    private String getTypeSimpleName(String num) throws IOException {
+
+        if (StringUtils.isEmpty(num)) {
+            return Peer.Type.NORMAL.getSimpleName();
+        }
+
+        String url = UrlManager.getFoundationUrl(
+                UrlManager.GET_HARDWARE_TYPE_EOLINKER,
+                UrlManager.GET_HARDWARE_TYPE_LOCAL,
+                UrlManager.GET_HARDWARE_TYPE_PATH
+        );
+
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
+                .get()
+                .addPathParam("serialNum", num.replaceAll("(\\r\\n|\\n)", ""))
+                .request();
+        com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
+
+        Integer nodeTypeCode = Peer.Type.HUB.getSimpleCode();
+        if (result.getBoolean(Constants.SUCCESS)) {
+            com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
+            if (data == null || data.getInteger("type") == null) {
+                return Peer.Type.NORMAL.getSimpleName();
+            }
+
+            nodeTypeCode = data.getInteger("type");
+        } else {
+            Logger.logWarningMessage(String.format("failed to get node type by serial number[%s]!", num));
+        }
+
+        return Peer.Type.getSimpleName(nodeTypeCode);
+    }
+    
     @Override
     protected boolean allowRequiredBlockParameters() {
         return false;
@@ -101,5 +181,4 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
-
 }
