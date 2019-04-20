@@ -199,4 +199,12 @@ public class FileUtil {
             Logger.logErrorMessage("copy and replace files error", e);
         }
     }
+    
+    protected void incrementalUpdate(){
+        
+    }
+    
+    protected void fullUpdate(){
+        
+    }
 }

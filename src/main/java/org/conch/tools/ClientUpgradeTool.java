@@ -18,6 +18,11 @@ import java.net.URL;
  * @since 2019-01-29
  */
 public class ClientUpgradeTool {
+    
+    enum Mode {
+        FULL,
+        INCREMENTAL
+    }
 
     public static Thread fetchUpgradePackageThread(String version, Boolean restart) {
         Thread fetchUpgradePackageThread = new Thread(
@@ -58,6 +63,7 @@ public class ClientUpgradeTool {
     }
 
     public static String fetchLastHubVersion() throws IOException {
+        //TODO change to version object
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(UrlManager.getHubLatestVersionUrl()).get().request();
         return Convert.nullToEmpty(response.getContent()).replaceAll("[\r\n]", "");
     }
