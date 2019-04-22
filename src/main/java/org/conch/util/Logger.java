@@ -142,12 +142,14 @@ public final class Logger {
                 throw new RuntimeException("Error loading logging properties", e);
             }
         }
+
+        Class loggerClass = defaultPropertieFile != null ? Conch.class : Logger.class;
+        log = org.slf4j.LoggerFactory.getLogger(loggerClass);
         
         enableStackTraces = (defaultPropertieFile != null) && Conch.getBooleanProperty("sharder.enableStackTraces");
         enableLogTraceback = (defaultPropertieFile != null) && Conch.getBooleanProperty("sharder.enableLogTraceback");
         
-        Class loggerClass = defaultPropertieFile != null ? Conch.class : Logger.class;
-        log = org.slf4j.LoggerFactory.getLogger(loggerClass);
+  
         logInfoMessage("logging enabled");
     }
 
