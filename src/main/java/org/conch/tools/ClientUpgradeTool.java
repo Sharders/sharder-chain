@@ -1,6 +1,7 @@
 package org.conch.tools;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -28,20 +29,6 @@ public class ClientUpgradeTool {
     
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
-    }
-    
-    static class CosVer {
-        String version;
-        String updateTime;
-        String mode = VER_MODE_INCREMENTAL;
-        String bakMode = BAK_MODE_DELETE;
-
-        public CosVer(String version, String mode, String updateTime, String bakMode) {
-            this.version = version;
-            this.mode = mode;
-            this.updateTime = updateTime;
-            this.bakMode = bakMode;
-        }
     }
     
     
@@ -86,10 +73,15 @@ public class ClientUpgradeTool {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);
         }
     }
-    
-    public static CosVer fetchLastCosVersion() throws IOException {
+
+    /**
+     * {"version":"0.1.3","mode":"incremental","bakMode":"delete","updateTime":"2019-04-22"}
+     * 
+     * @return
+     * @throws IOException
+     */
+    public static JSONObject fetchLastCosVersion() throws IOException {
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(UrlManager.getHubLatestVersionUrl()).get().request();
-        return JSON.parseObject(response.getContent(), CosVer.class);
-        // return Convert.nullToEmpty(cosVer.getString(VER_KEY_VERSION)).replaceAll("[\r\n]", "");
+        return JSON.parseObject(response.getContent());
     }
 }
