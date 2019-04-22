@@ -249,9 +249,8 @@ public final class PhasingPoll extends AbstractPoll {
             pstmt.setInt(1, height);
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -276,9 +275,8 @@ public final class PhasingPoll extends AbstractPoll {
 
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -309,9 +307,8 @@ public final class PhasingPoll extends AbstractPoll {
 
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -333,19 +330,20 @@ public final class PhasingPoll extends AbstractPoll {
 
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
     public static int getAccountPhasedTransactionCount(long accountId) {
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction, phasing_poll " +
-                     " LEFT JOIN phasing_poll_result ON phasing_poll.id = phasing_poll_result.id " +
-                     " WHERE phasing_poll.id = transaction.id AND (transaction.sender_id = ? OR transaction.recipient_id = ?) " +
-                     " AND phasing_poll_result.id IS NULL " +
-                     " AND phasing_poll.finish_height > ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction, phasing_poll " +
+                    " LEFT JOIN phasing_poll_result ON phasing_poll.id = phasing_poll_result.id " +
+                    " WHERE phasing_poll.id = transaction.id AND (transaction.sender_id = ? OR transaction.recipient_id = ?) " +
+                    " AND phasing_poll_result.id IS NULL " +
+                    " AND phasing_poll.finish_height > ?");
             int i = 0;
             pstmt.setLong(++i, accountId);
             pstmt.setLong(++i, accountId);
@@ -356,13 +354,17 @@ public final class PhasingPoll extends AbstractPoll {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
     public static List<? extends Transaction> getLinkedPhasedTransactions(byte[] linkedTransactionFullHash) {
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT transaction_id FROM phasing_poll_linked_transaction " +
-                     "WHERE linked_transaction_id = ? AND linked_full_hash = ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT transaction_id FROM phasing_poll_linked_transaction " +
+                    "WHERE linked_transaction_id = ? AND linked_full_hash = ?");
             int i = 0;
             pstmt.setLong(++i, Convert.fullHashToId(linkedTransactionFullHash));
             pstmt.setBytes(++i, linkedTransactionFullHash);
@@ -375,6 +377,8 @@ public final class PhasingPoll extends AbstractPoll {
             return transactions;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 

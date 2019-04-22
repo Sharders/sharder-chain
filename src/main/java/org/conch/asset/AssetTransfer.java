@@ -98,9 +98,8 @@ public final class AssetTransfer {
             DbUtils.setLimits(++i, pstmt, from, to);
             return assetTransferTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -120,9 +119,8 @@ public final class AssetTransfer {
             DbUtils.setLimits(++i, pstmt, from, to);
             return assetTransferTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 

@@ -938,9 +938,8 @@ public final class Account {
             pstmt.setInt(++i, height);
             return accountLeaseTable.getManyBy(con, pstmt, true);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 

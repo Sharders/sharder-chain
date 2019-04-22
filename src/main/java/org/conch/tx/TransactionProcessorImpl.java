@@ -103,8 +103,6 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
-            }finally {
-                DbUtils.close(con);
             }
             super.rollback(height);
             unconfirmedDuplicates.clear();

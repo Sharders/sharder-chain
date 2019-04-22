@@ -89,9 +89,8 @@ public final class PrunableMessage {
             DbUtils.setLimits(++i, pstmt, from, to);
             return prunableMessageTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -111,9 +110,8 @@ public final class PrunableMessage {
             DbUtils.setLimits(++i, pstmt, from, to);
             return prunableMessageTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 

@@ -62,20 +62,28 @@ public final class GetAccountTxs extends APIServlet.APIRequestHandler {
         JSONArray transactions = new JSONArray();
         // one ture,one false
         if((!isFrom && isTo) || (isFrom && !isTo)){
-            try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getTransactions(accountId,isFrom,firstIndex, lastIndex)) {
+            DbIterator<? extends Transaction> iterator = null;
+            try {
+                iterator = Conch.getBlockchain().getTransactions(accountId,isFrom,firstIndex, lastIndex);
                 while (iterator.hasNext()) {
                     Transaction transaction = iterator.next();
                     transactions.add(JSONData.transaction(transaction, false));
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
         }else{
-            try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getTransactions(accountId, numberOfConfirmations,
-                    type, subtype, timestamp, false, false, false, firstIndex, lastIndex,
-                    false, false)) {
+            DbIterator<? extends Transaction> iterator = null;
+            try {
+                iterator = Conch.getBlockchain().getTransactions(accountId, numberOfConfirmations,
+                        type, subtype, timestamp, false, false, false, firstIndex, lastIndex,
+                        false, false);
                 while (iterator.hasNext()) {
                     Transaction transaction = iterator.next();
                     transactions.add(JSONData.transaction(transaction, false));
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
         }
 

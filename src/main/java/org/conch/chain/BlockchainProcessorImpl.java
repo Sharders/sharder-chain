@@ -1474,7 +1474,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (block.getId() == 0L || BlockDb.hasBlock(block.getId(), previousLastBlock.getHeight())) {
       throw new BlockNotAcceptedException("Duplicate block or invalid id", block);
     }
-    if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
+    if (!block.verifyGenerationSignature() && 
+            !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
       String errorMsg = "Generation signature verification failed, poc score is " + pocScoreObj.total() + " and block id is " + block.getId() + " at height " + (previousLastBlock.getHeight()+1);

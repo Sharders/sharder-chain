@@ -48,11 +48,15 @@ public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray blockIds = new JSONArray();
-        try (DbIterator<? extends Block> iterator = Conch.getBlockchain().getBlocks(accountId, timestamp, firstIndex, lastIndex)) {
+        DbIterator<? extends Block> iterator = null;
+        try {
+            iterator = Conch.getBlockchain().getBlocks(accountId, timestamp, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Block block = iterator.next();
                 blockIds.add(block.getStringId());
             }
+        }finally {
+            DbUtils.close(iterator);
         }
 
         JSONObject response = new JSONObject();

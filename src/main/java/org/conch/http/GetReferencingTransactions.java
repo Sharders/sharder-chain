@@ -24,6 +24,7 @@ package org.conch.http;
 import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.Transaction;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,11 +48,15 @@ public final class GetReferencingTransactions extends APIServlet.APIRequestHandl
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray transactions = new JSONArray();
-        try (DbIterator<? extends Transaction> iterator = Conch.getBlockchain().getReferencingTransactions(transactionId, firstIndex, lastIndex)) {
+        DbIterator<? extends Transaction> iterator = null;
+        try {
+            iterator = Conch.getBlockchain().getReferencingTransactions(transactionId, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Transaction transaction = iterator.next();
                 transactions.add(JSONData.transaction(transaction));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
 
         JSONObject response = new JSONObject();

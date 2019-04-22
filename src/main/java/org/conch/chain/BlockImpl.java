@@ -492,7 +492,7 @@ public final class BlockImpl implements Block {
             digest.update(previousBlock.generationSignature);
             generationSignatureHash = digest.digest(getGeneratorPublicKey());
             if (!Arrays.equals(generationSignature, generationSignatureHash)) {
-                Logger.logDebugMessage("current calculate generation signature is and get from previous bli");
+                Logger.logDebugMessage("current calculate generation signature of previous block is not same with previous block's generation signature");
                 return false;
             }
 

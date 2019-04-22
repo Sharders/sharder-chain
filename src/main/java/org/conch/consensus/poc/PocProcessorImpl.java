@@ -12,6 +12,7 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
@@ -275,14 +276,18 @@ public class PocProcessorImpl implements PocProcessor {
 //        int fromHeight = 0;
         int toHeight = BlockchainImpl.getInstance().getHeight();
         Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight , toHeight);
-        DbIterator<BlockImpl> blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
-        int count = 0;
-        for(BlockImpl block : blocks){
-          count += instance.pocSeriesTxProcess(block);
+        DbIterator<BlockImpl> blocks = null;
+        try{
+          blocks = BlockchainImpl.getInstance().getBlocks(fromHeight,toHeight);
+          int count = 0;
+          for(BlockImpl block : blocks){
+            count += instance.pocSeriesTxProcess(block);
+          }
+          Logger.logInfoMessage("old poc txs processed[from %d to %d] [processed size=%d]", fromHeight , toHeight, count);
+          oldPocTxsProcess = false;
+        }finally {
+          DbUtils.close(blocks);
         }
-
-        Logger.logInfoMessage("old poc txs processed[from %d to %d] [processed size=%d]", fromHeight , toHeight, count);
-        oldPocTxsProcess = false;
       }
       
     } catch (Exception e) {

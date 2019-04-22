@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainImpl;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
@@ -50,12 +51,19 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
         if (transactions == null) {
             transactions = new ArrayList<>();
         }
-        DbIterator<TransactionImpl> allTransactions = BlockchainImpl.getInstance().getAllTransactions();
-        while (allTransactions.hasNext()) {
-            transaction = allTransactions.next();
-            JSONObject transactionJson = JSONData.transaction(transaction, includePhasingResult);
-            transactions.add(transactionJson);
+
+        DbIterator<TransactionImpl> allTransactions = null;
+        try{
+            allTransactions = BlockchainImpl.getInstance().getAllTransactions();
+            while (allTransactions.hasNext()) {
+                transaction = allTransactions.next();
+                JSONObject transactionJson = JSONData.transaction(transaction, includePhasingResult);
+                transactions.add(transactionJson);
+            }
+        }finally {
+            DbUtils.close(allTransactions);
         }
+      
         return transactions;
     }
 

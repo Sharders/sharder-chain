@@ -47,11 +47,15 @@ public class GetVoterPhasedTransactions extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray transactions = new JSONArray();
-        try (DbIterator<? extends Transaction> iterator = PhasingPoll.getVoterPhasedTransactions(accountId, firstIndex, lastIndex)) {
+        DbIterator<? extends Transaction> iterator = null;
+        try {
+            iterator = PhasingPoll.getVoterPhasedTransactions(accountId, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Transaction transaction = iterator.next();
                 transactions.add(JSONData.transaction(transaction));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         JSONObject response = new JSONObject();
         response.put("transactions", transactions);

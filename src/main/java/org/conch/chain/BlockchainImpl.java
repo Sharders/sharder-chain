@@ -147,9 +147,8 @@ public final class BlockchainImpl implements Blockchain {
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id ASC");
             return getBlocks(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -191,9 +190,8 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getBlocks(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -234,10 +232,12 @@ public final class BlockchainImpl implements Blockchain {
             }
         }
         // Search the database
-        try (Connection con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block "
-                            + "WHERE db_id > IFNULL ((SELECT db_id FROM block WHERE id = ?), " + Long.MAX_VALUE + ") "
-                            + "ORDER BY db_id ASC LIMIT ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block "
+                    + "WHERE db_id > IFNULL ((SELECT db_id FROM block WHERE id = ?), " + Long.MAX_VALUE + ") "
+                    + "ORDER BY db_id ASC LIMIT ?");
             pstmt.setLong(1, blockId);
             pstmt.setInt(2, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -247,6 +247,8 @@ public final class BlockchainImpl implements Blockchain {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
         return result;
     }
@@ -272,10 +274,12 @@ public final class BlockchainImpl implements Blockchain {
             }
         }
         // Search the database
-        try (Connection con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block "
-                        + "WHERE db_id > IFNULL ((SELECT db_id FROM block WHERE id = ?), " + Long.MAX_VALUE + ") "
-                        + "ORDER BY db_id ASC LIMIT ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block "
+                    + "WHERE db_id > IFNULL ((SELECT db_id FROM block WHERE id = ?), " + Long.MAX_VALUE + ") "
+                    + "ORDER BY db_id ASC LIMIT ?");
             pstmt.setLong(1, blockId);
             pstmt.setInt(2, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -285,6 +289,8 @@ public final class BlockchainImpl implements Blockchain {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
         return result;
     }
@@ -311,10 +317,12 @@ public final class BlockchainImpl implements Blockchain {
             }
         }
         // Search the database
-        try (Connection con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block "
-                        + "WHERE db_id > IFNULL ((SELECT db_id FROM block WHERE id = ?), " + Long.MAX_VALUE + ") "
-                        + "ORDER BY db_id ASC LIMIT ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block "
+                    + "WHERE db_id > IFNULL ((SELECT db_id FROM block WHERE id = ?), " + Long.MAX_VALUE + ") "
+                    + "ORDER BY db_id ASC LIMIT ?");
             pstmt.setLong(1, blockId);
             pstmt.setInt(2, blockList.size());
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -329,6 +337,8 @@ public final class BlockchainImpl implements Blockchain {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
         return result;
     }
@@ -409,8 +419,10 @@ public final class BlockchainImpl implements Blockchain {
             }
         }
         int i = 0;
-        try(Connection con = Db.db.getConnection();
-            PreparedStatement pstmt = con.prepareStatement(buf.toString())){
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(buf.toString());
             pstmt.setLong(++i, accountId);
             pstmt.setLong(++i, accountId);
             if(type >= 0){
@@ -427,6 +439,8 @@ public final class BlockchainImpl implements Blockchain {
             }
         }catch (SQLException e){
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -438,9 +452,8 @@ public final class BlockchainImpl implements Blockchain {
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction ORDER BY db_id ASC");
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -474,9 +487,8 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getTransactions(con, pstmt);
         }catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -605,9 +617,8 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -626,9 +637,8 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }finally {
             DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -645,7 +655,9 @@ public final class BlockchainImpl implements Blockchain {
         readLock();
         try {
             if (getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
-                try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(getHeight() + 1)) {
+                DbIterator<TransactionImpl> phasedTransactions = null;
+                try {
+                    phasedTransactions = PhasingPoll.getFinishingTransactions(getHeight() + 1);
                     for (TransactionImpl phasedTransaction : phasedTransactions) {
                         try {
                             phasedTransaction.validate();
@@ -655,6 +667,8 @@ public final class BlockchainImpl implements Blockchain {
                         } catch (ConchException.ValidationException ignore) {
                         }
                     }
+                }finally {
+                    DbUtils.close(phasedTransactions);
                 }
             }
             blockchainProcessor.selectUnconfirmedTransactions(duplicates, getLastBlock(), -1).forEach(
