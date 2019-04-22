@@ -996,7 +996,7 @@
                     if (res.data.upgraded) {
                         _this.$message.success(_this.$t('notification.update_success'));
                         // _this.$router.push("/login");
-                        window.location="/";
+                        window.location = "/";
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
@@ -1257,7 +1257,7 @@
                         console.log('success to reconfigure settings...');
                         _this.$message.success(_this.$t('restart.restarting'));
                         data = new FormData();
-                        this.store.state.mask=false;
+                        this.store.state.mask = false;
                         window.location.href = "/";
                         // _this.$router.push("/login");
                         _this.autoRefresh();
@@ -1755,9 +1755,18 @@
                     });
                     _this.getTotalList();
                     _this.getDrawData();
-
+                    _this.updateMinerState();
                 }).catch(function (err) {
                     _this.$message.error(err.message);
+                });
+            },
+            updateMinerState() {
+                let _this = this;
+                _this.accountTransactionList.forEach(val => {
+                    if (val.type === 8 && val.confirmations) {
+                        _this.$store.state.quitPool[val.attachment.poolId] = undefined;
+                        _this.$store.state.destroyPool[val.attachment.poolId] = undefined;
+                    }
                 });
             },
             clearHubSetting() {
