@@ -83,7 +83,7 @@
                                     <h2>{{$t('mining.index.pool')}}</h2>
                                     <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
-                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
+                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}} SS</p>
                                     <el-progress
                                         :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
