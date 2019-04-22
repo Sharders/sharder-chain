@@ -206,6 +206,7 @@
                 adminPasswordDialog: false,
                 latestVersion: '',
                 upgradeMode: '',
+                bakMode: '',
                 isUpdate: false,
             };
         },
@@ -436,6 +437,7 @@
                     if (res.data.success) {
                         _this.latestVersion = res.data.cosver.version;
                         _this.upgradeMode = res.data.cosver.mode;
+                        _this.bakMode = res.data.cosver.bakMode;
                         let bool = _this.versionCompare(_this.blockchainStatus.version, _this.latestVersion);
                         _this.isUpdate = bool;
                     } else {
@@ -450,6 +452,7 @@
                 let data = new FormData();
                 data.append("version", _this.latestVersion);
                 data.append("mode", _this.upgradeMode);
+                data.append("bakMode", _this.bakMode);
                 data.append("restart", "true");
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {

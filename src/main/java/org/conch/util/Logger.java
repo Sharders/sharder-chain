@@ -44,8 +44,6 @@ public final class Logger {
     /** Log levels */
     public enum Level {
         DEBUG, INFO, WARN, ERROR
-        
-        
     }
 
     /** Message listeners */
@@ -100,16 +98,31 @@ public final class Logger {
         }   
         
         Properties loggingProperties = new Properties();
-        String defaultPropertieFile = Conch.getConfDir() + File.separator + "logging-default.properties";
-        try (InputStream fis = new FileInputStream(defaultPropertieFile)) {
+        String defaultPropertieFile = null;
+        try{
+            defaultPropertieFile = Conch.getConfDir() + File.separator + "logging-default.properties";
+            InputStream fis = new FileInputStream(defaultPropertieFile);
             loggingProperties.load(fis);
             appendPrefix(loggingProperties);
-        } catch (IOException e) {
-            System.err.println(String.format("Error loading default logging properties from %s", defaultPropertieFile));
+            PropertyConfigurator.configure(loggingProperties);
+        }catch (IOException e) {
+            System.err.println(String.format("Error loading default logging properties from %s caused by %s", defaultPropertieFile, e.getMessage()));
+        }catch (Exception e) {
+            System.err.println(String.format("Error loading default logging properties from %s caused by %s", defaultPropertieFile, e.getMessage()));
+        }catch (Throwable throwable) {
+            System.err.println(String.format("Error loading default logging properties from %s caused by %s", defaultPropertieFile, throwable.getMessage()));
         }
-        PropertyConfigurator.configure(loggingProperties);
         
-        if (! Boolean.getBoolean("sharder.doNotConfigureLogging")) {
+        if(defaultPropertieFile == null) {
+            // console logger 
+            loggingProperties.put("log4j.rootLogger", "debug,stdout");
+            loggingProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
+            loggingProperties.put("log4j.appender.stdout.Target", "System.out");
+            loggingProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
+            loggingProperties.put("log4j.appender.stdout.layout.ConversionPattern", "%-d{yyyy-MM-dd HH:mm:ss} [ %p ][ %t:%r ] - %l:  %m%n");
+            PropertyConfigurator.configure(loggingProperties);
+            BriefLogFormatter.init();
+        }else if(!Boolean.getBoolean("sharder.doNotConfigureLogging")) {
             try {
                 Conch.loadProperties(loggingProperties, "logging-default.properties", true);
                 Conch.loadProperties(loggingProperties, "logging.properties", false);
@@ -130,16 +143,18 @@ public final class Logger {
             }
         }
         
-        log = org.slf4j.LoggerFactory.getLogger(Conch.class);
-        enableStackTraces = Conch.getBooleanProperty("sharder.enableStackTraces");
-        enableLogTraceback = Conch.getBooleanProperty("sharder.enableLogTraceback");
+        enableStackTraces = (defaultPropertieFile != null) && Conch.getBooleanProperty("sharder.enableStackTraces");
+        enableLogTraceback = (defaultPropertieFile != null) && Conch.getBooleanProperty("sharder.enableLogTraceback");
+        
+        Class loggerClass = defaultPropertieFile != null ? Conch.class : Logger.class;
+        log = org.slf4j.LoggerFactory.getLogger(loggerClass);
         logInfoMessage("logging enabled");
     }
 
     /**
      * Logger initialization
      */
-    public static void init() {}
+    public static void init() { }
 
     /**
      * Logger shutdown

@@ -755,6 +755,7 @@
 
                 latesetVersion: '',
                 upgradeMode: '',
+                bakMode: '',
                 isUpdate: false,
 
                 params: [],
@@ -887,6 +888,7 @@
                     if (res.data.success) {
                         _this.latesetVersion = res.data.cosver.version;
                         _this.upgradeMode = res.data.cosver.mode;
+                        _this.bakMode = res.data.cosver.bakMode;
                         let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
                         _this.isUpdate = bool;
                     } else {
@@ -987,6 +989,7 @@
                 let data = new FormData();
                 data.append("version", _this.latesetVersion);
                 data.append("mode", _this.upgradeMode);
+                data.append("bakMode", _this.bakMode);
                 data.append("restart", "true");
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {

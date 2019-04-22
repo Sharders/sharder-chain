@@ -47,12 +47,18 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         String version = Convert.emptyToNull(req.getParameter("version"));
         String mode = Convert.emptyToNull(req.getParameter("mode"));
+        String bakMode = Convert.emptyToNull(req.getParameter("bakMode"));
+        
+        // set default value
+        if(StringUtils.isEmpty(mode)) mode = ClientUpgradeTool.VER_MODE_INCREMENTAL;
+        if(StringUtils.isEmpty(bakMode)) bakMode = ClientUpgradeTool.BAK_MODE_DELETE;
+        
         if (StringUtils.isEmpty(version)) {
             response.put("upgraded", false);
             response.put("error", "version can not be null");
             return response;
         }
-        ClientUpgradeTool.upgradePackageThread(version,mode,restart);
+        ClientUpgradeTool.upgradePackageThread(version,mode,bakMode,restart);
         response.put("upgraded", true);
         return response;
     }
