@@ -7,24 +7,26 @@ const store = new Vuex.Store({
     state: {
         mask: false,
         isLogin: false,
-        isHubInit:false,
+        isHubInit: false,
         isPassphrase: false,
         passphrase: "",
-        account:"",  //账户ID
-        unconfirmedTransactionsList:[],
-        userConfig:[],
-        currentLang:localStorage.getItem('lang'),
+        account: "",  //账户ID
+        unconfirmedTransactionsList: [],
+        userConfig: [],
+        currentLang: localStorage.getItem('lang'),
+        destroyPool: [],
+        quitPool: []
     },
     mutations: { // 类似 vue 的 methods
-        loginState (state) {
+        loginState(state) {
             state.isLogin = true;
         },
-        setUnconfirmedNotificationsList(state,data){
+        setUnconfirmedNotificationsList(state, data) {
             state.unconfirmedTransactionsList = data;
         },
-        updateLang(state,value){
-            state.currentLang =value;
-            localStorage.setItem('lang',state.currentLang);
+        updateLang(state, value) {
+            state.currentLang = value;
+            localStorage.setItem('lang', state.currentLang);
         }
     },
     modules: {

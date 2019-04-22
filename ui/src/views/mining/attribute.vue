@@ -67,8 +67,8 @@
                         <button v-if="miningInfo.joinAmount > 0" class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account " class="exit"
-                                @click="miningMask('isDestroyPool')">
+                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId]"
+                                class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
                     </div>
@@ -247,6 +247,7 @@
                 if (SSO.downloadingBlockchain) {
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
+                if(_this.$store.state.destroyPool[_this.miningInfo.poolId]) return ;
                 _this.$global.fetch("POST", {
                     period: 400,
                     secretPhrase: SSO.secretPhrase,
@@ -259,6 +260,7 @@
                     }
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
+                    _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
                     return _this.$message.success(_this.$t("mining.attribute.delete_success"));
                 });
             },
