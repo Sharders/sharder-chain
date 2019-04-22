@@ -194,7 +194,7 @@ public class BasicDb {
         int activeConnections = cp.getActiveConnections();
         if (activeConnections > maxActiveConnections) {
             maxActiveConnections = activeConnections;
-            Logger.logDebugMessage("Database connection pool current size: " + activeConnections);
+            Logger.logWarningMessage("Database connection pool current size " + activeConnections + " is larger than max size " + maxActiveConnections);
         }
         return con;
     }
