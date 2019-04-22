@@ -64,7 +64,8 @@
                                 @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="miningInfo.joinAmount > 0" class="exit" @click="miningMask('isExitPool')">
+                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0"
+                                class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
                         <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId]"
@@ -227,10 +228,11 @@
                                 secretPhrase: SSO.secretPhrase,
                                 deadline: 1440,
                                 feeNQT: 100000000
-                            }, "quitPool").then(res => {
-                                if (res.errorDescription) {
-                                    _this.$message.error(res.errorDescription);
+                            }, "quitPool").then(val => {
+                                if (val.errorDescription) {
+                                    _this.$message.error(val.errorDescription);
                                 }
+                                _this.$store.state.quitPool[_this.miningInfo.poolId] -= t.attachment.amount;
                             });
                         }
 
@@ -247,7 +249,7 @@
                 if (SSO.downloadingBlockchain) {
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
-                if(_this.$store.state.destroyPool[_this.miningInfo.poolId]) return ;
+                if (_this.$store.state.destroyPool[_this.miningInfo.poolId]) return;
                 _this.$global.fetch("POST", {
                     period: 400,
                     secretPhrase: SSO.secretPhrase,
@@ -319,6 +321,9 @@
                     let nxtAddress = new NxtAddress();
                     if (nxtAddress.set(_this.miningInfo.accountId)) {
                         _this.miningInfo.account = nxtAddress.toString();
+                    }
+                    if (!_this.$store.state.quitPool[res.poolId]) {
+                        _this.$store.state.quitPool[res.poolId] = res.joinAmount;
                     }
                 });
             },
