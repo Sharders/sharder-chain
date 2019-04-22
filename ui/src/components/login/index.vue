@@ -5,7 +5,7 @@
                 <div>
                     <a>{{$t('login.login_tip1')}}</a><br/>
                     <a>{{$t('login.login_tip2')}}</a>
-                    <a>The testnet peer port is 8218</a>
+<!--                    <a>The testnet peer port is 8218</a>-->
                 </div>
             </div>
 

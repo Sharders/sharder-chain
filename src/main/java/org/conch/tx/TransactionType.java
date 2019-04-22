@@ -641,8 +641,7 @@ public abstract class TransactionType {
 
     public static abstract class Messaging extends TransactionType {
 
-        private Messaging() {
-        }
+        private Messaging() {}
 
         @Override
         public final byte getType() {
