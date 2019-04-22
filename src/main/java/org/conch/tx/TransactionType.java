@@ -598,7 +598,10 @@ public abstract class TransactionType {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
                     Map<Long, Long> consignors = coinBase.getConsignors();
-                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId());
+                    
+                    if(consignors.size() <= 0) return;
+                    
+                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
                     if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
                             && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
                         throw new ConchException.NotValidException("allocation rule is wrong");
@@ -3470,7 +3473,7 @@ public abstract class TransactionType {
                 //TODO node certify
                 
                 // forge pool total No.
-                long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId());
+                long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId(), Conch.getBlockchain().getHeight());
                 if (poolId != -1) throw new ConchException.NotValidException("Creator already owned one forge pool[id=%d]",  poolId);
                 
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();

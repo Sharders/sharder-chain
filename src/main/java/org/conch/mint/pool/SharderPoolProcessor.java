@@ -259,6 +259,17 @@ public class SharderPoolProcessor implements Serializable {
         return -1;
     }
 
+    public static long findOwnPoolId(long creator, int height) {
+        if(height <= 0) height = 0;
+        for (SharderPoolProcessor forgePool : sharderPools.values()) {
+            if (forgePool.creatorId == creator 
+            && height >= forgePool.startBlockNo) {
+                return forgePool.poolId;
+            }
+        }
+        return -1;
+    }
+
     public static SharderPoolProcessor getPoolByCreator(long creator) {
         for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creator) {
