@@ -1,7 +1,6 @@
 package org.conch.common;
 
 import org.conch.Conch;
-import org.conch.util.Convert;
 import org.conch.util.IpUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,6 +64,7 @@ public class UrlManager {
     private static final String LATEST_VERSION_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-latest-version";
     private static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-";
     private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-";
+    public static final String KNOWN_IGNORE_BLOCKS = "/sc/ignoreBlock/fetch";
     /*=============================================HUB UPGRADE API END========================================*/
 
     /**
@@ -115,4 +115,9 @@ public class UrlManager {
     public static String getPackageDownloadUrl(String version) {
         return Constants.isMainnet() || Constants.isTestnet() ? DOWNLOAD_PACKAGE_ONLINE_URL + version + ZIP_SUFFIX : DOWNLOAD_PACKAGE_DEV_URL + version + ZIP_SUFFIX;
     }
+
+    public static String getKnownIgnoreBlockUrl() {
+        return Conch.getSharderFoundationURL() + KNOWN_IGNORE_BLOCKS;
+    }
+
 }
