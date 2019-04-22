@@ -4,8 +4,8 @@ const en = {
     login: {
         'incorrect_key': "The mnemonic phrase you entered is incorrect, please try again",
         'no_found_account': "Your account address could not be found",
-        'login_tip1': "Warning: You are connected to the testnet, please login with your TSS address or mnemonic phrase.",
-        'login_tip2': "Please store your TSS address and mnemonic phrase securely, retrieval is not possible once lost.",
+        'login_tip1': "Warning: You are connected to the testnet, please login with your TSS address.",
+        'login_tip2': "Please store your mnemonic phrase securely, retrieval is not possible once lost.",
         'language': 'Language',
         'login': 'Login',
         'secret_login': "Mnemonic Phrase",
