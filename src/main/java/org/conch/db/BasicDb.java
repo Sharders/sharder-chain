@@ -195,6 +195,13 @@ public class BasicDb {
         if (activeConnections > maxActiveConnections) {
             maxActiveConnections = activeConnections;
             Logger.logWarningMessage("Database connection pool current size " + activeConnections + " is larger than max size " + maxActiveConnections);
+            
+            String stacks = String.format("Stacks as following[conn size=%d]\n\r", activeConnections);
+            for ( StackTraceElement ele : Thread.currentThread().getStackTrace()) {
+                stacks += "stack in getPooledConnection=> " + ele.getClassName() + "$" + ele.getMethodName() + "$" + ele.getFileName() + "#" + ele.getLineNumber() + "\n\r";
+            }
+            Logger.logWarningMessage(stacks);
+            
         }
         return con;
     }
