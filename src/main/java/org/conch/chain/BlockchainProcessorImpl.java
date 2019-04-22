@@ -1840,16 +1840,20 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Block previousBlock,
       int blockTimestamp) {
     List<UnconfirmedTransaction> orderedUnconfirmedTransactions = new ArrayList<>();
-    try (FilteringIterator<UnconfirmedTransaction> unconfirmedTransactions =
-        new FilteringIterator<>(
-            TransactionProcessorImpl.getInstance().getAllUnconfirmedTransactions(),
-            transaction ->
-                hasAllReferencedTransactions(
-                    transaction.getTransaction(), transaction.getTimestamp(), 0))) {
+    FilteringIterator<UnconfirmedTransaction> unconfirmedTransactions = null;
+    try {
+      unconfirmedTransactions =
+              new FilteringIterator<>(TransactionProcessorImpl.getInstance().getAllUnconfirmedTransactions(),
+                      transaction -> hasAllReferencedTransactions(transaction.getTransaction(), transaction.getTimestamp(), 0));
+      
       for (UnconfirmedTransaction unconfirmedTransaction : unconfirmedTransactions) {
         orderedUnconfirmedTransactions.add(unconfirmedTransaction);
       }
+    
+    }finally {
+      DbUtils.close(unconfirmedTransactions);
     }
+    
     SortedSet<UnconfirmedTransaction> sortedTransactions =
         new TreeSet<>(transactionArrivalComparator);
     int payloadLength = 0;

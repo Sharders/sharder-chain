@@ -94,7 +94,9 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
             JSONArray myTransactions = new JSONArray();
             byte[] accountPublicKey = Account.getPublicKey(accountId);
-            try (DbIterator<? extends Transaction> transactions = Conch.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            DbIterator<? extends Transaction> transactions = null;
+            try {
+                transactions = Conch.getTransactionProcessor().getAllUnconfirmedTransactions();
                 while (transactions.hasNext()) {
                     Transaction transaction = transactions.next();
                     if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
@@ -130,12 +132,16 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
                     }
                 }
+            }finally {
+                DbUtils.close(transactions);
             }
 
             SortedSet<JSONObject> myTransactionsSet = new TreeSet<>(myTransactionsComparator);
 
             int blockchainHeight = Conch.getBlockchain().getLastBlock().getHeight();
-            try (DbIterator<? extends Block> blockIterator = Conch.getBlockchain().getBlocks(accountId, 0)) {
+            DbIterator<? extends Block> blockIterator = null;
+            try {
+                blockIterator = Conch.getBlockchain().getBlocks(accountId, 0);
                 while (blockIterator.hasNext()) {
                     Block block = blockIterator.next();
                     if (block.getTotalFeeNQT() > 0) {
@@ -150,9 +156,13 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
                         myTransactionsSet.add(myTransaction);
                     }
                 }
+            }finally {
+                DbUtils.close(blockIterator);
             }
-
-            try (DbIterator<? extends Transaction> transactionIterator = Conch.getBlockchain().getTransactions(accountId, (byte) -1, (byte) -1, 0, false)) {
+            
+            DbIterator<? extends Transaction> transactionIterator = null;
+            try {
+                transactionIterator = Conch.getBlockchain().getTransactions(accountId, (byte) -1, (byte) -1, 0, false);
                 while (transactionIterator.hasNext()) {
                     Transaction transaction = transactionIterator.next();
                     if (transaction.getSenderId() == accountId) {
@@ -184,6 +194,8 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
                         myTransactionsSet.add(myTransaction);
                     }
                 }
+            }finally {
+                DbUtils.close(transactionIterator);
             }
 
             Iterator<JSONObject> iterator = myTransactionsSet.iterator();

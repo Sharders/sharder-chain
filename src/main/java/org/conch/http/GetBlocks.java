@@ -49,7 +49,9 @@ public final class GetBlocks extends APIServlet.APIRequestHandler {
         boolean includeExecutedPhased = "true".equalsIgnoreCase(req.getParameter("includeExecutedPhased"));
 
         JSONArray blocks = new JSONArray();
-        try (DbIterator<? extends Block> iterator = Conch.getBlockchain().getBlocks(firstIndex, lastIndex)) {
+        DbIterator<? extends Block> iterator = null;
+        try {
+            iterator = Conch.getBlockchain().getBlocks(firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Block block = iterator.next();
                 if (block.getTimestamp() < timestamp) {
@@ -57,6 +59,8 @@ public final class GetBlocks extends APIServlet.APIRequestHandler {
                 }
                 blocks.add(JSONData.block(block, includeTransactions, includeExecutedPhased));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
 
         JSONObject response = new JSONObject();

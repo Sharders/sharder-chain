@@ -447,11 +447,15 @@ public final class Shuffler {
                 return;
             }
         } else {
-            try (DbIterator<UnconfirmedTransaction> unconfirmedTransactions = TransactionProcessorImpl.getInstance().getAllUnconfirmedTransactions()) {
+            DbIterator<UnconfirmedTransaction> unconfirmedTransactions = null;
+            try {
+                unconfirmedTransactions = TransactionProcessorImpl.getInstance().getAllUnconfirmedTransactions();
                 if (hasUnconfirmedTransaction(attachment, unconfirmedTransactions)) {
                     Logger.logDebugMessage("Transaction already submitted");
                     return;
                 }
+            }finally {
+                DbUtils.close(unconfirmedTransactions);
             }
         }
         try {

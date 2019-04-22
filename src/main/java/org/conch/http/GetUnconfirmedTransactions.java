@@ -47,29 +47,44 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
         Set<Long> accountIds = Convert.toSet(ParameterParser.getAccountIds(req, false));
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
-
-        JSONArray transactions = new JSONArray();
-        if (accountIds.isEmpty()) {
-            try (DbIterator<? extends Transaction> transactionsIterator = Conch.getTransactionProcessor().getAllUnconfirmedTransactions(firstIndex, lastIndex)) {
-                while (transactionsIterator.hasNext()) {
-                    Transaction transaction = transactionsIterator.next();
-                    transactions.add(JSONData.unconfirmedTransaction(transaction));
-                }
-            }
-        } else {
-            try (FilteringIterator<? extends Transaction> transactionsIterator = new FilteringIterator<> (
-                    Conch.getTransactionProcessor().getAllUnconfirmedTransactions(0, -1),
-                    transaction -> accountIds.contains(transaction.getSenderId()) || accountIds.contains(transaction.getRecipientId()),
-                    firstIndex, lastIndex)) {
-                while (transactionsIterator.hasNext()) {
-                    Transaction transaction = transactionsIterator.next();
-                    transactions.add(JSONData.unconfirmedTransaction(transaction));
-                }
-            }
-        }
-
         JSONObject response = new JSONObject();
-        response.put("unconfirmedTransactions", transactions);
+
+        Conch.getBlockchain().readLock();
+        try{
+            JSONArray transactions = new JSONArray();
+            if (accountIds.isEmpty()) {
+                DbIterator<? extends Transaction> transactionsIterator = null;
+                try {
+                    transactionsIterator = Conch.getTransactionProcessor().getAllUnconfirmedTransactions(firstIndex, lastIndex);
+                    while (transactionsIterator.hasNext()) {
+                        Transaction transaction = transactionsIterator.next();
+                        transactions.add(JSONData.unconfirmedTransaction(transaction));
+                    }
+                }finally {
+                    DbUtils.close(transactionsIterator);
+                }
+              
+            } else {
+                FilteringIterator<? extends Transaction> transactionsIterator = null;
+                try {
+                    transactionsIterator = new FilteringIterator<> (
+                            Conch.getTransactionProcessor().getAllUnconfirmedTransactions(),
+                            transaction -> accountIds.contains(transaction.getSenderId()) || accountIds.contains(transaction.getRecipientId()),
+                            firstIndex, lastIndex);
+                    while (transactionsIterator.hasNext()) {
+                        Transaction transaction = transactionsIterator.next();
+                        transactions.add(JSONData.unconfirmedTransaction(transaction));
+                    }
+                }finally {
+                    DbUtils.close(transactionsIterator);
+                }
+            }
+            response.put("unconfirmedTransactions", transactions);
+        }catch(Exception e) {
+            response.put("error", e.getMessage());
+        }finally {
+            Conch.getBlockchain().readUnlock();
+        }
         return response;
     }
 

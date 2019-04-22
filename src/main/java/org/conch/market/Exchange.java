@@ -119,8 +119,9 @@ public final class Exchange {
             DbUtils.setLimits(++i, pstmt, from, to);
             return exchangeTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -140,8 +141,9 @@ public final class Exchange {
             DbUtils.setLimits(++i, pstmt, from, to);
             return exchangeTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 

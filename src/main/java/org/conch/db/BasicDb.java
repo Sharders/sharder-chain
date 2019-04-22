@@ -102,7 +102,7 @@ public class BasicDb {
 
     }
 
-    private JdbcConnectionPool cp;
+    protected JdbcConnectionPool cp;
     private volatile int maxActiveConnections;
     private final String dbUrl;
     private final String dbUsername;
@@ -183,6 +183,10 @@ public class BasicDb {
         Connection con = getPooledConnection();
         con.setAutoCommit(true);
         return con;
+    }
+    
+    public int getActiveCount(){
+        return cp.getActiveConnections();
     }
 
     protected Connection getPooledConnection() throws SQLException {

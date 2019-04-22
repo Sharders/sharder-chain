@@ -104,8 +104,9 @@ public final class BlockchainImpl implements Blockchain {
             con = Db.db.getConnection();
             return TransactionDb.countByBlockIncludeType(con, includeType);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -146,8 +147,9 @@ public final class BlockchainImpl implements Blockchain {
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id ASC");
             return getBlocks(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -189,8 +191,9 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getBlocks(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -435,8 +438,9 @@ public final class BlockchainImpl implements Blockchain {
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction ORDER BY db_id ASC");
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -470,8 +474,9 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getTransactions(con, pstmt);
         }catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -600,8 +605,9 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -620,8 +626,9 @@ public final class BlockchainImpl implements Blockchain {
             DbUtils.setLimits(++i, pstmt, from, to);
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
