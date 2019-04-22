@@ -37,7 +37,7 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
     static final UpgradeClient INSTANCE = new UpgradeClient();
 
     private UpgradeClient() {
-        super(new APITag[] {APITag.DEBUG}, "version", "restart");
+        super(new APITag[] {APITag.DEBUG}, "version", "mode" , "restart");
     }
 
     @Override
@@ -46,12 +46,13 @@ public final class UpgradeClient extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         String version = Convert.emptyToNull(req.getParameter("version"));
+        String mode = Convert.emptyToNull(req.getParameter("mode"));
         if (StringUtils.isEmpty(version)) {
             response.put("upgraded", false);
             response.put("error", "version can not be null");
             return response;
         }
-        ClientUpgradeTool.fetchUpgradePackageThread(version, restart);
+        ClientUpgradeTool.upgradePackageThread(version,mode,restart);
         response.put("upgraded", true);
         return response;
     }

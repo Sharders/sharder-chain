@@ -31,16 +31,16 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
- * get hub latest version
+ * get cos latest version
  *
  * @author jiangbubai
  */
-public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
+public final class GetLatestCosVersion extends APIServlet.APIRequestHandler {
 
-    static final GetNewestHubVersion INSTANCE = new GetNewestHubVersion();
+    static final GetLatestCosVersion INSTANCE = new GetLatestCosVersion();
     private static final String FAILED_INFO = String.format("Failed to fetch latest version from %s " , UrlManager.getHubLatestVersionUrl());
 
-    private GetNewestHubVersion() {
+    private GetLatestCosVersion() {
         super(new APITag[]{APITag.DEBUG});
     }
 
@@ -49,7 +49,7 @@ public final class GetNewestHubVersion extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
-            response.put("version", ClientUpgradeTool.fetchLastHubVersion());
+            response.put("cosver", ClientUpgradeTool.fetchLastCosVersion());
             response.put("success", true);
         } catch (IOException e) {
             response.put("success", false);

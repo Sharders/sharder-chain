@@ -754,6 +754,7 @@
                 pageSize: 10,
 
                 latesetVersion: '',
+                upgradeMode: '',
                 isUpdate: false,
 
                 params: [],
@@ -882,12 +883,12 @@
             },
             getLatestHubVersion() {
                 const _this = this;
-                _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
+                _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
                     if (res.data.success) {
-                        _this.latesetVersion = res.data.version;
+                        _this.latesetVersion = res.data.cosver.version;
+                        _this.upgradeMode = res.data.cosver.mode;
                         let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
                         _this.isUpdate = bool;
-                        console.log("success to fetch latest hub version");
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
                     }
@@ -985,6 +986,7 @@
                 const _this = this;
                 let data = new FormData();
                 data.append("version", _this.latesetVersion);
+                data.append("mode", _this.upgradeMode);
                 data.append("restart", "true");
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {

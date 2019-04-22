@@ -417,7 +417,7 @@ public interface Appendix {
             }
             byte[] msg = getMessage();
             if (msg != null && msg.length > Constants.MAX_PRUNABLE_MESSAGE_LENGTH) {
-                throw new ConchException.NotValidException("Invalid prunable message length: " + msg.length);
+                throw new ConchException.NotValidException("Invalid prunable message length " + msg.length + " is larger than max allowed length " + Constants.MAX_PRUNABLE_MESSAGE_LENGTH);
             }
             if (msg == null && Conch.getEpochTime() - transaction.getTimestamp() < Constants.MIN_PRUNABLE_LIFETIME) {
                 throw new ConchException.NotCurrentlyValidException("Message has been pruned prematurely");
