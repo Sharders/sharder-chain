@@ -30,7 +30,14 @@ public class ClientUpgradeTool {
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
     }
-    
+
+    public static void autoUpgrade(boolean restart) throws IOException {
+        com.alibaba.fastjson.JSONObject cosVer = ClientUpgradeTool.fetchLastCosVersion();
+        String version = cosVer.getString("version");
+        String mode = cosVer.getString("mode");
+        String bakMode = cosVer.getString("bakMode");
+        upgradePackageThread(version,mode,bakMode,restart);
+    }
     
     public static Thread upgradePackageThread(String version, String mode,String bakMode, Boolean restart) {
         Thread upgradePackageThread = new Thread(

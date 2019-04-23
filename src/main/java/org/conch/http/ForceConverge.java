@@ -21,21 +21,27 @@
 
 package org.conch.http;
 
+import com.google.common.collect.Lists;
 import org.conch.Conch;
+import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.UrlManager;
+import org.conch.tools.ClientUpgradeTool;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.List;
 
 public final class ForceConverge extends APIServlet.APIRequestHandler {
 
-    static final ForceConverge instance = new ForceConverge();
+    static final ForceConverge INSTANCE = new ForceConverge();
 
     private ForceConverge() {
-        super(new APITag[] {APITag.DEBUG});
+        super(new APITag[] {APITag.DEBUG}, "height", "keepTx", "upgradeCos");
     }
 
     @Override
@@ -47,45 +53,42 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 return response;
             }
 
+            // syn ignore blocks
             CheckSumValidator.updateKnownIgnoreBlocks();
             
-            int height = Conch.getBlockchain().getHeight();
+            int currentHeight = Conch.getBlockchain().getHeight();
+            int toHeight = currentHeight;
             try {
-                height = Integer.parseInt(req.getParameter("height"));
+                toHeight = Integer.parseInt(req.getParameter("height"));
             } catch (NumberFormatException ignored) {}
 
-            
-//            List<? extends Block> blocks;
-//            try {
-//                Conch.getBlockchainProcessor().setGetMoreBlocks(false);
-//                if (numBlocks > 0) {
-//                    blocks = Conch.getBlockchainProcessor().popOffTo(Conch.getBlockchain().getHeight() - numBlocks);
-//                } else if (height > 0) {
-//                    blocks = Conch.getBlockchainProcessor().popOffTo(height);
-//                } else {
-//                    return JSONResponses.missing("numBlocks", "height");
-//                }
-//            } finally {
-//                Conch.getBlockchainProcessor().setGetMoreBlocks(true);
-//            }
-//            JSONArray blocksJSON = new JSONArray();
-//            blocks.forEach(block -> blocksJSON.add(JSONData.block(block, true, false)));
-//            JSONObject response = new JSONObject();
-//            response.put("blocks", blocksJSON);
-//            if (keepTransactions) {
-//                blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
-//            }
-//            
-            
-            req.getParameter("includeLessors");
-          
-            
+            // pop-off to specified height
+            List<? extends Block> blocks = Lists.newArrayList();
+            try {
+                Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+                if(toHeight < currentHeight) {
+                    blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
+                }
+            } finally {
+                Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+            }
+
+            // tx process
+            boolean keepTx = "true".equalsIgnoreCase(req.getParameter("keepTx"));
+            if (keepTx) {
+                blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+            }
+
+            boolean upgradeCos = "true".equalsIgnoreCase(req.getParameter("upgradeCos"));
+            if(upgradeCos){
+                Logger.logDebugMessage("received command upgradeCos, start auto upgrade...");
+                ClientUpgradeTool.autoUpgrade(true);
+            }
             
             response.put("done", true);
             
-            
-        } catch (ConchException.NotValidException e) {
-            e.printStackTrace();
+        } catch (ConchException.NotValidException | IOException e) {
+            JSONData.putException(response, e);
         } catch (RuntimeException e) {
             JSONData.putException(response, e);
         }
@@ -94,12 +97,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     @Override
     protected final boolean requirePost() {
-        return true;
+        return false;
     }
 
     @Override
     protected boolean requirePassword() {
-        return true;
+        return false;
     }
 
     @Override
