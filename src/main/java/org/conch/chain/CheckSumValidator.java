@@ -1,7 +1,6 @@
 package org.conch.chain;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -116,7 +115,7 @@ public class CheckSumValidator {
         }
     }
     
-    static boolean synIgnoreBlock = true;
+    static boolean synIgnoreBlock = false;
     /**  **/
     // known ignore blocks
     private static final Set<Long> knownIgnoreBlocks = Sets.newHashSet(
@@ -196,24 +195,4 @@ public class CheckSumValidator {
         return jsonObject;
     }
 
-
-    public static void main(String[] args) {
-        JSONArray jsonArray = new JSONArray();
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1.put("id",-8556361949057624360L);
-        jsonObject1.put("checksum",new byte[]{110, -1, -56, -56, -58, 48});
-        jsonObject1.put("network","testnet");
-
-        JSONObject jsonObject2 = new JSONObject();
-        jsonObject2.put("id",211456030592803100L);
-        jsonObject2.put("checksum",Convert.toString(new byte[]{110, -11, -22, -56, -58, 33}, false));
-        jsonObject2.put("network","testnet");
-        
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
-
-        System.out.println(jsonArray.toString());
-
-        System.out.println(Arrays.toString(Convert.toBytes(jsonObject2.getString("checksum"), false)));
-    }
 }
