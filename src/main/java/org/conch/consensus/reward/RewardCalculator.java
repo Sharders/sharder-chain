@@ -3,8 +3,6 @@ package org.conch.consensus.reward;
 import org.conch.Conch;
 import org.conch.common.Constants;
 
-import java.math.BigDecimal;
-
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019/1/8
@@ -15,7 +13,7 @@ public class RewardCalculator {
      * Reward definition, amount is the reward amount
      */
     public enum RewardDef {
-        MINT(300);
+        MINT(128);
 
         private final long amount;
 
