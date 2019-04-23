@@ -124,6 +124,7 @@ public class CheckSumValidator {
             211456030592803100L
     );
     
+    //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
     
@@ -147,6 +148,7 @@ public class CheckSumValidator {
         if(knownIgnoreBlocks.contains(blockId)) return false;
         
         knownIgnoreBlocks.add(blockId);
+        ignoreBlockMap.put(blockId, object);
         return true;
     }
 
