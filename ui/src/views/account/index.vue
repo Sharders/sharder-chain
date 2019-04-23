@@ -486,7 +486,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :model="hubsetting" status-icon :rules="formRules"
+                <el-form v-loading="registerNatLoading" label-position="left" :model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="useNATForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -634,7 +634,7 @@
                 hubSettingDialog: false,
                 hubInitDialog: false,
                 useNATServiceDialog: false,
-
+                registerNatLoading:false,
                 tradingInfoDialog: false,
                 userInfoDialog: false,
                 accountInfoDialog: false,
@@ -1180,6 +1180,7 @@
             registerNatService() {
                 console.info("registering nat service for normal node...");
                 const _this = this;
+                _this.registerNatLoading = true;
                 let data = new FormData();
                 data.append("sharderAccount", this.hubsetting.sharderAccount);
                 data.append("tssAddress", _this.getAccountRsBySecret());
@@ -1187,6 +1188,7 @@
                 data.append("registerStatus", "0");
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister), data)
                     .then(response => {
+                        _this.registerNatLoading = false;
                         if (response.data.success) {
                             console.info('success to register NAT service');
                             _this.$message.success(_this.$t('notification.success_to_register_nat'));
@@ -1196,6 +1198,7 @@
                         }
                     })
                     .catch(err => {
+                        _this.registerNatLoading = false;
                         _this.$message.error(err.message);
                     });
             },
