@@ -159,16 +159,19 @@ public class CheckSumValidator {
             response = RestfulHttpClient.getClient(url).get().request();
             String content = response.getContent();
             String updateDetail = "\n\r";
+            String totalIgnoreBlocks = "\n\r";
             if(content.startsWith("[")) {
                 com.alibaba.fastjson.JSONArray array = JSON.parseArray(content);
                 for(int i = 0; i < array.size(); i++) {
                     JSONObject object = array.getJSONObject(i);
+                    totalIgnoreBlocks += object.toString() + "\n\r";
                     if(updateSingle(object)){
                         updateDetail += object.toString() + "\n\r";
                     }
                 }
             }else if(content.startsWith("{")){
                 com.alibaba.fastjson.JSONObject object = JSON.parseObject(content);
+                totalIgnoreBlocks += object.toString() + "\n\r";
                 if(updateSingle(object)){
                     updateDetail += object.toString() + "\n\r";
                 }
@@ -176,11 +179,14 @@ public class CheckSumValidator {
                 Logger.logWarningMessage("not correct known ignore block get from " + url + " : " + content);
                 return ;
             }
+            if(totalIgnoreBlocks.length() > 4){
+                Logger.logDebugMessage("total ignore blocks get from %s as follow:" + totalIgnoreBlocks, url);
+            }
+            
             if(updateDetail.length() > 4){
                 Logger.logDebugMessage("last known ignore blocks updated:" + updateDetail);
-            }else{
-                Logger.logDebugMessage("don't updated last known ignore blocks");
             }
+            
             if(!synIgnoreBlock) synIgnoreBlock = true;
         } catch (IOException e) {
            Logger.logErrorMessage("Can't get known ignore blocks from " + url + " caused by " + e.getMessage());
