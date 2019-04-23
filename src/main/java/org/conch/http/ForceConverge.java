@@ -49,7 +49,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
-            if(UrlManager.validFoundationHost(req)){
+            if(!UrlManager.validFoundationHost(req)){
                 response.put("error", "Not valid request sender");
                 return response;
             }
