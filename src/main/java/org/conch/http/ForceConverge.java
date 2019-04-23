@@ -27,6 +27,7 @@ import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.UrlManager;
+import org.conch.mint.Generator;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -48,11 +49,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
-            if(!UrlManager.validFoundationHost(req)){
+            if(UrlManager.validFoundationHost(req)){
                 response.put("error", "Not valid request sender");
                 return response;
             }
-
+            Generator.pause(true);
+            Logger.logDebugMessage("start to syn known ignore blocks...");
             // syn ignore blocks
             CheckSumValidator.updateKnownIgnoreBlocks();
             
@@ -61,27 +63,33 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             try {
                 toHeight = Integer.parseInt(req.getParameter("height"));
             } catch (NumberFormatException ignored) {}
-
+            
+            Logger.logDebugMessage("received toHeight is %d ", toHeight);
             // pop-off to specified height
             List<? extends Block> blocks = Lists.newArrayList();
             try {
                 Conch.getBlockchainProcessor().setGetMoreBlocks(false);
                 if(toHeight < currentHeight) {
+                    Logger.logDebugMessage("start to pop-off to height %d", toHeight);
                     blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
                 }
             } finally {
                 Conch.getBlockchainProcessor().setGetMoreBlocks(true);
             }
-
+            
             // tx process
             boolean keepTx = "true".equalsIgnoreCase(req.getParameter("keepTx"));
+            Logger.logDebugMessage("received keepTx is %s ", keepTx);
+            
             if (keepTx) {
+                Logger.logDebugMessage("start to put the txs into delay process pool");
                 blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
             }
 
             boolean upgradeCos = "true".equalsIgnoreCase(req.getParameter("upgradeCos"));
+            Logger.logDebugMessage("received upgradeCos is %s ",upgradeCos);
             if(upgradeCos){
-                Logger.logDebugMessage("received command upgradeCos, start auto upgrade...");
+                Logger.logDebugMessage("start to auto upgrade...");
                 ClientUpgradeTool.autoUpgrade(true);
             }
             
@@ -91,6 +99,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             JSONData.putException(response, e);
         } catch (RuntimeException e) {
             JSONData.putException(response, e);
+        }finally {
+            Generator.pause(false);
         }
         return response;
     }

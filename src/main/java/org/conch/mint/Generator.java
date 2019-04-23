@@ -116,6 +116,11 @@ public class Generator implements Comparable<Generator> {
         
         return Boolean.valueOf(isBootNode);
     }
+
+    private static boolean forcePause = false;
+    public static void pause(boolean pause){
+        forcePause = pause;
+    }
     
     /**
      * check current height whether reached last known block
@@ -165,6 +170,7 @@ public class Generator implements Comparable<Generator> {
         return true;
     }
     
+    
     private static final Runnable generateBlocksThread = new Runnable() {
 
         private volatile boolean logged;
@@ -173,12 +179,11 @@ public class Generator implements Comparable<Generator> {
         public void run() {
             try {
                 try {
-                 
-                    
                     BlockchainImpl.getInstance().updateLock();
                     try {
-                        Block lastBlock = Conch.getBlockchain().getLastBlock();
+                        if(forcePause) return;
                         
+                        Block lastBlock = Conch.getBlockchain().getLastBlock();
                         if(!isMintHeightReached(lastBlock)) return;
 
                         checkOrStartAutoMining();
