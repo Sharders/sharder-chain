@@ -66,7 +66,9 @@ public final class GetBidOrders extends APIServlet.APIRequestHandler {
         }
 
         JSONArray orders = new JSONArray();
-        try (DbIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
+        DbIterator<Order.Bid> bidOrders = null;
+        try {
+            bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex);
             while (bidOrders.hasNext()) {
                 Order.Bid order = bidOrders.next();
                 JSONObject orderJSON = JSONData.bidOrder(order);
@@ -75,6 +77,8 @@ public final class GetBidOrders extends APIServlet.APIRequestHandler {
                 }
                 orders.add(orderJSON);
             }
+        }finally {
+            DbUtils.close(bidOrders);
         }
         JSONObject response = new JSONObject();
         response.put("bidOrders", orders);

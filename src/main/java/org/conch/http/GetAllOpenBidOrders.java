@@ -46,10 +46,14 @@ public final class GetAllOpenBidOrders extends APIServlet.APIRequestHandler {
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        try (DbIterator<Order.Bid> bidOrders = Order.Bid.getAll(firstIndex, lastIndex)) {
+        DbIterator<Order.Bid> bidOrders = null;
+        try {
+            bidOrders = Order.Bid.getAll(firstIndex, lastIndex);
             while (bidOrders.hasNext()) {
                 ordersData.add(JSONData.bidOrder(bidOrders.next()));
             }
+        }finally {
+            DbUtils.close(bidOrders);
         }
 
         response.put("openOrders", ordersData);

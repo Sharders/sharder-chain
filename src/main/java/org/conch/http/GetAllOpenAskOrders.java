@@ -46,10 +46,14 @@ public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        try (DbIterator<Order.Ask> askOrders = Order.Ask.getAll(firstIndex, lastIndex)) {
+        DbIterator<Order.Ask> askOrders = null;
+        try {
+            askOrders = Order.Ask.getAll(firstIndex, lastIndex);
             while (askOrders.hasNext()) {
                 ordersData.add(JSONData.askOrder(askOrders.next()));
             }
+        }finally {
+            DbUtils.close(askOrders);
         }
 
         response.put("openOrders", ordersData);

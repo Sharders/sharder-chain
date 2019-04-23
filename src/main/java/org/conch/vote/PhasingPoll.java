@@ -127,12 +127,16 @@ public final class PhasingPoll extends AbstractPoll {
         @Override
         public void trim(int height) {
             super.trim(height);
-            try (Connection con = Db.db.getConnection();
-                 DbIterator<PhasingPoll> pollsToTrim = phasingPollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.LT, height), 0, -1);
-                 PreparedStatement pstmt1 = con.prepareStatement("DELETE FROM phasing_poll WHERE id = ?");
-                 PreparedStatement pstmt2 = con.prepareStatement("DELETE FROM phasing_poll_voter WHERE transaction_id = ?");
-                 PreparedStatement pstmt3 = con.prepareStatement("DELETE FROM phasing_vote WHERE transaction_id = ?");
-                 PreparedStatement pstmt4 = con.prepareStatement("DELETE FROM phasing_poll_linked_transaction WHERE transaction_id = ?")) {
+            Connection con = null;
+            DbIterator<PhasingPoll> pollsToTrim = null;
+            try {
+                con = Db.db.getConnection();
+                pollsToTrim = phasingPollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.LT, height), 0, -1);
+                PreparedStatement pstmt1 = con.prepareStatement("DELETE FROM phasing_poll WHERE id = ?");
+                PreparedStatement pstmt2 = con.prepareStatement("DELETE FROM phasing_poll_voter WHERE transaction_id = ?");
+                PreparedStatement pstmt3 = con.prepareStatement("DELETE FROM phasing_vote WHERE transaction_id = ?");
+                PreparedStatement pstmt4 = con.prepareStatement("DELETE FROM phasing_poll_linked_transaction WHERE transaction_id = ?");
+                        
                 while (pollsToTrim.hasNext()) {
                     long id = pollsToTrim.next().getId();
                     pstmt1.setLong(1, id);
@@ -146,6 +150,9 @@ public final class PhasingPoll extends AbstractPoll {
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
+                DbUtils.close(pollsToTrim);
             }
         }
     };
@@ -496,10 +503,14 @@ public final class PhasingPoll extends AbstractPoll {
         }
         VoteWeighting.VotingModel votingModel = voteWeighting.getVotingModel();
         long cumulativeWeight = 0;
-        try (DbIterator<PhasingVote> votes = PhasingVote.getVotes(this.id, 0, Integer.MAX_VALUE)) {
+        DbIterator<PhasingVote> votes = null;
+        try {
+            votes = PhasingVote.getVotes(this.id, 0, Integer.MAX_VALUE);
             for (PhasingVote vote : votes) {
                 cumulativeWeight += votingModel.calcWeight(voteWeighting, vote.getVoterId(), height);
             }
+        }finally {
+            DbUtils.close(votes);
         }
         return cumulativeWeight;
     }

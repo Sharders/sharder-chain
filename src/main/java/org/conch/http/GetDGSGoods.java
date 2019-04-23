@@ -22,8 +22,8 @@
 package org.conch.http;
 
 import org.conch.common.ConchException;
-import org.conch.db.*;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.db.FilteringIterator;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.util.Filter;
@@ -56,9 +56,10 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
 
         Filter<DigitalGoodsStore.Goods> filter = hideDelisted ? goods -> ! goods.isDelisted() : goods -> true;
 
+        
+        DbIterator<DigitalGoodsStore.Goods> goods = null;
         FilteringIterator<DigitalGoodsStore.Goods> iterator = null;
         try {
-            DbIterator<DigitalGoodsStore.Goods> goods;
             if (sellerId == 0) {
                 if (inStockOnly) {
                     goods = DigitalGoodsStore.Goods.getGoodsInStock(0, -1);
@@ -68,6 +69,7 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
             } else {
                 goods = DigitalGoodsStore.Goods.getSellerGoods(sellerId, inStockOnly, 0, -1);
             }
+       
             iterator = new FilteringIterator<>(goods, filter, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 DigitalGoodsStore.Goods good = iterator.next();
@@ -75,6 +77,7 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
             }
         } finally {
             DbUtils.close(iterator);
+            DbUtils.close(goods);
         }
 
         return response;

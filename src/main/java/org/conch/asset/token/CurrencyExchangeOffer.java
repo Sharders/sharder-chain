@@ -73,10 +73,15 @@ public abstract class CurrencyExchangeOffer {
                 return;
             }
             List<CurrencyBuyOffer> expired = new ArrayList<>();
-            try (DbIterator<CurrencyBuyOffer> offers = CurrencyBuyOffer.getOffers(new DbClause.IntClause("expiration_height", block.getHeight()), 0, -1)) {
+
+            DbIterator<CurrencyBuyOffer> offers = null;
+            try {
+                offers = CurrencyBuyOffer.getOffers(new DbClause.IntClause("expiration_height", block.getHeight()), 0, -1);
                 for (CurrencyBuyOffer offer : offers) {
                     expired.add(offer);
                 }
+            }finally {
+                DbUtils.close(offers);
             }
             expired.forEach((offer) -> CurrencyExchangeOffer.removeOffer(AccountLedger.LedgerEvent.CURRENCY_OFFER_EXPIRED, offer));
         }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
@@ -122,11 +127,15 @@ public abstract class CurrencyExchangeOffer {
         if (minRateNQT > 0) {
             dbClause = dbClause.and(new DbClause.LongClause("rate", DbClause.Op.GTE, minRateNQT));
         }
-        try (DbIterator<CurrencyBuyOffer> offers = CurrencyBuyOffer.getOffers(dbClause, 0, -1,
-                " ORDER BY rate DESC, creation_height ASC, transaction_height ASC, transaction_index ASC ")) {
+        DbIterator<CurrencyBuyOffer> offers = null;
+        try {
+            offers = CurrencyBuyOffer.getOffers(dbClause, 0, -1,
+                    " ORDER BY rate DESC, creation_height ASC, transaction_height ASC, transaction_index ASC ");
             for (CurrencyBuyOffer offer : offers) {
                 currencyExchangeOffers.add(offer);
             }
+        }finally {
+            DbUtils.close(offers);
         }
         return currencyExchangeOffers;
     }
@@ -171,11 +180,16 @@ public abstract class CurrencyExchangeOffer {
         if (maxRateNQT > 0) {
             dbClause = dbClause.and(new DbClause.LongClause("rate", DbClause.Op.LTE, maxRateNQT));
         }
-        try (DbIterator<CurrencySellOffer> offers = CurrencySellOffer.getOffers(dbClause, 0, -1,
-                " ORDER BY rate ASC, creation_height ASC, transaction_height ASC, transaction_index ASC ")) {
+
+        DbIterator<CurrencySellOffer> offers = null;
+        try {
+            offers = CurrencySellOffer.getOffers(dbClause, 0, -1,
+                    " ORDER BY rate ASC, creation_height ASC, transaction_height ASC, transaction_index ASC ");
             for (CurrencySellOffer offer : offers) {
                 currencySellOffers.add(offer);
             }
+        }finally {
+            DbUtils.close(offers);
         }
         return currencySellOffers;
     }

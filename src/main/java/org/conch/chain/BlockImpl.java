@@ -21,14 +21,12 @@
 
 package org.conch.chain;
 
-import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
@@ -37,12 +35,10 @@ import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
-import org.conch.util.RestfulHttpClient;
 import org.conch.util.SizeUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -515,33 +511,8 @@ public final class BlockImpl implements Block {
         }
     }
     
-    // known bad blocks
-    private static final long[] knownIgnoreBlocks = new long[] {
-            //Testnet
-            -8556361949057624360L,
-            211456030592803100L
-    };
-//    private static final String[] knownIgnoreBlocksSignatu = new String[] {
-//            //Testnet
-//            "9c90a182cbc5ffc047f2e056cfdebc510c03e900a097f808a80accb2f1852503e50d9b6c0ca95ffc0b6d35beda52379765a43dc9d246b7bbe6e94d58acbf492f"
-//    };
-    static {
-        Arrays.sort(knownIgnoreBlocks);
-    }
     boolean isKnownIgnoreBlock(){
-        return Arrays.binarySearch(knownIgnoreBlocks, this.id) >= 0;
-    }
-    
-    void updateKnownIgnoreBlocks(){
-        RestfulHttpClient.HttpResponse response = null;
-        try {
-            response = RestfulHttpClient.getClient(UrlManager.getKnownIgnoreBlockUrl()).get().request();
-            com.alibaba.fastjson.JSONArray result = JSON.parseArray(response.getContent());
-
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return CheckSumValidator.isKnownIgnoreBlock(this.id);
     }
 
     public void apply() {

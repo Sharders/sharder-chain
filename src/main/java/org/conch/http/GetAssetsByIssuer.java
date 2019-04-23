@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.asset.Asset;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -50,10 +51,14 @@ public final class GetAssetsByIssuer extends APIServlet.APIRequestHandler {
         response.put("assets", accountsJSONArray);
         for (long accountId : accountIds) {
             JSONArray assetsJSONArray = new JSONArray();
-            try (DbIterator<Asset> assets = Asset.getAssetsIssuedBy(accountId, firstIndex, lastIndex)) {
+            DbIterator<Asset> assets = null;
+            try {
+                assets = Asset.getAssetsIssuedBy(accountId, firstIndex, lastIndex);
                 while (assets.hasNext()) {
                     assetsJSONArray.add(JSONData.asset(assets.next(), includeCounts));
                 }
+            }finally {
+                DbUtils.close(assets);
             }
             accountsJSONArray.add(assetsJSONArray);
         }

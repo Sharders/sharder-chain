@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.shuffle.ShufflingParticipant;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -44,10 +45,15 @@ public final class GetShufflingParticipants extends APIServlet.APIRequestHandler
         JSONObject response = new JSONObject();
         JSONArray participantsJSONArray = new JSONArray();
         response.put("participants", participantsJSONArray);
-        try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(shufflingId)) {
+
+        DbIterator<ShufflingParticipant> participants = null;
+        try {
+            participants = ShufflingParticipant.getParticipants(shufflingId);
             for (ShufflingParticipant participant : participants) {
                 participantsJSONArray.add(JSONData.participant(participant));
             }
+        }finally {
+            DbUtils.close(participants);
         }
         return response;
     }

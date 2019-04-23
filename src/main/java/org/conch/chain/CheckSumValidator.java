@@ -1,14 +1,19 @@
 package org.conch.chain;
 
+import com.alibaba.fastjson.JSON;
 import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Listener;
 import org.conch.util.Logger;
+import org.conch.util.RestfulHttpClient;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,8 +78,10 @@ public class CheckSumValidator {
 
     private boolean verifyChecksum(byte[] validChecksum, int fromHeight, int toHeight) {
         MessageDigest digest = Crypto.sha256();
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC");
             pstmt.setInt(1, fromHeight);
             pstmt.setInt(2, toHeight);
             try (DbIterator<TransactionImpl> iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt)) {
@@ -84,7 +91,10 @@ public class CheckSumValidator {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
+        
         byte[] checksum = digest.digest();
         if (validChecksum == null) {
             Logger.logMessage("Checksum calculated:\n" + Arrays.toString(checksum));
@@ -97,4 +107,34 @@ public class CheckSumValidator {
             return true;
         }
     }
+    
+    
+    /**  **/
+    // known ignore blocks
+    private static final long[] knownIgnoreBlocks = new long[] {
+            //Testnet
+            -8556361949057624360L,
+            211456030592803100L
+    };
+    static {
+        Arrays.sort(knownIgnoreBlocks);
+    }
+
+
+    public static boolean isKnownIgnoreBlock(long blockId){
+        return Arrays.binarySearch(knownIgnoreBlocks, blockId) >= 0;
+    }
+
+    public static void updateKnownIgnoreBlocks(){
+        RestfulHttpClient.HttpResponse response = null;
+        try {
+            response = RestfulHttpClient.getClient(UrlManager.getKnownIgnoreBlockUrl()).get().request();
+            com.alibaba.fastjson.JSONArray result = JSON.parseArray(response.getContent());
+            
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

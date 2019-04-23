@@ -48,7 +48,10 @@ public final class GetAssetDividends extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray dividendsData = new JSONArray();
-        try (DbIterator<AssetDividend> dividends = AssetDividend.getAssetDividends(assetId, firstIndex, lastIndex)) {
+
+        DbIterator<AssetDividend> dividends = null;
+        try {
+            dividends = AssetDividend.getAssetDividends(assetId, firstIndex, lastIndex);
             while (dividends.hasNext()) {
                 AssetDividend assetDividend = dividends.next();
                 if (assetDividend.getTimestamp() < timestamp) {
@@ -56,6 +59,8 @@ public final class GetAssetDividends extends APIServlet.APIRequestHandler {
                 }
                 dividendsData.add(JSONData.assetDividend(assetDividend));
             }
+        }finally {
+            DbUtils.close(dividends);
         }
         response.put("dividends", dividendsData);
         return response;

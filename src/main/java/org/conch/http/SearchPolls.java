@@ -51,10 +51,15 @@ public final class SearchPolls extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
-        try (DbIterator<Poll> polls = Poll.searchPolls(query, includeFinished, firstIndex, lastIndex)) {
+
+        DbIterator<Poll> polls = null;
+        try {
+            polls = Poll.searchPolls(query, includeFinished, firstIndex, lastIndex);
             while (polls.hasNext()) {
                 jsonArray.add(JSONData.poll(polls.next()));
             }
+        }finally {
+            DbUtils.close(polls);
         }
         response.put("polls", jsonArray);
         return response;

@@ -65,8 +65,12 @@ public final class Shuffling {
             @Override
             byte[] getHash(Shuffling shuffling) {
                 if (shuffling.assigneeAccountId == shuffling.issuerId) {
-                    try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(shuffling.id)) {
+                    DbIterator<ShufflingParticipant> participants = null;
+                    try {
+                        participants = ShufflingParticipant.getParticipants(shuffling.id);
                         return getParticipantsHash(participants);
+                    }finally {
+                        DbUtils.close(participants);
                     }
                 } else {
                     ShufflingParticipant participant = shuffling.getParticipant(shuffling.assigneeAccountId);
@@ -94,8 +98,12 @@ public final class Shuffling {
                 if (hash != null && hash.length > 0) {
                     return hash;
                 }
-                try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(shuffling.id)) {
+                DbIterator<ShufflingParticipant> participants = null;
+                try {
+                    participants = ShufflingParticipant.getParticipants(shuffling.id);
                     return getParticipantsHash(participants);
+                }finally {
+                    DbUtils.close(participants);
                 }
             }
         },
@@ -169,12 +177,16 @@ public final class Shuffling {
                 return;
             }
             List<Shuffling> shufflings = new ArrayList<>();
-            try (DbIterator<Shuffling> iterator = getActiveShufflings(0, -1)) {
+            DbIterator<Shuffling> iterator = null;
+            try {
+                iterator = getActiveShufflings(0, -1);
                 for (Shuffling shuffling : iterator) {
                     if (!shuffling.isFull(block)) {
                         shufflings.add(shuffling);
                     }
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
             shufflings.forEach(shuffling -> {
                 if (--shuffling.blocksRemaining <= 0) {
@@ -446,7 +458,9 @@ public final class Shuffling {
         List<ShufflingParticipant> shufflingParticipants = new ArrayList<>();
         Conch.getBlockchain().readLock();
         // Read the participant list for the shuffling
-        try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(id)) {
+        DbIterator<ShufflingParticipant> participants = null;
+        try {
+            participants = ShufflingParticipant.getParticipants(id);
             for (ShufflingParticipant participant : participants) {
                 shufflingParticipants.add(participant);
                 if (participant.getNextAccountId() == accountId) {
@@ -459,6 +473,7 @@ public final class Shuffling {
                 shufflingStateHash = getParticipantsHash(shufflingParticipants);
             }
         } finally {
+            DbUtils.close(participants);
             Conch.getBlockchain().readUnlock();
         }
         boolean isLast = participantIndex == participantCount - 1;
@@ -520,7 +535,9 @@ public final class Shuffling {
 
     public Attachment.ShufflingCancellation revealKeySeeds(final String secretPhrase, long cancellingAccountId, byte[] shufflingStateHash) {
         Conch.getBlockchain().readLock();
-        try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(id)) {
+        DbIterator<ShufflingParticipant> participants = null;
+        try {
+            participants = ShufflingParticipant.getParticipants(id);
             if (cancellingAccountId != this.assigneeAccountId) {
                 throw new RuntimeException(String.format("Current shuffling cancellingAccountId %s does not match %s",
                         Long.toUnsignedString(this.assigneeAccountId), Long.toUnsignedString(cancellingAccountId)));
@@ -574,6 +591,7 @@ public final class Shuffling {
             return new Attachment.ShufflingCancellation(this.id, data, keySeeds.toArray(new byte[keySeeds.size()][]),
                     shufflingStateHash, cancellingAccountId);
         } finally {
+            DbUtils.close(participants);
             Conch.getBlockchain().readUnlock();
         }
     }
@@ -674,7 +692,10 @@ public final class Shuffling {
             }
         }
         AccountLedger.LedgerEvent event = AccountLedger.LedgerEvent.SHUFFLING_DISTRIBUTION;
-        try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(id)) {
+
+        DbIterator<ShufflingParticipant> participants = null;
+        try {
+            participants = ShufflingParticipant.getParticipants(id);
             for (ShufflingParticipant participant : participants) {
                 Account participantAccount = Account.getAccount(participant.getAccountId());
                 holdingType.addToBalance(participantAccount, event, this.id, this.holdingId, -amount);
@@ -682,6 +703,8 @@ public final class Shuffling {
                     participantAccount.addToBalanceNQT(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
                 }
             }
+        }finally {  
+            DbUtils.close(participants);
         }
         for (byte[] recipientPublicKey : recipientPublicKeys) {
             long recipientId = Account.getId(recipientPublicKey);
@@ -704,7 +727,10 @@ public final class Shuffling {
     private void cancel(Block block) {
         AccountLedger.LedgerEvent event = AccountLedger.LedgerEvent.SHUFFLING_CANCELLATION;
         long blamedAccountId = blame();
-        try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(id)) {
+
+        DbIterator<ShufflingParticipant> participants = null;
+        try {
+            participants = ShufflingParticipant.getParticipants(id);
             for (ShufflingParticipant participant : participants) {
                 Account participantAccount = Account.getAccount(participant.getAccountId());
                 holdingType.addToUnconfirmedBalance(participantAccount, event, this.id, this.holdingId, this.amount);
@@ -719,6 +745,8 @@ public final class Shuffling {
                     participantAccount.addToBalanceNQT(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
                 }
             }
+        }finally {
+            DbUtils.close(participants);
         }
         if (blamedAccountId != 0) {
             // as a penalty the deposit goes to the generators of the finish block and previous 3 blocks
@@ -756,10 +784,14 @@ public final class Shuffling {
             return assigneeAccountId;
         }
         List<ShufflingParticipant> participants = new ArrayList<>();
-        try (DbIterator<ShufflingParticipant> iterator = ShufflingParticipant.getParticipants(this.id)) {
+        DbIterator<ShufflingParticipant> iterator = null;
+        try {
+            iterator = ShufflingParticipant.getParticipants(this.id);
             while (iterator.hasNext()) {
                 participants.add(iterator.next());
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         if (stage == Stage.VERIFICATION) {
             // if verification started, blame the first one who did not submit verification
@@ -850,10 +882,14 @@ public final class Shuffling {
     }
 
     private void delete() {
-        try (DbIterator<ShufflingParticipant> participants = ShufflingParticipant.getParticipants(id)) {
+        DbIterator<ShufflingParticipant> participants = null;
+        try {
+            participants = ShufflingParticipant.getParticipants(id);
             for (ShufflingParticipant participant : participants) {
                 participant.delete();
             }
+        }finally {
+            DbUtils.close(participants);
         }
         shufflingTable.delete(this);
     }

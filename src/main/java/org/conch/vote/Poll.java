@@ -174,7 +174,9 @@ public final class Poll extends AbstractPoll {
     }
 
     private static void checkPolls(int currentHeight) {
-        try (DbIterator<Poll> polls = getPollsFinishingAt(currentHeight)) {
+        DbIterator<Poll> polls = null;
+        try {
+            polls = getPollsFinishingAt(currentHeight);
             for (Poll poll : polls) {
                 try {
                     List<OptionResult> results = poll.countResults(poll.getVoteWeighting(), currentHeight);
@@ -184,6 +186,8 @@ public final class Poll extends AbstractPoll {
                     Logger.logErrorMessage("Couldn't count votes for poll " + Long.toUnsignedString(poll.getId()));
                 }
             }
+        }finally {
+            DbUtils.close(polls);
         }
     }
 
@@ -318,7 +322,10 @@ public final class Poll extends AbstractPoll {
     private List<OptionResult> countResults(VoteWeighting voteWeighting, int height) {
         final OptionResult[] result = new OptionResult[options.length];
         VoteWeighting.VotingModel votingModel = voteWeighting.getVotingModel();
-        try (DbIterator<Vote> votes = Vote.getVotes(this.getId(), 0, -1)) {
+
+        DbIterator<Vote> votes = null;
+        try {
+            votes = Vote.getVotes(this.getId(), 0, -1);
             for (Vote vote : votes) {
                 long weight = votingModel.calcWeight(voteWeighting, vote.getVoterId(), height);
                 if (weight <= 0) {
@@ -335,6 +342,8 @@ public final class Poll extends AbstractPoll {
                     }
                 }
             }
+        }finally {
+            DbUtils.close(votes);
         }
         return Arrays.asList(result);
     }

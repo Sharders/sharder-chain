@@ -47,10 +47,15 @@ public final class GetAllCurrencies extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray currenciesJSONArray = new JSONArray();
         response.put("currencies", currenciesJSONArray);
-        try (DbIterator<Currency> currencies = Currency.getAllCurrencies(firstIndex, lastIndex)) {
+
+        DbIterator<Currency> currencies = null;
+        try {
+            currencies = Currency.getAllCurrencies(firstIndex, lastIndex);
             for (Currency currency : currencies) {
                 currenciesJSONArray.add(JSONData.currency(currency, includeCounts));
             }
+        }finally {
+            DbUtils.close(currencies);
         }
         return response;
     }

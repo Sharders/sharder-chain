@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.market.DigitalGoodsStore;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,11 +48,15 @@ public final class GetDGSExpiredPurchases extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray purchasesJSON = new JSONArray();
-
-        try (DbIterator<DigitalGoodsStore.Purchase> purchases = DigitalGoodsStore.Purchase.getExpiredSellerPurchases(sellerId, firstIndex, lastIndex)) {
+        
+        DbIterator<DigitalGoodsStore.Purchase> purchases = null;
+        try {
+            purchases = DigitalGoodsStore.Purchase.getExpiredSellerPurchases(sellerId, firstIndex, lastIndex);
             while (purchases.hasNext()) {
                 purchasesJSON.add(JSONData.purchase(purchases.next()));
             }
+        }finally {
+            DbUtils.close(purchases);
         }
 
         response.put("purchases", purchasesJSON);

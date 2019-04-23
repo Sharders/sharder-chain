@@ -50,10 +50,15 @@ public final class GetExchangesByExchangeRequest extends APIServlet.APIRequestHa
         boolean includeCurrencyInfo = "true".equalsIgnoreCase(req.getParameter("includeCurrencyInfo"));
         JSONObject response = new JSONObject();
         JSONArray exchangesData = new JSONArray();
-        try (DbIterator<Exchange> exchanges = Exchange.getExchanges(transactionId)) {
+
+        DbIterator<Exchange> exchanges = null;
+        try {
+            exchanges = Exchange.getExchanges(transactionId);
             while (exchanges.hasNext()) {
                 exchangesData.add(JSONData.exchange(exchanges.next(), includeCurrencyInfo));
             }
+        }finally {
+            DbUtils.close(exchanges);
         }
         response.put("exchanges", exchangesData);
         return response;

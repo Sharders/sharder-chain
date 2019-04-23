@@ -21,11 +21,11 @@
 
 package org.conch.http;
 
-import com.alibaba.fastjson.JSON;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -86,7 +86,9 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         }
 
         if (includeLessors) {
-            try (DbIterator<Account> lessors = account.getLessors()) {
+            DbIterator<Account> lessors = null;
+            try {
+                lessors = account.getLessors();
                 if (lessors.hasNext()) {
                     JSONArray lessorIds = new JSONArray();
                     JSONArray lessorIdsRS = new JSONArray();
@@ -101,11 +103,15 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
                     response.put("lessorsRS", lessorIdsRS);
                     response.put("lessorsInfo", lessorInfo);
                 }
+            }finally {
+                DbUtils.close(lessors);
             }
         }
 
         if (includeAssets) {
-            try (DbIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
+            DbIterator<Account.AccountAsset> accountAssets = null;
+            try {
+                accountAssets = account.getAssets(0, -1);
                 JSONArray assetBalances = new JSONArray();
                 JSONArray unconfirmedAssetBalances = new JSONArray();
                 while (accountAssets.hasNext()) {
@@ -125,11 +131,15 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
                 if (unconfirmedAssetBalances.size() > 0) {
                     response.put("unconfirmedAssetBalances", unconfirmedAssetBalances);
                 }
+            }finally {
+                DbUtils.close(accountAssets);
             }
         }
 
         if (includeCurrencies) {
-            try (DbIterator<Account.AccountCurrency> accountCurrencies = account.getCurrencies(0, -1)) {
+            DbIterator<Account.AccountCurrency> accountCurrencies = null;
+            try {
+                accountCurrencies = account.getCurrencies(0, -1);
                 JSONArray currencyJSON = new JSONArray();
                 while (accountCurrencies.hasNext()) {
                     currencyJSON.add(JSONData.accountCurrency(accountCurrencies.next(), false, true));
@@ -137,6 +147,8 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
                 if (currencyJSON.size() > 0) {
                     response.put("accountCurrencies", currencyJSON);
                 }
+            }finally {
+                DbUtils.close(accountCurrencies);
             }
         }
 
@@ -147,8 +159,9 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
     private JSONObject getCutIncome(){
         JSONObject json = new JSONObject();
         json.put("success",true);
+        Connection con = null;
         try {
-            Connection con = Db.db.getConnection();
+            con = Db.db.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT sum(a.FORGED_BALANCE) as num from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID)");
             json.put("cutIncome",GetAccountRanking.result(ps.executeQuery()));
             con.commit();
@@ -156,6 +169,8 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         } catch (SQLException e) {
             json.put("success",false);
             e.printStackTrace();
+        }finally {
+            DbUtils.close(con);
         }
         return json;
     }

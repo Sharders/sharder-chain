@@ -55,15 +55,22 @@ public final class Vote {
         @Override
         public void trim(int height) {
             super.trim(height);
-            try (Connection con = Db.db.getConnection();
-                 DbIterator<Poll> polls = Poll.getPollsFinishingAtOrBefore(height, 0, Integer.MAX_VALUE);
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM vote WHERE poll_id = ?")) {
+
+            Connection con = null;
+            DbIterator<Poll> polls = null;
+            try {
+                con = Db.db.getConnection();
+                polls = Poll.getPollsFinishingAtOrBefore(height, 0, Integer.MAX_VALUE);
+                PreparedStatement pstmt = con.prepareStatement("DELETE FROM vote WHERE poll_id = ?");
                 for (Poll poll : polls) {
                     pstmt.setLong(1, poll.getId());
                     pstmt.executeUpdate();
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
+                DbUtils.close(polls);
             }
         }
     };

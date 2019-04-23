@@ -47,7 +47,9 @@ public final class GetAllTrades extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray trades = new JSONArray();
-        try (DbIterator<Trade> tradeIterator = Trade.getAllTrades(firstIndex, lastIndex)) {
+        DbIterator<Trade> tradeIterator = null;
+        try {
+            tradeIterator = Trade.getAllTrades(firstIndex, lastIndex);
             while (tradeIterator.hasNext()) {
                 Trade trade = tradeIterator.next();
                 if (trade.getTimestamp() < timestamp) {
@@ -55,6 +57,8 @@ public final class GetAllTrades extends APIServlet.APIRequestHandler {
                 }
                 trades.add(JSONData.trade(trade, includeAssetInfo));
             }
+        }finally {
+            DbUtils.close(tradeIterator);
         }
         response.put("trades", trades);
         return response;

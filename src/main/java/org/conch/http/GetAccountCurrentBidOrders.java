@@ -45,14 +45,16 @@ public final class GetAccountCurrentBidOrders extends APIServlet.APIRequestHandl
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        DbIterator<Order.Bid> bidOrders;
-        if (assetId == 0) {
-            bidOrders = Order.Bid.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
-        } else {
-            bidOrders = Order.Bid.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
-        }
+        DbIterator<Order.Bid> bidOrders = null;
+      
         JSONArray orders = new JSONArray();
         try {
+            if (assetId == 0) {
+                bidOrders = Order.Bid.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
+            } else {
+                bidOrders = Order.Bid.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
+            }
+            
             while (bidOrders.hasNext()) {
                 orders.add(JSONData.bidOrder(bidOrders.next()));
             }

@@ -21,6 +21,8 @@
 
 package org.conch.http;
 
+import org.conch.Conch;
+import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.UrlManager;
 import org.json.simple.JSONObject;
@@ -40,20 +42,50 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
-            try {
-                if(!UrlManager.validFoundationHost(req)){
-                    response.put("error", "Not valid request sender");
-                    return response;
-                }
-                
-                //TODO force converge
-                
-                
-                
-                response.put("done", true);
-            } catch (ConchException.NotValidException e) {
-                e.printStackTrace();
+            if(!UrlManager.validFoundationHost(req)){
+                response.put("error", "Not valid request sender");
+                return response;
             }
+
+            CheckSumValidator.updateKnownIgnoreBlocks();
+            
+            int height = Conch.getBlockchain().getHeight();
+            try {
+                height = Integer.parseInt(req.getParameter("height"));
+            } catch (NumberFormatException ignored) {}
+
+            
+//            List<? extends Block> blocks;
+//            try {
+//                Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+//                if (numBlocks > 0) {
+//                    blocks = Conch.getBlockchainProcessor().popOffTo(Conch.getBlockchain().getHeight() - numBlocks);
+//                } else if (height > 0) {
+//                    blocks = Conch.getBlockchainProcessor().popOffTo(height);
+//                } else {
+//                    return JSONResponses.missing("numBlocks", "height");
+//                }
+//            } finally {
+//                Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+//            }
+//            JSONArray blocksJSON = new JSONArray();
+//            blocks.forEach(block -> blocksJSON.add(JSONData.block(block, true, false)));
+//            JSONObject response = new JSONObject();
+//            response.put("blocks", blocksJSON);
+//            if (keepTransactions) {
+//                blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+//            }
+//            
+            
+            req.getParameter("includeLessors");
+          
+            
+            
+            response.put("done", true);
+            
+            
+        } catch (ConchException.NotValidException e) {
+            e.printStackTrace();
         } catch (RuntimeException e) {
             JSONData.putException(response, e);
         }

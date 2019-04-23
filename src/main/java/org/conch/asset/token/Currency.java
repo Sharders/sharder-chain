@@ -28,10 +28,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
-import org.conch.db.DbClause;
-import org.conch.db.DbIterator;
-import org.conch.db.DbKey;
-import org.conch.db.VersionedEntityDbTable;
+import org.conch.db.*;
 import org.conch.market.Exchange;
 import org.conch.mint.CurrencyMint;
 import org.conch.shuffle.Shuffling;
@@ -481,22 +478,31 @@ public final class Currency {
                 Currency.claimReserve(event, eventId, senderAccount, currencyId, senderAccount.getCurrencyUnits(currencyId));
             }
             if (!isActive()) {
-                try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currencyId, 0, Integer.MAX_VALUE)) {
+                DbIterator<CurrencyFounder> founders = null;
+                try {
+                    founders = CurrencyFounder.getCurrencyFounders(currencyId, 0, Integer.MAX_VALUE);
                     for (CurrencyFounder founder : founders) {
                         Account.getAccount(founder.getAccountId())
                                 .addToBalanceAndUnconfirmedBalanceNQT(event, eventId, Math.multiplyExact(reserveSupply,
                                         founder.getAmountPerUnitNQT()));
                     }
+                }finally {
+                    DbUtils.close(founders);
                 }
             }
             CurrencyFounder.remove(currencyId);
         }
         if (is(CurrencyType.EXCHANGEABLE)) {
             List<CurrencyBuyOffer> buyOffers = new ArrayList<>();
-            try (DbIterator<CurrencyBuyOffer> offers = CurrencyBuyOffer.getOffers(this, 0, -1)) {
+
+            DbIterator<CurrencyBuyOffer> offers = null;
+            try {
+                offers = CurrencyBuyOffer.getOffers(this, 0, -1);
                 while (offers.hasNext()) {
                     buyOffers.add(offers.next());
                 }
+            }finally {
+                DbUtils.close(offers);
             }
             buyOffers.forEach((offer) -> CurrencyExchangeOffer.removeOffer(event, offer));
         }
@@ -516,7 +522,9 @@ public final class Currency {
             if (block.getHeight() <= Constants.MONETARY_SYSTEM_BLOCK) {
                 return;
             }
-            try (DbIterator<Currency> issuedCurrencies = currencyTable.getManyBy(new DbClause.IntClause("issuance_height", block.getHeight()), 0, -1)) {
+            DbIterator<Currency> issuedCurrencies = null;
+            try {
+                issuedCurrencies = currencyTable.getManyBy(new DbClause.IntClause("issuance_height", block.getHeight()), 0, -1);
                 for (Currency currency : issuedCurrencies) {
                     if (currency.getCurrentReservePerUnitNQT() < currency.getMinReservePerUnitNQT()) {
                         listeners.notify(currency, Event.BEFORE_UNDO_CROWDFUNDING);
@@ -526,17 +534,23 @@ public final class Currency {
                         distributeCurrency(currency);
                     }
                 }
+            }finally {
+                DbUtils.close(issuedCurrencies);
             }
         }
 
         private void undoCrowdFunding(Currency currency) {
-            try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE)) {
+            DbIterator<CurrencyFounder> founders = null;
+            try {
+                founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE);
                 for (CurrencyFounder founder : founders) {
                     Account.getAccount(founder.getAccountId())
                             .addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.CURRENCY_UNDO_CROWDFUNDING, currency.getId(),
                                     Math.multiplyExact(currency.getReserveSupply(),
                                             founder.getAmountPerUnitNQT()));
                 }
+            }finally {
+                DbUtils.close(founders);
             }
             Account.getAccount(currency.getAccountId())
                     .addToCurrencyAndUnconfirmedCurrencyUnits(AccountLedger.LedgerEvent.CURRENCY_UNDO_CROWDFUNDING, currency.getId(),
@@ -549,12 +563,18 @@ public final class Currency {
             long totalAmountPerUnit = 0;
             final long remainingSupply = currency.getReserveSupply() - currency.getInitialSupply();
             List<CurrencyFounder> currencyFounders = new ArrayList<>();
-            try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE)) {
+
+            DbIterator<CurrencyFounder> founders = null;
+            try {
+                founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE);
                 for (CurrencyFounder founder : founders) {
                     totalAmountPerUnit += founder.getAmountPerUnitNQT();
                     currencyFounders.add(founder);
                 }
+            }finally {
+                DbUtils.close(founders);
             }
+            
             CurrencySupply currencySupply = currency.getSupplyData();
             for (CurrencyFounder founder : currencyFounders) {
                 long units = Math.multiplyExact(remainingSupply, founder.getAmountPerUnitNQT()) / totalAmountPerUnit;

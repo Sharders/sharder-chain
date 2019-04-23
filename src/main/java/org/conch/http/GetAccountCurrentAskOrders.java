@@ -46,14 +46,14 @@ public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandl
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        DbIterator<Order.Ask> askOrders;
-        if (assetId == 0) {
-            askOrders = Order.Ask.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
-        } else {
-            askOrders = Order.Ask.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
-        }
+        DbIterator<Order.Ask> askOrders = null;
         JSONArray orders = new JSONArray();
         try {
+            if (assetId == 0) {
+                askOrders = Order.Ask.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
+            } else {
+                askOrders = Order.Ask.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
+            }
             while (askOrders.hasNext()) {
                 orders.add(JSONData.askOrder(askOrders.next()));
             }

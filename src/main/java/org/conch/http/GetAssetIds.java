@@ -44,10 +44,15 @@ public final class GetAssetIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray assetIds = new JSONArray();
-        try (DbIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
+
+        DbIterator<Asset> assets = null;
+        try {
+            assets = Asset.getAllAssets(firstIndex, lastIndex);
             while (assets.hasNext()) {
                 assetIds.add(Long.toUnsignedString(assets.next().getId()));
             }
+        }finally {
+            DbUtils.close(assets);
         }
         JSONObject response = new JSONObject();
         response.put("assetIds", assetIds);

@@ -47,7 +47,10 @@ public final class GetAllExchanges extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray exchanges = new JSONArray();
-        try (DbIterator<Exchange> exchangeIterator = Exchange.getAllExchanges(firstIndex, lastIndex)) {
+
+        DbIterator<Exchange> exchangeIterator = null;
+        try {
+            exchangeIterator = Exchange.getAllExchanges(firstIndex, lastIndex);
             while (exchangeIterator.hasNext()) {
                 Exchange exchange = exchangeIterator.next();
                 if (exchange.getTimestamp() < timestamp) {
@@ -55,6 +58,8 @@ public final class GetAllExchanges extends APIServlet.APIRequestHandler {
                 }
                 exchanges.add(JSONData.exchange(exchange, includeCurrencyInfo));
             }
+        }finally {
+            DbUtils.close(exchangeIterator);
         }
         response.put("exchanges", exchanges);
         return response;

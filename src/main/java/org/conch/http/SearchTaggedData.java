@@ -51,10 +51,15 @@ public final class SearchTaggedData extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
         response.put("data", jsonArray);
-        try (DbIterator<TaggedData> data = TaggedData.searchData(query, channel, accountId, firstIndex, lastIndex)) {
+
+        DbIterator<TaggedData> data = null;
+        try {
+            data = TaggedData.searchData(query, channel, accountId, firstIndex, lastIndex);
             while (data.hasNext()) {
                 jsonArray.add(JSONData.taggedData(data.next(), includeData));
             }
+        }finally {
+            DbUtils.close(data);
         }
 
         return response;

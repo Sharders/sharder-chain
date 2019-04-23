@@ -59,10 +59,15 @@ public final class GetExchangesByOffer extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
         JSONObject response = new JSONObject();
         JSONArray exchangesData = new JSONArray();
-        try (DbIterator<Exchange> exchanges = Exchange.getOfferExchanges(offerId, firstIndex, lastIndex)) {
+
+        DbIterator<Exchange> exchanges = null;
+        try {
+            exchanges = Exchange.getOfferExchanges(offerId, firstIndex, lastIndex);
             while (exchanges.hasNext()) {
                 exchangesData.add(JSONData.exchange(exchanges.next(), includeCurrencyInfo));
             }
+        }finally {
+          DbUtils.close(exchanges);  
         }
         response.put("exchanges", exchangesData);
         return response;

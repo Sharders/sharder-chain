@@ -50,10 +50,15 @@ public final class SearchAssets extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray assetsJSONArray = new JSONArray();
-        try (DbIterator<Asset> assets = Asset.searchAssets(query, firstIndex, lastIndex)) {
+
+        DbIterator<Asset> assets = null;
+        try {
+            assets = Asset.searchAssets(query, firstIndex, lastIndex);
             while (assets.hasNext()) {
                 assetsJSONArray.add(JSONData.asset(assets.next(), includeCounts));
             }
+        }finally {
+            DbUtils.close(assets);
         }
         response.put("assets", assetsJSONArray);
         return response;

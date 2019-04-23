@@ -54,10 +54,14 @@ public final class GetAliasesLike extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray aliasJSON = new JSONArray();
         response.put("aliases", aliasJSON);
-        try (DbIterator<Alias> aliases = Alias.getAliasesLike(prefix, firstIndex, lastIndex)) {
+        DbIterator<Alias> aliases = null;
+        try {
+            aliases = Alias.getAliasesLike(prefix, firstIndex, lastIndex);
             while (aliases.hasNext()) {
                 aliasJSON.add(JSONData.alias(aliases.next()));
             }
+        }finally {
+            DbUtils.close(aliases);
         }
         return response;
     }

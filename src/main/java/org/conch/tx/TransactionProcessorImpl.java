@@ -469,11 +469,15 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             List<Transaction> removed = new ArrayList<>();
             try {
                 Db.db.beginTransaction();
-                try (DbIterator<UnconfirmedTransaction> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
+                DbIterator<UnconfirmedTransaction> unconfirmedTransactions = null;
+                try {
+                    unconfirmedTransactions = getAllUnconfirmedTransactions();
                     for (UnconfirmedTransaction unconfirmedTransaction : unconfirmedTransactions) {
                         unconfirmedTransaction.getTransaction().undoUnconfirmed();
                         removed.add(unconfirmedTransaction.getTransaction());
                     }
+                }finally {
+                    DbUtils.close(unconfirmedTransactions);
                 }
                 unconfirmedTransactionTable.truncate();
                 Db.db.commitTransaction();

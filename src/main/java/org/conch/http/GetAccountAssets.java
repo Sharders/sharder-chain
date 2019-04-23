@@ -24,6 +24,7 @@ package org.conch.http;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.util.JSON;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -49,13 +50,17 @@ public final class GetAccountAssets extends APIServlet.APIRequestHandler {
 
         if (assetId == 0) {
             JSONObject response = new JSONObject();
-            try (DbIterator<Account.AccountAsset> accountAssets = Account.getAccountAssets(accountId, height, 0, -1)) {
+            DbIterator<Account.AccountAsset> accountAssets = null;
+            try {
+                accountAssets = Account.getAccountAssets(accountId, height, 0, -1);
                 JSONArray assetJSON = new JSONArray();
                 while (accountAssets.hasNext()) {
                     assetJSON.add(JSONData.accountAsset(accountAssets.next(), false, includeAssetInfo));
                 }
                 response.put("accountAssets", assetJSON);
                 return response;
+            }finally {
+                DbUtils.close(accountAssets);
             }
         } else {
             Account.AccountAsset accountAsset = Account.getAccountAsset(accountId, assetId, height);

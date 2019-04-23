@@ -49,13 +49,17 @@ public final class GetAccountCurrencies extends APIServlet.APIRequestHandler {
 
         if (currencyId == 0) {
             JSONObject response = new JSONObject();
-            try (DbIterator<Account.AccountCurrency> accountCurrencies = Account.getAccountCurrencies(accountId, height, 0, -1)) {
+            DbIterator<Account.AccountCurrency> accountCurrencies = null;
+            try {
+                accountCurrencies = Account.getAccountCurrencies(accountId, height, 0, -1);
                 JSONArray currencyJSON = new JSONArray();
                 while (accountCurrencies.hasNext()) {
                     currencyJSON.add(JSONData.accountCurrency(accountCurrencies.next(), false, includeCurrencyInfo));
                 }
                 response.put("accountCurrencies", currencyJSON);
                 return response;
+            }finally {
+                DbUtils.close(accountCurrencies);
             }
         } else {
             Account.AccountCurrency accountCurrency = Account.getAccountCurrency(accountId, currencyId, height);

@@ -50,10 +50,15 @@ public final class SearchCurrencies extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
-        try (DbIterator<Currency> currencies = Currency.searchCurrencies(query, firstIndex, lastIndex)) {
+
+        DbIterator<Currency> currencies = null;
+        try {
+            currencies = Currency.searchCurrencies(query, firstIndex, lastIndex);
             while (currencies.hasNext()) {
                 jsonArray.add(JSONData.currency(currencies.next(), includeCounts));
             }
+        }finally {
+            DbUtils.close(currencies);
         }
         response.put("currencies", jsonArray);
         return response;

@@ -1269,10 +1269,14 @@ public final class Account {
 
     private long getLessorsGuaranteedBalanceNQT(int height) {
         List<Account> lessors = new ArrayList<>();
-        try (DbIterator<Account> iterator = getLessors(height)) {
+        DbIterator<Account> iterator = null;
+        try {
+            iterator = getLessors(height);
             while (iterator.hasNext()) {
                 lessors.add(iterator.next());
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         Long[] lessorIds = new Long[lessors.size()];
         long[] balances = new long[lessors.size()];

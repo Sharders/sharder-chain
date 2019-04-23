@@ -32,6 +32,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Exchange;
 import org.conch.market.Order;
@@ -211,10 +212,14 @@ public final class DebugTrace {
         for (long accountId : accountIds) {
             Account account = Account.getAccount(accountId);
             if (account != null) {
-                try (DbIterator<Account> lessors = account.getLessors()) {
+                DbIterator<Account> lessors = null;
+                try {
+                    lessors = account.getLessors();
                     while (lessors.hasNext()) {
                         log(lessorGuaranteedBalance(lessors.next(), accountId));
                     }
+                }finally {
+                    DbUtils.close(lessors);
                 }
             }
         }
@@ -316,11 +321,15 @@ public final class DebugTrace {
         long foundersTotal = 0;
         final long remainingSupply = currency.getReserveSupply() - currency.getInitialSupply();
         List<CurrencyFounder> currencyFounders = new ArrayList<>();
-        try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE)) {
+        DbIterator<CurrencyFounder> founders = null;
+        try {
+            founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE);
             for (CurrencyFounder founder : founders) {
                 totalAmountPerUnit += founder.getAmountPerUnitNQT();
                 currencyFounders.add(founder);
             }
+        }finally {
+            DbUtils.close(founders);
         }
         for (CurrencyFounder founder : currencyFounders) {
             long units = Math.multiplyExact(remainingSupply, founder.getAmountPerUnitNQT()) / totalAmountPerUnit;
@@ -343,7 +352,9 @@ public final class DebugTrace {
     }
 
     private void undoCrowdfunding(org.conch.asset.token.Currency currency) {
-        try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE)) {
+        DbIterator<CurrencyFounder> founders = null;
+        try {
+            founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE);
             for (CurrencyFounder founder : founders) {
                 Map<String,String> founderMap = getValues(founder.getAccountId(), false);
                 founderMap.put("currency", Long.toUnsignedString(currency.getId()));
@@ -351,6 +362,8 @@ public final class DebugTrace {
                 founderMap.put("event", "undo distribution");
                 log(founderMap);
             }
+        }finally {
+            DbUtils.close(founders);
         }
         Map<String,String> map = getValues(currency.getAccountId(), false);
         map.put("currency", Long.toUnsignedString(currency.getId()));
@@ -366,7 +379,9 @@ public final class DebugTrace {
             accountId = currency.getAccountId();
             units = currency.getCurrentSupply();
         } else {
-            try (DbIterator<Account.AccountCurrency> accountCurrencies = Account.getCurrencyAccounts(currency.getId(), 0, -1)) {
+            DbIterator<Account.AccountCurrency> accountCurrencies = null;
+            try {
+                accountCurrencies = Account.getCurrencyAccounts(currency.getId(), 0, -1);
                 if (accountCurrencies.hasNext()) {
                     Account.AccountCurrency accountCurrency = accountCurrencies.next();
                     accountId = accountCurrency.getAccountId();
@@ -374,6 +389,8 @@ public final class DebugTrace {
                 } else {
                     return;
                 }
+            }finally {
+                DbUtils.close(accountCurrencies);
             }
         }
         Map<String,String> map = getValues(accountId, false);
@@ -383,7 +400,9 @@ public final class DebugTrace {
                 map.put("currency cost", String.valueOf(Math.multiplyExact(units, currency.getCurrentReservePerUnitNQT())));
             }
             if (!currency.isActive()) {
-                try (DbIterator<CurrencyFounder> founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE)) {
+                DbIterator<CurrencyFounder> founders = null;
+                try {
+                    founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE);
                     for (CurrencyFounder founder : founders) {
                         Map<String,String> founderMap = getValues(founder.getAccountId(), false);
                         founderMap.put("currency", Long.toUnsignedString(currency.getId()));
@@ -391,6 +410,8 @@ public final class DebugTrace {
                         founderMap.put("event", "undo distribution");
                         log(founderMap);
                     }
+                }finally {
+                    DbUtils.close(founders);
                 }
             }
         }
@@ -727,7 +748,9 @@ public final class DebugTrace {
             Attachment.ColoredCoinsDividendPayment dividendPayment = (Attachment.ColoredCoinsDividendPayment)attachment;
             long totalDividend = 0;
             String assetId = Long.toUnsignedString(dividendPayment.getAssetId());
-            try (DbIterator<Account.AccountAsset> iterator = Account.getAssetAccounts(dividendPayment.getAssetId(), dividendPayment.getHeight(), 0, -1)) {
+            DbIterator<Account.AccountAsset> iterator = null;
+            try {
+                iterator = Account.getAssetAccounts(dividendPayment.getAssetId(), dividendPayment.getHeight(), 0, -1);
                 while (iterator.hasNext()) {
                     Account.AccountAsset accountAsset = iterator.next();
                     if (accountAsset.getAccountId() != accountId && accountAsset.getQuantityQNT() != 0) {
@@ -740,6 +763,8 @@ public final class DebugTrace {
                         log(recipient);
                     }
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
             map.put("dividend", String.valueOf(-totalDividend));
             map.put("asset", assetId);

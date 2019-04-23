@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.storage.TaggedData;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,10 +48,14 @@ public final class GetDataTags extends APIServlet.APIRequestHandler {
         JSONArray tagsJSON = new JSONArray();
         response.put("tags", tagsJSON);
 
-        try (DbIterator<TaggedData.Tag> tags = TaggedData.Tag.getAllTags(firstIndex, lastIndex)) {
+        DbIterator<TaggedData.Tag> tags = null;
+        try {
+            tags = TaggedData.Tag.getAllTags(firstIndex, lastIndex);
             while (tags.hasNext()) {
                 tagsJSON.add(JSONData.dataTag(tags.next()));
             }
+        }finally {
+            DbUtils.close(tags);
         }
         return response;
     }
