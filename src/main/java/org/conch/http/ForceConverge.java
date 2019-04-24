@@ -114,8 +114,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
         boolean serialMatched = false;
         if(cmdObj.containsKey("serialNum")){
-            serialMatched = StringUtils.isNotEmpty(Conch.serialNum) 
-                    && cmdObj.getString("serialNum").equals(Conch.serialNum);
+            serialMatched = StringUtils.isNotEmpty(Conch.getSerialNum()) 
+                    && cmdObj.getString("serialNum").equals(Conch.getSerialNum());
         }
         
         return accountMatched || serialMatched;
