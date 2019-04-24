@@ -157,6 +157,8 @@ public class CheckSumValidator {
         String url = UrlManager.KNOWN_IGNORE_BLOCKS;
         try {
             response = RestfulHttpClient.getClient(url).get().request();
+            if(response == null) return;
+            
             String content = response.getContent();
             String updateDetail = "\n\r";
             String totalIgnoreBlocks = "\n\r";

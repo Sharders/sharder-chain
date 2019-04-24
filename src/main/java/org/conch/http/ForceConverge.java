@@ -23,6 +23,7 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
@@ -54,6 +55,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             com.alibaba.fastjson.JSONObject cmdObj = getCmdTools();
             if(cmdObj == null) {
                 response.put("current node[" + Peers.getMyAddress() + "] needn't to process", true);
+                return response;
             }
             
             Generator.pause(true);
@@ -112,7 +114,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
         boolean serialMatched = false;
         if(cmdObj.containsKey("serialNum")){
-            serialMatched =  cmdObj.getString("serialNum").equals(Conch.serialNum);
+            serialMatched = StringUtils.isNotEmpty(Conch.serialNum) 
+                    && cmdObj.getString("serialNum").equals(Conch.serialNum);
         }
         
         return accountMatched || serialMatched;
@@ -122,7 +125,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         String url = UrlManager.CMD_TOOLS;
         try {
             RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
+            if(response == null) return null;
+            
             String content = response.getContent();
+            Logger.logDebugMessage("cmd tools => \n\r" + content);
             if(content.startsWith("[")) {
                 com.alibaba.fastjson.JSONArray array = JSON.parseArray(content);
                 for(int i = 0; i < array.size(); i++) {
@@ -134,7 +140,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 com.alibaba.fastjson.JSONObject cmdObj = JSON.parseObject(content);
                 if(matchOwn(cmdObj)) return cmdObj;
             }
-
+            
         } catch (IOException e) {
             Logger.logErrorMessage("Can't get cmd tools from " + url + " caused by " + e.getMessage());
         }

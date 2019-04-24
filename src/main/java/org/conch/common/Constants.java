@@ -210,7 +210,7 @@ public final class Constants {
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 2 : 100);
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 100 : 500);
     public static final int TESTNET_PHASE_ONE = 20000;
     public static final int TESTNET_PHASE_TWO = 39000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
