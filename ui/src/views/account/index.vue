@@ -995,8 +995,8 @@
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {
                     if (res.data.upgraded) {
                         _this.$message.success(_this.$t('notification.update_success'));
-                        // _this.$router.push("/login");
-                        window.location = "/";
+                        _this.$router.push("/login");
+                        //window.location.href = "/";
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
@@ -1260,8 +1260,8 @@
                         console.log('success to reconfigure settings...');
                         _this.$message.success(_this.$t('restart.restarting'));
                         data = new FormData();
-                        window.location.href = "/";
-                        // _this.$router.push("/login");
+                        //window.location = "/";
+                        _this.$router.push("/login");
                         this.store.state.mask = false;
                         _this.autoRefresh();
                     } else {

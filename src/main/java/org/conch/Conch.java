@@ -136,7 +136,9 @@ public final class Conch {
         Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
         if(type != null) {
             Conch.nodeType = type.getSimpleName();
-        }else {
+        }
+        
+        if(type == null || Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)){
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS
                     && !SystemUtils.IS_OS_MAC
