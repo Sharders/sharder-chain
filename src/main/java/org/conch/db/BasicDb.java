@@ -203,6 +203,9 @@ public class BasicDb {
                 }
                 Logger.logWarningMessage(stacks);
             }
+            if(maxActiveConnections > 50) {
+                cp.dispose();
+            }
         }
         return con;
     }
