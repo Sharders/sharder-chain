@@ -315,13 +315,20 @@ public class Generator implements Comparable<Generator> {
         boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
         // if miner is not the owner of the node
         if(!isOwner && generators.size() >= MAX_MINERS) {
-            throw new RuntimeException("the limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
-            
-//            long accountId = Account.getId(secretPhrase);
-//            if(!PocProcessorImpl.isHubBind(accountId)) {
-//                Logger.logInfoMessage("Account[id=" + accountId  + "] is not be bind to hub");
-//            }
+            throw new RuntimeException("the limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
+
+        Long accountId = Account.getId(secretPhrase);
+        /**
+        // whether own the pool
+        if(!SharderPoolProcessor.checkOwnPoolState(accountId, SharderPoolProcessor.State.WORKING)) {
+            throw new RuntimeException("current node did't own the pool, please create pool firstly!");
+        }
+        
+        if(!Conch.getPocProcessor().isCertifiedPeerBind(accountId)){
+            throw new RuntimeException("current node type isn't the valid node");
+        }
+        **/
 
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
