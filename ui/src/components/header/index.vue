@@ -458,7 +458,7 @@
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {
                     if (res.data.upgraded) {
                         _this.$message.success(_this.$t('notification.update_success'));
-                        _this.store.state.mask = false;
+                        _this.$store.state.mask = false;
                         _this.$router.push("/login");
                         // window.location="/";
                         _this.autoRefresh();
