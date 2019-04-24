@@ -90,21 +90,23 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             String getFrom = "default";
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
-                String filePath = ".hubSetting/.tempCache/.sysCache";
-                String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
-                File tempFile = new File(userHome);
+                boolean serialNumExist = StringUtils.isNotEmpty(Conch.serialNum) && Conch.serialNum.length() >= 6;
+                
+                if(!serialNumExist) {
+                    String filePath = ".hubSetting/.tempCache/.sysCache";
+                    String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
+                    File tempFile = new File(userHome);
+                    // hub node check if serial number exist
+                    if (tempFile.exists()) {
+                        String num = FileUtils.readFileToString(tempFile, "UTF-8");
+                        Conch.nodeType = this.getTypeSimpleName(num);
 
-                // hub node check if serial number exist
-                if (tempFile.exists()) {
-                    String num = FileUtils.readFileToString(tempFile, "UTF-8");
-                    Conch.nodeType = this.getTypeSimpleName(num);
-
-                    if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
-                         Conch.serialNum= num.replaceAll("(\\r\\n|\\n)", "");
-                        response.put("sharder.xxx", Conch.serialNum);
-                        Logger.logDebugMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
+                        if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
+                            Conch.serialNum = num.replaceAll("(\\r\\n|\\n)", "");
+                            Logger.logDebugMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
+                        }
+                        getFrom = "serial number";
                     }
-                    getFrom = "serial number";
                 }
             }else {
                 Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
@@ -116,6 +118,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             
             Logger.logDebugMessage("current os is %s and its node type get from %s is %s", SystemUtils.OS_NAME, getFrom, Conch.nodeType);
             response.put("sharder.NodeType", Conch.nodeType);
+            response.put("sharder.xxx", Conch.serialNum);
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
