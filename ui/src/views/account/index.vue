@@ -354,7 +354,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :model="hubsetting" status-icon :rules="formRules"
+                <el-form label-position="left" v-loading="hubsetting.loadingData" model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -399,9 +399,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" v-loading="hubsetting.executing"
-                            @click="verifyHubSetting('init')">{{
-                        $t('hubsetting.confirm_restart') }}
+                    <button class="common_btn writeBtn" v-loading="hubsetting.executing" @click="verifyHubSetting('init')">
+                        {{$t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -424,7 +423,7 @@
                 <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
                 <!--</div>-->
                 <el-form label-position="left" label-width="160px" :rules="formRules"
-                         :model="hubsetting" ref="reconfigureForm" status-icon>
+                         :model="hubsetting" v-loading="registerNatLoading" ref="reconfigureForm" status-icon>
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
@@ -486,7 +485,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form v-loading="registerNatLoading" label-position="left" :model="hubsetting" status-icon :rules="formRules"
+                <el-form label-position="left" :model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="useNATForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -690,6 +689,7 @@
                 },
                 hubsetting: {
                     openPunchthrough: false,
+                    loadingData: false,
                     sharderAccount: '',
                     sharderPwd: '',
                     address: '',
@@ -1277,6 +1277,7 @@
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
+                _this.hubsetting.loadingData = true;
                 if (_this.hubsetting.sharderAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
@@ -1286,6 +1287,7 @@
                     formData.append("nodeType", _this.userConfig.nodeType);
                     _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.fetchNatServiceConfig), formData)
                         .then(res => {
+                            _this.hubsetting.loadingData = false;
                             console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
                             if (res.data.success && res.data.data) {
                                 _this.hubsetting.address = res.data.data.natServiceIp;
@@ -1307,6 +1309,7 @@
                             }
                         })
                         .catch(err => {
+                            _this.hubsetting.loadingData = false;
                             _this.$message.error(err.message);
                         });
                 }

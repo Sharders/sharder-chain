@@ -558,7 +558,9 @@ public class Generator implements Comparable<Generator> {
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
-        json.put("bindPeerType", Conch.getPocProcessor().bindPeerType(accountId).getName());
+        Peer.Type type = Conch.getPocProcessor().bindPeerType(accountId);
+        if(type == null) type = Peer.Type.NORMAL;
+        json.put("bindPeerType", type.getName());
         if(loadPoolInfo) {
             json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
         }

@@ -97,7 +97,7 @@ public class PocProcessorImpl implements PocProcessor {
   @Override
   public Peer.Type bindPeerType(long accountId){
     CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId);
-    return certifiedPeer == null ? Peer.Type.NORMAL : certifiedPeer.getType();
+    return certifiedPeer == null ? null : certifiedPeer.getType();
   }
 
   /**
