@@ -88,10 +88,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             // get node type
             Conch.nodeType = Peer.Type.NORMAL.getSimpleName();
             String getFrom = "default";
+            boolean serialNumExist = StringUtils.isNotEmpty(Conch.serialNum) && Conch.serialNum.length() >= 6;
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
-                boolean serialNumExist = StringUtils.isNotEmpty(Conch.serialNum) && Conch.serialNum.length() >= 6;
-                
                 if(!serialNumExist) {
                     String filePath = ".hubSetting/.tempCache/.sysCache";
                     String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
@@ -100,7 +99,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                     if (tempFile.exists()) {
                         String num = FileUtils.readFileToString(tempFile, "UTF-8");
                         Conch.nodeType = this.getTypeSimpleName(num);
-
+                        
                         if (!Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)) {
                             Conch.serialNum = num.replaceAll("(\\r\\n|\\n)", "");
                             Logger.logDebugMessage("Hub info => [serialNum: " + Conch.serialNum + " , nodeType: " + Conch.nodeType + "]");
@@ -108,7 +107,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
                         getFrom = "serial number";
                     }
                 }
-            }else {
+            }
+            
+            if(serialNumExist){
                 Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
                 if(type != null) {
                     Conch.nodeType = type.getSimpleName();

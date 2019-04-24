@@ -21,15 +21,17 @@
 
 package org.conch.http;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
-import org.conch.common.ConchException;
 import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
+import org.conch.peer.Peers;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Logger;
+import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -42,28 +44,25 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     static final ForceConverge INSTANCE = new ForceConverge();
 
     private ForceConverge() {
-        super(new APITag[] {APITag.DEBUG}, "height", "keepTx", "upgradeCos");
+        super(new APITag[] {APITag.DEBUG});
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
         try {
-            if(!UrlManager.validFoundationHost(req)){
-                response.put("error", "Not valid request sender");
-                return response;
+            com.alibaba.fastjson.JSONObject cmdObj = getCmdTools();
+            if(cmdObj == null) {
+                response.put("current node[" + Peers.getMyAddress() + "] needn't to process", true);
             }
+            
             Generator.pause(true);
             Logger.logDebugMessage("start to syn known ignore blocks...");
             // syn ignore blocks
             CheckSumValidator.updateKnownIgnoreBlocks();
             
             int currentHeight = Conch.getBlockchain().getHeight();
-            int toHeight = currentHeight;
-            try {
-                toHeight = Integer.parseInt(req.getParameter("height"));
-            } catch (NumberFormatException ignored) {}
-            
+            int toHeight = cmdObj.containsKey("toHeight") ? cmdObj.getInteger("toHeight") : currentHeight;
             Logger.logDebugMessage("received toHeight is %d ", toHeight);
             // pop-off to specified height
             List<? extends Block> blocks = Lists.newArrayList();
@@ -78,7 +77,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             }
             
             // tx process
-            boolean keepTx = "true".equalsIgnoreCase(req.getParameter("keepTx"));
+            boolean keepTx = cmdObj.getBooleanValue("keepTx");
             Logger.logDebugMessage("received keepTx is %s ", keepTx);
             
             if (keepTx) {
@@ -86,7 +85,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
             }
 
-            boolean upgradeCos = "true".equalsIgnoreCase(req.getParameter("upgradeCos"));
+            boolean upgradeCos = cmdObj.getBooleanValue("upgradeCos");
             Logger.logDebugMessage("received upgradeCos is %s ",upgradeCos);
             if(upgradeCos){
                 Logger.logDebugMessage("start to auto upgrade...");
@@ -95,7 +94,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             
             response.put("done", true);
             
-        } catch (ConchException.NotValidException | IOException e) {
+        } catch (IOException e) {
             JSONData.putException(response, e);
         } catch (RuntimeException e) {
             JSONData.putException(response, e);
@@ -103,6 +102,43 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Generator.pause(false);
         }
         return response;
+    }
+    
+    private static boolean matchOwn(com.alibaba.fastjson.JSONObject cmdObj){
+        boolean accountMatched = false;
+        if(cmdObj.containsKey("rsAccount")){
+            accountMatched =  cmdObj.getString("rsAccount").equals(Generator.getAutoMiningRS());
+        }
+
+        boolean serialMatched = false;
+        if(cmdObj.containsKey("serialNum")){
+            serialMatched =  cmdObj.getString("serialNum").equals(Conch.serialNum);
+        }
+        
+        return accountMatched || serialMatched;
+    }
+    
+    public static com.alibaba.fastjson.JSONObject getCmdTools(){
+        String url = UrlManager.CMD_TOOLS;
+        try {
+            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
+            String content = response.getContent();
+            if(content.startsWith("[")) {
+                com.alibaba.fastjson.JSONArray array = JSON.parseArray(content);
+                for(int i = 0; i < array.size(); i++) {
+                    com.alibaba.fastjson.JSONObject cmdObj = array.getJSONObject(i);
+                    
+                    if(matchOwn(cmdObj)) return cmdObj;
+                }
+            }else if(content.startsWith("{")){
+                com.alibaba.fastjson.JSONObject cmdObj = JSON.parseObject(content);
+                if(matchOwn(cmdObj)) return cmdObj;
+            }
+
+        } catch (IOException e) {
+            Logger.logErrorMessage("Can't get cmd tools from " + url + " caused by " + e.getMessage());
+        }
+        return null;
     }
 
     @Override

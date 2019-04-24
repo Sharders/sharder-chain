@@ -66,6 +66,7 @@ public class UrlManager {
     private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-";
    
     public static final String KNOWN_IGNORE_BLOCKS = "https://oss.sharder.org/cos/client/release/ignore-blocks";
+    public static final String CMD_TOOLS = "https://oss.sharder.org/cos/client/release/cmd-tools";
     /*=============================================HUB UPGRADE API END========================================*/
 
     /**
