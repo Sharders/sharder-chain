@@ -1219,7 +1219,7 @@
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {
-                        this.hubsetting.executing = false;
+                        _this.hubsetting.executing = false;
                         if (res.data.success) {
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
