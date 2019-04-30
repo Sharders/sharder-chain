@@ -3626,10 +3626,12 @@ public abstract class TransactionType {
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
                     throw new ConchException.NotValidException("Sharder pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
                 }
-                if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
-                    throw new ConchException.NotValidException("Sharder pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
-                }
                 
+                if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
+                    if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
+                        throw new ConchException.NotValidException("Sharder pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                    }  
+                }
                 
                 // default level is creator
                 // 0-pool creator, 1-investor 
