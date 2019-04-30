@@ -58,40 +58,59 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 return response;
             }
             
-            Generator.pause(true);
-            Logger.logDebugMessage("start to syn known ignore blocks...");
-            // syn ignore blocks
-            CheckSumValidator.updateKnownIgnoreBlocks();
-            
-            int currentHeight = Conch.getBlockchain().getHeight();
-            int toHeight = cmdObj.containsKey("toHeight") ? cmdObj.getInteger("toHeight") : currentHeight;
-            Logger.logDebugMessage("received toHeight is %d ", toHeight);
-            // pop-off to specified height
-            List<? extends Block> blocks = Lists.newArrayList();
-            try {
-                Conch.getBlockchainProcessor().setGetMoreBlocks(false);
-                if(toHeight < currentHeight) {
-                    Logger.logDebugMessage("start to pop-off to height %d", toHeight);
-                    blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
+            try{
+                Generator.pause(true);
+                Logger.logDebugMessage("start to syn known ignore blocks and txs...");
+                // syn ignore blocks
+                CheckSumValidator.updateKnownIgnoreBlocks();
+
+                int currentHeight = Conch.getBlockchain().getHeight();
+                int toHeight = cmdObj.containsKey("toHeight") ? cmdObj.getInteger("toHeight") : currentHeight;
+                Logger.logDebugMessage("received toHeight is %d ", toHeight);
+                // pop-off to specified height
+                List<? extends Block> blocks = Lists.newArrayList();
+                try {
+                    Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+                    if(toHeight < currentHeight) {
+                        Logger.logDebugMessage("start to pop-off to height %d", toHeight);
+                        blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
+                    }
+                } finally {
+                    Conch.getBlockchainProcessor().setGetMoreBlocks(true);
                 }
-            } finally {
-                Conch.getBlockchainProcessor().setGetMoreBlocks(true);
-            }
-            
-            // tx process
-            boolean keepTx = cmdObj.getBooleanValue("keepTx");
-            Logger.logDebugMessage("received keepTx is %s ", keepTx);
-            
-            if (keepTx) {
-                Logger.logDebugMessage("start to put the txs into delay process pool");
-                blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+
+                // tx process
+                boolean keepTx = cmdObj.getBooleanValue("keepTx");
+                Logger.logDebugMessage("received keepTx is %s ", keepTx);
+
+                if (keepTx) {
+                    Logger.logDebugMessage("start to put the txs into delay process pool");
+                    blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+                }
+            }finally {
+                Generator.pause(false);
             }
 
-            boolean upgradeCos = cmdObj.getBooleanValue("upgradeCos");
-            Logger.logDebugMessage("received upgradeCos is %s ",upgradeCos);
-            if(upgradeCos){
-                Logger.logDebugMessage("start to auto upgrade...");
-                ClientUpgradeTool.autoUpgrade(true);
+            // pause command process
+            if(cmdObj.containsKey("pauseSyn")){
+                boolean pauseSyn = cmdObj.getBooleanValue("pauseSyn");
+                if(pauseSyn){
+                    Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+                    Generator.pause(true);
+                }else{
+                    Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+                    Generator.pause(false);
+                }
+            }
+            
+            //upgrade
+            if(cmdObj.containsKey("upgradeCos")){
+                boolean upgradeCos = cmdObj.getBooleanValue("upgradeCos");
+                Logger.logDebugMessage("received upgradeCos is %s ",upgradeCos);
+                if(upgradeCos){
+                    Logger.logDebugMessage("start to auto upgrade...");
+                    ClientUpgradeTool.autoUpgrade(true);
+                }
             }
             
             response.put("done", true);
@@ -100,8 +119,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             JSONData.putException(response, e);
         } catch (RuntimeException e) {
             JSONData.putException(response, e);
-        }finally {
-            Generator.pause(false);
         }
         return response;
     }
