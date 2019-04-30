@@ -50,11 +50,15 @@ public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
         boolean includeTransactions = "true".equalsIgnoreCase(req.getParameter("includeTransactions"));
 
         JSONArray blocks = new JSONArray();
-        try (DbIterator<? extends Block> iterator = Conch.getBlockchain().getBlocks(accountId, timestamp, firstIndex, lastIndex)) {
+        DbIterator<? extends Block> iterator = null;
+        try {
+            iterator = Conch.getBlockchain().getBlocks(accountId, timestamp, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Block block = iterator.next();
                 blocks.add(JSONData.block(block, includeTransactions, false));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
 
         JSONObject response = new JSONObject();

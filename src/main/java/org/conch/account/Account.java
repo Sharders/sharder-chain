@@ -1031,10 +1031,14 @@ public final class Account {
             int height = block.getHeight();
 
             List<AccountLease> changingLeases = new ArrayList<>();
-            try (DbIterator<AccountLease> leases = getLeaseChangingAccounts(height)) {
+            DbIterator<AccountLease> leases = null;
+            try {
+                leases = getLeaseChangingAccounts(height);
                 while (leases.hasNext()) {
                     changingLeases.add(leases.next());
                 }
+            }finally {
+                DbUtils.close(leases);
             }
             for (AccountLease lease : changingLeases) {
                 Account lessor = Account.getAccount(lease.lessorId);
@@ -1265,10 +1269,14 @@ public final class Account {
 
     private long getLessorsGuaranteedBalanceNQT(int height) {
         List<Account> lessors = new ArrayList<>();
-        try (DbIterator<Account> iterator = getLessors(height)) {
+        DbIterator<Account> iterator = null;
+        try {
+            iterator = getLessors(height);
             while (iterator.hasNext()) {
                 lessors.add(iterator.next());
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         Long[] lessorIds = new Long[lessors.size()];
         long[] balances = new long[lessors.size()];
@@ -1277,11 +1285,14 @@ public final class Account {
             balances[i] = lessors.get(i).getBalanceNQT();
         }
         int blockchainHeight = Conch.getBlockchain().getHeight();
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT account_id, SUM (additions) AS additions "
-                     + "FROM account_guaranteed_balance, TABLE (id BIGINT=?) T WHERE account_id = T.id AND height > ? "
-                     + (height < blockchainHeight ? " AND height <= ? " : "")
-                     + " GROUP BY account_id ORDER BY account_id")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT account_id, SUM (additions) AS additions "
+                    + "FROM account_guaranteed_balance, TABLE (id BIGINT=?) T WHERE account_id = T.id AND height > ? "
+                    + (height < blockchainHeight ? " AND height <= ? " : "")
+                    + " GROUP BY account_id ORDER BY account_id");
+            
             pstmt.setObject(1, lessorIds);
             pstmt.setInt(2, height - Constants.GUARANTEED_BALANCE_CONFIRMATIONS);
             if (height < blockchainHeight) {
@@ -1306,6 +1317,8 @@ public final class Account {
             return total;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -1925,10 +1938,14 @@ public final class Account {
     public void payDividends(final long transactionId, Attachment.ColoredCoinsDividendPayment attachment) {
         long totalDividend = 0;
         List<AccountAsset> accountAssets = new ArrayList<>();
-        try (DbIterator<AccountAsset> iterator = getAssetAccounts(attachment.getAssetId(), attachment.getHeight(), 0, -1)) {
+        DbIterator<AccountAsset> iterator = null;
+        try {
+            iterator = getAssetAccounts(attachment.getAssetId(), attachment.getHeight(), 0, -1);
             while (iterator.hasNext()) {
                 accountAssets.add(iterator.next());
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         final long amountNQTPerQNT = attachment.getAmountNQTPerQNT();
         long numAccounts = 0;

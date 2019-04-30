@@ -23,8 +23,8 @@ package org.conch.http.biz.handler;
 
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.db.*;
-import org.conch.db.*;
+import org.conch.db.Db;
+import org.conch.db.DbUtils;
 import org.conch.http.APIServlet;
 import org.conch.http.APITag;
 import org.json.simple.JSONObject;
@@ -60,11 +60,12 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
         JSONObject jsonObject = new JSONObject();
 
         Connection con = null;
+        PreparedStatement pstmt = null;
         String sqlTransfer = "SELECT COUNT(*),SUM(AMOUNT)/100000000 FROM TRANSACTION WHERE VERSION=1 AND TYPE=0 AND SUBTYPE=0 AND HEIGHT>0 AND TIMESTAMP > ?";
         String sqlStorage = "SELECT COUNT(*),SUM(LENGTH (t2.DATA)) FROM TRANSACTION t1 , TAGGED_DATA t2 WHERE t1.ID = t2.ID AND t1.VERSION=1 AND t1.TYPE=6 AND t1.SUBTYPE=0 AND t1.HEIGHT>0 AND TIMESTAMP > ?";
         try {
             con = Db.db.getConnection();
-            PreparedStatement pstmt = con.prepareStatement(sqlTransfer);
+            pstmt = con.prepareStatement(sqlTransfer);
             pstmt.setInt(1, 0);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -112,7 +113,7 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } finally {
-            DbUtils.close(con);
+            DbUtils.close(con, pstmt);
             return jsonObject;
         }
     }

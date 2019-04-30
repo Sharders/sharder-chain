@@ -60,10 +60,14 @@ public final class GetAccountProperties extends APIServlet.APIRequestHandler {
         if (setterId != 0) {
             JSONData.putAccount(response, "setter", setterId);
         }
-        try (DbIterator<Account.AccountProperty> iterator = Account.getProperties(recipientId, setterId, property, firstIndex, lastIndex)) {
+        DbIterator<Account.AccountProperty> iterator = null;
+        try {
+            iterator = Account.getProperties(recipientId, setterId, property, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 propertiesJSON.add(JSONData.accountProperty(iterator.next(), recipientId == 0, setterId == 0));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         return response;
 

@@ -48,11 +48,15 @@ public final class GetAccountExchangeRequests extends APIServlet.APIRequestHandl
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray jsonArray = new JSONArray();
-        try (DbIterator<ExchangeRequest> exchangeRequests = ExchangeRequest.getAccountCurrencyExchangeRequests(accountId, currencyId,
-                firstIndex, lastIndex)) {
+        DbIterator<ExchangeRequest> exchangeRequests = null;
+        try {
+            exchangeRequests = ExchangeRequest.getAccountCurrencyExchangeRequests(accountId, currencyId,
+                    firstIndex, lastIndex);
             while (exchangeRequests.hasNext()) {
                 jsonArray.add(JSONData.exchangeRequest(exchangeRequests.next(), includeCurrencyInfo));
             }
+        }finally {
+            DbUtils.close(exchangeRequests);
         }
         JSONObject response = new JSONObject();
         response.put("exchangeRequests", jsonArray);

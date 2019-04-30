@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.Transaction;
 import org.conch.vote.PhasingPoll;
 import org.conch.vote.VoteWeighting;
@@ -47,12 +48,16 @@ public class GetAssetPhasedTransactions extends APIServlet.APIRequestHandler {
         boolean withoutWhitelist = "true".equalsIgnoreCase(req.getParameter("withoutWhitelist"));
 
         JSONArray transactions = new JSONArray();
-        try (DbIterator<? extends Transaction> iterator = PhasingPoll.getHoldingPhasedTransactions(assetId, VoteWeighting.VotingModel.ASSET,
-                accountId, withoutWhitelist, firstIndex, lastIndex)) {
+        DbIterator<? extends Transaction> iterator = null;
+        try {
+            iterator = PhasingPoll.getHoldingPhasedTransactions(assetId, VoteWeighting.VotingModel.ASSET,
+                    accountId, withoutWhitelist, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Transaction transaction = iterator.next();
                 transactions.add(JSONData.transaction(transaction));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         JSONObject response = new JSONObject();
         response.put("transactions", transactions);

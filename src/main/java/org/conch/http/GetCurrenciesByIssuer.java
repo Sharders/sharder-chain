@@ -49,10 +49,15 @@ public final class GetCurrenciesByIssuer extends APIServlet.APIRequestHandler {
         response.put("currencies", accountsJSONArray);
         for (long accountId : accountIds) {
             JSONArray currenciesJSONArray = new JSONArray();
-            try (DbIterator<Currency> currencies = Currency.getCurrencyIssuedBy(accountId, firstIndex, lastIndex)) {
+
+            DbIterator<Currency> currencies = null;
+            try {
+                currencies = Currency.getCurrencyIssuedBy(accountId, firstIndex, lastIndex);
                 for (Currency currency : currencies) {
                     currenciesJSONArray.add(JSONData.currency(currency, includeCounts));
                 }
+            }finally {
+                DbUtils.close(currencies);
             }
             accountsJSONArray.add(currenciesJSONArray);
         }

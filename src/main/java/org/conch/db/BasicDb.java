@@ -102,7 +102,7 @@ public class BasicDb {
 
     }
 
-    private JdbcConnectionPool cp;
+    protected JdbcConnectionPool cp;
     private volatile int maxActiveConnections;
     private final String dbUrl;
     private final String dbUsername;
@@ -184,14 +184,42 @@ public class BasicDb {
         con.setAutoCommit(true);
         return con;
     }
-
+    
+    public int getActiveCount(){
+        return cp.getActiveConnections();
+    }
+    
+    private static int exceedMaxCount = 0;
+    private static final int RESTART_COUNT = 1000;
+    private static int predefinedMaxDbConnections = Conch.getIntProperty("sharder.maxDbConnections");
     protected Connection getPooledConnection() throws SQLException {
         Connection con = cp.getConnection();
         int activeConnections = cp.getActiveConnections();
         if (activeConnections > maxActiveConnections) {
             maxActiveConnections = activeConnections;
-            Logger.logDebugMessage("Database connection pool current size: " + activeConnections);
+            Logger.logWarningMessage("Database connection pool current size " + activeConnections + " is larger than max size " + maxActiveConnections);
+            
+            if(Logger.isLevel(Logger.Level.DEBUG)) {
+                String stacks = String.format("Stacks as following[conn size=%d]\n\r", activeConnections);
+                for ( StackTraceElement ele : Thread.currentThread().getStackTrace()) {
+                    stacks += "stack in getPooledConnection=> " + ele.getClassName() + "$" + ele.getMethodName() + "$" + ele.getFileName() + "#" + ele.getLineNumber() + "\n\r";
+                }
+                Logger.logWarningMessage(stacks);
+            }
         }
+        
+        try{
+          
+            if(maxActiveConnections >= predefinedMaxDbConnections){
+                if(exceedMaxCount++ > RESTART_COUNT){
+                    Logger.logErrorMessage(String.format("exceed max connections[%d] %d times, restart the COS to temporary fix this problem", predefinedMaxDbConnections, RESTART_COUNT));
+                    new Thread(() -> Conch.restartApplication(null)).start();
+                }
+            } 
+        }catch(Exception e){
+            Logger.logErrorMessage("can't compare and check max db connection in BasicDb#getPooledConnection caused by " + e.getMessage());
+        }
+       
         return con;
     }
 

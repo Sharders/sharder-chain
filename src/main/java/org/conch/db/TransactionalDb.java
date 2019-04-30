@@ -125,31 +125,35 @@ public class TransactionalDb extends BasicDb {
         if (con == null) {
             throw new IllegalStateException("Not in transaction");
         }
-        localConnection.set(null);
-        transactionCaches.set(null);
-        long now = System.currentTimeMillis();
-        long elapsed = now - ((DbConnection)con).txStart;
-        if (elapsed >= txThreshold) {
-            logThreshold(String.format("Database transaction required %.3f seconds at height %d",
-                                       (double)elapsed/1000.0, Conch.getBlockchain().getHeight()));
-        } else {
-            long count, times;
-            boolean logStats = false;
-            synchronized(this) {
-                count = ++txCount;
-                times = txTimes += elapsed;
-                if (now - statsTime >= txInterval) {
-                    logStats = true;
-                    txCount = 0;
-                    txTimes = 0;
-                    statsTime = now;
+        
+        try{
+            localConnection.set(null);
+            transactionCaches.set(null);
+            long now = System.currentTimeMillis();
+            long elapsed = now - ((DbConnection)con).txStart;
+            if (elapsed >= txThreshold) {
+                logThreshold(String.format("Database transaction required %.3f seconds at height %d",
+                        (double)elapsed/1000.0, Conch.getBlockchain().getHeight()));
+            } else {
+                long count, times;
+                boolean logStats = false;
+                synchronized(this) {
+                    count = ++txCount;
+                    times = txTimes += elapsed;
+                    if (now - statsTime >= txInterval) {
+                        logStats = true;
+                        txCount = 0;
+                        txTimes = 0;
+                        statsTime = now;
+                    }
                 }
-            }
-            if (logStats)
-                Logger.logDebugMessage(String.format("Average database transaction time is %.3f seconds",
-                                                     (double)times/1000.0/(double)count));
+                if (logStats)
+                    Logger.logDebugMessage(String.format("Average database transaction time is %.3f seconds",
+                            (double)times/1000.0/(double)count));
+            }  
+        }finally {
+            DbUtils.close(con);
         }
-        DbUtils.close(con);
     }
 
     public void registerCallback(TransactionCallback callback) {

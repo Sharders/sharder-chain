@@ -54,10 +54,15 @@ public final class DigitalGoodsStore {
                 return;
             }
             List<Purchase> expiredPurchases = new ArrayList<>();
-            try (DbIterator<Purchase> iterator = Purchase.getExpiredPendingPurchases(block)) {
+
+            DbIterator<Purchase> iterator = null;
+            try {
+                iterator = Purchase.getExpiredPendingPurchases(block);
                 while (iterator.hasNext()) {
                     expiredPurchases.add(iterator.next());
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
             for (Purchase purchase : expiredPurchases) {
                 Account buyer = Account.getAccount(purchase.getBuyerId());

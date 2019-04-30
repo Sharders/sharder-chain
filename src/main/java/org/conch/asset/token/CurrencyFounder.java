@@ -138,10 +138,15 @@ public class CurrencyFounder {
 
     static void remove(long currencyId) {
         List<CurrencyFounder> founders = new ArrayList<>();
-        try (DbIterator<CurrencyFounder> currencyFounders = CurrencyFounder.getCurrencyFounders(currencyId, 0, Integer.MAX_VALUE)) {
+
+        DbIterator<CurrencyFounder> currencyFounders = null;
+        try {
+            currencyFounders = CurrencyFounder.getCurrencyFounders(currencyId, 0, Integer.MAX_VALUE);
             for (CurrencyFounder founder : currencyFounders) {
                 founders.add(founder);
             }
+        }finally {
+            DbUtils.close(currencyFounders);
         }
         founders.forEach(currencyFounderTable::delete);
     }

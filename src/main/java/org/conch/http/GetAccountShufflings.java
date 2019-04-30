@@ -49,10 +49,14 @@ public final class GetAccountShufflings extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
         response.put("shufflings", jsonArray);
-        try (DbIterator<Shuffling> shufflings = Shuffling.getAccountShufflings(accountId, includeFinished, firstIndex, lastIndex)) {
+        DbIterator<Shuffling> shufflings = null;
+        try {
+            shufflings = Shuffling.getAccountShufflings(accountId, includeFinished, firstIndex, lastIndex);
             for (Shuffling shuffling : shufflings) {
                 jsonArray.add(JSONData.shuffling(shuffling, includeHoldingInfo));
             }
+        }finally {
+            DbUtils.close(shufflings);
         }
         return response;
     }

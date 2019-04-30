@@ -44,10 +44,15 @@ public final class GetAllPhasingOnlyControls extends APIServlet.APIRequestHandle
         int lastIndex = ParameterParser.getLastIndex(req);
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
-        try (DbIterator<PhasingOnly> iterator = AccountRestrictions.PhasingOnly.getAll(firstIndex, lastIndex)) {
+
+        DbIterator<PhasingOnly> iterator = null;
+        try {
+            iterator = AccountRestrictions.PhasingOnly.getAll(firstIndex, lastIndex);
             for (AccountRestrictions.PhasingOnly phasingOnly : iterator) {
                 jsonArray.add(JSONData.phasingOnly(phasingOnly));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         response.put("phasingOnlyControls", jsonArray);
         return response;

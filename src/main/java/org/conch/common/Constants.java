@@ -210,7 +210,7 @@ public final class Constants {
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 2 : 100);
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 2 : 500);
     public static final int TESTNET_PHASE_ONE = 20000;
     public static final int TESTNET_PHASE_TWO = 39000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
@@ -243,6 +243,7 @@ public final class Constants {
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
     public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60*24 : 60*24*7; //pool will be destroyed automatically when it has nobody join
     public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 10);
+    public static final int SHARDER_POOL_JOIN_CHECK_BLOCK = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;

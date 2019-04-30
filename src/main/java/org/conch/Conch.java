@@ -21,6 +21,8 @@
 
 package org.conch;
 
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -38,6 +40,7 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocProcessor;
 import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.consensus.poc.hardware.SystemInfo;
@@ -88,7 +91,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.2";
+    public static final String VERSION = "0.1.3";
     public static final String STAGE = "-Alpha";
     public static final String APPLICATION = "COS";
 
@@ -109,8 +112,8 @@ public final class Conch {
     public static final Peer.RunningMode runningMode;
     //TODO refactor myAddress, serialNum, nodeIp and nodeType into systemInfo
     private static final String myAddress;
-    public static String serialNum = "";
-    public static String nodeType = Peer.Type.NORMAL.getSimpleName();
+    private static String serialNum = "";
+    private static String nodeType = Peer.Type.NORMAL.getSimpleName();
     public static String nodeIp = IpUtil.getNetworkIp();
     
     public static SystemInfo systemInfo = null;
@@ -127,6 +130,91 @@ public final class Conch {
         if(Constants.isDevnet()) return "devboot.sharder.io";
         if(Constants.isTestnet()) return "testboot.sharder.io";
         return "mainboot.sharder.io";
+    }
+    
+    public static String getNodeType(){
+        Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
+        if(type != null) {
+            Conch.nodeType = type.getSimpleName();
+        }
+        
+        if(type == null || Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)){
+            // when os isn't windows and mac, it should be hub/box or server node
+            if (!SystemUtils.IS_OS_WINDOWS
+                    && !SystemUtils.IS_OS_MAC
+                    && StringUtils.isNotEmpty(getSerialNum())) {
+
+                try {
+                    Conch.nodeType = getTypeSimpleName(getSerialNum());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return Conch.nodeType;
+    }
+
+    /**
+     * get simple name according to serial num, default type is node if there is no num exist.
+     *
+     * @param num serial number
+     * @return Peer Type Simple Name
+     * @throws IOException
+     */
+    private static String getTypeSimpleName(String num) throws IOException {
+
+        if (StringUtils.isEmpty(num)) {
+            return Peer.Type.NORMAL.getSimpleName();
+        }
+
+        String url = UrlManager.getFoundationUrl(
+                UrlManager.GET_HARDWARE_TYPE_EOLINKER,
+                UrlManager.GET_HARDWARE_TYPE_LOCAL,
+                UrlManager.GET_HARDWARE_TYPE_PATH
+        );
+
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url)
+                .get()
+                .addPathParam("serialNum", num.replaceAll("(\\r\\n|\\n)", ""))
+                .request();
+        com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
+
+        Integer nodeTypeCode = Peer.Type.HUB.getSimpleCode();
+        if (result.getBoolean(Constants.SUCCESS)) {
+            com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
+            if (data == null || data.getInteger("type") == null) {
+                return Peer.Type.NORMAL.getSimpleName();
+            }
+            nodeTypeCode = data.getInteger("type");
+        } else {
+            Logger.logWarningMessage(String.format("failed to get node type by serial number[%s]!", num));
+        }
+
+        return Peer.Type.getSimpleName(nodeTypeCode);
+    }
+    
+    public static String getSerialNum(){
+        if(StringUtils.isEmpty(Conch.serialNum) || Conch.serialNum.length() < 6) readAndSetSerialNum();
+        
+        return Conch.serialNum;
+    }
+
+    private static void readAndSetSerialNum(){
+        String filePath = ".hubSetting/.tempCache/.sysCache";
+        String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
+        File tempFile = new File(userHome);
+        // hub node check if serial number exist
+        if (tempFile.exists()) {
+            String num = null;
+            try {
+                num = FileUtils.readFileToString(tempFile, "UTF-8");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Conch.serialNum = StringUtils.isEmpty(num) ? "" : num.replaceAll("(\\r\\n|\\n)", "");
+            Logger.logDebugMessage("serialNum => " + Conch.serialNum);
+        }
     }
     
     /**
@@ -937,9 +1025,10 @@ public final class Conch {
         } catch (Exception e) {
             // something went wrong
             e.printStackTrace();
+            Logger.logErrorMessage("restart application error",e);
         }
     }
-
+    
     /**
      * Full version format is : version number - stage
      * e.g. 0.0.1-Beta or 0.0.1-Alpha

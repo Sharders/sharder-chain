@@ -24,7 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * @author ben-xy
+ * @author wuji
+ * @date  2019-01-16 updated by Ben
  */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
@@ -253,6 +254,17 @@ public class SharderPoolProcessor implements Serializable {
     public static long findOwnPoolId(long creator) {
         for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creator) {
+                return forgePool.poolId;
+            }
+        }
+        return -1;
+    }
+
+    public static long findOwnPoolId(long creator, int height) {
+        if(height <= 0) height = 0;
+        for (SharderPoolProcessor forgePool : sharderPools.values()) {
+            if (forgePool.creatorId == creator 
+            && height >= forgePool.startBlockNo) {
                 return forgePool.poolId;
             }
         }

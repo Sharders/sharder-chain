@@ -56,10 +56,15 @@ public class GetPollVotes extends APIServlet.APIRequestHandler  {
             weighter = voterId -> votingModel.calcWeight(voteWeighting, voterId, countHeight);
         }
         JSONArray votesJson = new JSONArray();
-        try (DbIterator<Vote> votes = Vote.getVotes(poll.getId(), firstIndex, lastIndex)) {
+
+        DbIterator<Vote> votes = null;
+        try {
+            votes = Vote.getVotes(poll.getId(), firstIndex, lastIndex);
             for (Vote vote : votes) {
                 votesJson.add(JSONData.vote(vote, weighter));
             }
+        }finally {
+            DbUtils.close(votes);
         }
         JSONObject response = new JSONObject();
         response.put("votes", votesJson);

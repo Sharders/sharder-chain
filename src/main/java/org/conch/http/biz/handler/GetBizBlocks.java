@@ -27,6 +27,7 @@ import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.http.*;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -65,7 +66,9 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
         }
         final int timestamp = ParameterParser.getTimestamp(req);
         JSONArray blocks = new JSONArray();
-        try (DbIterator<? extends Block> iterator = Conch.getBlockchain().getBlocks(firstIndex, lastIndex)) {
+        DbIterator<? extends Block> iterator = null;
+        try {
+            iterator = Conch.getBlockchain().getBlocks(firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Block block = iterator.next();
                 if (block.getTimestamp() < timestamp) {
@@ -83,6 +86,8 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
                 JSONObject blockJson = JSONData.block(block, true, false);
                 blocks.add(blockJson);
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         JSONArray response = new JSONArray();
         ObjectMapper mapper = new ObjectMapper();

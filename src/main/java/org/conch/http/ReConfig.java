@@ -158,7 +158,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                         .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
                         .addPostParam("password", req.getParameter("password"))
                         .addPostParam("nodeType", req.getParameter("nodeType"))
-                        .addPostParam("serialNum", Conch.serialNum)
+                        .addPostParam("serialNum", Conch.getSerialNum())
                         .request();
                 boolean querySuccess = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
                 if (querySuccess) {

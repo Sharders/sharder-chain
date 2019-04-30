@@ -23,9 +23,6 @@ package org.conch.asset;
 
 import org.conch.Conch;
 import org.conch.db.*;
-import org.conch.db.*;
-import org.conch.db.*;
-import org.conch.db.EntityDbTable;
 import org.conch.tx.Attachment;
 import org.conch.util.Listener;
 import org.conch.util.Listeners;
@@ -79,10 +76,14 @@ public final class AssetDividend {
     }
 
     public static AssetDividend getLastDividend(long assetId) {
-        try (DbIterator<AssetDividend> dividends = assetDividendTable.getManyBy(new DbClause.LongClause("asset_id", assetId), 0, 0)) {
+        DbIterator<AssetDividend> dividends = null;
+        try {
+            dividends = assetDividendTable.getManyBy(new DbClause.LongClause("asset_id", assetId), 0, 0);
             if (dividends.hasNext()) {
                 return dividends.next();
             }
+        }finally {
+            DbUtils.close(dividends);
         }
         return null;
     }

@@ -69,14 +69,19 @@ final class PeerDb {
 
     static List<Entry> loadPeers() {
         List<Entry> peers = new ArrayList<>();
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM peer");
-             ResultSet rs = pstmt.executeQuery()) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM peer");
+            ResultSet rs = pstmt.executeQuery();
+            
             while (rs.next()) {
                 peers.add(new Entry(rs.getString("address"), rs.getLong("services"), rs.getInt("last_updated")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
         return peers;
     }

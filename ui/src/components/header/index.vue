@@ -205,6 +205,8 @@
                 adminPasswordTitle: '',
                 adminPasswordDialog: false,
                 latestVersion: '',
+                upgradeMode: '',
+                bakMode: '',
                 isUpdate: false,
             };
         },
@@ -403,7 +405,6 @@
             closeDialog: function () {
                 this.startForgingDialog = false;
                 this.$store.state.mask = false;
-
                 this.cosUpgradeDialog = false;
             },
             openAdminDialog: function (title) {
@@ -421,8 +422,10 @@
                 }
             },
             exit: function () {
+                const _this = this;
                 sessionStorage.setItem("sharder.login.mode",'true');
-                window.location.href = "/";
+                // window.location.href = "/";
+                _this.$router.push("/login");
             },
             isClose: function () {
                 const _this = this;
@@ -431,14 +434,13 @@
             },
             getLatestHubVersion() {
                 const _this = this;
-                _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
+                _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
                     if (res.data.success) {
-                        // console.log("getLastestHubVersion=> " + JSON.stringify(res.data));
-                        // console.log("_this.blockchainState=> " + JSON.stringify(_this.blockchainStatus));
-                        _this.latestVersion = res.data.version;
+                        _this.latestVersion = res.data.cosver.version;
+                        _this.upgradeMode = res.data.cosver.mode;
+                        _this.bakMode = res.data.cosver.bakMode;
                         let bool = _this.versionCompare(_this.blockchainStatus.version, _this.latestVersion);
                         _this.isUpdate = bool;
-                        // console.log("success to fetch latest hub version");
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
                     }
@@ -450,13 +452,16 @@
                 const _this = this;
                 let data = new FormData();
                 data.append("version", _this.latestVersion);
+                data.append("mode", _this.upgradeMode);
+                data.append("bakMode", _this.bakMode);
                 data.append("restart", "true");
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {
                     if (res.data.upgraded) {
                         _this.$message.success(_this.$t('notification.update_success'));
-                        // _this.$router.push("/login");
-                        window.location="/";
+                        _this.$store.state.mask = false;
+                        _this.$router.push("/login");
+                        // window.location="/";
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);

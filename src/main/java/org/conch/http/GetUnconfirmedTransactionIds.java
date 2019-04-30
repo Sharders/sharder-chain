@@ -50,21 +50,29 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
 
         JSONArray transactionIds = new JSONArray();
         if (accountIds.isEmpty()) {
-            try (DbIterator<? extends Transaction> transactionsIterator = Conch.getTransactionProcessor().getAllUnconfirmedTransactions(firstIndex, lastIndex)) {
+            DbIterator<? extends Transaction> transactionsIterator = null;
+            try {
+                transactionsIterator = Conch.getTransactionProcessor().getAllUnconfirmedTransactions(firstIndex, lastIndex);
                 while (transactionsIterator.hasNext()) {
                     Transaction transaction = transactionsIterator.next();
                     transactionIds.add(transaction.getStringId());
                 }
+            }finally {
+                DbUtils.close(transactionsIterator);
             }
         } else {
-            try (FilteringIterator<? extends Transaction> transactionsIterator = new FilteringIterator<> (
-                    Conch.getTransactionProcessor().getAllUnconfirmedTransactions(0, -1),
-                    transaction -> accountIds.contains(transaction.getSenderId()) || accountIds.contains(transaction.getRecipientId()),
-                    firstIndex, lastIndex)) {
+            FilteringIterator<? extends Transaction> transactionsIterator = null;
+            try {
+                transactionsIterator = new FilteringIterator<> (
+                        Conch.getTransactionProcessor().getAllUnconfirmedTransactions(0, -1),
+                        transaction -> accountIds.contains(transaction.getSenderId()) || accountIds.contains(transaction.getRecipientId()),
+                        firstIndex, lastIndex);
                 while (transactionsIterator.hasNext()) {
                     Transaction transaction = transactionsIterator.next();
                     transactionIds.add(transaction.getStringId());
                 }
+            }finally {
+                DbUtils.close(transactionsIterator);
             }
         }
 

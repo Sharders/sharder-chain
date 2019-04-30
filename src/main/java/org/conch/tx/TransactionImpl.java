@@ -25,10 +25,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountRestrictions;
-import org.conch.chain.Block;
-import org.conch.chain.BlockDb;
-import org.conch.chain.BlockImpl;
-import org.conch.chain.BlockchainImpl;
+import org.conch.chain.*;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
@@ -1007,6 +1004,11 @@ final public class TransactionImpl implements Transaction {
 
     @Override
     public void validate() throws ConchException.ValidationException {
+        if(CheckSumValidator.isKnownIgnoreTx(this.id)){
+            Logger.logWarningMessage("Known ignore tx[id=%d, height=%d] in %s, skip validation", this.id, Conch.getBlockchain().getHeight(), Constants.getNetwork().getName());
+            return;
+        }
+        
         if (timestamp == 0 ? (deadline != 0 || feeNQT != 0) : (deadline < 1 || ((feeNQT < 0 && type instanceof TransactionType.CoinBase)
                 || feeNQT <= 0 && !(type instanceof TransactionType.CoinBase)))
                 || feeNQT > Constants.MAX_BALANCE_NQT

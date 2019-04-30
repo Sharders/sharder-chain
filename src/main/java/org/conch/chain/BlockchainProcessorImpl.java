@@ -1419,26 +1419,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void validatePhasedTransactions(int height,List<TransactionImpl> validPhasedTransactions,List<TransactionImpl> invalidPhasedTransactions,Map<TransactionType, Map<String, Integer>> duplicates) {
     if (height >= Constants.PHASING_BLOCK_HEIGHT) {
-      try (DbIterator<TransactionImpl> phasedTransactions =
-          PhasingPoll.getFinishingTransactions(height + 1)) {
-        for (TransactionImpl phasedTransaction : phasedTransactions) {
-          if (height > Constants.SHUFFLING_BLOCK_HEIGHT && PhasingPoll.getResult(phasedTransaction.getId()) != null) {
-            continue;
-          }
-          
-          try {
-            phasedTransaction.validate();
-            if (!phasedTransaction.attachmentIsDuplicate(duplicates, false)) {
-              validPhasedTransactions.add(phasedTransaction);
-            } else {
-              Logger.logDebugMessage("At height " + height + " phased transaction " + phasedTransaction.getStringId() + " is duplicate, will not apply");
+      DbIterator<TransactionImpl> phasedTransactions = null;
+      try {
+          phasedTransactions =
+                  PhasingPoll.getFinishingTransactions(height + 1);
+          for (TransactionImpl phasedTransaction : phasedTransactions) {
+            if (height > Constants.SHUFFLING_BLOCK_HEIGHT && PhasingPoll.getResult(phasedTransaction.getId()) != null) {
+              continue;
+            }
+            
+            try {
+              phasedTransaction.validate();
+              if (!phasedTransaction.attachmentIsDuplicate(duplicates, false)) {
+                validPhasedTransactions.add(phasedTransaction);
+              } else {
+                Logger.logDebugMessage("At height " + height + " phased transaction " + phasedTransaction.getStringId() + " is duplicate, will not apply");
+                invalidPhasedTransactions.add(phasedTransaction);
+              }
+            } catch (ConchException.ValidationException e) {
+              Logger.logDebugMessage("At height " + height + " phased transaction " + phasedTransaction.getStringId() + " no longer passes validation: " + e.getMessage() + ", will not apply");
               invalidPhasedTransactions.add(phasedTransaction);
             }
-          } catch (ConchException.ValidationException e) {
-            Logger.logDebugMessage("At height " + height + " phased transaction " + phasedTransaction.getStringId() + " no longer passes validation: " + e.getMessage() + ", will not apply");
-            invalidPhasedTransactions.add(phasedTransaction);
           }
-        }
+      }finally {
+        DbUtils.close(phasedTransactions);
       }
     }
   }
@@ -1474,7 +1478,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (block.getId() == 0L || BlockDb.hasBlock(block.getId(), previousLastBlock.getHeight())) {
       throw new BlockNotAcceptedException("Duplicate block or invalid id", block);
     }
-    if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
+    if (!block.verifyGenerationSignature() && 
+            !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
       String errorMsg = "Generation signature verification failed, poc score is " + pocScoreObj.total() + " and block id is " + block.getId() + " at height " + (previousLastBlock.getHeight()+1);
@@ -1840,16 +1845,20 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       Block previousBlock,
       int blockTimestamp) {
     List<UnconfirmedTransaction> orderedUnconfirmedTransactions = new ArrayList<>();
-    try (FilteringIterator<UnconfirmedTransaction> unconfirmedTransactions =
-        new FilteringIterator<>(
-            TransactionProcessorImpl.getInstance().getAllUnconfirmedTransactions(),
-            transaction ->
-                hasAllReferencedTransactions(
-                    transaction.getTransaction(), transaction.getTimestamp(), 0))) {
+    FilteringIterator<UnconfirmedTransaction> unconfirmedTransactions = null;
+    try {
+      unconfirmedTransactions =
+              new FilteringIterator<>(TransactionProcessorImpl.getInstance().getAllUnconfirmedTransactions(),
+                      transaction -> hasAllReferencedTransactions(transaction.getTransaction(), transaction.getTimestamp(), 0));
+      
       for (UnconfirmedTransaction unconfirmedTransaction : unconfirmedTransactions) {
         orderedUnconfirmedTransactions.add(unconfirmedTransaction);
       }
+    
+    }finally {
+      DbUtils.close(unconfirmedTransactions);
     }
+    
     SortedSet<UnconfirmedTransaction> sortedTransactions =
         new TreeSet<>(transactionArrivalComparator);
     int payloadLength = 0;
@@ -1976,16 +1985,20 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
     if (blockchain.getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
-      try (DbIterator<TransactionImpl> phasedTransactions = PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1)) {
-        for (TransactionImpl phasedTransaction : phasedTransactions) {
-          try {
-            phasedTransaction.validate();
-            // pre-populate duplicates map
-            phasedTransaction.attachmentIsDuplicate(duplicates, false); 
-          } catch (ConchException.ValidationException ignore) {
-            
+      DbIterator<TransactionImpl> phasedTransactions = null;
+      try {
+          phasedTransactions = PhasingPoll.getFinishingTransactions(blockchain.getHeight() + 1);
+          for (TransactionImpl phasedTransaction : phasedTransactions) {
+            try {
+              phasedTransaction.validate();
+              // pre-populate duplicates map
+              phasedTransaction.attachmentIsDuplicate(duplicates, false); 
+            } catch (ConchException.ValidationException ignore) {
+              
+            }
           }
-        }
+      }finally {
+          DbUtils.close(phasedTransactions);
       }
     }
 

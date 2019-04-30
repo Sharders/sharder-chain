@@ -48,11 +48,15 @@ public final class GetDGSTags extends APIServlet.APIRequestHandler {
         JSONArray tagsJSON = new JSONArray();
         response.put("tags", tagsJSON);
 
-        try (DbIterator<DigitalGoodsStore.Tag> tags = inStockOnly
-                ? DigitalGoodsStore.Tag.getInStockTags(firstIndex, lastIndex) : DigitalGoodsStore.Tag.getAllTags(firstIndex, lastIndex)) {
+        DbIterator<DigitalGoodsStore.Tag> tags = null;
+        try {
+            tags = inStockOnly
+                    ? DigitalGoodsStore.Tag.getInStockTags(firstIndex, lastIndex) : DigitalGoodsStore.Tag.getAllTags(firstIndex, lastIndex);
             while (tags.hasNext()) {
                 tagsJSON.add(JSONData.tag(tags.next()));
             }
+        }finally {
+            DbUtils.close(tags);
         }
         return response;
     }

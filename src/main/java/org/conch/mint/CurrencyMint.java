@@ -177,10 +177,15 @@ public final class CurrencyMint {
 
     public static void deleteCurrency(Currency currency) {
         List<CurrencyMint> currencyMints = new ArrayList<>();
-        try (DbIterator<CurrencyMint> mints = currencyMintTable.getManyBy(new DbClause.LongClause("currency_id", currency.getId()), 0, -1)) {
+
+        DbIterator<CurrencyMint> mints = null;
+        try {
+            mints = currencyMintTable.getManyBy(new DbClause.LongClause("currency_id", currency.getId()), 0, -1);
             while (mints.hasNext()) {
                 currencyMints.add(mints.next());
             }
+        }finally {
+            DbUtils.close(mints);
         }
         currencyMints.forEach(currencyMintTable::delete);
     }

@@ -29,6 +29,7 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Convert;
@@ -247,13 +248,17 @@ public final class FundingMonitor {
             // Locate monitored accounts based on the account property and the setter identifier
             //
             List<MonitoredAccount> accountList = new ArrayList<>();
-            try (DbIterator<Account.AccountProperty> it = Account.getProperties(0, accountId, property, 0, Integer.MAX_VALUE)) {
+            DbIterator<Account.AccountProperty> it = null;
+            try {
+                it = Account.getProperties(0, accountId, property, 0, Integer.MAX_VALUE);
                 while (it.hasNext()) {
                     Account.AccountProperty accountProperty = it.next();
                     MonitoredAccount account = createMonitoredAccount(accountProperty.getRecipientId(),
                             monitor, accountProperty.getValue());
                     accountList.add(account);
                 }
+            }finally {
+                DbUtils.close(it);
             }
             //
             // Activate the monitor and check each monitored account to see if we need to submit

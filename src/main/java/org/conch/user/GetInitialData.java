@@ -49,8 +49,10 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray unconfirmedTransactions = new JSONArray();
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
-
-        try (DbIterator<? extends Transaction> transactions = Conch.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        
+        DbIterator<? extends Transaction> transactions = null;
+        try {
+            transactions = Conch.getTransactionProcessor().getAllUnconfirmedTransactions();
             while (transactions.hasNext()) {
                 Transaction transaction = transactions.next();
 
@@ -66,6 +68,8 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
 
                 unconfirmedTransactions.add(unconfirmedTransaction);
             }
+        }finally {
+            DbUtils.close(transactions);
         }
 
         for (Peer peer : Peers.getAllPeers()) {
@@ -105,7 +109,9 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        try (DbIterator<? extends Block> lastBlocks = Conch.getBlockchain().getBlocks(0, 59)) {
+        DbIterator<? extends Block> lastBlocks = null;
+        try {
+            lastBlocks = Conch.getBlockchain().getBlocks(0, 59);
             for (Block block : lastBlocks) {
                 JSONObject recentBlock = new JSONObject();
                 recentBlock.put("index", Users.getIndex(block));
@@ -123,7 +129,10 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
 
                 recentBlocks.add(recentBlock);
             }
+        }finally {
+            DbUtils.close(lastBlocks);
         }
+
 
         JSONObject response = new JSONObject();
         response.put("response", "processInitialData");

@@ -116,6 +116,11 @@ public class Generator implements Comparable<Generator> {
         
         return Boolean.valueOf(isBootNode);
     }
+
+    private static boolean forcePause = false;
+    public static void pause(boolean pause){
+        forcePause = pause;
+    }
     
     /**
      * check current height whether reached last known block
@@ -123,7 +128,7 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
-        if(isBootNode) {
+        if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
             if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
                 Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
             }
@@ -165,6 +170,7 @@ public class Generator implements Comparable<Generator> {
         return true;
     }
     
+    
     private static final Runnable generateBlocksThread = new Runnable() {
 
         private volatile boolean logged;
@@ -173,12 +179,11 @@ public class Generator implements Comparable<Generator> {
         public void run() {
             try {
                 try {
-                 
-                    
                     BlockchainImpl.getInstance().updateLock();
                     try {
-                        Block lastBlock = Conch.getBlockchain().getLastBlock();
+                        if(forcePause) return;
                         
+                        Block lastBlock = Conch.getBlockchain().getLastBlock();
                         if(!isMintHeightReached(lastBlock)) return;
 
                         checkOrStartAutoMining();
@@ -310,13 +315,20 @@ public class Generator implements Comparable<Generator> {
         boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
         // if miner is not the owner of the node
         if(!isOwner && generators.size() >= MAX_MINERS) {
-            throw new RuntimeException("the limit miners of this node is setting to " + MAX_MINERS + ", can't allow more miners!");
-            
-//            long accountId = Account.getId(secretPhrase);
-//            if(!PocProcessorImpl.isHubBind(accountId)) {
-//                Logger.logInfoMessage("Account[id=" + accountId  + "] is not be bind to hub");
-//            }
+            throw new RuntimeException("the limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
+
+        Long accountId = Account.getId(secretPhrase);
+        /**
+        // whether own the pool
+        if(!SharderPoolProcessor.checkOwnPoolState(accountId, SharderPoolProcessor.State.WORKING)) {
+            throw new RuntimeException("current node did't own the pool, please create pool firstly!");
+        }
+        
+        if(!Conch.getPocProcessor().isCertifiedPeerBind(accountId)){
+            throw new RuntimeException("current node type isn't the valid node");
+        }
+        **/
 
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
@@ -546,7 +558,9 @@ public class Generator implements Comparable<Generator> {
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
-        json.put("bindPeerType", Conch.getPocProcessor().bindPeerType(accountId).getName());
+        Peer.Type type = Conch.getPocProcessor().bindPeerType(accountId);
+        if(type == null) type = Peer.Type.NORMAL;
+        json.put("bindPeerType", type.getName());
         if(loadPoolInfo) {
             json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
         }

@@ -4,8 +4,8 @@ const en = {
     login: {
         'incorrect_key': "The mnemonic phrase you entered is incorrect, please try again",
         'no_found_account': "Your account address could not be found",
-        'login_tip1': "Log in with your Testnet account - NOT your Mainnet account!",
-        'login_tip2': "Warning: You are connected to the TestNet. Do not use your real mnemonic phrase! ",
+        'login_tip1': "Warning: You are connected to the Testnet, please login with your TSS address.",
+        'login_tip2': "Please store your mnemonic phrase securely, retrieval is not possible once lost.",
         'language': 'Language',
         'login': 'Login',
         'secret_login': "Mnemonic Phrase",
@@ -914,6 +914,7 @@ const en = {
         "exchange_error": "For failure",
         "transfer_failed": "Transfer failed",
         "sharder_binding_acconut": "Please go to the official website to bind the address",
+        "miner_acconut": "Insufficient mining balance cannot be exchanged",
         "binding_account": "Binding account",
         "no_binding_account": "No account binding",
         "immediately_binding": "Immediately binding",

@@ -48,10 +48,14 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray purchasesJSON = new JSONArray();
 
-        try (DbIterator<DigitalGoodsStore.Purchase> purchases = DigitalGoodsStore.Purchase.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
+        DbIterator<DigitalGoodsStore.Purchase>  purchases = null;
+        try {
+            purchases = DigitalGoodsStore.Purchase.getPendingSellerPurchases(sellerId, firstIndex, lastIndex);
             while (purchases.hasNext()) {
                 purchasesJSON.add(JSONData.purchase(purchases.next()));
             }
+        }finally {
+            DbUtils.close(purchases);
         }
 
         response.put("purchases", purchasesJSON);

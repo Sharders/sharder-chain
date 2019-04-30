@@ -44,10 +44,14 @@ public final class GetCurrencyIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray currencyIds = new JSONArray();
-        try (DbIterator<Currency> currencies = Currency.getAllCurrencies(firstIndex, lastIndex)) {
+        DbIterator<Currency> currencies = null;
+        try {
+            currencies = Currency.getAllCurrencies(firstIndex, lastIndex);
             for (Currency currency : currencies) {
                 currencyIds.add(Long.toUnsignedString(currency.getId()));
             }
+        }finally {
+            DbUtils.close(currencies);
         }
         JSONObject response = new JSONObject();
         response.put("currencyIds", currencyIds);

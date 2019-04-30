@@ -4,8 +4,8 @@ const cn = {
     login: {
         'incorrect_key': "您输入的密钥不正确，请再试一次 ！",
         'no_found_account': "无法找到您的帐户地址",
-        'login_tip1': "请用您的测试网络账户登录-不是您的主网账户!",
-        'login_tip2': "警告:您已连接到测试网络,不要使用您的真实密钥!",
+        'login_tip1': "警告：您已连接到测试网络，请使用测试网络账号或对应密钥登陆。",
+        'login_tip2': "测试账号和密钥信息丢失后无法找回，请妥善保管您的账号和密钥！",
         'language': "语言",
         'login': "登录",
         'secret_login': "密钥登录",
@@ -912,6 +912,7 @@ const cn = {
         "exchange_error": "兑换失败",
         "transfer_failed": "转账失败",
         "sharder_binding_acconut": "请去官网绑定该地址",
+        "miner_acconut": "挖矿余额不足无法兑换",
         "binding_account": "绑定账户",
         "no_binding_account": "没绑定账户",
         "immediately_binding": "立刻绑定",

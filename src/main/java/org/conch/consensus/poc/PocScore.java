@@ -110,6 +110,7 @@ public class PocScore implements Serializable {
         if(BigInteger.ZERO != another.onlineRateScore) this.onlineRateScore = another.onlineRateScore;
         if(BigInteger.ZERO != another.blockMissScore) this.blockMissScore = another.blockMissScore;
         if(BigInteger.ZERO != another.bcScore) this.bcScore = another.bcScore;
+        if(BigInteger.ZERO != another.effectiveBalance) this.effectiveBalance = another.effectiveBalance;
     }
 
     /**

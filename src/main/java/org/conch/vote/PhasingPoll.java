@@ -127,12 +127,16 @@ public final class PhasingPoll extends AbstractPoll {
         @Override
         public void trim(int height) {
             super.trim(height);
-            try (Connection con = Db.db.getConnection();
-                 DbIterator<PhasingPoll> pollsToTrim = phasingPollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.LT, height), 0, -1);
-                 PreparedStatement pstmt1 = con.prepareStatement("DELETE FROM phasing_poll WHERE id = ?");
-                 PreparedStatement pstmt2 = con.prepareStatement("DELETE FROM phasing_poll_voter WHERE transaction_id = ?");
-                 PreparedStatement pstmt3 = con.prepareStatement("DELETE FROM phasing_vote WHERE transaction_id = ?");
-                 PreparedStatement pstmt4 = con.prepareStatement("DELETE FROM phasing_poll_linked_transaction WHERE transaction_id = ?")) {
+            Connection con = null;
+            DbIterator<PhasingPoll> pollsToTrim = null;
+            try {
+                con = Db.db.getConnection();
+                pollsToTrim = phasingPollTable.getManyBy(new DbClause.IntClause("finish_height", DbClause.Op.LT, height), 0, -1);
+                PreparedStatement pstmt1 = con.prepareStatement("DELETE FROM phasing_poll WHERE id = ?");
+                PreparedStatement pstmt2 = con.prepareStatement("DELETE FROM phasing_poll_voter WHERE transaction_id = ?");
+                PreparedStatement pstmt3 = con.prepareStatement("DELETE FROM phasing_vote WHERE transaction_id = ?");
+                PreparedStatement pstmt4 = con.prepareStatement("DELETE FROM phasing_poll_linked_transaction WHERE transaction_id = ?");
+                        
                 while (pollsToTrim.hasNext()) {
                     long id = pollsToTrim.next().getId();
                     pstmt1.setLong(1, id);
@@ -146,6 +150,9 @@ public final class PhasingPoll extends AbstractPoll {
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
+                DbUtils.close(pollsToTrim);
             }
         }
     };
@@ -336,12 +343,14 @@ public final class PhasingPoll extends AbstractPoll {
     }
 
     public static int getAccountPhasedTransactionCount(long accountId) {
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction, phasing_poll " +
-                     " LEFT JOIN phasing_poll_result ON phasing_poll.id = phasing_poll_result.id " +
-                     " WHERE phasing_poll.id = transaction.id AND (transaction.sender_id = ? OR transaction.recipient_id = ?) " +
-                     " AND phasing_poll_result.id IS NULL " +
-                     " AND phasing_poll.finish_height > ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction, phasing_poll " +
+                    " LEFT JOIN phasing_poll_result ON phasing_poll.id = phasing_poll_result.id " +
+                    " WHERE phasing_poll.id = transaction.id AND (transaction.sender_id = ? OR transaction.recipient_id = ?) " +
+                    " AND phasing_poll_result.id IS NULL " +
+                    " AND phasing_poll.finish_height > ?");
             int i = 0;
             pstmt.setLong(++i, accountId);
             pstmt.setLong(++i, accountId);
@@ -352,13 +361,17 @@ public final class PhasingPoll extends AbstractPoll {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
     public static List<? extends Transaction> getLinkedPhasedTransactions(byte[] linkedTransactionFullHash) {
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT transaction_id FROM phasing_poll_linked_transaction " +
-                     "WHERE linked_transaction_id = ? AND linked_full_hash = ?")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT transaction_id FROM phasing_poll_linked_transaction " +
+                    "WHERE linked_transaction_id = ? AND linked_full_hash = ?");
             int i = 0;
             pstmt.setLong(++i, Convert.fullHashToId(linkedTransactionFullHash));
             pstmt.setBytes(++i, linkedTransactionFullHash);
@@ -371,6 +384,8 @@ public final class PhasingPoll extends AbstractPoll {
             return transactions;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -488,10 +503,14 @@ public final class PhasingPoll extends AbstractPoll {
         }
         VoteWeighting.VotingModel votingModel = voteWeighting.getVotingModel();
         long cumulativeWeight = 0;
-        try (DbIterator<PhasingVote> votes = PhasingVote.getVotes(this.id, 0, Integer.MAX_VALUE)) {
+        DbIterator<PhasingVote> votes = null;
+        try {
+            votes = PhasingVote.getVotes(this.id, 0, Integer.MAX_VALUE);
             for (PhasingVote vote : votes) {
                 cumulativeWeight += votingModel.calcWeight(voteWeighting, vote.getVoterId(), height);
             }
+        }finally {
+            DbUtils.close(votes);
         }
         return cumulativeWeight;
     }

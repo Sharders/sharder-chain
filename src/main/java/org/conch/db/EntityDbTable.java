@@ -345,22 +345,28 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
     }
 
     public final int getCount() {
-        try (Connection con = db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
-                     + (multiversion ? " WHERE latest = TRUE" : ""))) {
+        Connection con = null;
+        try {
+            con = db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
+                    + (multiversion ? " WHERE latest = TRUE" : ""));
             return getCount(pstmt);
         } catch (SQLException e) {
+            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
 
     public final int getCount(DbClause dbClause) {
-        try (Connection con = db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
-                     + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE" : ""))) {
+        Connection con = null;
+        try {
+            con = db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
+                    + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE" : ""));
             dbClause.set(pstmt, 1);
             return getCount(pstmt);
         } catch (SQLException e) {
+            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -394,10 +400,13 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
     }
 
     public final int getRowCount() {
-        try (Connection con = db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table)) {
+        Connection con = null;
+        try {
+            con = db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table);
             return getCount(pstmt);
         } catch (SQLException e) {
+            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -425,7 +434,10 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             throw new IllegalStateException("Different instance found in Db cache, perhaps trying to save an object "
                     + "that was read outside the current transaction");
         }
-        try (Connection con = db.getConnection()) {
+
+        Connection con = null;
+        try {
+            con = db.getConnection();
             if (multiversion) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
                         + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE LIMIT 1")) {
@@ -436,6 +448,8 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             save(con, t);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            //DbUtils.close(con);
         }
     }
 

@@ -48,10 +48,14 @@ public final class GetAccountTaggedData extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray jsonArray = new JSONArray();
         response.put("data", jsonArray);
-        try (DbIterator<TaggedData> data = TaggedData.getData(null, accountId, firstIndex, lastIndex)) {
+        DbIterator<TaggedData> data = null;
+        try {
+            data = TaggedData.getData(null, accountId, firstIndex, lastIndex);
             while (data.hasNext()) {
                 jsonArray.add(JSONData.taggedData(data.next(), includeData));
             }
+        }finally {
+            DbUtils.close(data);
         }
         return response;
     }

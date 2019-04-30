@@ -80,10 +80,12 @@
                         <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>{{$t('mining.index.pool')}}</h2>
+                                    <h2>
+                                        {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
+                                    </h2>
                                     <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
-                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}}</p>
+                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}} SS</p>
                                     <el-progress
                                         :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
@@ -413,7 +415,7 @@
                 });
             },
             poolOwnerRs(rs) {
-                if(rs != null && rs.indexOf("SSA-") != -1) {
+                if (rs != null && rs.indexOf("SSA-") != -1) {
                     return rs.substring(4);
                 }
                 return "";
@@ -977,7 +979,7 @@
         font-size: 12px;
         /*margin-bottom: 5px;*/
     }
-    
+
     .grid-content .info .pool-owner {
         font-size: 12px;
     }

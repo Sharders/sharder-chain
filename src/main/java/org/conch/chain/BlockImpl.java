@@ -492,14 +492,14 @@ public final class BlockImpl implements Block {
             digest.update(previousBlock.generationSignature);
             generationSignatureHash = digest.digest(getGeneratorPublicKey());
             if (!Arrays.equals(generationSignature, generationSignatureHash)) {
-                Logger.logDebugMessage("current calculate generation signature is and get from previous bli");
+                Logger.logDebugMessage("current calculate generation signature of previous block is not same with previous block's generation signature");
                 return false;
             }
 
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
             
-            boolean isIgnoreBlock = isKnownIgnoreBlock();
+            boolean isIgnoreBlock = CheckSumValidator.isKnownIgnoreBlock(this.id);
             if(isIgnoreBlock) {
                 Logger.logWarningMessage("Known ignore block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
             }
@@ -509,23 +509,6 @@ public final class BlockImpl implements Block {
             Logger.logMessage("Error verifying block generation signature", e);
             return false;
         }
-    }
-    
-    // known bad blocks
-    private static final long[] knownIgnoreBlocks = new long[] {
-            //Testnet
-            -8556361949057624360L,
-            211456030592803100L
-    };
-//    private static final String[] knownIgnoreBlocksSignatu = new String[] {
-//            //Testnet
-//            "9c90a182cbc5ffc047f2e056cfdebc510c03e900a097f808a80accb2f1852503e50d9b6c0ca95ffc0b6d35beda52379765a43dc9d246b7bbe6e94d58acbf492f"
-//    };
-    static {
-        Arrays.sort(knownIgnoreBlocks);
-    }
-    boolean isKnownIgnoreBlock(){
-        return Arrays.binarySearch(knownIgnoreBlocks, this.id) >= 0;
     }
 
     public void apply() {

@@ -47,10 +47,14 @@ public final class GetAllAssets extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray assetsJSONArray = new JSONArray();
         response.put("assets", assetsJSONArray);
-        try (DbIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
+        DbIterator<Asset> assets = null;
+        try {
+            assets = Asset.getAllAssets(firstIndex, lastIndex);
             while (assets.hasNext()) {
                 assetsJSONArray.add(JSONData.asset(assets.next(), includeCounts));
             }
+        }finally {
+            DbUtils.close(assets);
         }
         return response;
     }

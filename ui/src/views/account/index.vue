@@ -354,7 +354,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" :model="hubsetting" status-icon :rules="formRules"
+                <el-form label-position="left" v-loading="hubsetting.loadingData" :model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -399,9 +399,8 @@
                     </el-form-item>
                 </el-form>
                 <div class="footer-btn">
-                    <button class="common_btn writeBtn" v-loading="hubsetting.executing"
-                            @click="verifyHubSetting('init')">{{
-                        $t('hubsetting.confirm_restart') }}
+                    <button class="common_btn writeBtn" v-loading="hubsetting.executing" @click="verifyHubSetting('init')">
+                        {{$t('hubsetting.confirm_restart') }}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -424,7 +423,7 @@
                 <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
                 <!--</div>-->
                 <el-form label-position="left" label-width="160px" :rules="formRules"
-                         :model="hubsetting" ref="reconfigureForm" status-icon>
+                         :model="hubsetting" v-loading="registerNatLoading" ref="reconfigureForm" status-icon>
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
@@ -634,7 +633,7 @@
                 hubSettingDialog: false,
                 hubInitDialog: false,
                 useNATServiceDialog: false,
-
+                registerNatLoading:false,
                 tradingInfoDialog: false,
                 userInfoDialog: false,
                 accountInfoDialog: false,
@@ -690,6 +689,7 @@
                 },
                 hubsetting: {
                     openPunchthrough: false,
+                    loadingData: false,
                     sharderAccount: '',
                     sharderPwd: '',
                     address: '',
@@ -754,6 +754,8 @@
                 pageSize: 10,
 
                 latesetVersion: '',
+                upgradeMode: '',
+                bakMode: '',
                 isUpdate: false,
 
                 params: [],
@@ -882,12 +884,13 @@
             },
             getLatestHubVersion() {
                 const _this = this;
-                _this.$http.get('/sharder?requestType=getLastestHubVersion').then(res => {
+                _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
                     if (res.data.success) {
-                        _this.latesetVersion = res.data.version;
+                        _this.latesetVersion = res.data.cosver.version;
+                        _this.upgradeMode = res.data.cosver.mode;
+                        _this.bakMode = res.data.cosver.bakMode;
                         let bool = _this.versionCompare(_this.blockchainState.version, _this.latesetVersion);
                         _this.isUpdate = bool;
-                        console.log("success to fetch latest hub version");
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
                     }
@@ -985,13 +988,16 @@
                 const _this = this;
                 let data = new FormData();
                 data.append("version", _this.latesetVersion);
+                data.append("mode", _this.upgradeMode);
+                data.append("bakMode", _this.bakMode);
                 data.append("restart", "true");
                 data.append("adminPassword", adminPwd);
                 this.$http.post('/sharder?requestType=upgradeClient', data).then(res => {
                     if (res.data.upgraded) {
                         _this.$message.success(_this.$t('notification.update_success'));
-                        // _this.$router.push("/login");
-                        window.location="/";
+                        _this.$store.state.mask = false;
+                        _this.$router.push("/login");
+                        //window.location.href = "/";
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
@@ -1007,6 +1013,7 @@
                 this.$http.post('/sharder?requestType=restart', data).then(res => {
                     if (!res.data.errorDescription) {
                         _this.$message.success(_this.$t('restart.restarting'));
+                        _this.$store.state.mask = false;
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
@@ -1035,6 +1042,7 @@
                 this.$http.post('/sharder?requestType=recovery', data).then(res => {
                     if (res.data.done) {
                         _this.$message.success(_this.$t('restart.restarting'));
+                        _this.$store.state.mask = false;
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
@@ -1058,6 +1066,7 @@
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
                     if (res.data.reconfiged) {
                         _this.$message.success(_this.$t('restart.restarting'));
+                        _this.$store.state.mask = false;
                         _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
@@ -1175,6 +1184,7 @@
             registerNatService() {
                 console.info("registering nat service for normal node...");
                 const _this = this;
+                _this.registerNatLoading = true;
                 let data = new FormData();
                 data.append("sharderAccount", this.hubsetting.sharderAccount);
                 data.append("tssAddress", _this.getAccountRsBySecret());
@@ -1182,6 +1192,7 @@
                 data.append("registerStatus", "0");
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister), data)
                     .then(response => {
+                        _this.registerNatLoading = false;
                         if (response.data.success) {
                             console.info('success to register NAT service');
                             _this.$message.success(_this.$t('notification.success_to_register_nat'));
@@ -1191,6 +1202,7 @@
                         }
                     })
                     .catch(err => {
+                        _this.registerNatLoading = false;
                         _this.$message.error(err.message);
                     });
             },
@@ -1207,7 +1219,7 @@
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {
-                        this.hubsetting.executing = false;
+                        _this.hubsetting.executing = false;
                         if (res.data.success) {
                             console.info('success to update hub setting to remote server');
                             _this.reconfigure(reconfigData);
@@ -1252,9 +1264,9 @@
                         console.log('success to reconfigure settings...');
                         _this.$message.success(_this.$t('restart.restarting'));
                         data = new FormData();
-                        this.store.state.mask=false;
-                        window.location.href = "/";
-                        // _this.$router.push("/login");
+                        //window.location = "/";
+                        _this.$store.state.mask = false;
+                        _this.$router.push("/login");
                         _this.autoRefresh();
                     } else {
                         let msg = res1.data.errorDescription ? res1.data.errorDescription :
@@ -1269,6 +1281,7 @@
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
+                _this.hubsetting.loadingData = true;
                 if (_this.hubsetting.sharderAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
@@ -1278,6 +1291,7 @@
                     formData.append("nodeType", _this.userConfig.nodeType);
                     _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.fetchNatServiceConfig), formData)
                         .then(res => {
+                            _this.hubsetting.loadingData = false;
                             console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
                             if (res.data.success && res.data.data) {
                                 _this.hubsetting.address = res.data.data.natServiceIp;
@@ -1299,6 +1313,7 @@
                             }
                         })
                         .catch(err => {
+                            _this.hubsetting.loadingData = false;
                             _this.$message.error(err.message);
                         });
                 }
@@ -1750,9 +1765,18 @@
                     });
                     _this.getTotalList();
                     _this.getDrawData();
-
+                    _this.updateMinerState();
                 }).catch(function (err) {
                     _this.$message.error(err.message);
+                });
+            },
+            updateMinerState() {
+                let _this = this;
+                _this.accountTransactionList.forEach(val => {
+                    if (val.type === 8 && val.confirmations) {
+                        _this.$store.state.quitPool[val.attachment.poolId] = undefined;
+                        _this.$store.state.destroyPool[val.attachment.poolId] = undefined;
+                    }
                 });
             },
             clearHubSetting() {

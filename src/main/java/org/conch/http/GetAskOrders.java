@@ -66,7 +66,9 @@ public final class GetAskOrders extends APIServlet.APIRequestHandler {
         }
 
         JSONArray orders = new JSONArray();
-        try (DbIterator<Order.Ask> askOrders = Order.Ask.getSortedOrders(assetId, firstIndex, lastIndex)) {
+        DbIterator<Order.Ask> askOrders = null;
+        try {
+            askOrders = Order.Ask.getSortedOrders(assetId, firstIndex, lastIndex);
             while (askOrders.hasNext()) {
                 Order.Ask order = askOrders.next();
                 JSONObject orderJSON = JSONData.askOrder(order);
@@ -75,6 +77,8 @@ public final class GetAskOrders extends APIServlet.APIRequestHandler {
                 }
                 orders.add(orderJSON);
             }
+        }finally {
+            DbUtils.close(askOrders);
         }
 
         JSONObject response = new JSONObject();

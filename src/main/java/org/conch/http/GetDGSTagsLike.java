@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;
@@ -55,10 +56,15 @@ public final class GetDGSTagsLike extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray tagsJSON = new JSONArray();
         response.put("tags", tagsJSON);
-        try (DbIterator<DigitalGoodsStore.Tag> tags = DigitalGoodsStore.Tag.getTagsLike(prefix, inStockOnly, firstIndex, lastIndex)) {
+
+        DbIterator<DigitalGoodsStore.Tag> tags = null;
+        try {
+            tags = DigitalGoodsStore.Tag.getTagsLike(prefix, inStockOnly, firstIndex, lastIndex);
             while (tags.hasNext()) {
                 tagsJSON.add(JSONData.tag(tags.next()));
             }
+        }finally {
+            DbUtils.close(tags);
         }
         return response;
     }

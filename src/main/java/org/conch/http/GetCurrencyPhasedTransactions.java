@@ -47,12 +47,16 @@ public class GetCurrencyPhasedTransactions extends APIServlet.APIRequestHandler 
         boolean withoutWhitelist = "true".equalsIgnoreCase(req.getParameter("withoutWhitelist"));
 
         JSONArray transactions = new JSONArray();
-        try (DbIterator<? extends Transaction> iterator = PhasingPoll.getHoldingPhasedTransactions(currencyId, VoteWeighting.VotingModel.CURRENCY,
-                accountId, withoutWhitelist, firstIndex, lastIndex)) {
+        DbIterator<? extends Transaction> iterator = null;
+        try {
+            iterator = PhasingPoll.getHoldingPhasedTransactions(currencyId, VoteWeighting.VotingModel.CURRENCY,
+                    accountId, withoutWhitelist, firstIndex, lastIndex);
             while (iterator.hasNext()) {
                 Transaction transaction = iterator.next();
                 transactions.add(JSONData.transaction(transaction));
             }
+        }finally {
+            DbUtils.close(iterator);
         }
         JSONObject response = new JSONObject();
         response.put("transactions", transactions);

@@ -203,12 +203,12 @@ public class GetNodeHardware {
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub's bind SS address is null"));
         
-        if (StringUtils.isEmpty(Conch.nodeType)) {
+        if (StringUtils.isEmpty(Conch.getNodeType())) {
             //don't report
             return null;
         }
         systemInfo.setIp(host).setPort(Integer.toString(port)).setAddress(host)
-                .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.nodeType);
+                .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.getNodeType());
         Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
         cpu(systemInfo);
         memory(systemInfo);

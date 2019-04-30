@@ -598,7 +598,10 @@ public abstract class TransactionType {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
                     Map<Long, Long> consignors = coinBase.getConsignors();
-                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId());
+                    
+                    if(consignors.size() <= 0) return;
+                    
+                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
                     if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
                             && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
                         throw new ConchException.NotValidException("allocation rule is wrong");
@@ -641,8 +644,7 @@ public abstract class TransactionType {
 
     public static abstract class Messaging extends TransactionType {
 
-        private Messaging() {
-        }
+        private Messaging() {}
 
         @Override
         public final byte getType() {
@@ -3471,7 +3473,7 @@ public abstract class TransactionType {
                 //TODO node certify
                 
                 // forge pool total No.
-                long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId());
+                long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId(), Conch.getBlockchain().getHeight());
                 if (poolId != -1) throw new ConchException.NotValidException("Creator already owned one forge pool[id=%d]",  poolId);
                 
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
@@ -3578,8 +3580,7 @@ public abstract class TransactionType {
                 boolean isGenesis = transaction.getTimestamp() == 0 
                                     && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY);
                 //Balance and genesis creator check
-                if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT
-                        && !isGenesis) {
+                if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT && !isGenesis) {
                     return false;
                 }
                 senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, 0);
@@ -3620,11 +3621,16 @@ public abstract class TransactionType {
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
                 if (forgePool == null)  throw new ConchException.NotValidException("Can't process join tx caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" ,join.getPoolId());
 
-                //TODO join a forge pool before it is working
-
-                int endHeight = forgePool.getEndBlockNo();
-                if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
-                    throw new ConchException.NotValidException("Sharder pool will be destroyed at " + endHeight + " before transaction apply at " + curHeight);
+                int poolStartHeight = forgePool.getStartBlockNo();
+                int poolEndHeight = forgePool.getEndBlockNo();
+                if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
+                    throw new ConchException.NotValidException("Sharder pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
+                }
+                
+                if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
+                    if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
+                        throw new ConchException.NotValidException("Sharder pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                    }  
                 }
                 
                 // default level is creator
@@ -3713,8 +3719,9 @@ public abstract class TransactionType {
                 if (sharderPool == null) {
                     throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
                 }
-                if (!sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
-                    throw new ConchException.NotValidException("the sharder pool doesn't have the transaction of sender,txId:" + quit.getTxId() + "poolId:" + poolId);
+                boolean ownerQuit = sharderPool.getCreatorId() == transaction.getSenderId();
+                if (!ownerQuit && !sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
+                    throw new ConchException.NotValidException("sharder pool doesn't have the transaction of sender, txId:" + quit.getTxId() + ", poolId:" + poolId);
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
                     throw new ConchException.NotValidException("sharder pool will be destroyed at " + sharderPool.getEndBlockNo() + " before transaction apply at " + curHeight);

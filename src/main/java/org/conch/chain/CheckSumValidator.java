@@ -1,19 +1,31 @@
 package org.conch.chain;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.common.UrlManager;
 import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.TransactionImpl;
+import org.conch.util.Convert;
 import org.conch.util.Listener;
 import org.conch.util.Logger;
+import org.conch.util.RestfulHttpClient;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 
@@ -73,18 +85,27 @@ public class CheckSumValidator {
 
     private boolean verifyChecksum(byte[] validChecksum, int fromHeight, int toHeight) {
         MessageDigest digest = Crypto.sha256();
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC");
             pstmt.setInt(1, fromHeight);
             pstmt.setInt(2, toHeight);
-            try (DbIterator<TransactionImpl> iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt)) {
+            DbIterator<TransactionImpl> iterator = null;
+            try {
+                iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt);
                 while (iterator.hasNext()) {
                     digest.update(iterator.next().getBytes());
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
+        
         byte[] checksum = digest.digest();
         if (validChecksum == null) {
             Logger.logMessage("Checksum calculated:\n" + Arrays.toString(checksum));
@@ -97,4 +118,117 @@ public class CheckSumValidator {
             return true;
         }
     }
+    
+    static boolean synIgnoreBlock = false;
+    /**  **/
+    // known ignore blocks
+    private static final Set<Long> knownIgnoreBlocks = Sets.newHashSet(
+            //Testnet
+            -8556361949057624360L,
+            211456030592803100L
+    );
+    
+    private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
+    
+    //TODO 
+    private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
+    
+    
+    static {
+        if(!synIgnoreBlock) {
+            updateKnownIgnoreBlocks();
+            synIgnoreBlock = true;
+        }
+    }
+
+    public static boolean isKnownIgnoreBlock(long blockId){
+        if(!synIgnoreBlock) {
+            new Thread(() -> updateKnownIgnoreBlocks()).start();
+        }
+        return knownIgnoreBlocks.contains(blockId);
+    }
+    
+    public static boolean isKnownIgnoreTx(long txId){
+        return knownIgnoreTxs.contains(txId);
+    }
+    
+    private static boolean updateSingle(JSONObject object){
+        try{
+            if(object.containsKey("id")) {
+                long blockId = object.getLong("id");
+                if (!knownIgnoreBlocks.contains(blockId)) {
+                    knownIgnoreBlocks.add(blockId);
+                    ignoreBlockMap.put(blockId, object);
+                }
+            }
+
+            if(object.containsKey("txs")){
+                com.alibaba.fastjson.JSONArray array = object.getJSONArray("txs");
+                for(int i = 0; i < array.size(); i++) {
+                    Long txid = array.getLong(i);
+                    if(!knownIgnoreTxs.contains(txid)) {
+                        knownIgnoreTxs.add(txid);
+                    }
+                }
+            } 
+        }catch(Exception e){
+            Logger.logErrorMessage("parsed and set single ignore block error caused by " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public static void updateKnownIgnoreBlocks(){
+        RestfulHttpClient.HttpResponse response = null;
+        String url = UrlManager.KNOWN_IGNORE_BLOCKS;
+        try {
+            response = RestfulHttpClient.getClient(url).get().request();
+            if(response == null) return;
+            
+            String content = response.getContent();
+            String updateDetail = "\n\r";
+            String totalIgnoreBlocks = "\n\r";
+            if(content.startsWith("[")) {
+                com.alibaba.fastjson.JSONArray array = JSON.parseArray(content);
+                for(int i = 0; i < array.size(); i++) {
+                    JSONObject object = array.getJSONObject(i);
+                    totalIgnoreBlocks += object.toString() + "\n\r";
+                    if(updateSingle(object)){
+                        updateDetail += object.toString() + "\n\r";
+                    }
+                }
+            }else if(content.startsWith("{")){
+                com.alibaba.fastjson.JSONObject object = JSON.parseObject(content);
+                totalIgnoreBlocks += object.toString() + "\n\r";
+                if(updateSingle(object)){
+                    updateDetail += object.toString() + "\n\r";
+                }
+            }else{
+                Logger.logWarningMessage("not correct known ignore block get from " + url + " : " + content);
+                return ;
+            }
+            if(totalIgnoreBlocks.length() > 4){
+                Logger.logDebugMessage("total ignore blocks get from %s as follow:" + totalIgnoreBlocks, url);
+            }
+            
+            if(updateDetail.length() > 4){
+                Logger.logDebugMessage("last known ignore blocks updated:" + updateDetail);
+            }
+            
+            if(!synIgnoreBlock) synIgnoreBlock = true;
+        } catch (IOException e) {
+           Logger.logErrorMessage("Can't get known ignore blocks from " + url + " caused by " + e.getMessage());
+        }
+    }
+    
+    public static JSONObject generateIgnoreBlock(long id, byte[] checksum, String network){
+        if(StringUtils.isEmpty(network)) network = "testnet";
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id",id);
+        jsonObject.put("checksum",Convert.toString(checksum, false));
+        jsonObject.put("network",network);
+        return jsonObject;
+    }
+
 }

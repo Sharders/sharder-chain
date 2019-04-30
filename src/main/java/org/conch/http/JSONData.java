@@ -29,13 +29,11 @@ import org.conch.asset.token.*;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.Token;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.market.*;
-import org.conch.mint.Generator;
-import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
 import org.conch.shuffle.Shuffler;
@@ -427,7 +425,10 @@ public final class JSONData {
         json.put("transactions", transactions);
         if (includeExecutedPhased) {
             JSONArray phasedTransactions = new JSONArray();
-            try (DbIterator<PhasingPoll.PhasingPollResult> phasingPollResults = PhasingPoll.getApproved(block.getHeight())) {
+
+            DbIterator<PhasingPoll.PhasingPollResult> phasingPollResults = null;
+            try {
+                phasingPollResults = PhasingPoll.getApproved(block.getHeight());
                 for (PhasingPoll.PhasingPollResult phasingPollResult : phasingPollResults) {
                     long phasedTransactionId = phasingPollResult.getId();
                     if (includeTransactions) {
@@ -436,6 +437,8 @@ public final class JSONData {
                         phasedTransactions.add(Long.toUnsignedString(phasedTransactionId));
                     }
                 }
+            }finally {
+                DbUtils.close(phasingPollResults);
             }
             json.put("executedPhasedTransactions", phasedTransactions);
         }

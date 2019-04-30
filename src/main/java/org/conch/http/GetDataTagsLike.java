@@ -54,10 +54,15 @@ public final class GetDataTagsLike extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray tagsJSON = new JSONArray();
         response.put("tags", tagsJSON);
-        try (DbIterator<TaggedData.Tag> tags = TaggedData.Tag.getTagsLike(prefix, firstIndex, lastIndex)) {
+
+        DbIterator<TaggedData.Tag> tags = null;
+        try {
+            tags = TaggedData.Tag.getTagsLike(prefix, firstIndex, lastIndex);
             while (tags.hasNext()) {
                 tagsJSON.add(JSONData.dataTag(tags.next()));
             }
+        }finally {
+            DbUtils.close(tags);
         }
         return response;
     }

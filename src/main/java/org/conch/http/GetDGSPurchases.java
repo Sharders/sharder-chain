@@ -22,8 +22,8 @@
 package org.conch.http;
 
 import org.conch.common.ConchException;
-import org.conch.db.*;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.market.DigitalGoodsStore;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -54,17 +54,18 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
         JSONArray purchasesJSON = new JSONArray();
         response.put("purchases", purchasesJSON);
 
-        DbIterator<DigitalGoodsStore.Purchase> purchases;
-        if (sellerId == 0 && buyerId == 0) {
-            purchases = DigitalGoodsStore.Purchase.getPurchases(withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
-        } else if (sellerId != 0 && buyerId == 0) {
-            purchases = DigitalGoodsStore.Purchase.getSellerPurchases(sellerId, withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
-        } else if (sellerId == 0) {
-            purchases = DigitalGoodsStore.Purchase.getBuyerPurchases(buyerId, withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
-        } else {
-            purchases = DigitalGoodsStore.Purchase.getSellerBuyerPurchases(sellerId, buyerId, withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
-        }
+        DbIterator<DigitalGoodsStore.Purchase> purchases = null;
         try {
+            if (sellerId == 0 && buyerId == 0) {
+                purchases = DigitalGoodsStore.Purchase.getPurchases(withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
+            } else if (sellerId != 0 && buyerId == 0) {
+                purchases = DigitalGoodsStore.Purchase.getSellerPurchases(sellerId, withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
+            } else if (sellerId == 0) {
+                purchases = DigitalGoodsStore.Purchase.getBuyerPurchases(buyerId, withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
+            } else {
+                purchases = DigitalGoodsStore.Purchase.getSellerBuyerPurchases(sellerId, buyerId, withPublicFeedbacksOnly, completed, firstIndex, lastIndex);
+            }
+     
             while (purchases.hasNext()) {
                 purchasesJSON.add(JSONData.purchase(purchases.next()));
             }

@@ -46,10 +46,15 @@ public final class GetBidOrderIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray orderIds = new JSONArray();
-        try (DbIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
+
+        DbIterator<Order.Bid> bidOrders = null;
+        try {
+            bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex);
             while (bidOrders.hasNext()) {
                 orderIds.add(Long.toUnsignedString(bidOrders.next().getId()));
             }
+        }finally {
+            DbUtils.close(bidOrders);
         }
         JSONObject response = new JSONObject();
         response.put("bidOrderIds", orderIds);

@@ -28,6 +28,7 @@ import org.conch.chain.BlockchainImpl;
 import org.conch.common.Constants;
 import org.conch.db.DbIterator;
 import org.conch.db.DbKey;
+import org.conch.db.DbUtils;
 import org.conch.db.VersionedEntityDbTable;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -93,7 +94,10 @@ public class Hub {
                 if (currentLastBlockId != block.getId()) {
                     return Collections.emptyList();
                 }
-                try (DbIterator<Hub> hubs = hubTable.getAll(0, -1)) {
+
+                DbIterator<Hub> hubs = null;
+                try {
+                    hubs = hubTable.getAll(0, -1);
                     while (hubs.hasNext()) {
                         Hub hub = hubs.next();
                         Account account = Account.getAccount(hub.getAccountId());
@@ -105,6 +109,8 @@ public class Hub {
                             }
                         }
                     }
+                }finally {
+                    DbUtils.close(hubs);
                 }
             } finally {
                 BlockchainImpl.getInstance().readUnlock();
