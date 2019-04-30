@@ -1025,9 +1025,10 @@ public final class Conch {
         } catch (Exception e) {
             // something went wrong
             e.printStackTrace();
+            Logger.logErrorMessage("restart application error",e);
         }
     }
-
+    
     /**
      * Full version format is : version number - stage
      * e.g. 0.0.1-Beta or 0.0.1-Alpha

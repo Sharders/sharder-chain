@@ -188,7 +188,10 @@ public class BasicDb {
     public int getActiveCount(){
         return cp.getActiveConnections();
     }
-
+    
+    private static int exceedMaxCount = 0;
+    private static final int RESTART_COUNT = 1000;
+    private static int predefinedMaxDbConnections = Conch.getIntProperty("sharder.maxDbConnections");
     protected Connection getPooledConnection() throws SQLException {
         Connection con = cp.getConnection();
         int activeConnections = cp.getActiveConnections();
@@ -204,6 +207,19 @@ public class BasicDb {
                 Logger.logWarningMessage(stacks);
             }
         }
+        
+        try{
+          
+            if(maxActiveConnections >= predefinedMaxDbConnections){
+                if(exceedMaxCount++ > RESTART_COUNT){
+                    Logger.logErrorMessage(String.format("exceed max connections[%d] %d times, restart the COS to temporary fix this problem", predefinedMaxDbConnections, RESTART_COUNT));
+                    new Thread(() -> Conch.restartApplication(null)).start();
+                }
+            } 
+        }catch(Exception e){
+            Logger.logErrorMessage("can't compare and check max db connection in BasicDb#getPooledConnection caused by " + e.getMessage());
+        }
+       
         return con;
     }
 
