@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.account.Alias;
 import org.conch.common.ConchException;
+import org.conch.db.DbUtils;
 import org.conch.db.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -46,11 +47,15 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray aliases = new JSONArray();
-        try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(Alias.getAliasesByOwner(accountId, 0, -1),
-                alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
+        FilteringIterator<Alias> aliasIterator = null;
+        try {
+            aliasIterator = new FilteringIterator<>(Alias.getAliasesByOwner(accountId, 0, -1),
+                    alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex);
             while(aliasIterator.hasNext()) {
                 aliases.add(JSONData.alias(aliasIterator.next()));
             }
+        }finally {
+            DbUtils.close(aliasIterator);
         }
 
         JSONObject response = new JSONObject();
