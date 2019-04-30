@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
@@ -8,6 +9,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockImpl;
 import org.conch.chain.BlockchainImpl;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -23,7 +25,10 @@ import org.conch.util.DiskStorageUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,7 +51,8 @@ public class PocProcessorImpl implements PocProcessor {
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
 
-  private static Map<Long,Account> balanceChangedMap = new HashMap<>();
+  // height : { accountId : account }
+  private static Map<Integer,Map<Long,Account>> balanceChangedMap = Maps.newConcurrentMap();
 
 
   private PocProcessorImpl() {}
@@ -60,12 +66,12 @@ public class PocProcessorImpl implements PocProcessor {
     Conch.getBlockchainProcessor().addListener((Block block) -> {
       // ss hold score re-calculate
       // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
-      boolean someAccountBalanceChanged = balanceChangedMap.size() > 0;
+      boolean someAccountBalanceChanged = balanceChangedMap.containsKey(block.getHeight()) && balanceChangedMap.get(block.getHeight()).size() > 0;
       if(someAccountBalanceChanged) {
-        for(Account account : balanceChangedMap.values()){
+        for(Account account : balanceChangedMap.get(block.getHeight()).values()){
           balanceChangedProcess(block.getHeight(),account);
         }
-        balanceChangedMap.clear();
+        balanceChangedMap.get(block.getHeight()).clear();
       }
 
       Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
@@ -78,16 +84,44 @@ public class PocProcessorImpl implements PocProcessor {
       }
     }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
-    // balance changed
+    // balance changed event
     Account.addListener((Account account) -> {
-      if(!balanceChangedMap.containsKey(account.getId())) {
-        balanceChangedMap.put(account.getId(), account);
-      }
+      putInBalanceChangedAccount(Conch.getBlockchain().getHeight(), account, Account.Event.BALANCE);
     }, Account.Event.BALANCE);
+
+    // unconfirmed balance changed event
+    Account.addListener((Account account) -> {
+      putInBalanceChangedAccount(Conch.getBlockchain().getHeight(), account, Account.Event.UNCONFIRMED_BALANCE);
+    }, Account.Event.UNCONFIRMED_BALANCE);
 
     instance.loadFromDisk();
   }
+  
+  static void putInBalanceChangedAccount(int height, Account account, Account.Event event){
+    if(account == null || account.getId() == -1 || event == null) return ;
+    long accountId = account.getId();
+    
+    // check current height when event is BALANCE changed
+    if(Account.Event.BALANCE == event) {
+      if(!balanceChangedMap.containsKey(height)) {
+        balanceChangedMap.put(height, Maps.newHashMap());
+      }
+      
+      if(!balanceChangedMap.get(height).containsKey(accountId)) {
+        balanceChangedMap.get(height).put(accountId, account);
+      }
+    }
+    
+    // check future confirmed height
+    int confirmedHeight = height + Constants.GUARANTEED_BALANCE_CONFIRMATIONS;
+    if(!balanceChangedMap.containsKey(confirmedHeight)) {
+      balanceChangedMap.put(confirmedHeight, Maps.newHashMap());
+    }
 
+    if(!balanceChangedMap.get(confirmedHeight).containsKey(accountId)) {
+      balanceChangedMap.get(confirmedHeight).put(accountId, account);
+    }
+  }
 
   /**
    * get bind peer type

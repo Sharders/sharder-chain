@@ -323,9 +323,9 @@ class PocHolder implements Serializable {
 
         inst.scoreMap.put(pocScore.accountId,_pocScore);
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
-        PocScorePrinter.print();
         //TODO use the event to notify (there will have many consumers later): define a event 'POC_SCORE_CHANGED' and notify the listeners: Generator
         Generator.updatePocScore(_pocScore);
+        PocScorePrinter.print();
     }
 
     static BigInteger getTotal(int height,Long accountId){
