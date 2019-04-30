@@ -56,6 +56,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             if(cmdObj == null) {
                 response.put("current node[" + Peers.getMyAddress() + "] needn't to process", true);
                 return response;
+            }else{
+                Logger.logDebugMessage("received force converge command: " + cmdObj.toJSONString());
             }
             
             try{
