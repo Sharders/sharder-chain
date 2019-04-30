@@ -912,6 +912,7 @@ const cn = {
         "exchange_error": "兑换失败",
         "transfer_failed": "转账失败",
         "sharder_binding_acconut": "请去官网绑定该地址",
+        "miner_acconut": "挖矿余额不足无法兑换",
         "binding_account": "绑定账户",
         "no_binding_account": "没绑定账户",
         "immediately_binding": "立刻绑定",

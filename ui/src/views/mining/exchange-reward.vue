@@ -33,32 +33,33 @@
                 exchangeList: [
                     {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "1000 SS(ERC-20)",
-                        num: 1000000000000,
-                        info: "兑换成功后请到豆匣官网提取",
+                        title: "10 SS(ERC-20)",
+                        num: 2000000000,
+                        info: "20 TSS 兑换 10 SS(ERC-20)",
                     },
                     {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "2000 SS(ERC-20)",
-                        num: 2000000000000,
-                        info: "兑换成功后请到豆匣官网提取",
+                        title: "20 SS(ERC-20)",
+                        num: 4000000000,
+                        info: "40 TSS 兑换 20 SS(ERC-20)",
                     },
                     {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "3000 SS(ERC-20)",
-                        num: 3000000000000,
-                        info: "兑换成功后请到豆匣官网提取",
+                        title: "30 SS(ERC-20)",
+                        num: 6000000000,
+                        info: "60 TSS 兑换 30 SS(ERC-20)",
                     },
                     {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "4000 SS(ERC-20)",
-                        num: 4000000000000,
-                        info: "兑换成功后请到豆匣官网提取",
+                        title: "40 SS(ERC-20)",
+                        num: 8000000000,
+                        info: "80 TSS 兑换 40 SS(ERC-20)",
                     }
                 ],
                 isSSA: false,
                 sharderAccount: '',
                 recipient: "",
+                exchangeSS: 0
             }
         },
         created() {
@@ -69,8 +70,11 @@
                 _this.isSSA = true;
                 if (res.data.success) {
                     _this.sharderAccount = res.data.data;
+                    _this.getSSAmount(_this.sharderAccount);
                 }
-            }).catch(() => {_this.isSSA = true});
+            }).catch(() => {
+                _this.isSSA = true
+            });
             _this.$http.post(window.api.sharderExchangeRS).then(res => {
                 if (res.data.success) {
                     _this.recipient = res.data.data;
@@ -78,12 +82,29 @@
             });
         },
         methods: {
+            getSSAmount(account) {
+                console.info(account);
+
+                let _this = this;
+                _this.$http.get(window.api.ssContactAmount, {
+                    params: {
+                        account: account
+                    }
+                }).then(res => {
+                    // console.info(res.data.data);
+                    _this.exchangeSS = res.data.data ?  res.data.data * 100000000 : 0;
+                });
+            },
             exchangeFun(e) {
                 let _this = this;
+                console.info(SSO.accountInfo);
+                if (_this.exchangeSS + e.num > SSO.accountInfo.forgedBalanceNQT) {
+                    return _this.$message.warning(_this.$t("reward.miner_acconut"));
+                }
                 if (!_this.sharderAccount) {
                     return _this.$message.warning(_this.$t("reward.sharder_binding_acconut"));
                 }
-                _this.$confirm(e.info,_this.$t("reward.exchange_sharder_account",{account:_this.sharderAccount})).then(() => {
+                _this.$confirm(e.info, _this.$t("reward.exchange_sharder_account", {account: _this.sharderAccount})).then(() => {
                     _this.sendMoney(e.num)
                 });
             },
@@ -116,7 +137,7 @@
                         _this.$message.error(_this.$t("reward.exchange_error"));
                     }
                 });
-            }
+            },
         }
     }
 </script>

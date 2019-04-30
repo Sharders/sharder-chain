@@ -914,6 +914,7 @@ const en = {
         "exchange_error": "For failure",
         "transfer_failed": "Transfer failed",
         "sharder_binding_acconut": "Please go to the official website to bind the address",
+        "miner_acconut": "Insufficient mining balance cannot be exchanged",
         "binding_account": "Binding account",
         "no_binding_account": "No account binding",
         "immediately_binding": "Immediately binding",
