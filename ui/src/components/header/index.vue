@@ -405,7 +405,6 @@
             closeDialog: function () {
                 this.startForgingDialog = false;
                 this.$store.state.mask = false;
-
                 this.cosUpgradeDialog = false;
             },
             openAdminDialog: function (title) {
@@ -423,8 +422,10 @@
                 }
             },
             exit: function () {
+                const _this = this;
                 sessionStorage.setItem("sharder.login.mode",'true');
-                window.location.href = "/";
+                // window.location.href = "/";
+                _this.$router.push("/login");
             },
             isClose: function () {
                 const _this = this;
