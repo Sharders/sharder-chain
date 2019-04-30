@@ -124,6 +124,8 @@ public class CheckSumValidator {
             211456030592803100L
     );
     
+    private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
+    
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
@@ -135,7 +137,6 @@ public class CheckSumValidator {
         }
     }
 
-
     public static boolean isKnownIgnoreBlock(long blockId){
         if(!synIgnoreBlock) {
             new Thread(() -> updateKnownIgnoreBlocks()).start();
@@ -143,12 +144,33 @@ public class CheckSumValidator {
         return knownIgnoreBlocks.contains(blockId);
     }
     
+    public static boolean isKnownIgnoreTx(long txId){
+        return knownIgnoreTxs.contains(txId);
+    }
+    
     private static boolean updateSingle(JSONObject object){
-        long blockId = object.getLong("id");
-        if(knownIgnoreBlocks.contains(blockId)) return false;
-        
-        knownIgnoreBlocks.add(blockId);
-        ignoreBlockMap.put(blockId, object);
+        try{
+            if(object.containsKey("id")) {
+                long blockId = object.getLong("id");
+                if (!knownIgnoreBlocks.contains(blockId)) {
+                    knownIgnoreBlocks.add(blockId);
+                    ignoreBlockMap.put(blockId, object);
+                }
+            }
+
+            if(object.containsKey("txs")){
+                com.alibaba.fastjson.JSONArray array = object.getJSONArray("txs");
+                for(int i = 0; i < array.size(); i++) {
+                    Long txid = array.getLong(i);
+                    if(!knownIgnoreTxs.contains(txid)) {
+                        knownIgnoreTxs.add(txid);
+                    }
+                }
+            } 
+        }catch(Exception e){
+            Logger.logErrorMessage("parsed and set single ignore block error caused by " + e.getMessage());
+            return false;
+        }
         return true;
     }
 
