@@ -58,7 +58,7 @@ public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandl
                 orders.add(JSONData.askOrder(askOrders.next()));
             }
         } finally {
-            askOrders.close();
+            DbUtils.close(askOrders);
         }
         JSONObject response = new JSONObject();
         response.put("askOrders", orders);

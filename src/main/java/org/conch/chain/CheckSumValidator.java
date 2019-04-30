@@ -91,10 +91,14 @@ public class CheckSumValidator {
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > ? AND height <= ? ORDER BY id ASC, timestamp ASC");
             pstmt.setInt(1, fromHeight);
             pstmt.setInt(2, toHeight);
-            try (DbIterator<TransactionImpl> iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt)) {
+            DbIterator<TransactionImpl> iterator = null;
+            try {
+                iterator = BlockchainImpl.getInstance().getTransactions(con, pstmt);
                 while (iterator.hasNext()) {
                     digest.update(iterator.next().getBytes());
                 }
+            }finally {
+                DbUtils.close(iterator);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);

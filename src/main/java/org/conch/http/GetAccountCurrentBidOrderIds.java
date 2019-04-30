@@ -58,7 +58,7 @@ public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHan
                 orderIds.add(Long.toUnsignedString(bidOrders.next().getId()));
             }
         } finally {
-            bidOrders.close();
+            DbUtils.close(bidOrders);
         }
         JSONObject response = new JSONObject();
         response.put("bidOrderIds", orderIds);

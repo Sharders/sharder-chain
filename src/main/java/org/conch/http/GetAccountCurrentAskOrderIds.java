@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.common.ConchException;
 import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.market.Order;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -58,7 +59,7 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
                 orderIds.add(Long.toUnsignedString(askOrders.next().getId()));
             }
         } finally {
-            askOrders.close();
+            DbUtils.close(askOrders);
         }
         JSONObject response = new JSONObject();
         response.put("askOrderIds", orderIds);

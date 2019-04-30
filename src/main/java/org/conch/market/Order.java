@@ -377,15 +377,19 @@ public abstract class Order {
         }
 
         private static Bid getNextOrder(long assetId) {
-            try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("SELECT * FROM bid_order WHERE asset_id = ? "
-                         + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, transaction_height ASC, transaction_index ASC LIMIT 1")) {
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM bid_order WHERE asset_id = ? "
+                        + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, transaction_height ASC, transaction_index ASC LIMIT 1");
                 pstmt.setLong(1, assetId);
                 try (DbIterator<Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
                     return bidOrders.hasNext() ? bidOrders.next() : null;
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
             }
         }
 

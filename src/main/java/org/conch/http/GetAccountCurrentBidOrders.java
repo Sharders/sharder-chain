@@ -59,7 +59,7 @@ public final class GetAccountCurrentBidOrders extends APIServlet.APIRequestHandl
                 orders.add(JSONData.bidOrder(bidOrders.next()));
             }
         } finally {
-            bidOrders.close();
+            DbUtils.close(bidOrders);
         }
         JSONObject response = new JSONObject();
         response.put("bidOrders", orders);

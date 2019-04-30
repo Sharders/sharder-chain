@@ -460,8 +460,12 @@ public final class Currency {
         if (is(CurrencyType.MINTABLE) && getCurrentSupply() < maxSupply && senderAccountId != accountId) {
             return false;
         }
-        try (DbIterator<Account.AccountCurrency> accountCurrencies = Account.getCurrencyAccounts(this.currencyId, 0, -1)) {
+        DbIterator<Account.AccountCurrency> accountCurrencies = null;
+        try {
+            accountCurrencies = Account.getCurrencyAccounts(this.currencyId, 0, -1);
             return ! accountCurrencies.hasNext() || accountCurrencies.next().getAccountId() == senderAccountId && ! accountCurrencies.hasNext();
+        }finally {
+            DbUtils.close(accountCurrencies);
         }
     }
 
