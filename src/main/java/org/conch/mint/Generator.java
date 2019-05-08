@@ -128,8 +128,7 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
-//        if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
-        if(isBootNode) {
+        if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
                 Logger.logInfoMessage("current node is boot node, open mining directly");
             }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
@@ -157,10 +156,16 @@ public class Generator implements Comparable<Generator> {
         if(dontWait) return true;
         
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
-            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
+            // when blockchain be blocked and last block is obsolete, boot node need mining the block
+            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
+            if(isObsoleteTime && isBootNode) {
+                Logger.logDebugMessage("boot node need mining the block when the block chain state isn't UP_TO_DATE and the last block is obsolete.");
+            }else {
+                if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                    Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
+                }
+                return false;
             }
-            return false;
         }
         
         if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
