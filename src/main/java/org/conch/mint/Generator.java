@@ -128,9 +128,12 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     private static boolean isMintHeightReached(Block lastBlock){
-        if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
-            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logInfoMessage("no check because the current node is boot node, open mining directly");
+//        if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
+        if(isBootNode) {
+            if(Logger.isLevel(Logger.Level.DEBUG)) {
+                Logger.logInfoMessage("current node is boot node, open mining directly");
+            }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+                Logger.logInfoMessage("current node is boot node, open mining directly");
             }
             return true;
         }
