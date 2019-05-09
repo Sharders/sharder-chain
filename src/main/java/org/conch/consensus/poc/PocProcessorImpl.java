@@ -46,7 +46,7 @@ public class PocProcessorImpl implements PocProcessor {
   private static boolean oldPocTxsProcess = false;
 
   private static final int peerSynThreadInterval = 600;
-  private static final int pocTxSynThreadInterval = 10;
+  private static final int pocTxSynThreadInterval = 60;
 
   private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
   private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
