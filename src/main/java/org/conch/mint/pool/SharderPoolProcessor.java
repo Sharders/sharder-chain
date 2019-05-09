@@ -231,12 +231,12 @@ public class SharderPoolProcessor implements Serializable {
             power += amount;
             number++;
         }
-        Logger.logDebugMessage(id + " join in mint pool " + poolId);
+        Logger.logDebugMessage(id + " join in mining pool " + poolId);
     }
 
     public long quitConsignor(long id, long txId) {
         if (!consignors.containsKey(id)) {
-            Logger.logErrorMessage("mint pool:" + poolId + " don't have consignor:" + id);
+            Logger.logErrorMessage("mining pool:" + poolId + " don't have consignor:" + id);
             return -1;
         }
         Consignor consignor = consignors.get(id);
@@ -249,7 +249,7 @@ public class SharderPoolProcessor implements Serializable {
         if (consignor.removeTransaction(txId)) {
             consignors.remove(id);
             number--;
-            Logger.logDebugMessage(id + "quit mint pool " + poolId + ",tx id is " + txId);
+            Logger.logDebugMessage(id + "quit mining pool " + poolId + ",tx id is " + txId);
         }
         return amount;
     }

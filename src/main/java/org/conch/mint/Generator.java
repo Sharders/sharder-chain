@@ -108,14 +108,8 @@ public class Generator implements Comparable<Generator> {
         
     }
 
-    public static final boolean isBootNode = bootNodeCheck();
+ 
     private static final boolean dontWait = Conch.getBooleanProperty("sharder.stillWait");
-    private static final boolean bootNodeCheck() {
-        String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
-        if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
-        
-        return Boolean.valueOf(isBootNode);
-    }
 
     private static boolean forcePause = false;
     public static void pause(boolean pause){
@@ -289,11 +283,20 @@ public class Generator implements Comparable<Generator> {
         generationMissingMinerIds.clear();
         return missingAccounts;
     }
-
+    
+    public static final boolean isBootNode;
     static {
         if (!Constants.isLightClient) {
             ThreadPool.scheduleThread("GenerateBlocks", generateBlocksThread, 10000, TimeUnit.MILLISECONDS);
         }
+        isBootNode = bootNodeCheck();
+    }
+    
+    private static final boolean bootNodeCheck() {
+        String isBootNode = System.getProperty(RuntimeEnvironment.BOOTNODE_ARG);
+        if (StringUtils.isEmpty(isBootNode) || StringUtils.isBlank(isBootNode)) return false;
+
+        return Boolean.valueOf(isBootNode);
     }
 
     public static void init() {
