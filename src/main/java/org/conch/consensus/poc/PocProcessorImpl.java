@@ -150,6 +150,17 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   /**
+   * account whether bound to certified peer
+   *
+   * @param accountId
+   * @return
+   */
+  @Override
+  public CertifiedPeer getLinkedPeer(long accountId) {
+    return PocHolder.getBoundPeer(accountId);
+  }
+
+  /**
    * PoC tx process
    * @param tx poc tx
    * @return

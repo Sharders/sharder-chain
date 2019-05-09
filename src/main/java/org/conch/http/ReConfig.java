@@ -29,6 +29,7 @@ import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -42,6 +43,7 @@ import java.util.*;
 
 /**
  * @author jiangbubai
+ * @date  2019-05-09 updated by Ben 
  */
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
@@ -54,6 +56,10 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_LOCAL,
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_PATH
     );
+
+    private static final String SF_BIND_URL = UrlManager.getFoundationUrl("", "", UrlManager.HUB_SETTING_ADDRESS_BIND_PATH);
+    
+    
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -77,14 +83,30 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
-            response.put("failedReason", "user has created a working pool, failed to configure settings");
+            response.put("failedReason", "Account " +  bindRs +" has created a pool already");
+            return response;
+        }
+
+        CertifiedPeer linkedPeer = Conch.getPocProcessor().getLinkedPeer(creatorId);
+        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+        boolean samePeer = linkedPeer != null && linkedPeer.getHost() != null && (linkedPeer.getHost().equals(myAddress));
+        if(linkedPeer != null && !samePeer) {
+            response.put("reconfiged", false);
+            response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
             return response;
         }
 
         if (!verifyFormData(req, response)) {
             Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
             response.put("reconfiged", false);
-            response.put("failedReason", "failed to configure settings caused by formData invalid!");
+            response.put("failedReason", "Failed to configure settings caused by input values invalid!");
+            return response;
+        }
+
+        if (!updatelinkedAddressToFoundation(req, bindRs)) {
+            Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed!");
+            response.put("reconfiged", false);
+            response.put("failedReason", "Failed to configure settings caused by update linked address to foundation failed!");
             return response;
         }
         
@@ -93,7 +115,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
                 Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
                 response.put("reconfiged", false);
-                response.put("failedReason", "failed to configure settings caused by send create node type tx message to foundation failed!!");
+                response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
                 return response;
             }
         }
@@ -177,20 +199,20 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                         if (!this.doVerify(value, dbValue)) {
                             result = false;
                             response.put("reconfiged", false);
-                            response.put("failedReason", "tampered data detected! failed to reconfigure!");
+                            response.put("failedReason", "Tampered data detected! failed to reconfigure!");
                             break;
                         }
                     }
                 } else {
                     result = false;
                     response.put("reconfiged", false);
-                    response.put("failedReason", "tampered data detected! failed to reconfigure!");
+                    response.put("failedReason", "Tampered data detected! failed to reconfigure!");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 result = false;
                 response.put("reconfiged", false);
-                response.put("failedReason", "connection error");
+                response.put("failedReason", "Connection error");
             }
         }
 
@@ -207,6 +229,26 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         } else {
             return pageValue.equals(dbValue);
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Boolean updatelinkedAddressToFoundation(HttpServletRequest req, String rsAddress) {
+        boolean result = false;
+        RestfulHttpClient.HttpResponse verifyResponse = null;
+        try {
+            verifyResponse = RestfulHttpClient.getClient(SF_BIND_URL)
+                    .post()
+                    .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
+                    .addPostParam("password", req.getParameter("password"))
+                    .addPostParam("nodeType", req.getParameter("nodeType"))
+                    .addPostParam("serialNum", Conch.getSerialNum())
+                    .addPostParam("tssAddress", rsAddress)
+                    .request();
+            result = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
+        }  catch (IOException e) {
+            Logger.logErrorMessage("[ ERROR ]Failed to update linked address to foundation.", e);
+        }
+        return result;
     }
     
     //TODO need refactor

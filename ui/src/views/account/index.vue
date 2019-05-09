@@ -359,6 +359,9 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
+                    <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
+                        <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
+                    </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
@@ -427,6 +430,9 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
+                    <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
+                        <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
+                    </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
                     </el-form-item>
@@ -489,6 +495,9 @@
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="useNATForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress&&userConfig.ssAddress!==''">
+                        <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -1150,16 +1159,32 @@
                 if (reConfigFormData !== false) {
                     reConfigFormData.append("isInit", "true");
                 }
+
+                // linked ss address > logged ss address
+                let ssAddr = this.userConfig.ssAddress;
+                if(ssAddr == undefined || ssAddr == '') {
+                    ssAddr = _this.getAccountRsBySecret();
+                }
+                
                 confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
+                confirmFormData.append("tssAddress", ssAddr);
                 confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
                     this.operationType = 'init';
+                    // _this.$refs['initForm'].validate((valid) => {
+                    //     if (valid) {
+                    //         this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                    //     } else {
+                    //         console.log('init dialog error submit!!');
+                    //         return false;
+                    //     }
+                    // });
+
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
-                            this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                            _this.reconfigure(reConfigFormData);
                         } else {
                             console.log('init dialog error submit!!');
                             return false;
@@ -1171,9 +1196,15 @@
                     } else {
                         this.operationType = 'initNormal';
                     }
-                    this.$refs['useNATForm'].validate((valid) => {
+                    _this.$refs['useNATForm'].validate((valid) => {
+                        // if (valid) {
+                        //     this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                        // } else {
+                        //     console.log('register dialog error submit!!');
+                        //     return false;
+                        // }
                         if (valid) {
-                            this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                            _this.reconfigure(reConfigFormData);
                         } else {
                             console.log('register dialog error submit!!');
                             return false;
@@ -1185,9 +1216,16 @@
                 console.info("registering nat service for normal node...");
                 const _this = this;
                 _this.registerNatLoading = true;
+                
+                // linked ss address > logged ss address
+                let ssAddr = this.userConfig.ssAddress;
+                if(ssAddr == undefined || ssAddr == '') {
+                    ssAddr = _this.getAccountRsBySecret();
+                }
+                
                 let data = new FormData();
                 data.append("sharderAccount", this.hubsetting.sharderAccount);
-                data.append("tssAddress", _this.getAccountRsBySecret());
+                data.append("tssAddress", ssAddr);
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister), data)
@@ -1215,7 +1253,6 @@
                 // firstly confirm settings, save real address and ssAddress to operate system
                 // secondly reconfigure hub and create a new sharder.properties file
                 // finally redirect to login page, and auto refresh after 30s
-
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {

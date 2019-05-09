@@ -23,6 +23,7 @@ package org.conch.consensus.poc;
 
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 
@@ -55,6 +56,14 @@ public interface PocProcessor {
      */
     boolean isCertifiedPeerBind(long accountId);
 
+    /**
+     * get account linked certified peer
+     *
+     * @param accountId
+     * @return
+     */
+    CertifiedPeer getLinkedPeer(long accountId);
+    
     /**
      * get bind peer type
      * @param accountId
