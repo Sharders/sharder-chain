@@ -167,7 +167,18 @@ public class SharderPoolProcessor implements Serializable {
 
         checkOrAddIntoActiveGenerator(pool);
     }
-
+    
+    
+    private static boolean isDirtyPoolTx(int height, Account account){
+        if(Constants.isTestnet()){
+            if(3092 == height && 2792673654720227339L == account.getId()) {
+                Logger.logDebugMessage("It is a dirty tx[height=3092, account id=2792673654720227339] in Testnet, ignore it");
+            return true;
+            }
+        }
+        return false;
+    }
+    
     /**
      * - set the attributes of pool
      * - calculate and reset the ref balances of pool owner and joiners
@@ -176,20 +187,25 @@ public class SharderPoolProcessor implements Serializable {
     public void destroySharderPool(int height) {
         state = State.DESTROYED;
         endBlockNo = height;
-        
-        Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
+        Account creator = Account.getAccount(creatorId);
+        creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
         power -= PLEDGE_AMOUNT;
         
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
             if (amount != 0) {
                 power -= amount;
-                Account.getAccount(consignor.getId()).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
+                Account account = Account.getAccount(consignor.getId());
+                if(isDirtyPoolTx(height,account)){
+                    continue;
+                }
+                account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
             }
         }
+        
         if (startBlockNo > endBlockNo) {
             sharderPools.remove(poolId);
-            Logger.logDebugMessage("destroy mint pool " + poolId + " before start ");
+            Logger.logDebugMessage("destroy mining pool " + poolId + " before start ");
             return;
         }
         if (destroyedPools.containsKey(creatorId)) {
@@ -201,7 +217,7 @@ public class SharderPoolProcessor implements Serializable {
             destroyedPools.put(creatorId, destroy);
             sharderPools.remove(poolId);
         }
-        Logger.logDebugMessage("destroy mint pool " + poolId);
+        Logger.logDebugMessage("destroy mining pool [id=" + poolId + ", creator=" + creator.getRsAddress() + "]");
     }
 
     public void addOrUpdateConsignor(long id, long txId, int startBlockNo, int endBlockNo, long amount) {

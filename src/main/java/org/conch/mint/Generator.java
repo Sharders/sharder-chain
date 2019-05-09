@@ -255,10 +255,10 @@ public class Generator implements Comparable<Generator> {
                         BlockchainImpl.getInstance().updateUnlock();
                     }
                 } catch (Exception e) {
-                    Logger.logErrorMessage("Error in block generation thread", e);
+                    Logger.logErrorMessage("Error in block generation thread, ignore it and continue to next round", e);
                 }
             } catch (Throwable t) {
-                Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+                Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS. EXIT NOW!\n" + t.toString());
                 t.printStackTrace();
                 System.exit(1);
             }
