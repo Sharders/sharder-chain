@@ -359,7 +359,7 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="userConfig.ssAddress">
+                    <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
@@ -430,7 +430,7 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="userConfig.ssAddress">
+                    <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
@@ -496,7 +496,7 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="userConfig.ssAddress&&userConfig.ssAddress!==''">
+                    <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress&&userConfig.ssAddress!==''">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
