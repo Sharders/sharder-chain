@@ -1162,7 +1162,7 @@
 
                 // linked ss address > logged ss address
                 let ssAddr = this.userConfig.ssAddress;
-                if(ssAddr == 'undefined' || ssAddr == '') {
+                if(ssAddr == undefined || ssAddr == '') {
                     ssAddr = _this.getAccountRsBySecret();
                 }
                 
@@ -1173,9 +1173,18 @@
                 confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
                     this.operationType = 'init';
+                    // _this.$refs['initForm'].validate((valid) => {
+                    //     if (valid) {
+                    //         this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                    //     } else {
+                    //         console.log('init dialog error submit!!');
+                    //         return false;
+                    //     }
+                    // });
+
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
-                            this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                            _this.reconfigure(reConfigFormData);
                         } else {
                             console.log('init dialog error submit!!');
                             return false;
@@ -1187,9 +1196,15 @@
                     } else {
                         this.operationType = 'initNormal';
                     }
-                    this.$refs['useNATForm'].validate((valid) => {
+                    _this.$refs['useNATForm'].validate((valid) => {
+                        // if (valid) {
+                        //     this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                        // } else {
+                        //     console.log('register dialog error submit!!');
+                        //     return false;
+                        // }
                         if (valid) {
-                            this.hubSettingsConfirm(confirmFormData, reConfigFormData);
+                            _this.reconfigure(reConfigFormData);
                         } else {
                             console.log('register dialog error submit!!');
                             return false;
@@ -1204,7 +1219,7 @@
                 
                 // linked ss address > logged ss address
                 let ssAddr = this.userConfig.ssAddress;
-                if(ssAddr == 'undefined' || ssAddr == '') {
+                if(ssAddr == undefined || ssAddr == '') {
                     ssAddr = _this.getAccountRsBySecret();
                 }
                 
@@ -1238,7 +1253,6 @@
                 // firstly confirm settings, save real address and ssAddress to operate system
                 // secondly reconfigure hub and create a new sharder.properties file
                 // finally redirect to login page, and auto refresh after 30s
-
                 let _this = this;
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
                     .then(res => {

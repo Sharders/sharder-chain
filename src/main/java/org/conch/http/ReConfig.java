@@ -56,6 +56,10 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_LOCAL,
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_PATH
     );
+
+    private static final String SF_BIND_URL = UrlManager.getFoundationUrl("", "", UrlManager.HUB_SETTING_ADDRESS_BIND_PATH);
+    
+    
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -98,13 +102,20 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             response.put("failedReason", "Failed to configure settings caused by input values invalid!");
             return response;
         }
+
+        if (!updatelinkedAddressToFoundation(req, bindRs)) {
+            Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed!");
+            response.put("reconfiged", false);
+            response.put("failedReason", "Failed to configure settings caused by update linked address to foundation failed!");
+            return response;
+        }
         
         // send to foundation to create node type tx once in initial processing
         if(isInit) {
             if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
                 Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
                 response.put("reconfiged", false);
-                response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!!");
+                response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
                 return response;
             }
         }
@@ -218,6 +229,26 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         } else {
             return pageValue.equals(dbValue);
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Boolean updatelinkedAddressToFoundation(HttpServletRequest req, String rsAddress) {
+        boolean result = false;
+        RestfulHttpClient.HttpResponse verifyResponse = null;
+        try {
+            verifyResponse = RestfulHttpClient.getClient(SF_BIND_URL)
+                    .post()
+                    .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
+                    .addPostParam("password", req.getParameter("password"))
+                    .addPostParam("nodeType", req.getParameter("nodeType"))
+                    .addPostParam("serialNum", Conch.getSerialNum())
+                    .addPostParam("tssAddress", rsAddress)
+                    .request();
+            result = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
+        }  catch (IOException e) {
+            Logger.logErrorMessage("[ ERROR ]Failed to update linked address to foundation.", e);
+        }
+        return result;
     }
     
     //TODO need refactor
