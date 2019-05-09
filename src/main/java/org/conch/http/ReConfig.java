@@ -42,6 +42,7 @@ import java.util.*;
 
 /**
  * @author jiangbubai
+ * @date  2019-05-09 updated by Ben 
  */
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
@@ -77,14 +78,20 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
-            response.put("failedReason", "user has created a working pool, failed to configure settings");
+            response.put("failedReason", "Account " +  bindRs +" has created a pool already");
+            return response;
+        }
+        
+        if(Conch.getPocProcessor().isCertifiedPeerBind(creatorId)) {
+            response.put("reconfiged", false);
+            response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
             return response;
         }
 
         if (!verifyFormData(req, response)) {
             Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
             response.put("reconfiged", false);
-            response.put("failedReason", "failed to configure settings caused by formData invalid!");
+            response.put("failedReason", "Failed to configure settings caused by input values invalid!");
             return response;
         }
         
@@ -93,7 +100,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
                 Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
                 response.put("reconfiged", false);
-                response.put("failedReason", "failed to configure settings caused by send create node type tx message to foundation failed!!");
+                response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!!");
                 return response;
             }
         }
@@ -177,20 +184,20 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                         if (!this.doVerify(value, dbValue)) {
                             result = false;
                             response.put("reconfiged", false);
-                            response.put("failedReason", "tampered data detected! failed to reconfigure!");
+                            response.put("failedReason", "Tampered data detected! failed to reconfigure!");
                             break;
                         }
                     }
                 } else {
                     result = false;
                     response.put("reconfiged", false);
-                    response.put("failedReason", "tampered data detected! failed to reconfigure!");
+                    response.put("failedReason", "Tampered data detected! failed to reconfigure!");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 result = false;
                 response.put("reconfiged", false);
-                response.put("failedReason", "connection error");
+                response.put("failedReason", "Connection error");
             }
         }
 
