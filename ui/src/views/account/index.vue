@@ -1194,9 +1194,16 @@
                 console.info("registering nat service for normal node...");
                 const _this = this;
                 _this.registerNatLoading = true;
+                
+                // linked ss address > logged ss address
+                let ssAddr = this.userConfig.ssAddress;
+                if(ssAddr == 'undefined' || ssAddr == '') {
+                    ssAddr = _this.getAccountRsBySecret();
+                }
+                
                 let data = new FormData();
                 data.append("sharderAccount", this.hubsetting.sharderAccount);
-                data.append("tssAddress", _this.getAccountRsBySecret());
+                data.append("tssAddress", ssAddr);
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
                 this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natRegister), data)
