@@ -29,6 +29,7 @@ import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -81,8 +82,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             response.put("failedReason", "Account " +  bindRs +" has created a pool already");
             return response;
         }
-        
-        if(Conch.getPocProcessor().isCertifiedPeerBind(creatorId)) {
+
+        CertifiedPeer linkedPeer = Conch.getPocProcessor().getLinkedPeer(creatorId);
+        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+        boolean samePeer = linkedPeer != null && linkedPeer.getHost() != null && (linkedPeer.getHost().equals(myAddress));
+        if(linkedPeer != null && !samePeer) {
             response.put("reconfiged", false);
             response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
             return response;
