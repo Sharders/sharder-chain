@@ -1159,10 +1159,17 @@
                 if (reConfigFormData !== false) {
                     reConfigFormData.append("isInit", "true");
                 }
+
+                // linked ss address > logged ss address
+                let ssAddr = this.userConfig.ssAddress;
+                if(ssAddr == 'undefined' || ssAddr == '') {
+                    ssAddr = _this.getAccountRsBySecret();
+                }
+                
                 confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
                 confirmFormData.append("password", _this.hubsetting.sharderPwd);
                 confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
+                confirmFormData.append("tssAddress", ssAddr);
                 confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
                     this.operationType = 'init';
