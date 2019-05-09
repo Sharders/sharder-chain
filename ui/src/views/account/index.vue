@@ -359,8 +359,8 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="hubsetting.hubLinkedAddress">
-                        <el-input v-model="hubsetting.hubLinkedAddress" :disabled="true"></el-input>
+                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="userConfig.ssAddress">
+                        <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -430,8 +430,8 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="hubsetting.hubLinkedAddress">
-                        <el-input v-model="hubsetting.hubLinkedAddress" :disabled="true"></el-input>
+                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="userConfig.ssAddress">
+                        <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -496,8 +496,8 @@
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="hubsetting.hubLinkedAddress&&hubsetting.hubLinkedAddress!==''">
-                        <el-input v-model="hubsetting.hubLinkedAddress" :disabled="true"></el-input>
+                    <el-form-item :label="$t('hubsetting.token_address')" prop="sharderAccount" v-if="userConfig.ssAddress&&userConfig.ssAddress!==''">
+                        <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="hubsetting.sharderAccount"></el-input>
@@ -712,7 +712,6 @@
                     confirmPwd: '',
                     register_status: '',
                     register_status_text: '',
-                    hubLinkedAddress:'',
                     executing: false,
                 },
                 unconfirmedTransactionsList: [],
@@ -884,7 +883,6 @@
                 _this.hubsetting.port = res["sharder.NATServicePort"];
                 _this.hubsetting.clientSecretkey = res["sharder.NATClientKey"];
                 _this.hubsetting.publicAddress = res["sharder.myAddress"];
-                _this.hubsetting.hubLinkedAddress = res["sharder.HubBindAddress"];
                 //_this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
             });
             _this.getLatestHubVersion();
