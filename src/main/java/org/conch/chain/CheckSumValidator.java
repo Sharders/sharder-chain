@@ -119,6 +119,7 @@ public class CheckSumValidator {
         }
     }
     
+    static int badCount = 0;
     static boolean synIgnoreBlock = false;
     /**  **/
     // known ignore blocks
@@ -131,9 +132,10 @@ public class CheckSumValidator {
     
     private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
     
+    private static final Map<Integer,Set<Long>> knownDirtyPoolTxs = Maps.newConcurrentMap();
+    
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
-    
     
     static {
         if(!synIgnoreBlock) {
@@ -141,21 +143,51 @@ public class CheckSumValidator {
             synIgnoreBlock = true;
         }
     }
+    
+    private static void countBad(boolean isBad){
+        if(!isBad) {
+            if(badCount++ > 1000) {
+                new Thread(() -> updateKnownIgnoreBlocks()).start();
+                badCount = 0;   
+            }
+        }
+    }
 
     public static boolean isKnownIgnoreBlock(long blockId){
         if(!synIgnoreBlock) {
             new Thread(() -> updateKnownIgnoreBlocks()).start();
         }
-        return knownIgnoreBlocks.contains(blockId);
+        boolean result = knownIgnoreBlocks.contains(blockId);
+        countBad(result);
+        
+        return result;
     }
     
     public static boolean isKnownIgnoreTx(long txId){
-        return knownIgnoreTxs.contains(txId);
+        boolean result = knownIgnoreTxs.contains(txId);
+        countBad(result);
+        
+        return result;
+    }
+
+    public static boolean isDirtyPoolTx(int height, long accountId){
+        if(!knownDirtyPoolTxs.containsKey(height)) {
+            countBad(false);
+            return false;
+        }
+
+        boolean result = knownDirtyPoolTxs.get(height).contains(accountId);
+        countBad(result);
+        
+        if(result){
+            Logger.logDebugMessage("found a known dirty pool tx[account id=%s] at height %d, ignore this tx" , accountId, height);
+        }
+        return result;
     }
     
     private static boolean updateSingle(JSONObject object){
         try{
-            if(object.containsKey("id")) {
+            if(object.containsKey("id") && object.getLong("id") != -1L) {
                 long blockId = object.getLong("id");
                 if (!knownIgnoreBlocks.contains(blockId)) {
                     knownIgnoreBlocks.add(blockId);
@@ -171,7 +203,21 @@ public class CheckSumValidator {
                         knownIgnoreTxs.add(txid);
                     }
                 }
-            } 
+            }
+
+            if(object.containsKey("poolAccounts")){
+                Integer height = object.getInteger("height");
+                if(!knownDirtyPoolTxs.containsKey(height)) {
+                    knownDirtyPoolTxs.put(height, Sets.newHashSet());
+                }
+                Set<Long> dirtyPoolAccounts = knownDirtyPoolTxs.get(height);
+
+                com.alibaba.fastjson.JSONArray array = object.getJSONArray("poolAccounts");
+                for(int i = 0; i < array.size(); i++) {
+                    dirtyPoolAccounts.add(array.getLong(i));
+                }
+            }
+            
         }catch(Exception e){
             Logger.logErrorMessage("parsed and set single ignore block error caused by " + e.getMessage());
             return false;
