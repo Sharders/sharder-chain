@@ -179,6 +179,9 @@ public class CheckSumValidator {
         boolean result = knownDirtyPoolTxs.get(height).contains(accountId);
         countBad(result);
         
+        if(result){
+            Logger.logDebugMessage("found a known dirty pool tx[account id=%s] at height %d, ignore this tx" , accountId, height);
+        }
         return result;
     }
     
