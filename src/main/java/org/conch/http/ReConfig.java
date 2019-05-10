@@ -22,14 +22,15 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
-import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -57,8 +58,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_PATH
     );
 
-    private static final String SF_BIND_URL = UrlManager.getFoundationUrl("", "", UrlManager.HUB_SETTING_ADDRESS_BIND_PATH);
-    
+    private static final String SF_BIND_URL = UrlManager.getFoundationUrl(
+            "", 
+            UrlManager.HUB_SETTING_ADDRESS_BIND_LOCAL, 
+            UrlManager.HUB_SETTING_ADDRESS_BIND_PATH
+    );
     
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
@@ -75,11 +79,16 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
 
-        String bindRs = Conch.getStringProperty("sharder.HubBindAddress");
-        if(isInit) {
-            bindRs = Account.rsAccount(req.getParameter("sharder.HubBindPassPhrase"));
+//        Conch.getStringProperty("sharder.HubBindAddress");
+        
+        String accountPR = Conch.getStringProperty("sharder.HubBindPassPhrase");
+        String inputLinkedPR = req.getParameter("sharder.HubBindPassPhrase");
+        if(StringUtils.isNotEmpty(inputLinkedPR)) {
+            accountPR = inputLinkedPR;
         }
-        long creatorId = Account.rsAccountToId(bindRs);
+        long creatorId = Account.getId(accountPR);
+        String bindRs = Account.rsAccount(creatorId);
+        
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
@@ -87,14 +96,14 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        CertifiedPeer linkedPeer = Conch.getPocProcessor().getLinkedPeer(creatorId);
-        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
-        boolean samePeer = linkedPeer != null && linkedPeer.getHost() != null && (linkedPeer.getHost().equals(myAddress));
-        if(linkedPeer != null && !samePeer) {
-            response.put("reconfiged", false);
-            response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
-            return response;
-        }
+//        CertifiedPeer linkedPeer = Conch.getPocProcessor().getLinkedPeer(creatorId);
+//        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+//        boolean samePeer = linkedPeer != null && linkedPeer.getHost() != null && (linkedPeer.getHost().equals(myAddress));
+//        if(linkedPeer != null && !samePeer) {
+//            response.put("reconfiged", false);
+//            response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
+//            return response;
+//        }
 
         if (!verifyFormData(req, response)) {
             Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
@@ -103,10 +112,12 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        if (!updatelinkedAddressToFoundation(req, bindRs)) {
-            Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed!");
+        try {
+            checkAndUpdateLinkedAddressToFoundation(req, bindRs);
+        } catch (ConchException.NotValidException e) {
+            Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed[" + e.getMessage() + "]");
             response.put("reconfiged", false);
-            response.put("failedReason", "Failed to configure settings caused by update linked address to foundation failed!");
+            response.put("failedReason", "Failed to configure settings caused by [" + e.getMessage() + "]");
             return response;
         }
         
@@ -119,31 +130,40 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 return response;
             }
         }
-
+        
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
-
+            
             if ("sharder.HubBindPassPhrase".equals(paraName)) {
                 String prFromRequest = req.getParameter(paraName);
                 map.put("sharder.HubBindPassPhrase", prFromRequest);
-                map.put("sharder.HubBindAddress", Account.rsAccount(prFromRequest));
+                map.put("sharder.HubBindAddress", bindRs);
                 continue;
             }
             if ("newAdminPassword".equals(paraName)) {
                 map.put("sharder.adminPassword", req.getParameter(paraName));
                 continue;
             }
-            //if it ins't initial, use the current pr get from local properties file
-            if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew && !isInit) {
-                map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
+            if ("sharderAccount".equals(paraName)) {
+                //set the siteAccount into properties after bind operation success
+                map.put("sharder.siteAccount", req.getParameter("sharderAccount"));
                 continue;
             }
+//            //if it ins't initial, use the current pr get from local properties file
+//            if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew && !isInit) {
+//                map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
+//                continue;
+//            }
+            
+            // pre-defined exclusion request parameter
             if (EXCLUDE_PARAMS.contains(paraName)) {
                 continue;
             }
             map.put(paraName, req.getParameter(paraName));
         }
+        
         Conch.storePropertiesToFile(map);
+        
         if (restart) {
             new Thread(() -> Conch.restartApplication(null)).start();
         }
@@ -231,9 +251,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
     }
     
-    @SuppressWarnings("unchecked")
-    private Boolean updatelinkedAddressToFoundation(HttpServletRequest req, String rsAddress) {
-        boolean result = false;
+    private void checkAndUpdateLinkedAddressToFoundation(HttpServletRequest req, String rsAddress) throws ConchException.NotValidException {
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
             verifyResponse = RestfulHttpClient.getClient(SF_BIND_URL)
@@ -244,11 +262,15 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     .addPostParam("serialNum", Conch.getSerialNum())
                     .addPostParam("tssAddress", rsAddress)
                     .request();
-            result = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
+            Logger.logErrorMessage("send check and link request to foundation[" + SF_BIND_URL + "]");
+            com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
+            if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
+                throw new ConchException.NotValidException(responseObj.getString("data"));
+            }
         }  catch (IOException e) {
             Logger.logErrorMessage("[ ERROR ]Failed to update linked address to foundation.", e);
+            throw new ConchException.NotValidException(e.getMessage());
         }
-        return result;
     }
     
     //TODO need refactor

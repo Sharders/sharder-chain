@@ -29,6 +29,7 @@ const cn = {
         'nat_traversal_clent_privateKey': "穿透服务客户端秘钥",
         'public_ip_address': "公网地址",
         'token_address': "关联SS地址",
+        'serial_no': "硬件编号",
         'enable_auto_mining': "是否开启挖矿",
         'set_mnemonic_phrase': "绑定密钥",
         'set_password': "设置管理员密码",

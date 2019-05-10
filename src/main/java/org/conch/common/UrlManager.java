@@ -34,6 +34,8 @@ public class UrlManager {
     public static final String HUB_SETTING_ACCOUNT_CHECK_EOLINKER = "http://result.eolinker.com/iDmJAldf2e4eb89669d9b305f7e014c215346e225f6fe41?uri=http://sharder.org/bounties/hubDirectory/check.ss";
     public static final String HUB_SETTING_ACCOUNT_CHECK_LOCAL = "http://localhost:8080/sc/natServices/fetch";
     public static final String HUB_SETTING_ACCOUNT_CHECK_PATH = "/sc/natServices/fetch";
+    
+    public static final String HUB_SETTING_ADDRESS_BIND_LOCAL = "http://localhost:8080/sc/natServices/bind";
     public static final String HUB_SETTING_ADDRESS_BIND_PATH = "/sc/natServices/bind";
 
     /**
@@ -69,7 +71,7 @@ public class UrlManager {
     public static final String KNOWN_IGNORE_BLOCKS = "https://oss.sharder.org/cos/client/release/ignore-blocks";
     public static final String CMD_TOOLS = "https://oss.sharder.org/cos/client/release/cmd-tools";
     /*=============================================HUB UPGRADE API END========================================*/
-
+    
     /**
      * get foundation API URLs
      *

@@ -29,6 +29,7 @@ const en = {
         'nat_traversal_clent_privateKey': "NAT Private key",
         'public_ip_address': "Public IP Address",
         'token_address': "Linked SS Address",
+        'serial_no': "Serial No",
         'enable_auto_mining': "Enable Mining",
         'set_mnemonic_phrase': "Mnemonic Phrase",
         'set_password': "Set Admin Password",

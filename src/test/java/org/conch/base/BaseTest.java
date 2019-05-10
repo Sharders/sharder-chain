@@ -15,11 +15,16 @@ import java.util.Arrays;
  * @since 2019-01-28
  */
 public class BaseTest {
+    static Console console = System.console();
     
     protected static String getSpFromConsole(){
+        return _getFromConsole("Secret Phrase");
+    }
+
+    protected static String _getFromConsole(String displayName){
         String secretPhrase = "";
-        System.out.println("Input the secret phrase >>");
-        Console console = System.console();
+        System.out.println("Input the " + displayName  +" >>");
+     
         if (console == null) {
             try {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
@@ -29,9 +34,8 @@ public class BaseTest {
                 e.printStackTrace();
             }
         } else {
-            secretPhrase = new String(console.readPassword("Secret phrase: "));
+            secretPhrase = new String(console.readPassword(displayName + ": "));
         }
-        
         return secretPhrase;
     }
 
