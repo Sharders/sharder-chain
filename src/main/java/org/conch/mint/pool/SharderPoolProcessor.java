@@ -188,6 +188,7 @@ public class SharderPoolProcessor implements Serializable {
             if (amount != 0) {
                 power -= amount;
                 Account account = Account.getAccount(consignor.getId());
+                Logger.logDebugMessage("check dirty pool tx [height=" + height + ", account id=" + consignor.getId() + "]");
                 if(CheckSumValidator.isDirtyPoolTx(height,consignor.getId())){
                     continue;
                 }
