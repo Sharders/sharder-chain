@@ -348,7 +348,7 @@
         </div>
         <!--view hub init setting dialog-->
         <div class="modal_hubSetting" id="hub_init_setting" v-show="hubInitDialog">
-            <div class="modal-header">
+            <div class="modal-header" @click="displaySerialNo('initial')">
                 <h4 class="modal-title">
                     <span>{{ $t('login.init_hub') }}</span>
                 </h4>
@@ -362,11 +362,11 @@
                     <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.serial_no')" v-if="userConfig.xxx&&userConfig.xxx!==''">
+                    <el-form-item :label="$t('hubsetting.serial_no')" v-show="userConfig.xxx&&hubsetting.initialSerialClickCount>=5">
                         <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount" @click="displaySerialNoCheck()">
-                        <el-input v-model="hubsetting.sharderAccount">{{userConfig.siteAccount}}</el-input>
+                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
+                        <el-input v-model="userConfig.siteAccount"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
@@ -414,7 +414,7 @@
         </div>
         <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
-            <div class="modal-header">
+            <div class="modal-header" @click="displaySerialNo('setting')">
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
                 <h4 class="modal-title">
@@ -430,11 +430,11 @@
                     <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.serial_no')" v-if="userConfig.xxx&&userConfig.xxx!==''">
+                    <el-form-item :label="$t('hubsetting.serial_no')" v-show="userConfig.xxx&&hubsetting.settingSerialClickCount>=5">
                         <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
-                        <el-input v-model="hubsetting.sharderAccount">{{userConfig.siteAccount}}</el-input>
+                        <el-input v-model="userConfig.siteAccount"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
@@ -476,7 +476,7 @@
         </div>
         <!-- view use NAT service dialog -->
         <div class="modal_hubSetting" id="use_nat_service" v-show="useNATServiceDialog">
-            <div class="modal-header">
+            <div class="modal-header" @click="displaySerialNo('nat')">
                 <button class="common_btn" @click="openAdminDialog('resetNormal')"
                         v-if="whetherShowConfigureNATServiceBtn()">{{$t('hubsetting.reset')}}
                 </button>
@@ -496,11 +496,11 @@
                     <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress&&userConfig.ssAddress!==''">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.serial_no')" v-if="userConfig.xxx&&userConfig.xxx!==''">
+                    <el-form-item :label="$t('hubsetting.serial_no')" v-show="userConfig.xxx&&hubsetting.natSerialClickCount>=5">
                         <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
-                        <el-input v-model="hubsetting.sharderAccount">{{userConfig.siteAccount}}</el-input>
+                        <el-input v-model="userConfig.siteAccount"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
@@ -700,7 +700,6 @@
                 hubsetting: {
                     openPunchthrough: false,
                     loadingData: false,
-                    sharderAccount: '',
                     sharderPwd: '',
                     address: '',
                     port: '',
@@ -713,6 +712,9 @@
                     confirmPwd: '',
                     register_status: '',
                     register_status_text: '',
+                    initialSerialClickCount: 0,
+                    settingSerialClickCount: 0,
+                    natSerialClickCount: 0,
                     executing: false,
                 },
                 unconfirmedTransactionsList: [],
@@ -994,6 +996,21 @@
             handleCurrentChange(val) {
                 this.getAccountTransactionList();
             },
+            displaySerialNo: function (clickType) {
+                const _this = this;
+                if('initial' == clickType) {
+                    _this.hubsetting.initialSerialClickCount++;
+                }else if('setting' == clickType){
+                    _this.hubsetting.settingSerialClickCount++; 
+                }else if('nat' == clickType){
+                    _this.hubsetting.natSerialClickCount++;
+                }
+                console.log("clickType=" + clickType 
+                    + ",initialSerialClickCount=" + _this.hubsetting.initialSerialClickCount
+                    + ",settingSerialClickCount=" + _this.hubsetting.settingSerialClickCount
+                    + ",natSerialClickCount=" + _this.hubsetting.natSerialClickCount
+                )
+            },
             updateHubVersion(adminPwd) {
                 const _this = this;
                 let data = new FormData();
@@ -1070,7 +1087,7 @@
                 // user input datas
                 formData.append("restart", true);
                 formData.append("sharder.disableAdminPassword", "false");
-                formData.append('sharderAccount', _this.hubsetting.sharderAccount);
+                formData.append('sharderAccount', _this.userConfig.siteAccount);
                 formData.append('password', _this.hubsetting.sharderPwd);
                 formData.append('registerStatus', _this.hubsetting.register_status);
                 formData.append('nodeType', _this.userConfig.nodeType);
@@ -1180,7 +1197,7 @@
                 }
                 
                 let data = new FormData();
-                data.append("sharderAccount", this.hubsetting.sharderAccount);
+                data.append("sharderAccount", this.userConfig.siteAccount);
                 data.append("tssAddress", ssAddr);
                 data.append("nodeType", this.userConfig.nodeType);
                 data.append("registerStatus", "0");
@@ -1243,10 +1260,10 @@
                 const _this = this;
                 let formData = new FormData();
                 _this.hubsetting.loadingData = true;
-                if (_this.hubsetting.sharderAccount !== ''
+                if (_this.userConfig.siteAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
-                    formData.append("sharderAccount", _this.hubsetting.sharderAccount);
+                    formData.append("sharderAccount", _this.userConfig.siteAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
                     formData.append("serialNum", _this.userConfig.xxx);
                     formData.append("nodeType", _this.userConfig.nodeType);
@@ -1920,6 +1937,10 @@
                 _this.needRegister = false;
                 _this.hubsetting.register_status = '';
                 _this.hubsetting.register_status_text = '';
+
+                _this.hubsetting.initialSerialClickCount = 0;
+                _this.hubsetting.settingSerialClickCount = 0;
+                _this.hubsetting.natSerialClickCount = 0;
             },
             copySuccess: function () {
                 const _this = this;

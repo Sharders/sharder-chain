@@ -82,6 +82,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             Logger.logDebugMessage("current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, serialNum);
             response.put("sharder.NodeType", nodeType);
             response.put("sharder.xxx", serialNum);
+
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());

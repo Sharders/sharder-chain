@@ -31,7 +31,6 @@ import org.conch.common.UrlManager;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
-import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
@@ -59,8 +58,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             UrlManager.HUB_SETTING_ACCOUNT_CHECK_PATH
     );
 
-    private static final String SF_BIND_URL = UrlManager.getFoundationUrl("", "", UrlManager.HUB_SETTING_ADDRESS_BIND_PATH);
-    
+    private static final String SF_BIND_URL = UrlManager.getFoundationUrl(
+            "", 
+            UrlManager.HUB_SETTING_ADDRESS_BIND_LOCAL, 
+            UrlManager.HUB_SETTING_ADDRESS_BIND_PATH
+    );
     
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
@@ -94,14 +96,14 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        CertifiedPeer linkedPeer = Conch.getPocProcessor().getLinkedPeer(creatorId);
-        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
-        boolean samePeer = linkedPeer != null && linkedPeer.getHost() != null && (linkedPeer.getHost().equals(myAddress));
-        if(linkedPeer != null && !samePeer) {
-            response.put("reconfiged", false);
-            response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
-            return response;
-        }
+//        CertifiedPeer linkedPeer = Conch.getPocProcessor().getLinkedPeer(creatorId);
+//        String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+//        boolean samePeer = linkedPeer != null && linkedPeer.getHost() != null && (linkedPeer.getHost().equals(myAddress));
+//        if(linkedPeer != null && !samePeer) {
+//            response.put("reconfiged", false);
+//            response.put("failedReason", "Account " + bindRs +" is already linked to a hub");
+//            return response;
+//        }
 
         if (!verifyFormData(req, response)) {
             Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
@@ -260,6 +262,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     .addPostParam("serialNum", Conch.getSerialNum())
                     .addPostParam("tssAddress", rsAddress)
                     .request();
+            Logger.logErrorMessage("send check and link request to foundation[" + SF_BIND_URL + "]");
             com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
             if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
                 throw new ConchException.NotValidException(responseObj.getString("data"));

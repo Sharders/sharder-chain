@@ -8,7 +8,7 @@
                 </div>
                 <div class="modal-body modal-peer">
                     <p>{{$t('password_modal.admin_password')}}</p>
-                    <input v-model="adminPassword" type="password"/>
+                    <el-input v-model="adminPassword" type="password"></el-input>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn" @click="returnValue()">{{$t('password_modal.open')}}</button>
