@@ -1951,6 +1951,8 @@
                 _this.hubsetting.initialSerialClickCount = 0;
                 _this.hubsetting.settingSerialClickCount = 0;
                 _this.hubsetting.natSerialClickCount = 0;
+
+                _this.hubsetting.executing = false;
             },
             copySuccess: function () {
                 const _this = this;
