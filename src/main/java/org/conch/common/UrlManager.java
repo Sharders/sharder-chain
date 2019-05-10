@@ -69,7 +69,7 @@ public class UrlManager {
     public static final String KNOWN_IGNORE_BLOCKS = "https://oss.sharder.org/cos/client/release/ignore-blocks";
     public static final String CMD_TOOLS = "https://oss.sharder.org/cos/client/release/cmd-tools";
     /*=============================================HUB UPGRADE API END========================================*/
-
+    
     /**
      * get foundation API URLs
      *

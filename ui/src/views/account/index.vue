@@ -362,8 +362,11 @@
                     <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
-                        <el-input v-model="hubsetting.sharderAccount"></el-input>
+                    <el-form-item :label="$t('hubsetting.serial_no')" v-if="userConfig.xxx&&userConfig.xxx!==''">
+                        <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount" @click="displaySerialNoCheck()">
+                        <el-input v-model="hubsetting.sharderAccount">{{userConfig.siteAccount}}</el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
@@ -419,12 +422,6 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <!--<div class="version_info">-->
-                <!--<span>{{$t('hubsetting.current_version')}}</span>-->
-                <!--<span>{{blockchainState.version}}</span>-->
-                <!--<span v-if="isUpdate">{{$t('hubsetting.discover_new_version')}}{{latesetVersion}}</span>-->
-                <!--<span v-if="isUpdate" @click="openAdminDialog('update')">{{$t('hubsetting.update')}}</span>-->
-                <!--</div>-->
                 <el-form label-position="left" label-width="160px" :rules="formRules"
                          :model="hubsetting" v-loading="registerNatLoading" ref="reconfigureForm" status-icon>
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
@@ -433,8 +430,11 @@
                     <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
+                    <el-form-item :label="$t('hubsetting.serial_no')" v-if="userConfig.xxx&&userConfig.xxx!==''">
+                        <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
+                    </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
-                        <el-input v-model="hubsetting.sharderAccount"></el-input>
+                        <el-input v-model="hubsetting.sharderAccount">{{userConfig.siteAccount}}</el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
@@ -452,15 +452,12 @@
                     <el-form-item :label="$t('hubsetting.public_ip_address')" v-if="hubsetting.openPunchthrough">
                         <el-input v-model="hubsetting.publicAddress" :disabled="true"></el-input>
                     </el-form-item>
-                    <!--<el-form-item :label="$t('hubsetting.token_address')" prop="SS_Address">-->
-                    <!--<el-input v-model="hubsetting.SS_Address"></el-input>-->
-                    <!--</el-form-item>-->
                     <el-form-item :label="$t('hubsetting.enable_auto_mining')" hidden>
                         <el-checkbox v-model="hubsetting.isOpenMining"></el-checkbox>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.reset_mnemonic_phrase')" v-if="hubsetting.isOpenMining"
                                   prop="modifyMnemonicWord">
-                        <el-input v-model="hubsetting.modifyMnemonicWord"></el-input>
+                        <el-input type="password" v-model="hubsetting.modifyMnemonicWord"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.reset_password')" prop="newPwd">
                         <el-input type="password" v-model="hubsetting.newPwd"></el-input>
@@ -499,8 +496,11 @@
                     <el-form-item :label="$t('hubsetting.token_address')" v-if="userConfig.ssAddress&&userConfig.ssAddress!==''">
                         <el-input v-model="userConfig.ssAddress" :disabled="true"></el-input>
                     </el-form-item>
+                    <el-form-item :label="$t('hubsetting.serial_no')" v-if="userConfig.xxx&&userConfig.xxx!==''">
+                        <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
+                    </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
-                        <el-input v-model="hubsetting.sharderAccount"></el-input>
+                        <el-input v-model="hubsetting.sharderAccount">{{userConfig.siteAccount}}</el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
@@ -659,6 +659,7 @@
                     natPort: this.$store.state.userConfig['sharder.NATServicePort'],
                     natAddress: this.$store.state.userConfig['sharder.NATServiceAddress'],
                     ssAddress: this.$store.state.userConfig['sharder.HubBindAddress'],
+                    siteAccount: this.$store.state.userConfig['sharder.siteAccount'],
                 },
 
                 needRegister: false,
@@ -1032,23 +1033,12 @@
                     _this.$message.error(err.message);
                 });
             },
-            resettingHub(adminPwd) {
+            resetHub(adminPwd) {
                 const _this = this;
                 let resetData = new FormData();
-                let confirmFormData = new FormData();
-                confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
-                confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", '');
-                confirmFormData.append("serialNum", _this.userConfig.xxx);
                 resetData.append("adminPassword", adminPwd);
                 resetData.append("restart", "true");
-                console.log("resetting hub...");
-                this.hubSettingsConfirmThenDoOperation(confirmFormData, _this.sendResettingHubRequest, resetData);
-            },
-            sendResettingHubRequest(data) {
-                const _this = this;
-                this.$http.post('/sharder?requestType=recovery', data).then(res => {
+                this.$http.post('/sharder?requestType=recovery', resetData).then(res => {
                     if (res.data.done) {
                         _this.$message.success(_this.$t('restart.restarting'));
                         _this.$store.state.mask = false;
@@ -1059,18 +1049,7 @@
                     }
                 }).catch(err => _this.$message.error(err.message));
             },
-            updateHubSetting(adminPwd, params) {
-                const _this = this;
-                let confirmFormData = new FormData();
-                confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
-                confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", _this.getAccountRsBySecret());
-                confirmFormData.append("serialNum", _this.userConfig.xxx);
-                params.append("adminPassword", adminPwd);
-                _this.hubSettingsConfirmThenDoOperation(confirmFormData, _this.sendUpdateHubSettingRequest, params);
-            },
-            sendUpdateHubSettingRequest(params) {
+            updateHubSetting(params) {
                 const _this = this;
                 this.$http.post('/sharder?requestType=reConfig', params).then(res => {
                     if (res.data.reconfiged) {
@@ -1085,15 +1064,18 @@
                     _this.$message.error(err.message);
                 });
             },
-            verifyHubSettingInfo(type) {
+            verifyAndGenerateHubSettingFormData() {
                 const _this = this;
                 let formData = new FormData();
+                // user input datas
                 formData.append("restart", true);
                 formData.append("sharder.disableAdminPassword", "false");
                 formData.append('sharderAccount', _this.hubsetting.sharderAccount);
                 formData.append('password', _this.hubsetting.sharderPwd);
                 formData.append('registerStatus', _this.hubsetting.register_status);
                 formData.append('nodeType', _this.userConfig.nodeType);
+                
+                // nat settings
                 if (_this.hubsetting.openPunchthrough) {
                     formData.append("sharder.useNATService", "true");
                     if (_this.hubsetting.address === '' ||
@@ -1117,6 +1099,7 @@
                     formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
                     formData.append("sharder.useNATService", "false");
                 }
+                
                 if (_this.hubsetting.SS_Address !== '') {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if (!_this.hubsetting.SS_Address.toUpperCase().match(pattern)) {
@@ -1129,6 +1112,7 @@
                 } else {
                     formData.append("reBind", false);
                 }
+                
                 if (_this.hubsetting.isOpenMining) {
                     formData.append("sharder.HubBind", true);
                     if (_this.hubsetting.modifyMnemonicWord === '') {
@@ -1139,6 +1123,7 @@
                 } else {
                     formData.append("sharder.HubBind", false);
                 }
+                
                 if (_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== "") {
                     if (_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd) {
                         _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
@@ -1152,36 +1137,13 @@
             verifyHubSetting: function (type) {
                 this.hubsetting.executing = true;
                 const _this = this;
-                let confirmFormData = new FormData();
-                let reConfigFormData = new FormData();
-                // check page value first
-                reConfigFormData = _this.verifyHubSettingInfo(type);
+                let reConfigFormData = _this.verifyAndGenerateHubSettingFormData();
                 if (reConfigFormData !== false) {
                     reConfigFormData.append("isInit", "true");
                 }
-
-                // linked ss address > logged ss address
-                let ssAddr = this.userConfig.ssAddress;
-                if(ssAddr == undefined || ssAddr == '') {
-                    ssAddr = _this.getAccountRsBySecret();
-                }
                 
-                confirmFormData.append("sharderAccount", _this.hubsetting.sharderAccount);
-                confirmFormData.append("password", _this.hubsetting.sharderPwd);
-                confirmFormData.append("nodeType", _this.userConfig.nodeType);
-                confirmFormData.append("tssAddress", ssAddr);
-                confirmFormData.append("serialNum", _this.userConfig.xxx);
                 if (type === 'init') {
                     this.operationType = 'init';
-                    // _this.$refs['initForm'].validate((valid) => {
-                    //     if (valid) {
-                    //         this.hubSettingsConfirm(confirmFormData, reConfigFormData);
-                    //     } else {
-                    //         console.log('init dialog error submit!!');
-                    //         return false;
-                    //     }
-                    // });
-
                     _this.$refs['initForm'].validate((valid) => {
                         if (valid) {
                             _this.reconfigure(reConfigFormData);
@@ -1197,12 +1159,6 @@
                         this.operationType = 'initNormal';
                     }
                     _this.$refs['useNATForm'].validate((valid) => {
-                        // if (valid) {
-                        //     this.hubSettingsConfirm(confirmFormData, reConfigFormData);
-                        // } else {
-                        //     console.log('register dialog error submit!!');
-                        //     return false;
-                        // }
                         if (valid) {
                             _this.reconfigure(reConfigFormData);
                         } else {
@@ -1248,38 +1204,6 @@
                 setTimeout(() => {
                     window.location.reload();
                 }, 40000);
-            },
-            hubSettingsConfirm(data, reconfigData) {
-                // firstly confirm settings, save real address and ssAddress to operate system
-                // secondly reconfigure hub and create a new sharder.properties file
-                // finally redirect to login page, and auto refresh after 30s
-                let _this = this;
-                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), data)
-                    .then(res => {
-                        _this.hubsetting.executing = false;
-                        if (res.data.success) {
-                            console.info('success to update hub setting to remote server');
-                            _this.reconfigure(reconfigData);
-                        } else {
-                            _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.errorType + res.data.errorMessage);
-                        }
-                    })
-                    .catch(err => {
-                        _this.$message.error(err.message);
-                    });
-            },
-            hubSettingsConfirmThenDoOperation(confirmFormData, callBack, callBackData) {
-                const _this = this;
-                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.hubSettingConfirm), confirmFormData)
-                    .then(res => {
-                        if (res.data.code === 200) {
-                            console.info('success to update hub setting to remote server');
-                            callBack(callBackData);
-                        } else {
-                            _this.$message.error(res.data.message ? res.data.message : res.data.msg ? res.data.msg : res.data.errorType + res.data.errorMessage);
-                        }
-                    })
-                    .catch(err => _this.$message.error(err.message));
             },
             hubSettingConfirmThenGoAdmin(type, formName) {
                 let _this = this;
@@ -1886,9 +1810,9 @@
                     this.operationType = 'reConfig';
                     _this.$refs['reconfigureForm'].validate((valid) => {
                         if (valid) {
-                            let info = _this.verifyHubSettingInfo('reconfigure');
-                            if (info) {
-                                _this.params = info;
+                            let hubSettingFormData = _this.verifyAndGenerateHubSettingFormData();
+                            if (hubSettingFormData) {
+                                _this.params = hubSettingFormData;
                                 _this.hubSettingDialog = false;
                                 _this.adminPasswordDialog = true;
                             }
@@ -1901,7 +1825,7 @@
                     _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
                 } else if (title === 'resetNormal') {
                     this.operationType = 'resetNormal';
-                    this.hubSettingConfirmThenGoAdmin('resetNormal', 'useNATForm');
+                    _this.hubSettingConfirmThenGoAdmin('resetNormal', 'useNATForm');
                 } else {
                     this.operationType = 'init';
                     _this.hubSettingDialog = false;
@@ -1923,13 +1847,14 @@
                 _this.adminPassword = adminPwd;
                 _this.adminPasswordDialog = false;
                 if (_this.adminPasswordTitle === 'reset' || _this.adminPasswordTitle === 'resetNormal') {
-                    _this.resettingHub(adminPwd);
+                    _this.resetHub(adminPwd);
                 } else if (_this.adminPasswordTitle === 'restart') {
                     _this.restartHub(adminPwd);
                 } else if (_this.adminPasswordTitle === 'update') {
                     _this.updateHubVersion(adminPwd);
                 } else if (_this.adminPasswordTitle === 'reConfig') {
-                    _this.updateHubSetting(adminPwd, _this.params);
+                    _this.params.append("adminPassword", adminPwd);
+                    _this.updateHubSetting(_this.params);
                 }
             },
             getSecretPhrase: function (secretPhrase) {
@@ -2196,10 +2121,11 @@
                 3. NodeType is Hub；
                 4. Hub bind SS address must equals to user account address。
                 */
-                return this.secretPhrase
-                    && !this.initHUb
-                    && this.userConfig.nodeType === 'Hub'
-                    && this.userConfig.ssAddress === this.accountInfo.accountRS;
+                return true;
+                // return this.secretPhrase
+                //     && !this.initHUb
+                //     && this.userConfig.nodeType === 'Hub'
+                //     && this.userConfig.ssAddress === this.accountInfo.accountRS;
             },
             whetherShowHubInitBtn() {
                 /*

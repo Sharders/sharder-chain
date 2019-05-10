@@ -9,11 +9,6 @@ export const FoundationApiUrls = {
         local: 'http://localhost:8080/sc/natServices/register',
         path: '/sc/natServices/register'
     },
-    hubSettingConfirm: {
-        eoLinkerUrl: '',
-        local: 'http://localhost:8080/sc/natServices/bind',
-        path: '/sc/natServices/bind'
-    },
     fetchNatServiceConfig: {
         eoLinkerUrl: '',
         local: 'http://localhost:8080/sc/natServices/fetch',
