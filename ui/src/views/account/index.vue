@@ -1046,6 +1046,7 @@
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.errorDescription);
+                        _this.closeDialog();
                     }
                 }).catch(err => {
                     _this.$message.error(err.message);
@@ -1064,6 +1065,7 @@
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.failedReason);
+                        _this.closeDialog();
                     }
                 }).catch(err => _this.$message.error(err.message));
             },
@@ -1079,6 +1081,7 @@
                         _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.failedReason);
                         this.$refs["reconfigureForm"].clearValidate();
                         this.$refs["reconfigureForm"].resetFields();
+                        _this.closeDialog();
                     }
                 }).catch(err => {
                     _this.$message.error(err.message);
@@ -1213,6 +1216,9 @@
                             _this.closeDialog();
                         } else {
                             _this.$message.error(`errorCode:${response.data.code}, reason:${response.data.msg}`);
+                            _this.closeDialog();
+                            this.$refs["reconfigureForm"].clearValidate();
+                            this.$refs["reconfigureForm"].resetFields();
                         }
                     })
                     .catch(err => {
@@ -1253,6 +1259,7 @@
                         let msg = res1.data.errorDescription ? res1.data.errorDescription :
                             (res1.data.failedReason ? res1.data.failedReason : 'error');
                         _this.$message.error(msg);
+                        _this.closeDialog();
                         console.log('failed to reconfigure settings...')
                     }
                 }).catch(err => {
