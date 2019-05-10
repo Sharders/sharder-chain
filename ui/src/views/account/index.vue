@@ -1077,6 +1077,8 @@
                         _this.autoRefresh();
                     } else {
                         _this.$message.error(res.data.errorDescription ? res.data.errorDescription : res.data.failedReason);
+                        this.$refs["reconfigureForm"].clearValidate();
+                        this.$refs["reconfigureForm"].resetFields();
                     }
                 }).catch(err => {
                     _this.$message.error(err.message);
