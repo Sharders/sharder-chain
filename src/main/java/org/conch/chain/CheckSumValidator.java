@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.crypto.Crypto;
@@ -119,6 +120,7 @@ public class CheckSumValidator {
         }
     }
     
+    static int badCount = 0;
     static boolean synIgnoreBlock = false;
     /**  **/
     // known ignore blocks
@@ -131,9 +133,10 @@ public class CheckSumValidator {
     
     private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
     
+    private static final Map<Integer,Set<Long>> knownDirtyPoolTxs = Maps.newConcurrentMap();
+    
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
-    
     
     static {
         if(!synIgnoreBlock) {
@@ -141,16 +144,43 @@ public class CheckSumValidator {
             synIgnoreBlock = true;
         }
     }
+    
+    private static void countBad(boolean isBad){
+        if(!isBad) {
+            if(badCount++ > 1000) {
+                new Thread(() -> updateKnownIgnoreBlocks()).start();
+                badCount = 0;   
+            }
+        }
+    }
 
     public static boolean isKnownIgnoreBlock(long blockId){
         if(!synIgnoreBlock) {
             new Thread(() -> updateKnownIgnoreBlocks()).start();
         }
-        return knownIgnoreBlocks.contains(blockId);
+        boolean result = knownIgnoreBlocks.contains(blockId);
+        countBad(result);
+        
+        return result;
     }
     
     public static boolean isKnownIgnoreTx(long txId){
-        return knownIgnoreTxs.contains(txId);
+        boolean result = knownIgnoreTxs.contains(txId);
+        countBad(result);
+        
+        return result;
+    }
+
+    public static boolean isDirtyPoolTx(int height, Account account){
+        if(!knownDirtyPoolTxs.containsKey(height)) {
+            countBad(false);
+            return false;
+        }
+
+        boolean result = knownDirtyPoolTxs.get(height).contains(account.getId());
+        countBad(result);
+        
+        return result;
     }
     
     private static boolean updateSingle(JSONObject object){
@@ -170,6 +200,19 @@ public class CheckSumValidator {
                     if(!knownIgnoreTxs.contains(txid)) {
                         knownIgnoreTxs.add(txid);
                     }
+                }
+            } 
+            
+            if(object.containsKey("poolAccounts")){
+                Integer height = object.getInteger("height");
+                if(!knownDirtyPoolTxs.containsKey(height)) {
+                    knownDirtyPoolTxs.put(height, Sets.newHashSet());
+                }
+                Set<Long> dirtyPoolAccounts = knownDirtyPoolTxs.get(height);
+                
+                com.alibaba.fastjson.JSONArray array = object.getJSONArray("poolAccounts");
+                for(int i = 0; i < array.size(); i++) {
+                    dirtyPoolAccounts.add(array.getLong(i));
                 }
             } 
         }catch(Exception e){
