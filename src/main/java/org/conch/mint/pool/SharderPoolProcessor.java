@@ -177,12 +177,16 @@ public class SharderPoolProcessor implements Serializable {
      * @param height
      */
     public void destroySharderPool(int height) {
-        try{
+        
             state = State.DESTROYED;
             endBlockNo = height;
             Account creator = Account.getAccount(creatorId);
-            creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
-            power -= PLEDGE_AMOUNT;
+            try{
+                creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
+                power -= PLEDGE_AMOUNT;
+            }catch(Account.DoubleSpendingException e) {
+                if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
+            }
 
             for (Consignor consignor : consignors.values()) {
                 long amount = consignor.getAmount();
@@ -212,9 +216,7 @@ public class SharderPoolProcessor implements Serializable {
                 sharderPools.remove(poolId);
             }
             Logger.logDebugMessage("destroy mining pool [id=" + poolId + ", creator=" + creator.getRsAddress() + "]");
-        }catch(Account.DoubleSpendingException e) {
-            if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
-        }
+      
         
     }
 
