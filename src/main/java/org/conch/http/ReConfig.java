@@ -115,7 +115,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         } catch (ConchException.NotValidException e) {
             Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed[" + e.getMessage() + "]");
             response.put("reconfiged", false);
-            response.put("failedReason", "Failed to configure settings caused by update linked address to foundation failed[" + e.getMessage() + "]");
+            response.put("failedReason", "Failed to configure settings caused by [" + e.getMessage() + "]");
             return response;
         }
         
@@ -262,7 +262,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     .request();
             com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
             if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
-                throw new ConchException.NotValidException(responseObj.getString("msg"));
+                throw new ConchException.NotValidException(responseObj.getString("data"));
             }
         }  catch (IOException e) {
             Logger.logErrorMessage("[ ERROR ]Failed to update linked address to foundation.", e);
