@@ -777,13 +777,13 @@
                 operationType: 'init',
                 formRules: {},
                 hubInitSettingRules: {
-                    publicAddress: [required],
-                    sharderAccount: [required],
-                    sharderPwd: [required],
-                    modifyMnemonicWord: [required],
-                    address: [required],
-                    port: [required],
-                    clientSecretkey: [required],
+                    publicAddress: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    sharderAccount: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    modifyMnemonicWord: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    address: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    port: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    clientSecretkey: [{ required: true, message: this.$t('rules.mustRequired') }],
                     newPwd: [
                         {
                             validator: (rule, value, callback) => {
@@ -817,13 +817,14 @@
                     ],
                 },
                 hubReconfigureSettingRules: {
-                    sharderAccount: [required],
-                    sharderPwd: [required],
-                    modifyMnemonicWord: [required],
-                    address: [required],
-                    port: [required],
-                    clientSecretkey: [required],
-                    publicAddress: [required],
+                    sharderAccount: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    // sharderAccount: [required],
+                    sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    modifyMnemonicWord: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    address: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    port: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    clientSecretkey: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    publicAddress: [{ required: true, message: this.$t('rules.mustRequired') }],
                     newPwd: [
                         {
                             required: false,
@@ -855,8 +856,8 @@
                     ],
                 },
                 resettingRules: {
-                    sharderPwd: [required],
-                    sharderAccount: [required],
+                    sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    sharderAccount: [{ required: true, message: this.$t('rules.mustRequired') }],
                 },
             };
         },
@@ -2142,11 +2143,10 @@
                 3. NodeType is Hub；
                 4. Hub bind SS address must equals to user account address。
                 */
-                return true;
-                // return this.secretPhrase
-                //     && !this.initHUb
-                //     && this.userConfig.nodeType === 'Hub'
-                //     && this.userConfig.ssAddress === this.accountInfo.accountRS;
+                return this.secretPhrase
+                    && !this.initHUb
+                    && this.userConfig.nodeType === 'Hub'
+                    && this.userConfig.ssAddress === this.accountInfo.accountRS;
             },
             whetherShowHubInitBtn() {
                 /*
