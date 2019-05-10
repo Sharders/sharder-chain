@@ -424,9 +424,6 @@
             exit: function () {
                 const _this = this;
                 sessionStorage.setItem("sharder.login.mode",'true');
-                _this.hubsetting.natSerialClickCount = 0;
-                _this.hubsetting.settingSerialClickCount = 0;
-                _this.hubsetting.initialSerialClickCount = 0;
                 // window.location.href = "/";
                 _this.$router.push("/login");
             },
