@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
-import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.crypto.Crypto;
@@ -171,13 +170,13 @@ public class CheckSumValidator {
         return result;
     }
 
-    public static boolean isDirtyPoolTx(int height, Account account){
+    public static boolean isDirtyPoolTx(int height, long accountId){
         if(!knownDirtyPoolTxs.containsKey(height)) {
             countBad(false);
             return false;
         }
 
-        boolean result = knownDirtyPoolTxs.get(height).contains(account.getId());
+        boolean result = knownDirtyPoolTxs.get(height).contains(accountId);
         countBad(result);
         
         return result;
@@ -185,7 +184,7 @@ public class CheckSumValidator {
     
     private static boolean updateSingle(JSONObject object){
         try{
-            if(object.containsKey("id")) {
+            if(object.containsKey("id") && object.getLong("id") != -1L) {
                 long blockId = object.getLong("id");
                 if (!knownIgnoreBlocks.contains(blockId)) {
                     knownIgnoreBlocks.add(blockId);
@@ -201,20 +200,21 @@ public class CheckSumValidator {
                         knownIgnoreTxs.add(txid);
                     }
                 }
-            } 
-            
+            }
+
             if(object.containsKey("poolAccounts")){
                 Integer height = object.getInteger("height");
                 if(!knownDirtyPoolTxs.containsKey(height)) {
                     knownDirtyPoolTxs.put(height, Sets.newHashSet());
                 }
                 Set<Long> dirtyPoolAccounts = knownDirtyPoolTxs.get(height);
-                
+
                 com.alibaba.fastjson.JSONArray array = object.getJSONArray("poolAccounts");
                 for(int i = 0; i < array.size(); i++) {
                     dirtyPoolAccounts.add(array.getLong(i));
                 }
-            } 
+            }
+            
         }catch(Exception e){
             Logger.logErrorMessage("parsed and set single ignore block error caused by " + e.getMessage());
             return false;

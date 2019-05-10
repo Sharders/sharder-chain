@@ -188,7 +188,7 @@ public class SharderPoolProcessor implements Serializable {
             if (amount != 0) {
                 power -= amount;
                 Account account = Account.getAccount(consignor.getId());
-                if(CheckSumValidator.isDirtyPoolTx(height,account)){
+                if(CheckSumValidator.isDirtyPoolTx(height,consignor.getId())){
                     continue;
                 }
                 account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
