@@ -472,7 +472,7 @@ public final class Conch {
         try {
             output = new FileOutputStream("conf/" + CONCH_PROPERTIES);
             LocalDateTime now = LocalDateTime.now();
-            userProperties.store(output , "Updated by HubConfig Manager " + now.toString());
+            userProperties.store(output , "Updated at " + now.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
