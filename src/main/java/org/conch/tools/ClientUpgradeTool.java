@@ -15,6 +15,7 @@ import org.conch.util.RestfulHttpClient;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -27,6 +28,8 @@ public class ClientUpgradeTool {
     
     public static final String BAK_MODE_DELETE = "delete";
     public static final String BAK_MODE_BACKUP = "backup";
+
+    public static final String DB_ARCHIVE_DEFAULT = "default";
 
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
@@ -87,15 +90,22 @@ public class ClientUpgradeTool {
      * @param upgradeDbHeight the height of the archived db file
      */
     public static void upgradeDbFile(String upgradeDbHeight) throws IOException {
-        String dbFileName =  Db.getDir() + "_" + upgradeDbHeight + ".zip";
+        // get the specified archived db file
+        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
         File tempPath = new File("temp/");
         File archivedDbFile = new File(tempPath, dbFileName);
-        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(dbFileName)), archivedDbFile);
+        String downloadingUrl = UrlManager.getPackageDownloadUrl(dbFileName);
+        Logger.logDebugMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+        FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
         
-        // backup old db
-        
-        
-        // unzip the archived db into local disk
+        // backup old db folder
+        String dbFolder = Paths.get(".",Db.getName()).toString();
+        Logger.logDebugMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
+        FileUtil.backupFolder(dbFolder, true);
+
+        // unzip the archived db file into application root
+        Logger.logDebugMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, Paths.get(".").toString());
+        FileUtil.unzip(archivedDbFile.getPath(), Paths.get(".").toString());
     }
 
     /**

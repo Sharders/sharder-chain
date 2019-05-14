@@ -785,7 +785,17 @@ export default {
      */
     getTransactionBlockTimestamp(t) {
         if (t.block) {
-            return t.blockTimestamp + ' | ' + this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + " +UTC"
+            return this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + " +UTC"
+        }
+        return this.placeholder
+    },
+    /**
+     * 获得格式化后的时间
+     * @param timestamp
+     */
+    getFormattedTimestamp(t) {
+        if (t) {
+            return this.formatTime(t, 8) + ' | ' + this.formatTime(t) + " +UTC"
         }
         return this.placeholder
     },

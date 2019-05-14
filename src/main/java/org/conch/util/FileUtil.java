@@ -324,8 +324,9 @@ public class FileUtil {
     
 
     static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    static final String BAK_FOLDER = Paths.get(".","bak").toString();
 
-    static protected void backupFolder(String appRoot, boolean deleteSource){
+    public static void backupFolder(String appRoot, boolean deleteSource){
         File root = new File(appRoot);
         if(!root.exists()) return;
         
@@ -335,7 +336,7 @@ public class FileUtil {
         }
     
         String timeStr = dateFormat.format(System.currentTimeMillis());
-        String bakFolder = Paths.get(appRoot).getParent().resolve(appRoot + "_" + timeStr).toString();
+        String bakFolder = Paths.get(BAK_FOLDER).resolve(appRoot + "_" + timeStr).toString();
 
         Logger.logDebugMessage("back up folder %s -> %s", appRoot, bakFolder);
         copyFolder(appRoot, bakFolder);

@@ -171,7 +171,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 // get the default db file
                 if(isInit) {
                     try {
-                        ClientUpgradeTool.upgradeDbFile(Db.getDir());
+                        ClientUpgradeTool.upgradeDbFile(ClientUpgradeTool.DB_ARCHIVE_DEFAULT);
                     } catch (IOException e) {
                         Logger.logWarningMessage("failed to fetch and upgrade default db file caused by " + e.getMessage());
                     }
