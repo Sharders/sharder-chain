@@ -239,10 +239,6 @@ public class CheckSumValidator {
         return true;
     }
 
-    public static void removeDirtyPocTxs(){
-       
-       
-    }
 
     public static void updateKnownIgnoreBlocks(){
         RestfulHttpClient.HttpResponse response = null;

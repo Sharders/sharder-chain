@@ -28,10 +28,12 @@ import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.db.Db;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
 import org.conch.peer.Peer;
+import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -165,7 +167,18 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         Conch.storePropertiesToFile(map);
         
         if (restart) {
-            new Thread(() -> Conch.restartApplication(null)).start();
+            new Thread(() -> {
+                // get the default db file
+                if(isInit) {
+                    try {
+                        ClientUpgradeTool.upgradeDbFile(Db.getDir());
+                    } catch (IOException e) {
+                        Logger.logWarningMessage("failed to fetch and upgrade default db file caused by " + e.getMessage());
+                    }
+                }
+                
+                Conch.restartApplication(null);
+            }).start();
         }
         response.put("reconfiged", true);
         return response;

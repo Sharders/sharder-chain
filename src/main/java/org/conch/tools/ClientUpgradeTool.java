@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
 import org.conch.common.UrlManager;
+import org.conch.db.Db;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -26,7 +27,7 @@ public class ClientUpgradeTool {
     
     public static final String BAK_MODE_DELETE = "delete";
     public static final String BAK_MODE_BACKUP = "backup";
-    
+
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
     }
@@ -79,6 +80,22 @@ public class ClientUpgradeTool {
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);
         }
+    }
+
+    /**
+     * Local db can be updated by fetching archived db files
+     * @param upgradeDbHeight the height of the archived db file
+     */
+    public static void upgradeDbFile(String upgradeDbHeight) throws IOException {
+        String dbFileName =  Db.getDir() + "_" + upgradeDbHeight + ".zip";
+        File tempPath = new File("temp/");
+        File archivedDbFile = new File(tempPath, dbFileName);
+        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(dbFileName)), archivedDbFile);
+        
+        // backup old db
+        
+        
+        // unzip the archived db into local disk
     }
 
     /**
