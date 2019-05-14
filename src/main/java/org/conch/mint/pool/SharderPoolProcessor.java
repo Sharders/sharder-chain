@@ -62,15 +62,15 @@ public class SharderPoolProcessor implements Serializable {
     private int endBlockNo;
     private int historicalBlocks;
     /**
-     * the sum of all destroyed mint pool's life time
+     * the sum of all destroyed mining pool's life time
      */
     private int totalBlocks;
     /**
-     * total income
+     * total incomes
      */
     private long historicalIncome;
     /**
-     * mint rewards
+     * mining rewards
      */
     private long historicalMintRewards;
     private long mintRewards;
@@ -152,7 +152,7 @@ public class SharderPoolProcessor implements Serializable {
             pool.historicalMintRewards = pastPool.historicalMintRewards;
             pool.totalBlocks = pastPool.totalBlocks;
             pool.rule = rule;
-            Logger.logDebugMessage(creatorId + " create mint pool from old pool, chance " + pastPool.chance);
+            Logger.logDebugMessage(creatorId + " create mining pool from old pool, chance " + pastPool.chance);
         } else {
             pool.chance = 0;
             pool.state = State.INIT;
@@ -162,7 +162,7 @@ public class SharderPoolProcessor implements Serializable {
             pool.historicalMintRewards = 0;
             pool.totalBlocks = 0;
             pool.rule = rule;
-            Logger.logDebugMessage(creatorId + " create a new mint pool");
+            Logger.logDebugMessage(creatorId + " create a new mining pool");
         }
         sharderPools.put(pool.poolId, pool);
 
@@ -398,7 +398,13 @@ public class SharderPoolProcessor implements Serializable {
                     sharderPool.power -= amount;
                     Account account = Account.getAccount(consignor.getId());
                     Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account[%s]", -amount, account.getRsAddress());
-                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+
+                    try{
+                        account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+                    }catch(Account.DoubleSpendingException e) {
+                        if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
+                    }
+                   
                 }
             }
 
