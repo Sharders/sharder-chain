@@ -992,10 +992,12 @@
                 }
             },
             handleSizeChange(val) {
-                this.getAccountTransactionList();
+                const _this = this;
+                _this.getAccountTransactionList();
             },
             handleCurrentChange(val) {
-                this.getAccountTransactionList();
+                const _this = this;
+                _this.getAccountTransactionList();
             },
             displaySerialNo: function (clickType) {
                 const _this = this;
@@ -2338,7 +2340,7 @@
                 } else {
                     clearInterval(periodicTransactions);
                 }
-            }, 4000);
+            }, _this.$global.cfg.defaultInterval);
 
             $('#receiver').on("blur", function () {
                 _this.validationReceiver("messageForm");

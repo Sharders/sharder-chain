@@ -383,7 +383,7 @@
                         _this.init();
                         // _this.handleCurrentChange(_this.currentPage);
                     }
-                }, SSO.downloadingBlockchain ? 3333 : 9999);
+                }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
             }
         },
         methods: {

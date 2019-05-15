@@ -118,7 +118,7 @@ public class PoolRule implements Serializable {
             if ((long) value <= max && (long) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed, min " + min + "max " + max + ", value" + value);
                 return false;
             }
         } else if (value instanceof Integer) {
@@ -127,7 +127,7 @@ public class PoolRule implements Serializable {
             if ((int) value <= max && (int) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed, min " + min + "max " + max + ", value" + value);
                 return false;
             }
         } else {
@@ -136,7 +136,7 @@ public class PoolRule implements Serializable {
             if ((double) value <= max && (double) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage("validate mint pool rule failed,min " + min + "max " + max + "value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed, min " + min + "max " + max + ", value" + value);
                 return false;
             }
         }

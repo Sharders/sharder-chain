@@ -7,6 +7,7 @@ export default {
     sharderFoundationHost: 'sharder.org',
     sharderFoundationTestHost: 'test.sharder.org',
     apiUrl: '',
+    cfg: {defaultInterval: 30000, soonInterval: 10000, slowInterval: 180000},
     epochBeginning: -1,
     newConsole: null,
     isOpenConsole: false,

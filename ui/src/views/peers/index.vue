@@ -179,7 +179,7 @@
                 <table class="table">
                     <tbody>
                     <tr>
-                        <th>blockchain_state</th>
+                        <th>Blockchain State</th>
                         <td>{{peerInfo.blockchainState}}</td>
                         <th>{{$t('peers.communication_port')}}</th>
                         <td>{{peerInfo.port}}</td>
@@ -193,7 +193,7 @@
                     <tr>
                         <th>{{$t('peers.version')}}</th>
                         <td>{{peerInfo.application}} {{peerInfo.version}}</td>
-                        <th>peer_load</th>
+                        <th>Peer Load</th>
                         <td v-if="peerInfo.peerLoad">{{peerInfo.peerLoad.load}}</td>
                         <td v-else></td>
                     </tr>

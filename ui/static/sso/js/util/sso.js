@@ -31,7 +31,6 @@
  * @depends {crypto/3rdparty/jssha256.js}
  * @depends {util/converters.js}
  * @depends {util/extensions.js}
- * @depends {util/nxtaddress.js}
  */
 var Sso = (function (NRS, $, undefined) {
     "use strict";
@@ -230,7 +229,6 @@ var Sso = (function (NRS, $, undefined) {
         });
     }
 
-    // slide touch [xy-todo]
     var startPos, endPos, isScrolling;
 
     function initSlideTouch() {
