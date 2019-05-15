@@ -90,7 +90,7 @@ public class ClientUpgradeTool {
      * Local db can be updated by fetching archived db files
      * @param upgradeDbHeight the height of the archived db file
      */
-    public static void upgradeDbFile(String upgradeDbHeight) throws IOException {
+    public static void upgradeDbFile(String upgradeDbHeight) {
         String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
         try{
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
@@ -100,7 +100,7 @@ public class ClientUpgradeTool {
             // fetch the specified archived db file
             File tempPath = new File("temp/");
             File archivedDbFile = new File(tempPath, dbFileName);
-            String downloadingUrl = UrlManager.getPackageDownloadUrl(dbFileName);
+            String downloadingUrl = UrlManager.getArchivedDbFileDownloadUrl(dbFileName);
             Logger.logDebugMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
             FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
 
