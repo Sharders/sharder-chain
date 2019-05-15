@@ -91,14 +91,13 @@ public class ClientUpgradeTool {
      * @param upgradeDbHeight the height of the archived db file
      */
     public static void upgradeDbFile(String upgradeDbHeight) throws IOException {
-
+        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
         try{
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
             Generator.pause(true);
             Conch.getBlockchainProcessor().setGetMoreBlocks(false);
 
             // fetch the specified archived db file
-            String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
             File tempPath = new File("temp/");
             File archivedDbFile = new File(tempPath, dbFileName);
             String downloadingUrl = UrlManager.getPackageDownloadUrl(dbFileName);
@@ -114,8 +113,11 @@ public class ClientUpgradeTool {
             String appRoot = Paths.get(".").toString();
             Logger.logDebugMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
             FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
-        }finally {
-            Logger.logDebugMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync");
+            Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
+        }catch(Exception e) {
+            Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
+        }finally{
+            Logger.logDebugMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
             Generator.pause(false);
             Conch.getBlockchainProcessor().setGetMoreBlocks(true);
         }

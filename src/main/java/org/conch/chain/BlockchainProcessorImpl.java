@@ -121,8 +121,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             while (true) {
               if (!getMoreBlocks) {
+                Logger.logDebugMessage("Don't synchronize blocks when the getMoreBlocks is set to false");
                 return;
               }
+              
+              if(Conch.hasSerialNum() && !Constants.hubLinked) {
+                Logger.logDebugMessage("Don't synchronize blocks before the Hub initialization is completed");
+                return;
+              }
+              
               int chainHeight = blockchain.getHeight();
               downloadPeer();
               if (blockchain.getHeight() == chainHeight) {

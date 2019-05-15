@@ -28,7 +28,6 @@ import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
-import org.conch.db.Db;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
@@ -77,7 +76,6 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         boolean bindNew = "true".equalsIgnoreCase(req.getParameter("reBind"));
         boolean isInit = "true".equalsIgnoreCase(req.getParameter("isInit"));
-        boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
 

@@ -198,6 +198,10 @@ public final class Conch {
         
         return Conch.serialNum;
     }
+    
+    public static boolean hasSerialNum(){
+       return StringUtils.isNotEmpty(getSerialNum()) && getSerialNum().length() > 5;
+    }
 
     private static void readAndSetSerialNum(){
         String filePath = ".hubSetting/.tempCache/.sysCache";
