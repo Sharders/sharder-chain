@@ -1,5 +1,7 @@
 package org.conch.mint.pool;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -26,7 +28,8 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author wuji
- * @date  2019-01-16 updated by Ben
+ * @date  2019-01-16 updated by Ben: fix the pool tx bugs
+ * @date  2019-05-15 updated by Ben: dirty pool tx remove
  */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
@@ -169,6 +172,34 @@ public class SharderPoolProcessor implements Serializable {
         checkOrAddIntoActiveGenerator(pool);
     }
     
+    public static boolean removePools(Map<Integer,Set<Long>> removeMap){
+        if(removeMap == null || removeMap.size() <= 0 || sharderPools == null || sharderPools.size() <= 0) return false;
+        
+        // Removed the pool in which the start height is lower than the specified height
+        Set<Integer> removeHeightSet = removeMap.keySet();
+
+        Set<Long> removePoolId = Sets.newHashSet();
+        for(Integer removeHeight : removeHeightSet){
+            sharderPools.values().forEach(pool -> {
+                if(pool.startBlockNo <= removeHeight
+                    && removeMap.get(removeHeight).contains(pool.creatorId)) {
+                    try{
+                        pool.destroySharderPool(removeHeight);
+                        removePoolId.add(pool.poolId);
+                    }catch(Exception e){
+                        Logger.logDebugMessage("destroy dirty mining pool [id=%d, account=%s] at height [%d] failed caused by [%s], ignore and continue to do next one", 
+                                pool.poolId, Account.rsAccount(pool.creatorId), removeHeight, e.getMessage());
+                    }
+                }
+            });
+        }
+        
+        if(removePoolId.size() > 0) {
+            Logger.logInfoMessage("removed dirty pools " + Arrays.toString(removePoolId.toArray()));
+        }
+        
+        return true;
+    }
 
     
     /**
@@ -177,47 +208,43 @@ public class SharderPoolProcessor implements Serializable {
      * @param height
      */
     public void destroySharderPool(int height) {
-        
-            state = State.DESTROYED;
-            endBlockNo = height;
-            Account creator = Account.getAccount(creatorId);
-            try{
-                creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
-                power -= PLEDGE_AMOUNT;
-            }catch(Account.DoubleSpendingException e) {
-                if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
-            }
+        state = State.DESTROYED;
+        endBlockNo = height;
+        Account creator = Account.getAccount(creatorId);
+        try{
+            creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
+            power -= PLEDGE_AMOUNT;
+        }catch(Account.DoubleSpendingException e) {
+            if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
+        }
 
-            for (Consignor consignor : consignors.values()) {
-                long amount = consignor.getAmount();
-                if (amount != 0) {
-                    power -= amount;
-                    Account account = Account.getAccount(consignor.getId());
-                    try {
-                        account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
-                    }catch(Account.DoubleSpendingException e) {
-                        if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
-                    }
+        for (Consignor consignor : consignors.values()) {
+            long amount = consignor.getAmount();
+            if (amount != 0) {
+                power -= amount;
+                Account account = Account.getAccount(consignor.getId());
+                try {
+                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
+                }catch(Account.DoubleSpendingException e) {
+                    if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
                 }
             }
+        }
 
-            if (startBlockNo > endBlockNo) {
-                sharderPools.remove(poolId);
-                Logger.logDebugMessage("destroy mining pool " + poolId + " before start ");
-                return;
-            }
-            if (destroyedPools.containsKey(creatorId)) {
-                destroyedPools.get(creatorId).add(this);
-                sharderPools.remove(poolId);
-            } else {
-                List<SharderPoolProcessor> destroy = new ArrayList<>();
-                destroy.add(this);
-                destroyedPools.put(creatorId, destroy);
-                sharderPools.remove(poolId);
-            }
-            Logger.logDebugMessage("destroy mining pool [id=" + poolId + ", creator=" + creator.getRsAddress() + "]");
-      
-        
+        if (startBlockNo > endBlockNo) {
+            sharderPools.remove(poolId);
+            Logger.logDebugMessage("destroy mining pool " + poolId + " before start ");
+            return;
+        }
+        if (destroyedPools.containsKey(creatorId)) {
+            destroyedPools.get(creatorId).add(this);
+            sharderPools.remove(poolId);
+        } else {
+            List<SharderPoolProcessor> destroy = Lists.newArrayList(this);
+            destroyedPools.put(creatorId, destroy);
+            sharderPools.remove(poolId);
+        }
+        Logger.logDebugMessage("destroy mining pool [id=" + poolId + ", creator=" + creator.getRsAddress() + "]");
     }
 
     public void addOrUpdateConsignor(long id, long txId, int startBlockNo, int endBlockNo, long amount) {

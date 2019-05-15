@@ -12,6 +12,7 @@ import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
 import org.conch.util.Listener;
@@ -282,6 +283,11 @@ public class CheckSumValidator {
                 Set<Long> dirtyPocTxs = Sets.newHashSet();
                 knownDirtyPocTxs.values().forEach(ids -> dirtyPocTxs.addAll(ids));
                 new Thread(() ->  Conch.getPocProcessor().removeDelayedPocTxs(dirtyPocTxs)).start();
+            }
+
+            // remove the dirty pools
+            if(knownDirtyPoolTxs.size() > 0) {
+                new Thread(() -> SharderPoolProcessor.removePools(knownDirtyPoolTxs)).start();
             }
             
             if(!synIgnoreBlock) synIgnoreBlock = true;

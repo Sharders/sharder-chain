@@ -902,9 +902,9 @@ public final class Peers {
                     Peers.connectPeer(peer);
                 }
                 peer = Peers.getPeer(host, true);
-                detail += "create a new certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+                detail += "create a new certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
             } else {
-                detail += "update a certified peer[host=" + host + ",bind rs=" + bindAddress + "]\n\r";
+                detail += "update a certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
             }
 
             if(peer != null) {

@@ -440,7 +440,7 @@ public class PocProcessorImpl implements PocProcessor {
         PocHolder.addCertifiedPeer(height, type, host, Account.rsAccountToId(localRS));
       }else {
         PocHolder.addSynPeer(host);
-        Logger.logWarningMessage("local bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
+        Logger.logWarningMessage("local linked rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
       }
       return;
     }
@@ -451,7 +451,7 @@ public class PocProcessorImpl implements PocProcessor {
     if(StringUtils.isEmpty(peer.getBindRsAccount())){
       // connect peer to get account later
       PocHolder.addSynPeer(host);
-      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
+      Logger.logWarningMessage("linked rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
     }
     // update certified nodes
     PocHolder.addCertifiedPeer(height,peer);
