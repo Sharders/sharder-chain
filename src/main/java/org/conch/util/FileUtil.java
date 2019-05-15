@@ -46,9 +46,10 @@ public class FileUtil {
      *
      * @param zipFilePath    input zip file
      * @param outputLocation zip file output folder
+     * @param deleteSource   true or false - delete source file
      * @throws IOException if there was an error reading the zip file or writing the unzipped data
      */
-    public static void unzip(final String zipFilePath, final String outputLocation) throws IOException {
+    public static void unzip(final String zipFilePath, final String outputLocation, boolean deleteSource) throws IOException {
         // Open the zip file
         try (final ZipFile zipFile = new ZipFile(zipFilePath)) {
             final Enumeration<? extends ZipEntry> enu = zipFile.entries();
@@ -83,7 +84,13 @@ public class FileUtil {
                     }
                 }
             }
+            
+            if(deleteSource) {
+                FileUtils.forceDelete(new File(zipFilePath));
+            } 
         }
+        
+      
     }
 
     static void deleteDirectory(Path path){

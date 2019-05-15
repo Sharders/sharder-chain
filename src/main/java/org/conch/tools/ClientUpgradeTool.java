@@ -8,6 +8,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
 import org.conch.common.UrlManager;
 import org.conch.db.Db;
+import org.conch.mint.Generator;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -90,26 +91,43 @@ public class ClientUpgradeTool {
      * @param upgradeDbHeight the height of the archived db file
      */
     public static void upgradeDbFile(String upgradeDbHeight) throws IOException {
-        // get the specified archived db file
-        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
-        File tempPath = new File("temp/");
-        File archivedDbFile = new File(tempPath, dbFileName);
-        String downloadingUrl = UrlManager.getPackageDownloadUrl(dbFileName);
-        Logger.logDebugMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
-        FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
-        
-        // backup old db folder
-        String dbFolder = Paths.get(".",Db.getName()).toString();
-        Logger.logDebugMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
-        FileUtil.backupFolder(dbFolder, true);
 
-        // unzip the archived db file into application root
-        Logger.logDebugMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, Paths.get(".").toString());
-        FileUtil.unzip(archivedDbFile.getPath(), Paths.get(".").toString());
+        try{
+            Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
+            Generator.pause(true);
+            Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+
+            // fetch the specified archived db file
+            String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
+            File tempPath = new File("temp/");
+            File archivedDbFile = new File(tempPath, dbFileName);
+            String downloadingUrl = UrlManager.getPackageDownloadUrl(dbFileName);
+            Logger.logDebugMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+            FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+
+            // backup old db folder
+            String dbFolder = Paths.get(".",Db.getName()).toString();
+            Logger.logDebugMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
+            FileUtil.backupFolder(dbFolder, true);
+
+            // unzip the archived db file into application root
+            String appRoot = Paths.get(".").toString();
+            Logger.logDebugMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
+            FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
+        }finally {
+            Logger.logDebugMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync");
+            Generator.pause(false);
+            Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+        }
     }
 
     /**
-     * {"version":"0.1.3","mode":"incremental","bakMode":"delete","updateTime":"2019-04-22"}
+     * {
+     * "version":"0.1.3"
+     * ,"mode":"incremental"
+     * ,"bakMode":"delete"
+     * ,"updateTime":"2019-04-22"
+     * }
      * 
      * @return
      * @throws IOException

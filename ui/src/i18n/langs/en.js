@@ -819,7 +819,7 @@ const en = {
         'account_transaction_signature': "Signature",
         'account_transaction_transaction_serial_number': "Transaction Index",
         'account_transaction_type': "Type",
-        'account_transaction_signatureHash': "Hash Signature",
+        'account_transaction_signatureHash': "Signature Hash",
         'account_transaction_sender': "Sender",
         'account_transaction_amount': "Amount",
         'account_transaction_recipient': "Recipient",

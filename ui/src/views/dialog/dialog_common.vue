@@ -65,13 +65,13 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span>{{$t('dialog.account_info_title1')}}{{accountInfo.accountRS}}{{$t('dialog.account_info_title2')}}</span>
+                    <span>{{$t('dialog.account_info_title1')}} - {{accountInfo.accountRS}}</span>
                 </h4>
             </div>
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} |</span>
-                    <span>{{$t('dialog.account_info_available_asset') + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
+                    <span>{{$t('dialog.account_info_available_asset') + ": " + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
@@ -82,8 +82,8 @@
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_signature')}}</th>
-                            <td>{{transactionInfo.signature}}</td>
+                            <th>{{$t('dialog.account_transaction_block_height')}}</th>
+                            <td>{{$global.returnObj(transactionInfo.block,transactionInfo.height)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_transaction_serial_number')}}</th>
@@ -94,55 +94,48 @@
                             <td>{{$global.getTransactionTypeStr(transactionInfo)}}</td>
                         </tr>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
-                            <td>{{transactionInfo.signatureHash}}</td>
-                        </tr>
-                        <tr>
                             <th>{{$t('dialog.account_transaction_sender')}}</th>
                             <td>{{$global.getSenderRSOrWo(transactionInfo)}}</td>
-                        </tr>
-                        <tr>
-                            <th>{{$t('dialog.account_transaction_amount')}}</th>
-                            <td>{{transactionInfo.amountNQT/100000000}}</td>
-                        </tr>
-                        <tr>
-                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td>{{$global.getSenderOrRecipient(transactionInfo)}}</td>
-                        </tr>
-                        <tr>
-                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
-                            <td>{{$global.getTransactionBlockTimestamp(transactionInfo)}}</td>
-                        </tr>
-                        <tr>
-                            <th>{{$t('dialog.account_transaction_timestamp')}}</th>
-                            <td>
-                                {{transactionInfo.timestamp}} |
-                                {{$global.myFormatTime(transactionInfo.timestamp,'YMDHMS',true)}}
-                            </td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_sender_public_key')}}</th>
                             <td>{{transactionInfo.senderPublicKey}}</td>
                         </tr>
                         <tr>
+                            <th>{{$t('dialog.account_transaction_signature')}}</th>
+                            <td>{{transactionInfo.signature}}</td>
+                        </tr>
+                        <tr>
+                            <th>{{$t('dialog.account_transaction_signatureHash')}}</th>
+                            <td>{{transactionInfo.signatureHash}}</td>
+                        </tr>
+                        <tr>
+                            <th>{{$t('dialog.account_transaction_amount')}}</th>
+                            <td>{{transactionInfo.amountNQT/100000000}}</td>
+                        </tr>
+                        <tr>
                             <th>{{$t('dialog.account_info_fee')}}</th>
                             <td>{{transactionInfo.feeNQT/100000000}}</td>
                         </tr>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_confirm')}}</th>
-                            <td>{{$global.returnObj(transactionInfo.block,transactionInfo.confirmations)}}</td>
+                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
+                            <td>{{$global.getSenderOrRecipient(transactionInfo)}}</td>
                         </tr>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_fullHash')}}</th>
-                            <td>{{transactionInfo.fullHash}}</td>
+                            <th>{{$t('transaction.transaction_confirm_quantity')}}</th>
+                            <td>{{$global.returnObj(transactionInfo.block,transactionInfo.confirmations)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_version')}}</th>
                             <td>{{transactionInfo.version}}</td>
                         </tr>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_block_height')}}</th>
-                            <td>{{$global.returnObj(transactionInfo.block,transactionInfo.height)}}</td>
+                            <th>{{$t('dialog.account_transaction_fullHash')}}</th>
+                            <td>{{transactionInfo.fullHash}}</td>
+                        </tr>
+                        <tr>
+                            <th>{{$t('dialog.account_transaction_block_timestamp')}}</th>
+                            <td>{{$global.getTransactionBlockTimestamp(transactionInfo)}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -328,6 +321,7 @@
                 </h4>
             </div>
             <div class="modal-body">
+
                 <table class="table">
                     <tbody>
                     <tr>
