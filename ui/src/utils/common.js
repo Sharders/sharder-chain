@@ -670,7 +670,19 @@ export default {
         if (t.type === 1 && t.subtype === 0) return this.$vue.$t("transaction.transaction_type_information");
         if (t.type === 1 && t.subtype === 5) return this.$vue.$t("transaction.transaction_type_account");
         if (t.type === 6) return this.$vue.$t("transaction.transaction_type_storage_service");
-        if (t.type === 8) return this.$vue.$t("transaction.transaction_type_forge_pool");
+        if (t.type === 8) {
+            if (t.subtype === 0) {
+                return this.$vue.$t("transaction.transaction_type_pool_create");
+            } else if (t.subtype === 1) {
+                return this.$vue.$t("transaction.transaction_type_pool_destroy");
+            } else if (t.subtype === 2) {
+                return this.$vue.$t("transaction.transaction_type_pool_join");
+            } else if (t.subtype === 3) {
+                return this.$vue.$t("transaction.transaction_type_pool_quit");
+            } else {
+                return this.$vue.$t("transaction.transaction_type_forge_pool");
+            }
+        }
         if (t.type === 9) {
             // BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC
             if ("GENESIS" === t.attachment.coinBaseType) {

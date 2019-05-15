@@ -171,7 +171,12 @@ public class SharderPoolProcessor implements Serializable {
 
         checkOrAddIntoActiveGenerator(pool);
     }
-    
+
+    /**
+     * destroy and remove the specified pools
+     * @param removeMap height - removed creator ids
+     * @return
+     */
     public static boolean removePools(Map<Integer,Set<Long>> removeMap){
         if(removeMap == null || removeMap.size() <= 0 || sharderPools == null || sharderPools.size() <= 0) return false;
         
