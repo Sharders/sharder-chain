@@ -315,11 +315,15 @@ public class PocProcessorImpl implements PocProcessor {
       }
       
       if (!Conch.reachLastKnownBlock()) {
-        return ;
+        return;
       }
-
-      instance.processDelayedPocTxs(currentHeight);
-
+      
+      try{
+        instance.processDelayedPocTxs(currentHeight);
+      }catch(Exception e) {
+        Logger.logErrorMessage("Process delayed poc txs failed caused by [%s]", e.getMessage());
+      }
+    
       if(oldPocTxsProcess) {
         // total poc txs from last height
         int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
