@@ -448,7 +448,7 @@ class PocHolder implements Serializable {
         }
 
         static void print(){
-            if(!debug || (count++  <= printCount)) return;
+            if(!debug || (debug && (count++  <= printCount)) ) return;
             putin();
             Logger.logDebugMessage(summary);
             summary = reset();
