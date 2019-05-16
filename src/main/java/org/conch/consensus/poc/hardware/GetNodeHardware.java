@@ -187,7 +187,7 @@ public class GetNodeHardware {
             Logger.logDebugMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
             return report(read(systemInfo, executeTime));
         } catch (ConchException.NotValidException e) {
-            Logger.logErrorMessage(String.format("<=== failed to report configuration performance[caused by %s], maybe hub isn't initialized yet", e.getMessage()));
+            Logger.logErrorMessage(String.format("<=== failed to report configuration performance[caused by %s], maybe Hub isn't initialized yet", e.getMessage()));
         } catch (Exception e) {
             Logger.logErrorMessage("<=== failed to report configuration performance, local error", e);
         }
@@ -201,7 +201,7 @@ public class GetNodeHardware {
         String host = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
-                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's bind SS address is null"));
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's linked SS address is null"));
         
         if (StringUtils.isEmpty(Conch.getNodeType())) {
             //don't report

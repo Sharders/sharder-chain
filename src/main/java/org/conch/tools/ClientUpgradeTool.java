@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
 import org.conch.common.UrlManager;
+import org.conch.db.Db;
+import org.conch.mint.Generator;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -14,6 +16,7 @@ import org.conch.util.RestfulHttpClient;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -26,7 +29,9 @@ public class ClientUpgradeTool {
     
     public static final String BAK_MODE_DELETE = "delete";
     public static final String BAK_MODE_BACKUP = "backup";
-    
+
+    public static final String DB_ARCHIVE_DEFAULT = "default";
+
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
     }
@@ -82,7 +87,49 @@ public class ClientUpgradeTool {
     }
 
     /**
-     * {"version":"0.1.3","mode":"incremental","bakMode":"delete","updateTime":"2019-04-22"}
+     * Local db can be updated by fetching archived db files
+     * @param upgradeDbHeight the height of the archived db file
+     */
+    public static void upgradeDbFile(String upgradeDbHeight) {
+        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
+        try{
+            Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
+            Generator.pause(true);
+            Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+
+            // fetch the specified archived db file
+            File tempPath = new File("temp/");
+            File archivedDbFile = new File(tempPath, dbFileName);
+            String downloadingUrl = UrlManager.getArchivedDbFileDownloadUrl(dbFileName);
+            Logger.logDebugMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+            FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+
+            // backup old db folder
+            String dbFolder = Paths.get(".",Db.getName()).toString();
+            Logger.logDebugMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
+            FileUtil.backupFolder(dbFolder, true);
+
+            // unzip the archived db file into application root
+            String appRoot = Paths.get(".").toString();
+            Logger.logDebugMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
+            FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
+            Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
+        }catch(Exception e) {
+            Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
+        }finally{
+            Logger.logDebugMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
+            Generator.pause(false);
+            Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+        }
+    }
+
+    /**
+     * {
+     * "version":"0.1.3"
+     * ,"mode":"incremental"
+     * ,"bakMode":"delete"
+     * ,"updateTime":"2019-04-22"
+     * }
      * 
      * @return
      * @throws IOException

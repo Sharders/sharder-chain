@@ -47,6 +47,25 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     private ForceConverge() {
         super(new APITag[] {APITag.DEBUG});
     }
+    
+    enum Command {
+        TO_HEIGHT("toHeight")
+        ,KEEP_TX("keepTx")
+        ,PAUSE_SYNC("pauseSyn")
+        ,UPGRADE_COS("upgradeCos")
+        ,UPGRADE_DB("upgradeDb");
+
+        private String value;
+
+        Command(String value) {
+            this.value = value;
+        }
+
+        public String val() {
+            return value;
+        }
+    }
+
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) {
@@ -67,7 +86,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 CheckSumValidator.updateKnownIgnoreBlocks();
 
                 int currentHeight = Conch.getBlockchain().getHeight();
-                int toHeight = cmdObj.containsKey("toHeight") ? cmdObj.getInteger("toHeight") : currentHeight;
+                int toHeight = cmdObj.containsKey(Command.TO_HEIGHT.val()) ? cmdObj.getInteger(Command.TO_HEIGHT.val()) : currentHeight;
                 Logger.logDebugMessage("received toHeight is %d ", toHeight);
                 // pop-off to specified height
                 List<? extends Block> blocks = Lists.newArrayList();
@@ -82,7 +101,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 }
 
                 // tx process
-                boolean keepTx = cmdObj.getBooleanValue("keepTx");
+                boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
                 Logger.logDebugMessage("received keepTx is %s ", keepTx);
 
                 if (keepTx) {
@@ -94,8 +113,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             }
 
             // pause command process
-            if(cmdObj.containsKey("pauseSyn")){
-                boolean pauseSyn = cmdObj.getBooleanValue("pauseSyn");
+            if(cmdObj.containsKey(Command.PAUSE_SYNC.val())){
+                boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
                 if(pauseSyn){
                     Conch.getBlockchainProcessor().setGetMoreBlocks(false);
                     Generator.pause(true);
@@ -105,13 +124,23 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 }
             }
             
-            //upgrade
-            if(cmdObj.containsKey("upgradeCos")){
-                boolean upgradeCos = cmdObj.getBooleanValue("upgradeCos");
+            //upgrade cos
+            if(cmdObj.containsKey(Command.UPGRADE_COS.val())){
+                boolean upgradeCos = cmdObj.getBooleanValue(Command.UPGRADE_COS.val());
                 Logger.logDebugMessage("received upgradeCos is %s ",upgradeCos);
                 if(upgradeCos){
                     Logger.logDebugMessage("start to auto upgrade...");
                     ClientUpgradeTool.autoUpgrade(true);
+                }
+            }
+
+            //upgrade db
+            if(cmdObj.containsKey(Command.UPGRADE_DB.val())){
+                String upgradeDbHeight = cmdObj.getString(Command.UPGRADE_DB.val());
+                Logger.logDebugMessage("received upgradeDb command and upgrade db height is %s ", upgradeDbHeight);
+                if(StringUtils.isNotEmpty(upgradeDbHeight)){
+                    Logger.logDebugMessage("start to fetch archived db file from oss and upgrade local db...");
+                    ClientUpgradeTool.upgradeDbFile(upgradeDbHeight);
                 }
             }
             

@@ -307,6 +307,10 @@ public final class Logger {
         doLog(Level.ERROR, message, exc);
     }
 
+    public static void logErrorMessage(String format, Object ... args) {
+        doLog(Level.ERROR, String.format(format, args), null);
+    }
+
     public static boolean isWarningEnabled() {
         return log.isWarnEnabled();
     }

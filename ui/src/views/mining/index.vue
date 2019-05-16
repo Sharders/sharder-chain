@@ -558,7 +558,7 @@
                         if (_this.$router.currentRoute.name !== "mining") return;
                         _this.loginAfter();
                         _this.$forceUpdate();//通知Vue渲染
-                    }, 10000);
+                    }, _this.$global.cfg.defaultInterval);
                 }
             },
             getCoinBase(height) {

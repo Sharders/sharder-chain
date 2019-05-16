@@ -250,9 +250,14 @@ public class PocProcessorImpl implements PocProcessor {
       Logger.logDebugMessage("processed poc txs detail => " + Arrays.toString(processedTxs.toArray()));
       PocHolder.removeProcessedTxs(processedTxs);
     } else if(processedTxs.size() <= 0 && delayedPocTxs.size() > 0) {
-      Logger.logDebugMessage("!!delayed poc txs process failed, wish to process %d poc txs", delayedPocTxs.size());
+      Logger.logWarningMessage("[WARN] delayed poc txs process failed, wish to process %d poc txs %s", delayedPocTxs.size(), Arrays.toString(delayedPocTxs.toArray()));
     }
     return PocHolder.countDelayPocTxs(height) <= 0;
+  }
+  @Override
+  public boolean removeDelayedPocTxs(Set<Long> txIds) {
+    PocHolder.removeProcessedTxs(txIds);
+    return true;
   }
   
   /**
@@ -310,11 +315,15 @@ public class PocProcessorImpl implements PocProcessor {
       }
       
       if (!Conch.reachLastKnownBlock()) {
-        return ;
+        return;
       }
-
-      instance.processDelayedPocTxs(currentHeight);
-
+      
+      try{
+        instance.processDelayedPocTxs(currentHeight);
+      }catch(Exception e) {
+        Logger.logErrorMessage("Process delayed poc txs failed caused by [%s]", e.getMessage());
+      }
+    
       if(oldPocTxsProcess) {
         // total poc txs from last height
         int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
@@ -336,7 +345,7 @@ public class PocProcessorImpl implements PocProcessor {
       }
       
     } catch (Exception e) {
-      Logger.logDebugMessage("poc tx syn thread interrupted", e.getMessage());
+      Logger.logErrorMessage("poc tx syn thread interrupted caused by %s", e.getMessage());
     } catch (Throwable t) {
       Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
       System.exit(1);
@@ -375,7 +384,7 @@ public class PocProcessorImpl implements PocProcessor {
       }
 
     } catch (Exception e) {
-      Logger.logDebugMessage("peer syn thread interrupted %s", e.getMessage());
+      Logger.logErrorMessage("peer syn thread interrupted caused by %s", e.getMessage());
     } catch (Throwable t) {
       Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
       System.exit(1);
@@ -435,7 +444,7 @@ public class PocProcessorImpl implements PocProcessor {
         PocHolder.addCertifiedPeer(height, type, host, Account.rsAccountToId(localRS));
       }else {
         PocHolder.addSynPeer(host);
-        Logger.logWarningMessage("local bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
+        Logger.logWarningMessage("local linked rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
       }
       return;
     }
@@ -446,7 +455,7 @@ public class PocProcessorImpl implements PocProcessor {
     if(StringUtils.isEmpty(peer.getBindRsAccount())){
       // connect peer to get account later
       PocHolder.addSynPeer(host);
-      Logger.logWarningMessage("bind rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
+      Logger.logWarningMessage("linked rs account of peer[host=" + host + "] is null, need syn peer and updated later in Peers.GetCertifiedPeer thread");
     }
     // update certified nodes
     PocHolder.addCertifiedPeer(height,peer);

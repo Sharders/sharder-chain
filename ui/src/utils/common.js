@@ -7,6 +7,7 @@ export default {
     sharderFoundationHost: 'sharder.org',
     sharderFoundationTestHost: 'test.sharder.org',
     apiUrl: '',
+    cfg: {defaultInterval: 30000, soonInterval: 10000, slowInterval: 180000},
     epochBeginning: -1,
     newConsole: null,
     isOpenConsole: false,
@@ -670,7 +671,19 @@ export default {
         if (t.type === 1 && t.subtype === 0) return this.$vue.$t("transaction.transaction_type_information");
         if (t.type === 1 && t.subtype === 5) return this.$vue.$t("transaction.transaction_type_account");
         if (t.type === 6) return this.$vue.$t("transaction.transaction_type_storage_service");
-        if (t.type === 8) return this.$vue.$t("transaction.transaction_type_forge_pool");
+        if (t.type === 8) {
+            if (t.subtype === 0) {
+                return this.$vue.$t("transaction.transaction_type_pool_create");
+            } else if (t.subtype === 1) {
+                return this.$vue.$t("transaction.transaction_type_pool_destroy");
+            } else if (t.subtype === 2) {
+                return this.$vue.$t("transaction.transaction_type_pool_join");
+            } else if (t.subtype === 3) {
+                return this.$vue.$t("transaction.transaction_type_pool_quit");
+            } else {
+                return this.$vue.$t("transaction.transaction_type_forge_pool");
+            }
+        }
         if (t.type === 9) {
             // BLOCK_REWARD, SINGLE, FOUNDING_TX, GENESIS, SPECIAL_LOGIC
             if ("GENESIS" === t.attachment.coinBaseType) {
@@ -785,7 +798,17 @@ export default {
      */
     getTransactionBlockTimestamp(t) {
         if (t.block) {
-            return t.blockTimestamp + ' | ' + this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + " +UTC"
+            return this.formatTime(t.blockTimestamp, 8) + ' | ' + this.formatTime(t.blockTimestamp) + " +UTC"
+        }
+        return this.placeholder
+    },
+    /**
+     * 获得格式化后的时间
+     * @param timestamp
+     */
+    getFormattedTimestamp(t) {
+        if (t) {
+            return this.formatTime(t, 8) + ' | ' + this.formatTime(t) + " +UTC"
         }
         return this.placeholder
     },

@@ -32,6 +32,7 @@ import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
 import org.conch.peer.Peer;
+import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -75,7 +76,6 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
         boolean bindNew = "true".equalsIgnoreCase(req.getParameter("reBind"));
         boolean isInit = "true".equalsIgnoreCase(req.getParameter("isInit"));
-        boolean needBind = "true".equalsIgnoreCase(req.getParameter("sharder.HubBind"));
         HashMap map = new HashMap(16);
         Enumeration enu = req.getParameterNames();
 
@@ -165,7 +165,15 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         Conch.storePropertiesToFile(map);
         
         if (restart) {
-            new Thread(() -> Conch.restartApplication(null)).start();
+            new Thread(() -> {
+                // get the default db file
+                if(isInit && Constants.initFromArchivedDbFile) {
+                    Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the Hub initialization phase");
+                    ClientUpgradeTool.upgradeDbFile(ClientUpgradeTool.DB_ARCHIVE_DEFAULT);
+                }
+                
+                Conch.restartApplication(null);
+            }).start();
         }
         response.put("reconfiged", true);
         return response;

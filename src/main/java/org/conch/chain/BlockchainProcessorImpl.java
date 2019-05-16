@@ -47,7 +47,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -121,8 +120,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             while (true) {
               if (!getMoreBlocks) {
+                if(Logger.printNow(Constants.BlockchainProcessor_P_getMoreBlocks)) {
+                  Logger.logDebugMessage("Don't synchronize blocks when the getMoreBlocks is set to false");
+                }
                 return;
               }
+              
+              if(Conch.hasSerialNum() && !Constants.hubLinked) {
+                if(Logger.printNow(Constants.BlockchainProcessor_P_getMoreBlocks)) {
+                  Logger.logDebugMessage("Don't synchronize blocks before the Hub initialization is completed");
+                }
+                return;
+              }
+              
               int chainHeight = blockchain.getHeight();
               downloadPeer();
               if (blockchain.getHeight() == chainHeight) {
@@ -297,12 +307,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             * (lastBlockchainFeederHeight - blockchain.getHeight())
                             / ((long) totalBlocks * 1000 * 60)
                         + " min left");
-
-                // close forceConverge after blocks sync completed
-                if(forceConverge) {
-                  forceConverge = false;
-                  Generator.checkOrStartAutoMining();
-                }
               } else {
                 Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
               }
@@ -470,25 +474,21 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             for (GetNextBlocks nextBlocks : getList) {
               Peer peer;
-              if(forceConverge){
-                //TODO connected to foundation peers to get the blocks only
-                peer = null;
-              }else{
-                if (nextBlocks.getRequestCount() > 1) {
-                  break download;
-                }
-                if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
-                  peer = feederPeer;
-                } else {
-                  if (nextPeerIndex >= connectedPublicPeers.size()) {
-                    nextPeerIndex = 0;
-                  }
-                  peer = connectedPublicPeers.get(nextPeerIndex++);
-                }
-                if (nextBlocks.getPeer() == peer) {
-                  break download;
-                }
+              if (nextBlocks.getRequestCount() > 1) {
+                break download;
               }
+              if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
+                peer = feederPeer;
+              } else {
+                if (nextPeerIndex >= connectedPublicPeers.size()) {
+                  nextPeerIndex = 0;
+                }
+                peer = connectedPublicPeers.get(nextPeerIndex++);
+              }
+              if (nextBlocks.getPeer() == peer) {
+                break download;
+              }
+              
               nextBlocks.setPeer(peer);
               Future<List<BlockImpl>> future = networkService.submit(nextBlocks);
               nextBlocks.setFuture(future);
@@ -565,13 +565,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             // Process a fork
             //
-            if(!forceConverge) {
-              int myForkSize = blockchain.getHeight() - startHeight;
-              if (!forkBlocks.isEmpty() && myForkSize < 720) {
-                Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
-                processFork(feederPeer, forkBlocks, commonBlock);
-              }
+            int myForkSize = blockchain.getHeight() - startHeight;
+            if (!forkBlocks.isEmpty() && myForkSize < 720) {
+              Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+              processFork(feederPeer, forkBlocks, commonBlock);
             }
+            
           } finally {
             blockchain.writeUnlock();
           }
@@ -640,29 +639,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
       };
-
-  private static boolean forceConverge = false;
-  /**
-   * force converge if the fork can't be converge itself
-   * @return
-   */
-  private boolean forceForkConverge(HttpServletRequest reqSender,final Block commonBlock) throws ConchException.NotValidException {
-    // authority check
-    if (!IpUtil.matchHost(reqSender, Conch.getBootNode())) {
-      throw new ConchException.NotValidException(Convert.stringTemplate(Constants.HOST_FILTER_INFO, Conch.getBootNode()));
-    }
-    
-    // just connected to foundation node in download peers when forceConverge is true
-    forceConverge = true;
-
-    // check and stop mining
-    Generator.stopAutoMining();
-
-    // popoff to specified block or height
-    List<BlockImpl> myPoppedOffBlocks = popOffTo(commonBlock);
-
-    return true;
-  }
+  
 
   /** Callable method to get the next block segment from the selected peer */
   private static class GetNextBlocks implements Callable<List<BlockImpl>> {
@@ -1364,7 +1341,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight()));
       if(Conch.reachLastKnownBlock() 
           && !delayedPocTxsProcessed) {
-          Logger.logDebugMessage("should process delayed poc txs <= [ height = %d ] before accepting blocks", Conch.getBlockchain().getHeight()); 
+          Logger.logDebugMessage("should process delayed poc txs <= [ height %d ] before accepting blocks", Conch.getBlockchain().getHeight()); 
           return;
       }
         

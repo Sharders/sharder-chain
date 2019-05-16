@@ -57,10 +57,10 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
-
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
         String includeType  = Convert.emptyToNull(req.getParameter("includeTypes"));
+        Logger.logDebugMessage("GetBizBlocks firstIndex=%d, lastIndex=%d, includeType=%s", firstIndex, lastIndex, includeType);
         if (includeType == null && lastIndex-firstIndex > 500) {
             throw new ParameterException(BIZ_INCORRECT_INDEX);
         }
@@ -96,7 +96,11 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
             ArrayList list = mapper.readValue(dtrJson, new TypeReference<List<Map<String, Object>>>(){});
             response.addAll(list);
         } catch (IOException e) {
-            Logger.logErrorMessage("can't parse blocks detail in GetBizBlocks Api process");
+            if(Logger.isLevel(Logger.Level.DEBUG)) {
+                Logger.logErrorMessage("can't parse blocks data structure in GetBizBlocks api processing", e);
+            }else{
+                Logger.logErrorMessage("can't parse blocks data structure in GetBizBlocks api processing");
+            }
             return JSONResponses.BIZ_JSON_IO_ERROR;
         }
 

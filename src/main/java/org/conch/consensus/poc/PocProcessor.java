@@ -27,6 +27,8 @@ import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 
+import java.util.Set;
+
 /**
  * @author ben-xy
  */
@@ -103,6 +105,8 @@ public interface PocProcessor {
      */
     boolean pocTxsProcessed(int height);
 
+    
+    boolean removeDelayedPocTxs(Set<Long> txIds);
 
     /**
      * notify poc processor to re-process the all poc txs

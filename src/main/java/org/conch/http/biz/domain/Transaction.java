@@ -155,6 +155,7 @@ public class Transaction {
     public Data getAttachment() {
         return attachment;
     }
+    
     @JsonProperty(value = "attachment")
     public void setAttachment(Data attachment) {
         if (type == 6) {

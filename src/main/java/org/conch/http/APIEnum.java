@@ -269,7 +269,7 @@ public enum APIEnum {
     SET_LOGGING("setLogging", SetLogging.instance),
     SHUTDOWN("shutdown", Shutdown.instance),
     RESTART("restart", Restart.instance),
-    UPGRADE_CLIENT("upgradeClient", UpgradeClient.INSTANCE),
+    UPGRADE_CLIENT("upgradeClient", UpgradeClientApi.INSTANCE),
     RECONFIG("reConfig", ReConfig.INSTANCE),
     RECOVERY("recovery", Recovery.INSTANCE),
     GET_USERCONFIG("getUserConfig", GetUserConfig.INSTANCE),

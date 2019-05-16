@@ -32,11 +32,11 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author jiangbubai
  */
-public final class UpgradeClient extends APIServlet.APIRequestHandler {
+public final class UpgradeClientApi extends APIServlet.APIRequestHandler {
 
-    static final UpgradeClient INSTANCE = new UpgradeClient();
+    static final UpgradeClientApi INSTANCE = new UpgradeClientApi();
 
-    private UpgradeClient() {
+    private UpgradeClientApi() {
         super(new APITag[] {APITag.DEBUG}, "version", "mode" , "restart");
     }
 

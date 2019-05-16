@@ -286,10 +286,10 @@ public interface Attachment extends Appendix {
                 buffer.putLong(entry.getValue());
             }
         }
-
+        
         @Override
         public void putMyJSON(JSONObject attachment) {
-            attachment.put("coinBaseType", coinBaseType);
+            attachment.put("coinBaseType",  String.valueOf(coinBaseType));
             attachment.put("creator", creator);
             attachment.put("generatorId", generatorId);
             attachment.put("consignors", mapToJson(consignors));
@@ -4307,6 +4307,6 @@ public interface Attachment extends Appendix {
     }
 
     public static void main(String[] args) {
-        System.out.println(Account.rsAccount(3790328149872734783L));
+        
     }
 }

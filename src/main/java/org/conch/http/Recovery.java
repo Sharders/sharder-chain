@@ -47,6 +47,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             "sharder.disableAdminPassword",
             "sharder.useNATService",
             "sharder.myAddress",
+            "sharder.siteAccount",
             "sharder.NATClientKey",
             "sharder.NATServicePort",
             "sharder.NATServiceAddress",

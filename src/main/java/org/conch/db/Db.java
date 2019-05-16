@@ -55,4 +55,8 @@ public final class Db {
         return Conch.getStringProperty(PREFIX + "Dir");
     }
 
+    public static String getName() {
+        return Constants.isTestnetOrDevnet() ? "sharder_test_db" : "sharder_db";
+    }
+
 }

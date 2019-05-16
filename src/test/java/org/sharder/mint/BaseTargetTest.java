@@ -22,6 +22,7 @@
 package org.sharder.mint;
 
 import org.conch.common.Constants;
+import org.conch.db.Db;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 
@@ -106,9 +107,7 @@ public final class BaseTargetTest {
 
             int count = 0;
 
-            String dbLocation = Constants.isTestnetOrDevnet() ? "sharder_test_db" : "sharder_db";
-
-            try (Connection con = DriverManager.getConnection("jdbc:h2:./" + dbLocation + "/sharder;DB_CLOSE_ON_EXIT=FALSE;MVCC=TRUE", "sa", "sa");
+            try (Connection con = DriverManager.getConnection("jdbc:h2:./" + Db.getName() + "/sharder;DB_CLOSE_ON_EXIT=FALSE;MVCC=TRUE", "sa", "sa");
                  PreparedStatement selectBlocks = con.prepareStatement("SELECT * FROM block WHERE height > " + height + " ORDER BY db_id ASC");
                  ResultSet rs = selectBlocks.executeQuery()) {
 

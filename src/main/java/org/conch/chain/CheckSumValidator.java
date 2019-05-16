@@ -12,6 +12,7 @@ import org.conch.crypto.Crypto;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
 import org.conch.util.Listener;
@@ -131,9 +132,10 @@ public class CheckSumValidator {
     );
     
     private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
-    
     private static final Map<Integer,Set<Long>> knownDirtyPoolTxs = Maps.newConcurrentMap();
-    
+    private static final Map<Integer,Set<Long>> knownDirtyPocTxs = Maps.newConcurrentMap();
+
+    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 1000);
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
@@ -146,7 +148,7 @@ public class CheckSumValidator {
     
     private static void countBad(boolean isBad){
         if(!isBad) {
-            if(badCount++ > 1000) {
+            if(badCount++ > CHECK_INTERVAL) {
                 new Thread(() -> updateKnownIgnoreBlocks()).start();
                 badCount = 0;   
             }
@@ -205,16 +207,29 @@ public class CheckSumValidator {
                 }
             }
 
-            if(object.containsKey("poolAccounts")){
+            if(object.containsKey("dirtyPoolAccounts")){
                 Integer height = object.getInteger("height");
                 if(!knownDirtyPoolTxs.containsKey(height)) {
                     knownDirtyPoolTxs.put(height, Sets.newHashSet());
                 }
                 Set<Long> dirtyPoolAccounts = knownDirtyPoolTxs.get(height);
 
-                com.alibaba.fastjson.JSONArray array = object.getJSONArray("poolAccounts");
+                com.alibaba.fastjson.JSONArray array = object.getJSONArray("dirtyPoolAccounts");
                 for(int i = 0; i < array.size(); i++) {
                     dirtyPoolAccounts.add(array.getLong(i));
+                }
+            }
+            
+            if(object.containsKey("dirtyPocTxs")){
+                Integer height = object.getInteger("height");
+                if(!knownDirtyPocTxs.containsKey(height)) {
+                    knownDirtyPocTxs.put(height, Sets.newHashSet());
+                }
+                Set<Long> dirtyPocTxs = knownDirtyPocTxs.get(height);
+
+                com.alibaba.fastjson.JSONArray array = object.getJSONArray("dirtyPocTxs");
+                for(int i = 0; i < array.size(); i++) {
+                    dirtyPocTxs.add(array.getLong(i));
                 }
             }
             
@@ -224,6 +239,7 @@ public class CheckSumValidator {
         }
         return true;
     }
+
 
     public static void updateKnownIgnoreBlocks(){
         RestfulHttpClient.HttpResponse response = null;
@@ -260,6 +276,18 @@ public class CheckSumValidator {
             
             if(updateDetail.length() > 4){
                 Logger.logDebugMessage("last known ignore blocks updated:" + updateDetail);
+            }
+            
+            // remove the dirty poc txs
+            if(knownDirtyPocTxs.size() > 0) {
+                Set<Long> dirtyPocTxs = Sets.newHashSet();
+                knownDirtyPocTxs.values().forEach(ids -> dirtyPocTxs.addAll(ids));
+                new Thread(() ->  Conch.getPocProcessor().removeDelayedPocTxs(dirtyPocTxs)).start();
+            }
+
+            // remove the dirty pools
+            if(knownDirtyPoolTxs.size() > 0) {
+                new Thread(() -> SharderPoolProcessor.removePools(knownDirtyPoolTxs)).start();
             }
             
             if(!synIgnoreBlock) synIgnoreBlock = true;
