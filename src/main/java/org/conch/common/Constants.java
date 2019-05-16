@@ -381,5 +381,6 @@ public final class Constants {
     public static final String BlockchainProcessor_P_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
     
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");
+    public static final boolean initFromArchivedDbFile = Conch.getBooleanProperty("sharder.initFromArchivedDbFile");
 
 }
