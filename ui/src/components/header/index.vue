@@ -262,7 +262,7 @@
             let _this = this;
             setInterval(() => {
                 _this.getData();
-            }, 30000);
+            }, _this.$global.cfg.defaultInterval);
         },
         methods: {
             getData: function () {

@@ -168,6 +168,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             new Thread(() -> {
                 // get the default db file
                 if(isInit) {
+                    Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the Hub initialization phase");
                     ClientUpgradeTool.upgradeDbFile(ClientUpgradeTool.DB_ARCHIVE_DEFAULT);
                 }
                 

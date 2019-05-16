@@ -378,6 +378,7 @@ public final class Constants {
     public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
     public static final String BlockchainProcessor_P_downloadPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer";
+    public static final String BlockchainProcessor_P_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
     
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");
 
