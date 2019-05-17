@@ -639,13 +639,17 @@ public final class Account {
 
         @Override
         public void trim(int height) {
-            try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM account_guaranteed_balance "
-                         + "WHERE height < ? AND height >= 0")) {
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM account_guaranteed_balance "
+                        + "WHERE height < ? AND height >= 0");
                 pstmtDelete.setInt(1, height - Constants.GUARANTEED_BALANCE_CONFIRMATIONS);
                 pstmtDelete.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
             }
         }
 
@@ -1344,9 +1348,11 @@ public final class Account {
                     || fromHeight > Conch.getBlockchain().getHeight()) {
                 throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
             }
-            try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
-                         + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height <= ?")) {
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
+                        + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height <= ?");
                 pstmt.setLong(1, this.id);
                 pstmt.setInt(2, fromHeight);
                 pstmt.setInt(3, currentHeight);
@@ -1358,6 +1364,8 @@ public final class Account {
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
             }
         } finally {
             Conch.getBlockchain().readUnlock();
@@ -1912,11 +1920,14 @@ public final class Account {
             return;
         }
         int blockchainHeight = Conch.getBlockchain().getHeight();
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmtSelect = con.prepareStatement("SELECT additions FROM account_guaranteed_balance "
-                     + "WHERE account_id = ? and height = ?");
-             PreparedStatement pstmtUpdate = con.prepareStatement("MERGE INTO account_guaranteed_balance (account_id, "
-                     + " additions, height) KEY (account_id, height) VALUES(?, ?, ?)")) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmtSelect = con.prepareStatement("SELECT additions FROM account_guaranteed_balance "
+                    + "WHERE account_id = ? and height = ?");
+            PreparedStatement pstmtUpdate = con.prepareStatement("MERGE INTO account_guaranteed_balance (account_id, "
+                    + " additions, height) KEY (account_id, height) VALUES(?, ?, ?)");
+            
             pstmtSelect.setLong(1, this.id);
             pstmtSelect.setInt(2, blockchainHeight);
             try (ResultSet rs = pstmtSelect.executeQuery()) {
@@ -1931,6 +1942,8 @@ public final class Account {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
