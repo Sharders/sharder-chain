@@ -105,12 +105,12 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 //            return response;
 //        }
 
-        if (!verifyFormData(req, response)) {
-            Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
-            response.put("reconfiged", false);
-            response.put("failedReason", "Failed to configure settings caused by input values invalid!");
-            return response;
-        }
+//        if (!verifyFormData(req, response)) {
+//            Logger.logErrorMessage("failed to configure settings caused by formData invalid!");
+//            response.put("reconfiged", false);
+//            response.put("failedReason", "Failed to configure settings caused by input values invalid!");
+//            return response;
+//        }
 
         try {
             checkAndUpdateLinkedAddressToFoundation(req, bindRs);

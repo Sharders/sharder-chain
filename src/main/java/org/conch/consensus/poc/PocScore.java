@@ -195,7 +195,7 @@ public class PocScore implements Serializable {
     public BigInteger getEffectiveBalance() {
         return effectiveBalance;
     }
-
+    
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
