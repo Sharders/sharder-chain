@@ -20,29 +20,60 @@ import java.sql.SQLException;
  */
 public class PocDb {
 
-    public void insert(PocScore pocScore) {
+    public static void saveOrUpdate(PocScore pocScore) {
         if (pocScore == null) return;
         
         Connection con = null;
         try {
             con = Db.db.getConnection();
-            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score (account_id, "
-                    + " poc_score, height, poc_detail) KEY (account_id, height) VALUES(?, ?, ?, ?)");
 
-            pstmtInsert.setLong(1, pocScore.getAccountId());
-            pstmtInsert.setLong(2, pocScore.total().longValue());
-            pstmtInsert.setInt(3, pocScore.getHeight());
-            pstmtInsert.setString(4, pocScore.toJsonString());
-            pstmtInsert.executeUpdate();
+            PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(db_id) as count from account_poc_score WHERE account_id = ? AND height = ?");
+            ResultSet rs = pstmtCount.executeQuery();
+            int count = rs.getInt("count");
+            
+            if(count == 0){
+                insert(con, pocScore);
+            }else{
+                update(con, pocScore);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
             DbUtils.close(con);
         }
     }
+    
+    private static int insert(Connection con, PocScore pocScore) throws SQLException {
+        if(con == null) return 0;
+        
+        PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score (account_id, "
+                + " poc_score, height, poc_detail) KEY (account_id, height) VALUES(?, ?, ?, ?)");
 
+        pstmtInsert.setLong(1, pocScore.getAccountId());
+        pstmtInsert.setLong(2, pocScore.total().longValue());
+        pstmtInsert.setInt(3, pocScore.getHeight());
+        pstmtInsert.setString(4, pocScore.toJsonString());
+        return pstmtInsert.executeUpdate();
+    }
 
-    public void delete(long accountId, int height) {
+    private static int update(Connection con, PocScore pocScore) throws SQLException {
+        String detail = pocScore.toJsonString();
+        if(con == null || StringUtils.isEmpty(detail)) return 0;
+        
+        PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE account_id = ? AND height = ?");
+
+        pstmtUpdate.setLong(1, pocScore.total().longValue());
+        pstmtUpdate.setString(2, detail);
+        pstmtUpdate.setLong(3, pocScore.getAccountId());
+        pstmtUpdate.setInt(4, pocScore.getHeight());
+        return pstmtUpdate.executeUpdate();
+    }
+
+    public static void delete(PocScore pocScore) {
+        delete(pocScore.getAccountId(), pocScore.getHeight());
+    }
+
+    public static void delete(long accountId, int height) {
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -51,28 +82,36 @@ public class PocDb {
             pstmtDelete.setLong(1, accountId);
             pstmtDelete.setInt(2, height);
             pstmtDelete.executeUpdate();
-        } catch (SQLException e) { 
+        } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } finally {
             DbUtils.close(con);
         }
     }
 
-    private String get(long accountId, int height) {
+    private static String get(long accountId, int height, boolean loadHistory) {
         Conch.getBlockchain().readLock();
         try {
             if(height < 0) return null;
             
-            int startHeight = height;
+            // close the start height in query 
+            int appointStart = -1;
+            
             Connection con = null;
             try {
                 con = Db.db.getConnection();
                 PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail "
-                        + "FROM account_poc_score WHERE account_id = ? AND height > ? AND height <= ? ORDER BY height DESC LIMIT 1");
+                        + "FROM account_poc_score WHERE account_id = ?"
+                        + (loadHistory ? " AND height <= ?" : " AND height = ?")
+                        + (appointStart != -1 ? " AND height > ?" : "")  
+                        + " ORDER BY height DESC LIMIT 1");
 
                 pstmt.setLong(1, accountId);
-                pstmt.setInt(2, startHeight);
-                pstmt.setInt(3, height);
+                pstmt.setInt(2, height);
+                
+                if(appointStart != -1) {
+                    pstmt.setInt(3, appointStart);
+                }
 
                 ResultSet rs = pstmt.executeQuery();
                 if (!rs.next()) {
@@ -89,8 +128,15 @@ public class PocDb {
         return null;
     }
 
-    public PocScore getPocScore(long accountId, int height) {
-        String detail = get(accountId, height);
+    /**
+     * load poc score record at specified height
+     * @param accountId
+     * @param height
+     * @param loadHistory true-load history record when no record at specified height, false-return null if no record at specified height
+     * @return
+     */
+    public static PocScore getPocScore(long accountId, int height, boolean loadHistory) {
+        String detail = get(accountId, height, loadHistory);
         if(StringUtils.isEmpty(detail)) return null;
         
         return JSON.parseObject(detail, PocScore.class);

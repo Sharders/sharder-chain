@@ -597,8 +597,6 @@ public class Generator implements Comparable<Generator> {
                 generator.pocScore = pocScore.total();
             }
         }
-        
-        
     }
     /**
      * calculate the poc score and set the hit
