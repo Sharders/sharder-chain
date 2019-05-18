@@ -36,7 +36,8 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
-            if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
+            int currentHeight = Conch.getBlockchain().getHeight();
+            if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId(), currentHeight) && !Constants.isDevnet()) {
                 String errorDetail = "Can't create mining pool, because account " + account.getRsAddress() + " is not be bind to certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);

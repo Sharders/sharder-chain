@@ -56,7 +56,7 @@ public interface PocProcessor {
      * @param accountId
      * @return
      */
-    boolean isCertifiedPeerBind(long accountId);
+    boolean isCertifiedPeerBind(long accountId, int height);
 
     /**
      * get account linked certified peer

@@ -97,6 +97,7 @@ public interface PocTxBody {
          */
         private String ip;
         private Peer.Type type;
+        private long accountId;
 
         public String getIp() {
             return ip;
@@ -106,9 +107,19 @@ public interface PocTxBody {
             return type;
         }
 
+        public long getAccountId() {
+            return accountId;
+        }
+
         public PocNodeType(String ip, Peer.Type type) {
             this.ip = ip;
             this.type = type;
+        }
+        
+        public PocNodeType(String ip, Peer.Type type, long accountId) {
+            this.ip = ip;
+            this.type = type;
+            this.accountId = accountId;
         }
 
 

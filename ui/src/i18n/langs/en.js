@@ -927,7 +927,7 @@ const en = {
         "exchange_sharder_account": "Exchange to Sharder account:  {account}"
     },
     poc: {
-        'block_reward_tips_phase1': "Testnet phase 1 testing(before the end of 2019.Q2) rewards distribution: 90% - hub miners, 10% - other miners.",
+        'block_reward_tips_phase1': "Testnet phase 1 testing rewards distribution: 90% - hub miners, 10% - other miners.",
         'creator': "Creator",
         'type': "Type",
         'nodeType': "Node Type",

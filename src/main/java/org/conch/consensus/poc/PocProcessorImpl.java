@@ -133,7 +133,20 @@ public class PocProcessorImpl implements PocProcessor {
     CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId);
     return certifiedPeer == null ? null : certifiedPeer.getType();
   }
-
+  
+  static Set<Long> preHubAccountIds = Sets.newHashSet(
+          3418582870615735255L
+          
+  );
+  
+  //[POLYFILL]
+  private static boolean isPreHubInTestnet(long accountId, int height){
+    if(Constants.isTestnet() && height <= Constants.POC_NODETYPE_V2_HEIGHT) {
+      return preHubAccountIds.contains(accountId);
+    }
+    return false;
+  }
+  
   /**
    * account whether bound to certified peer
    *
@@ -141,11 +154,13 @@ public class PocProcessorImpl implements PocProcessor {
    * @return
    */
   @Override
-  public boolean isCertifiedPeerBind(long accountId) {
+  public boolean isCertifiedPeerBind(long accountId, int height) {
     boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
     boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
     boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
     boolean isGenesisAccount = SharderGenesis.isGenesisCreator(accountId) || SharderGenesis.isGenesisRecipients(accountId);
+    
+    // height for certified peers
     return hubBindAccount || communityBindAccount || foundationBindAccount || isGenesisAccount;
   }
 
@@ -199,7 +214,14 @@ public class PocProcessorImpl implements PocProcessor {
 
   @Override
   public PocScore calPocScore(Account account, int height) {
-    return PocHolder.getPocScore(height, account.getId());
+    //[POLYFILL] polyfill for pre hubs in Testnet which PocNodeType miss the accountId attribute make this bug 
+    PocScore pocScore = PocHolder.getPocScore(height, account.getId());
+    if(isPreHubInTestnet(account.getId(), height)) {
+      PocTxBody.PocNodeType hubNodeType = new PocTxBody.PocNodeType("",Peer.Type.HUB, account.getId());
+      pocScore.nodeTypeCal(hubNodeType);
+    }
+    
+    return pocScore;
   }
 
   @Override
@@ -498,7 +520,7 @@ public class PocProcessorImpl implements PocProcessor {
     if(pocNodeType == null || StringUtils.isEmpty(pocNodeType.getIp())) {
         return false;
     }
-
+    //TODO check current account linked status
     PocScore pocScoreToUpdate = getPocScoreByPeer(height, pocNodeType.getIp());
     if(pocScoreToUpdate == null) {
       return false;
