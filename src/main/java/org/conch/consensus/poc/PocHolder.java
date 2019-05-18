@@ -43,14 +43,18 @@ class PocHolder implements Serializable {
     // you can use the key word 'transient' exclude the attribute to persist
     
     static PocHolder inst = new PocHolder();
-
-    // accountId : pocScore
-    private Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    
+    /** poc score **/
     int lastHeight = -1;
     
+    // accountId : pocScore
+    private Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+   
     // height : { accountId : pocScore }
     private Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
-   
+    /** poc score **/
+
+    /** certified peers **/
     // height : [bound account id]
     private Map<Integer, Set<Long>> heightMinerMap = Maps.newConcurrentMap();
 
@@ -62,13 +66,13 @@ class PocHolder implements Serializable {
     
     // unverified peer
     private Map<String, CertifiedPeer> unverifiedPeerMap = Maps.newConcurrentMap();
+    /** certified peers **/
     
     // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
     private volatile Set<String> synPeerList = Sets.newHashSet();
     
     private volatile Map<Integer, List<Long>> delayPocTxsByHeight = Maps.newConcurrentMap();
     private static volatile int pocTxHeight = -1;
-
     
     public static Set<String> synPeers() {
         return inst.synPeerList;
@@ -298,7 +302,7 @@ class PocHolder implements Serializable {
             PocScore pocScore = getHistoryPocScore(height, accountId);
             if(pocScore == null) pocScore = new PocScore(accountId,height);
             
-            scoreMapping(pocScore);
+            scoreMapping(pocScore, false);
         }
         
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
@@ -313,27 +317,49 @@ class PocHolder implements Serializable {
 
         return pocScoreDetail;
     }
-    
+
     /**
      * - mapping the poc score of account
      * - persistence
      * @param pocScore a poc score object
      */
-    public static synchronized void scoreMapping(PocScore pocScore) {
+    public static synchronized void scoreMappingAndPersist(PocScore pocScore){
+        scoreMapping(pocScore, true);
+    }
+
+    /**
+     * - mapping the poc score of account
+     * @param pocScore a poc score object
+     */
+    public static synchronized void scoreMapping(PocScore pocScore){
+        scoreMapping(pocScore, false);
+    }
+    
+    /**
+     * - mapping the poc score of account
+     * - persistence
+     * @param pocScore a poc score object
+     * @param updateDB save or update db
+     */
+    private static synchronized void scoreMapping(PocScore pocScore, boolean updateDB) {
         PocScore _pocScore = pocScore;
         if(inst.scoreMap.containsKey(pocScore.accountId)) {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
             _pocScore.synFrom(pocScore);
-            recordHistoryScore(pocScore, true);
+            recordHistoryScore(pocScore, updateDB);
         }
         
-        PocDb.saveOrUpdate(_pocScore);
-        
+        if(updateDB) {
+            PocDb.saveOrUpdate(_pocScore);
+        }
+       
         inst.scoreMap.put(pocScore.accountId,_pocScore);
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
+        
         //TODO use the event to notify (there will have many consumers later): define an event 'POC_SCORE_CHANGED' 
         // to notify the all listeners: Generator and so on
         Generator.updatePocScore(_pocScore);
+        
         PocScorePrinter.print();
     }
 
@@ -403,6 +429,14 @@ class PocHolder implements Serializable {
     static PocTxBody.PocWeightTable getPocWeightTable(){
         return PocCalculator.inst.getCurWeightTable();
     }
+
+    /**
+     * open the poc persistence
+     */
+    static void openPocPersist(){
+        
+    }
+    
 
     /**
      * Poc score map printer

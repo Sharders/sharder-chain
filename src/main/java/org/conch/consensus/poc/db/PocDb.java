@@ -3,10 +3,9 @@ package org.conch.consensus.poc.db;
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
-import org.conch.common.Constants;
 import org.conch.consensus.poc.PocScore;
-import org.conch.db.*;
-import org.conch.tx.Transaction;
+import org.conch.db.Db;
+import org.conch.db.DbUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,20 +20,26 @@ import java.sql.SQLException;
 public class PocDb {
 
     public static void saveOrUpdate(PocScore pocScore) {
-        if (pocScore == null) return;
+        if (pocScore == null || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ) {
+            return;
+        }
         
         Connection con = null;
         try {
             con = Db.db.getConnection();
 
-            PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(db_id) as count from account_poc_score WHERE account_id = ? AND height = ?");
-            ResultSet rs = pstmtCount.executeQuery();
-            int count = rs.getInt("count");
+            PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id from account_poc_score " 
+                                                                + "WHERE account_id = ? AND height = ?");
+            pstmtCount.setLong(1, pocScore.getAccountId());
+            pstmtCount.setInt(2, pocScore.getHeight());
             
-            if(count == 0){
-                insert(con, pocScore);
-            }else{
+            ResultSet rs = pstmtCount.executeQuery();
+            boolean exist = (rs != null) && rs.next();
+            
+            if(exist){
                 update(con, pocScore);
+            }else{
+                insert(con, pocScore);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -46,8 +51,8 @@ public class PocDb {
     private static int insert(Connection con, PocScore pocScore) throws SQLException {
         if(con == null) return 0;
         
-        PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score (account_id, "
-                + " poc_score, height, poc_detail) KEY (account_id, height) VALUES(?, ?, ?, ?)");
+        PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
+                + " poc_score, height, poc_detail) VALUES(?, ?, ?, ?)");
 
         pstmtInsert.setLong(1, pocScore.getAccountId());
         pstmtInsert.setLong(2, pocScore.total().longValue());
@@ -58,7 +63,9 @@ public class PocDb {
 
     private static int update(Connection con, PocScore pocScore) throws SQLException {
         String detail = pocScore.toJsonString();
-        if(con == null || StringUtils.isEmpty(detail)) return 0;
+        if(con == null || StringUtils.isEmpty(detail) || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ){
+            return 0;
+        }
         
         PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE account_id = ? AND height = ?");
 
@@ -114,7 +121,7 @@ public class PocDb {
                 }
 
                 ResultSet rs = pstmt.executeQuery();
-                if (!rs.next()) {
+                if(rs !=null && rs.next()){
                     return rs.getString("detail");
                 }
             } catch (SQLException e) {
@@ -141,5 +148,4 @@ public class PocDb {
         
         return JSON.parseObject(detail, PocScore.class);
     }
-
 }

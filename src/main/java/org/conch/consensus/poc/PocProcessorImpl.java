@@ -74,14 +74,14 @@ public class PocProcessorImpl implements PocProcessor {
         balanceChangedMap.get(block.getHeight()).clear();
       }
 
-      Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
-      boolean blockContainPocTxs = containPoc == null ? false : containPoc;
-
-      //save to disk when poc score changed case of contains poc txs in block or account balance changed
-      if(someAccountBalanceChanged || blockContainPocTxs) {
-        //save the poc holder and calculator to disk
-        instance.saveToDisk();
-      }
+//      Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
+//      boolean blockContainPocTxs = containPoc == null ? false : containPoc;
+//
+//      //save to disk when poc score changed case of contains poc txs in block or account balance changed
+//      if(someAccountBalanceChanged || blockContainPocTxs) {
+//        //save the poc holder and calculator to disk
+//        instance.saveToDisk();
+//      }
     }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
     // balance changed event
@@ -260,15 +260,15 @@ public class PocProcessorImpl implements PocProcessor {
     return true;
   }
   
-  /**
-   * save the poc holder and calculator to disk,
-   * If be called outside, the caller should be org.conch.Conch#shutdown()
-   */
-  @Override
-  public void saveToDisk() {
-    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
-    DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
-  }
+//  /**
+//   * save the poc holder and calculator to disk,
+//   * If be called outside, the caller should be org.conch.Conch#shutdown()
+//   */
+//  @Override
+//  public void saveToDisk() {
+//    DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+//    DiskStorageUtil.saveObjToFile(PocCalculator.inst, LOCAL_STORAGE_POC_CALCULATOR);
+//  }
 
   /**
    * load the poc holder backup from local disk
@@ -505,7 +505,7 @@ public class PocProcessorImpl implements PocProcessor {
     }
     pocScoreToUpdate.nodeTypeCal(pocNodeType);
 
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
 
     _updateCertifiedNodes(pocNodeType.getIp(),pocNodeType.getType(),height);
     
@@ -527,7 +527,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     pocScoreToUpdate.nodeConfCal(pocNodeConf);
 
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
     return true;
   }
 
@@ -547,7 +547,7 @@ public class PocProcessorImpl implements PocProcessor {
     
     pocScoreToUpdate.onlineRateCal(peer.getType(),onlineRate);
 
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
     return true;
   }
 
@@ -563,7 +563,7 @@ public class PocProcessorImpl implements PocProcessor {
     for(Long missAccountId : missAccountIds){
       PocScore pocScoreToUpdate = new PocScore(missAccountId,height);
       pocScoreToUpdate.blockMissCal(pocBlockMissing);
-      PocHolder.scoreMapping(pocScoreToUpdate);
+      PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
     }
     return true;
   }
@@ -580,7 +580,7 @@ public class PocProcessorImpl implements PocProcessor {
     }
     long accountId = account.getId();
     PocScore pocScoreToUpdate = new PocScore(accountId,height);
-    PocHolder.scoreMapping(pocScoreToUpdate);
+    PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
     return true;
   }
   

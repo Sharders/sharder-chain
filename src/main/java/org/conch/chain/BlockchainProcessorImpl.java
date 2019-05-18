@@ -137,7 +137,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               downloadPeer();
               if (blockchain.getHeight() == chainHeight) {
                 if (isDownloading && !simulateEndlessDownload) {
-                  Logger.logMessage("Finished blockchain download");
+                  Logger.logMessage("Finished blockchain download[current height=" + blockchain.getHeight() + "]");
                   isDownloading = false;
                 }
                 break;
@@ -232,7 +232,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
             if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
-              Logger.logMessage("Blockchain download in progress");
+              Logger.logMessage("Blockchain download in progress[height is from " +  blockchain.getHeight() + " to " + lastBlockchainFeederHeight + "]");
               isDownloading = true;
             }
 

@@ -705,7 +705,7 @@ public final class Conch {
         BlockchainProcessorImpl.getInstance().shutdown();
         Peers.shutdown();
         Db.shutdown();
-        getPocProcessor().saveToDisk();
+//        getPocProcessor().saveToDisk();
         SharderPoolProcessor.saveToDisk();
         Logger.logShutdownMessage("COS server " + VERSION + " stopped.");
         Logger.shutdown();

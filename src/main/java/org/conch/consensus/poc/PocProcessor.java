@@ -113,5 +113,5 @@ public interface PocProcessor {
      */
     void notifySynTxNow();
     
-    void saveToDisk();
+//    void saveToDisk();
 }

@@ -1205,7 +1205,7 @@ public class ConchDbVersion extends DbVersion {
 //            case 494:
 //                apply("CREATE TABLE IF NOT EXISTS account_poc_score (db_id IDENTITY, account_id BIGINT NOT NULL,"
 //                        + "additions BIGINT NOT NULL, height INT NOT NULL)");
-            case 495:
+            case 494:
                 break;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate
