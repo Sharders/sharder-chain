@@ -567,7 +567,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             int myForkSize = blockchain.getHeight() - startHeight;
             if (!forkBlocks.isEmpty() && myForkSize < 720) {
-              Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+              Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks from start height %d, current block chain have %d size fork blocks from start height %d" + myForkSize, startHeight, myForkSize, startHeight);
               processFork(feederPeer, forkBlocks, commonBlock);
             }
             
