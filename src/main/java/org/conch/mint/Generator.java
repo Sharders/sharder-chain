@@ -271,7 +271,8 @@ public class Generator implements Comparable<Generator> {
      * @return
      */
     public static boolean isValid(long generatorId){
-        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
+        return !blackedGenerators.contains(generatorId);
+//        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
     }
 
     public static boolean hasGenerationMissingAccount(){

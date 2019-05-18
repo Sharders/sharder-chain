@@ -1378,6 +1378,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       } catch (Exception e) {
         Db.db.rollbackTransaction();
         blockchain.setLastBlock(previousLastBlock);
+        Logger.logErrorMessage("push block failed caused by[%s]", e.getMessage());
         throw e;
       } finally {
         Db.db.endTransaction();
@@ -1756,7 +1757,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       try {
         BlockImpl block = blockchain.getLastBlock();
         block.loadTransactions();
-        Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight() + " to " + commonBlock.getStringId() + " at " + commonBlock.getHeight());
+        Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight() + " to " + commonBlock.getStringId() + " at height " + commonBlock.getHeight());
         while (block.getId() != commonBlock.getId() && block.getId() != SharderGenesis.GENESIS_BLOCK_ID) {
           poppedOffBlocks.add(block);
           block = popLastBlock();
