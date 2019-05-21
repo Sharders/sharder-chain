@@ -33,6 +33,7 @@ import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.TransactionProcessorImpl;
@@ -270,7 +271,7 @@ public class Generator implements Comparable<Generator> {
      * @param generatorId
      * @return
      */
-    public static boolean isValid(long generatorId){
+    public static boolean isValid(long generatorId, int height){
         return !blackedGenerators.contains(generatorId);
 //        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
     }
@@ -570,8 +571,8 @@ public class Generator implements Comparable<Generator> {
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
-        Peer.Type type = Conch.getPocProcessor().bindPeerType(accountId);
-        if(type == null) type = Peer.Type.NORMAL;
+        CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(accountId, Conch.getHeight());
+        Peer.Type type = (boundedPeer != null) ? boundedPeer.getType() : Peer.Type.NORMAL;
         json.put("bindPeerType", type.getName());
         if(loadPoolInfo) {
             json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
@@ -647,7 +648,7 @@ public class Generator implements Comparable<Generator> {
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
         if(!isBootNode && !Constants.isDevnet()) {
             if(!isMintHeightReached(lastBlock)) return false;
-            if(!isValid(this.accountId)) return false;
+            if(!isValid(this.accountId, lastBlock.getHeight())) return false;
         }
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {

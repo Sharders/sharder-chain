@@ -1428,7 +1428,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException, GeneratorNotAcceptedException {
     
-    if(!Generator.isValid(block.getGeneratorId())) {
+    if(!Generator.isValid(block.getGeneratorId(), block.getHeight())) {
       throw new GeneratorNotAcceptedException("Invalid generator",block.getGeneratorId());
     }
     

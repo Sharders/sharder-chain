@@ -59,6 +59,7 @@ import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.MessageManager;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.shuffle.Shuffling;
@@ -132,12 +133,12 @@ public final class Conch {
     }
     
     public static String getNodeType(){
-        Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
-        if(type != null) {
-            Conch.nodeType = type.getSimpleName();
+        CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(Account.rsAccountToId(Generator.getAutoMiningRS()), getHeight());
+        if(boundedPeer != null) {
+            Conch.nodeType = boundedPeer.getType().getSimpleName();
         }
         
-        if(type == null || Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)){
+        if(Conch.nodeType == null || Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)){
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS
                     && !SystemUtils.IS_OS_MAC
@@ -631,6 +632,10 @@ public final class Conch {
         }
         Logger.logMessage(name + " not defined, assuming false");
         return false;
+    }
+    
+    public static int getHeight(){
+        return getBlockchain().getHeight();
     }
     
     public static PocProcessor getPocProcessor(){

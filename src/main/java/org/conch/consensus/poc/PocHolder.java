@@ -54,9 +54,9 @@ class PocHolder implements Serializable {
     private Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
     /** poc score **/
 
-    /** certified peers **/
-    // height : [bound account id]
-    private Map<Integer, Set<Long>> heightMinerMap = Maps.newConcurrentMap();
+//    /** certified peers **/
+//    // height : [bound account id]
+//    private Map<Integer, Set<Long>> heightMinerMap = Maps.newConcurrentMap();
 
     // certified peer: foundation node,sharder hub/box, community node
     // account id : certified peer
@@ -112,7 +112,7 @@ class PocHolder implements Serializable {
     }
 
 
-    public static CertifiedPeer getBoundPeer(long account) {
+    public static CertifiedPeer getBoundPeer(long account, int height) {
         return inst.certifiedPeerMap.get(account);
     }
 
@@ -182,13 +182,13 @@ class PocHolder implements Serializable {
         Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
     }
     
-    private synchronized static void updateHeightMinerMap(int height, long accountId){
-        // height mapping
-        if (!inst.heightMinerMap.containsKey(height)) {
-            inst.heightMinerMap.put(height, Sets.newHashSet());
-        }
-        inst.heightMinerMap.get(height).add(accountId);
-    }
+//    private synchronized static void updateHeightMinerMap(int height, long accountId){
+//        // height mapping
+//        if (!inst.heightMinerMap.containsKey(height)) {
+//            inst.heightMinerMap.put(height, Sets.newHashSet());
+//        }
+//        inst.heightMinerMap.get(height).add(accountId);
+//    }
 
     
     public static void updateBoundPeer(String host, long accountId) {
@@ -205,7 +205,7 @@ class PocHolder implements Serializable {
      */
     public static void addCertifiedPeer(int height, Peer.Type type, String host, long accountId) {
         addOrUpdateBoundPeer(type, host, accountId);
-        updateHeightMinerMap(height, accountId);
+//        updateHeightMinerMap(height, accountId);
     }
     
 
@@ -226,7 +226,7 @@ class PocHolder implements Serializable {
             addOrUpdateBoundPeer(peer.getType(), host, accountId);
         }
 
-        updateHeightMinerMap(height, accountId);
+//        updateHeightMinerMap(height, accountId);
     }
 
     public static int countDelayPocTxs(int queryHeight) {

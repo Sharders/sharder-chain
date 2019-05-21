@@ -38,7 +38,7 @@ public abstract class PoolTxApi {
             Account account = ParameterParser.getSenderAccount(req);
             int currentHeight = Conch.getBlockchain().getHeight();
             if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId(), currentHeight) && !Constants.isDevnet()) {
-                String errorDetail = "Can't create mining pool, because account " + account.getRsAddress() + " is not be bind to certified peer";
+                String errorDetail = "Can't create a mining pool, because account " + account.getRsAddress() + " is not linked to a certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }

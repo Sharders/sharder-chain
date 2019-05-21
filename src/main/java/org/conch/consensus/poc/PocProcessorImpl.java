@@ -121,45 +121,6 @@ public class PocProcessorImpl implements PocProcessor {
   }
 
   /**
-   * get bind peer type
-   * @param accountId
-   * @return
-   */
-  @Override
-  public Peer.Type bindPeerType(long accountId){
-    CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId);
-    return certifiedPeer == null ? null : certifiedPeer.getType();
-  }
-  
-  /**
-   * account whether bound to certified peer
-   *
-   * @param accountId
-   * @return
-   */
-  @Override
-  public boolean isCertifiedPeerBind(long accountId, int height) {
-    boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
-    boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
-    boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
-    boolean isGenesisAccount = SharderGenesis.isGenesisCreator(accountId) || SharderGenesis.isGenesisRecipients(accountId);
-    
-    // height for certified peers
-    return hubBindAccount || communityBindAccount || foundationBindAccount || isGenesisAccount;
-  }
-
-  /**
-   * account whether bound to certified peer
-   *
-   * @param accountId
-   * @return
-   */
-  @Override
-  public CertifiedPeer getLinkedPeer(long accountId) {
-    return PocHolder.getBoundPeer(accountId);
-  }
-
-  /**
    * PoC tx process
    * @param tx poc tx
    * @return
@@ -223,6 +184,34 @@ public class PocProcessorImpl implements PocProcessor {
     PocHolder.updateBoundPeer(host, accountId);
   }
 
+  /**
+   * account whether bound to certified peer
+   *
+   * @param accountId
+   * @return
+   */
+  @Override
+  public boolean isCertifiedPeerBind(long accountId, int height) {
+    boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
+    boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
+    boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
+    boolean isGenesisAccount = SharderGenesis.isGenesisCreator(accountId) || SharderGenesis.isGenesisRecipients(accountId);
+
+    // height for certified peers
+    return hubBindAccount || communityBindAccount || foundationBindAccount || isGenesisAccount;
+  }
+
+  /**
+   * check whether a account bounded to a certified peer
+   *
+   * @param accountId
+   * @return
+   */
+  @Override
+  public CertifiedPeer getBoundedPeer(long accountId, int height) {
+    return PocHolder.getBoundPeer(accountId, height);
+  }
+  
   @Override
   public boolean resetCertifiedPeers(){
     return PocHolder.resetCertifiedPeers();
