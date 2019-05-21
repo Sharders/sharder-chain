@@ -25,8 +25,8 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.consensus.poc.PocCalculator;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -141,7 +141,13 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-            PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) transaction.getAttachment();
+            PocTxBody.PocNodeType nodeType = null;
+            if(transaction.getHeight() <= Constants.POC_NODETYPE_V2_HEIGHT) {
+                nodeType = (PocTxBody.PocNodeType) transaction.getAttachment();
+            }else{
+                nodeType = (PocTxBody.PocNodeTypeV2) transaction.getAttachment();
+            }
+            
             if (nodeType == null) {
                 throw new ConchException.NotValidException("Invalid PocTxBody.PocNodeType: null");
             }

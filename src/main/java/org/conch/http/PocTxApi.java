@@ -161,14 +161,31 @@ public abstract class PocTxApi {
                 String nodeTypeJsonStr = Https.getPostData(request);
                 JSONObject nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
                         .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
-                PocTxBody.PocNodeType pocNodeType = new PocTxBody.PocNodeType(
-                        nodeTypeJson.getString("ip"),
-                        Peer.Type.getBySimpleName(nodeTypeJson.getString("type"))
-                );
-                Logger.logInfoMessage("creating node type tx...");
-                Logger.logDebugMessage("PoC node type tx:[ip=%s, type=%s]", pocNodeType.getIp(), pocNodeType.getType());
+
+                Attachment.TxBodyBase pocNodeType = null;
+                if(Conch.getBlockchain().getHeight() <= Constants.POC_NODETYPE_V2_HEIGHT) {
+                    pocNodeType = new PocTxBody.PocNodeType(
+                            nodeTypeJson.getString("ip"),
+                            Peer.Type.getBySimpleName(nodeTypeJson.getString("type"))
+                    );
+                }else{
+                    // v2 need account id or account rs
+                    Long accountId = -1L;
+                    if(nodeTypeJson.containsKey("accountRs")){
+                        accountId = Account.rsAccountToId(nodeTypeJson.getString("accountRs"));
+                    }else if(nodeTypeJson.containsKey("accountId")){
+                        accountId = nodeTypeJson.getLong("accountId");
+                    }
+                    pocNodeType = new PocTxBody.PocNodeTypeV2(
+                            nodeTypeJson.getString("ip"), 
+                            Peer.Type.getBySimpleName(nodeTypeJson.getString("type")),
+                            accountId
+                            );
+                }
+                
+                Logger.logInfoMessage("creating node type tx %s", pocNodeType.toString());
                 createTransaction(request, account, 0, 0, pocNodeType);
-                Logger.logInfoMessage("success to create node type tx...");
+                Logger.logInfoMessage("success to create node type tx");
             } catch (ConchException e) {
                 Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());

@@ -5,10 +5,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
-import org.conch.chain.Block;
-import org.conch.chain.BlockImpl;
-import org.conch.chain.BlockchainImpl;
-import org.conch.chain.BlockchainProcessor;
+import org.conch.chain.*;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -134,19 +131,6 @@ public class PocProcessorImpl implements PocProcessor {
     return certifiedPeer == null ? null : certifiedPeer.getType();
   }
   
-  static Set<Long> preHubAccountIds = Sets.newHashSet(
-          3418582870615735255L
-          
-  );
-  
-  //[POLYFILL]
-  private static boolean isPreHubInTestnet(long accountId, int height){
-    if(Constants.isTestnet() && height <= Constants.POC_NODETYPE_V2_HEIGHT) {
-      return preHubAccountIds.contains(accountId);
-    }
-    return false;
-  }
-  
   /**
    * account whether bound to certified peer
    *
@@ -214,12 +198,11 @@ public class PocProcessorImpl implements PocProcessor {
 
   @Override
   public PocScore calPocScore(Account account, int height) {
-    //[POLYFILL] polyfill for pre hubs in Testnet which PocNodeType miss the accountId attribute make this bug 
     PocScore pocScore = PocHolder.getPocScore(height, account.getId());
-    if(isPreHubInTestnet(account.getId(), height)) {
-      PocTxBody.PocNodeType hubNodeType = new PocTxBody.PocNodeType("",Peer.Type.HUB, account.getId());
-      pocScore.nodeTypeCal(hubNodeType);
-    }
+    
+    //[POLYFILL] polyfill for pre hubs in Testnet which PocNodeType is miss the accountId attribute make this bug 
+    PocTxBody.PocNodeTypeV2 hubNodeType = CheckSumValidator.isPreHubInTestnet(account.getId(), height);
+    if(hubNodeType != null) pocScore.nodeTypeCal(hubNodeType);
     
     return pocScore;
   }
