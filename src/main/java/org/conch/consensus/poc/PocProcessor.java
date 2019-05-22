@@ -57,12 +57,12 @@ public interface PocProcessor {
      */
     boolean isCertifiedPeerBind(long accountId, int height);
 
-    /**
-     * update bound account of certified peer
-     * @param host peer host 
-     * @param accountId bind acccount id
-     */
-    void updateBoundPeer(String host, long accountId);
+//    /**
+//     * update bound account of certified peer
+//     * @param host peer host 
+//     * @param accountId bind acccount id
+//     */
+//    void updateBoundPeer(String host, long accountId);
 
     /**
      * get account linked certified peer

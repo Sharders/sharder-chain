@@ -503,6 +503,10 @@ public interface PocTxBody {
             this.port = (String) attachmentData.get("port");
             this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
         }
+        
+        public String getHost(){
+            return this.ip + ":" + port;
+        }
 
         @Override
         public int getMySize() {
@@ -570,6 +574,10 @@ public interface PocTxBody {
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.networkRate = (int) attachmentData.get("networkRate");
+        }
+
+        public String getHost(){
+            return this.ip + ":" + port;
         }
 
         @Override

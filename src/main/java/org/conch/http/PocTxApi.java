@@ -176,6 +176,9 @@ public abstract class PocTxApi {
                     }else if(nodeTypeJson.containsKey("accountId")){
                         accountId = nodeTypeJson.getLong("accountId");
                     }
+                    
+                    if(accountId == -1L) throw new ConchException.NotValidException("account id can not be null in PocNodeType V2 version!");
+                    
                     pocNodeType = new PocTxBody.PocNodeTypeV2(
                             nodeTypeJson.getString("ip"), 
                             Peer.Type.getBySimpleName(nodeTypeJson.getString("type")),

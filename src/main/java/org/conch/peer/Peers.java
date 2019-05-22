@@ -907,10 +907,10 @@ public final class Peers {
                 detail += "update a certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
             }
 
-            if(peer != null) {
-                peer.setBindRsAccount(bindAddress);
-                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
-            }
+//            if(peer != null) {
+//                peer.setBindRsAccount(bindAddress);
+//                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
+//            }
         }
         detail += "<================== certified peer info updated";
         Logger.logDebugMessage(detail);
@@ -922,9 +922,7 @@ public final class Peers {
      */
     private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
         try {
-            
             synCertifiedPeers();
-            
         } catch (Exception e) {
             Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
         } catch (Throwable t) {
@@ -989,7 +987,7 @@ public final class Peers {
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("GetCertifiedPeer", Peers.GET_CERTIFIED_PEER_THREAD, 1, TimeUnit.MINUTES);
+//        ThreadPool.scheduleThread("GetCertifiedPeer", Peers.GET_CERTIFIED_PEER_THREAD, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 60);
     }
 

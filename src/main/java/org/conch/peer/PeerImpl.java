@@ -744,8 +744,8 @@ final class PeerImpl implements Peer {
                 } else if (!isBlacklisted()) {
                     blacklist("Old version: " + version);
                 }
-                // update the peer ref RS account when connected
-                Conch.getPocProcessor().updateBoundPeer(getAddress(), Account.rsAccountToId(bindRsAccount));
+//                // update the peer ref RS account when connected
+//                Conch.getPocProcessor().updateBoundPeer(getAddress(), Account.rsAccountToId(bindRsAccount));
                 
             } else {
                 //Logger.logDebugMessage("Failed to connect to peer " + peerAddress);

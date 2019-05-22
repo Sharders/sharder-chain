@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
@@ -22,10 +23,7 @@ import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -54,18 +52,19 @@ class PocHolder implements Serializable {
     private Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
     /** poc score **/
 
-//    /** certified peers **/
+    /** certified peers **/
 //    // height : [bound account id]
 //    private Map<Integer, Set<Long>> heightMinerMap = Maps.newConcurrentMap();
 
     // certified peer: foundation node,sharder hub/box, community node
     // account id : certified peer
-    private Map<Long, CertifiedPeer> certifiedPeerMap = Maps.newConcurrentMap();
+    private Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
+    // height : { accountId : certifiedPeer }
+    private Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
     
-    public static final long UN_VERIFIED_ID = -1;
-    
-    // unverified peer
-    private Map<String, CertifiedPeer> unverifiedPeerMap = Maps.newConcurrentMap();
+//    public static final long UN_VERIFIED_ID = -1;
+//    // unverified peer
+//    private Map<String, CertifiedPeer> unverifiedPeerMap = Maps.newConcurrentMap();
     /** certified peers **/
     
     // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
@@ -79,13 +78,13 @@ class PocHolder implements Serializable {
     }
     
     public static boolean resetCertifiedPeers(){
-        synchronized (inst.certifiedPeerMap) {
-            inst.certifiedPeerMap.clear();
+        synchronized (inst.certifiedPeers) {
+            inst.certifiedPeers.clear();
         }
         
-        synchronized (inst.unverifiedPeerMap) {
-            inst.unverifiedPeerMap.clear();
-        }
+//        synchronized (inst.unverifiedPeerMap) {
+//            inst.unverifiedPeerMap.clear();
+//        }
         
         try{
             Peers.synCertifiedPeers(); 
@@ -112,15 +111,69 @@ class PocHolder implements Serializable {
     }
 
 
-    public static CertifiedPeer getBoundPeer(long account, int height) {
-        return inst.certifiedPeerMap.get(account);
+    public static CertifiedPeer getBoundPeer(long accountId, int height) {
+        if(height == -1 || accountId == -1) return null;
+        CertifiedPeer certifiedPeer = inst.certifiedPeers.get(accountId);
+        if(certifiedPeer == null) {
+            certifiedPeer = getHistoryBoundPeer(height, accountId);
+        }
+        
+        return certifiedPeer;
+    }
+    public static CertifiedPeer getBoundPeer(String host, int height) {
+        if(height == -1 || StringUtils.isEmpty(host)) return null;
+        
+        CertifiedPeer certifiedPeer = null;
+        Collection<CertifiedPeer> peers = inst.certifiedPeers.values();
+        for(CertifiedPeer peer : peers){
+            if(StringUtils.equals(host,peer.getHost())){
+                certifiedPeer = peer;
+                break;
+            }
+        }
+        
+        if(certifiedPeer == null) {
+            certifiedPeer = getHistoryBoundPeer(height, host);
+        }
+        
+        return certifiedPeer;
     }
 
     public static boolean isBoundPeer(Peer.Type type, long account) {
-        CertifiedPeer certifiedPeer = inst.certifiedPeerMap.get(account);
+        CertifiedPeer certifiedPeer = inst.certifiedPeers.get(account);
         return certifiedPeer == null ? false : certifiedPeer.isType(type);
     }
 
+    
+    private static CertifiedPeer getHistoryBoundPeer(int height, long accountId){
+        NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
+        for(Integer historyHeight : heightSet) {
+            if(historyHeight <= height) {
+                Map<Long,CertifiedPeer> peerMap = inst.historyCertifiedPeers.get(historyHeight);
+                if(peerMap != null && peerMap.containsKey(accountId)) {
+                    return  peerMap.get(accountId);
+                }
+            }
+        }
+        return null;
+    }
+    
+    private static CertifiedPeer getHistoryBoundPeer(int height, String host){
+        NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
+        for(Integer historyHeight : heightSet) {
+            if(historyHeight <= height) {
+                Map<Long, CertifiedPeer> peerMap = inst.historyCertifiedPeers.get(historyHeight);
+                Collection<CertifiedPeer> peers = peerMap.values();
+                for(CertifiedPeer certifiedPeer : peers){
+                    if(StringUtils.equals(host,certifiedPeer.getHost())){
+                        return certifiedPeer;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
     /**
      * add or update certified peer and bind account
      * 3 callers: PocHolder, PoC tx processor, Hub syn thread in Peers
@@ -129,42 +182,41 @@ class PocHolder implements Serializable {
      * @param host peer host
      * @param accountId bound account id
      */
-    private synchronized static void addOrUpdateBoundPeer(Peer.Type type, String host, long accountId) {
-        CertifiedPeer newPeer = new CertifiedPeer(type, host, accountId);
+    private synchronized static void addOrUpdateBoundPeer(int height, Peer.Type type, String host, long accountId) {
+        CertifiedPeer newPeer = new CertifiedPeer(height, type, host, accountId);
+        try{
+            newPeer.check();
+        }catch(ConchException.NotValidException e){
+            Logger.logWarningMessage("failed to add or update a certified peer caused by [%s], Peer is %s", e.getMessage(), newPeer.toString());
+            return;
+        }
 
-        // remove from unverified collection and add it into certified map when account id updated
-        if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
-            // remove form unverified map and update peer detail later
-            inst.certifiedPeerMap.put(accountId, inst.unverifiedPeerMap.get(host));
-            inst.unverifiedPeerMap.remove(host);
-        }
+//        // remove from unverified collection and add it into certified map when account id updated
+//        if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
+//            // remove form unverified map and update peer detail later
+//            inst.certifiedPeers.put(accountId, inst.unverifiedPeerMap.get(host));
+//            inst.unverifiedPeerMap.remove(host);
+//        }
         
-        if (!inst.certifiedPeerMap.containsKey(newPeer.getBoundAccountId())) {
-            // foundation type should check the domain whether valid
-            if(type != null) {
-                if(Peer.Type.FOUNDATION == type) {
-                    if(IpUtil.isFoundationDomain(newPeer.getHost())){
-                        newPeer.setType(type);
-                    }
-                }else {
-                    newPeer.setType(type);
-                }
-            }
+//        // peer type check:  foundation type should check the domain whether valid
+//        if(Peer.Type.FOUNDATION == type) {
+//            if(IpUtil.isFoundationDomain(newPeer.getHost())){
+//                newPeer.setType(type);
+//            }
+//        }else {
+//            newPeer.setType(type);
+//        }
+        
+        if (!inst.certifiedPeers.containsKey(accountId)) {
             Logger.logDebugMessage("#addOrUpdateBoundPeer# add a new certified peer: %s", newPeer.toString());
-            inst.certifiedPeerMap.put(newPeer.getBoundAccountId(), newPeer);
+            inst.certifiedPeers.put(accountId, newPeer);
             return;
         }
+
+        CertifiedPeer existPeer = inst.certifiedPeers.get(accountId);
         
-        // update exist peer infos
-        CertifiedPeer existPeer = inst.certifiedPeerMap.get(newPeer.getBoundAccountId());
-        existPeer.update(newPeer.getBoundAccountId());
         
-        if(type == null) {
-            Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
-            return;
-        }
-        
-        // foundation type should check the domain whether valid
+        //TODO foundation type should check whether the domain is a valid foundation domain
         if(Peer.Type.FOUNDATION == type) {
             if(IpUtil.isFoundationDomain(newPeer.getHost())) {
                 existPeer.update(type);
@@ -179,6 +231,40 @@ class PocHolder implements Serializable {
                 existPeer.update(type);
             }
         }
+        
+        // move the old certified peer into history map
+        int peerCertifiedHeight = existPeer.getHeight();
+        int historyHeight = height - 1;
+        if(peerCertifiedHeight == -1 || historyHeight <= peerCertifiedHeight) {
+            Logger.logWarningMessage("#addOrUpdateBoundPeer# can't update this certified peer which certified height is %d and update height is %d. Old=> %s, New=> %s"
+                    , peerCertifiedHeight, height, existPeer.toString() ,newPeer.toString());
+            inst.certifiedPeers.put(accountId, newPeer);
+            return;
+        }
+        if(!inst.historyCertifiedPeers.containsKey(historyHeight)) {
+            inst.historyCertifiedPeers.put(historyHeight, Maps.newHashMap());
+        }
+        
+        try{
+            existPeer.end(historyHeight); 
+        }catch(ConchException.NotValidException e){
+            Logger.logWarningMessage("failed to update a certified peer caused by [%s], Peer is %s", e.getMessage(), newPeer.toString());
+            return;
+        }
+      
+        inst.historyCertifiedPeers.get(historyHeight).put(existPeer.getBoundAccountId(), existPeer);
+        inst.certifiedPeers.remove(accountId);
+        
+        // add the new certified peer into certifiedPeers map
+        inst.certifiedPeers.put(accountId, newPeer);
+                
+        existPeer.update(newPeer.getBoundAccountId());
+        
+        if(type == null) {
+            Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
+            return;
+        }
+        
         Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
     }
     
@@ -191,9 +277,9 @@ class PocHolder implements Serializable {
 //    }
 
     
-    public static void updateBoundPeer(String host, long accountId) {
-        addOrUpdateBoundPeer(null, host, accountId);
-    }
+//    public static void updateBoundPeer(String host, long accountId) {
+//        addOrUpdateBoundPeer(null, host, accountId);
+//    }
     
     /**
      *  add certifiedPeer 
@@ -204,30 +290,30 @@ class PocHolder implements Serializable {
      * @param accountId
      */
     public static void addCertifiedPeer(int height, Peer.Type type, String host, long accountId) {
-        addOrUpdateBoundPeer(type, host, accountId);
+        addOrUpdateBoundPeer(height, type, host, accountId);
 //        updateHeightMinerMap(height, accountId);
     }
     
 
-    /**
-     * add certifiedPeer by poc tx
-     *
-     * @param height
-     * @param peer
-     */
-    public static void addCertifiedPeer(Integer height, Peer peer) {
-        String rsAccount = peer.getBindRsAccount();
-        long accountId = StringUtils.isEmpty(rsAccount) ? PocHolder.UN_VERIFIED_ID : Account.rsAccountToId(rsAccount);
-        String host = peer.getAddress();
-            
-        if(StringUtils.isEmpty(rsAccount)) {
-            inst.unverifiedPeerMap.put(host, new CertifiedPeer(height, peer.getType(), host, accountId));
-        }else {
-            addOrUpdateBoundPeer(peer.getType(), host, accountId);
-        }
-
-//        updateHeightMinerMap(height, accountId);
-    }
+//    /**
+//     * add certifiedPeer by poc tx
+//     *
+//     * @param height
+//     * @param peer
+//     */
+//    public static void addCertifiedPeer(Integer height, Peer peer) {
+//        String rsAccount = peer.getBindRsAccount();
+//        long accountId = StringUtils.isEmpty(rsAccount) ? PocHolder.UN_VERIFIED_ID : Account.rsAccountToId(rsAccount);
+//        String host = peer.getAddress();
+//            
+//        if(StringUtils.isEmpty(rsAccount)) {
+//            inst.unverifiedPeerMap.put(host, new CertifiedPeer(height, peer.getType(), host, accountId));
+//        }else {
+//            addOrUpdateBoundPeer(peer.getType(), host, accountId);
+//        }
+//        
+////        updateHeightMinerMap(height, accountId);
+//    }
 
     public static int countDelayPocTxs(int queryHeight) {
         int count = 0;
