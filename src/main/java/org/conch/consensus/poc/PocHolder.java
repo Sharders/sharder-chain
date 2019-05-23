@@ -9,8 +9,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.genesis.GenesisRecipient;
-import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.Generator;
@@ -358,18 +356,18 @@ class PocHolder implements Serializable {
         }
     }
     
-    static {
-        initDefaultMiners();
-    }
-    
-    private static final boolean initDefaultMiner = false;
-    private static void initDefaultMiners(){
-        if(!initDefaultMiner) return;
-        // genesis account binding
-        String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-        addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
-        GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
-    }
+//    static {
+//        initDefaultMiners();
+//    }
+//    
+//    private static final boolean initDefaultMiner = false;
+//    private static void initDefaultMiners(){
+//        if(!initDefaultMiner) return;
+//        // genesis account binding
+//        String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
+//        addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
+//        GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
+//    }
 
     private PocHolder(){}
 

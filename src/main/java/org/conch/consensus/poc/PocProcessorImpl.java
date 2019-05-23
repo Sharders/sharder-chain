@@ -163,7 +163,7 @@ public class PocProcessorImpl implements PocProcessor {
         PocScore pocScore = PocHolder.getPocScore(height, account.getId());
 
         //[POLYFILL] polyfill for pre hubs in Testnet which PocNodeType is missing the accountId attribute make this bug 
-        PocTxBody.PocNodeTypeV2 hubNodeType = CheckSumValidator.isPreHubInTestnet(account.getId(), height);
+        PocTxBody.PocNodeTypeV2 hubNodeType = CheckSumValidator.isPreAccountsInTestnet(account.getId(), height);
         if (hubNodeType != null) pocScore.nodeTypeCal(hubNodeType);
 
         return pocScore;
@@ -505,7 +505,7 @@ public class PocProcessorImpl implements PocProcessor {
         PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
         if(tx instanceof PocTxBody.PocNodeType) {
             PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) tx;
-            nodeTypeV2 = CheckSumValidator.isPreHubInTestnet(nodeType.getIp(), height);
+            nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
         }else if(tx instanceof PocTxBody.PocNodeTypeV2){
             nodeTypeV2 = (PocTxBody.PocNodeTypeV2) tx;
         }
@@ -519,7 +519,6 @@ public class PocProcessorImpl implements PocProcessor {
 //        pocScoreToUpdate.nodeTypeCal(nodeTypeV2);
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-
         PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
 
         PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);

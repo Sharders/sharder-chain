@@ -146,10 +146,8 @@ public class CheckSumValidator {
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
     static {
-       
         if(!synIgnoreBlock) {
-            updateKnownIgnoreBlocks();
-            synIgnoreBlock = true;
+            new Thread(() -> updateKnownIgnoreBlocks()).start();
         }
     }
     
@@ -202,7 +200,7 @@ public class CheckSumValidator {
      * @param height
      * @return
      */
-    public static PocTxBody.PocNodeTypeV2 isPreHubInTestnet(long accountId, int height){
+    public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(long accountId, int height){
         if(Constants.isTestnet() 
             && height <= Constants.POC_NODETYPE_V2_HEIGHT
             && pocNodeTypeTxsMap.containsKey(height)) {
@@ -211,7 +209,7 @@ public class CheckSumValidator {
         return null;
     }
 
-    public static PocTxBody.PocNodeTypeV2 isPreHubInTestnet(String host, int height){
+    public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(String host, int height){
         if(Constants.isTestnet() && height <= Constants.POC_NODETYPE_V2_HEIGHT) {
             NavigableSet<Integer> heightSet = Sets.newTreeSet(pocNodeTypeTxsMap.keySet()).descendingSet();
             for(Integer historyHeight : heightSet) {
@@ -316,15 +314,20 @@ public class CheckSumValidator {
                                 JSONArray jsonArray = (JSONArray) attachment;
 
                                 for(int i = 0; i < jsonArray.size(); i++) {
-                                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                                    String ip = jsonObject.getString("ip");
-                                    String accountRs = jsonObject.getString("accountRs");
-                                    int type = jsonObject.getIntValue("type");
-                                    Byte version = jsonObject.getByte("version");
-                                    Long accountId = Account.rsAccountToId(accountRs);
-                                    //String ip, Peer.Type type, long accountId
-                                    PocTxBody.PocNodeTypeV2 pocNodeTypeV2 = new PocTxBody.PocNodeTypeV2(ip, Peer.Type.getByCode(type), accountId);
-                                    pocNodeTypeV2Map.put(accountId, pocNodeTypeV2);
+                                    JSONObject jsonObject = null;
+                                    try{
+                                        jsonObject = jsonArray.getJSONObject(i);
+                                        String ip = jsonObject.getString("ip");
+                                        String accountRs = jsonObject.getString("accountRs");
+                                        int type = jsonObject.getIntValue("type");
+                                        Byte version = jsonObject.getByte("version");
+                                        Long accountId = Account.rsAccountToId(accountRs);
+                                        //String ip, Peer.Type type, long accountId
+                                        PocTxBody.PocNodeTypeV2 pocNodeTypeV2 = new PocTxBody.PocNodeTypeV2(ip, Peer.Type.getByCode(type), accountId);
+                                        pocNodeTypeV2Map.put(accountId, pocNodeTypeV2);  
+                                    } catch(Exception e){
+                                        Logger.logErrorMessage("Poc node type tx convert failed caused by[%s] and detail is %s" + e.getMessage(), jsonObject == null ? "null" : jsonObject.toString() );
+                                    }
                                 }
                             }
                         }
@@ -410,7 +413,7 @@ public class CheckSumValidator {
     }
 
     public static void main(String[] args) {
-        updateKnownIgnoreBlocks();
+        //updateKnownIgnoreBlocks();
     }
 
 }
