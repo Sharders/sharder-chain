@@ -20,7 +20,6 @@ import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -386,7 +385,7 @@ class PocHolder implements Serializable {
             PocScore pocScore = getHistoryPocScore(height, accountId);
             if(pocScore == null) pocScore = new PocScore(accountId,height);
             
-            scoreMapping(pocScore, false);
+            scoreMapping(pocScore);
         }
         
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
@@ -401,42 +400,25 @@ class PocHolder implements Serializable {
 
         return pocScoreDetail;
     }
-
-    /**
-     * - mapping the poc score of account
-     * - persistence
-     * @param pocScore a poc score object
-     */
-    public static synchronized void scoreMappingAndPersist(PocScore pocScore){
-        scoreMapping(pocScore, true);
-    }
-
-    /**
-     * - mapping the poc score of account
-     * @param pocScore a poc score object
-     */
-    public static synchronized void scoreMapping(PocScore pocScore){
-        scoreMapping(pocScore, false);
-    }
     
     /**
      * - mapping the poc score of account
      * - persistence
      * @param pocScore a poc score object
-     * @param updateDB save or update db
      */
-    private static synchronized void scoreMapping(PocScore pocScore, boolean updateDB) {
+    private static synchronized void scoreMapping(PocScore pocScore) {
         PocScore _pocScore = pocScore;
         if(inst.scoreMap.containsKey(pocScore.accountId)) {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
             _pocScore.synFrom(pocScore);
-            recordHistoryScore(pocScore, updateDB);
+            
+            if(!inst.historyScore.containsKey(pocScore.height)) {
+                recordHistoryScore(_pocScore);
+            }
         }
         
-        if(updateDB) {
-            PocDb.saveOrUpdate(_pocScore);
-        }
-       
+        PocDb.saveOrUpdate(_pocScore);
+      
         inst.scoreMap.put(pocScore.accountId,_pocScore);
         inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
         
@@ -447,27 +429,39 @@ class PocHolder implements Serializable {
         PocScorePrinter.print();
     }
 
-    static BigInteger getTotal(int height,Long accountId){
-        Map<Long,PocScore> map = inst.historyScore.get(height);
-        if(map == null) return BigInteger.ZERO;
-        PocScore score = map.get(accountId);
-        return score !=null ? score.total() : BigInteger.ZERO;
-    }
+    /**
+     * get the poc score according to specified height
+     * @param height
+     * @param accountId
+     * @return
+     */
+    static PocScore getHistoryPocScore(int height,long accountId){
+        if(!inst.historyScore.containsKey(height)) {
+            PocScore pocScore = PocDb.getPocScore(accountId, height, true);
 
+            if(pocScore == null) return null;
+
+            pocScore.setHeight(height);
+            recordHistoryScore(pocScore);
+        }
+        PocScorePrinter.print();
+        return inst.historyScore.get(height).get(accountId);
+    }
+    
     /**
      * - record current poc score into history
      * - persistence
      * - update old poc score records #abandoned
      * @param pocScore
-     */
-    static void recordHistoryScore(PocScore pocScore, boolean updateDB){
+     */               
+    static void recordHistoryScore(PocScore pocScore){
         PocScore historyPocScore = new PocScore(pocScore.height, pocScore);
-        if(updateDB) PocDb.saveOrUpdate(historyPocScore);
-
-        Map<Long,PocScore> map = inst.historyScore.get(pocScore.height);
-        if(map == null) map = new HashMap<>();
-        map.put(pocScore.accountId, historyPocScore);
-        inst.historyScore.put(pocScore.height,map);
+        PocDb.saveOrUpdate(historyPocScore);
+        
+        if(!inst.historyScore.containsKey(pocScore.height)) {
+            inst.historyScore.put(pocScore.height, Maps.newHashMap());
+        }
+        inst.historyScore.get(pocScore.height).put(pocScore.accountId, historyPocScore);
         
 //        //check and update the old poc score
 //        int currentHeight = Conch.getBlockchain().getHeight();
@@ -489,25 +483,6 @@ class PocHolder implements Serializable {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
-    }
-
-
-    /**
-     * get the poc score according to specified height
-     * @param height
-     * @param accountId
-     * @return
-     */
-    static PocScore getHistoryPocScore(int height,long accountId){
-        if(!inst.historyScore.containsKey(height)) {
-            PocScore pocScore = PocDb.getPocScore(accountId, height, true);
-            
-            if(pocScore == null) return null;
-
-            recordHistoryScore(pocScore, false);
-        }
-        PocScorePrinter.print();
-        return inst.historyScore.get(height).get(accountId);
     }
 
     static PocTxBody.PocWeightTable getPocWeightTable(){

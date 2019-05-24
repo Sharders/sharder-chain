@@ -14,6 +14,7 @@ import org.conch.db.DbUtils;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
+import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
@@ -499,16 +500,19 @@ public class PocProcessorImpl implements PocProcessor {
      */
     private static boolean nodeTypeTxProcess(int height, Transaction tx) {
         if (tx == null)  return false;
-        boolean isRightTx = tx instanceof PocTxBody.PocNodeType;
-        if(!isRightTx) return false;
+//        boolean isRightTx = (tx instanceof PocTxBody.PocNodeType) && height < Constants.POC_NODETYPE_V2_HEIGHT
+//                            || (tx instanceof PocTxBody.PocNodeTypeV2) && height >= Constants.POC_NODETYPE_V2_HEIGHT;
+//        if(!isRightTx) return false;
 
         PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
-        if(tx instanceof PocTxBody.PocNodeType) {
-            PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) tx;
+        Attachment attachment = tx.getAttachment();
+        if(attachment instanceof PocTxBody.PocNodeType) {
+            PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) attachment;
             nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
-        }else if(tx instanceof PocTxBody.PocNodeTypeV2){
-            nodeTypeV2 = (PocTxBody.PocNodeTypeV2) tx;
+        }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+            nodeTypeV2 = (PocTxBody.PocNodeTypeV2) attachment;
         }
+        if(nodeTypeV2 == null) return false;
         long accountId = nodeTypeV2.getAccountId();
         
 //        //TODO check current account linked status
@@ -519,7 +523,8 @@ public class PocProcessorImpl implements PocProcessor {
 //        pocScoreToUpdate.nodeTypeCal(nodeTypeV2);
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
+        pocScoreToUpdate.nodeTypeCal(nodeTypeV2).saveOrUpdate();
+//        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
 
         PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);
         return true;
@@ -539,9 +544,9 @@ public class PocProcessorImpl implements PocProcessor {
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
 
-        pocScoreToUpdate.nodeConfCal(pocNodeConf);
+        pocScoreToUpdate.nodeConfCal(pocNodeConf).saveOrUpdate();
 
-        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
+//        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
         return true;
     }
 
@@ -564,9 +569,9 @@ public class PocProcessorImpl implements PocProcessor {
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
 
-        pocScoreToUpdate.onlineRateCal(certifiedPeer.getType(), onlineRate);
+        pocScoreToUpdate.onlineRateCal(certifiedPeer.getType(), onlineRate).saveOrUpdate();
 
-        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
+//        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
         return true;
     }
 
@@ -583,8 +588,8 @@ public class PocProcessorImpl implements PocProcessor {
         for (Long missAccountId : missAccountIds) {
 //            PocScore pocScoreToUpdate = new PocScore(missAccountId, height);
             PocScore pocScoreToUpdate = PocHolder.getPocScore(height, missAccountId);
-            pocScoreToUpdate.blockMissCal(pocBlockMissing);
-            PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
+            pocScoreToUpdate.blockMissCal(pocBlockMissing).saveOrUpdate();
+//            PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
         }
         return true;
     }
@@ -603,7 +608,8 @@ public class PocProcessorImpl implements PocProcessor {
         long accountId = account.getId();
 //        PocScore pocScoreToUpdate = new PocScore(accountId, height);
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
+        pocScoreToUpdate.ssCal().saveOrUpdate();
+//        PocHolder.scoreMappingAndPersist(pocScoreToUpdate);
         return true;
     }
 
