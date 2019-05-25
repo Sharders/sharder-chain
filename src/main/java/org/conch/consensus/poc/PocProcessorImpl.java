@@ -377,7 +377,7 @@ public class PocProcessorImpl implements PocProcessor {
 
             if (connectedPeers.size() > 0) {
                 PocHolder.removeConnectedPeers(connectedPeers);
-                DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+//                DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
             }
 
         } catch (Exception e) {

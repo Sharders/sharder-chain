@@ -10,11 +10,11 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.db.PoolDb;
 import org.conch.mint.Generator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
-import org.conch.util.DiskStorageUtil;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -366,18 +366,32 @@ public class SharderPoolProcessor implements Serializable {
     private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
 
     static {
-        // load pools from local cached files
-        Logger.logInfoMessage("load exist pools info from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS) + "]");
-        Object poolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
-        if(poolsObj != null) {
-            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) poolsObj;
-        }
 
-        Logger.logInfoMessage("load exist destroyed pools info from local [" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS) + "]");
-        Object destroyedPoolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
-        if(destroyedPoolsObj != null) {
-            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) destroyedPoolsObj;
-        }
+        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
+        destroyedPoolProcessors.forEach(pool -> {
+            sharderPools.put(pool.poolId, pool);
+        });
+
+        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
+        poolProcessors.forEach(pool -> {
+            if(!destroyedPools.containsKey(pool.poolId)) {
+                destroyedPools.put(pool.poolId, Lists.newArrayList());
+            }
+            destroyedPools.get(pool.poolId).add(pool);
+        });
+        
+        // load pools from local cached files
+//        Logger.logInfoMessage("load exist pools info from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS) + "]");
+//        Object poolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
+//        if(poolsObj != null) {
+//            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) poolsObj;
+//        }
+//
+//        Logger.logInfoMessage("load exist destroyed pools info from local [" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS) + "]");
+//        Object destroyedPoolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
+//        if(destroyedPoolsObj != null) {
+//            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) destroyedPoolsObj;
+//        }
 
         // AFTER_BLOCK_APPLY event listener
         Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block), 
@@ -479,8 +493,14 @@ public class SharderPoolProcessor implements Serializable {
      * If be called outside, the caller should be org.conch.Conch#shutdown()
      */
     public static void saveToDisk(){
-        DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
-        DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
+//        DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
+//        DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
+        List<SharderPoolProcessor> poolList = Lists.newArrayList(sharderPools.values());
+        Set<Long> accountIds = destroyedPools.keySet();
+        for(Long accountId : accountIds){
+            poolList.addAll(destroyedPools.get(accountId));
+        }
+        PoolDb.saveOrUpdate(poolList);
     }
 
     public static void init() {
@@ -622,6 +642,62 @@ public class SharderPoolProcessor implements Serializable {
 
     public long getCreatorId() {
         return creatorId;
+    }
+
+    public long getPoolId() {
+        return poolId;
+    }
+
+    public void setChance(float chance) {
+        this.chance = chance;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public void setEndBlockNo(int endBlockNo) {
+        this.endBlockNo = endBlockNo;
+    }
+
+    public void setHistoricalBlocks(int historicalBlocks) {
+        this.historicalBlocks = historicalBlocks;
+    }
+
+    public void setTotalBlocks(int totalBlocks) {
+        this.totalBlocks = totalBlocks;
+    }
+
+    public void setHistoricalIncome(long historicalIncome) {
+        this.historicalIncome = historicalIncome;
+    }
+
+    public void setHistoricalMintRewards(long historicalMintRewards) {
+        this.historicalMintRewards = historicalMintRewards;
+    }
+
+    public void setMintRewards(long mintRewards) {
+        this.mintRewards = mintRewards;
+    }
+
+    public void setHistoricalFees(long historicalFees) {
+        this.historicalFees = historicalFees;
+    }
+
+    public void setPower(long power) {
+        this.power = power;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    public void setUpdateHeight(int updateHeight) {
+        this.updateHeight = updateHeight;
+    }
+
+    public void setRule(Map<String, Object> rule) {
+        this.rule = rule;
     }
 
     /**

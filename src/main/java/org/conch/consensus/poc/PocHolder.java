@@ -43,10 +43,10 @@ class PocHolder implements Serializable {
     int lastHeight = -1;
     
     // accountId : pocScore
-    private Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    private transient Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
    
     // height : { accountId : pocScore }
-    private Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
+    private transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
     /** poc score **/
 
     /** certified peers **/
