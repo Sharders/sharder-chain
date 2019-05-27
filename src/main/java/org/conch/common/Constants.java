@@ -99,7 +99,7 @@ public final class Constants {
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
     
     /** another initial env => target: 6000, min-limit: 17, max-limit=22, base-gamma: 21 */
-    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153722867 * 67) : (153722867 * 8);
+    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153722867 * 670) : (153722867 * 8);
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;

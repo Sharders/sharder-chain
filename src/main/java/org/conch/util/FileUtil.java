@@ -383,5 +383,19 @@ public class FileUtil {
         }
         return libFileMap;
     }
+    
+    public static void delLogFolder() throws FileNotFoundException {
+        String logPath = Conch.getUserHomeDir() + File.separator + "logs";
+        File logFiles = new File(logPath);
+        File[] files = logFiles.listFiles();
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                Logger.logInfoMessage("Deleting log files..." + file.getAbsolutePath());
+                PrintWriter writer = new PrintWriter(file);
+                writer.print("");
+                writer.close();
+            }
+        }
+    }
 
 }

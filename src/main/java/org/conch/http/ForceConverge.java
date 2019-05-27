@@ -23,6 +23,7 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
@@ -31,13 +32,16 @@ import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
 import org.conch.tools.ClientUpgradeTool;
+import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 public final class ForceConverge extends APIServlet.APIRequestHandler {
@@ -195,9 +199,35 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         return null;
     }
     
+    static final String PROPERTY_FORK_NAME = "sharder.forkName";
+    public static void updatePropertiesFile(){
+        HashMap<String, String> parameters = Maps.newHashMap();
+        parameters.put(PROPERTY_FORK_NAME, "Giant");
+        Conch.storePropertiesToFile(parameters);
+    }
     
     public static void reLanuch(){
+        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         
+        if(StringUtils.isEmpty(forkName)) {
+            try{
+                Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+                Generator.pause(true);
+                
+                Logger.logDebugMessage("start to syn known ignore blocks and txs...");
+                Conch.getBlockchainProcessor().fullReset();
+                FileUtil.delLogFolder();
+                
+                //TODO remove all peers, just keep the testboot
+                        
+            }catch (RuntimeException | FileNotFoundException e) {
+                Logger.logErrorMessage("relaunch failed", e);
+            }finally {
+                Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+                Generator.pause(false);
+            }
+            updatePropertiesFile();
+        }
     }
 
     @Override
