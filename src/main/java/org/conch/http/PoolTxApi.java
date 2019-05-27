@@ -46,7 +46,7 @@ public abstract class PoolTxApi {
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 50 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");

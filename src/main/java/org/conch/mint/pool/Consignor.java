@@ -1,5 +1,7 @@
 package org.conch.mint.pool;
 
+import com.alibaba.fastjson.JSONObject;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +94,14 @@ public class Consignor implements Serializable {
         return id == consignor.id;
     }
 
+    public String toJsonStr(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        jsonObject.put("transactions", transactions);
+        return jsonObject.toJSONString();
+    }
+
+
     public class JoinTransaction implements Serializable {
         private static final long serialVersionUID = 989675312314345121L;
         private final long transactionId;
@@ -126,6 +136,15 @@ public class Consignor implements Serializable {
             JoinTransaction joinTransaction = (JoinTransaction) o;
 
             return transactionId == joinTransaction.getTransactionId();
+        }
+
+        public JSONObject toJsonObj(){
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("transactionId", transactionId);
+            jsonObject.put("startBlockNo", startBlockNo);
+            jsonObject.put("endBlockNo", endBlockNo);
+            jsonObject.put("amount", amount);
+            return jsonObject;
         }
     }
 }

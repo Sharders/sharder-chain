@@ -713,14 +713,27 @@ public class SharderPoolProcessor implements Serializable {
         jsonObject.put("historicalFees", historicalFees);
         jsonObject.put("historicalMintRewards", historicalMintRewards);
         jsonObject.put("mintRewards", mintRewards);
-        jsonObject.put("totalBlocks",totalBlocks);
-        jsonObject.put("consignors",consignors);
+        jsonObject.put("totalBlocks", totalBlocks);
+        jsonObject.put("consignors", consignors);
         jsonObject.put("startBlockNo", startBlockNo);
         jsonObject.put("endBlockNo", endBlockNo);
         jsonObject.put("updateHeight", updateHeight);
         jsonObject.put("rule",rule);
         jsonObject.put("state", state);
         return jsonObject;
+    }
+
+    public String toJsonStr() {
+        JSONObject jsonObject = toJsonObject();
+        if(consignors != null && consignors.size() > 0) {
+            JSONObject consignorJson = new JSONObject();
+            Set<Long> ids = consignors.keySet();
+            for(Long id : ids){
+                consignorJson.put(id,consignors.get(id).toJsonStr());
+            }
+            jsonObject.put("consignors", consignorJson);
+        }
+        return jsonObject.toJSONString();
     }
 
     @Override

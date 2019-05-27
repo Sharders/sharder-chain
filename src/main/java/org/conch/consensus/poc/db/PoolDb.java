@@ -7,6 +7,7 @@ import org.conch.Conch;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.util.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,12 +74,14 @@ public class PoolDb {
         pstmtInsert.setLong(1, poolProcessor.getPoolId());
         pstmtInsert.setLong(2, poolProcessor.getCreatorId());
         pstmtInsert.setInt(3, poolProcessor.getState().ordinal());
-        pstmtInsert.setString(4, poolProcessor.toJsonObject().toJSONString());
+        String poolJsonStr = poolProcessor.toJsonStr();
+        pstmtInsert.setString(4, poolJsonStr);
+        Logger.logDebugMessage("Pool Json String: " + poolJsonStr);
         return pstmtInsert.executeUpdate();
     }
 
     private static int update(Connection con, SharderPoolProcessor poolProcessor) throws SQLException {
-        String detail = poolProcessor.toJsonObject().toJSONString();
+        String detail = poolProcessor.toJsonStr();
         if(con == null || StringUtils.isEmpty(detail) || poolProcessor.getCreatorId() == -1 || poolProcessor.getPoolId() == -1 ){
             return 0;
         }

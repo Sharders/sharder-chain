@@ -135,7 +135,9 @@ public class ClientUpgradeTool {
      * @throws IOException
      */
     public static JSONObject fetchLastCosVersion() throws IOException {
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(UrlManager.getHubLatestVersionUrl()).get().request();
+        String url = UrlManager.getHubLatestVersionUrl();
+        Logger.logDebugMessage("fetch the last cos version from " + url);
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
         return JSON.parseObject(response.getContent());
     }
 }
