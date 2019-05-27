@@ -38,21 +38,9 @@ public class SharderPoolProcessor implements Serializable {
     public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
 
     public enum State {
-        /**
-         * user created pool, but not produce block yet
-         */
-        INIT,
-        /**
-         * pool is creating
-         */
+        INIT, //user created pool, but not produce block yet
         CREATING,
-        /**
-         * pool is working
-         */
         WORKING,
-        /**
-         * pool is abandoned
-         */
         DESTROYED
     }
 
@@ -362,8 +350,8 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
 
-    private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
-    private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
+//    private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
+//    private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
 
     static {
 
