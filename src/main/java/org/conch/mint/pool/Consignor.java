@@ -1,6 +1,7 @@
 package org.conch.mint.pool;
 
 import com.alibaba.fastjson.JSONObject;
+import org.json.simple.JSONArray;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,8 +9,10 @@ import java.util.List;
 
 public class Consignor implements Serializable {
     private static final long serialVersionUID = 1214235652377897690L;
-    private final long id;
+    private long id;
     private final List<JoinTransaction> transactions = new ArrayList<>();
+
+    public Consignor(){}
 
     public Consignor(long id, long transactionId, int startBlockNo, int endBlockNo, long amount) {
         JoinTransaction joinTransaction = new JoinTransaction(transactionId, startBlockNo, endBlockNo, amount);
@@ -84,6 +87,14 @@ public class Consignor implements Serializable {
         return id;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public List<JoinTransaction> getTransactions() {
+        return transactions;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -97,17 +108,20 @@ public class Consignor implements Serializable {
     public String toJsonStr(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", id);
-        jsonObject.put("transactions", transactions);
+//        jsonObject.put("transactions", transactions);
+        jsonObject.put("transactions", JSONArray.toJSONString(transactions));
         return jsonObject.toString();
     }
 
 
     public class JoinTransaction implements Serializable {
         private static final long serialVersionUID = 989675312314345121L;
-        private final long transactionId;
-        private final int startBlockNo;
-        private final int endBlockNo;
-        private final long amount;
+        private long transactionId;
+        private int startBlockNo;
+        private int endBlockNo;
+        private long amount;
+
+        public JoinTransaction(){}
 
         public JoinTransaction(long transactionId, int startBlockNo, int endBlockNo, long amount) {
             this.transactionId = transactionId;
@@ -138,13 +152,24 @@ public class Consignor implements Serializable {
             return transactionId == joinTransaction.getTransactionId();
         }
 
-        public JSONObject toJsonObj(){
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("transactionId", transactionId);
-            jsonObject.put("startBlockNo", startBlockNo);
-            jsonObject.put("endBlockNo", endBlockNo);
-            jsonObject.put("amount", amount);
-            return jsonObject;
+        public void setTransactionId(long transactionId) {
+            this.transactionId = transactionId;
+        }
+
+        public int getStartBlockNo() {
+            return startBlockNo;
+        }
+
+        public void setStartBlockNo(int startBlockNo) {
+            this.startBlockNo = startBlockNo;
+        }
+
+        public void setEndBlockNo(int endBlockNo) {
+            this.endBlockNo = endBlockNo;
+        }
+
+        public void setAmount(long amount) {
+            this.amount = amount;
         }
     }
 }

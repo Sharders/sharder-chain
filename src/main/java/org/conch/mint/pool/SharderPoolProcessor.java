@@ -726,18 +726,22 @@ public class SharderPoolProcessor implements Serializable {
     public String toJsonStr() {
         JSONObject jsonObject = toJsonObject();
 
+        jsonObject.remove("poolId");
+        jsonObject.remove("creatorID");
+//        jsonObject.remove("creatorRS");
+
         jsonObject.put("poolId", poolId);
         jsonObject.put("creatorId", creatorId);
         jsonObject.put("state", state.ordinal());
 
-        if(consignors != null && consignors.size() > 0) {
-            JSONObject consignorJson = new JSONObject();
-            Set<Long> ids = consignors.keySet();
-            for(Long id : ids){
-                consignorJson.put(id,consignors.get(id).toJsonStr());
-            }
-            jsonObject.put("consignors", consignorJson);
-        }
+//        if(consignors != null && consignors.size() > 0) {
+//            JSONObject consignorJson = new JSONObject();
+//            Set<Long> ids = consignors.keySet();
+//            for(Long id : ids){
+//                consignorJson.put(id,consignors.get(id).toJsonStr());
+//            }
+//            jsonObject.put("consignors", consignorJson);
+//        }
         return jsonObject.toJSONString();
     }
 
@@ -755,5 +759,4 @@ public class SharderPoolProcessor implements Serializable {
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
     }
-
 }
