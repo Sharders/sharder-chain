@@ -118,7 +118,7 @@ public class PoolDb {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT pool_detail AS detail FROM account_pool where"
+                PreparedStatement pstmt = con.prepareStatement("SELECT pool_detail AS detail FROM account_pool where "
                         + (equal ? "state = ?" : "state != ?"));
 
                 pstmt.setInt(1, state);
