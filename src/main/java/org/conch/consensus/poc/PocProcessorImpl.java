@@ -50,7 +50,7 @@ public class PocProcessorImpl implements PocProcessor {
 //    private static final int peerSynThreadInterval = 600;
     private static final int pocTxSynThreadInterval = 60;
 
-    private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
+//    private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
     private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
 
     // height : { accountId : account }
@@ -156,9 +156,11 @@ public class PocProcessorImpl implements PocProcessor {
                 }
             }
         }
-
-        // process later
-        if (!success) {
+        
+        if (success) {
+            PocHolder.updateHeight(tx.getHeight());
+        }else{
+            // process later
             PocHolder.addDelayPocTx(tx);
         }
         return success;

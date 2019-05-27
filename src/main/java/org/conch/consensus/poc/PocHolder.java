@@ -73,6 +73,12 @@ class PocHolder implements Serializable {
 //        return inst.synPeerList;
 //    }
     
+    public static void updateHeight(int height){
+        if(height == -1) return;
+        
+        inst.lastHeight = height;
+    }
+    
     public static boolean resetCertifiedPeers(){
         synchronized (inst.certifiedPeers) {
             inst.certifiedPeers.clear();
@@ -409,7 +415,7 @@ class PocHolder implements Serializable {
         PocDb.saveOrUpdate(_pocScore);
       
         inst.scoreMap.put(pocScore.accountId,_pocScore);
-        inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
+//        inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
         
         //TODO use the event to notify (there will have many consumers later): define an event 'POC_SCORE_CHANGED' 
         // to notify the all listeners: Generator and so on
