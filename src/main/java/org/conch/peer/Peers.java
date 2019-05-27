@@ -863,7 +863,9 @@ public final class Peers {
             UrlManager.PEERS_LIST_LOCAL,
             UrlManager.PEERS_LIST_PATH
     );
-    
+
+    /** Syn cetified peers from foundation 
+     * 
     public static boolean synCertifiedPeers() throws Exception {
         String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
         com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
@@ -917,9 +919,8 @@ public final class Peers {
         return true;
     }
 
-    /**
-     * get and update the local bound rs account of certified peer
-     */
+  
+     // get and update the local bound rs account of certified peer
     private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
         try {
             synCertifiedPeers();
@@ -930,6 +931,7 @@ public final class Peers {
             System.exit(1);
         }
     };
+     */
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;

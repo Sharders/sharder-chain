@@ -194,6 +194,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
         return null;
     }
+    
+    
+    public static void reLanuch(){
+        
+    }
 
     @Override
     protected final boolean requirePost() {

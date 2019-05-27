@@ -14,7 +14,6 @@ import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
-import org.conch.peer.Peers;
 import org.conch.tx.Transaction;
 import org.conch.util.IpUtil;
 import org.conch.util.Logger;
@@ -64,15 +63,15 @@ class PocHolder implements Serializable {
 //    private Map<String, CertifiedPeer> unverifiedPeerMap = Maps.newConcurrentMap();
     /** certified peers **/
     
-    // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
-    private volatile Set<String> synPeerList = Sets.newHashSet();
+//    // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
+//    private volatile Set<String> synPeerList = Sets.newHashSet();
     
     private volatile Map<Integer, List<Long>> delayPocTxsByHeight = Maps.newConcurrentMap();
     private static volatile int pocTxHeight = -1;
     
-    public static Set<String> synPeers() {
-        return inst.synPeerList;
-    }
+//    public static Set<String> synPeers() {
+//        return inst.synPeerList;
+//    }
     
     public static boolean resetCertifiedPeers(){
         synchronized (inst.certifiedPeers) {
@@ -83,29 +82,20 @@ class PocHolder implements Serializable {
 //            inst.unverifiedPeerMap.clear();
 //        }
         
-        try{
-            Peers.synCertifiedPeers(); 
-        }catch(Exception e) {
-            Logger.logErrorMessage("reset certified peers occur error", e);
-        }
+//        try{
+//            Peers.synCertifiedPeers(); 
+//        }catch(Exception e) {
+//            Logger.logErrorMessage("reset certified peers occur error", e);
+//        }
         
         return true;
     }
 
-    /**
-     * add host into syn peer list
-     *
-     * @param host
-     */
-    public static void addSynPeer(String host) {
-        if (StringUtils.isEmpty(host)) return;
 
-        inst.synPeerList.add(host);
-    }
-
-    public static void removeConnectedPeers(Set<String> connectedPeers) {
-        inst.synPeerList.removeAll(connectedPeers);
-    }
+//
+//    public static void removeConnectedPeers(Set<String> connectedPeers) {
+//        inst.synPeerList.removeAll(connectedPeers);
+//    }
 
 
     public static CertifiedPeer getBoundPeer(long accountId, int height) {
@@ -213,7 +203,6 @@ class PocHolder implements Serializable {
         CertifiedPeer existPeer = inst.certifiedPeers.get(accountId);
         
         
-        //TODO foundation type should check whether the domain is a valid foundation domain
         if(Peer.Type.FOUNDATION == type) {
             if(IpUtil.isFoundationDomain(newPeer.getHost())) {
                 existPeer.update(type);

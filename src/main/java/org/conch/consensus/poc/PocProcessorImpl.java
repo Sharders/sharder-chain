@@ -13,7 +13,6 @@ import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
-import org.conch.peer.Peers;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -42,7 +41,7 @@ public class PocProcessorImpl implements PocProcessor {
     // execute once when restart the cos application
     private static boolean oldPocTxsProcess = false;
 
-    private static final int peerSynThreadInterval = 600;
+//    private static final int peerSynThreadInterval = 600;
     private static final int pocTxSynThreadInterval = 60;
 
     private static final String LOCAL_STORAGE_POC_HOLDER = "StoredPocHolder";
@@ -295,7 +294,7 @@ public class PocProcessorImpl implements PocProcessor {
 
     public static void init() {
         ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
-        ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
+//        ThreadPool.scheduleThread("PeerSynThread", peerSynThread, peerSynThreadInterval, TimeUnit.SECONDS);
     }
 
 
@@ -349,44 +348,44 @@ public class PocProcessorImpl implements PocProcessor {
         }
     };
 
-    private static final Runnable peerSynThread = () -> {
-        try {
-
-            if (PocHolder.synPeers().size() <= 0) {
-                Logger.logInfoMessage("no needs to syn peer, sleep %d seconds...", peerSynThreadInterval);
-            }
-
-            Set<String> connectedPeers = Sets.newHashSet();
-            for (String peerAddress : PocHolder.synPeers()) {
-                try {
-                    Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
-                    if (peer != null) {
-                        Peers.addPeer(peer, peerAddress);
-                        Peers.connectPeer(peer);
-                    }
-                    peer = Peers.getPeer(peerAddress, true);
-//          _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
-                    connectedPeers.add(peer.getHost());
-                } catch (Exception e) {
-                    if (Logger.printNow(PocProcessorImpl.class.getName(), 200)) {
-                        Logger.logDebugMessage("can't connect peer[%s] in peerSynThread, caused by %s", peerAddress, e.getMessage());
-                    }
-                    continue;
-                }
-            }
-
-            if (connectedPeers.size() > 0) {
-                PocHolder.removeConnectedPeers(connectedPeers);
-//                DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
-            }
-
-        } catch (Exception e) {
-            Logger.logErrorMessage("peer syn thread interrupted caused by %s", e.getMessage());
-        } catch (Throwable t) {
-            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-            System.exit(1);
-        }
-    };
+//    private static final Runnable peerSynThread = () -> {
+//        try {
+//
+//            if (PocHolder.synPeers().size() <= 0) {
+//                Logger.logInfoMessage("no needs to syn peer, sleep %d seconds...", peerSynThreadInterval);
+//            }
+//
+//            Set<String> connectedPeers = Sets.newHashSet();
+//            for (String peerAddress : PocHolder.synPeers()) {
+//                try {
+//                    Peer peer = Peers.findOrCreatePeer(peerAddress, Peers.isUseNATService(peerAddress), true);
+//                    if (peer != null) {
+//                        Peers.addPeer(peer, peerAddress);
+//                        Peers.connectPeer(peer);
+//                    }
+//                    peer = Peers.getPeer(peerAddress, true);
+////          _updateCertifiedNodes(peer.getHost(), peer.getType(), -1);
+//                    connectedPeers.add(peer.getHost());
+//                } catch (Exception e) {
+//                    if (Logger.printNow(PocProcessorImpl.class.getName(), 200)) {
+//                        Logger.logDebugMessage("can't connect peer[%s] in peerSynThread, caused by %s", peerAddress, e.getMessage());
+//                    }
+//                    continue;
+//                }
+//            }
+//
+//            if (connectedPeers.size() > 0) {
+//                PocHolder.removeConnectedPeers(connectedPeers);
+////                DiskStorageUtil.saveObjToFile(PocHolder.inst, LOCAL_STORAGE_POC_HOLDER);
+//            }
+//
+//        } catch (Exception e) {
+//            Logger.logErrorMessage("peer syn thread interrupted caused by %s", e.getMessage());
+//        } catch (Throwable t) {
+//            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+//            System.exit(1);
+//        }
+//    };
 
     /**
 
