@@ -133,6 +133,7 @@ public class PoolDb {
                         list.add(JSON.parseObject(detail, SharderPoolProcessor.class));
                     }catch (Exception e) {
                         // continue to fetch next
+                        System.err.println(e);
                     }
                 }
             } catch (SQLException e) {

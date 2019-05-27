@@ -1,6 +1,8 @@
 package org.conch.mint.pool;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.simple.JSONArray;
 
 import java.io.Serializable;
@@ -171,5 +173,92 @@ public class Consignor implements Serializable {
         public void setAmount(long amount) {
             this.amount = amount;
         }
+
+        @Override
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this);
+        }
+    }
+    
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    public static void main(String[] args) {
+//        ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
+//        consignors.put(1L, new Consignor(1L, 11L, 2, 10, 11111L));
+//        consignors.put(2L, new Consignor(2L, 22L, 3, 70, 22222L));
+//        JSONObject jsonObjectFromObj = new JSONObject();
+//        jsonObjectFromObj.put("consignors", consignors);
+//
+//        org.json.simple.JSONObject jsonObject = new org.json.simple.JSONObject();
+//        if(consignors != null && consignors.size() > 0) {
+//            org.json.simple.JSONObject consignorJson = new org.json.simple.JSONObject();
+//            Set<Long> ids = consignors.keySet();
+//            for(Long id : ids){
+//                consignorJson.put(id,consignors.get(id).toJsonStr());
+//            }
+//            jsonObject.put("consignors", consignorJson);
+//        }
+//
+//        System.out.println("Parse from Object =>" + jsonObjectFromObj.toJSONString());
+//        System.out.println("Parse from Method =>" + jsonObject.toJSONString());
+        String detail = "{" +
+                "  \"mintRewards\": 25600000000,\n" +
+                "  \"creatorRS\": \"SSA-SRT2-36L7-A85Z-7PTME\",\n" +
+                "  \"historicalFees\": 0,\n" +
+                "  \"chance\": 1.0,\n" +
+                "  \"historicalIncome\": 25700000000,\n" +
+                "  \"level\": 0,\n" +
+                "  \"updateHeight\": 5,\n" +
+                "  \"creatorId\": 6219247923802955552,\n" +
+                "  \"rule\": {\n" +
+                "    \"level0\": {\n" +
+                "      \"forgepool\": {\n" +
+                "        \"reward\": {\n" +
+                "          \"min\": 0.0,\n" +
+                "          \"max\": 0.07\n" +
+                "        },\n" +
+                "        \"number\": {\n" +
+                "          \"min\": 1,\n" +
+                "          \"max\": 100\n" +
+                "        }\n" +
+                "      },\n" +
+                "      \"consignor\": {\n" +
+                "        \"amount\": {\n" +
+                "          \"min\": 1000000000000,\n" +
+                "          \"max\": 48000000000000\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"number\": 1,\n" +
+                "  \"historicalMintRewards\": 25600000000,\n" +
+                "  \"poolId\": 4610428661034380225,\n" +
+                "  \"startBlockNo\": 4,\n" +
+                "  \"power\": 13122200000000,\n" +
+                "  \"endBlockNo\": 7,\n" +
+                "  \"state\": 2,\n" +
+                "  \"consignors\": {\n" +
+                "    6219247923802955552: {\n" +
+                "      \"amount\": 11122200000000,\n" +
+                "      \"id\": 6219247923802955552,\n" +
+                "      \"transactions\": [\n" +
+                "        {\n" +
+                "          \"amount\": 11122200000000,\n" +
+                "          \"endBlockNo\": 406,\n" +
+                "          \"startBlockNo\": 6,\n" +
+                "          \"transactionId\": -498888686781292537\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"historicalBlocks\": 2,\n" +
+                "  \"totalBlocks\": 1\n" +
+                "}";
+
+        SharderPoolProcessor poolProcessor = JSON.parseObject(detail, SharderPoolProcessor.class);
+        System.out.println(poolProcessor.toString());
     }
 }

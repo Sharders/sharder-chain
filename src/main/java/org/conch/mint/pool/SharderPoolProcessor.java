@@ -44,12 +44,12 @@ public class SharderPoolProcessor implements Serializable {
         DESTROYED
     }
 
-    private final long creatorId;
-    private final long poolId;
-    private final int level;
+    private long creatorId;
+    private long poolId;
+    private int level;
     private float chance;
     private State state;
-    private final int startBlockNo;
+    private int startBlockNo;
     private int endBlockNo;
     private int historicalBlocks;
     /**
@@ -70,10 +70,12 @@ public class SharderPoolProcessor implements Serializable {
      */
     private long historicalFees;
     private long power;
-    private final ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
+    private ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
     private int number = 0;
     private int updateHeight;
     private Map<String, Object> rule;
+    
+    public SharderPoolProcessor(){} 
 
     public SharderPoolProcessor(long creatorId, long id, int startBlockNo, int endBlockNo) {
         this.creatorId = creatorId;
@@ -355,18 +357,18 @@ public class SharderPoolProcessor implements Serializable {
 
     static {
 
-        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
-        destroyedPoolProcessors.forEach(pool -> {
-            sharderPools.put(pool.poolId, pool);
-        });
-
-        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
-        poolProcessors.forEach(pool -> {
-            if(!destroyedPools.containsKey(pool.poolId)) {
-                destroyedPools.put(pool.poolId, Lists.newArrayList());
-            }
-            destroyedPools.get(pool.poolId).add(pool);
-        });
+//        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
+//        destroyedPoolProcessors.forEach(pool -> {
+//            sharderPools.put(pool.poolId, pool);
+//        });
+//
+//        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
+//        poolProcessors.forEach(pool -> {
+//            if(!destroyedPools.containsKey(pool.poolId)) {
+//                destroyedPools.put(pool.poolId, Lists.newArrayList());
+//            }
+//            destroyedPools.get(pool.poolId).add(pool);
+//        });
         
         // load pools from local cached files
 //        Logger.logInfoMessage("load exist pools info from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS) + "]");
@@ -688,6 +690,34 @@ public class SharderPoolProcessor implements Serializable {
         this.rule = rule;
     }
 
+    public float getChance() { return chance; }
+
+    public int getHistoricalBlocks() { return historicalBlocks; }
+
+    public int getTotalBlocks() { return totalBlocks; }
+
+    public long getHistoricalIncome() { return historicalIncome; }
+
+    public long getHistoricalMintRewards() { return historicalMintRewards; }
+
+    public long getMintRewards() { return mintRewards; }
+
+    public long getHistoricalFees() { return historicalFees; }
+
+    public int getNumber() { return number; }
+
+    public int getUpdateHeight() { return updateHeight; }
+
+    public void setCreatorId(long creatorId) { this.creatorId = creatorId; }
+
+    public void setPoolId(long poolId) { this.poolId = poolId; }
+
+    public void setLevel(int level) { this.level = level; }
+
+    public void setStartBlockNo(int startBlockNo) { this.startBlockNo = startBlockNo; }
+
+    public void setConsignors(ConcurrentMap<Long, Consignor> consignors) { this.consignors = consignors; }
+
     /**
      * whether creator has created a working mine pool
      *
@@ -724,7 +754,7 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public String toJsonStr() {
-        JSONObject jsonObject = toJsonObject();
+        com.alibaba.fastjson.JSONObject jsonObject = new com.alibaba.fastjson.JSONObject(toJsonObject());
 
         jsonObject.remove("poolId");
         jsonObject.remove("creatorID");
@@ -754,7 +784,7 @@ public class SharderPoolProcessor implements Serializable {
 
         return poolId == forgePool.poolId;
     }
-
+    
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
