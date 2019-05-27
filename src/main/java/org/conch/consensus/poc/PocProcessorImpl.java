@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.conch.Conch;
@@ -9,17 +10,22 @@ import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -270,14 +276,14 @@ public class PocProcessorImpl implements PocProcessor {
      * load the poc holder backup from local disk
      */
     private void loadFromDisk() {
-        // read the disk backup
-        Logger.logInfoMessage("load exist poc holder instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
-        Object holderObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
-        if (holderObj != null) {
-            PocHolder.inst = (PocHolder) holderObj;
-        } else {
-            PocHolder.inst.lastHeight = -1;
-        }
+//        // read the disk backup
+//        Logger.logInfoMessage("load exist poc holder instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_HOLDER) + "]");
+//        Object holderObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_HOLDER);
+//        if (holderObj != null) {
+//            PocHolder.inst = (PocHolder) holderObj;
+//        } else {
+//            PocHolder.inst.lastHeight = -1;
+//        }
 
         Logger.logInfoMessage("load exist poc calculator instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR) + "]");
         Object calcObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
@@ -285,7 +291,7 @@ public class PocProcessorImpl implements PocProcessor {
             PocCalculator.inst = (PocCalculator) calcObj;
         }
 
-        //if no disk backup, read the poc txs from history blocks
+        //load and process the poc txs from history blocks
         if (PocHolder.inst != null && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
             oldPocTxsProcess = true;
         }
@@ -319,11 +325,11 @@ public class PocProcessorImpl implements PocProcessor {
             } catch (Exception e) {
                 Logger.logErrorMessage("Process delayed poc txs failed caused by [%s]", e.getMessage());
             }
-
+            
+            // old poc txs process: a) miss the poc tx, b) restart the cos client
             if (oldPocTxsProcess) {
                 // total poc txs from last height
                 int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
-//        int fromHeight = 0;
                 int toHeight = BlockchainImpl.getInstance().getHeight();
                 Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight, toHeight);
                 DbIterator<BlockImpl> blocks = null;
@@ -407,6 +413,43 @@ public class PocProcessorImpl implements PocProcessor {
 
         //just process poc tx
         for (Transaction tx : txs) {
+            if (pocTxProcess(tx)) count++;
+        }
+
+        return count;
+    }
+
+    /**
+     * process poc txs according to specified height area
+     * @param fromHeight
+     * @param toHeight
+     * @return
+     */
+    private int pocSeriesTxProcess(int fromHeight, int toHeight) {
+        Connection con = null;
+        List<Transaction> txList = Lists.newArrayList();
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM TRANSACTION t WHERE t.TYPE=12 AND HEIGHT >= ? AND HEIGHT <= ? ORDER BY HEIGHT ASC");
+            try{
+                pstmt.setInt(1,fromHeight);
+                pstmt.setInt(2,toHeight);
+                DbIterator<TransactionImpl> transactions =  BlockchainImpl.getInstance().getTransactions(con,pstmt);
+                while (transactions.hasNext()) {
+                    txList.add(transactions.next());
+                }
+            }finally {
+                DbUtils.close(con);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
+        }
+        
+        int count = 0;
+        for (Transaction tx : txList) {
             if (pocTxProcess(tx)) count++;
         }
 

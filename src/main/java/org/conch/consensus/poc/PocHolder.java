@@ -37,10 +37,10 @@ class PocHolder implements Serializable {
     // you can use the key word 'transient' exclude the attribute to persist
     
     static PocHolder inst = new PocHolder();
-    
-    /** poc score **/
+
     int lastHeight = -1;
     
+    /** poc score **/
     // accountId : pocScore
     private transient Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
    
