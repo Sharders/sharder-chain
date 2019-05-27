@@ -98,7 +98,7 @@ public class Consignor implements Serializable {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", id);
         jsonObject.put("transactions", transactions);
-        return jsonObject.toJSONString();
+        return jsonObject.toString();
     }
 
 

@@ -76,7 +76,7 @@ public class PoolDb {
         pstmtInsert.setInt(3, poolProcessor.getState().ordinal());
         String poolJsonStr = poolProcessor.toJsonStr();
         pstmtInsert.setString(4, poolJsonStr);
-        Logger.logDebugMessage("Pool Json String: " + poolJsonStr);
+        Logger.logDebugMessage("Insert Pool Json String: " + poolJsonStr);
         return pstmtInsert.executeUpdate();
     }
 
@@ -92,6 +92,7 @@ public class PoolDb {
         pstmtUpdate.setInt(2, poolProcessor.getState().ordinal());
         pstmtUpdate.setString(3, detail);
         pstmtUpdate.setLong(4, poolProcessor.getPoolId());
+        Logger.logDebugMessage("Update Pool Json String: " + detail);
         return pstmtUpdate.executeUpdate();
     }
 
