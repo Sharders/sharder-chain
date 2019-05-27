@@ -122,13 +122,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
         
         // send to foundation to create node type tx once in initial processing
-        if(isInit) {
-            if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
-                Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
-                response.put("reconfiged", false);
-                response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
-                return response;
-            }
+        if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
+            Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
+            response.put("reconfiged", false);
+            response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
+            return response;
         }
         
         while(enu.hasMoreElements()) {
