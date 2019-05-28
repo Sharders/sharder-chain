@@ -1119,6 +1119,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public boolean isProcessingBlock() {
     return isProcessingBlock;
   }
+  
+  @Override
+  public boolean isGetMoreBlocks() {
+    return getMoreBlocks;
+  }
 
   @Override
   public int getMinRollbackHeight() {

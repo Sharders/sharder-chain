@@ -384,7 +384,7 @@ public class FileUtil {
         return libFileMap;
     }
     
-    public static void delLogFolder() throws FileNotFoundException {
+    public static void deleteLogFolder() throws FileNotFoundException {
         String logPath = Conch.getUserHomeDir() + File.separator + "logs";
         File logFiles = new File(logPath);
         File[] files = logFiles.listFiles();

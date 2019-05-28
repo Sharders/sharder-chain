@@ -1351,9 +1351,7 @@ public final class Peers {
         if (selectedPeers.isEmpty()) {
             return null;
         }
-        if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
-            return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
-        }
+    
         long totalWeight = 0;
         for (Peer peer : selectedPeers) {
             long weight = peer.getWeight();
@@ -1361,7 +1359,16 @@ public final class Peers {
                 weight = 1;
             }
             totalWeight += weight;
+            // boot node check
+            if(Constants.isBootNode(peer.getHost())){
+                return peer;
+            }
         }
+        
+        if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
+            return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
+        }
+        
         long hit = ThreadLocalRandom.current().nextLong(totalWeight);
         for (Peer peer : selectedPeers) {
             long weight = peer.getWeight();

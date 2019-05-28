@@ -117,6 +117,10 @@ public class Generator implements Comparable<Generator> {
         forcePause = pause;
     }
     
+    public static boolean isPauseMining(){
+        return forcePause;
+    }
+    
     /**
      * check current height whether reached last known block
      * @param lastBlock
@@ -125,9 +129,9 @@ public class Generator implements Comparable<Generator> {
     private static boolean isMintHeightReached(Block lastBlock){
         if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
-                Logger.logInfoMessage("[TIPS] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
             }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logInfoMessage("[TIPS] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
             }
             return true;
         }
@@ -154,7 +158,7 @@ public class Generator implements Comparable<Generator> {
             // when blockchain be blocked and last block is obsolete, boot node need mining the block
             boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
             if(isObsoleteTime && isBootNode) {
-                Logger.logInfoMessage("[TIPS] boot node need keep mining when the state isn't UP_TO_DATE and the last block is obsolete.");
+                Logger.logInfoMessage("[BootNode] boot node need keep mining when the state isn't UP_TO_DATE and the last block is obsolete.");
             }else {
                 if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
                     Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");

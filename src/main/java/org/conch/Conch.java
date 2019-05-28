@@ -1037,6 +1037,28 @@ public final class Conch {
         }
     }
     
+    public static boolean pause(){
+        try{
+            Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+            Generator.pause(true); 
+        }catch(Exception e){
+            Logger.logErrorMessage("pause failed",e);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean unpause(){
+        try{
+            Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+            Generator.pause(false);
+        }catch(Exception e){
+            Logger.logErrorMessage("unpause failed",e);
+            return false;
+        }
+        return true;
+    }
+    
     /**
      * Full version format is : version number - stage
      * e.g. 0.0.1-Beta or 0.0.1-Alpha
