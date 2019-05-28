@@ -423,8 +423,10 @@
             },
             exit: function () {
                 const _this = this;
-                sessionStorage.setItem("sharder.login.mode",'true');
+                sessionStorage.setItem("sharder.login.mode",'manual');
                 // window.location.href = "/";
+                _this.secretPhrase = undefined;
+                _this.accountRS = undefined;
                 _this.$router.push("/login");
             },
             isClose: function () {
