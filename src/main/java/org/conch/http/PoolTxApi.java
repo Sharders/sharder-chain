@@ -90,7 +90,8 @@ public abstract class PoolTxApi {
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             long txId = ParameterParser.getUnsignedLong(request, "txId", true);
             Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
-            return createTransaction(request, account, 0, 0, attachment);
+            JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
+            return aware;
         }
     }
 
@@ -104,13 +105,28 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
-            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
-            int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long amount = ParameterParser.getLong(request, "amount", investmentRule[0], investmentRule[1], true);
+            SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+            
+        
+            long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
+            long allowedInvestAmount = investmentRule[1];
+            
+            // remain amount of pool
+            long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
+            long remainAmount = minerInvestmentRule[1] - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
+            
+            if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
+            
+            long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
+            
+            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+            int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            
             Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
-            return createTransaction(request, account, 0, 0, attachment);
+            JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
+            SharderPoolProcessor.addJoiningAmount(poolId, amount);
+            return aware;
         }
     }
     
@@ -245,7 +261,9 @@ public abstract class PoolTxApi {
             JSONObject json = forgePool.toJsonObject();
             if (account != null) {
                 Consignor consignor = forgePool.getConsignors().get(Long.parseUnsignedLong(account));
-                json.put("joinAmount", consignor == null ? 0 : consignor.getAmount());
+                long joinAmount = consignor == null ? 0 : consignor.getAmount();
+                joinAmount += forgePool.getJoiningAmount();
+                json.put("joinAmount", joinAmount);
             }
             return json;
         }

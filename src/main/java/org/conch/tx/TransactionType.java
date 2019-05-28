@@ -3668,6 +3668,8 @@ public abstract class TransactionType {
                 SharderPoolProcessor mintPool = SharderPoolProcessor.getPool(poolId);
                 height = height > mintPool.getStartBlockNo() ? height : mintPool.getStartBlockNo();
                 mintPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
+
+                SharderPoolProcessor.subJoiningAmount(poolId, amountNQT);
             }
 
             @Override

@@ -70,6 +70,7 @@ public class SharderPoolProcessor implements Serializable {
      */
     private long historicalFees;
     private long power;
+    private long joiningAmount = 0;
     private ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
     private int number = 0;
     private int updateHeight;
@@ -709,6 +710,26 @@ public class SharderPoolProcessor implements Serializable {
 
     public void setConsignors(ConcurrentMap<Long, Consignor> consignors) { this.consignors = consignors; }
 
+    public long getJoiningAmount() {
+        return joiningAmount;
+    }
+
+    public void setJoiningAmount(long joiningAmount) {
+        this.joiningAmount = joiningAmount;
+    }
+    
+    public static void addJoiningAmount(long poolId, long amount) { 
+        SharderPoolProcessor poolProcessor =  getPool(poolId);
+        if(poolProcessor == null) return;
+        poolProcessor.joiningAmount += amount;
+    }
+
+    public static void subJoiningAmount(long poolId, long amount) {
+        SharderPoolProcessor poolProcessor = getPool(poolId);
+        if(poolProcessor == null) return;
+        poolProcessor.joiningAmount -= amount;
+    }
+
     /**
      * whether creator has created a working mine pool
      *
@@ -728,6 +749,7 @@ public class SharderPoolProcessor implements Serializable {
         jsonObject.put("level", level);
         jsonObject.put("number", number);
         jsonObject.put("power", power);
+        jsonObject.put("joiningAmount", joiningAmount);
         jsonObject.put("chance", chance);
         jsonObject.put("historicalBlocks", historicalBlocks);
         jsonObject.put("historicalIncome", historicalIncome);
