@@ -171,8 +171,8 @@ public abstract class PocTxApi {
                 }else{
                     // v2 need account id or account rs
                     Long accountId = -1L;
-                    if(nodeTypeJson.containsKey("accountRs")){
-                        accountId = Account.rsAccountToId(nodeTypeJson.getString("accountRs"));
+                    if(nodeTypeJson.containsKey("bindRs")){
+                        accountId = Account.rsAccountToId(nodeTypeJson.getString("bindRs"));
                     }else if(nodeTypeJson.containsKey("accountId")){
                         accountId = nodeTypeJson.getLong("accountId");
                     }
