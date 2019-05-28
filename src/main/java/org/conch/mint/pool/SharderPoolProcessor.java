@@ -602,6 +602,13 @@ public class SharderPoolProcessor implements Serializable {
     public Map<String, Object> getRule() {
         return rule;
     }
+    
+//   rule public Float getRewardRate() {
+//        Map<String, Object> ruleMap =  getRootRuleMap();
+//        if(ruleMap == null) return Float.valueOf(0);
+//        .get("forgepool");
+//        return rule;
+//    }
 
     public Map<String, Object> getRootRuleMap(){
         Object rootRuleMap = getRule().get("level0");

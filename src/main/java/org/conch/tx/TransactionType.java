@@ -553,7 +553,7 @@ public abstract class TransactionType {
             if (consignors.size() == 0) {
                 calAndSetMiningReward(senderAccount, transaction, transaction.getAmountNQT(), stageTwo);
             } else {
-                Map<Long, Long> rewardList = PoolRule.getRewardMap(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
+                Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
                 for (long id : rewardList.keySet()) {
                     Account account = Account.getAccount(id);
                     calAndSetMiningReward(account, transaction, rewardList.get(id), stageTwo);

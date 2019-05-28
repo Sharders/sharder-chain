@@ -46,7 +46,7 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.gain_profit')}}</p>
-                                    <p class="strong">{{$global.getSSNumberFormat(miningInfo.income)}}</p>
+                                    <p class="strong">{{$global.getSSNumberFormat(miningInfo.rewardAmount)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">

@@ -305,17 +305,19 @@ public class PoolRule implements Serializable {
     public static Map<String, Object> getRules() {
         return rules;
     }
-
-    public static Map<Long, Long> getRewardMap(Long creator, Long poolId, Long amount, Map<Long, Long> map) {
+    
+    public static Map<Long, Long> calRewardMapAccordingToRules(Long creator, Long poolId, Long amount, Map<Long, Long> investmentMap) {
         Map<Long, Long> result = new HashMap<>();
+        if(investmentMap.size() == 0) return result;
+        
         SharderPoolProcessor forgePool = SharderPoolProcessor.getPoolFromAll(creator, poolId);
         int level = forgePool.getLevel();
-        Map<String, Object> ruleMap =
-                (Map<String, Object>)
-                        ((Map<String, Object>) forgePool.getRule().get("level" + level)).get("forgepool");
+
+        Map<String, Object> levelRuleMap = (Map<String, Object>) forgePool.getRule().get("level" + level);
+        Map<String, Object> ruleMap = (Map<String, Object>) levelRuleMap.get("forgepool");
         Object rewardRule = ((Map<String, Object>) ruleMap.get("reward")).get("max");
         
-        
+        // reward distribution rate of pool
         Float maxRewardRate = null;
         if (rewardRule instanceof Float) {
             maxRewardRate = (Float) rewardRule;
@@ -328,29 +330,40 @@ public class PoolRule implements Serializable {
         } else{
             maxRewardRate = Float.parseFloat(rewardRule.toString());
         }
+
+        if(maxRewardRate == null) return result;
+        
+        // calculate the creator amount
         long creatorAmount = Math.round(amount * (1 - maxRewardRate));
         result.put(creator, creatorAmount);
         long leftAmount = amount - creatorAmount;
-        long total = 0;
-        for (Long value : map.values()) {
-            total += value;
+        
+        // sum the total amount according to investment recording in the map
+        long totalInvest = 0;
+        for (Long value : investmentMap.values()) {
+            totalInvest += value;
         }
-        for (Long id : map.keySet()) {
-            //奖励分发(1);
-            long reward = new BigDecimal(leftAmount).multiply(new BigDecimal(map.get(id).toString())).divide(new BigDecimal(total),0,BigDecimal.ROUND_DOWN).longValue();
+        
+        BigDecimal totalInvestAmount = BigDecimal.valueOf(totalInvest);
+        BigDecimal remainInvestAmount = new BigDecimal(leftAmount);
+        // calculate the single investor's rewards
+        long totalReward = 0;
+        for (Long id : investmentMap.keySet()) {
+            BigDecimal investAmount = BigDecimal.valueOf(investmentMap.get(id));
+            BigDecimal investRate = investAmount.divide(totalInvestAmount,0,BigDecimal.ROUND_DOWN);
+            
+            long reward = remainInvestAmount.multiply(investRate).longValue();
             if (result.containsKey(id)) {
                 result.put(id, result.get(id) + reward);
-                continue;
+            }else{
+                result.put(id, reward);  
             }
-            result.put(id, reward);
+            totalReward += reward;
         }
 
-        //奖励分发(2);
-        long poor = amount;
-        for(long p : result.values()){
-            poor -= p;
-        }
-        result.put(creator, result.get(creator) + poor);
+        // remain amount distribute to creator
+        long remainReward = (amount > totalReward) ? (amount - totalReward) : 0;
+        result.put(creator, result.get(creator) + remainReward);
 
         return result;
     }

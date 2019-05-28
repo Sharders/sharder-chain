@@ -807,8 +807,6 @@ public class Generator implements Comparable<Generator> {
     private static final String AUTO_MINT_ADDRESS = autoMintAccountRs();
     static boolean autoMintRunning = false;
     
-    
-    
     /**
      * local auto mint rs account
      *

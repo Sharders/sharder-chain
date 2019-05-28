@@ -1,5 +1,6 @@
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
@@ -45,8 +46,12 @@ public abstract class PoolTxApi {
             }
             
             String rsAddress = account.getRsAddress();
-            if(!Generator.isBindAddress(account.getRsAddress())){
-                throw new ConchException.NotValidException("Please finish hub initialization before pool creation or you account " + rsAddress + " is not linked TSS address!");
+            if(!Generator.HUB_IS_BIND){
+                throw new ConchException.NotValidException("Please finish hub initialization firstly");
+            }
+            
+            if(!Generator.isBindAddress(account.getRsAddress()) && !Constants.isDevnet()){
+                throw new ConchException.NotValidException("Your account " + rsAddress + " isn't this Hub's linked TSS address!");
             }
 
             if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(account.getId())) {
@@ -277,16 +282,24 @@ public abstract class PoolTxApi {
                 return JSON.prepare(response);
             }
             JSONObject json = miningPool.toJsonObject();
-            if (account != null) {
-                Consignor consignor = miningPool.getConsignors().get(Long.parseUnsignedLong(account));
-                long joinAmount = consignor == null ? 0 : consignor.getAmount();
+            
+            if (StringUtils.isNotEmpty(account)) {
+                long accountId = Long.parseUnsignedLong(account);
+                Consignor consignor = miningPool.getConsignors().get(accountId);
+                long joinAmount = (consignor == null) ? 0 : consignor.getAmount();
+           
+                if(miningPool.getCreatorId() == accountId){
+                    joinAmount += SharderPoolProcessor.PLEDGE_AMOUNT;
+                }
+
                 long rewardAmount = 0;
                 try{
-                    Map<Long, Long> rewardList = PoolRule.getRewardMap(miningPool.getCreatorId(), poolId, miningPool.getMintRewards(), miningPool.getConsignorsAmountMap());
-                    rewardAmount = rewardList.get(Long.parseUnsignedLong(account));
+                    Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(miningPool.getCreatorId(), poolId, miningPool.getMintRewards(), miningPool.getConsignorsAmountMap());
+                    rewardAmount = rewardList.get(accountId);
                 }catch(Exception e){
-                   Logger.logErrorMessage("can't calculate the investor's mining reward",e); 
+                    Logger.logErrorMessage("can't calculate the investor's mining reward",e);
                 }
+                
                 json.put("joinAmount", joinAmount);
                 json.put("rewardAmount", rewardAmount);
             }
