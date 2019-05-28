@@ -519,8 +519,7 @@ public final class Peers {
                 ctxHandler.addServlet(peerServletHolder, "/*");
 
                 if (Conch.getBooleanProperty("sharder.enablePeerServerDoSFilter")) {
-                    FilterHolder dosFilterHolder = ctxHandler.addFilter(DoSFilter.class, "/*",
-                            EnumSet.of(DispatcherType.REQUEST));
+                    FilterHolder dosFilterHolder = ctxHandler.addFilter(DoSFilter.class, "/*",EnumSet.of(DispatcherType.REQUEST));
                     dosFilterHolder.setInitParameter("maxRequestsPerSec", Conch.getStringProperty("sharder.peerServerDoSFilter.maxRequestsPerSec"));
                     dosFilterHolder.setInitParameter("delayMs", Conch.getStringProperty("sharder.peerServerDoSFilter.delayMs"));
                     dosFilterHolder.setInitParameter("maxRequestMs", Conch.getStringProperty("sharder.peerServerDoSFilter.maxRequestMs"));

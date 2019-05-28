@@ -350,7 +350,7 @@ public class PoolRule implements Serializable {
         long totalReward = 0;
         for (Long id : investmentMap.keySet()) {
             BigDecimal investAmount = BigDecimal.valueOf(investmentMap.get(id));
-            BigDecimal investRate = investAmount.divide(totalInvestAmount,0,BigDecimal.ROUND_DOWN);
+            BigDecimal investRate = investAmount.divide(totalInvestAmount,4,BigDecimal.ROUND_DOWN);
             
             long reward = remainInvestAmount.multiply(investRate).longValue();
             if (result.containsKey(id)) {
