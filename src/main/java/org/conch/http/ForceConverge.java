@@ -35,6 +35,7 @@ import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
+import org.conch.util.ThreadPool;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -43,6 +44,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public final class ForceConverge extends APIServlet.APIRequestHandler {
 
@@ -225,43 +227,51 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
     
     }
-
+    
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
     public static void updatePropertiesFile(){
         HashMap<String, String> parameters = Maps.newHashMap();
         parameters.put(PROPERTY_FORK_NAME, "Giant");
         Conch.storePropertiesToFile(parameters);
     }
-
+    
     public static void switchFork(){
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)) {
             reset();
             Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
             updatePropertiesFile();
-            
-            //pause
             Conch.pause();
         }
 
         Logger.logInfoMessage("start to check converge command and finish the fork switch");
         com.alibaba.fastjson.JSONObject cmdObj = getCmdTools();
-        if(cmdObj != null) {
-            Logger.logDebugMessage("force converge command is: " + cmdObj.toJSONString());
+        if(cmdObj == null) return;
             
-            // check and unpause
-            if(cmdObj.containsKey(Command.PAUSE_SYNC.val())){
-                boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
-                if(!pauseSyn){
-                   Conch.unpause();
-                }
-            }
-        }
+        Logger.logDebugMessage("force converge command is: " + cmdObj.toJSONString());
+        // check and unpause
+        if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) return;
+        
+        boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
+        if(!pauseSyn) Conch.unpause();
     }
     
-    //TODO a thread to run fork switch
-    
+    public static void init() {
+        ThreadPool.scheduleThread("switchForkThread", switchForkThread, 60, TimeUnit.MINUTES);
+    }
 
+    private static final Runnable switchForkThread = () -> {
+        try {
+            switchFork();
+        } catch (Exception e) {
+            Logger.logErrorMessage("witch fork thread interrupted caused by %s", e.getMessage());
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
+    
+    
     @Override
     protected final boolean requirePost() {
         return false;

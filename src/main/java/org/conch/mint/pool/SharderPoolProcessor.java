@@ -475,14 +475,14 @@ public class SharderPoolProcessor implements Serializable {
             }
         }
 
-        saveToDisk();
+        persistence();
     }
 
     /**
      * save the pools to disk,
      * If be called outside, the caller should be org.conch.Conch#shutdown()
      */
-    public static void saveToDisk(){
+    public static void persistence(){
 //        DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
 //        DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
         List<SharderPoolProcessor> poolList = Lists.newArrayList(sharderPools.values());

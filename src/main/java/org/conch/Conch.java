@@ -53,6 +53,7 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
+import org.conch.http.ForceConverge;
 import org.conch.market.*;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
@@ -710,8 +711,7 @@ public final class Conch {
         BlockchainProcessorImpl.getInstance().shutdown();
         Peers.shutdown();
         Db.shutdown();
-//        getPocProcessor().saveToDisk();
-        SharderPoolProcessor.saveToDisk();
+        SharderPoolProcessor.persistence();
         Logger.logShutdownMessage("COS server " + VERSION + " stopped.");
         Logger.shutdown();
         runtimeMode.shutdown();
@@ -783,6 +783,7 @@ public final class Conch {
                 SharderPoolProcessor.init();
                 DebugTrace.init();
                 DbBackup.init();
+                ForceConverge.init();
                 int timeMultiplier = (Constants.isTestnetOrDevnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
@@ -1062,13 +1063,11 @@ public final class Conch {
     /**
      * Full version format is : version number - stage
      * e.g. 0.0.1-Beta or 0.0.1-Alpha
-     * @return
+     * @return 
      */
     public static String getFullVersion(){
         return VERSION + STAGE;
     }
-    public static String getVersion(){
-        return VERSION;
-    }
+    public static String getVersion(){ return VERSION; }
 
 }
