@@ -60,15 +60,15 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal" class="join"
+                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal && typeof(secretPhrase) !== 'undefined'" class="join"
                                 @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0"
+                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0 && typeof(secretPhrase) !== 'undefined'"
                                 class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId]"
+                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId] && typeof(secretPhrase) !== 'undefined'"
                                 class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
@@ -187,6 +187,7 @@
                 isDestroyPool: false,
                 joinRSPool: '',
                 myAccount: SSO.accountRS,
+                secretPhrase: SSO.secretPhrase,
                 miningInfo: {
                     account: '',
                     accountId: "",
