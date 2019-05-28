@@ -137,7 +137,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               downloadPeer();
               if (blockchain.getHeight() == chainHeight) {
                 if (isDownloading && !simulateEndlessDownload) {
-                  Logger.logMessage("Finished blockchain download");
+                  Logger.logMessage("Finished blockchain download[current height=" + blockchain.getHeight() + "]");
                   isDownloading = false;
                 }
                 break;
@@ -232,7 +232,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
             if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
-              Logger.logMessage("Blockchain download in progress");
+              Logger.logMessage("Blockchain download in progress[height is from " +  blockchain.getHeight() + " to " + lastBlockchainFeederHeight + "]");
               isDownloading = true;
             }
 
@@ -567,7 +567,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             int myForkSize = blockchain.getHeight() - startHeight;
             if (!forkBlocks.isEmpty() && myForkSize < 720) {
-              Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks, mine is " + myForkSize);
+              Logger.logDebugMessage("will process a fork of " + forkBlocks.size() + " blocks from start height %d, current block chain have %d size fork blocks from start height %d" + myForkSize, startHeight, myForkSize, startHeight);
               processFork(feederPeer, forkBlocks, commonBlock);
             }
             
@@ -1119,6 +1119,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public boolean isProcessingBlock() {
     return isProcessingBlock;
   }
+  
+  @Override
+  public boolean isGetMoreBlocks() {
+    return getMoreBlocks;
+  }
 
   @Override
   public int getMinRollbackHeight() {
@@ -1378,6 +1383,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       } catch (Exception e) {
         Db.db.rollbackTransaction();
         blockchain.setLastBlock(previousLastBlock);
+        Logger.logErrorMessage("push block failed caused by[%s]", e.getMessage());
         throw e;
       } finally {
         Db.db.endTransaction();
@@ -1427,7 +1433,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException, GeneratorNotAcceptedException {
     
-    if(!Generator.isValid(block.getGeneratorId())) {
+    if(!Generator.isValid(block.getGeneratorId(), block.getHeight())) {
       throw new GeneratorNotAcceptedException("Invalid generator",block.getGeneratorId());
     }
     
@@ -1455,11 +1461,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (block.getId() == 0L || BlockDb.hasBlock(block.getId(), previousLastBlock.getHeight())) {
       throw new BlockNotAcceptedException("Duplicate block or invalid id", block);
     }
-    if (!block.verifyGenerationSignature() && 
-            !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
+    if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
-      String errorMsg = "Generation signature verification failed, poc score is " + pocScoreObj.total() + " and block id is " + block.getId() + " at height " + (previousLastBlock.getHeight()+1);
+      String errorMsg = String.format("Generation signature verification failed, account is %s poc score is %d and block id is %s at height %d" , generatorAccount.getRsAddress(), pocScoreObj.total(), block.getId(), (previousLastBlock.getHeight()+1));
       throw new BlockNotAcceptedException(errorMsg, block);
     }
     if (!block.verifyBlockSignature()) {
@@ -1756,7 +1761,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       try {
         BlockImpl block = blockchain.getLastBlock();
         block.loadTransactions();
-        Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight() + " to " + commonBlock.getStringId() + " at " + commonBlock.getHeight());
+        Logger.logDebugMessage("Rollback from block " + block.getStringId() + " at height " + block.getHeight() + " to " + commonBlock.getStringId() + " at height " + commonBlock.getHeight());
         while (block.getId() != commonBlock.getId() && block.getId() != SharderGenesis.GENESIS_BLOCK_ID) {
           poppedOffBlocks.add(block);
           block = popLastBlock();

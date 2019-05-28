@@ -87,16 +87,61 @@ public interface PocTxBody {
             this.value = value;
         }
     }
+    
+    class PocNodeTypeV2 extends PocNodeType {
+        private long accountId;
+
+        public long getAccountId() {
+            return accountId;
+        }
+
+        public PocNodeTypeV2(String ip, Peer.Type type, long accountId) {
+            super(ip, type);
+            this.accountId = accountId;
+        }
 
 
-    final class PocNodeType extends Attachment.TxBodyBase {
+        public PocNodeTypeV2(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.accountId = buffer.getLong();
+        }
+
+        public PocNodeTypeV2(JSONObject attachmentData) {
+            super(attachmentData);
+            this.accountId = (Long) attachmentData.get("accountId");
+        }
+
+        @Override
+        public int getMySize() {
+            return 4 + 2 + ip.getBytes().length + 8;
+        }
+
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            buffer.putInt(type.getCode());
+            byte[] ip = Convert.toBytes(this.ip);
+            buffer.putShort((short) ip.length);
+            buffer.put(ip);
+            buffer.putLong(accountId);
+        }
+
+        @Override
+        public void putMyJSON(JSONObject attachment) {
+            attachment.put("ip", this.ip);
+            attachment.put("accountId", this.accountId);
+            attachment.put("type", this.type.getCode());
+        }
+    }
+
+    class PocNodeType extends Attachment.TxBodyBase {
         /**
          * TODO need refactor
          * ip = socket address => host:port (my address)
          * IP Socket Address (IP address + port number) It can also be a pair (hostname + port number)
          */
-        private String ip;
-        private Peer.Type type;
+        protected String ip;
+        protected Peer.Type type;
+       
 
         public String getIp() {
             return ip;
@@ -106,6 +151,7 @@ public interface PocTxBody {
             return type;
         }
 
+       
         public PocNodeType(String ip, Peer.Type type) {
             this.ip = ip;
             this.type = type;
@@ -457,6 +503,10 @@ public interface PocTxBody {
             this.port = (String) attachmentData.get("port");
             this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
         }
+        
+        public String getHost(){
+            return this.ip + ":" + port;
+        }
 
         @Override
         public int getMySize() {
@@ -524,6 +574,10 @@ public interface PocTxBody {
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.networkRate = (int) attachmentData.get("networkRate");
+        }
+
+        public String getHost(){
+            return this.ip + ":" + port;
         }
 
         @Override

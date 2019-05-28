@@ -8,7 +8,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
 import org.conch.common.UrlManager;
 import org.conch.db.Db;
-import org.conch.mint.Generator;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -94,8 +93,7 @@ public class ClientUpgradeTool {
         String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
         try{
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
-            Generator.pause(true);
-            Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+            Conch.pause();
 
             // fetch the specified archived db file
             File tempPath = new File("temp/");
@@ -118,8 +116,7 @@ public class ClientUpgradeTool {
             Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
         }finally{
             Logger.logDebugMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
-            Generator.pause(false);
-            Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+            Conch.unpause();
         }
     }
 
@@ -135,7 +132,9 @@ public class ClientUpgradeTool {
      * @throws IOException
      */
     public static JSONObject fetchLastCosVersion() throws IOException {
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(UrlManager.getHubLatestVersionUrl()).get().request();
+        String url = UrlManager.getHubLatestVersionUrl();
+        Logger.logDebugMessage("fetch the last cos version from " + url);
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
         return JSON.parseObject(response.getContent());
     }
 }

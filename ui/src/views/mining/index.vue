@@ -981,7 +981,7 @@
     }
 
     .grid-content .info .pool-owner {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .grid-content .tag {

@@ -24,14 +24,12 @@ package org.conch.http;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.mint.pool.SharderPoolProcessor;
-import org.conch.util.Logger;
+import org.conch.util.FileUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -84,17 +82,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             // reset user define properties file
             Conch.storePropertiesToFile(RESET_MAP);
             // delete log files when resetting configuration
-            String logPath = Conch.getUserHomeDir() + File.separator + "logs";
-            File logFiles = new File(logPath);
-            File[] files = logFiles.listFiles();
-            if (files != null && files.length > 0) {
-                for (File file : files) {
-                    Logger.logInfoMessage("Deleting log files..." + file.getAbsolutePath());
-                    PrintWriter writer = new PrintWriter(file);
-                    writer.print("");
-                    writer.close();
-                }
-            }
+            FileUtil.deleteLogFolder();
 
             response.put("done", true);
         } catch (RuntimeException | FileNotFoundException e) {

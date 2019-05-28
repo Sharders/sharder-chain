@@ -863,7 +863,9 @@ public final class Peers {
             UrlManager.PEERS_LIST_LOCAL,
             UrlManager.PEERS_LIST_PATH
     );
-    
+
+    /** Syn cetified peers from foundation 
+     * 
     public static boolean synCertifiedPeers() throws Exception {
         String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
         com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
@@ -907,24 +909,21 @@ public final class Peers {
                 detail += "update a certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
             }
 
-            if(peer != null) {
-                peer.setBindRsAccount(bindAddress);
-                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
-            }
+//            if(peer != null) {
+//                peer.setBindRsAccount(bindAddress);
+//                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
+//            }
         }
         detail += "<================== certified peer info updated";
         Logger.logDebugMessage(detail);
         return true;
     }
 
-    /**
-     * get and update the local bound rs account of certified peer
-     */
+  
+     // get and update the local bound rs account of certified peer
     private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
         try {
-            
             synCertifiedPeers();
-            
         } catch (Exception e) {
             Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
         } catch (Throwable t) {
@@ -932,6 +931,7 @@ public final class Peers {
             System.exit(1);
         }
     };
+     */
 
     public static volatile boolean hardwareTested = false;
     public static volatile boolean sysInitialed = false;
@@ -989,7 +989,7 @@ public final class Peers {
 
     public static void init() {
         Init.init();
-        ThreadPool.scheduleThread("GetCertifiedPeer", Peers.GET_CERTIFIED_PEER_THREAD, 1, TimeUnit.MINUTES);
+//        ThreadPool.scheduleThread("GetCertifiedPeer", Peers.GET_CERTIFIED_PEER_THREAD, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("PeerHardwareTesting", Peers.HARDWARE_TESTING_THREAD, 60);
     }
 
@@ -1351,9 +1351,7 @@ public final class Peers {
         if (selectedPeers.isEmpty()) {
             return null;
         }
-        if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
-            return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
-        }
+    
         long totalWeight = 0;
         for (Peer peer : selectedPeers) {
             long weight = peer.getWeight();
@@ -1361,7 +1359,16 @@ public final class Peers {
                 weight = 1;
             }
             totalWeight += weight;
+            // boot node check
+            if(Constants.isBootNode(peer.getHost())){
+                return peer;
+            }
         }
+        
+        if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
+            return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
+        }
+        
         long hit = ThreadLocalRandom.current().nextLong(totalWeight);
         for (Peer peer : selectedPeers) {
             long weight = peer.getWeight();

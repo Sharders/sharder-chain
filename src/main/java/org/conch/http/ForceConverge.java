@@ -23,6 +23,7 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
@@ -31,14 +32,19 @@ import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
 import org.conch.tools.ClientUpgradeTool;
+import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
+import org.conch.util.ThreadPool;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public final class ForceConverge extends APIServlet.APIRequestHandler {
 
@@ -49,11 +55,13 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     enum Command {
-        TO_HEIGHT("toHeight")
-        ,KEEP_TX("keepTx")
-        ,PAUSE_SYNC("pauseSyn")
-        ,UPGRADE_COS("upgradeCos")
-        ,UPGRADE_DB("upgradeDb");
+        TO_HEIGHT("toHeight")       // from v0.1.5
+        ,KEEP_TX("keepTx")          // from v0.1.5
+        ,PAUSE_SYNC("pauseSyn")     // from v0.1.5
+        ,UPGRADE_COS("upgradeCos")  // from v0.1.5
+        ,UPGRADE_DB("upgradeDb")
+        ,RESET("reset")             // from v0.1.6
+        ;
 
         private String value;
 
@@ -78,52 +86,45 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             }else{
                 Logger.logDebugMessage("received force converge command: " + cmdObj.toJSONString());
             }
-            
-            try{
-                Generator.pause(true);
-                Logger.logDebugMessage("start to syn known ignore blocks and txs...");
-                // syn ignore blocks
-                CheckSumValidator.updateKnownIgnoreBlocks();
 
-                int currentHeight = Conch.getBlockchain().getHeight();
-                int toHeight = cmdObj.containsKey(Command.TO_HEIGHT.val()) ? cmdObj.getInteger(Command.TO_HEIGHT.val()) : currentHeight;
-                Logger.logDebugMessage("received toHeight is %d ", toHeight);
-                // pop-off to specified height
-                List<? extends Block> blocks = Lists.newArrayList();
+            // syn ignore blocks
+            try {
+                Generator.pause(true);
+                Logger.logDebugMessage("update known ignore blocks and txs...");
+                CheckSumValidator.updateKnownIgnoreBlocks();
+            } finally {
+                Generator.pause(false);
+            }
+            
+            //pop-off command
+            if(cmdObj.containsKey(Command.TO_HEIGHT.val())) {
                 try {
-                    Conch.getBlockchainProcessor().setGetMoreBlocks(false);
-                    if(toHeight < currentHeight) {
+                    Conch.pause();
+
+                    int currentHeight = Conch.getBlockchain().getHeight();
+                    int toHeight = cmdObj.getInteger(Command.TO_HEIGHT.val());
+                    Logger.logDebugMessage("received toHeight is %d ", toHeight);
+                    
+                    // pop-off to specified height
+                    List<? extends Block> blocks = Lists.newArrayList();
+                    if (toHeight < currentHeight) {
                         Logger.logDebugMessage("start to pop-off to height %d", toHeight);
                         blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
                     }
+
+                    // tx process
+                    boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
+                    Logger.logDebugMessage("received keepTx is %s ", keepTx);
+
+                    if (keepTx) {
+                        Logger.logDebugMessage("start to put the txs into delay process pool");
+                        blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+                    }
                 } finally {
-                    Conch.getBlockchainProcessor().setGetMoreBlocks(true);
-                }
-
-                // tx process
-                boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
-                Logger.logDebugMessage("received keepTx is %s ", keepTx);
-
-                if (keepTx) {
-                    Logger.logDebugMessage("start to put the txs into delay process pool");
-                    blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
-                }
-            }finally {
-                Generator.pause(false);
-            }
-
-            // pause command process
-            if(cmdObj.containsKey(Command.PAUSE_SYNC.val())){
-                boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
-                if(pauseSyn){
-                    Conch.getBlockchainProcessor().setGetMoreBlocks(false);
-                    Generator.pause(true);
-                }else{
-                    Conch.getBlockchainProcessor().setGetMoreBlocks(true);
-                    Generator.pause(false);
+                    Conch.unpause();
                 }
             }
-            
+
             //upgrade cos
             if(cmdObj.containsKey(Command.UPGRADE_COS.val())){
                 boolean upgradeCos = cmdObj.getBooleanValue(Command.UPGRADE_COS.val());
@@ -141,6 +142,22 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 if(StringUtils.isNotEmpty(upgradeDbHeight)){
                     Logger.logDebugMessage("start to fetch archived db file from oss and upgrade local db...");
                     ClientUpgradeTool.upgradeDbFile(upgradeDbHeight);
+                }
+            }
+
+            // reset command process
+            if(cmdObj.containsKey(Command.RESET.val())){
+                boolean needReset = cmdObj.getBooleanValue(Command.RESET.val());
+                if(needReset) reset();
+            }
+
+            // pause command process
+            if(cmdObj.containsKey(Command.PAUSE_SYNC.val())){
+                boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
+                if(pauseSyn){
+                    Conch.pause();
+                }else{
+                    Conch.unpause();
                 }
             }
             
@@ -194,7 +211,73 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
         return null;
     }
+    
+    public static void reset(){
+       try{
+            Conch.pause();
+            
+            Logger.logDebugMessage("start to reset the blockchain");
+            Conch.getBlockchainProcessor().fullReset();
+            FileUtil.deleteLogFolder();
+            
+        }catch (RuntimeException | FileNotFoundException e) {
+            Logger.logErrorMessage("reset failed", e);
+        }finally {
+            Conch.unpause();
+        }
+    
+    }
+    
+    static final String PROPERTY_FORK_NAME = "sharder.forkName";
+    static boolean forkSwitched = false;
+    public static void updatePropertiesFile(){
+        HashMap<String, String> parameters = Maps.newHashMap();
+        parameters.put(PROPERTY_FORK_NAME, "Giant");
+        Conch.storePropertiesToFile(parameters);
+    }
+    
+    public static void switchFork(){
+        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
+        if(StringUtils.isEmpty(forkName)) {
+            reset();
+            Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
+            updatePropertiesFile();
+            Conch.pause();
+        }
 
+        Logger.logInfoMessage("start to check converge command and finish the fork switch");
+        com.alibaba.fastjson.JSONObject cmdObj = getCmdTools();
+        if(cmdObj == null) return;
+            
+        Logger.logDebugMessage("force converge command is: " + cmdObj.toJSONString());
+        // check and unpause
+        if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) return;
+        
+        boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
+        if(!pauseSyn) {
+            Conch.unpause();
+            forkSwitched = true;
+        }
+    }
+    
+    public static void init() {
+        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
+        if(StringUtils.isEmpty(forkName)){
+            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 60, TimeUnit.MINUTES);  
+        }
+    }
+
+    private static final Runnable switchForkThread = () -> {
+        try {
+            switchFork();
+        } catch (Exception e) {
+            Logger.logErrorMessage("witch fork thread interrupted caused by %s", e.getMessage());
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
+    
     @Override
     protected final boolean requirePost() {
         return false;

@@ -36,8 +36,9 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
-            if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId()) && !Constants.isDevnet()) {
-                String errorDetail = "Can't create mining pool, because account " + account.getRsAddress() + " is not be bind to certified peer";
+            int currentHeight = Conch.getBlockchain().getHeight();
+            if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId(), currentHeight) && !Constants.isDevnet()) {
+                String errorDetail = "Can't create a mining pool, because account " + account.getRsAddress() + " is not linked to a certified peer";
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
@@ -45,13 +46,13 @@ public abstract class PoolTxApi {
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 50 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 15 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
                 rules = (JSONObject) (new JSONParser().parse(rule));
             } catch (Exception e) {
-                Logger.logErrorMessage("Can't obtain rule when create mint pool");
+                Logger.logErrorMessage("Can't obtain rules when create mining pool");
             }
             Map<String, Object> rule = PoolRule.jsonObjectToMap(rules);
             Attachment attachment = new Attachment.SharderPoolCreate(period, rule);

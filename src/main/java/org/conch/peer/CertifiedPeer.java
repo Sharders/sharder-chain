@@ -1,7 +1,9 @@
 package org.conch.peer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
+import org.conch.common.ConchException;
 import org.conch.util.IpUtil;
 
 import java.io.Serializable;
@@ -26,6 +28,7 @@ import java.sql.Timestamp;
  */
 public class CertifiedPeer implements Serializable {
     int height = -1;
+    int endHeight = -2;
     Peer.Type type;
     //peerHost is public ip or announcedAddress(NatIp+Port) 
     String host;
@@ -165,6 +168,33 @@ public class CertifiedPeer implements Serializable {
     public Timestamp getUpdateTime() {
         return updateTime;
     }
+
+    public int getEndHeight() {
+        return endHeight;
+    }
+    
+    public boolean isEnd(){ 
+        return this.endHeight >= 0;
+    }
+
+    public void end(int endHeight) throws ConchException.NotValidException {
+        if(endHeight <= -1) throw new ConchException.NotValidException("certified peer is invalid: end height <= -1");
+        if(endHeight < height) throw new ConchException.NotValidException("certified peer is invalid: end height " + endHeight + " < start height " + height);
+        this.endHeight = endHeight;
+    }
+
+    public void check() throws ConchException.NotValidException {
+        if(type == null) throw new ConchException.NotValidException("certified peer is invalid: type is null");
+        if(StringUtils.isEmpty(host)) throw new ConchException.NotValidException("certified peer is invalid: host is null");
+        if(boundAccountId == -1) throw new ConchException.NotValidException("certified peer is invalid: bound account id is -1");
+        if(height < 0) throw new ConchException.NotValidException("certified peer is invalid: height is smaller than 0");
+
+        // peer type check: foundation type should check the domain whether valid
+        if(Peer.Type.FOUNDATION == type && !IpUtil.isFoundationDomain(host)) {
+            throw new ConchException.NotValidException("certified peer is invalid: type is FOUNDATION, but hots is not valid foundation domain");
+        }
+    }
+    
 
     @Override
     public String toString() {

@@ -23,6 +23,7 @@ package org.conch.peer;
 
 import org.conch.chain.Block;
 import org.conch.Conch;
+import org.conch.mint.Generator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -41,6 +42,9 @@ final class GetCumulativeDifficulty extends PeerServlet.PeerRequestHandler {
         Block lastBlock = Conch.getBlockchain().getLastBlock();
         response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
         response.put("blockchainHeight", lastBlock.getHeight());
+        response.put("isPauseMining", Generator.isPauseMining());
+        response.put("isGetMoreBlocks", Conch.getBlockchainProcessor().isGetMoreBlocks());
+        response.put("version", Conch.getVersion());
         return response;
     }
 

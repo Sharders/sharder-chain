@@ -33,6 +33,7 @@ import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.tx.TransactionProcessorImpl;
@@ -116,6 +117,10 @@ public class Generator implements Comparable<Generator> {
         forcePause = pause;
     }
     
+    public static boolean isPauseMining(){
+        return forcePause;
+    }
+    
     /**
      * check current height whether reached last known block
      * @param lastBlock
@@ -124,9 +129,9 @@ public class Generator implements Comparable<Generator> {
     private static boolean isMintHeightReached(Block lastBlock){
         if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
-                Logger.logInfoMessage("[TIPS] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
             }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logInfoMessage("[TIPS] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
             }
             return true;
         }
@@ -153,7 +158,7 @@ public class Generator implements Comparable<Generator> {
             // when blockchain be blocked and last block is obsolete, boot node need mining the block
             boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
             if(isObsoleteTime && isBootNode) {
-                Logger.logInfoMessage("[TIPS] boot node need keep mining when the state isn't UP_TO_DATE and the last block is obsolete.");
+                Logger.logInfoMessage("[BootNode] boot node need keep mining when the state isn't UP_TO_DATE and the last block is obsolete.");
             }else {
                 if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
                     Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
@@ -270,8 +275,9 @@ public class Generator implements Comparable<Generator> {
      * @param generatorId
      * @return
      */
-    public static boolean isValid(long generatorId){
-        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
+    public static boolean isValid(long generatorId, int height){
+        return !blackedGenerators.contains(generatorId);
+//        return Conch.getPocProcessor().isCertifiedPeerBind(generatorId) && !blackedGenerators.contains(generatorId);
     }
 
     public static boolean hasGenerationMissingAccount(){
@@ -569,8 +575,8 @@ public class Generator implements Comparable<Generator> {
         json.put("deadline", deadline);
         json.put("hitTime", hitTime);
         json.put("remaining", Math.max(deadline - elapsedTime, 0));
-        Peer.Type type = Conch.getPocProcessor().bindPeerType(accountId);
-        if(type == null) type = Peer.Type.NORMAL;
+        CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(accountId, Conch.getHeight());
+        Peer.Type type = (boundedPeer != null) ? boundedPeer.getType() : Peer.Type.NORMAL;
         json.put("bindPeerType", type.getName());
         if(loadPoolInfo) {
             json.put("poolInfo", SharderPoolProcessor.getPoolJSON(accountId));
@@ -597,8 +603,6 @@ public class Generator implements Comparable<Generator> {
                 generator.pocScore = pocScore.total();
             }
         }
-        
-        
     }
     /**
      * calculate the poc score and set the hit
@@ -648,7 +652,7 @@ public class Generator implements Comparable<Generator> {
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
         if(!isBootNode && !Constants.isDevnet()) {
             if(!isMintHeightReached(lastBlock)) return false;
-            if(!isValid(this.accountId)) return false;
+            if(!isValid(this.accountId, lastBlock.getHeight())) return false;
         }
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {

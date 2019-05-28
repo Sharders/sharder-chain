@@ -26,7 +26,6 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.PocCalculator;
-import org.conch.consensus.poc.PocProcessorImpl;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionType;
@@ -135,13 +134,20 @@ public abstract class PocTxWrapper extends TransactionType {
         }
 
         @Override
-        public Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) {
-            return new PocTxBody.PocNodeType(attachmentData);
+        public Attachment.AbstractAttachment parseAttachment(JSONObject data) {
+            return data.containsKey("accountId") ? new PocTxBody.PocNodeTypeV2(data) : new PocTxBody.PocNodeType(data);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-            PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) transaction.getAttachment();
+            PocTxBody.PocNodeType nodeType = null;
+            Attachment attachment = transaction.getAttachment();
+            if(attachment instanceof PocTxBody.PocNodeType) {
+                nodeType = (PocTxBody.PocNodeType) attachment;
+            }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+                nodeType = (PocTxBody.PocNodeTypeV2)attachment;
+            }
+            
             if (nodeType == null) {
                 throw new ConchException.NotValidException("Invalid PocTxBody.PocNodeType: null");
             }

@@ -1200,6 +1200,16 @@ public class ConchDbVersion extends DbVersion {
             case 492:
                 apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ext BINARY(237)");
             case 493:
+                apply("CREATE TABLE IF NOT EXISTS account_poc_score (db_id IDENTITY, account_id BIGINT NOT NULL,"
+                        + "poc_score BIGINT NOT NULL, height INT NOT NULL, poc_detail VARCHAR)");
+            case 494:
+                apply("CREATE TABLE IF NOT EXISTS account_pool (db_id IDENTITY, pool_id BIGINT NOT NULL, creator_id BIGINT NOT NULL,"
+                        + "state TINYINT NOT NULL, pool_detail VARCHAR)");
+            case 495:
+                apply("CREATE INDEX IF NOT EXISTS account_height_idx ON account_poc_score (account_id, height DESC)");
+            case 496:
+                apply("CREATE INDEX IF NOT EXISTS pool_id_idx ON account_pool (pool_id DESC)");
+            case 497:
                 break;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate

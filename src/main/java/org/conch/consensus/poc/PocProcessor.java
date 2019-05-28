@@ -24,7 +24,6 @@ package org.conch.consensus.poc;
 import org.conch.account.Account;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.CertifiedPeer;
-import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 
 import java.util.Set;
@@ -56,7 +55,14 @@ public interface PocProcessor {
      * @param accountId
      * @return
      */
-    boolean isCertifiedPeerBind(long accountId);
+    boolean isCertifiedPeerBind(long accountId, int height);
+
+//    /**
+//     * update bound account of certified peer
+//     * @param host peer host 
+//     * @param accountId bind acccount id
+//     */
+//    void updateBoundPeer(String host, long accountId);
 
     /**
      * get account linked certified peer
@@ -64,22 +70,8 @@ public interface PocProcessor {
      * @param accountId
      * @return
      */
-    CertifiedPeer getLinkedPeer(long accountId);
+    CertifiedPeer getBoundedPeer(long accountId, int height);
     
-    /**
-     * get bind peer type
-     * @param accountId
-     * @return
-     */
-    Peer.Type bindPeerType(long accountId);
-
-    /**
-     * update bound account of certified peer
-     * @param host peer host 
-     * @param accountId bind acccount id
-     */
-    void updateBoundPeer(String host, long accountId);
-
     /**
      * clear current certified peers and re-syn 
      * @return 
@@ -113,5 +105,5 @@ public interface PocProcessor {
      */
     void notifySynTxNow();
     
-    void saveToDisk();
+//    void saveToDisk();
 }

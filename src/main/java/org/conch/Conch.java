@@ -53,12 +53,14 @@ import org.conch.env.RuntimeMode;
 import org.conch.env.ServerStatus;
 import org.conch.http.API;
 import org.conch.http.APIProxy;
+import org.conch.http.ForceConverge;
 import org.conch.market.*;
 import org.conch.mint.CurrencyMint;
 import org.conch.mint.Generator;
 import org.conch.mint.Hub;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.MessageManager;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.shuffle.Shuffling;
@@ -132,12 +134,12 @@ public final class Conch {
     }
     
     public static String getNodeType(){
-        Peer.Type type = Conch.getPocProcessor().bindPeerType(Account.rsAccountToId(Generator.getAutoMiningRS()));
-        if(type != null) {
-            Conch.nodeType = type.getSimpleName();
+        CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(Account.rsAccountToId(Generator.getAutoMiningRS()), getHeight());
+        if(boundedPeer != null) {
+            Conch.nodeType = boundedPeer.getType().getSimpleName();
         }
         
-        if(type == null || Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)){
+        if(Conch.nodeType == null || Peer.Type.NORMAL.matchSimpleName(Conch.nodeType)){
             // when os isn't windows and mac, it should be hub/box or server node
             if (!SystemUtils.IS_OS_WINDOWS
                     && !SystemUtils.IS_OS_MAC
@@ -633,6 +635,10 @@ public final class Conch {
         return false;
     }
     
+    public static int getHeight(){
+        return getBlockchain().getHeight();
+    }
+    
     public static PocProcessor getPocProcessor(){
         return PocProcessorImpl.instance;
     }  
@@ -705,8 +711,7 @@ public final class Conch {
         BlockchainProcessorImpl.getInstance().shutdown();
         Peers.shutdown();
         Db.shutdown();
-        getPocProcessor().saveToDisk();
-        SharderPoolProcessor.saveToDisk();
+        SharderPoolProcessor.persistence();
         Logger.logShutdownMessage("COS server " + VERSION + " stopped.");
         Logger.shutdown();
         runtimeMode.shutdown();
@@ -778,6 +783,7 @@ public final class Conch {
                 SharderPoolProcessor.init();
                 DebugTrace.init();
                 DbBackup.init();
+                ForceConverge.init();
                 int timeMultiplier = (Constants.isTestnetOrDevnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
@@ -1032,16 +1038,36 @@ public final class Conch {
         }
     }
     
+    public static boolean pause(){
+        try{
+            Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+            Generator.pause(true); 
+        }catch(Exception e){
+            Logger.logErrorMessage("pause failed",e);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean unpause(){
+        try{
+            Conch.getBlockchainProcessor().setGetMoreBlocks(true);
+            Generator.pause(false);
+        }catch(Exception e){
+            Logger.logErrorMessage("unpause failed",e);
+            return false;
+        }
+        return true;
+    }
+    
     /**
      * Full version format is : version number - stage
      * e.g. 0.0.1-Beta or 0.0.1-Alpha
-     * @return
+     * @return 
      */
     public static String getFullVersion(){
         return VERSION + STAGE;
     }
-    public static String getVersion(){
-        return VERSION;
-    }
+    public static String getVersion(){ return VERSION; }
 
 }

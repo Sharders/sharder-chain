@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
@@ -37,6 +38,9 @@ public class PocScore implements Serializable {
     //TODO 
     int luck = 0;
 
+
+    public PocScore(){}
+    
     /**
      * default poc score that contains the ss score
      * @param accountId
@@ -66,25 +70,44 @@ public class PocScore implements Serializable {
 
     public BigInteger total() {
         // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
-        BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
+        BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
         return score.multiply(MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
     }
 
-    public void nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
-        PocCalculator.inst.nodeConfCal(this, nodeConf);
+    public PocScore nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
+        PocCalculator.inst.nodeConfCal(this, nodeConf);   
+        return this;
     }
 
-    public void nodeTypeCal(PocTxBody.PocNodeType nodeType) {
+    public PocScore nodeTypeCal(PocTxBody.PocNodeType nodeType) {
         PocCalculator.inst.nodeTypeCal(this, nodeType);
+        return this;
     }
 
-    public void onlineRateCal(Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
+    public PocScore onlineRateCal(Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
         PocCalculator.inst.onlineRateCal(this, nodeType, onlineRate);
+        return this;
     }
 
-    public void blockMissCal(PocTxBody.PocGenerationMissing pocBlockMissing) {
+    public PocScore blockMissCal(PocTxBody.PocGenerationMissing pocBlockMissing) {
         PocCalculator.inst.blockMissCal(this, pocBlockMissing);
+        return this;
+    }
+    
+    public PocScore ssCal(){
+        this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
+        PocCalculator.inst.ssHoldCal(this);
+        return this;
+    }
+    
+    public PocScore saveOrUpdate(){
+        PocDb.saveOrUpdate(this);
+        return this;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     public void synFrom(PocScore another){
@@ -194,6 +217,54 @@ public class PocScore implements Serializable {
 
     public BigInteger getEffectiveBalance() {
         return effectiveBalance;
+    }
+
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
+    }
+
+    public void setSsScore(BigInteger ssScore) {
+        this.ssScore = ssScore;
+    }
+
+    public void setNodeTypeScore(BigInteger nodeTypeScore) {
+        this.nodeTypeScore = nodeTypeScore;
+    }
+
+    public void setServerScore(BigInteger serverScore) {
+        this.serverScore = serverScore;
+    }
+
+    public void setHardwareScore(BigInteger hardwareScore) {
+        this.hardwareScore = hardwareScore;
+    }
+
+    public void setNetworkScore(BigInteger networkScore) {
+        this.networkScore = networkScore;
+    }
+
+    public void setPerformanceScore(BigInteger performanceScore) {
+        this.performanceScore = performanceScore;
+    }
+
+    public void setOnlineRateScore(BigInteger onlineRateScore) {
+        this.onlineRateScore = onlineRateScore;
+    }
+
+    public void setBlockMissScore(BigInteger blockMissScore) {
+        this.blockMissScore = blockMissScore;
+    }
+
+    public void setBcScore(BigInteger bcScore) {
+        this.bcScore = bcScore;
+    }
+
+    public void setEffectiveBalance(BigInteger effectiveBalance) {
+        this.effectiveBalance = effectiveBalance;
+    }
+
+    public void setLuck(int luck) {
+        this.luck = luck;
     }
 
     @Override
