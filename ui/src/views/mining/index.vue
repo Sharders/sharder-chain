@@ -85,9 +85,9 @@
                                     </h2>
                                     <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
-                                    <p>{{mining.power/100000000}}/{{getAmountMax(mining.rule)}} SS</p>
+                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} SS</p>
                                     <el-progress
-                                        :percentage="(mining.power/100000000)/(getAmountMax(mining.rule))*100"
+                                        :percentage="(getPoolInvestmentAmount(mining))/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
@@ -395,6 +395,9 @@
                 let level = rule.level0 ? rule.level0 : rule.level1;
                 return level.consignor.amount.max / 100000000;
             },
+            getPoolInvestmentAmount(mining) {
+                return (mining.power + mining.joiningAmount) / 100000000;
+            },
             setAccountInfo() {
                 let _this = this;
                 _this.$global.fetch("POST", {
@@ -466,11 +469,9 @@
                 });
             },
             poolAttribute(mining) {
-
                 this.$router.push({name: "mining-attribute", params: {mining: mining, newestBlock: this.newestBlock}});
             },
             isVisible(val) {
-
                 if (val === "isCreatePool" && this.rule === null) {
                     this.$message.error(this.$t("mining.index.pool_no_permissions"));
                     return;

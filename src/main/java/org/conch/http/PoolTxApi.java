@@ -162,14 +162,11 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-
             String cid = Convert.emptyToNull(request.getParameter("creatorId"));
-
             if (cid == null) {
                 return sortPools(request, SharderPoolProcessor.getPoolsFromNow());
             } else {
                 long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-
                 return SharderPoolProcessor.getPoolsFromNowAndDestroy(creatorId);
             }
 
