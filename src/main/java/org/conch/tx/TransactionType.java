@@ -3488,9 +3488,10 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
-                SharderPoolProcessor.createSharderPool(senderAccount.getId(), transaction.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
+                SharderPoolProcessor miningPool = SharderPoolProcessor.createSharderPool(senderAccount.getId(), transaction.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
                         curHeight + Constants.SHARDER_POOL_DELAY + create.getPeriod(),
                         PoolRule.getRuleInstance(senderAccount.getId(), PoolRule.mapToJsonObject(create.getRule())));
+                Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 
             @Override
@@ -3562,8 +3563,9 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
-                SharderPoolProcessor mintPool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                mintPool.destroySharderPool(curHeight);
+                SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(destroy.getPoolId());
+                miningPool.destroySharderPool(curHeight);
+                Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 
             @Override
@@ -3665,11 +3667,12 @@ public abstract class TransactionType {
                 long poolId = forgePoolJoin.getPoolId();
                 long transactionId = transaction.getId();
                 senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
-                SharderPoolProcessor mintPool = SharderPoolProcessor.getPool(poolId);
-                height = height > mintPool.getStartBlockNo() ? height : mintPool.getStartBlockNo();
-                mintPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
+                SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+                height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
+                miningPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
+                miningPool.subJoiningAmount(amountNQT);
 
-                mintPool.subJoiningAmount(amountNQT);
+                Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 
             @Override
@@ -3737,11 +3740,12 @@ public abstract class TransactionType {
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = sharderPoolQuit.getPoolId();
-                SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
-                long amountNQT = sharderPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
                 if (amountNQT != -1) {
                     senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
                 }
+                Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 
             @Override

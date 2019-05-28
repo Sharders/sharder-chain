@@ -97,6 +97,11 @@ public class PocProcessorImpl implements PocProcessor {
             putInBalanceChangedAccount(Conch.getBlockchain().getHeight(), account, Account.Event.UNCONFIRMED_BALANCE);
         }, Account.Event.UNCONFIRMED_BALANCE);
 
+        // poc changed event
+        Account.addListener((Account account) -> {
+            putInBalanceChangedAccount(Conch.getBlockchain().getHeight(), account, Account.Event.POC);
+        }, Account.Event.POC);
+
         instance.loadFromDisk();
     }
 
@@ -123,6 +128,17 @@ public class PocProcessorImpl implements PocProcessor {
 
         if (!balanceChangedMap.get(confirmedHeight).containsKey(accountId)) {
             balanceChangedMap.get(confirmedHeight).put(accountId, account);
+        }
+
+        // check current height when event is BALANCE changed
+        if (Account.Event.POC == event) {
+            if (!balanceChangedMap.containsKey(height)) {
+                balanceChangedMap.put(height, Maps.newHashMap());
+            }
+
+            if (!balanceChangedMap.get(height).containsKey(accountId)) {
+                balanceChangedMap.get(height).put(accountId, account);
+            }
         }
     }
 

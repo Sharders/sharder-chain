@@ -56,7 +56,7 @@ public final class Account {
 
     public enum Event {
         BALANCE, UNCONFIRMED_BALANCE, ASSET_BALANCE, UNCONFIRMED_ASSET_BALANCE, CURRENCY_BALANCE, UNCONFIRMED_CURRENCY_BALANCE,
-        LEASE_SCHEDULED, LEASE_STARTED, LEASE_ENDED, SET_PROPERTY, DELETE_PROPERTY
+        LEASE_SCHEDULED, LEASE_STARTED, LEASE_ENDED, SET_PROPERTY, DELETE_PROPERTY, POC
     }
 
     public enum ControlType {
@@ -1781,8 +1781,6 @@ public final class Account {
         save();
     }
 
-
-
     public void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceNQT(event, eventId, amountNQT, 0);
     }
@@ -1793,6 +1791,10 @@ public final class Account {
 
     public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
+    }
+    
+    public void pocChanged(){
+        listeners.notify(this, Event.POC);
     }
 
     /**

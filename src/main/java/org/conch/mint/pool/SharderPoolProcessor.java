@@ -129,7 +129,7 @@ public class SharderPoolProcessor implements Serializable {
 //        }
 //    }
 
-    public static void createSharderPool(long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+    public static SharderPoolProcessor createSharderPool(long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
         int height = startBlockNo - Constants.SHARDER_POOL_DELAY;
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
@@ -161,6 +161,8 @@ public class SharderPoolProcessor implements Serializable {
         sharderPools.put(pool.poolId, pool);
 
         checkOrAddIntoActiveGenerator(pool);
+        
+        return pool;
     }
 
     /**
