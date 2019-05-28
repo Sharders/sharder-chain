@@ -600,10 +600,18 @@ public class SharderPoolProcessor implements Serializable {
         return rule;
     }
 
-    public HashMap<String, Object> getRootRuleMap(){
+    public Map<String, Object> getRootRuleMap(){
         Object rootRuleMap = getRule().get("level0");
         rootRuleMap = rootRuleMap != null ? rootRuleMap : getRule().get("level1");
-        return (HashMap<String, Object>) rootRuleMap;
+        
+        if(rootRuleMap instanceof HashMap){
+            return (HashMap<String, Object>) rootRuleMap;
+        }else if(rootRuleMap instanceof JSONObject){
+            return PoolRule.jsonObjectToMap((JSONObject)rootRuleMap);
+        }else if(rootRuleMap instanceof com.alibaba.fastjson.JSONObject){
+            return PoolRule.jsonObjectToMap((com.alibaba.fastjson.JSONObject)rootRuleMap);
+        }
+        return null;
     }
 
     public long getPower() {

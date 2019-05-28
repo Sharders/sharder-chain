@@ -550,13 +550,19 @@ public class PocProcessorImpl implements PocProcessor {
 
         PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
         Attachment attachment = tx.getAttachment();
+        String summary = "";
         if(attachment instanceof PocTxBody.PocNodeType) {
             PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) attachment;
+            summary = "host=" + nodeType.getIp() + ",type=" + nodeType.getType().getName();
             nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
         }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
             nodeTypeV2 = (PocTxBody.PocNodeTypeV2) attachment;
+            summary = "host=" + nodeTypeV2.getIp() + ",type=" + nodeTypeV2.getType().getName();
         }
-        if(nodeTypeV2 == null) return false;
+        if(nodeTypeV2 == null) {
+            Logger.logWarningMessage("NodeType tx[id=%d,height=%d,summary=%s] is v1 that missing the account id, can't process it correctly", tx.getId(), tx.getHeight(), summary);
+            return false;
+        }
         long accountId = nodeTypeV2.getAccountId();
         
 //        //TODO check current account linked status

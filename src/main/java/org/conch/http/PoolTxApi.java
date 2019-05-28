@@ -4,6 +4,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.mint.Generator;
 import org.conch.mint.pool.Consignor;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
@@ -42,9 +43,20 @@ public abstract class PoolTxApi {
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
+            
+            String rsAddress = account.getRsAddress();
+            if(!Generator.isBindAddress(account.getRsAddress())){
+                throw new ConchException.NotValidException("Please finish hub initialization before pool creation or you account " + rsAddress + " is not linked TSS address!");
+            }
+
+            if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(account.getId())) {
+                throw new ConchException.NotValidException(rsAddress + " has created a pool already");
+            }
+            
             if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT - Long.valueOf(req.getParameter("feeNQT")) < 0){
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
+
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
             int period = Constants.isDevnet() ? 15 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
 //            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);

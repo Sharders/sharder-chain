@@ -169,6 +169,20 @@ public class PoolRule implements Serializable {
         }
         return map;
     }
+    
+    public static Map<String, Object> jsonObjectToMap(com.alibaba.fastjson.JSONObject jsonObject) {
+        Map<String, Object> map = new HashMap<>();
+        for (Object key : jsonObject.keySet()) {
+            Map<String, Object> temp = null;
+            if (jsonObject.get(key) instanceof com.alibaba.fastjson.JSONObject) {
+                temp = jsonObjectToMap((com.alibaba.fastjson.JSONObject) jsonObject.get(key));
+                map.put((String) key, temp);
+            } else {
+                map.put((String) key, jsonObject.get(key));
+            }
+        }
+        return map;
+    }
 
     public static JSONObject getTemplate(long creatorId) {
         int level = getLevel(creatorId);

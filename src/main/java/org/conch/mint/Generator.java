@@ -806,7 +806,9 @@ public class Generator implements Comparable<Generator> {
     private static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
     private static final String AUTO_MINT_ADDRESS = autoMintAccountRs();
     static boolean autoMintRunning = false;
-
+    
+    
+    
     /**
      * local auto mint rs account
      *
@@ -828,7 +830,12 @@ public class Generator implements Comparable<Generator> {
     public static void forceOpenAutoMining(){
         autoMintRunning = true;
     }
-
+    
+    public static boolean isBindAddress(String rsAddress){
+        if(!HUB_IS_BIND || StringUtils.isEmpty(HUB_BIND_ADDRESS)) return false;
+        
+        return HUB_BIND_ADDRESS.equals(rsAddress);
+    }
 
     /**
      * check account is hub bound account or local auto mint account
