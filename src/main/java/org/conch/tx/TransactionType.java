@@ -3626,12 +3626,12 @@ public abstract class TransactionType {
                 int poolStartHeight = forgePool.getStartBlockNo();
                 int poolEndHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
-                    throw new ConchException.NotValidException("Sharder pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
+                    throw new ConchException.NotValidException("Pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
                 }
                 
                 if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
                     if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
-                        throw new ConchException.NotValidException("Sharder pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                        throw new ConchException.NotValidException("Pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
                     }  
                 }
                 
@@ -3670,8 +3670,6 @@ public abstract class TransactionType {
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
                 height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
                 miningPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
-                miningPool.subJoiningAmount(amountNQT);
-
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 

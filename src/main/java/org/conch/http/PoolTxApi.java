@@ -58,7 +58,7 @@ public abstract class PoolTxApi {
             }
 
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 15 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 150 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
 //            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
@@ -269,19 +269,26 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             String account = request.getParameter("account");
-            SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
-            if (forgePool == null) {
+            SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+            if (miningPool == null) {
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 1);
-                response.put("errorDescription", "sharder pool doesn't exists");
+                response.put("errorDescription", "pool doesn't exists");
                 return JSON.prepare(response);
             }
-            JSONObject json = forgePool.toJsonObject();
+            JSONObject json = miningPool.toJsonObject();
             if (account != null) {
-                Consignor consignor = forgePool.getConsignors().get(Long.parseUnsignedLong(account));
+                Consignor consignor = miningPool.getConsignors().get(Long.parseUnsignedLong(account));
                 long joinAmount = consignor == null ? 0 : consignor.getAmount();
-                joinAmount += forgePool.getJoiningAmount();
+                long rewardAmount = 0;
+                try{
+                    Map<Long, Long> rewardList = PoolRule.getRewardMap(miningPool.getCreatorId(), poolId, miningPool.getMintRewards(), miningPool.getConsignorsAmountMap());
+                    rewardAmount = rewardList.get(Long.parseUnsignedLong(account));
+                }catch(Exception e){
+                   Logger.logErrorMessage("can't calculate the investor's mining reward",e); 
+                }
                 json.put("joinAmount", joinAmount);
+                json.put("rewardAmount", rewardAmount);
             }
             return json;
         }

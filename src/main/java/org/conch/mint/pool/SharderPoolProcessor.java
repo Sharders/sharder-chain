@@ -379,7 +379,8 @@ public class SharderPoolProcessor implements Serializable {
         int height = block.getHeight();
         for (SharderPoolProcessor sharderPool : sharderPools.values()) {
             sharderPool.updateHeight = height;
-
+            sharderPool.clearJoiningAmount();
+            
             if (sharderPool.consignors.size() == 0 
                 && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
                 sharderPool.destroySharderPool(height);
@@ -732,8 +733,8 @@ public class SharderPoolProcessor implements Serializable {
         joiningAmount += amount;
     }
 
-    public void subJoiningAmount(long amount) {
-        joiningAmount -= amount;
+    public void clearJoiningAmount() {
+        joiningAmount = 0;
     }
 
     /**

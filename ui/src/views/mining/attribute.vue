@@ -192,6 +192,7 @@
                     accountId: "",
                     amount: 0,
                     joinAmount: 0,
+                    rewardAmount: 0,
                     poolId: '',
                     currentInvestment: 0,
                     investmentTotal: 0,
@@ -309,7 +310,7 @@
                     }
                     _this.miningInfo.amount = res.number;
                     _this.miningInfo.poolId = res.poolId;
-                    _this.miningInfo.currentInvestment = res.power;
+                    _this.miningInfo.currentInvestment = res.power + res.joiningAmount;
                     _this.miningInfo.accountId = _this.$global.longUnsigned(res.creatorID);
                     _this.miningInfo.income = res.mintRewards;
                     _this.miningInfo.chance = res.chance;
@@ -317,6 +318,7 @@
                     _this.miningInfo.endBlockNo = res.endBlockNo;
                     _this.miningInfo.level = res.rule.level0 ? res.rule.level0 : res.rule.level1;
                     _this.miningInfo.joinAmount = res.joinAmount;
+                    _this.miningInfo.rewardAmount = res.rewardAmount;
                     _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max;
                     let nxtAddress = new NxtAddress();
                     if (nxtAddress.set(_this.miningInfo.accountId)) {
