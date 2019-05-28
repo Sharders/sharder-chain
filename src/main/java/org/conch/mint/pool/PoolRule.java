@@ -299,16 +299,22 @@ public class PoolRule implements Serializable {
         Map<String, Object> ruleMap =
                 (Map<String, Object>)
                         ((Map<String, Object>) forgePool.getRule().get("level" + level)).get("forgepool");
-        long creatorAmount = 0;
-        if (((Map<String, Object>) ruleMap.get("reward")).get("max") instanceof Float) {
-            creatorAmount =
-                    Math.round(
-                            amount * (1 - (Float) ((Map<String, Object>) ruleMap.get("reward")).get("max")));
-        } else {
-            creatorAmount =
-                    Math.round(
-                            amount * (1 - (Double) ((Map<String, Object>) ruleMap.get("reward")).get("max")));
+        Object rewardRule = ((Map<String, Object>) ruleMap.get("reward")).get("max");
+        
+        
+        Float maxRewardRate = null;
+        if (rewardRule instanceof Float) {
+            maxRewardRate = (Float) rewardRule;
+        } else if (rewardRule instanceof Double) {
+            maxRewardRate = ((Double) rewardRule).floatValue();
+        } else if(rewardRule instanceof String){
+            maxRewardRate = Float.parseFloat((String) rewardRule);
+        } else if(rewardRule instanceof BigDecimal){
+            maxRewardRate = ((BigDecimal) rewardRule).floatValue();
+        } else{
+            maxRewardRate = Float.parseFloat(rewardRule.toString());
         }
+        long creatorAmount = Math.round(amount * (1 - maxRewardRate));
         result.put(creator, creatorAmount);
         long leftAmount = amount - creatorAmount;
         long total = 0;
@@ -316,11 +322,6 @@ public class PoolRule implements Serializable {
             total += value;
         }
         for (Long id : map.keySet()) {
-//            if (result.containsKey(id)) {
-//                result.put(id, result.get(id) + leftAmount * map.get(id) / total);
-//            }
-//            result.put(id, leftAmount * map.get(id) / total);
-
             //奖励分发(1);
             long reward = new BigDecimal(leftAmount).multiply(new BigDecimal(map.get(id).toString())).divide(new BigDecimal(total),0,BigDecimal.ROUND_DOWN).longValue();
             if (result.containsKey(id)) {

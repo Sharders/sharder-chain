@@ -471,17 +471,17 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     private static void instFromDB(){
-        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
-        destroyedPoolProcessors.forEach(pool -> {
+        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
+        poolProcessors.forEach(pool -> {
             sharderPools.put(pool.poolId, pool);
         });
 
-        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
-        poolProcessors.forEach(pool -> {
-            if(!destroyedPools.containsKey(pool.poolId)) {
-                destroyedPools.put(pool.poolId, Lists.newArrayList());
+        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
+        destroyedPoolProcessors.forEach(pool -> {
+            if(!destroyedPools.containsKey(pool.creatorId)) {
+                destroyedPools.put(pool.creatorId, Lists.newArrayList());
             }
-            destroyedPools.get(pool.poolId).add(pool);
+            destroyedPools.get(pool.creatorId).add(pool);
         });
     }
 
@@ -718,16 +718,12 @@ public class SharderPoolProcessor implements Serializable {
         this.joiningAmount = joiningAmount;
     }
     
-    public static void addJoiningAmount(long poolId, long amount) { 
-        SharderPoolProcessor poolProcessor =  getPool(poolId);
-        if(poolProcessor == null) return;
-        poolProcessor.joiningAmount += amount;
+    public void addJoiningAmount(long amount) {
+        joiningAmount += amount;
     }
 
-    public static void subJoiningAmount(long poolId, long amount) {
-        SharderPoolProcessor poolProcessor = getPool(poolId);
-        if(poolProcessor == null) return;
-        poolProcessor.joiningAmount -= amount;
+    public void subJoiningAmount(long amount) {
+        joiningAmount -= amount;
     }
 
     /**

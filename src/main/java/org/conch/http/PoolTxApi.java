@@ -46,8 +46,8 @@ public abstract class PoolTxApi {
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-//            int period = Constants.isDevnet() ? 15 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
-            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 15 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+//            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
@@ -104,28 +104,34 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
-            
-        
-            long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
-            long allowedInvestAmount = investmentRule[1];
-            
-            // remain amount of pool
-            long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
-            long remainAmount = minerInvestmentRule[1] - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
-            
-            if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
-            
-            long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
-            
-            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
-            
-            Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
-            JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
-            SharderPoolProcessor.addJoiningAmount(poolId, amount);
+            JSONStreamAware aware = null;
+            try{
+                Account account = ParameterParser.getSenderAccount(request);
+                long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+                SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+
+
+                long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
+                long allowedInvestAmount = investmentRule[1];
+
+                // remain amount of pool
+                long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
+                long remainAmount = minerInvestmentRule[1] - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
+
+                if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
+
+                long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
+
+                int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+                int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+
+                Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
+                aware = createTransaction(request, account, 0, 0, attachment);
+                poolProcessor.addJoiningAmount(amount);
+            } catch(Exception e){
+                Logger.logErrorMessage("JoinPoolTx failed" , e);
+                throw e;
+            }
             return aware;
         }
     }
