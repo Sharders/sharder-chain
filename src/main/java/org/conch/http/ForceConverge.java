@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
+import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
@@ -237,10 +238,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     public static void switchFork(){
+        if(!Constants.isTestnet()) return;
+        
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)) {
-            reset();
-            Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
+            if(Conch.getHeight() > 0) {
+                reset();
+                Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
+            }
             updatePropertiesFile();
             Conch.pause();
         }

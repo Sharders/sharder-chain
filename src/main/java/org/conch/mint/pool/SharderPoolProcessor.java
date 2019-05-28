@@ -357,31 +357,7 @@ public class SharderPoolProcessor implements Serializable {
 
     static {
 
-//        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
-//        destroyedPoolProcessors.forEach(pool -> {
-//            sharderPools.put(pool.poolId, pool);
-//        });
-//
-//        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
-//        poolProcessors.forEach(pool -> {
-//            if(!destroyedPools.containsKey(pool.poolId)) {
-//                destroyedPools.put(pool.poolId, Lists.newArrayList());
-//            }
-//            destroyedPools.get(pool.poolId).add(pool);
-//        });
-        
-        // load pools from local cached files
-//        Logger.logInfoMessage("load exist pools info from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_SHARDER_POOLS) + "]");
-//        Object poolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_SHARDER_POOLS);
-//        if(poolsObj != null) {
-//            sharderPools = (ConcurrentMap<Long, SharderPoolProcessor>) poolsObj;
-//        }
-//
-//        Logger.logInfoMessage("load exist destroyed pools info from local [" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_DESTROYED_POOLS) + "]");
-//        Object destroyedPoolsObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_DESTROYED_POOLS);
-//        if(destroyedPoolsObj != null) {
-//            destroyedPools = (ConcurrentMap<Long, List<SharderPoolProcessor>>) destroyedPoolsObj;
-//        }
+        instFromDB();
 
         // AFTER_BLOCK_APPLY event listener
         Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block), 
@@ -406,8 +382,8 @@ public class SharderPoolProcessor implements Serializable {
                 sharderPool.destroySharderPool(height);
                 continue;
             }
-            if (sharderPool.endBlockNo == height) {
-                sharderPool.destroySharderPool(height);
+            if (sharderPool.endBlockNo <= height) {
+                sharderPool.destroySharderPool(sharderPool.endBlockNo);
                 continue;
             }
             
@@ -491,6 +467,21 @@ public class SharderPoolProcessor implements Serializable {
             poolList.addAll(destroyedPools.get(accountId));
         }
         PoolDb.saveOrUpdate(poolList);
+    }
+    
+    private static void instFromDB(){
+        List<SharderPoolProcessor> destroyedPoolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
+        destroyedPoolProcessors.forEach(pool -> {
+            sharderPools.put(pool.poolId, pool);
+        });
+
+        List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), true);
+        poolProcessors.forEach(pool -> {
+            if(!destroyedPools.containsKey(pool.poolId)) {
+                destroyedPools.put(pool.poolId, Lists.newArrayList());
+            }
+            destroyedPools.get(pool.poolId).add(pool);
+        });
     }
 
     public static void init() {
