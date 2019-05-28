@@ -229,6 +229,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
+    static boolean forkSwitched = false;
     public static void updatePropertiesFile(){
         HashMap<String, String> parameters = Maps.newHashMap();
         parameters.put(PROPERTY_FORK_NAME, "Giant");
@@ -253,11 +254,17 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) return;
         
         boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
-        if(!pauseSyn) Conch.unpause();
+        if(!pauseSyn) {
+            Conch.unpause();
+            forkSwitched = true;
+        }
     }
     
     public static void init() {
-        ThreadPool.scheduleThread("switchForkThread", switchForkThread, 60, TimeUnit.MINUTES);
+        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
+        if(StringUtils.isEmpty(forkName)){
+            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 60, TimeUnit.MINUTES);  
+        }
     }
 
     private static final Runnable switchForkThread = () -> {
@@ -270,7 +277,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             System.exit(1);
         }
     };
-    
     
     @Override
     protected final boolean requirePost() {
