@@ -89,7 +89,7 @@ public final class Constants {
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
-    public static final String BootBodeHost = parseBootNodeHost();
+    public static final String BootNodeHost = parseBootNodeHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -371,7 +371,7 @@ public final class Constants {
     }
     
     public static boolean isBootNode(String host){
-        return BootBodeHost.equals(host);
+        return BootNodeHost.equals(host);
     }
 
     public static final String SUCCESS = "success";

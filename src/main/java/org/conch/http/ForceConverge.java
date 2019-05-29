@@ -62,6 +62,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         ,UPGRADE_COS("upgradeCos")  // from v0.1.5
         ,UPGRADE_DB("upgradeDb")
         ,RESET("reset")             // from v0.1.6
+        ,RESTART("restart")         // from v0.1.6
         ;
 
         private String value;
@@ -151,6 +152,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 boolean needReset = cmdObj.getBooleanValue(Command.RESET.val());
                 if(needReset) reset();
             }
+            
+            // restart command process
+            if(cmdObj.containsKey(Command.RESTART.val())){
+                boolean needRestart = cmdObj.getBooleanValue(Command.RESTART.val());
+                if(needRestart){
+                    new Thread(() -> Conch.restartApplication(null)).start();
+                }
+            }
 
             // pause command process
             if(cmdObj.containsKey(Command.PAUSE_SYNC.val())){
@@ -230,15 +239,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
-    static boolean forkSwitched = false;
-    public static void updatePropertiesFile(){
+    public static void writeForkNameIntoPropertiesFile(){
         HashMap<String, String> parameters = Maps.newHashMap();
         parameters.put(PROPERTY_FORK_NAME, "Giant");
         Conch.storePropertiesToFile(parameters);
     }
     
     public static void switchFork(){
-        if(!Constants.isTestnet()) return;
+        if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)) {
@@ -246,7 +254,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 reset();
                 Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
             }
-            updatePropertiesFile();
             Conch.pause();
         }
 
@@ -258,10 +265,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         // check and unpause
         if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) return;
         
-        boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
-        if(!pauseSyn) {
+        boolean unpause = !cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
+        if(unpause) {
             Conch.unpause();
-            forkSwitched = true;
+            writeForkNameIntoPropertiesFile();
         }
     }
     
@@ -276,7 +283,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         try {
             switchFork();
         } catch (Exception e) {
-            Logger.logErrorMessage("witch fork thread interrupted caused by %s", e.getMessage());
+            Logger.logErrorMessage("Switch fork thread interrupted caused by %s", e.getMessage());
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
@@ -302,5 +309,5 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
-
+    
 }
