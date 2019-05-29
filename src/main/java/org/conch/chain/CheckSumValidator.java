@@ -210,17 +210,15 @@ public class CheckSumValidator {
     }
 
     public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(String host, int height){
-        if(Constants.isTestnet() && height <= Constants.POC_NODETYPE_V2_HEIGHT) {
-            NavigableSet<Integer> heightSet = Sets.newTreeSet(pocNodeTypeTxsMap.keySet()).descendingSet();
-            for(Integer historyHeight : heightSet) {
-                if(historyHeight <= height) {
-                    Map<Long, PocTxBody.PocNodeTypeV2> peerMap = pocNodeTypeTxsMap.get(historyHeight);
-                    Collection<PocTxBody.PocNodeTypeV2> nodeTypeTxs = peerMap.values();
-                    for(PocTxBody.PocNodeTypeV2 nodeTypeTx : nodeTypeTxs){
-                        if(StringUtils.equals(host,nodeTypeTx.getIp())){
-                            return nodeTypeTx;
-                        }  
-                    }
+        NavigableSet<Integer> heightSet = Sets.newTreeSet(pocNodeTypeTxsMap.keySet()).descendingSet();
+        for(Integer historyHeight : heightSet) {
+            if(historyHeight <= height) {
+                Map<Long, PocTxBody.PocNodeTypeV2> peerMap = pocNodeTypeTxsMap.get(historyHeight);
+                Collection<PocTxBody.PocNodeTypeV2> nodeTypeTxs = peerMap.values();
+                for(PocTxBody.PocNodeTypeV2 nodeTypeTx : nodeTypeTxs){
+                    if(StringUtils.equals(host,nodeTypeTx.getIp())){
+                        return nodeTypeTx;
+                    }  
                 }
             }
         }

@@ -65,25 +65,27 @@ public class SharderGenesis {
 
     public static class GenesisPeer {
         public String domain;
-        public Peer.Type type ;
+        public Peer.Type type;
+        public long accountId;
 
-        private GenesisPeer(String domain,Peer.Type type){
+        private GenesisPeer(String domain,Peer.Type type, long accountId){
             this.domain = domain;
             this.type = type;
+            this.accountId = accountId;
         }
 
         static Map<Constants.Network, List<GenesisPeer>> genesisPeers = new HashMap<>();
         static {
             List<GenesisPeer> devnetPeers = Lists.newArrayList(
-                    new GenesisPeer("devboot.sharder.io",Peer.Type.FOUNDATION),
-                    new GenesisPeer("devna.sharder.io",Peer.Type.FOUNDATION),
-                    new GenesisPeer("devnb.sharder.io",Peer.Type.FOUNDATION)
+                    new GenesisPeer("devboot.sharder.io",Peer.Type.FOUNDATION, 6219247923802955552L),
+                    new GenesisPeer("devna.sharder.io",Peer.Type.FOUNDATION, 3790328149872734783L),
+                    new GenesisPeer("devnb.sharder.io",Peer.Type.FOUNDATION, 90778548339644322L)
             );
 
             List<GenesisPeer> testnetPeers = Lists.newArrayList(
-                    new GenesisPeer("testboot.sharder.io",Peer.Type.FOUNDATION),
-                    new GenesisPeer("testna.sharder.io",Peer.Type.COMMUNITY),
-                    new GenesisPeer("testnb.sharder.io",Peer.Type.HUB)
+                    new GenesisPeer("testboot.sharder.io",Peer.Type.FOUNDATION, -4542396882408079631L),
+                    new GenesisPeer("testna.sharder.io",Peer.Type.COMMUNITY, -6802345313304048560L),
+                    new GenesisPeer("testnb.sharder.io",Peer.Type.HUB, 6066546424236439063L)
             );
 
             List<GenesisPeer> mainnetPeers = Lists.newArrayList(
@@ -215,7 +217,7 @@ public class SharderGenesis {
         List<TransactionImpl> transactions = Lists.newArrayList();
 
         GenesisPeer.getAll().forEach(genesisPeer -> {
-            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeType(genesisPeer.domain,genesisPeer.type);
+            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeTypeV2(genesisPeer.domain,genesisPeer.type,genesisPeer.accountId);
             try {
                 transactions.add(new TransactionImpl.BuilderImpl(
                         (byte) 0,
