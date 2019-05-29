@@ -131,8 +131,12 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion)  {
-            if(Conch.getBlockchain().getHeight() > Constants.POC_NODETYPE_V2_HEIGHT) {
-                return new PocTxBody.PocNodeTypeV2(buffer, transactionVersion);
+            try{
+                if(Conch.getBlockchain().getHeight() > Constants.POC_NODETYPE_V2_HEIGHT) {
+                    return new PocTxBody.PocNodeTypeV2(buffer, transactionVersion);
+                } 
+            }catch(Exception e){
+                return new PocTxBody.PocNodeType(buffer, transactionVersion);
             }
             return new PocTxBody.PocNodeType(buffer, transactionVersion);
         }
