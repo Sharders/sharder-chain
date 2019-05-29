@@ -278,7 +278,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void init() {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)){
-            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 60, TimeUnit.MINUTES);  
+            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
     }
 
