@@ -10,6 +10,10 @@
                         <p class="node-type"> 
                             <strong>{{ $t('poc.nodeType') }}: </strong>{{ parseNodeType(pocInfo.type) }}
                         </p>
+                        <p class="linked-account">
+                            <strong>{{ $t('poc.linkedAccount') }}: </strong><br/>
+                            {{ rsAccount(pocInfo.accountId) }}
+                        </p>
                     </el-card>
                 </el-col>
             </el-row>
@@ -39,6 +43,14 @@
                     default:
                         return this.$root.$t("poc.normal_node");
                 }
+            },
+            rsAccount(accountId) {
+                var nxtAddress = new NxtAddress();
+                var accountRS = "";
+                if (nxtAddress.set(this.$global.longUnsigned(accountId))) {
+                    return accountRS = nxtAddress.toString();
+                }
+                return accountId;
             }
         }
     }

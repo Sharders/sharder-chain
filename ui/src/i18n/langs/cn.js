@@ -929,6 +929,7 @@ const cn = {
         'creator': "创建者",
         'type': "类型",
         'nodeType': "节点类型",
+        'linkedAccount': "绑定地址",
         'height': "区块高度",
         'timeStamp': "时间戳",
         'started_block': "生效区块",

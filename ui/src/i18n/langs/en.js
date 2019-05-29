@@ -931,6 +931,7 @@ const en = {
         'creator': "Creator",
         'type': "Type",
         'nodeType': "Node Type",
+        'linkedAccount': "Linked Account",
         'height': "Block Height",
         'timeStamp': "TimeStamp",
         'started_block': "Block Effective",
