@@ -269,6 +269,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         
         boolean unpause = !cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
         if(unpause) {
+            Logger.logInfoMessage("Switch to fork Giant successfully");
             Conch.unpause();
             writeForkNameIntoPropertiesFile();
         }
