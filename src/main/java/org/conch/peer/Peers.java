@@ -1632,5 +1632,14 @@ public final class Peers {
     public static boolean isOpenService(Peer.Service service) {
         return myServices.contains(service);
     }
+    
+    public static void checkOrConnectBootNode(){
+        Peer bootNode = Peers.getPeer(Conch.getBootNode(), true);
+        if(bootNode != null 
+            && Peer.State.CONNECTED != bootNode.getState()) {
+            
+            Peers.connectPeer(bootNode);
+        }
+    }
 
 }
