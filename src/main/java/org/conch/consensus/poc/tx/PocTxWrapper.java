@@ -25,6 +25,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.consensus.poc.PocCalculator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -130,6 +131,9 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion)  {
+            if(Conch.getBlockchain().getHeight() > Constants.POC_NODETYPE_V2_HEIGHT) {
+                return new PocTxBody.PocNodeTypeV2(buffer, transactionVersion);
+            }
             return new PocTxBody.PocNodeType(buffer, transactionVersion);
         }
 
