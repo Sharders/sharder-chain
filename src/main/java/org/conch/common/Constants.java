@@ -206,7 +206,7 @@ public final class Constants {
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
     public static final int POC_BLOCK_HEIGHT = 0;
-    public static final int POC_NODETYPE_V2_HEIGHT = isTestnet() ? 6500 : 0;
+    public static final int POC_NODETYPE_V2_HEIGHT = isTestnet() ? 3 : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
