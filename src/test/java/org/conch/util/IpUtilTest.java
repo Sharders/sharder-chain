@@ -32,6 +32,8 @@ public class IpUtilTest {
         System.out.println(IpUtil.isDomain("192.168.31.1:8080"));
         System.out.println(IpUtil.isDomain("devboot.sharder.io:8080")); 
     }
+    
+    
     public static void main(String[] args) {
 //        isDomainTest();
         getHostFromUrl();
