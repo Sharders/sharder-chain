@@ -240,6 +240,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
     }
     
+    static boolean reset = false;
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
     public static void writeForkNameIntoPropertiesFile(){
         HashMap<String, String> parameters = Maps.newHashMap();
@@ -252,12 +253,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)) {
-            if(Conch.getHeight() >= 0) {
-                Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
+            if(!reset) {
                 reset();
+                Logger.logDebugMessage("pause the blockchain till fork switched...");
+                Conch.pause();
+                reset = true;
             }
-            Logger.logDebugMessage("pause the blockchain till fork switched...");
-            Conch.pause();
         }else{
             Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             return;
