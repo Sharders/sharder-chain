@@ -1344,10 +1344,10 @@ public final class Account {
             if(fromHeight < 0){
                 fromHeight = 0;
             } 
-            if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
-                    || fromHeight > Conch.getBlockchain().getHeight()) {
-                throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
-            }
+//            if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
+//                    || fromHeight > Conch.getBlockchain().getHeight()) {
+//                throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
+//            }
             Connection con = null;
             try {
                 con = Db.db.getConnection();
