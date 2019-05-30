@@ -22,7 +22,6 @@
 package org.conch.sign;
 
 import com.google.common.collect.Maps;
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.base.BaseTest;
 import org.conch.chain.BlockImpl;
@@ -32,22 +31,14 @@ import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.crypto.Crypto;
-import org.conch.db.Db;
 import org.conch.tools.SignTransactionJSON;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
-import java.io.*;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
-
-import static java.lang.System.exit;
 
 public final class SignTransactionTest extends BaseTest {
     
@@ -132,14 +123,20 @@ public final class SignTransactionTest extends BaseTest {
     public static void signTranscationFile(String[] args){
         SignTransactionJSON.signTranscationFile(args);
     }
-    
+
+    /**
+     * - blockHash method used to generate the genesis block hash
+     * - signCoinbaseTx method used to generate the account info and tx sign for GenesisRecipient
+     * @param args
+     * @throws ConchException.NotValidException
+     */
     public static void main(String[] args) throws ConchException.NotValidException {
     //        System.out.println("genesis1=>");
-    //        blockHash(SharderGenesis.genesisBlock());
+            blockHash(SharderGenesis.genesisBlock());
 //        signPocWeightTx(getSpFromConsole());
 
-        signCoinbaseTx(getSpFromConsole());
-        exit(0);
+//        signCoinbaseTx(getSpFromConsole());
+//        exit(0);
     }
 
 }
