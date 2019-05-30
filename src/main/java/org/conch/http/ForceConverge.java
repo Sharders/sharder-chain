@@ -261,15 +261,21 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
         Logger.logInfoMessage("start to check converge command and finish the fork switch");
         com.alibaba.fastjson.JSONObject cmdObj = getCmdTools();
-        if(cmdObj == null) return;
+        if(cmdObj == null) {
+            Logger.logInfoMessage("can't found own [%s] converge command, wait for next round check", Generator.getAutoMiningRS());
+            return;
+        }
             
         Logger.logDebugMessage("force converge command is: " + cmdObj.toJSONString());
         // check and unpause
-        if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) return;
+        if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) {
+            Logger.logInfoMessage("can't found command [%s] to resume syncing, wait for next round check", Command.PAUSE_SYNC.val());
+            return;
+        }
         
         boolean unpause = !cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
         if(unpause) {
-            Logger.logInfoMessage("Switch to fork Giant successfully");
+            Logger.logInfoMessage("Switch to fork Giant successfully, start to syncing blocks...");
             Conch.unpause();
             writeForkNameIntoPropertiesFile();
         }
