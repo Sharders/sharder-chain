@@ -201,8 +201,7 @@ public class CheckSumValidator {
      * @return
      */
     public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(long accountId, int height){
-        if(Constants.isTestnet() 
-            && height <= Constants.POC_NODETYPE_V2_HEIGHT
+        if(Constants.isTestnet()
             && pocNodeTypeTxsMap.containsKey(height)) {
             return pocNodeTypeTxsMap.get(height).get(accountId);
         }
