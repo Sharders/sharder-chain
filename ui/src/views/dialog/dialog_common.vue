@@ -90,6 +90,10 @@
                             <td>{{$global.returnObj(transactionInfo.transactionIndex,transactionInfo.transactionIndex)}}</td>
                         </tr>
                         <tr>
+                            <th>{{$t('dialog.account_transaction_id')}}</th>
+                            <td>{{transactionInfo.transaction}}</td>
+                        </tr>
+                        <tr>
                             <th>{{$t('dialog.account_transaction_type')}}</th>
                             <td>{{$global.getTransactionTypeStr(transactionInfo)}}</td>
                         </tr>
@@ -115,7 +119,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_info_fee')}}</th>
-                            <td>{{transactionInfo.feeNQT/100000000}}</td>
+                            <td>{{$global.getTransactionFeeNQT(transactionInfo)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
@@ -149,7 +153,9 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/error.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
-                    <span>{{$t('dialog.block_info_title1')}} - {{blockInfo.block}}</span>
+                    <span>
+                        {{$t('dialog.block_info_title1')}} - {{blockInfo.block}} | {{$t('dialog.account_transaction_block_height')}} - {{blockInfo.height}}
+                    </span>
                 </h4>
             </div>
             <div class="modal-body">
@@ -165,9 +171,10 @@
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>{{$t('dialog.block_info_time')}}</th>
-                            <th>{{$t('dialog.block_info_type')}}</th>
-                            <th>{{$t('dialog.block_info_amount')}}</th>
+                            <th>{{$t('dialog.account_transaction_time')}}</th>
+                            <th>{{$t('dialog.account_transaction_id')}}</th>
+                            <th>{{$t('dialog.account_transaction_type')}}</th>
+                            <th>{{$t('dialog.account_transaction_amount')}}</th>
                             <th>{{$t('dialog.account_info_fee')}}</th>
                             <th>{{$t('dialog.account_transaction_sender')}}</th>
                             <th>{{$t('dialog.account_transaction_recipient')}}</th>
@@ -177,6 +184,7 @@
                                 <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
                                 <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
+                            <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">{{transaction.transaction}}</td>
                             <td class="transaction-img">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>

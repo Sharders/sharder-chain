@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
+import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
@@ -162,28 +163,29 @@ public abstract class PocTxApi {
                 JSONObject nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
                         .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
 
-                Attachment.TxBodyBase pocNodeType = null;
-                if(Conch.getBlockchain().getHeight() <= Constants.POC_NODETYPE_V2_HEIGHT) {
-                    pocNodeType = new PocTxBody.PocNodeType(
-                            nodeTypeJson.getString("ip"),
-                            Peer.Type.getBySimpleName(nodeTypeJson.getString("type"))
-                    );
+                PocTxBody.PocNodeTypeV2 pocNodeType = null;
+                // v2 need account id or account rs
+                Long accountId = -1L;
+                if(nodeTypeJson.containsKey("bindRs")){
+                    accountId = Account.rsAccountToId(nodeTypeJson.getString("bindRs"));
+                }else if(nodeTypeJson.containsKey("accountId")){
+                    accountId = nodeTypeJson.getLong("accountId");
+                }
+
+                if(accountId == -1L) {
+                    pocNodeType = CheckSumValidator.isPreAccountsInTestnet(nodeTypeJson.getString("ip"), Conch.getHeight());
                 }else{
-                    // v2 need account id or account rs
-                    Long accountId = -1L;
-                    if(nodeTypeJson.containsKey("bindRs")){
-                        accountId = Account.rsAccountToId(nodeTypeJson.getString("bindRs"));
-                    }else if(nodeTypeJson.containsKey("accountId")){
-                        accountId = nodeTypeJson.getLong("accountId");
-                    }
-                    
-                    if(accountId == -1L) throw new ConchException.NotValidException("account id can not be null in PocNodeType V2 version!");
-                    
                     pocNodeType = new PocTxBody.PocNodeTypeV2(
-                            nodeTypeJson.getString("ip"), 
+                            nodeTypeJson.getString("ip"),
                             Peer.Type.getBySimpleName(nodeTypeJson.getString("type")),
                             accountId
-                            );
+                    );
+                }
+                
+                if(pocNodeType == null) {
+                    String errorMsg = "can't create node type tx from input data " + nodeTypeJson.toString();
+                    Logger.logErrorMessage(errorMsg);
+                    throw new ConchException.NotValidException(errorMsg);
                 }
                 
                 Logger.logInfoMessage("creating node type tx %s", pocNodeType.toString());

@@ -169,6 +169,7 @@
                             <tr>
                                 <th>{{$t('transaction.transaction_time')}}</th>
                                 <th>{{$t('transaction.block_height')}}</th>
+                                <th>{{$t('transaction.transaction_id')}}</th>
                                 <th>{{$t('transaction.transaction_type')}}</th>
                                 <th>{{$t('transaction.transaction_amount')}}</th>
                                 <th>{{$t('transaction.transaction_fee')}}</th>
@@ -186,6 +187,7 @@
                                 <td class="linker" @click="openBlockInfoDialog(transaction.height)">
                                     {{$global.returnObj(transaction.block,transaction.height)}}
                                 </td>
+                                <td>{{transaction.transaction}}</td>
                                 <td>{{$global.getTransactionTypeStr(transaction)}}</td>
                                 <td>{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}}</td>
                                 <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
