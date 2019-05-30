@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
-import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
@@ -248,14 +247,18 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     public static void switchFork(){
-        if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
+//        if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
+        if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
+        
         Logger.logInfoMessage("Start to switch the fork to Giant");
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
-            reset();
-            Logger.logDebugMessage("pause the blockchain till fork switched...");
-            Conch.pause();
-            reset = true;
+            if(!reset) {
+                reset();
+                Logger.logDebugMessage("pause the blockchain till fork switched...");
+                Conch.pause();
+                reset = true;
+            }
         }else{
             Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             return;

@@ -400,7 +400,7 @@ public class FileUtil {
     }
     
     public static void deleteDbFolder() {
-        String dbPath = Paths.get(Conch.getUserHomeDir(), Db.getDir()).toString();
+        String dbPath = Paths.get(Conch.getUserHomeDir(), Db.getDir()).getParent().toString();
         File dbFolder = new File(dbPath);
         Logger.logInfoMessage("Deleting db folder: " + dbFolder.getAbsolutePath());
         deleteDirectory(dbFolder);

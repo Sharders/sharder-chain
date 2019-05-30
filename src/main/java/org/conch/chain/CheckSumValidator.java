@@ -19,10 +19,7 @@ import org.conch.db.DbUtils;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.tx.TransactionImpl;
-import org.conch.util.Convert;
-import org.conch.util.Listener;
-import org.conch.util.Logger;
-import org.conch.util.RestfulHttpClient;
+import org.conch.util.*;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -30,6 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 
@@ -145,51 +143,41 @@ public class CheckSumValidator {
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
-    static boolean synThreadRunning = false;
-    
+
+    private static final Runnable updateKnownIgnoreBlocksThread = () -> {
+        try {
+            updateKnownIgnoreBlocks();
+        }catch (Exception e) {
+            Logger.logMessage("Error updateKnownIgnoreBlocksThread", e);
+        }catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+            t.printStackTrace();
+            System.exit(1);
+        }
+    };
+
     static {
-        if(!synIgnoreBlock && !synThreadRunning) {
-            new Thread(() -> updateKnownIgnoreBlocks()).start();
-            synThreadRunning = true;
-        }
-    }
-    
-    private static void countBad(boolean isBad){
-        if(!isBad) {
-            if(badCount++ > CHECK_INTERVAL) {
-                if(!synThreadRunning) {
-                    new Thread(() -> updateKnownIgnoreBlocks()).start(); 
-                }
-                badCount = 0;   
-            }
-        }
+        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, 30, TimeUnit.MINUTES);
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
-        if(!synIgnoreBlock && !synThreadRunning) {
-            new Thread(() -> updateKnownIgnoreBlocks()).start();
-        }
         boolean result = knownIgnoreBlocks.contains(blockId);
-        countBad(result);
         
         return result;
     }
     
     public static boolean isKnownIgnoreTx(long txId){
         boolean result = knownIgnoreTxs.contains(txId);
-        countBad(result);
         
         return result;
     }
 
     public static boolean isDirtyPoolTx(int height, long accountId){
         if(!knownDirtyPoolTxs.containsKey(height)) {
-            countBad(false);
             return false;
         }
 
         boolean result = knownDirtyPoolTxs.get(height).contains(accountId);
-        countBad(result);
         
         if(result){
             Logger.logDebugMessage("found a known dirty pool tx[account id=%s] at height %d, ignore this tx" , accountId, height);

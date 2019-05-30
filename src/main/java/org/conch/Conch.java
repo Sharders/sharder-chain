@@ -730,10 +730,11 @@ public final class Conch {
                 runtimeMode.init();
                 Thread secureRandomInitThread = initSecureRandom();
                 setServerStatus(ServerStatus.BEFORE_DATABASE, null);
+                ForceConverge.init();
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
-                ForceConverge.init();
+                
                 
                 PocProcessorImpl.init();
                 TransactionProcessorImpl.getInstance();
