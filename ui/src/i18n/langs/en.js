@@ -883,7 +883,7 @@ const en = {
         'join_blacklist_success2': "been added to the blacklist",
         'join_blacklist_error': "'Failed to add to blacklist",
         'join_link_peer_success1': "Already",
-        'join_link_peer_success2': "'connected successfully",
+        'join_link_peer_success2': " connected successfully",
         'join_link_peer_error': "connection failed",
         'API_service': "API Services",
         'core_service': "Core Services",

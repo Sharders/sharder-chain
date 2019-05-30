@@ -881,7 +881,7 @@ const cn = {
         'join_blacklist_success2': "'加入黑名单",
         'join_blacklist_error': "'加入黑名单失败",
         'join_link_peer_success1': "已与'",
-        'join_link_peer_success2': "'连接成功",
+        'join_link_peer_success2': " 连接成功",
         'join_link_peer_error': "连接失败",
         'API_service': "API服务",
         'core_service': "核心服务",
