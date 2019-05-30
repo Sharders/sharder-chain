@@ -228,8 +228,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             
             Logger.logDebugMessage("start to reset the blockchain");
 //            Conch.getBlockchainProcessor().fullReset();
-            FileUtil.clearAllLogs();
             FileUtil.deleteDbFolder();
+            FileUtil.clearAllLogs();
+          
             
         }catch (RuntimeException | FileNotFoundException e) {
             Logger.logErrorMessage("reset failed", e);
@@ -251,10 +252,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)) {
-            if(Conch.getHeight() > 0) {
-                reset();
+            if(Conch.getHeight() >= 0) {
                 Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
+                reset();
             }
+            Logger.logDebugMessage("pause the blockchain till fork switched...");
             Conch.pause();
         }else{
             Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
