@@ -24,6 +24,7 @@ package org.conch.peer;
 import org.conch.Conch;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
+import org.conch.mint.Generator;
 import org.conch.util.CountingInputReader;
 import org.conch.util.CountingOutputWriter;
 import org.conch.util.JSON;
@@ -362,7 +363,8 @@ public final class PeerServlet extends WebSocketServlet {
             }
             peer.setLastInboundRequest(Conch.getEpochTime());
             if (peerRequestHandler.rejectWhileDownloading()) {
-                if (blockchainProcessor.isDownloading()) {
+                if (blockchainProcessor.isDownloading() 
+                        && !Generator.isBootNode) {
                     return DOWNLOADING;
                 }
                 if (Constants.isLightClient) {
