@@ -721,6 +721,10 @@
     span.type0 {
         background-image: url("../../assets/img/pay.svg");
     }
+    
+    span.type00 {
+        background-image: url("../../assets/img/pay.svg");
+    }
 
     span.type10 {
         background-image: url("../../assets/img/infomation.svg");
@@ -734,7 +738,23 @@
         background-image: url("../../assets/img/storage.svg");
     }
 
+    //SUBTYPE_SHARDER_POOL_CREATE
     span.type80 {
+        background-image: url("../../assets/img/forge_pool.svg");
+    }
+    
+    //SUBTYPE_SHARDER_POOL_DESTROY
+    span.type81 {
+        background-image: url("../../assets/img/forge_pool.svg");
+    }
+    
+    //SUBTYPE_SHARDER_POOL_JOIN
+    span.type82 {
+        background-image: url("../../assets/img/forge_pool.svg");
+    }
+
+    //SUBTYPE_SHARDER_POOL_QUIT
+    span.type83 {
         background-image: url("../../assets/img/forge_pool.svg");
     }
 

@@ -22,9 +22,10 @@
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
                             <tr>
-                                <th>{{$t('dialog.account_info_transaction_time')}}</th>
-                                <th>{{$t('dialog.account_info_transaction_type')}}</th>
-                                <th>{{$t('dialog.account_info_amount')}}</th>
+                                <th>{{$t('dialog.account_transaction_time')}}</th>
+                                <th>{{$t('dialog.account_transaction_id')}}</th>
+                                <th>{{$t('dialog.account_transaction_type')}}</th>
+                                <th>{{$t('dialog.account_transaction_amount')}}</th>
                                 <th>{{$t('dialog.account_info_fee')}}</th>
                                 <th>{{$t('dialog.account_info_account')}}</th>
                                 <th>{{$t('dialog.account_info_operating')}}</th>
@@ -39,6 +40,7 @@
                                         <span>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
                                         <span class="utc-time">{{$global.formatTime(transactions.timestamp)}} +UTC</span>
                                     </td>
+                                    <td>{{transactions.transaction}}</td>
                                     <td class="transaction-img">
                                         <span class="bg"
                                               :class="'type' + transactions.type + transactions.subtype"></span>
@@ -46,10 +48,10 @@
                                     </td>
                                     <td>{{transactions.amountNQT/100000000}}</td>
                                     <td>{{$global.getTransactionFeeNQT(transactions)}}</td>
-                                    <td class="linker w200" @click="checkAccountInfo(transactions.senderRS)">
+                                    <td class="linker" style="font-size:11px;" @click="checkAccountInfo(transactions.senderRS)">
                                         <span>{{transactions.senderRS}}</span>
                                     </td>
-                                    <td class="linker" @click="openTransactionDialog(transactions.transaction)">
+                                    <td class="linker" style="font-size:11px;" @click="openTransactionDialog(transactions.transaction)">
                                         {{$t('dialog.account_info_view_detail')}}
                                     </td>
                                 </tr>
@@ -184,7 +186,7 @@
                                 <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
                                 <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
-                            <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">{{transaction.transaction}}</td>
+                            <td class="linker" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
                             <td class="transaction-img">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
@@ -192,14 +194,14 @@
                             <td>{{transaction.amountNQT/100000000}}</td>
                             <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
                             <td v-if="transaction.type === 9">CoinBase</td>
-                            <td class="linker" v-else @click="openAccountInfo(transaction.senderRS)">
+                            <td class="linker" style="font-size:11px;" v-else @click="openAccountInfo(transaction.senderRS)">
                                 {{transaction.senderRS}}
                             </td>
-                            <td class="linker" v-if="transaction.type === 9"
+                            <td class="linker" style="font-size:11px;" v-if="transaction.type === 9"
                                 @click="openAccountInfo(transaction.senderRS)">
                                 {{transaction.senderRS}}
                             </td>
-                            <td class="linker" v-else @click="openAccountInfo(transaction.recipientRS)">
+                            <td class="linker" style="font-size:11px;" v-else @click="openAccountInfo(transaction.recipientRS)">
                                 {{transaction.recipientRS}}
                             </td>
                         </tr>

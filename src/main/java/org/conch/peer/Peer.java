@@ -46,7 +46,7 @@ public interface Peer extends Comparable<Peer> {
         HUB(4, "Sharder Hub", 0,"Hub"),
         NORMAL(3, "Normal Node", 2,"Normal"),
         COMMUNITY(2, "Community Node", 3, "Community"),
-        FOUNDATION(1, "Foundation Node",4, "Foundation");
+        FOUNDATION(1, "Sharder Node",4, "Foundation");
         private final int code;
         private final String name;
         private final int simpleCode;

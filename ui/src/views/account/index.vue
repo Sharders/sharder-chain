@@ -188,7 +188,10 @@
                                     {{$global.returnObj(transaction.block,transaction.height)}}
                                 </td>
                                 <td>{{transaction.transaction}}</td>
-                                <td>{{$global.getTransactionTypeStr(transaction)}}</td>
+                                <td class="transaction-img">
+                                    <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
+                                    <span>{{$global.getTransactionTypeStr(transaction)}}</span>
+                                </td>
                                 <td>{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}}</td>
                                 <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
                                 <td class=" image_text w300">
