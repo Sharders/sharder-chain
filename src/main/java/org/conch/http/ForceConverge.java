@@ -255,6 +255,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
             }
             Conch.pause();
+        }else{
+            Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
+            return;
         }
         
         Peers.checkOrConnectBootNode();
@@ -284,6 +287,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void init() {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)){
+            Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
     }
