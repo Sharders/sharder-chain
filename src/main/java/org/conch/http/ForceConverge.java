@@ -250,7 +250,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
     public static void switchFork(){
         if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
-        
+        Logger.logInfoMessage("Start to switch the fork to Giant");
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)) {
             if(!reset) {
@@ -292,7 +292,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)){
             switchFork(); // execute immediately once
-            Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
     }
