@@ -288,6 +288,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void init() {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName)){
+            switchFork(); // execute immediately once
             Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }

@@ -145,23 +145,28 @@ public class CheckSumValidator {
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
+    static boolean synThreadRunning = false;
+    
     static {
-        if(!synIgnoreBlock) {
+        if(!synIgnoreBlock && !synThreadRunning) {
             new Thread(() -> updateKnownIgnoreBlocks()).start();
+            synThreadRunning = true;
         }
     }
     
     private static void countBad(boolean isBad){
         if(!isBad) {
             if(badCount++ > CHECK_INTERVAL) {
-                new Thread(() -> updateKnownIgnoreBlocks()).start();
+                if(!synThreadRunning) {
+                    new Thread(() -> updateKnownIgnoreBlocks()).start(); 
+                }
                 badCount = 0;   
             }
         }
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
-        if(!synIgnoreBlock) {
+        if(!synIgnoreBlock && !synThreadRunning) {
             new Thread(() -> updateKnownIgnoreBlocks()).start();
         }
         boolean result = knownIgnoreBlocks.contains(blockId);
@@ -385,12 +390,12 @@ public class CheckSumValidator {
             if(knownDirtyPocTxs.size() > 0) {
                 Set<Long> dirtyPocTxs = Sets.newHashSet();
                 knownDirtyPocTxs.values().forEach(ids -> dirtyPocTxs.addAll(ids));
-                new Thread(() ->  Conch.getPocProcessor().removeDelayedPocTxs(dirtyPocTxs)).start();
+                Conch.getPocProcessor().removeDelayedPocTxs(dirtyPocTxs);
             }
 
             // remove the dirty pools
             if(knownDirtyPoolTxs.size() > 0) {
-                new Thread(() -> SharderPoolProcessor.removePools(knownDirtyPoolTxs)).start();
+                SharderPoolProcessor.removePools(knownDirtyPoolTxs);
             }
             
             if(!synIgnoreBlock) synIgnoreBlock = true;

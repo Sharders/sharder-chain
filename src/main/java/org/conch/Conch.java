@@ -733,7 +733,8 @@ public final class Conch {
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
-
+                ForceConverge.init();
+                
                 PocProcessorImpl.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
@@ -783,7 +784,7 @@ public final class Conch {
                 SharderPoolProcessor.init();
                 DebugTrace.init();
                 DbBackup.init();
-                ForceConverge.init();
+             
                 int timeMultiplier = (Constants.isTestnetOrDevnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
