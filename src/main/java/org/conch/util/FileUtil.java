@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.db.Db;
 import org.conch.tools.ClientUpgradeTool;
 
 import java.io.*;
@@ -384,18 +385,25 @@ public class FileUtil {
         return libFileMap;
     }
     
-    public static void deleteLogFolder() throws FileNotFoundException {
+    public static void clearAllLogs() throws FileNotFoundException {
         String logPath = Conch.getUserHomeDir() + File.separator + "logs";
         File logFiles = new File(logPath);
         File[] files = logFiles.listFiles();
         if (files != null && files.length > 0) {
             for (File file : files) {
-                Logger.logInfoMessage("Deleting log files..." + file.getAbsolutePath());
+                Logger.logInfoMessage("Clear log files..." + file.getAbsolutePath());
                 PrintWriter writer = new PrintWriter(file);
                 writer.print("");
                 writer.close();
             }
         }
+    }
+    
+    public static void deleteDbFolder() throws FileNotFoundException {
+        String dbPath = Paths.get(Conch.getUserHomeDir(), Db.getDir()).toString();
+        File dbFolder = new File(dbPath);
+        Logger.logInfoMessage("Deleting db folder: " + dbFolder.getAbsolutePath());
+        deleteDirectory(dbFolder);
     }
 
 }

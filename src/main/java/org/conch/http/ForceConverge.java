@@ -227,8 +227,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Conch.pause();
             
             Logger.logDebugMessage("start to reset the blockchain");
-            Conch.getBlockchainProcessor().fullReset();
-            FileUtil.deleteLogFolder();
+//            Conch.getBlockchainProcessor().fullReset();
+            FileUtil.clearAllLogs();
+            FileUtil.deleteDbFolder();
             
         }catch (RuntimeException | FileNotFoundException e) {
             Logger.logErrorMessage("reset failed", e);
