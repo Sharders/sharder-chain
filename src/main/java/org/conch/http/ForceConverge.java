@@ -230,7 +230,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 //            Conch.getBlockchainProcessor().fullReset();
             FileUtil.deleteDbFolder();
             FileUtil.clearAllLogs();
-          
             
         }catch (RuntimeException | FileNotFoundException e) {
             Logger.logErrorMessage("reset failed", e);
@@ -252,7 +251,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         Logger.logInfoMessage("Start to switch the fork to Giant");
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName)) {
+        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
             if(!reset) {
                 reset();
                 Logger.logDebugMessage("pause the blockchain till fork switched...");
@@ -290,7 +289,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
     public static void init() {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName)){
+        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)){
             switchFork(); // execute immediately once
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }

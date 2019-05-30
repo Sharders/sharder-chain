@@ -399,7 +399,7 @@ public class FileUtil {
         }
     }
     
-    public static void deleteDbFolder() throws FileNotFoundException {
+    public static void deleteDbFolder() {
         String dbPath = Paths.get(Conch.getUserHomeDir(), Db.getDir()).toString();
         File dbFolder = new File(dbPath);
         Logger.logInfoMessage("Deleting db folder: " + dbFolder.getAbsolutePath());
