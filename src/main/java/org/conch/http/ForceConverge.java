@@ -252,12 +252,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         Logger.logInfoMessage("Start to switch the fork to Giant");
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
-            if(!reset) {
-                reset();
-                Logger.logDebugMessage("pause the blockchain till fork switched...");
-                Conch.pause();
-                reset = true;
-            }
+            reset();
+            Logger.logDebugMessage("pause the blockchain till fork switched...");
+            Conch.pause();
+            reset = true;
         }else{
             Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             return;
