@@ -106,21 +106,30 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                     int toHeight = cmdObj.getInteger(Command.TO_HEIGHT.val());
                     Logger.logDebugMessage("received toHeight is %d ", toHeight);
                     
-                    // pop-off to specified height
-                    List<? extends Block> blocks = Lists.newArrayList();
-                    if (toHeight < currentHeight) {
-                        Logger.logDebugMessage("start to pop-off to height %d", toHeight);
-                        blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
-                    }
+                    if(toHeight == -1){
+                        // reset the current db
+                        Logger.logDebugMessage("height is -1, reset(delete db folder from disk) and restart the block chain ");
+                        reset();
+                        new Thread(() -> Conch.restartApplication(null)).start();
+                        response.put("done", true);
+                    }else{
+                        // pop-off to specified height
+                        List<? extends Block> blocks = Lists.newArrayList();
+                        if (toHeight < currentHeight) {
+                            Logger.logDebugMessage("start to pop-off to height %d", toHeight);
+                            blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
+                        }
 
-                    // tx process
-                    boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
-                    Logger.logDebugMessage("received keepTx is %s ", keepTx);
+                        // tx process
+                        boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
+                        Logger.logDebugMessage("received keepTx is %s ", keepTx);
 
-                    if (keepTx) {
-                        Logger.logDebugMessage("start to put the txs into delay process pool");
-                        blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+                        if (keepTx) {
+                            Logger.logDebugMessage("start to put the txs into delay process pool");
+                            blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+                        }
                     }
+                 
                 } finally {
                     Conch.unpause();
                 }
