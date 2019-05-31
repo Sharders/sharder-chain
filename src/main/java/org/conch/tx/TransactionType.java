@@ -3471,11 +3471,9 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction tx) throws ConchException.ValidationException {
-                //TODO node certify
-                
-                // forge pool total No.
+                // mining pool total No.
                 long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId(), Conch.getBlockchain().getHeight());
-                if (poolId != -1) throw new ConchException.NotValidException("Creator already owned one forge pool[id=%d]",  poolId);
+                if (poolId != -1) throw new ConchException.NotValidException("Creator already owned one mining pool[id=%d]",  poolId);
                 
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
                 if (!PoolRule.validateRule(tx.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {

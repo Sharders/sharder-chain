@@ -303,10 +303,12 @@ public class SharderPoolProcessor implements Serializable {
 
     public static long findOwnPoolId(long creator, int height) {
         if(height <= 0) height = 0;
-        for (SharderPoolProcessor forgePool : sharderPools.values()) {
-            if (forgePool.creatorId == creator 
-            && height >= forgePool.startBlockNo) {
-                return forgePool.poolId;
+       
+        for (SharderPoolProcessor pool : sharderPools.values()) {
+            int poolCreateHeight = pool.startBlockNo - Constants.SHARDER_POOL_DELAY;
+            if(poolCreateHeight <= 0) poolCreateHeight = 0;
+            if (pool.creatorId == creator && (height >= pool.startBlockNo || height >= poolCreateHeight)) {
+                return pool.poolId;
             }
         }
         return -1;
