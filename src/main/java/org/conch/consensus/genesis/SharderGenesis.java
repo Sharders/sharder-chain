@@ -43,7 +43,7 @@ public class SharderGenesis {
 //            17, 91, 104, -115, 67, -94, 3, -92
 //    };
     public static final byte[] GENESIS_BLOCK_SIGNATURE = new byte[]{
-            125, 50, 117, -93, -35, -13, 69, -90, 16, 115, 0, 21, -30, -95, -114, 42, -96, 56, -61, -91, -31, -1, 111, 37, 55, 39, -98, -60, 34, 47, 85, 104
+            -83, 36, -124, -118, 5, 21, -27, -85, 125, 29, -43, 16, -25, -117, 91, 64, -94, 108, -39, -10, -100, 102, -77, 95, -22, -119, -89, -104, -94, -81, 111, 73
     };
     public static final byte[] GENESIS_PAYLOAD_HASH = new byte[]{
             -68, 29, 41, -120, -78, -7, -86, -93, -10, -89, -77, -46, 109, -49, 30, 72, -115, 77, 73, -19, -85, 125, -43, -13, -3, -44, -124, -62, 123, -68, 69, -81
@@ -248,7 +248,6 @@ public class SharderGenesis {
     private static TransactionImpl defaultPocWeightTableTx() throws ConchException.NotValidException {
         Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
         return new TransactionImpl.BuilderImpl(
-                (byte)0,
                 SharderGenesis.CREATOR_PUBLIC_KEY,
                 0,
                 0,
