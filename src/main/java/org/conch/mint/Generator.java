@@ -448,10 +448,10 @@ public class Generator implements Comparable<Generator> {
     public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
-            Logger.logDebugMessage("verify hit failed caused by this generator missing the generation turn because the elapsed time[%d] <=0", elapsedTime);
+            Logger.logWarningMessage("verify hit failed caused by this generator missing the turn to generate when the elapsed time[%d] <=0", elapsedTime);
             return false;
         }else if(elapsedTime < Constants.getBlockGapSeconds()){
-            Logger.logDebugMessage("verify hit failed caused by this generator's elapsed time[%d] is in the block gap[%d]", elapsedTime,Constants.getBlockGapSeconds() );
+            Logger.logWarningMessage("verify hit failed caused by this generator's elapsed time[%d] is in the block gap[%d]", elapsedTime,Constants.getBlockGapSeconds() );
             return false;
         }
         
@@ -461,10 +461,10 @@ public class Generator implements Comparable<Generator> {
         // check the elapsed time(in second) after previous block generated
         boolean elapsed = elapsedTime > Constants.getBlockGapSeconds();
         
-        // 3 right situations: a) last hit < current hit < current target b) this block is elapsed c) in offline mode
+        // 3 right situations: a) last hit < current hit < current target, b) this block is elapsed, c) in offline mode
         boolean validHit = hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
         if(!validHit) {
-            Logger.logDebugMessage("verify hit failed[hit=%d, target=[%d], previous target=[%d], elapsed time=%d]",hit, target,prevTarget, elapsedTime);
+            Logger.logWarningMessage("verify hit failed, hit should smaller than target [hit=%d, target=%d, poc score=%d, previous target=%d, elapsed time=%d]",hit, target, pocScore, prevTarget, elapsedTime);
         }
         return validHit;
     }

@@ -95,7 +95,7 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
         @Override
         public String getMessage() {
-            return block == null ? super.getMessage() : super.getMessage() + ", block " + block.getStringId() + " " + block.getJSONObject().toJSONString();
+            return block == null ? super.getMessage() : super.getMessage() + " [block id=" + block.getId() + ", block string id=" + block.getStringId() + "]";
         }
 
     }

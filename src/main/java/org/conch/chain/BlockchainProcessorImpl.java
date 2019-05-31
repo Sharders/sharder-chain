@@ -1383,7 +1383,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       } catch (Exception e) {
         Db.db.rollbackTransaction();
         blockchain.setLastBlock(previousLastBlock);
-        Logger.logErrorMessage("push block failed caused by[%s]", e.getMessage());
+        Logger.logErrorMessage("push block failed caused by: %s", e.getMessage());
         throw e;
       } finally {
         Db.db.endTransaction();
@@ -1464,7 +1464,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
       Account generatorAccount = Account.getAccount(block.getGeneratorId());
       PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount,previousLastBlock.getHeight());
-      String errorMsg = String.format("Generation signature verification failed, account is %s poc score is %d and block id is %s at height %d" , generatorAccount.getRsAddress(), pocScoreObj.total(), block.getId(), (previousLastBlock.getHeight()+1));
+      String errorMsg = String.format("Generation signature verification failed, account %s poc score is %d at height %d" , generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight()+1));
       throw new BlockNotAcceptedException(errorMsg, block);
     }
     if (!block.verifyBlockSignature()) {
@@ -1990,20 +1990,21 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     List<TransactionImpl> blockTransactions = new ArrayList<>();
     MessageDigest digest = Crypto.sha256();
     final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
-
+    Account creator = Account.getAccount(publicKey);
+    
     long totalAmountNQT = 0;
     long totalFeeNQT = 0;
     int payloadLength = 0;
 
     // coin base
     try {
+     
       // Pool owner -> pool rewards map (send rewards to pool joiners)
       // Single miner -> empty rewards map (send rewards to miner)
-      long blockCreatorId = Account.getId(publicKey);
       Map<Long, Long> map = new HashMap<>();
-      long poolId = SharderPoolProcessor.findOwnPoolId(blockCreatorId);
+      long poolId = SharderPoolProcessor.findOwnPoolId(creator.getId());
       if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
-        poolId = blockCreatorId;
+        poolId = creator.getId();
       } else {
         map = SharderPoolProcessor.getPool(poolId).getConsignorsAmountMap();
       }
@@ -2017,14 +2018,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   0,
                   (short) 10,
                   new Attachment.CoinBase(
-                      Attachment.CoinBase.CoinBaseType.BLOCK_REWARD, Account.getId(publicKey), poolId, map))
+                      Attachment.CoinBase.CoinBaseType.BLOCK_REWARD, creator.getId(), poolId, map))
               .timestamp(blockTimestamp)
               .recipientId(0)
               .build(secretPhrase);
       sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
     } catch (ConchException.NotValidException e) {
-        long accountId = Account.getId(publicKey);
-        Logger.logErrorMessage("Can't create coin base transaction[current miner=" + Account.rsAccount(accountId)  + ", id=" + accountId + "]", e);
+        Logger.logErrorMessage("Can't create coin base transaction[current miner=" + creator.getRsAddress()  + ", id=" + creator.getId() + "]", e);
     }
     
     // generation missing
@@ -2086,9 +2086,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockListeners.notify(block, Event.BLOCK_GENERATED);
       Logger.logDebugMessage(
           "Account[id="
-              + Long.toUnsignedString(block.getGeneratorId())
+              + Long.toUnsignedString(creator.getId())
               + ", RS="
-              + Account.rsAccount(block.getGeneratorId())
+              + creator.getRsAddress()
+              + ", PoC="
+              + Conch.getPocProcessor().calPocScore(creator, previousBlock.getHeight())
               + "]"
               + " generated block "
               + block.getStringId()

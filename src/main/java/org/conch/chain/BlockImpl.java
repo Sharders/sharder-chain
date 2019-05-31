@@ -480,10 +480,11 @@ public final class BlockImpl implements Block {
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
-            PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(Account.getAccount(getGeneratorId()),previousBlock.getHeight());
+            Account creator = Account.getAccount(getGeneratorId());
+            PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(creator,previousBlock.getHeight());
             BigInteger pocScore = pocScoreObj.total();
             if (pocScore.signum() <= 0) {
-                Logger.logDebugMessage("poc score is less than 0 in this block calculate generation signature is and get from previous bli");
+                Logger.logWarningMessage(creator.getRsAddress() + " poc score is less than 0 in this block calculation generation signature verification");
                 return false;
             }
 
@@ -492,7 +493,7 @@ public final class BlockImpl implements Block {
             digest.update(previousBlock.generationSignature);
             generationSignatureHash = digest.digest(getGeneratorPublicKey());
             if (!Arrays.equals(generationSignature, generationSignatureHash)) {
-                Logger.logDebugMessage("current calculate generation signature of previous block is not same with previous block's generation signature");
+                Logger.logWarningMessage("current calculate generation signature of previous block is not same with previous block's generation signature");
                 return false;
             }
 

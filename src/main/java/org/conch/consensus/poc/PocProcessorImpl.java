@@ -176,11 +176,6 @@ public class PocProcessorImpl implements PocProcessor {
     @Override
     public PocScore calPocScore(Account account, int height) {
         PocScore pocScore = PocHolder.getPocScore(height, account.getId());
-
-        //[POLYFILL] polyfill for pre hubs in Testnet which PocNodeType is missing the accountId attribute make this bug 
-        PocTxBody.PocNodeTypeV2 hubNodeType = CheckSumValidator.isPreAccountsInTestnet(account.getId(), height);
-        if (hubNodeType != null) pocScore.nodeTypeCal(hubNodeType);
-
         return pocScore;
     }
 

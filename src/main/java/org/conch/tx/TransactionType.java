@@ -533,6 +533,7 @@ public abstract class TransactionType {
             }else{
                 account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
                 account.addToMintedBalanceNQT(amount);
+                account.pocChanged();
                 Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
                         amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
             }
