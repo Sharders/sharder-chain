@@ -78,9 +78,9 @@ public class SharderPoolProcessor implements Serializable {
     
     public SharderPoolProcessor(){} 
 
-    public SharderPoolProcessor(long creatorId, long id, int startBlockNo, int endBlockNo) {
+    public SharderPoolProcessor(long creatorId, long poolId, int startBlockNo, int endBlockNo) {
         this.creatorId = creatorId;
-        this.poolId = id;
+        this.poolId = poolId;
         this.startBlockNo = startBlockNo;
         this.endBlockNo = endBlockNo;
         this.level = PoolRule.getLevel(creatorId);
@@ -129,11 +129,19 @@ public class SharderPoolProcessor implements Serializable {
 //        }
 //    }
 
-    public static SharderPoolProcessor createSharderPool(long creatorId, long id, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+    public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
+        Account creator = Account.getAccount(creatorId);
+        // mining pool total No.
+        long existId = SharderPoolProcessor.findOwnPoolId(creatorId, Conch.getBlockchain().getHeight());
+        if (existId != -1) {
+            Logger.logWarningMessage("%s[id=%d] already owned one mining pool[id=%d], ignore tis tx and dont't create a new pool ", creator.getRsAddress(), creator.getId(), poolId);
+            return null;
+        }
+        
         int height = startBlockNo - Constants.SHARDER_POOL_DELAY;
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
-        SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, id, startBlockNo, endBlockNo);
-        Account.getAccount(creatorId).frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
+        SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
+        creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
         
         if (destroyedPools.containsKey(creatorId)) {

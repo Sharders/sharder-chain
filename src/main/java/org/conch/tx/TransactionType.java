@@ -3471,16 +3471,10 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction tx) throws ConchException.ValidationException {
-                // mining pool total No.
-                long poolId = SharderPoolProcessor.findOwnPoolId(tx.getSenderId(), Conch.getBlockchain().getHeight());
-                if (poolId != -1) throw new ConchException.NotValidException("Creator already owned one mining pool[id=%d]",  poolId);
-                
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
                 if (!PoolRule.validateRule(tx.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
-                    throw new ConchException.NotValidException("pool[id=%d, creator id=%s] rule not matched", poolId, Account.rsAccount(tx.getSenderId()));
+                    throw new ConchException.NotValidException("pool[id=%d, creator id=%s] rule not matched", tx.getId(), Account.rsAccount(tx.getSenderId()));
                 }
-                //TODO unconfirmed transaction already has create pool, remove the pool if tx be rejected
-                //TransactionProcessorImpl.getInstance().getUnconfirmedTransaction();
             }
 
             @Override
@@ -3490,7 +3484,10 @@ public abstract class TransactionType {
                 SharderPoolProcessor miningPool = SharderPoolProcessor.createSharderPool(senderAccount.getId(), transaction.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
                         curHeight + Constants.SHARDER_POOL_DELAY + create.getPeriod(),
                         PoolRule.getRuleInstance(senderAccount.getId(), PoolRule.mapToJsonObject(create.getRule())));
-                Account.getAccount(miningPool.getCreatorId()).pocChanged();
+                if(miningPool == null) {
+                    Logger.logWarningMessage("current pool creation tx[id=%d, height=%d] be ignored, maybe this account already has a working pool or something is wrong", transaction.getId(), transaction.getHeight());
+                }
+                senderAccount.pocChanged();
             }
 
             @Override
