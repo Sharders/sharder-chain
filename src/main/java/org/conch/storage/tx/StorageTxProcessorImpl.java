@@ -63,8 +63,7 @@ public class StorageTxProcessorImpl implements StorageTxProcessor {
             Storer storer = Storer.getStorer();
                 Attachment.DataStorageBackup attachment = new Attachment.DataStorageBackup(transaction.getId(), storer.getAccountId());
             TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(
-                    (byte) 1, storer.getPublicKey(), 0, 0, transaction.getDeadline(),
-                    attachment
+                     storer.getPublicKey(), 0, 0, transaction.getDeadline(), attachment
                     );
             try {
                 transaction =  builder.build(Storer.getStorer().getSecretPhrase());

@@ -1504,7 +1504,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         throw new TransactionNotAcceptedException("Transaction signature verification failed at height " + previousLastBlock.getHeight(), transaction);
       }
       
-      
       //full version check
       if (transaction.getTimestamp() > block.getTimestamp() + Constants.MAX_TIMEDRIFT
               || (transaction.getExpiration() < block.getTimestamp())) {
@@ -2012,7 +2011,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       // transaction version=1, deadline=10,timestamp=blockTimestamp
       TransactionImpl transaction =
           new TransactionImpl.BuilderImpl(
-                  (byte) 1,
                   publicKey,
                   RewardCalculator.mintReward(),
                   0,
@@ -2032,7 +2030,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if(Generator.hasGenerationMissingAccount()) {
             TransactionImpl transaction =
                     new TransactionImpl.BuilderImpl(
-                            (byte) 1,
                             publicKey,
                             0,
                             0,

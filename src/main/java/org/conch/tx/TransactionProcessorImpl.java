@@ -723,8 +723,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         if (transaction.getTimestamp() > curTime + Constants.MAX_TIMEDRIFT || transaction.getExpiration() < curTime) {
             throw new ConchException.NotCurrentlyValidException("Invalid transaction timestamp");
         }
-        if (transaction.getVersion() < 1) {
-            throw new ConchException.NotValidException("Invalid transaction version");
+        if (!transaction.checkVersion()) {
+            throw new ConchException.NotValidException("Invalid transaction version " + transaction.getVersion() );
         }
         if (transaction.getId() == 0L) {
             throw new ConchException.NotValidException("Invalid transaction id 0");

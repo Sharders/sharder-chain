@@ -137,8 +137,8 @@ public interface Appendix {
             return version;
         }
 
-        public boolean verifyVersion(byte transactionVersion) {
-            return transactionVersion == 0 ? version == 0 : version == 1;
+        public boolean verifyVersion(byte txVer) {
+            return txVer == 0 ? (version == 0) : (version >= 1);
         }
 
         @Override

@@ -190,7 +190,6 @@ public class SharderGenesis {
         GenesisRecipient.getAll().forEach(recipient -> {
             try {
                 transactions.add(new TransactionImpl.BuilderImpl(
-                        (byte) 1,
                         recipient.publicKey,
                         recipient.amount * Constants.ONE_SS,
                         0,
@@ -223,7 +222,6 @@ public class SharderGenesis {
             Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeTypeV2(genesisPeer.domain,genesisPeer.type,genesisPeer.accountId);
             try {
                 transactions.add(new TransactionImpl.BuilderImpl(
-                        (byte) 0,
                         SharderGenesis.CREATOR_PUBLIC_KEY,
                         0,
                         0,
@@ -250,7 +248,7 @@ public class SharderGenesis {
     private static TransactionImpl defaultPocWeightTableTx() throws ConchException.NotValidException {
         Attachment.AbstractAttachment attachment = PocTxBody.PocWeightTable.defaultPocWeightTable();
         return new TransactionImpl.BuilderImpl(
-                (byte) 0,
+                (byte)0,
                 SharderGenesis.CREATOR_PUBLIC_KEY,
                 0,
                 0,
