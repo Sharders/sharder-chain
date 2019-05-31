@@ -724,7 +724,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             throw new ConchException.NotCurrentlyValidException("Invalid transaction timestamp");
         }
         if (!transaction.checkVersion()) {
-            throw new ConchException.NotValidException("Invalid transaction version " + transaction.getVersion() );
+            throw new ConchException.NotValidException("Invalid transaction version " + transaction.getVersion() 
+                    + " at height " + transaction.getHeight() + ", COS version is " + Conch.getVersion());
         }
         if (transaction.getId() == 0L) {
             throw new ConchException.NotValidException("Invalid transaction id 0");
