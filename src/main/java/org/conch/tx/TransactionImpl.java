@@ -1108,6 +1108,11 @@ final public class TransactionImpl implements Transaction {
     }
 
     public void apply() {
+        if(CheckSumValidator.isKnownIgnoreTx(id)){
+            Logger.logWarningMessage("this tx[id=%d, creator=%s, height=%d] is known ignored tx, don't apply and ignore it", id, Account.rsAccount(senderId), height);
+            return;
+        }
+        
         Account senderAccount = Account.getAccount(getSenderId());
         senderAccount.apply(getSenderPublicKey());
         Account recipientAccount = null;
