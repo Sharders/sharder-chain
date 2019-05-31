@@ -134,6 +134,7 @@ public class SharderPoolProcessor implements Serializable {
         // mining pool total No.
         long existId = SharderPoolProcessor.findOwnPoolId(creatorId, startBlockNo);
         if (existId != -1) {
+            PoolDb.delete(poolId);
             Logger.logWarningMessage("%s[id=%d] already owned one mining pool[id=%d, start height=%d], ignore this tx and dont't create a new pool ", creator.getRsAddress(), creator.getId(), poolId, startBlockNo);
             return null;
         }
