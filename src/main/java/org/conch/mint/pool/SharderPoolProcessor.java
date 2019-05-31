@@ -132,13 +132,12 @@ public class SharderPoolProcessor implements Serializable {
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
         Account creator = Account.getAccount(creatorId);
         // mining pool total No.
-        long existId = SharderPoolProcessor.findOwnPoolId(creatorId, Conch.getBlockchain().getHeight());
+        long existId = SharderPoolProcessor.findOwnPoolId(creatorId, startBlockNo);
         if (existId != -1) {
-            Logger.logWarningMessage("%s[id=%d] already owned one mining pool[id=%d], ignore tis tx and dont't create a new pool ", creator.getRsAddress(), creator.getId(), poolId);
+            Logger.logWarningMessage("%s[id=%d] already owned one mining pool[id=%d, start height=%d], ignore this tx and dont't create a new pool ", creator.getRsAddress(), creator.getId(), poolId, startBlockNo);
             return null;
         }
         
-        int height = startBlockNo - Constants.SHARDER_POOL_DELAY;
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
         creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
@@ -314,7 +313,10 @@ public class SharderPoolProcessor implements Serializable {
        
         for (SharderPoolProcessor pool : sharderPools.values()) {
             int poolCreateHeight = pool.startBlockNo - Constants.SHARDER_POOL_DELAY;
-            if(poolCreateHeight <= 0) poolCreateHeight = 0;
+            if(poolCreateHeight <= 0) {
+                poolCreateHeight = 0;
+            }
+            
             if (pool.creatorId == creator && (height >= pool.startBlockNo || height >= poolCreateHeight)) {
                 return pool.poolId;
             }
