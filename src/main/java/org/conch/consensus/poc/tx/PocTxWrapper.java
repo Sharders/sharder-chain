@@ -130,7 +130,12 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion)  {
-            return new PocTxBody.PocNodeType(buffer, transactionVersion);
+            ByteBuffer byteBuffer = buffer.duplicate();
+            try{
+                return new PocTxBody.PocNodeTypeV2(buffer, transactionVersion);
+            }catch(Exception e){
+                return new PocTxBody.PocNodeType(byteBuffer, transactionVersion);
+            }
         }
 
         @Override
@@ -142,10 +147,10 @@ public abstract class PocTxWrapper extends TransactionType {
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             PocTxBody.PocNodeType nodeType = null;
             Attachment attachment = transaction.getAttachment();
-            if(attachment instanceof PocTxBody.PocNodeType) {
-                nodeType = (PocTxBody.PocNodeType) attachment;
-            }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+            if(attachment instanceof PocTxBody.PocNodeTypeV2){
                 nodeType = (PocTxBody.PocNodeTypeV2)attachment;
+            }else if(attachment instanceof PocTxBody.PocNodeType) {
+                nodeType = (PocTxBody.PocNodeType) attachment;
             }
             
             if (nodeType == null) {

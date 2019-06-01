@@ -296,7 +296,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 .setTimestamp(System.currentTimeMillis())
                 .setType(Message.Type.NODE_TYPE.getName())
                 .setDataJson(jsonObject.toJSONString());
-        Logger.logDebugMessage("send to foundation to create NodeType tx "+ message.toString());
+        Logger.logInfoMessage("send to foundation to create NodeType tx "+ message.toString());
         try {
             RestfulHttpClient.HttpResponse httpResponse = MessageManager.sendMessageToFoundation(message);
             Result responseResult = JSON.parseObject(httpResponse.getContent(), Result.class);

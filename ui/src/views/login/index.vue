@@ -19,19 +19,6 @@
                 <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>
-        <!--<button @click="initHub">test init</button>-->
-        <!--
-                <div class="content_welcome" v-else>  &lt;!&ndash;Hub初始化&ndash;&gt;
-                    <el-col :span="24" class="welcome_info">
-                        <p>{{$t('login.welcome_tip')}}</p>
-                    </el-col>
-                    <el-col :span="24" class="welcome_main">
-                        <button class="init_hub_btn" @click="initHub">{{$t('login.init_hub')}}</button>
-                    </el-col>
-                </div>
-        -->
-
-
     </div>
 </template>
 
@@ -78,7 +65,7 @@
         },
         methods: {
             autoLogin(val) {
-                if (val["sharder.login.mode"] !== "auto" || sessionStorage.getItem("sharder.login.mode")) return;
+                if (val["sharder.login.mode"] !== "auto" || sessionStorage.getItem("sharder.login.mode") === "manual") return;
                 let _this = this;
                 SSO.secretPhrase = val["sharder.login.sp"] || "confusion difference taste whatever pattern caress inhale hunt passion rest someone chin";
                 Login.login(1, SSO.secretPhrase, _this, function () {
@@ -109,55 +96,6 @@
                     })
                 }
             },
-
-
-            /*
-                        initHub:function(){
-                            let _this = this;
-                            let formData = new FormData();
-                            formData.append("sharder.useNATService",true);
-                            formData.append("sharder.NATServiceAddress","devnat.sharder.io");
-                            formData.append("sharder.NATServicePort","8995");
-                            formData.append("sharder.NATClientKey","d4dc126cf43f41439f6b149b51891762");
-                            formData.append("sharder.myAddress", "devnat.sharder.io\\:8995");
-                            formData.append("sharder.HubBindAddress","SSA-EF9Z-8J9G-LLHC-9VU5U");
-                            formData.append("reBind",true);
-                            formData.append("sharder.HubBind",true);
-                            formData.append("sharder.HubBindPassPhrase","finish rant princess crimson cold forward such known lace built poetry ceiling");
-                            formData.append("restart",false);
-                            formData.append("sharder.disableAdminPassword",false);
-                            formData.append("newAdminPassword","hubtesttest");
-                            formData.append("isInit",true);
-
-
-                            formData.append("sharder.useNATService",true);
-
-                            this.$http.post('/sharder?requestType=reConfig', formData).then(res => {
-                                console.log("test init hub,", res.data);
-                            }).catch(err => {
-                                _this.$message.error(err);
-                            });
-                        },*/
-            /*          closeHub:function(){
-                          this.$store.state.mask = false;
-                          this.hubSettingDialog = false;
-
-                          this.hubsetting = {
-                              openPunchthrough: true,
-                              sharderAccount: '',
-                              sharderPwd: '',
-                              address:'',
-                              port: '',
-                              clientSecretkey: '',
-                              publicAddress: '',
-                              SS_Address: '',
-                              isOpenMining: false,
-                              modifyMnemonicWord: '',
-                              newPwd: '',
-                              confirmPwd: ''
-                          };
-                      },*/
-
             register: function () {
                 this.$store.state.mask = false;
                 this.$router.push("/register");

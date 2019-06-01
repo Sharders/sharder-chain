@@ -88,6 +88,11 @@ final public class TransactionImpl implements Transaction {
             this.type = attachment.getTransactionType();
         }
 
+        public BuilderImpl(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline,
+                           Attachment.AbstractAttachment attachment) {
+            this(defaultTxVersion(),senderPublicKey,amountNQT,feeNQT,deadline,attachment);
+        }
+
         @Override
         public TransactionImpl build(String secretPhrase) throws ConchException.NotValidException {
             if (timestamp == Integer.MAX_VALUE) {
@@ -344,6 +349,20 @@ final public class TransactionImpl implements Transaction {
             signature = null;
         }
 
+    }
+    
+    public static byte defaultTxVersion(){
+        if(Conch.versionCompare("0.1.6") >=0 ) {
+            return 3;
+        }
+        return 1;
+    }
+    
+    public boolean checkVersion(){
+        if(Conch.versionCompare("0.1.6") >=0 ) {
+            return 3 <= this.version;
+        }
+        return 1 <= this.version;
     }
 
     @Override
@@ -1089,6 +1108,11 @@ final public class TransactionImpl implements Transaction {
     }
 
     public void apply() {
+        if(CheckSumValidator.isKnownIgnoreTx(id)){
+            Logger.logWarningMessage("this tx[id=%d, creator=%s, height=%d] is known ignored tx, don't apply and ignore it", id, Account.rsAccount(senderId), height);
+            return;
+        }
+        
         Account senderAccount = Account.getAccount(getSenderId());
         senderAccount.apply(getSenderPublicKey());
         Account recipientAccount = null;

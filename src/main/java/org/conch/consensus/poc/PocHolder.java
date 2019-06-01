@@ -49,29 +49,18 @@ class PocHolder implements Serializable {
     /** poc score **/
 
     /** certified peers **/
-//    // height : [bound account id]
-//    private Map<Integer, Set<Long>> heightMinerMap = Maps.newConcurrentMap();
-
     // certified peer: foundation node,sharder hub/box, community node
     // account id : certified peer
     private Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
     // height : { accountId : certifiedPeer }
     private Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
     
-//    public static final long UN_VERIFIED_ID = -1;
-//    // unverified peer
-//    private Map<String, CertifiedPeer> unverifiedPeerMap = Maps.newConcurrentMap();
     /** certified peers **/
     
-//    // syn peers: used by org.conch.consensus.poc.PocProcessorImpl.peerSynThread
-//    private volatile Set<String> synPeerList = Sets.newHashSet();
     
     private volatile Map<Integer, List<Long>> delayPocTxsByHeight = Maps.newConcurrentMap();
     private static volatile int pocTxHeight = -1;
     
-//    public static Set<String> synPeers() {
-//        return inst.synPeerList;
-//    }
     
     public static void updateHeight(int height){
         if(height == -1) return;
@@ -84,24 +73,8 @@ class PocHolder implements Serializable {
             inst.certifiedPeers.clear();
         }
         
-//        synchronized (inst.unverifiedPeerMap) {
-//            inst.unverifiedPeerMap.clear();
-//        }
-        
-//        try{
-//            Peers.synCertifiedPeers(); 
-//        }catch(Exception e) {
-//            Logger.logErrorMessage("reset certified peers occur error", e);
-//        }
-        
         return true;
     }
-
-
-//
-//    public static void removeConnectedPeers(Set<String> connectedPeers) {
-//        inst.synPeerList.removeAll(connectedPeers);
-//    }
 
 
     public static CertifiedPeer getBoundPeer(long accountId, int height) {
@@ -184,22 +157,6 @@ class PocHolder implements Serializable {
             return;
         }
 
-//        // remove from unverified collection and add it into certified map when account id updated
-//        if(inst.unverifiedPeerMap.containsKey(host) && accountId != UN_VERIFIED_ID) {
-//            // remove form unverified map and update peer detail later
-//            inst.certifiedPeers.put(accountId, inst.unverifiedPeerMap.get(host));
-//            inst.unverifiedPeerMap.remove(host);
-//        }
-        
-//        // peer type check:  foundation type should check the domain whether valid
-//        if(Peer.Type.FOUNDATION == type) {
-//            if(IpUtil.isFoundationDomain(newPeer.getHost())){
-//                newPeer.setType(type);
-//            }
-//        }else {
-//            newPeer.setType(type);
-//        }
-        
         if (!inst.certifiedPeers.containsKey(accountId)) {
             Logger.logDebugMessage("#addOrUpdateBoundPeer# add a new certified peer: %s", newPeer.toString());
             inst.certifiedPeers.put(accountId, newPeer);
@@ -260,19 +217,6 @@ class PocHolder implements Serializable {
         Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
     }
     
-//    private synchronized static void updateHeightMinerMap(int height, long accountId){
-//        // height mapping
-//        if (!inst.heightMinerMap.containsKey(height)) {
-//            inst.heightMinerMap.put(height, Sets.newHashSet());
-//        }
-//        inst.heightMinerMap.get(height).add(accountId);
-//    }
-
-    
-//    public static void updateBoundPeer(String host, long accountId) {
-//        addOrUpdateBoundPeer(null, host, accountId);
-//    }
-    
     /**
      *  add certifiedPeer 
      *  
@@ -283,29 +227,7 @@ class PocHolder implements Serializable {
      */
     public static void addCertifiedPeer(int height, Peer.Type type, String host, long accountId) {
         addOrUpdateBoundPeer(height, type, host, accountId);
-//        updateHeightMinerMap(height, accountId);
     }
-    
-
-//    /**
-//     * add certifiedPeer by poc tx
-//     *
-//     * @param height
-//     * @param peer
-//     */
-//    public static void addCertifiedPeer(Integer height, Peer peer) {
-//        String rsAccount = peer.getBindRsAccount();
-//        long accountId = StringUtils.isEmpty(rsAccount) ? PocHolder.UN_VERIFIED_ID : Account.rsAccountToId(rsAccount);
-//        String host = peer.getAddress();
-//            
-//        if(StringUtils.isEmpty(rsAccount)) {
-//            inst.unverifiedPeerMap.put(host, new CertifiedPeer(height, peer.getType(), host, accountId));
-//        }else {
-//            addOrUpdateBoundPeer(peer.getType(), host, accountId);
-//        }
-//        
-////        updateHeightMinerMap(height, accountId);
-//    }
 
     public static int countDelayPocTxs(int queryHeight) {
         int count = 0;
@@ -376,7 +298,6 @@ class PocHolder implements Serializable {
 
         //new a default PocScore
         if (!inst.scoreMap.containsKey(accountId)) {
-//            PocScore pocScore = PocDb.getPocScore(accountId, height, true);
             PocScore pocScore = getHistoryPocScore(height, accountId);
             if(pocScore == null) pocScore = new PocScore(accountId,height);
             
@@ -384,14 +305,7 @@ class PocHolder implements Serializable {
         }
         
         PocScore pocScoreDetail = inst.scoreMap.get(accountId);
-        
-//        //get history poc score when query height is bigger than last height of poc score
-//        if(pocScoreDetail.height > height) {
-//            PocScore historyScore = getHistoryPocScore(height, accountId);
-//            if(historyScore != null) {
-//                pocScoreDetail = historyScore;
-//            }
-//        }
+        pocScoreDetail.setHeight(height);
 
         return pocScoreDetail;
     }
@@ -458,21 +372,6 @@ class PocHolder implements Serializable {
         }
         inst.historyScore.get(pocScore.height).put(pocScore.accountId, historyPocScore);
         
-//        //check and update the old poc score
-//        int currentHeight = Conch.getBlockchain().getHeight();
-//        int fromHeight = pocScore.height < currentHeight ? pocScore.height : currentHeight;
-//        for(int i = fromHeight; i <= currentHeight ; i++) {
-//            try{
-//                if(!inst.historyScore.containsKey(i)) continue;
-//
-//                Map<Long,PocScore> heightScoreMap = inst.historyScore.get(i);
-//                if(heightScoreMap.containsKey(pocScore.accountId)) {
-//                    heightScoreMap.get(pocScore.accountId).synFromExceptSSHold(pocScore);
-//                } 
-//            }catch(Exception e) {
-//                //ignore to process next
-//            }
-//        }
     }
 
     @Override
@@ -484,13 +383,6 @@ class PocHolder implements Serializable {
         return PocCalculator.inst.getCurWeightTable();
     }
 
-    /**
-     * open the poc persistence
-     */
-    static void openPocPersist(){
-        
-    }
-    
 
     /**
      * Poc score map printer

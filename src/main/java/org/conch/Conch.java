@@ -93,7 +93,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.5";
+    public static final String VERSION = "0.1.6";
     public static final String STAGE = "-Alpha";
     public static final String APPLICATION = "COS";
 
@@ -656,7 +656,7 @@ public final class Conch {
     }
 
     public static Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline, Attachment attachment) {
-        return new TransactionImpl.BuilderImpl((byte)1, senderPublicKey, amountNQT, feeNQT, deadline, (Attachment.AbstractAttachment)attachment);
+        return new TransactionImpl.BuilderImpl(senderPublicKey, amountNQT, feeNQT, deadline, (Attachment.AbstractAttachment)attachment);
     }
 
     public static Transaction.Builder newTransactionBuilder(byte[] transactionBytes) throws ConchException.NotValidException {
@@ -730,10 +730,12 @@ public final class Conch {
                 runtimeMode.init();
                 Thread secureRandomInitThread = initSecureRandom();
                 setServerStatus(ServerStatus.BEFORE_DATABASE, null);
+                ForceConverge.init();
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
-
+                
+                
                 PocProcessorImpl.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
@@ -783,7 +785,7 @@ public final class Conch {
                 SharderPoolProcessor.init();
                 DebugTrace.init();
                 DbBackup.init();
-                ForceConverge.init();
+             
                 int timeMultiplier = (Constants.isTestnetOrDevnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
@@ -1059,6 +1061,22 @@ public final class Conch {
         }
         return true;
     }
+
+    /**
+     * version compare
+     * @param version compared version
+     * @return -1 : Conch.version < version; 0: version = Conch.version; 1 : Conch.version > version
+     */
+    public static int versionCompare(String version){
+        if(StringUtils.isEmpty(version)) return -1;
+        String currentVer = String.valueOf(VERSION);
+        
+        Integer verInt = Integer.valueOf(version.replaceAll("\\.", ""));
+        Integer currentVerInt = Integer.valueOf(currentVer.replaceAll("\\.", ""));
+        
+        return currentVerInt.compareTo(verInt);
+    }
+    
     
     /**
      * Full version format is : version number - stage

@@ -130,40 +130,6 @@ public interface Attachment extends Appendix {
         public final int getFinishValidationHeight(Transaction transaction) {
             return isPhased(transaction) ? transaction.getPhasing().getFinishHeight() - 1 : Conch.getBlockchain().getHeight();
         }
-
-
-        protected int _readByteSize(Object obj) {
-            int size = 0;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos;
-            try {
-                oos = new ObjectOutputStream(baos);
-                oos.writeObject(obj);
-                oos.flush();
-                size = baos.toByteArray().length;
-                baos.close();
-                oos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return size;
-        }
-
-        protected void _putByteSize(ByteBuffer buffer, Object obj) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos;
-            try {
-                oos = new ObjectOutputStream(baos);
-                oos.writeObject(obj);
-                oos.flush();
-                buffer.put(baos.toByteArray());
-                baos.close();
-                oos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        
     }
 
     abstract class EmptyAttachment extends AbstractAttachment {

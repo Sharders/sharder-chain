@@ -82,7 +82,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             // reset user define properties file
             Conch.storePropertiesToFile(RESET_MAP);
             // delete log files when resetting configuration
-            FileUtil.deleteLogFolder();
+            FileUtil.clearAllLogs();
 
             response.put("done", true);
         } catch (RuntimeException | FileNotFoundException e) {

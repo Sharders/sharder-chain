@@ -48,6 +48,8 @@ import java.util.Map;
 
 public final class PeerServlet extends WebSocketServlet {
 
+    static final boolean alwaysResponse = Conch.getBooleanProperty("sharder.response");
+    
     abstract static class PeerRequestHandler {
         abstract JSONStreamAware processRequest(JSONObject request, Peer peer);
         abstract boolean rejectWhileDownloading();
@@ -362,10 +364,12 @@ public final class PeerServlet extends WebSocketServlet {
             }
             peer.setLastInboundRequest(Conch.getEpochTime());
             if (peerRequestHandler.rejectWhileDownloading()) {
-                if (blockchainProcessor.isDownloading()) {
+                if (blockchainProcessor.isDownloading() 
+                    && !alwaysResponse) {
                     return DOWNLOADING;
                 }
-                if (Constants.isLightClient) {
+                if (Constants.isLightClient 
+                    && !alwaysResponse) {
                     return LIGHT_CLIENT;
                 }
             }

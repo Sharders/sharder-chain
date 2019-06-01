@@ -19,10 +19,7 @@ import org.conch.db.DbUtils;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.tx.TransactionImpl;
-import org.conch.util.Convert;
-import org.conch.util.Listener;
-import org.conch.util.Logger;
-import org.conch.util.RestfulHttpClient;
+import org.conch.util.*;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -30,6 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 
@@ -145,46 +143,41 @@ public class CheckSumValidator {
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
+
+    private static final Runnable updateKnownIgnoreBlocksThread = () -> {
+        try {
+            updateKnownIgnoreBlocks();
+        }catch (Exception e) {
+            Logger.logMessage("Error updateKnownIgnoreBlocksThread", e);
+        }catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+            t.printStackTrace();
+            System.exit(1);
+        }
+    };
+
     static {
-        if(!synIgnoreBlock) {
-            new Thread(() -> updateKnownIgnoreBlocks()).start();
-        }
-    }
-    
-    private static void countBad(boolean isBad){
-        if(!isBad) {
-            if(badCount++ > CHECK_INTERVAL) {
-                new Thread(() -> updateKnownIgnoreBlocks()).start();
-                badCount = 0;   
-            }
-        }
+        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, 30, TimeUnit.MINUTES);
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
-        if(!synIgnoreBlock) {
-            new Thread(() -> updateKnownIgnoreBlocks()).start();
-        }
         boolean result = knownIgnoreBlocks.contains(blockId);
-        countBad(result);
         
         return result;
     }
     
     public static boolean isKnownIgnoreTx(long txId){
         boolean result = knownIgnoreTxs.contains(txId);
-        countBad(result);
         
         return result;
     }
 
     public static boolean isDirtyPoolTx(int height, long accountId){
         if(!knownDirtyPoolTxs.containsKey(height)) {
-            countBad(false);
             return false;
         }
 
         boolean result = knownDirtyPoolTxs.get(height).contains(accountId);
-        countBad(result);
         
         if(result){
             Logger.logDebugMessage("found a known dirty pool tx[account id=%s] at height %d, ignore this tx" , accountId, height);
@@ -201,8 +194,7 @@ public class CheckSumValidator {
      * @return
      */
     public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(long accountId, int height){
-        if(Constants.isTestnet() 
-            && height <= Constants.POC_NODETYPE_V2_HEIGHT
+        if(Constants.isTestnet()
             && pocNodeTypeTxsMap.containsKey(height)) {
             return pocNodeTypeTxsMap.get(height).get(accountId);
         }
@@ -210,17 +202,15 @@ public class CheckSumValidator {
     }
 
     public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(String host, int height){
-        if(Constants.isTestnet() && height <= Constants.POC_NODETYPE_V2_HEIGHT) {
-            NavigableSet<Integer> heightSet = Sets.newTreeSet(pocNodeTypeTxsMap.keySet()).descendingSet();
-            for(Integer historyHeight : heightSet) {
-                if(historyHeight <= height) {
-                    Map<Long, PocTxBody.PocNodeTypeV2> peerMap = pocNodeTypeTxsMap.get(historyHeight);
-                    Collection<PocTxBody.PocNodeTypeV2> nodeTypeTxs = peerMap.values();
-                    for(PocTxBody.PocNodeTypeV2 nodeTypeTx : nodeTypeTxs){
-                        if(StringUtils.equals(host,nodeTypeTx.getIp())){
-                            return nodeTypeTx;
-                        }  
-                    }
+        NavigableSet<Integer> heightSet = Sets.newTreeSet(pocNodeTypeTxsMap.keySet()).descendingSet();
+        for(Integer historyHeight : heightSet) {
+            if(historyHeight <= height) {
+                Map<Long, PocTxBody.PocNodeTypeV2> peerMap = pocNodeTypeTxsMap.get(historyHeight);
+                Collection<PocTxBody.PocNodeTypeV2> nodeTypeTxs = peerMap.values();
+                for(PocTxBody.PocNodeTypeV2 nodeTypeTx : nodeTypeTxs){
+                    if(StringUtils.equals(host,nodeTypeTx.getIp())){
+                        return nodeTypeTx;
+                    }  
                 }
             }
         }
@@ -388,12 +378,12 @@ public class CheckSumValidator {
             if(knownDirtyPocTxs.size() > 0) {
                 Set<Long> dirtyPocTxs = Sets.newHashSet();
                 knownDirtyPocTxs.values().forEach(ids -> dirtyPocTxs.addAll(ids));
-                new Thread(() ->  Conch.getPocProcessor().removeDelayedPocTxs(dirtyPocTxs)).start();
+                Conch.getPocProcessor().removeDelayedPocTxs(dirtyPocTxs);
             }
 
             // remove the dirty pools
             if(knownDirtyPoolTxs.size() > 0) {
-                new Thread(() -> SharderPoolProcessor.removePools(knownDirtyPoolTxs)).start();
+                SharderPoolProcessor.removePools(knownDirtyPoolTxs);
             }
             
             if(!synIgnoreBlock) synIgnoreBlock = true;

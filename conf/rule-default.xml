@@ -4,10 +4,10 @@
     <!--创建矿工-->
     <level0 id="0">
         <rule>
-            <!--生命周期，最大获取块数 3075-15days-->
+            <!--生命周期，最大获取块数 6150-30days-->
             <totalBlocks>
                 <min>0</min>
-                <max>3075</max>
+                <max>6150</max>
             </totalBlocks>
         </rule>
         <forgepool>
@@ -35,7 +35,7 @@
         <rule>
             <totalBlocks>
                 <min>1</min>
-                <max>3075</max>
+                <max>6150</max>
             </totalBlocks>
         </rule>
 

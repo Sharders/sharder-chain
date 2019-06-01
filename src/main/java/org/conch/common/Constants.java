@@ -89,7 +89,7 @@ public final class Constants {
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
-    public static final String BootBodeHost = parseBootNodeHost();
+    public static final String BootNodeHost = parseBootNodeHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -100,7 +100,7 @@ public final class Constants {
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
     
     /** another initial env => target: 6000, min-limit: 17, max-limit=22, base-gamma: 21 */
-    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153722867 * 670) : (153722867 * 8);
+    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153722867 * 67) : (153722867 * 8);
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
@@ -206,13 +206,13 @@ public final class Constants {
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
     public static final int POC_BLOCK_HEIGHT = 0;
-    public static final int POC_NODETYPE_V2_HEIGHT = isTestnet() ? 6500 : 0;
+    public static final int POC_NODETYPE_V2_HEIGHT = isTestnet() ? 3 : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 2 : 500);
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 268 : 500);
     public static final int TESTNET_PHASE_ONE = 20000;
     public static final int TESTNET_PHASE_TWO = 39000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
@@ -371,7 +371,7 @@ public final class Constants {
     }
     
     public static boolean isBootNode(String host){
-        return BootBodeHost.equals(host);
+        return BootNodeHost.equals(host);
     }
 
     public static final String SUCCESS = "success";

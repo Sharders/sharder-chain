@@ -46,7 +46,7 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.gain_profit')}}</p>
-                                    <p class="strong">{{$global.getSSNumberFormat(miningInfo.income)}}</p>
+                                    <p class="strong">{{$global.getSSNumberFormat(miningInfo.rewardAmount)}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
@@ -60,15 +60,15 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal" class="join"
+                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal && typeof(secretPhrase) !== 'undefined'" class="join"
                                 @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0"
+                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0 && typeof(secretPhrase) !== 'undefined'"
                                 class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId]"
+                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId] && typeof(secretPhrase) !== 'undefined'"
                                 class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
@@ -132,7 +132,7 @@
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
                     {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal
-                    - miningInfo.currentInvestment)}}|
+                    - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
                 <p class="input">
@@ -187,11 +187,13 @@
                 isDestroyPool: false,
                 joinRSPool: '',
                 myAccount: SSO.accountRS,
+                secretPhrase: SSO.secretPhrase,
                 miningInfo: {
                     account: '',
                     accountId: "",
                     amount: 0,
                     joinAmount: 0,
+                    rewardAmount: 0,
                     poolId: '',
                     currentInvestment: 0,
                     investmentTotal: 0,
@@ -309,7 +311,7 @@
                     }
                     _this.miningInfo.amount = res.number;
                     _this.miningInfo.poolId = res.poolId;
-                    _this.miningInfo.currentInvestment = res.power;
+                    _this.miningInfo.currentInvestment = res.power + res.joiningAmount;
                     _this.miningInfo.accountId = _this.$global.longUnsigned(res.creatorID);
                     _this.miningInfo.income = res.mintRewards;
                     _this.miningInfo.chance = res.chance;
@@ -317,6 +319,7 @@
                     _this.miningInfo.endBlockNo = res.endBlockNo;
                     _this.miningInfo.level = res.rule.level0 ? res.rule.level0 : res.rule.level1;
                     _this.miningInfo.joinAmount = res.joinAmount;
+                    _this.miningInfo.rewardAmount = res.rewardAmount;
                     _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max;
                     let nxtAddress = new NxtAddress();
                     if (nxtAddress.set(_this.miningInfo.accountId)) {

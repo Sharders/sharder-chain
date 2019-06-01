@@ -21,6 +21,8 @@
 
 package org.conch.http;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.common.Constants;
 import org.conch.http.biz.BizParameterRequestWrapper;
@@ -206,6 +208,7 @@ public final class API {
                 defaultServletHolder.setInitParameter("gzip", "true");
                 defaultServletHolder.setInitParameter("etags", "true");
                 apiHandler.addServlet(defaultServletHolder, "/*");
+                apiHandler.addFilter(CosRouteFilter.class, "/*", null);
                 apiHandler.setWelcomeFiles(new String[]{Conch.getStringProperty("sharder.apiWelcomeFile")});
             }
 
@@ -499,12 +502,41 @@ public final class API {
         public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
             Map<String,String[]> m = new HashMap<String,String[]>(request.getParameterMap());
             request = new BizParameterRequestWrapper((HttpServletRequest)request, m);
+
             chain.doFilter(request, response);
         }
 
         @Override
         public void destroy() {
         }
+
+    }
+
+    public static final class CosRouteFilter implements Filter {
+
+        @Override
+        public void init(FilterConfig filterConfig) throws ServletException {
+        }
+
+        @Override
+        public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
+            HttpServletRequest request= (HttpServletRequest) req;
+
+            String urlStr = request.getRequestURI();
+           
+            if(!urlStr.startsWith("/sharder")){
+                HttpServletResponse response = (HttpServletResponse) resp;
+
+                if(isRoute(urlStr)) {
+                    Logger.logInfoMessage("urlStr=" + urlStr + ",PathInfo=" + request.getPathInfo() + ",Method=" + request.getMethod() + ",request=" + request.toString());
+                    response.sendRedirect("/index.html");
+                }
+            }
+            chain.doFilter(req, resp);
+        }
+
+        @Override
+        public void destroy() {}
 
     }
 
@@ -515,7 +547,17 @@ public final class API {
     public static URI getServerRootUri() {
         return serverRootUri;
     }
-
+    
+    static Set<String> cosRoute = Sets.newHashSet("/login", "/register", "/enter", "/account", "/network", "/mining");
+    public static boolean isRoute(String targetUrl){
+        for(String route : cosRoute){
+            if(StringUtils.isNotEmpty(targetUrl) && targetUrl.contains(route)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private API() {} // never
 
 }

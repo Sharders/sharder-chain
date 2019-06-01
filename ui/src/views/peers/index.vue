@@ -401,7 +401,7 @@
                     if (res.data.errorDescription) {
                         return _this.$message.error(res.data.errorDescription);
                     }
-                    _this.$message.success(_this.$t('notification.join_link_peer_success1') + address + _this.$t('notification.join_link_peer_success2'));
+                    _this.$message.success(address + _this.$t('notification.join_link_peer_success2'));
                     _this.closeDialog();
                 }).catch(function (err) {
                     _this.loading = false;

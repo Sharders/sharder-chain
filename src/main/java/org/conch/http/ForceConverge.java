@@ -61,6 +61,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         ,UPGRADE_COS("upgradeCos")  // from v0.1.5
         ,UPGRADE_DB("upgradeDb")
         ,RESET("reset")             // from v0.1.6
+        ,RESTART("restart")         // from v0.1.6
         ;
 
         private String value;
@@ -105,21 +106,30 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                     int toHeight = cmdObj.getInteger(Command.TO_HEIGHT.val());
                     Logger.logDebugMessage("received toHeight is %d ", toHeight);
                     
-                    // pop-off to specified height
-                    List<? extends Block> blocks = Lists.newArrayList();
-                    if (toHeight < currentHeight) {
-                        Logger.logDebugMessage("start to pop-off to height %d", toHeight);
-                        blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
-                    }
+                    if(toHeight == -1){
+                        // reset the current db
+                        Logger.logDebugMessage("height is -1, reset(delete db folder from disk) and restart the block chain ");
+                        reset();
+                        new Thread(() -> Conch.restartApplication(null)).start();
+                        response.put("done", true);
+                    }else{
+                        // pop-off to specified height
+                        List<? extends Block> blocks = Lists.newArrayList();
+                        if (toHeight < currentHeight) {
+                            Logger.logDebugMessage("start to pop-off to height %d", toHeight);
+                            blocks = Conch.getBlockchainProcessor().popOffTo(toHeight);
+                        }
 
-                    // tx process
-                    boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
-                    Logger.logDebugMessage("received keepTx is %s ", keepTx);
+                        // tx process
+                        boolean keepTx = cmdObj.getBooleanValue(Command.KEEP_TX.val());
+                        Logger.logDebugMessage("received keepTx is %s ", keepTx);
 
-                    if (keepTx) {
-                        Logger.logDebugMessage("start to put the txs into delay process pool");
-                        blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+                        if (keepTx) {
+                            Logger.logDebugMessage("start to put the txs into delay process pool");
+                            blocks.forEach(block -> Conch.getTransactionProcessor().processLater(block.getTransactions()));
+                        }
                     }
+                 
                 } finally {
                     Conch.unpause();
                 }
@@ -149,6 +159,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             if(cmdObj.containsKey(Command.RESET.val())){
                 boolean needReset = cmdObj.getBooleanValue(Command.RESET.val());
                 if(needReset) reset();
+            }
+            
+            // restart command process
+            if(cmdObj.containsKey(Command.RESTART.val())){
+                boolean needRestart = cmdObj.getBooleanValue(Command.RESTART.val());
+                if(needRestart){
+                    new Thread(() -> Conch.restartApplication(null)).start();
+                }
             }
 
             // pause command process
@@ -217,8 +235,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Conch.pause();
             
             Logger.logDebugMessage("start to reset the blockchain");
-            Conch.getBlockchainProcessor().fullReset();
-            FileUtil.deleteLogFolder();
+//            Conch.getBlockchainProcessor().fullReset();
+            FileUtil.deleteDbFolder();
+            FileUtil.clearAllLogs();
             
         }catch (RuntimeException | FileNotFoundException e) {
             Logger.logErrorMessage("reset failed", e);
@@ -228,42 +247,61 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
     }
     
+    static boolean reset = false;
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
-    static boolean forkSwitched = false;
-    public static void updatePropertiesFile(){
+    public static void writeForkNameIntoPropertiesFile(){
         HashMap<String, String> parameters = Maps.newHashMap();
         parameters.put(PROPERTY_FORK_NAME, "Giant");
         Conch.storePropertiesToFile(parameters);
     }
     
     public static void switchFork(){
+//        if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
+        if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
+        
+        Logger.logInfoMessage("Start to switch the fork to Giant");
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName)) {
-            reset();
-            Logger.logDebugMessage("can't found the fork name in properties, reset the blockchain and pause the block syncing...");
-            updatePropertiesFile();
-            Conch.pause();
+        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
+            if(!reset) {
+                reset();
+                Logger.logDebugMessage("pause the blockchain till fork switched...");
+                Conch.pause();
+                reset = true;
+            }
+        }else{
+            Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
+            return;
         }
+        
+        Peers.checkOrConnectBootNode();
 
         Logger.logInfoMessage("start to check converge command and finish the fork switch");
         com.alibaba.fastjson.JSONObject cmdObj = getCmdTools();
-        if(cmdObj == null) return;
+        if(cmdObj == null) {
+            Logger.logInfoMessage("can't found own [%s] converge command, wait for next round check", Generator.getAutoMiningRS());
+            return;
+        }
             
         Logger.logDebugMessage("force converge command is: " + cmdObj.toJSONString());
         // check and unpause
-        if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) return;
+        if(!cmdObj.containsKey(Command.PAUSE_SYNC.val())) {
+            Logger.logInfoMessage("can't found command [%s] to resume syncing, wait for next round check", Command.PAUSE_SYNC.val());
+            return;
+        }
         
-        boolean pauseSyn = cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
-        if(!pauseSyn) {
+        boolean unpause = !cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
+        if(unpause) {
             Conch.unpause();
-            forkSwitched = true;
+            writeForkNameIntoPropertiesFile();
+            Logger.logInfoMessage("Switch to fork Giant successfully, start to syncing blocks...");
         }
     }
     
     public static void init() {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName)){
-            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 60, TimeUnit.MINUTES);  
+        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)){
+            switchFork(); // execute immediately once
+            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
     }
 
@@ -271,7 +309,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         try {
             switchFork();
         } catch (Exception e) {
-            Logger.logErrorMessage("witch fork thread interrupted caused by %s", e.getMessage());
+            Logger.logErrorMessage("Switch fork thread interrupted caused by %s", e.getMessage());
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
@@ -297,5 +335,5 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
-
+    
 }

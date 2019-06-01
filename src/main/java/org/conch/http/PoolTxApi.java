@@ -1,9 +1,11 @@
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.mint.Generator;
 import org.conch.mint.pool.Consignor;
 import org.conch.mint.pool.PoolRule;
 import org.conch.mint.pool.SharderPoolProcessor;
@@ -42,11 +44,27 @@ public abstract class PoolTxApi {
                 Logger.logInfoMessage(errorDetail);
                 throw new ConchException.NotValidException(errorDetail);
             }
+            
+            String rsAddress = account.getRsAddress();
+            if(!Generator.HUB_IS_BIND){
+                throw new ConchException.NotValidException("Please finish hub initialization firstly");
+            }
+            
+            if(!Generator.isBindAddress(account.getRsAddress()) && !Constants.isDevnet()){
+                throw new ConchException.NotValidException("Your account " + rsAddress + " isn't this Hub's linked TSS address!");
+            }
+
+            if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(account.getId())) {
+                throw new ConchException.NotValidException(rsAddress + " has created a pool already");
+            }
+            
             if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT - Long.valueOf(req.getParameter("feeNQT")) < 0){
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
+
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 15 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 150 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+//            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
@@ -89,7 +107,8 @@ public abstract class PoolTxApi {
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             long txId = ParameterParser.getUnsignedLong(request, "txId", true);
             Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
-            return createTransaction(request, account, 0, 0, attachment);
+            JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
+            return aware;
         }
     }
 
@@ -102,14 +121,35 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-            Account account = ParameterParser.getSenderAccount(request);
-            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
-            int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
-            long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long amount = ParameterParser.getLong(request, "amount", investmentRule[0], investmentRule[1], true);
-            Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
-            return createTransaction(request, account, 0, 0, attachment);
+            JSONStreamAware aware = null;
+            try{
+                Account account = ParameterParser.getSenderAccount(request);
+                long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+                SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+
+
+                long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
+                long allowedInvestAmount = investmentRule[1];
+
+                // remain amount of pool
+                long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
+                long remainAmount = minerInvestmentRule[1] - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
+
+                if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
+
+                long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
+
+                int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+                int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+
+                Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
+                aware = createTransaction(request, account, 0, 0, attachment);
+                poolProcessor.addJoiningAmount(amount);
+            } catch(Exception e){
+                Logger.logErrorMessage("JoinPoolTx failed" , e);
+                throw e;
+            }
+            return aware;
         }
     }
     
@@ -122,14 +162,11 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
-
             String cid = Convert.emptyToNull(request.getParameter("creatorId"));
-
             if (cid == null) {
                 return sortPools(request, SharderPoolProcessor.getPoolsFromNow());
             } else {
                 long creatorId = ParameterParser.getLong(request, "creatorId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-
                 return SharderPoolProcessor.getPoolsFromNowAndDestroy(creatorId);
             }
 
@@ -234,17 +271,34 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             String account = request.getParameter("account");
-            SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(poolId);
-            if (forgePool == null) {
+            SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+            if (miningPool == null) {
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 1);
-                response.put("errorDescription", "sharder pool doesn't exists");
+                response.put("errorDescription", "pool doesn't exists");
                 return JSON.prepare(response);
             }
-            JSONObject json = forgePool.toJsonObject();
-            if (account != null) {
-                Consignor consignor = forgePool.getConsignors().get(Long.parseUnsignedLong(account));
-                json.put("joinAmount", consignor == null ? 0 : consignor.getAmount());
+            JSONObject json = miningPool.toJsonObject();
+            
+            if (StringUtils.isNotEmpty(account)) {
+                long accountId = Long.parseUnsignedLong(account);
+                Consignor consignor = miningPool.getConsignors().get(accountId);
+                long joinAmount = (consignor == null) ? 0 : consignor.getAmount();
+           
+                if(miningPool.getCreatorId() == accountId){
+                    joinAmount += SharderPoolProcessor.PLEDGE_AMOUNT;
+                }
+
+                long rewardAmount = 0;
+                try{
+                    Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(miningPool.getCreatorId(), poolId, miningPool.getMintRewards(), miningPool.getConsignorsAmountMap());
+                    rewardAmount = rewardList.get(accountId);
+                }catch(Exception e){
+                    Logger.logErrorMessage("can't calculate the investor's mining reward",e);
+                }
+                
+                json.put("joinAmount", joinAmount);
+                json.put("rewardAmount", rewardAmount);
             }
             return json;
         }

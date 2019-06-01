@@ -519,8 +519,7 @@ public final class Peers {
                 ctxHandler.addServlet(peerServletHolder, "/*");
 
                 if (Conch.getBooleanProperty("sharder.enablePeerServerDoSFilter")) {
-                    FilterHolder dosFilterHolder = ctxHandler.addFilter(DoSFilter.class, "/*",
-                            EnumSet.of(DispatcherType.REQUEST));
+                    FilterHolder dosFilterHolder = ctxHandler.addFilter(DoSFilter.class, "/*",EnumSet.of(DispatcherType.REQUEST));
                     dosFilterHolder.setInitParameter("maxRequestsPerSec", Conch.getStringProperty("sharder.peerServerDoSFilter.maxRequestsPerSec"));
                     dosFilterHolder.setInitParameter("delayMs", Conch.getStringProperty("sharder.peerServerDoSFilter.delayMs"));
                     dosFilterHolder.setInitParameter("maxRequestMs", Conch.getStringProperty("sharder.peerServerDoSFilter.maxRequestMs"));
@@ -1360,7 +1359,8 @@ public final class Peers {
             }
             totalWeight += weight;
             // boot node check
-            if(Constants.isBootNode(peer.getHost())){
+            if(Constants.isBootNode(peer.getHost())
+            || Constants.isBootNode(peer.getAnnouncedAddress())){
                 return peer;
             }
         }
@@ -1632,6 +1632,15 @@ public final class Peers {
 
     public static boolean isOpenService(Peer.Service service) {
         return myServices.contains(service);
+    }
+    
+    public static void checkOrConnectBootNode(){
+        Peer bootNode = Peers.getPeer(Conch.getBootNode(), true);
+        if(bootNode != null 
+            && Peer.State.CONNECTED != bootNode.getState()) {
+            
+            Peers.connectPeer(bootNode);
+        }
     }
 
 }
