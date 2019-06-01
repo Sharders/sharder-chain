@@ -191,7 +191,10 @@ public abstract class PocTxApi {
                 Logger.logInfoMessage("creating node type tx %s", pocNodeType.toString());
                 createTransaction(request, account, 0, 0, pocNodeType);
                 Logger.logInfoMessage("success to create node type tx");
-            } catch (ConchException e) {
+            } catch(ConchException.AccountControlException e){
+                Logger.logErrorMessage(e.getMessage());
+                return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
+            } catch(ConchException e) {
                 Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
