@@ -243,7 +243,7 @@ public class FileUtil {
         
         File unzipFolder = new File(appRootPath.resolve(archiveRoot).toString());
         File appFolder = new File(appRootPath.toString());
-        Logger.logDebugMessage("copy folder form %s to %s", unzipFolder.getPath(), appFolder.getPath());
+        Logger.logInfoMessage("copy folder form %s to %s", unzipFolder.getPath(), appFolder.getPath());
         FileUtils.copyDirectory(unzipFolder,appFolder);
         
         
@@ -261,7 +261,7 @@ public class FileUtil {
 
 //      replaceConfFiles(uncompressedDirectory);
         Path tmpUpgradeFolder = appRootPath.resolve(archiveRoot);
-        Logger.logDebugMessage("delete temp upgrade folder" + tmpUpgradeFolder.toString());
+        Logger.logInfoMessage("delete temp upgrade folder" + tmpUpgradeFolder.toString());
         FileUtils.deleteDirectory(new File(tmpUpgradeFolder.toString()));
 
         String upgradeSummary = "[UPGRADE CLIENT] Updated " + count + " files, Updated bytes " + size + ". Failed " + failedCount + " files\n\r";

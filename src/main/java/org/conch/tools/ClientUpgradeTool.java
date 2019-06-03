@@ -71,10 +71,10 @@ public class ClientUpgradeTool {
             delete = false;
         }
         if (!archive.exists()) {
-            Logger.logDebugMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
             FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
         }
-        Logger.logDebugMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName());
+        Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName());
         FileUtil.unzipAndReplace(archive, mode, delete);
         try {
             if (!SystemUtils.IS_OS_WINDOWS) {
@@ -99,23 +99,23 @@ public class ClientUpgradeTool {
             File tempPath = new File("temp/");
             File archivedDbFile = new File(tempPath, dbFileName);
             String downloadingUrl = UrlManager.getArchivedDbFileDownloadUrl(dbFileName);
-            Logger.logDebugMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+            Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
             FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
 
             // backup old db folder
             String dbFolder = Paths.get(".",Db.getName()).toString();
-            Logger.logDebugMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
+            Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
             FileUtil.backupFolder(dbFolder, true);
 
             // unzip the archived db file into application root
             String appRoot = Paths.get(".").toString();
-            Logger.logDebugMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
+            Logger.logInfoMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
             FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
             Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
         }catch(Exception e) {
             Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
         }finally{
-            Logger.logDebugMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
+            Logger.logInfoMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
             Conch.unpause();
         }
     }
