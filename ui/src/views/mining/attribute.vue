@@ -23,7 +23,7 @@
                         $global.getSSNumberFormat(miningInfo.income)}}
                     </div>
                 </div>
-                <div class="my-info">
+                <div class="my-info" v-loading="loading">
                     <h1>
                         <img src="../../assets/img/wodexingxi.png" class="head-portrait">
                         <span>{{$t('mining.attribute.self_info')}}</span>
@@ -203,7 +203,8 @@
                     startBlockNo: 0,
                     endBlockNo: 0,
                     level: {}
-                }
+                },
+                loading: true
             }
         },
         methods: {
@@ -300,6 +301,8 @@
             },
             myMiningInfo() {
                 let _this = this;
+                _this.loading = true;
+                
                 _this.$global.fetch("POST", {
                     account: SSO.account,
                     poolId: _this.mining.poolId,
@@ -328,6 +331,7 @@
                     if (!_this.$store.state.quitPool[res.poolId]) {
                         _this.$store.state.quitPool[res.poolId] = res.joinAmount;
                     }
+                    _this.loading = false;
                 });
             },
             validationJoinMining() {

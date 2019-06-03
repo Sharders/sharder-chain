@@ -135,7 +135,7 @@ public class SharderPoolProcessor implements Serializable {
             pool.historicalMintRewards = pastPool.historicalMintRewards;
             pool.totalBlocks = pastPool.totalBlocks;
             pool.rule = rule;
-            Logger.logDebugMessage(creatorId + " create mining pool from old pool, chance " + pastPool.chance);
+            Logger.logDebugMessage(creatorId + " create a mining pool from old pool, chance " + pastPool.chance);
         } else {
             pool.chance = 0;
             pool.state = State.INIT;

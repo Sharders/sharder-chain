@@ -418,7 +418,7 @@
             </div>
         </div>
         <!--view hub resetting dialog-->
-        <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
+        <div class="modal_hubSetting" id="hub_setting" v-loading="hubsetting.loadingData" v-show="hubSettingDialog">
             <div class="modal-header" @click="displaySerialNo('setting')">
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
