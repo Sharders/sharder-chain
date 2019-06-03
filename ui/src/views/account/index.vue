@@ -1276,10 +1276,12 @@
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
-                _this.hubsetting.loadingData = true;
                 if (_this.userConfig.siteAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
+                    
+                    _this.hubsetting.loadingData = true;
+                    
                     formData.append("sharderAccount", _this.userConfig.siteAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
                     formData.append("serialNum", _this.userConfig.xxx);
