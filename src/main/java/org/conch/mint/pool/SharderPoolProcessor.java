@@ -115,29 +115,10 @@ public class SharderPoolProcessor implements Serializable {
        return endBlockNo;
     }
     
-//    private static void joinOrQuitPool(Account account,AccountLedger.LedgerEvent ledgerEvent, long amount, int height, boolean quit){
-//        if(!quit) {
-//            account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-//            account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-//            Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it at height %d",
-//                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
-//        }else{
-//            account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
-//            account.addToMintedBalanceNQT(amount);
-//            Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
-//                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
-//        }
-//    }
-
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
         Account creator = Account.getAccount(creatorId);
         // mining pool total No.
-        long existId = SharderPoolProcessor.findOwnPoolId(creatorId, startBlockNo);
-        if (existId != -1) {
-            PoolDb.delete(poolId);
-            Logger.logWarningMessage("%s[id=%d] already owned one mining pool[id=%d, start height=%d], ignore this tx and dont't create a new pool ", creator.getRsAddress(), creator.getId(), poolId, startBlockNo);
-            return null;
-        }
+        SharderPoolProcessor.findOwnPoolId(creatorId, startBlockNo);
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
@@ -368,9 +349,6 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
 
-//    private static final String LOCAL_STORAGE_SHARDER_POOLS = "StoredSharderPools";
-//    private static final String LOCAL_STORAGE_DESTROYED_POOLS = "StoredDestroyedPools";
-
     static {
 
         instFromDB();
@@ -472,12 +450,10 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     /**
-     * save the pools to disk,
+     * save the pools into db,
      * If be called outside, the caller should be org.conch.Conch#shutdown()
      */
     public static void persistence(){
-//        DiskStorageUtil.saveObjToFile(sharderPools, LOCAL_STORAGE_SHARDER_POOLS);
-//        DiskStorageUtil.saveObjToFile(destroyedPools, LOCAL_STORAGE_DESTROYED_POOLS);
         List<SharderPoolProcessor> poolList = Lists.newArrayList(sharderPools.values());
         Set<Long> accountIds = destroyedPools.keySet();
         for(Long accountId : accountIds){
@@ -616,13 +592,6 @@ public class SharderPoolProcessor implements Serializable {
         return rule;
     }
     
-//   rule public Float getRewardRate() {
-//        Map<String, Object> ruleMap =  getRootRuleMap();
-//        if(ruleMap == null) return Float.valueOf(0);
-//        .get("forgepool");
-//        return rule;
-//    }
-
     public Map<String, Object> getRootRuleMap(){
         Object rootRuleMap = getRule().get("level0");
         rootRuleMap = rootRuleMap != null ? rootRuleMap : getRule().get("level1");
