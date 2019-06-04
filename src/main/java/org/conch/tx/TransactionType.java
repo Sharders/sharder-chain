@@ -603,9 +603,11 @@ public abstract class TransactionType {
                     if(consignors.size() <= 0) return;
                     
                     long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
-                    if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
-                            && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
-                        throw new ConchException.NotValidException("allocation rule is wrong");
+                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
+                    if (poolProcessor != null 
+                        && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
+                        && !poolProcessor.validateConsignorsAmount(consignors)) {
+                        throw new ConchException.NotValidException("The pool allocation rule validation failed in BLOCK_REWARD processing[block id=%d, height=%d]", transaction.getBlockId(), transaction.getHeight());
                     }
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (!SharderGenesis.isGenesisCreator(coinBase.getCreator())) {
@@ -3538,11 +3540,12 @@ public abstract class TransactionType {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
-                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
+                    Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
+//                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
                 }
                 if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
-                    throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " +
-                            forgePool.getCreatorId());
+                    Logger.logWarningMessage("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId() + "don't execute this tx[id=" + transaction.getId() + "]");
+//                    throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId());
                 }
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 int endHeight = forgePool.getEndBlockNo();
@@ -3617,8 +3620,12 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if (forgePool == null)  throw new ConchException.NotValidException("Can't process join tx caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" ,join.getPoolId());
-
+                if (forgePool == null)  {
+                    Logger.logWarningMessage("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
+                    return;
+//                    throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
+                }
+                
                 int poolStartHeight = forgePool.getStartBlockNo();
                 int poolEndHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {

@@ -324,7 +324,7 @@ public class PocProcessorImpl implements PocProcessor {
             }
 
         } catch (Exception e) {
-            Logger.logErrorMessage("poc tx syn thread interrupted caused by %s", e.getMessage());
+            Logger.logErrorMessage("poc tx syn thread interrupted caused by %s", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);

@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
 import org.conch.util.Logger;
@@ -79,7 +80,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             String nodeType = Conch.getNodeType();
             String serialNum = Conch.getSerialNum();
 
-            Logger.logDebugMessage("current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, serialNum);
+            Logger.logDebugMessage("current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, (StringUtils.isEmpty(serialNum) ? "null" : serialNum));
             response.put("sharder.NodeType", nodeType);
             response.put("sharder.xxx", serialNum);
         } catch (IOException e) {

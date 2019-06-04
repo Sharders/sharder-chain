@@ -162,7 +162,7 @@
                         </el-option>
                     </el-select>
                 </div>
-                <div class="list_table w br4">
+                <div class="list_table w br4" v-loading="loading">
                     <div class="list_content data_loading">
                         <table class="table table_striped" id="blocks_table">
                             <thead>
@@ -418,7 +418,7 @@
             </div>
         </div>
         <!--view hub resetting dialog-->
-        <div class="modal_hubSetting" id="hub_setting" v-show="hubSettingDialog">
+        <div class="modal_hubSetting" id="hub_setting" v-loading="hubsetting.loadingData" v-show="hubSettingDialog">
             <div class="modal-header" @click="displaySerialNo('setting')">
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
@@ -774,6 +774,7 @@
                 upgradeMode: '',
                 bakMode: '',
                 isUpdate: false,
+                loading: true,
 
                 params: [],
                 temporaryName: '',
@@ -1276,10 +1277,12 @@
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
-                _this.hubsetting.loadingData = true;
                 if (_this.userConfig.siteAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
+                    
+                    _this.hubsetting.loadingData = true;
+                    
                     formData.append("sharderAccount", _this.userConfig.siteAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
                     formData.append("serialNum", _this.userConfig.xxx);
@@ -1743,6 +1746,7 @@
                     params.append("type", _this.selectType);
                 }
 
+                _this.loading = true;
                 this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
                     _this.accountTransactionList = res1.data.transactions;
 
@@ -1758,10 +1762,12 @@
                     }).catch(err => {
                         _this.$message.error(err.message);
                     });
+                    _this.loading = false;
                     _this.getTotalList();
                     _this.getDrawData();
                     _this.updateMinerState();
                 }).catch(function (err) {
+                    _this.loading = false;
                     _this.$message.error(err.message);
                 });
             },

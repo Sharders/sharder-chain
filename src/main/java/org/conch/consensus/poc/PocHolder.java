@@ -20,7 +20,6 @@ import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * PocHolder is a singleton to hold the score and reference map.
@@ -42,7 +41,7 @@ class PocHolder implements Serializable {
     
     /** poc score **/
     // accountId : pocScore
-    private transient Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    private transient Map<Long, PocScore> scoreMap = PocDb.listAll();
    
     // height : { accountId : pocScore }
     private transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
@@ -54,7 +53,6 @@ class PocHolder implements Serializable {
     private Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
     // height : { accountId : certifiedPeer }
     private Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
-    
     /** certified peers **/
     
     
@@ -273,18 +271,11 @@ class PocHolder implements Serializable {
     }
     
 //    static {
-//        initDefaultMiners();
+//        synchronized (inst.scoreMap){
+//            inst.scoreMap = PocDb.listAll();
+//        }
 //    }
-//    
-//    private static final boolean initDefaultMiner = false;
-//    private static void initDefaultMiners(){
-//        if(!initDefaultMiner) return;
-//        // genesis account binding
-//        String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-//        addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
-//        GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
-//    }
-
+    
     private PocHolder(){}
 
     /**
@@ -415,23 +406,18 @@ class PocHolder implements Serializable {
             Set<Long> accountIds = scoreMap.keySet();
             for(Long accountId : accountIds){
                 PocScore pocScore = scoreMap.get(accountId);
-                summary += appendSplitter(Account.rsAccount(pocScore.accountId) + ",poc score=" + pocScore.total() + ":" + pocScore.toJsonString(),false);
+                summary += appendSplitter("[DEBUG]" + Account.rsAccount(pocScore.accountId) + ",poc score=" + pocScore.total() + ":" + pocScore.toJsonString(),false);
             }
             return summary;
         }
         
         static void putin(){
-            // accountId : pocScore
-            Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
-            // height : { accountId : pocScore }
-            Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
-
-            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
+            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
             
             if(debugHistory) {
-                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore Object } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
+                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
                 Set<Integer> heights = inst.historyScore.keySet();
 
                 for(Integer height : heights){

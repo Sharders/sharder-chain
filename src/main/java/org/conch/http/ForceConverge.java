@@ -108,10 +108,13 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                     
                     if(toHeight == -1){
                         // reset the current db
-                        Logger.logDebugMessage("height is -1, reset(delete db folder from disk) and restart the block chain ");
-                        reset();
+                        Logger.logDebugMessage("toHeight is -1, reset(delete db folder from disk) and restart the block chain ");
+                        manualReset();
                         new Thread(() -> Conch.restartApplication(null)).start();
                         response.put("done", true);
+                    }else if(toHeight == 0){
+                        Logger.logDebugMessage("toHeight is 0, full reset the block chain");
+                        Conch.getBlockchainProcessor().fullReset();
                     }else{
                         // pop-off to specified height
                         List<? extends Block> blocks = Lists.newArrayList();
@@ -158,7 +161,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             // reset command process
             if(cmdObj.containsKey(Command.RESET.val())){
                 boolean needReset = cmdObj.getBooleanValue(Command.RESET.val());
-                if(needReset) reset();
+                if(needReset) Conch.getBlockchainProcessor().fullReset();;
             }
             
             // restart command process
@@ -230,7 +233,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         return null;
     }
     
-    public static void reset(){
+    public static void manualReset(){
        try{
             Conch.pause();
             
@@ -263,7 +266,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
             if(!reset) {
-                reset();
+                manualReset();
                 Logger.logDebugMessage("pause the blockchain till fork switched...");
                 Conch.pause();
                 reset = true;

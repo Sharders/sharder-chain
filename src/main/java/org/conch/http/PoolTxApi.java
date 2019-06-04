@@ -292,7 +292,9 @@ public abstract class PoolTxApi {
                 long rewardAmount = 0;
                 try{
                     Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(miningPool.getCreatorId(), poolId, miningPool.getMintRewards(), miningPool.getConsignorsAmountMap());
-                    rewardAmount = rewardList.get(accountId);
+                    if(rewardList.size() > 0){
+                        rewardAmount = rewardList.get(accountId); 
+                    }
                 }catch(Exception e){
                     Logger.logErrorMessage("can't calculate the investor's mining reward",e);
                 }

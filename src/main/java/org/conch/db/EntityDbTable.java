@@ -22,7 +22,6 @@
 package org.conch.db;
 
 import org.conch.Conch;
-import org.conch.common.Constants;
 import org.conch.util.Logger;
 
 import java.sql.Connection;
@@ -66,14 +65,14 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
     }
 
     public void checkAvailable(int height) {
-        if (multiversion) {
-            int minRollBackHeight = isPersistent() && Conch.getBlockchainProcessor().isScanning() ?
-                    Math.max(Conch.getBlockchainProcessor().getInitialScanHeight() - Constants.MAX_ROLLBACK, 0)
-                    : Conch.getBlockchainProcessor().getMinRollbackHeight();
-            if (height < minRollBackHeight) {
-                throw new IllegalArgumentException("Historical data as of height " + height + " not available.");
-            }
-        }
+//        if (multiversion) {
+//            int minRollBackHeight = isPersistent() && Conch.getBlockchainProcessor().isScanning() ?
+//                    Math.max(Conch.getBlockchainProcessor().getInitialScanHeight() - Constants.MAX_ROLLBACK, 0)
+//                    : Conch.getBlockchainProcessor().getMinRollbackHeight();
+//            if (height < minRollBackHeight) {
+//                throw new IllegalArgumentException("Historical data as of height " + height + " not available.");
+//            }
+//        }
         if (height > Conch.getBlockchain().getHeight()) {
             throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Conch.getBlockchain().getHeight());
         }

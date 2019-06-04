@@ -75,7 +75,7 @@
                         </el-option>
                     </el-select>
                 </h5>
-                <div class="mining-list-info">
+                <div class="mining-list-info" v-loading="loading">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList">
                             <div class="grid-content">
@@ -360,7 +360,8 @@
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
                 allIncome: 0,
-                totalSize: 10,
+                totalSize: 10, 
+                loading: true
             }
         },
         computed: {
@@ -598,12 +599,14 @@
             },
             getPools(parameter) {
                 let _this = this;
+                _this.loading = true;
                 _this.$global.fetch("POST", parameter, "getPools").then(res => {
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
                     _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
+                    _this.loading = false;
                 });
             },
             getMinerBlock(mining) {
