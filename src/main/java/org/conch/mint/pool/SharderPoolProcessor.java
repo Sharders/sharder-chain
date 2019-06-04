@@ -282,11 +282,6 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
 
-    public static boolean checkOwnPoolState(long creator, State state) {
-        SharderPoolProcessor poolProcessor = getPool(creator);
-        return (poolProcessor != null) && state.equals(poolProcessor.getState());
-    }
-
     public static long findOwnPoolId(long creator) {
         for (SharderPoolProcessor forgePool : sharderPools.values()) {
             if (forgePool.creatorId == creator) {

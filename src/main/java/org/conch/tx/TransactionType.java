@@ -3540,11 +3540,12 @@ public abstract class TransactionType {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
-                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
+                    Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
+//                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
                 }
                 if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
-                    throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " +
-                            forgePool.getCreatorId());
+                    Logger.logWarningMessage("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId() + "don't execute this tx[id=" + transaction.getId() + "]");
+//                    throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId());
                 }
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 int endHeight = forgePool.getEndBlockNo();
@@ -3619,8 +3620,12 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if (forgePool == null)  throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
-
+                if (forgePool == null)  {
+                    Logger.logWarningMessage("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
+                    return;
+//                    throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
+                }
+                
                 int poolStartHeight = forgePool.getStartBlockNo();
                 int poolEndHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
