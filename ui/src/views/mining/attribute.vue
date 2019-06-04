@@ -141,7 +141,7 @@
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" :loading="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -153,7 +153,7 @@
                 <p class="info">{{$t('mining.attribute.exit_pool_tip')}}</p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isExitPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" @click="miningExit">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" :loading="btnLoading" @click="miningExit">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -166,7 +166,7 @@
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}
                     </button>
-                    <button class="confirm" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" :loading="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -204,7 +204,8 @@
                     endBlockNo: 0,
                     level: {}
                 },
-                loading: true
+                loading: true,
+                btnLoading: true
             }
         },
         methods: {
@@ -222,6 +223,7 @@
                     if (res.data.errorDescription) {
                         return _this.$message.error(res.data.errorDescription);
                     }
+                    _this.btnLoading = true;
                     for (let t of res.data.transactions) {
                         if (t.attachment.poolId === _this.miningInfo.poolId) {
                             _this.$global.fetch("POST", {
@@ -243,6 +245,7 @@
                     _this.$message.warning("Request submitted");
                     _this.$store.state.mask = false;
                     _this.isExitPool = false;
+                    _this.btnLoading = false;
                 }).catch(err => {
                     _this.$message.error(err);
                 });
@@ -253,6 +256,8 @@
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
                 if (_this.$store.state.destroyPool[_this.miningInfo.poolId]) return;
+
+                _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: 400,
                     secretPhrase: SSO.secretPhrase,
@@ -263,6 +268,7 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
+                    _this.btnLoading = false;
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
                     _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
@@ -272,6 +278,7 @@
             miningJoin() {
                 let _this = this;
                 if (_this.validationJoinMining()) return;
+                _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: 400,
                     secretPhrase: SSO.secretPhrase,
@@ -280,6 +287,7 @@
                     poolId: _this.mining.poolId,
                     amount: _this.joinPool * 100000000
                 }, "joinPool").then(res => {
+                    _this.btnLoading = false;
                     if (typeof res.errorDescription === "undefined") {
                         _this.$message.success(_this.$t("mining.attribute.join_success"));
                         _this.$store.state.mask = false;
@@ -289,6 +297,7 @@
                     }
                 }).catch(err => {
                     console.log(err);
+                    _this.btnLoading = false;
                 });
             },
             miningMask(val) {
