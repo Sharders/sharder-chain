@@ -421,11 +421,6 @@ class PocHolder implements Serializable {
         }
         
         static void putin(){
-            // accountId : pocScore
-            Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
-            // height : { accountId : pocScore }
-            Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
-
             summary += appendSplitter("PocScore & Height Map[ accountId : PocScore ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
