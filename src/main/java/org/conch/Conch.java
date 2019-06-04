@@ -734,9 +734,10 @@ public final class Conch {
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
-                
-                
+
+                SharderPoolProcessor.init();
                 PocProcessorImpl.init();
+                
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
 
@@ -782,7 +783,6 @@ public final class Conch {
                 AddOns.init();
                 API.init();
                 Users.init();
-                SharderPoolProcessor.init();
                 DebugTrace.init();
                 DbBackup.init();
              

@@ -350,15 +350,6 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
 
-    static {
-
-        instFromDB();
-
-        // AFTER_BLOCK_APPLY event listener
-        Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block), 
-                BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
-    }
-
     /**
      * After block accepted:
      * - Update the pool state
@@ -372,7 +363,8 @@ public class SharderPoolProcessor implements Serializable {
         for (SharderPoolProcessor sharderPool : sharderPools.values()) {
             sharderPool.updateHeight = height;
             sharderPool.clearJoiningAmount();
-            
+
+            //pool will be destroyed automatically when it has nobody join
             if (sharderPool.consignors.size() == 0 
                 && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
                 sharderPool.destroySharderPool(height);
@@ -393,12 +385,7 @@ public class SharderPoolProcessor implements Serializable {
                 sharderPool.state = State.WORKING;
                 continue;
             }
-            // TODO auto destroy pool because the number or amount of pool is too small
-            if (sharderPool.startBlockNo + Constants.SHARDER_POOL_DEADLINE == height 
-                && sharderPool.consignors.size() == 0) {
-                sharderPool.destroySharderPool(height);
-                continue;
-            }
+            
             //  time out transaction
             for (Consignor consignor : sharderPool.consignors.values()) {
                 long amount = consignor.validateHeight(height);
@@ -512,6 +499,11 @@ public class SharderPoolProcessor implements Serializable {
 
     public static void init() {
         PoolRule.init();
+        instFromDB();
+        
+        // AFTER_BLOCK_APPLY event listener
+        Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block),
+                BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
 
     public static SharderPoolProcessor newPoolFromDestroyed(long creator) {
