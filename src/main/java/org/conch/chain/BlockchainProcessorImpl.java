@@ -2156,8 +2156,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     public void scheduleScan(int height, boolean validate) {
         try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt =
-                     con.prepareStatement("UPDATE scan SET rescan = TRUE, height = ?, validate = ?")) {
+             PreparedStatement pstmt = con.prepareStatement("UPDATE scan SET rescan = TRUE, height = ?, validate = ?")) {
             pstmt.setInt(1, height);
             pstmt.setBoolean(2, validate);
             pstmt.executeUpdate();

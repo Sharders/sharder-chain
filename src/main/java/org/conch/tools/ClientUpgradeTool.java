@@ -36,11 +36,16 @@ public class ClientUpgradeTool {
     }
 
     public static void autoUpgrade(boolean restart) throws IOException {
-        com.alibaba.fastjson.JSONObject cosVer = ClientUpgradeTool.fetchLastCosVersion();
-        String version = cosVer.getString("version");
-        String mode = cosVer.getString("mode");
-        String bakMode = cosVer.getString("bakMode");
-        upgradePackageThread(version,mode,bakMode,restart);
+        try{
+            Conch.pause();
+            com.alibaba.fastjson.JSONObject cosVer = ClientUpgradeTool.fetchLastCosVersion();
+            String version = cosVer.getString("version");
+            String mode = cosVer.getString("mode");
+            String bakMode = cosVer.getString("bakMode");
+            upgradePackageThread(version,mode,bakMode,restart);  
+        }finally{
+            Conch.unpause();
+        }
     }
     
     public static Thread upgradePackageThread(String version, String mode,String bakMode, Boolean restart) {
@@ -74,7 +79,7 @@ public class ClientUpgradeTool {
             Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
             FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
         }
-        Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName());
+        Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
         FileUtil.unzipAndReplace(archive, mode, delete);
         try {
             if (!SystemUtils.IS_OS_WINDOWS) {
