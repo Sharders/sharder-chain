@@ -20,7 +20,6 @@ import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * PocHolder is a singleton to hold the score and reference map.
@@ -42,7 +41,7 @@ class PocHolder implements Serializable {
     
     /** poc score **/
     // accountId : pocScore
-    private transient Map<Long, PocScore> scoreMap = new ConcurrentHashMap<>();
+    private transient Map<Long, PocScore> scoreMap = PocDb.listAll();
    
     // height : { accountId : pocScore }
     private transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
@@ -272,18 +271,11 @@ class PocHolder implements Serializable {
     }
     
 //    static {
-//        initDefaultMiners();
+//        synchronized (inst.scoreMap){
+//            inst.scoreMap = PocDb.listAll();
+//        }
 //    }
-//    
-//    private static final boolean initDefaultMiner = false;
-//    private static void initDefaultMiners(){
-//        if(!initDefaultMiner) return;
-//        // genesis account binding
-//        String bootNodeDomain = Constants.isDevnet() ? "devboot.sharder.io" : Constants.isTestnet() ? "testboot.sharder.io" : "mainboot.sharder.io";
-//        addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, SharderGenesis.CREATOR_ID);
-//        GenesisRecipient.getAll().forEach(recipient -> addCertifiedPeer(0, Peer.Type.FOUNDATION, bootNodeDomain, recipient.id));
-//    }
-
+    
     private PocHolder(){}
 
     /**

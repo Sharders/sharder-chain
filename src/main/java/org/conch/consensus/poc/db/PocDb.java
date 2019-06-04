@@ -1,6 +1,7 @@
 package org.conch.consensus.poc.db;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.consensus.poc.PocScore;
@@ -11,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * 
@@ -147,5 +149,47 @@ public class PocDb {
         if(StringUtils.isEmpty(detail)) return null;
         
         return JSON.parseObject(detail, PocScore.class);
+    }
+
+
+    public static Map<Long,PocScore>  listAll() {
+        Map<Long,PocScore> scoreMap = Maps.newHashMap();
+        
+        Conch.getBlockchain().readLock();
+        try {
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail FROM account_poc_score ORDER BY height DESC");
+
+                ResultSet rs = pstmt.executeQuery();
+                while(rs.next()){
+                    try{
+                        String detail = rs.getString("detail");
+                        PocScore pocScore = JSON.parseObject(detail, PocScore.class);
+                        
+                        // compare the height
+                        if(scoreMap.containsKey(pocScore.getAccountId())){
+                            PocScore oldScore = scoreMap.get(pocScore.getAccountId());
+                            if(oldScore.getHeight() < pocScore.getHeight()){
+                                scoreMap.put(pocScore.getAccountId(), pocScore);
+                            }
+                        }else{
+                            scoreMap.put(pocScore.getAccountId(), pocScore);
+                        }
+                    }catch (Exception e) {
+                        // continue to fetch next
+                        System.err.println(e);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
+            }
+        } finally {
+            Conch.getBlockchain().readUnlock();
+        }
+        return scoreMap;
     }
 }
