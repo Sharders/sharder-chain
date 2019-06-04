@@ -162,7 +162,7 @@
                         </el-option>
                     </el-select>
                 </div>
-                <div class="list_table w br4">
+                <div class="list_table w br4" v-loading="loading">
                     <div class="list_content data_loading">
                         <table class="table table_striped" id="blocks_table">
                             <thead>
@@ -774,6 +774,7 @@
                 upgradeMode: '',
                 bakMode: '',
                 isUpdate: false,
+                loading: true,
 
                 params: [],
                 temporaryName: '',
@@ -1745,6 +1746,7 @@
                     params.append("type", _this.selectType);
                 }
 
+                _this.loading = true;
                 this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
                     _this.accountTransactionList = res1.data.transactions;
 
@@ -1760,10 +1762,12 @@
                     }).catch(err => {
                         _this.$message.error(err.message);
                     });
+                    _this.loading = false;
                     _this.getTotalList();
                     _this.getDrawData();
                     _this.updateMinerState();
                 }).catch(function (err) {
+                    _this.loading = false;
                     _this.$message.error(err.message);
                 });
             },
