@@ -603,7 +603,8 @@ public abstract class TransactionType {
                     if(consignors.size() <= 0) return;
                     
                     long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
-                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
+                    SharderPoolProcessor poolProcessor = (id == -1) ? null : SharderPoolProcessor.getPool(id);
+//                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
                     if (poolProcessor != null 
                         && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
                         && !poolProcessor.validateConsignorsAmount(consignors)) {

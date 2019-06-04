@@ -359,11 +359,11 @@ public final class BlockDb {
         }
     }
 
-    public static void deleteAll() {
+    public static void deleteAll(boolean deletePocRefs) {
         if (!Db.db.isInTransaction()) {
             try {
                 Db.db.beginTransaction();
-                deleteAll();
+                deleteAll(deletePocRefs);
                 Db.db.commitTransaction();
             } catch (Exception e) {
                 Db.db.rollbackTransaction();
@@ -380,8 +380,10 @@ public final class BlockDb {
                 stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
                 stmt.executeUpdate("TRUNCATE TABLE transaction");
                 stmt.executeUpdate("TRUNCATE TABLE block");
-                stmt.executeUpdate("TRUNCATE TABLE account_pool");
-                stmt.executeUpdate("TRUNCATE TABLE account_poc_socre");
+                if(deletePocRefs) {
+                    stmt.executeUpdate("TRUNCATE TABLE account_pool");
+                    stmt.executeUpdate("TRUNCATE TABLE account_poc_socre");
+                }
                 BlockchainProcessorImpl.getInstance().getDerivedTables().forEach(table -> {
                     if (table.isPersistent()) {
                         try {
