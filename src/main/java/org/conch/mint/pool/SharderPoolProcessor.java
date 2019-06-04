@@ -1,6 +1,7 @@
 package org.conch.mint.pool;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
@@ -117,8 +118,13 @@ public class SharderPoolProcessor implements Serializable {
     
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
         Account creator = Account.getAccount(creatorId);
-        // mining pool total No.
-        SharderPoolProcessor.findOwnPoolId(creatorId, startBlockNo);
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(creatorId);
+        boolean notExist = (poolProcessor == null) || (poolProcessor.state != State.WORKING);
+        if(PoolDb.countByAccountId(creatorId, State.WORKING.ordinal()) > 0
+            || !notExist){
+            Logger.logDebugMessage(Account.rsAccount(creatorId) + " has a working pool[pool id=%d] already, can't create a new pool", poolProcessor.poolId);
+            return null;
+        }
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
@@ -454,12 +460,44 @@ public class SharderPoolProcessor implements Serializable {
      * If be called outside, the caller should be org.conch.Conch#shutdown()
      */
     public static void persistence(){
-        List<SharderPoolProcessor> poolList = Lists.newArrayList(sharderPools.values());
-        Set<Long> accountIds = destroyedPools.keySet();
-        for(Long accountId : accountIds){
-            poolList.addAll(destroyedPools.get(accountId));
+        List<SharderPoolProcessor> poolList = Lists.newArrayList();
+        List<SharderPoolProcessor> deleteList = Lists.newArrayList();
+        
+        Map<Long,SharderPoolProcessor> checkPool = Maps.newHashMap();
+        
+        if(sharderPools.size() > 0){
+            sharderPools.values().forEach(poolProcessor -> {
+                if(checkPool.containsKey(poolProcessor.getCreatorId())) {
+                    SharderPoolProcessor dpPool = checkPool.get(poolProcessor.getCreatorId());
+                    if(dpPool.startBlockNo < poolProcessor.startBlockNo) {
+                        poolList.add(dpPool);
+                        checkPool.put(poolProcessor.getCreatorId(), poolProcessor);
+
+                        deleteList.add(poolProcessor);
+                    }else{
+                        deleteList.add(dpPool);
+                    }
+                }else{
+                    poolList.add(poolProcessor);
+                    checkPool.put(poolProcessor.getCreatorId(), poolProcessor);
+                }
+            }); 
         }
-        PoolDb.saveOrUpdate(poolList);
+       
+        if(destroyedPools.size() > 0){
+            Set<Long> accountIds = destroyedPools.keySet();
+            for(Long accountId : accountIds){
+                poolList.addAll(destroyedPools.get(accountId));
+            }
+        }
+      
+        if(poolList.size() > 0) {
+            PoolDb.saveOrUpdate(poolList);  
+        }
+        
+        if(deleteList.size() > 0) {
+            deleteList.forEach(PoolProcessor -> PoolDb.delete(PoolProcessor));
+        }
     }
     
     private static void instFromDB(){
@@ -521,7 +559,7 @@ public class SharderPoolProcessor implements Serializable {
             return forgePool;
         }
         for (SharderPoolProcessor destroy : destroyedPools.get(creatorId)) {
-            if (destroy.poolId == poolId) {
+            if (destroy != null && destroy.poolId == poolId) {
                 return destroy;
             }
         }
@@ -564,7 +602,12 @@ public class SharderPoolProcessor implements Serializable {
         return map;
     }
 
-    public boolean validateConsignorsAmountMap(Map<Long, Long> map) {
+    /**
+     * validate the consignor amount in the tx with the amount from rule definition
+     * @param map 
+     * @return
+     */
+    public boolean validateConsignorsAmount(Map<Long, Long> map) {
         Map<Long, Long> myMap = getConsignorsAmountMap();
         if (myMap.size() != map.size()) {
             return false;

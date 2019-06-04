@@ -603,9 +603,11 @@ public abstract class TransactionType {
                     if(consignors.size() <= 0) return;
                     
                     long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
-                    if (id != -1 && SharderPoolProcessor.getPool(id).getState().equals(SharderPoolProcessor.State.WORKING)
-                            && !SharderPoolProcessor.getPool(id).validateConsignorsAmountMap(consignors)) {
-                        throw new ConchException.NotValidException("allocation rule is wrong");
+                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
+                    if (poolProcessor != null 
+                        && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
+                        && !poolProcessor.validateConsignorsAmount(consignors)) {
+                        throw new ConchException.NotValidException("The pool allocation rule validation failed in BLOCK_REWARD processing[block id=%d, height=%d]", transaction.getBlockId(), transaction.getHeight());
                     }
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (!SharderGenesis.isGenesisCreator(coinBase.getCreator())) {
@@ -3617,7 +3619,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if (forgePool == null)  throw new ConchException.NotValidException("Can't process join tx caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" ,join.getPoolId());
+                if (forgePool == null)  throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
 
                 int poolStartHeight = forgePool.getStartBlockNo();
                 int poolEndHeight = forgePool.getEndBlockNo();

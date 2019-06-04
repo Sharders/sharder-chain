@@ -415,7 +415,7 @@ class PocHolder implements Serializable {
             Set<Long> accountIds = scoreMap.keySet();
             for(Long accountId : accountIds){
                 PocScore pocScore = scoreMap.get(accountId);
-                summary += appendSplitter(Account.rsAccount(pocScore.accountId) + ",poc score=" + pocScore.total() + ":" + pocScore.toJsonString(),false);
+                summary += appendSplitter("[DEBUG]" + Account.rsAccount(pocScore.accountId) + ",poc score=" + pocScore.total() + ":" + pocScore.toJsonString(),false);
             }
             return summary;
         }
@@ -426,12 +426,12 @@ class PocHolder implements Serializable {
             // height : { accountId : pocScore }
             Map<Integer,Map<Long,PocScore>> historyScore = new ConcurrentHashMap<>();
 
-            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore Object ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
+            summary += appendSplitter("PocScore & Height Map[ accountId : PocScore ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
             
             if(debugHistory) {
-                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore Object } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
+                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
                 Set<Integer> heights = inst.historyScore.keySet();
 
                 for(Integer height : heights){

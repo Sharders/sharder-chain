@@ -201,10 +201,12 @@ public class BasicDb {
             
             if(Logger.isLevel(Logger.Level.DEBUG)) {
                 String stacks = String.format("Stacks as following[conn size=%d]\n\r", activeConnections);
+                String stacksDetails = "";
                 for ( StackTraceElement ele : Thread.currentThread().getStackTrace()) {
-                    stacks += "stack in getPooledConnection=> " + ele.getClassName() + "$" + ele.getMethodName() + "$" + ele.getFileName() + "#" + ele.getLineNumber() + "\n\r";
+                    stacksDetails += "[DEBUG] stack in getPooledConnection=> " + ele.getClassName() + "$" + ele.getMethodName() + "$" + ele.getFileName() + "#" + ele.getLineNumber() + "\n\r";
                 }
                 Logger.logWarningMessage(stacks);
+                Logger.logDebugMessage(stacksDetails);
             }
         }
         

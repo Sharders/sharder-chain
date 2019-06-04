@@ -186,9 +186,9 @@ public interface Attachment extends Appendix {
         }
 
         private final CoinBaseType coinBaseType;
-        //transaction creator
+        //miner id
         private final long creator; 
-        //by pool or account
+        //pool id or account id
         private final long generatorId; 
         private final Map<Long, Long> consignors;
 

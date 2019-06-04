@@ -64,6 +64,27 @@ public class PoolDb {
             if(ctlCon)  DbUtils.close(con);
         }
     }
+
+    public static int countByAccountId(Long creatorId, int state) {
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+
+            PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(db_id) as num from account_pool " + "WHERE creator_id = ? and state = ?");
+            pstmtCount.setLong(1, creatorId);
+            pstmtCount.setInt(2, state);
+
+            ResultSet rs = pstmtCount.executeQuery();
+            if(rs != null && rs.next()){
+                return rs.getInt("num");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
+        }
+        return 0;
+    }
     
     private static int insert(Connection con, SharderPoolProcessor poolProcessor) throws SQLException {
         if(con == null) return 0;
