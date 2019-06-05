@@ -311,6 +311,7 @@ public class PoolRule implements Serializable {
         if(investmentMap.size() == 0) return result;
         
         SharderPoolProcessor forgePool = SharderPoolProcessor.getPoolFromAll(creator, poolId);
+        if(forgePool == null) return result;
         int level = forgePool.getLevel();
 
         Map<String, Object> levelRuleMap = (Map<String, Object>) forgePool.getRule().get("level" + level);

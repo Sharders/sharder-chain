@@ -118,9 +118,9 @@
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
-                    :page-size="10"
+                    :page-size=15
                     layout="total, prev, pager, next ,jumper"
-                    :total="totalSize">
+                    :total=totalSize>
                 </el-pagination>
             </div>
         </div>
@@ -360,7 +360,7 @@
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
                 allIncome: 0,
-                totalSize: 10, 
+                totalSize: 15, 
                 loading: true
             }
         },

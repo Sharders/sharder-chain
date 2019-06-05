@@ -292,7 +292,7 @@ public abstract class PoolTxApi {
                 long rewardAmount = 0;
                 try{
                     Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(miningPool.getCreatorId(), poolId, miningPool.getMintRewards(), miningPool.getConsignorsAmountMap());
-                    if(rewardList.size() > 0){
+                    if(rewardList != null && rewardList.containsKey(accountId)){
                         rewardAmount = rewardList.get(accountId); 
                     }
                 }catch(Exception e){
