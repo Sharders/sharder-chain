@@ -13,7 +13,7 @@
                              v-clipboard:success="copySuccess" v-clipboard:error="copyError"/>
                     </div>
                     <p class="account_info" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</p>
-                    <p class="account_asset">
+                    <p class="account_asset" v-loading="loading">
                         {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) + $global.unit}}
                     </p>
                     <div class="account_tool">

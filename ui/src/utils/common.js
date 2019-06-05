@@ -60,7 +60,6 @@ export default {
      * @returns {Promise<any>}
      */
     setUnconfirmedTransactions(t, account) {
-        const _this = this;
         return new Promise(function (resolve, reject) {
             t.$http.get('/sharder?requestType=getUnconfirmedTransactions', {
                 params: {
