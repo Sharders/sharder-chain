@@ -24,7 +24,6 @@ package org.conch.http;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
-import org.conch.peer.Peers;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -92,9 +91,10 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
                 peers.forEach(peer -> peersJSON.add(peer.getHost()));
             }
         }
-
+//        ForkConvergeTest.printPeerClient();
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);
+       
         return response;
     }
 
@@ -102,5 +102,4 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
     protected boolean allowRequiredBlockParameters() {
         return false;
     }
-
 }

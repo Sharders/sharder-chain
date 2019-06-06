@@ -605,11 +605,11 @@ public abstract class TransactionType {
                     long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
                     SharderPoolProcessor poolProcessor = (id == -1) ? null : SharderPoolProcessor.getPool(id);
 //                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
-                    if (poolProcessor != null 
-                        && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
-                        && !poolProcessor.validateConsignorsAmount(consignors)) {
-                        throw new ConchException.NotValidException("The pool allocation rule validation failed in BLOCK_REWARD processing[block id=%d, height=%d]", transaction.getBlockId(), transaction.getHeight());
-                    }
+//                    if (poolProcessor != null 
+//                        && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
+//                        && !poolProcessor.validateConsignorsAmount(consignors)) {
+//                        throw new ConchException.NotValidException("The pool allocation rule validation failed in BLOCK_REWARD processing[block id=%d, height=%d]", transaction.getBlockId(), transaction.getHeight());
+//                    }
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (!SharderGenesis.isGenesisCreator(coinBase.getCreator())) {
                         throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");
@@ -3630,12 +3630,14 @@ public abstract class TransactionType {
                 int poolStartHeight = forgePool.getStartBlockNo();
                 int poolEndHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
-                    throw new ConchException.NotValidException("Pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
+                    Logger.logWarningMessage("Pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
+                    return;
                 }
                 
                 if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
                     if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
-                        throw new ConchException.NotValidException("Pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                        Logger.logWarningMessage("Pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                        return;
                     }  
                 }
                 
@@ -3647,14 +3649,16 @@ public abstract class TransactionType {
                 }
                 
                 if (!PoolRule.validateConsignor(level, join, forgePool.getRule())) {
-                    throw new ConchException.NotValidException("current condition is out of rule");
+                    Logger.logWarningMessage("current condition is out of rule");
+                    return;
                 }
 
                 com.alibaba.fastjson.JSONObject json = new com.alibaba.fastjson.JSONObject();
                 json.putAll(forgePool.getRootRuleMap());
                 long maxCapacity = json.getJSONObject("consignor").getJSONObject("amount").getLong("max");
                 if (join.getAmount() + forgePool.getPower() > maxCapacity) {
-                    throw new ConchException.NotValidException("exceeding total upper limit of pool");
+                    Logger.logWarningMessage("exceeding total upper limit of pool");
+                    return;
                 }
 
                 //TODO forge pool lifeTime is less than join period
@@ -3672,9 +3676,11 @@ public abstract class TransactionType {
                 long transactionId = transaction.getId();
                 senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
-                height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
-                miningPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
-                Account.getAccount(miningPool.getCreatorId()).pocChanged();
+                if(miningPool != null) {
+                    height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
+                    miningPool.addOrUpdateConsignor(senderAccount.getId(), transaction.getId(), height, height + forgePoolJoin.getPeriod(), amountNQT);
+                    Account.getAccount(miningPool.getCreatorId()).pocChanged();
+                }
             }
 
             @Override
@@ -3728,13 +3734,16 @@ public abstract class TransactionType {
                 }
                 boolean ownerQuit = sharderPool.getCreatorId() == transaction.getSenderId();
                 if (!ownerQuit && !sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
-                    throw new ConchException.NotValidException("sharder pool doesn't have the transaction of sender, txId:" + quit.getTxId() + ", poolId:" + poolId);
+                    Logger.logWarningMessage("sharder pool doesn't have the transaction of sender, txId:" + quit.getTxId() + ", poolId:" + poolId);
+                    return;
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
-                    throw new ConchException.NotValidException("sharder pool will be destroyed at " + sharderPool.getEndBlockNo() + " before transaction apply at " + curHeight);
+                    Logger.logWarningMessage("sharder pool will be destroyed at " + sharderPool.getEndBlockNo() + " before transaction apply at " + curHeight);
+                    return;
                 }
                 if (!PoolRule.validateConsignor(SharderPoolProcessor.getPool(poolId).getCreatorId(), quit, sharderPool.getRule())) {
-                    throw new ConchException.NotValidException("current condition is out of rule");
+                    Logger.logWarningMessage("current condition is out of rule");
+                    return;
                 }
             }
 

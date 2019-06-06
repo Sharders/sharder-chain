@@ -172,7 +172,7 @@
             <div class="modal-header">
                 <img class="close" src="../../assets/img/error.svg" @click="closeDialog"/>
                 <h4 class="modal-title">
-                    <span>{{$t('peers.peer')}}{{peerInfo.address}}</span>
+                    <span>{{$t('peers.peer')}} {{peerInfo.address}}</span>
                 </h4>
             </div>
             <div class="modal-body">

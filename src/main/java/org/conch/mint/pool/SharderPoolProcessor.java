@@ -119,7 +119,7 @@ public class SharderPoolProcessor implements Serializable {
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
         Account creator = Account.getAccount(creatorId);
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(creatorId);
-        boolean notExist = (poolProcessor == null) || (poolProcessor.state != State.WORKING);
+        boolean notExist = (poolProcessor == null) || (poolProcessor.state == State.DESTROYED);
         if(PoolDb.countByAccountId(creatorId, State.WORKING.ordinal()) > 0
             || !notExist){
             Logger.logDebugMessage(Account.rsAccount(creatorId) + " has a working pool[pool id=%d] already, can't create a new pool", poolProcessor.poolId);
@@ -545,11 +545,15 @@ public class SharderPoolProcessor implements Serializable {
         if (forgePool != null) {
             return forgePool;
         }
-        for (SharderPoolProcessor destroy : destroyedPools.get(creatorId)) {
-            if (destroy != null && destroy.poolId == poolId) {
-                return destroy;
+        
+        if(destroyedPools != null && destroyedPools.size() > 0) {
+            for (SharderPoolProcessor destroy : destroyedPools.get(creatorId)) {
+                if (destroy != null && destroy.poolId == poolId) {
+                    return destroy;
+                }
             }
         }
+      
         return null;
     }
 
