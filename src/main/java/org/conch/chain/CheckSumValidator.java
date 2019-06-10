@@ -157,7 +157,7 @@ public class CheckSumValidator {
     };
 
     static {
-        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, 30, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, 10, TimeUnit.MINUTES);
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
@@ -345,23 +345,18 @@ public class CheckSumValidator {
             if(response == null) return;
             
             String content = response.getContent();
-            String updateDetail = "\n\r";
             String totalIgnoreBlocks = "\n\r";
             if(content.startsWith("[")) {
                 com.alibaba.fastjson.JSONArray array = JSON.parseArray(content);
                 for(int i = 0; i < array.size(); i++) {
                     JSONObject object = array.getJSONObject(i);
                     totalIgnoreBlocks += object.toString() + "\n\r";
-                    if(updateSingle(object)){
-                        updateDetail += object.toString() + "\n\r";
-                    }
+                    updateSingle(object);
                 }
             }else if(content.startsWith("{")){
                 com.alibaba.fastjson.JSONObject object = JSON.parseObject(content);
                 totalIgnoreBlocks += object.toString() + "\n\r";
-                if(updateSingle(object)){
-                    updateDetail += object.toString() + "\n\r";
-                }
+                updateSingle(object);
             }else{
                 Logger.logWarningMessage("not correct known ignore block get from " + url + " : " + content);
                 return ;
@@ -369,11 +364,7 @@ public class CheckSumValidator {
             if(totalIgnoreBlocks.length() > 4){
                 Logger.logDebugMessage("total ignore blocks get from %s as follow:" + totalIgnoreBlocks, url);
             }
-            
-            if(updateDetail.length() > 4){
-                Logger.logDebugMessage("last known ignore blocks updated:" + updateDetail);
-            }
-            
+  
             // remove the dirty poc txs
             if(knownDirtyPocTxs.size() > 0) {
                 Set<Long> dirtyPocTxs = Sets.newHashSet();
