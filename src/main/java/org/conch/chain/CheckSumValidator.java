@@ -139,7 +139,8 @@ public class CheckSumValidator {
     static Map<Integer, Map<Long, PocTxBody.PocNodeTypeV2>> pocNodeTypeTxsMap = Maps.newHashMap();
     
     
-    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 1000);
+    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 30);
+    
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
@@ -157,7 +158,7 @@ public class CheckSumValidator {
     };
 
     static {
-        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, 10, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, CHECK_INTERVAL, TimeUnit.MINUTES);
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
