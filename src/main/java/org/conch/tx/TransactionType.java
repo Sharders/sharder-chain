@@ -33,6 +33,7 @@ import org.conch.asset.Asset;
 import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.MonetaryTx;
+import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
@@ -3551,7 +3552,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 int endHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
-                    throw new ConchException.NotValidException("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight);
+                    Logger.logWarningMessage("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight + ", still to destroy it");
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
                     throw new ConchException.NotValidException("Pool can't be destroyed, because it start at %d and current height %d is out of manual destroy range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
@@ -3730,7 +3731,8 @@ public abstract class TransactionType {
                 long poolId = quit.getPoolId();
                 SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
                 if (sharderPool == null) {
-                    throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
+                    Logger.logWarningMessage("sharder pool " + poolId + " doesn't exists, ignore this tx[id=%d]", transaction.getId());
+                    return;
                 }
                 boolean ownerQuit = sharderPool.getCreatorId() == transaction.getSenderId();
                 if (!ownerQuit && !sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
@@ -3752,11 +3754,22 @@ public abstract class TransactionType {
                 Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = sharderPoolQuit.getPoolId();
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
-                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
-                if (amountNQT != -1) {
-                    senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
+                if (miningPool == null) {
+                    Logger.logWarningMessage("sharder pool " + poolId + " doesn't exists, ignore this tx[id=%d]", transaction.getId());
+                    return;
                 }
-                Account.getAccount(miningPool.getCreatorId()).pocChanged();
+
+                try{
+                    long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                    if (amountNQT != -1 && amountNQT > 0) {
+                        senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
+                    }
+                    Account.getAccount(miningPool.getCreatorId()).pocChanged();
+                }catch(Account.DoubleSpendingException e) {
+                    if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), senderAccount.getId())) {
+                        throw e;
+                    }
+                }
             }
 
             @Override

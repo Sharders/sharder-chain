@@ -349,7 +349,7 @@ public class SharderPoolProcessor implements Serializable {
             Generator.forceOpenAutoMining();
         }
     }
-
+    
     /**
      * After block accepted:
      * - Update the pool state
@@ -360,6 +360,7 @@ public class SharderPoolProcessor implements Serializable {
      */
     private static void processNewBlockAccepted(Block block){
         int height = block.getHeight();
+        
         for (SharderPoolProcessor sharderPool : sharderPools.values()) {
             sharderPool.updateHeight = height;
             sharderPool.clearJoiningAmount();
@@ -386,7 +387,7 @@ public class SharderPoolProcessor implements Serializable {
                 continue;
             }
             
-            //  time out transaction
+            //  life end pool txs processing
             for (Consignor consignor : sharderPool.consignors.values()) {
                 long amount = consignor.validateHeight(height);
                 if (amount != 0) {
@@ -411,7 +412,6 @@ public class SharderPoolProcessor implements Serializable {
             } else {
                 sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
             }
-            
         }
 
         // update pool summary
