@@ -1737,7 +1737,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     transaction.validate();
                                     transaction.getPhasing().tryCountVotes(transaction, duplicates);
                                 } catch (ConchException.ValidationException e) {
-                                    Logger.logDebugMessage("At height " + block.getHeight() + " phased transaction " + transaction.getStringId() + " no longer passes validation: " + e.getMessage() + ", cannot finish early");
+                                    Logger.logDebugMessage("At height " + block.getHeight() + " phased transaction " + transaction.getId() + " no longer passes validation: " + e.getMessage() + ", cannot finish early");
                                 }
                             }
                         });
