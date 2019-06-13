@@ -1489,7 +1489,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
             Account generatorAccount = Account.getAccount(block.getGeneratorId());
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount, previousLastBlock.getHeight());
-            String errorMsg = String.format("Generation signature verification failed, account %s poc score is %d at height %d", generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1));
+            String errorMsg = String.format("Generation signature verification failed, account %s poc score is %d at height %d. %s", generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1), pocScoreObj.toString());
             throw new BlockNotAcceptedException(errorMsg, block);
         }
         if (!block.verifyBlockSignature()) {

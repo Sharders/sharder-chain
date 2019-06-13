@@ -74,6 +74,7 @@ public class PocProcessorImpl implements PocProcessor {
                     balanceChangedProcess(block.getHeight(), account);
                 }
                 balanceChangedMap.get(block.getHeight()).clear();
+                balanceChangedMap.remove(block.getHeight());
             }
 
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
@@ -474,7 +475,7 @@ public class PocProcessorImpl implements PocProcessor {
         long accountId = nodeTypeV2.getAccountId();
         
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        pocScoreToUpdate.nodeTypeCal(nodeTypeV2).saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.nodeTypeCal(nodeTypeV2));
 
         PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);
         return true;
@@ -493,8 +494,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(certifiedPeer == null) return false;
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
-
-        pocScoreToUpdate.nodeConfCal(pocNodeConf).saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.nodeConfCal(pocNodeConf));
 
         return true;
     }
@@ -511,8 +511,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(certifiedPeer == null) return false;
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
-
-        pocScoreToUpdate.onlineRateCal(certifiedPeer.getType(), onlineRate).saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.onlineRateCal(certifiedPeer.getType(), onlineRate));
 
         return true;
     }
@@ -529,7 +528,7 @@ public class PocProcessorImpl implements PocProcessor {
         List<Long> missAccountIds = pocBlockMissing.getMissingAccountIds();
         for (Long missAccountId : missAccountIds) {
             PocScore pocScoreToUpdate = PocHolder.getPocScore(height, missAccountId);
-            pocScoreToUpdate.blockMissCal(pocBlockMissing).saveOrUpdate();
+            PocHolder.saveOrUpdate(pocScoreToUpdate.blockMissCal(pocBlockMissing));
         }
         return true;
     }
@@ -547,7 +546,7 @@ public class PocProcessorImpl implements PocProcessor {
         }
         long accountId = account.getId();
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        pocScoreToUpdate.ssCal().saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.ssCal());
         return true;
     }
 

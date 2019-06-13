@@ -6,7 +6,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
-import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
@@ -94,6 +93,21 @@ public class PocScore implements Serializable {
         PocCalculator.inst.blockMissCal(this, pocBlockMissing);
         return this;
     }
+
+    /**
+     * two conditions:
+     * - valid node (has the node type statement tx)
+     * - own the SS
+     */
+    public boolean qualifiedMiner(){
+        if(this.ssScore.signum() >= 0 
+        && this.ssScore.longValue() >= 0L
+        && total().signum() > 0){
+            return true;
+        }
+        
+        return false;
+    }
     
     public PocScore ssCal(){
         this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
@@ -101,11 +115,6 @@ public class PocScore implements Serializable {
         return this;
     }
     
-    public PocScore saveOrUpdate(){
-        PocDb.saveOrUpdate(this);
-        return this;
-    }
-
     public void setHeight(int height) {
         this.height = height;
     }

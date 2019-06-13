@@ -669,7 +669,7 @@ const en = {
         'last_num_blocks': "Last __blocks__",
         'percent_complete': "__percent__% Complete",
         'blocks_left': "__numBlocks__ blocks left",
-        'fork_warning': "Warning: You are most likely on a fork (you have forged the last 10 blocks).",
+        'fork_warning': "Warning: You are most likely on a fork (you have mined the last 10 blocks).",
         'fork_warning_base_target': "Warning: You are most likely on a fork (base target is very high).",
         'error_search_no_results': "Nothing found, please try another query.",
         'error_search_invalid': "Invalid input. Search by ID only.",

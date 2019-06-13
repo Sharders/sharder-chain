@@ -622,7 +622,7 @@ public class Generator implements Comparable<Generator> {
         detailedPocScore = pocScoreObj.toJsonObject();
         pocScore = pocScoreObj.total();
 
-        if (pocScore.signum() <= 0) {
+        if (!pocScoreObj.qualifiedMiner()) {
             hitTime = 0;
             hit = BigInteger.ZERO;
             return;

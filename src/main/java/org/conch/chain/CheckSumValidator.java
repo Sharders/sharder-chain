@@ -219,8 +219,11 @@ public class CheckSumValidator {
     }
     
     
+    static private boolean closeIgnor= true;
+    
     private static boolean updateSingle(JSONObject object){
         try{
+            if(closeIgnor) return true;
             
             try{
                 if(object.containsKey("id") && object.getLong("id") != -1L) {
