@@ -134,6 +134,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         return;
                     }
 
+                    if (!Conch.getPocProcessor().pocTxsProcessed(Conch.getHeight())) {
+                        Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] processed", Conch.getHeight());
+                        return;
+                    }
+
                     int chainHeight = blockchain.getHeight();
                     downloadPeer();
                     if (blockchain.getHeight() == chainHeight) {
@@ -1367,11 +1372,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         int curTime = Conch.getEpochTime();
         blockchain.writeLock();
         try {
-            boolean delayedPocTxsProcessed = (Constants.isDevnet() && Generator.isBootNode)
-                    || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight()));
-            if (Conch.reachLastKnownBlock()
-                    && !delayedPocTxsProcessed) {
-                Logger.logDebugMessage("should process delayed poc txs <= [ height %d ] before accepting blocks", Conch.getBlockchain().getHeight());
+            boolean delayedOrOldPocTxsProcessed = (Constants.isDevnet() && Generator.isBootNode)
+//                    || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getHeight()));
+                    || (!Constants.isDevnet() && Conch.getPocProcessor().pocTxsProcessed(Conch.getHeight()));
+            
+//            if (Conch.reachLastKnownBlock() && !delayedPocTxsProcessed) {
+            if (!delayedOrOldPocTxsProcessed) {
+                Logger.logDebugMessage("should process delayed or old poc txs <= [ height %d ] before accepting blocks, break block pushing till poc txs processed ", Conch.getHeight());
                 return;
             }
 

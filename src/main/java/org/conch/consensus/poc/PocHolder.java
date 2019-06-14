@@ -305,27 +305,19 @@ class PocHolder implements Serializable {
             System.out.println("Generator check");
         }
 
-        PocScore pocScore = null;
-        //new a default PocScore
-        if (!inst.scoreMap.containsKey(accountId)) {
-            pocScore = getExistedPocScore(height, accountId);
-        }else{
-            pocScore = inst.scoreMap.get(accountId);
-            PocScore historyScore = getExistedPocScore(height, accountId);
-            if(historyScore != null && (historyScore.height > pocScore.height) ) {
-                inst.scoreMap.put(accountId, historyScore);
-                pocScore = historyScore;
+        PocScore pocScore = inst.scoreMap.containsKey(accountId) ? inst.scoreMap.get(accountId) : null;
+        PocScore existedScore = getExistedPocScore(height, accountId);
+        // current poc score and existed poc score compare
+        if(pocScore == null) {
+            pocScore = existedScore;
+        }else if (existedScore != null) {
+            if(Conch.getHeight() >= existedScore.height && existedScore.height > pocScore.height) {
+                inst.scoreMap.put(accountId, existedScore);
+                pocScore = existedScore;
+            }else if(pocScore.height > Conch.getHeight() && Conch.getHeight() >= existedScore.height){
+                inst.scoreMap.put(accountId, existedScore);
+                pocScore = existedScore;
             }
-//            if(pocScore.height > height) {
-//                pocScore = getHistoryPocScore(height, accountId);
-//            }else {
-//                // fix the bug of the old poc score didn't be updated
-//                PocScore historyScore = getHistoryPocScore(Conch.getHeight(), accountId);
-//                if(historyScore != null && (historyScore.height > pocScore.height) ) {
-//                    inst.scoreMap.put(accountId, historyScore);
-//                    pocScore = historyScore;
-//                }
-//            }
         }
         
         if(pocScore == null) {

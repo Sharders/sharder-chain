@@ -122,7 +122,10 @@ public class CheckSumValidator {
     }
     
     static Set<Long> debugAccounts = Sets.newHashSet(
-            3960463107034192150L 
+//            3960463107034192150L,
+//            2792673654720227339L
+            6066546424236439063L,
+            1264968676758780649L
     );
     /** DEBUG **/
     public static boolean isDebugPoint(long accountId){
