@@ -115,8 +115,9 @@ public class PocScore implements Serializable {
         return this;
     }
     
-    public void setHeight(int height) {
+    public PocScore setHeight(int height) {
         this.height = height;
+        return this;
     }
 
     public void synFrom(PocScore another){

@@ -27,7 +27,6 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.PocScore;
 import org.conch.crypto.Crypto;
 import org.conch.mint.Generator;
@@ -477,17 +476,17 @@ public final class BlockImpl implements Block {
     public boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
         try {
-            if(Constants.isTestnet() && Conch.getHeight() <= 1000 && SharderGenesis.isGenesisRecipients(getGeneratorId())){
-                return true;
-            }
+//            if(Constants.isTestnet() && Conch.getHeight() <= 1000 && SharderGenesis.isGenesisRecipients(getGeneratorId())){
+//                return true;
+//            }
             
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
             Account creator = Account.getAccount(getGeneratorId());
-            if(getGeneratorId() == 1264968676758780649L) {
-                System.out.println("Generator check");
+            if(CheckSumValidator.isDebugPoint(getGeneratorId())) {
+                System.out.println("DEBUG POINT");
             }
             
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(creator,previousBlock.getHeight());
@@ -516,7 +515,7 @@ public final class BlockImpl implements Block {
             return validHit || isIgnoreBlock;
 
         } catch (RuntimeException e) {
-            Logger.logMessage("Error verifying block generation signature", e);
+            Logger.logMessage("Error verifying block generation signature " + toString(), e);
             return false;
         }
     }

@@ -121,6 +121,17 @@ public class CheckSumValidator {
         }
     }
     
+    static Set<Long> debugAccounts = Sets.newHashSet(
+            3960463107034192150L 
+    );
+    /** DEBUG **/
+    public static boolean isDebugPoint(long accountId){
+        return debugAccounts.contains(accountId);
+    }
+    /** DEBUG **/
+    
+    
+    
     static int badCount = 0;
     static boolean synIgnoreBlock = false;
     /**  **/

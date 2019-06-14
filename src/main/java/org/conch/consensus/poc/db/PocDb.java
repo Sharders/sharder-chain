@@ -25,11 +25,6 @@ public class PocDb {
         if (pocScore == null || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ) {
             return;
         }
-
-        if(pocScore.getAccountId() == 1264968676758780649L) {
-            System.out.println("Generator check");
-        }
-        
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -149,9 +144,6 @@ public class PocDb {
      * @return
      */
     public static PocScore getPocScore(long accountId, int height, boolean loadHistory) {
-        if(accountId == 1264968676758780649L) {
-            System.out.println("Generator check");
-        }
         String detail = get(accountId, height, loadHistory);
         if(StringUtils.isEmpty(detail)) return null;
         

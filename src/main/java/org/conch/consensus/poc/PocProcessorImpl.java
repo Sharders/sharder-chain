@@ -70,9 +70,11 @@ public class PocProcessorImpl implements PocProcessor {
             // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
             boolean someAccountBalanceChanged = balanceChangedMap.containsKey(block.getHeight()) && balanceChangedMap.get(block.getHeight()).size() > 0;
             if (someAccountBalanceChanged) {
+
                 for (Account account : balanceChangedMap.get(block.getHeight()).values()) {
                     balanceChangedProcess(block.getHeight(), account);
                 }
+               
                 balanceChangedMap.get(block.getHeight()).clear();
                 balanceChangedMap.remove(block.getHeight());
             }
@@ -325,7 +327,7 @@ public class PocProcessorImpl implements PocProcessor {
             }
 
         } catch (Exception e) {
-            Logger.logErrorMessage("poc tx syn thread interrupted caused by %s", e);
+            Logger.logErrorMessage("poc tx syn thread interrupted", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
@@ -475,7 +477,7 @@ public class PocProcessorImpl implements PocProcessor {
         long accountId = nodeTypeV2.getAccountId();
         
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        PocHolder.saveOrUpdate(pocScoreToUpdate.nodeTypeCal(nodeTypeV2));
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV2));
 
         PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);
         return true;
@@ -494,7 +496,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(certifiedPeer == null) return false;
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
-        PocHolder.saveOrUpdate(pocScoreToUpdate.nodeConfCal(pocNodeConf));
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeConfCal(pocNodeConf));
 
         return true;
     }
@@ -511,7 +513,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(certifiedPeer == null) return false;
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
-        PocHolder.saveOrUpdate(pocScoreToUpdate.onlineRateCal(certifiedPeer.getType(), onlineRate));
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).onlineRateCal(certifiedPeer.getType(), onlineRate));
 
         return true;
     }
@@ -528,13 +530,13 @@ public class PocProcessorImpl implements PocProcessor {
         List<Long> missAccountIds = pocBlockMissing.getMissingAccountIds();
         for (Long missAccountId : missAccountIds) {
             PocScore pocScoreToUpdate = PocHolder.getPocScore(height, missAccountId);
-            PocHolder.saveOrUpdate(pocScoreToUpdate.blockMissCal(pocBlockMissing));
+            PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).blockMissCal(pocBlockMissing));
         }
         return true;
     }
 
     /**
-     * process the balance of account changed
+     * process the balance, poc  of account changed
      *
      * @param height  block height that included this tx
      * @param account which balance is changed
@@ -546,7 +548,7 @@ public class PocProcessorImpl implements PocProcessor {
         }
         long accountId = account.getId();
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        PocHolder.saveOrUpdate(pocScoreToUpdate.ssCal());
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).ssCal());
         return true;
     }
 
