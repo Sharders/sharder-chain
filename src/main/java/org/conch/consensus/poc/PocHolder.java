@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
-import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PocDb;
@@ -300,10 +299,6 @@ class PocHolder implements Serializable {
      */
     static PocScore getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
-
-        if(CheckSumValidator.isDebugPoint(accountId)) {
-            System.out.println("Generator check");
-        }
 
         PocScore pocScore = inst.scoreMap.containsKey(accountId) ? inst.scoreMap.get(accountId) : null;
         PocScore existedScore = getExistedPocScore(height, accountId);

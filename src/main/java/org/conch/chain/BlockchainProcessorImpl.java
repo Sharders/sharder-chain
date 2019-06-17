@@ -1662,9 +1662,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             throws TransactionNotAcceptedException {
         try {
             isProcessingBlock = true;
+            // unconfirmed balance update
             for (TransactionImpl transaction : block.getTransactions()) {
                 if (!transaction.applyUnconfirmed()) {
-                    throw new TransactionNotAcceptedException("Double spending", transaction);
+                    if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
+                       Logger.logWarningMessage("Ignore the double spending of tx => " + transaction.getJSONObject().toJSONString()); 
+                    }else{
+                        throw new TransactionNotAcceptedException("Double spending", transaction);  
+                    }
                 }
             }
             blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
@@ -1674,7 +1679,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             int fromTimestamp = Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
             for (TransactionImpl transaction : block.getTransactions()) {
                 try {
-                    transaction.apply();
+                    
+                    try{
+                        transaction.apply();   
+                    }catch(Account.DoubleSpendingException e){
+                        if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
+                            Logger.logWarningMessage("Ignore the double spending of tx => " + transaction.getJSONObject().toJSONString());
+                        }else{
+                            throw e;
+                        }
+                    }
+                    
                     if (transaction.getTimestamp() > fromTimestamp) {
                         for (Appendix.AbstractAppendix appendage : transaction.getAppendages(true)) {
                             if ((appendage instanceof Appendix.Prunable) && !((Appendix.Prunable) appendage).hasPrunableData()) {

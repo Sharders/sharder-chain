@@ -485,9 +485,6 @@ public final class BlockImpl implements Block {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
             Account creator = Account.getAccount(getGeneratorId());
-            if(CheckSumValidator.isDebugPoint(getGeneratorId())) {
-                System.out.println("DEBUG POINT");
-            }
             
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(creator,previousBlock.getHeight());
             BigInteger pocScore = pocScoreObj.total();

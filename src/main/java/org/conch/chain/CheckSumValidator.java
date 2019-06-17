@@ -19,6 +19,7 @@ import org.conch.db.DbUtils;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.conch.util.*;
 
 import java.io.IOException;
@@ -124,8 +125,7 @@ public class CheckSumValidator {
     static Set<Long> debugAccounts = Sets.newHashSet(
 //            3960463107034192150L,
 //            2792673654720227339L
-            6066546424236439063L,
-            1264968676758780649L
+//            963382008953913442L
     );
     /** DEBUG **/
     public static boolean isDebugPoint(long accountId){
@@ -143,7 +143,10 @@ public class CheckSumValidator {
             //Testnet
             -8556361949057624360L,
             211456030592803100L,
-            -9051459710885545966L
+            -9051459710885545966L,
+            -9040736285988428238L,          // height 1465
+            665016367944624517L,            // height 1478
+            -7482224415980390345L           // height 1480
     );
     
     private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
@@ -179,6 +182,14 @@ public class CheckSumValidator {
         boolean result = knownIgnoreBlocks.contains(blockId);
         
         return result;
+    }
+
+    public static boolean isDoubleSpendingIgnoreTx(TransactionImpl tx){
+        if(tx.getType() != null 
+        && TransactionType.TYPE_SHARDER_POOL == tx.getType().getType()){
+            return true;
+        }
+        return false;
     }
     
     public static boolean isKnownIgnoreTx(long txId){

@@ -3736,7 +3736,7 @@ public abstract class TransactionType {
                 }
                 boolean ownerQuit = sharderPool.getCreatorId() == transaction.getSenderId();
                 if (!ownerQuit && !sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
-                    Logger.logWarningMessage("sharder pool doesn't have the transaction of sender, txId:" + quit.getTxId() + ", poolId:" + poolId);
+                    Logger.logWarningMessage("sharder pool doesn't have the related join tx, txId:" + quit.getTxId() + ", poolId:" + poolId + ",sender " + transaction.getSenderId());
                     return;
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
@@ -3762,7 +3762,7 @@ public abstract class TransactionType {
                 try{
                     long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
                     if (amountNQT != -1 && amountNQT > 0) {
-                        senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
+                        senderAccount.frozenBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
                     }
                     Account.getAccount(miningPool.getCreatorId()).pocChanged();
                 }catch(Account.DoubleSpendingException e) {

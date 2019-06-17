@@ -160,7 +160,7 @@ public class PocScore implements Serializable {
         Account account = Account.getAccount(accountId, height);
         if (account == null) return balance;
 
-        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(accountId);
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(accountId);
         if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
             balance = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
                     .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));

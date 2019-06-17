@@ -217,7 +217,7 @@ public class SharderPoolProcessor implements Serializable {
                 power -= amount;
                 Account account = Account.getAccount(consignor.getId());
                 try {
-                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
+                    account.frozenBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
                 }catch(Account.DoubleSpendingException e) {
                     if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
                 }
@@ -387,20 +387,22 @@ public class SharderPoolProcessor implements Serializable {
                 continue;
             }
             
-            //  life end pool txs processing
-            for (Consignor consignor : sharderPool.consignors.values()) {
-                long amount = consignor.validateHeight(height);
-                if (amount != 0) {
-                    sharderPool.power -= amount;
-                    Account account = Account.getAccount(consignor.getId());
-                    Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account[%s]", -amount, account.getRsAddress());
-
-                    try{
-                        account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
-                    }catch(Account.DoubleSpendingException e) {
-                        if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
+            if(block.getHeight() < Constants.POOL_CAL_START){
+                //  life end pool txs processing
+                for (Consignor consignor : sharderPool.consignors.values()) {
+                    long amount = consignor.validateHeight(height);
+                    if (amount != 0) {
+                        sharderPool.power -= amount;
+                        Account account = Account.getAccount(consignor.getId());
+                        Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
+    
+                        try{
+                            account.frozenBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+                        }catch(Account.DoubleSpendingException e) {
+                            if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
+                        }
+    
                     }
-                   
                 }
             }
 

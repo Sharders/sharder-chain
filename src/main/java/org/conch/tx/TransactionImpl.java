@@ -812,10 +812,12 @@ final public class TransactionImpl implements Transaction {
     @Override
     public JSONObject getJSONObject() {
         JSONObject json = new JSONObject();
+        json.put("id", id);
         json.put("type", type.getType());
         json.put("subtype", type.getSubtype());
         json.put("timestamp", timestamp);
         json.put("deadline", deadline);
+        json.put("senderId", senderId);
         json.put("senderPublicKey", Convert.toHexString(getSenderPublicKey()));
         if (type.canHaveRecipient()) {
             json.put("recipient", Long.toUnsignedString(recipientId));
@@ -826,6 +828,7 @@ final public class TransactionImpl implements Transaction {
             json.put("referencedTransactionFullHash", Convert.toHexString(referencedTransactionFullHash));
         }
         json.put("ecBlockHeight", ecBlockHeight);
+        json.put("height", height);
         json.put("ecBlockId", Long.toUnsignedString(ecBlockId));
         json.put("signature", Convert.toHexString(signature));
         JSONObject attachmentJSON = new JSONObject();
@@ -1101,7 +1104,7 @@ final public class TransactionImpl implements Transaction {
         AccountRestrictions.checkTransaction(this, validatingAtFinish);
     }
 
-    // returns false iff double spending
+    // returns false if double spending
     public boolean applyUnconfirmed() {
         Account senderAccount = Account.getAccount(getSenderId());
         return senderAccount != null && type.applyUnconfirmed(this, senderAccount);

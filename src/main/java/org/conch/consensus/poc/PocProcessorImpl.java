@@ -70,7 +70,6 @@ public class PocProcessorImpl implements PocProcessor {
             // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
             boolean someAccountBalanceChanged = balanceChangedMap.containsKey(block.getHeight()) && balanceChangedMap.get(block.getHeight()).size() > 0;
             if (someAccountBalanceChanged) {
-
                 for (Account account : balanceChangedMap.get(block.getHeight()).values()) {
                     balanceChangedProcess(block.getHeight(), account);
                 }
