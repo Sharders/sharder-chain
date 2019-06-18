@@ -140,7 +140,7 @@ public abstract class PoolTxApi {
                 long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
 
                 // account balance check
-                if(amount > account.getBalanceNQT() || amount > account.getUnconfirmedBalanceNQT()) {
+                if(amount > (account.getBalanceNQT() + account.getUnconfirmedBalanceNQT()) ) {
                     String errorDetail = String.format("Account balance[%d] or unconfirmed balance[%d] is smaller than join amount[%d]" 
                             , account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), amount);
                     Logger.logWarningMessage(errorDetail);

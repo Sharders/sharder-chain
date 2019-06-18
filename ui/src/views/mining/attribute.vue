@@ -60,15 +60,15 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal && typeof(secretPhrase) !== 'undefined'" class="join"
+                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.join < newestBlock.height" class="join"
                                 @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0 && typeof(secretPhrase) !== 'undefined'"
+                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0 && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.quit < newestBlock.height "
                                 class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId] && typeof(secretPhrase) !== 'undefined'"
+                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId] && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.destroy < newestBlock.height"
                                 class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
@@ -238,9 +238,10 @@
                                     _this.$message.error(val.errorDescription);
                                 }
                                 _this.$store.state.quitPool[_this.miningInfo.poolId] -= t.attachment.amount;
+                                _this.$global.optHeight.quit = _this.newestBlock.height;
+                                console.log(JSON.stringify(_this.$global.optHeight));
                             });
                         }
-
                     }
                     _this.$message.warning("Request submitted");
                     _this.$store.state.mask = false;
@@ -272,6 +273,8 @@
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
                     _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
+                    _this.$global.optHeight.destroy = _this.newestBlock.height;
+                    console.log(JSON.stringify(_this.$global.optHeight));
                     return _this.$message.success(_this.$t("mining.attribute.delete_success"));
                 });
             },
@@ -292,6 +295,8 @@
                         _this.$message.success(_this.$t("mining.attribute.join_success"));
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
+                        _this.$global.optHeight.join = _this.newestBlock.height;
+                        console.log(JSON.stringify(_this.$global.optHeight));
                     } else {
                         _this.$message.error(res.errorDescription);
                     }

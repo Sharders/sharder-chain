@@ -47,7 +47,7 @@
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
                 </div>
-                <div class="create" @click="isVisible('isCreatePool')">
+                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
@@ -365,7 +365,7 @@
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 1,
-                
+
                 loading: true
             }
         },
@@ -469,6 +469,7 @@
                     if (res.broadcasted) {
                         _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
+                        _this.$global.optHeight.create = _this.newestBlock.height;
                     } else {
                         _this.$message.error(res.errorDescription);
                     }

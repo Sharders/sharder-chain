@@ -17,6 +17,7 @@ export default {
     $vue: {},
     placeholder: "--",
     unit: " SS",
+    optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
