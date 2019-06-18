@@ -124,9 +124,9 @@ public abstract class PoolTxApi {
             JSONStreamAware aware = null;
             try{
                 Account account = ParameterParser.getSenderAccount(request);
+                
                 long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
                 SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
-
 
                 long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
                 long allowedInvestAmount = investmentRule[1];
@@ -138,6 +138,14 @@ public abstract class PoolTxApi {
                 if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
 
                 long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
+
+                // account balance check
+                if(amount > account.getBalanceNQT() || amount > account.getUnconfirmedBalanceNQT()) {
+                    String errorDetail = String.format("Account balance[%d] or unconfirmed balance[%d] is smaller than join amount[%d]" 
+                            , account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), amount);
+                    Logger.logWarningMessage(errorDetail);
+                    throw new ConchException.NotValidException(errorDetail);
+                }
 
                 int[] lifeCycleRule = PoolRule.predefinedLifecycle();
                 int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
