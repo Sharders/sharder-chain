@@ -77,7 +77,7 @@
                 </h5>
                 <div class="mining-list-info" v-loading="loading">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-for="(mining,index) in miningList">
+                        <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2>
@@ -114,11 +114,12 @@
                     </el-row>
                 </div>
             </div>
-            <div class="mining-paging" v-if="miningList.length > 0">
+            <div class="mining-paging" v-if="totalSize > pageSize">
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
-                    :page-size=15
+                    :current-page.sync="currentPage"
+                    :page-size="pageSize"
                     layout="total, prev, pager, next ,jumper"
                     :total=totalSize>
                 </el-pagination>
@@ -360,7 +361,11 @@
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
                 allIncome: 0,
-                totalSize: 15, 
+                
+                currentPage: 1,
+                totalSize: 0,
+                pageSize: 1,
+                
                 loading: true
             }
         },

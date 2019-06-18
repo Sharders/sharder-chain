@@ -55,7 +55,7 @@
                             </thead>
                             <tbody>
                             <tr v-for="(peer,index) in peersList"
-                                v-if="index >= ((currentPage - 1) *10) && index <= (currentPage * 10 -1)">
+                                v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                                 <td class="image_text linker" @click="openInfo(peer.address)">
                                     <el-tooltip class="item" placement="top" effect="light"
                                                 :content="peerState(peer.state)">

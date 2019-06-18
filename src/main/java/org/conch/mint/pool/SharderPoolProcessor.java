@@ -256,20 +256,20 @@ public class SharderPoolProcessor implements Serializable {
 
     public long quitConsignor(long id, long txId) {
         if (!consignors.containsKey(id)) {
-            Logger.logErrorMessage("mining pool:" + poolId + " don't have consignor:" + id);
+            Logger.logErrorMessage("mining pool:" + poolId + " don't have this consignor:" + id);
             return -1;
         }
         Consignor consignor = consignors.get(id);
         long amount = consignor.getTransactionAmount(txId);
         if (amount == -1) {
-            Logger.logErrorMessage("consignor:" + id + " don't have transaction:" + txId);
+            Logger.logErrorMessage("consignor:" + id + " don't have this tx [id=" + txId + "]");
             return -1;
         }
         power -= amount;
         if (consignor.removeTransaction(txId)) {
             consignors.remove(id);
             number--;
-            Logger.logDebugMessage(id + "quit mining pool " + poolId + ",tx id is " + txId);
+            Logger.logDebugMessage("account[id=" + id + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
         }
         return amount;
     }
