@@ -624,6 +624,13 @@ public class SharderPoolProcessor implements Serializable {
         return endBlockNo;
     }
 
+    public int getRemainBlocks() {
+        if(startBlockNo < 0 || endBlockNo < 0) return 0;
+        int remain = endBlockNo - startBlockNo;
+        return remain < 0 ? 0 : remain;
+    }
+
+
     public Map<String, Object> getRule() {
         return rule;
     }

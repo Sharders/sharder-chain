@@ -279,6 +279,7 @@ const cn = {
             'join_number_info': "投入数量必须大于{min}小于{max}",
             'join_success': "加入成功",
             'delete_success': "删除成功",
+            'exit_success': "退出成功",
             'not_join': "未加入",
             'return_previous': "返回上一页",
             'pool_number': "矿池编号:",

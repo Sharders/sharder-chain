@@ -146,9 +146,14 @@ public abstract class PoolTxApi {
                     Logger.logWarningMessage(errorDetail);
                     throw new ConchException.NotValidException(errorDetail);
                 }
-
+                
+                // period check
                 int[] lifeCycleRule = PoolRule.predefinedLifecycle();
                 int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+                int poolRemainBlocks = poolProcessor.getRemainBlocks();
+                if(period > poolRemainBlocks){
+                    period = poolRemainBlocks;
+                }
 
                 Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
                 aware = createTransaction(request, account, 0, 0, attachment);

@@ -209,6 +209,14 @@
             }
         },
         methods: {
+            remainBlocks() {
+                let _t = this;
+                if (_t.mining.startBlockNo > _t.newestBlock.height) {
+                    return _t.mining.endBlockNo - _t.mining.startBlockNo
+                } else {
+                    return _t.mining.endBlockNo - _t.newestBlock.height
+                }
+            },
             miningExit() {
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
@@ -229,7 +237,7 @@
                             _this.$global.fetch("POST", {
                                 txId: t.transaction,
                                 poolId: _this.miningInfo.poolId,
-                                period: 400,
+                                period: _this.remainBlocks(),
                                 secretPhrase: SSO.secretPhrase,
                                 deadline: 1440,
                                 feeNQT: 100000000
@@ -239,11 +247,10 @@
                                 }
                                 _this.$store.state.quitPool[_this.miningInfo.poolId] -= t.attachment.amount;
                                 _this.$global.optHeight.quit = _this.newestBlock.height;
-                                console.log(JSON.stringify(_this.$global.optHeight));
                             });
                         }
                     }
-                    _this.$message.warning("Request submitted");
+                    _this.$message.success(_this.$t("mining.attribute.exit_success"));
                     _this.$store.state.mask = false;
                     _this.isExitPool = false;
                     _this.btnLoading = false;
@@ -260,7 +267,7 @@
 
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
-                    period: 400,
+                    period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 1440,
                     feeNQT: 100000000,
@@ -274,16 +281,16 @@
                     _this.isDestroyPool = false;
                     _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
                     _this.$global.optHeight.destroy = _this.newestBlock.height;
-                    console.log(JSON.stringify(_this.$global.optHeight));
                     return _this.$message.success(_this.$t("mining.attribute.delete_success"));
                 });
             },
             miningJoin() {
                 let _this = this;
                 if (_this.validationJoinMining()) return;
+                alert("period: " + _this.remainBlocks());
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
-                    period: 400,
+                    period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 1440,
                     feeNQT: 100000000,// 手续费默认是 1 SS
@@ -296,7 +303,6 @@
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                         _this.$global.optHeight.join = _this.newestBlock.height;
-                        console.log(JSON.stringify(_this.$global.optHeight));
                     } else {
                         _this.$message.error(res.errorDescription);
                     }

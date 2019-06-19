@@ -324,7 +324,7 @@
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolInvestment: 0,
-                maxPoolsNum: 51,
+                maxPoolsNum: 1000,
                 maxForgeTime: 1 * 60 * 60,
                 options: [
                     {

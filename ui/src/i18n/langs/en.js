@@ -280,6 +280,7 @@ const en = {
             'join_number_info': "Input quantity must be greater than {min} and less than {Max}",
             'join_success': "Joined",
             'delete_success': "Deleted",
+            'exit_success': "Exited",
             'not_join': "Not joined",
             'return_previous': "Return",
             'pool_number': "Pool Number ",
