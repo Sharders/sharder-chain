@@ -107,12 +107,21 @@ public class Consignor implements Serializable {
         return id == consignor.id;
     }
 
-    public String toJsonStr(){
+    public JSONObject toJsonObj(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", id);
 //        jsonObject.put("transactions", transactions);
-        jsonObject.put("transactions", JSONArray.toJSONString(transactions));
-        return jsonObject.toString();
+        JSONArray txArray = new JSONArray();
+        for(JoinTransaction joinTx : transactions){
+            txArray.add(joinTx.toJsonObj());
+        }
+        jsonObject.put("txs", txArray);
+        return jsonObject;
+    }
+    
+
+    public String toJsonStr(){
+        return toJsonObj().toString();
     }
 
 
@@ -174,6 +183,15 @@ public class Consignor implements Serializable {
             this.amount = amount;
         }
 
+        public JSONObject toJsonObj(){
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("transactionId", String.valueOf(transactionId));
+            jsonObject.put("startBlockNo", startBlockNo);
+            jsonObject.put("endBlockNo", endBlockNo);
+            jsonObject.put("amount", String.valueOf(amount));
+            return jsonObject;
+        }
+        
         @Override
         public String toString() {
             return ToStringBuilder.reflectionToString(this);

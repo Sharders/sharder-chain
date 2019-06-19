@@ -135,6 +135,9 @@
                     - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
+<!--                <p class="input">-->
+<!--                    <el-input type="number" value="remainBlocks()" :readonly></el-input>-->
+<!--                </p>-->
                 <p class="input">
                     <el-input v-model="joinPool" type="number"
                               :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
@@ -151,10 +154,37 @@
                 <span class="img-close" @click="miningMask('isExitPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.exit_pool')}}</h1>
                 <p class="info">{{$t('mining.attribute.exit_pool_tip')}}</p>
-                <p class="btn">
-                    <button class="cancel" @click="miningMask('isExitPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" :loading="btnLoading" @click="miningExit">{{$t('mining.attribute.confirm')}}</button>
-                </p>
+
+                <template>
+                    <el-table
+                            :data="miningInfo.consignor.txs"
+                            stripe
+                            style="width: 100%">
+                        <el-table-column
+                                prop="transactionId"
+                                :label="$t('mining.attribute.tx_id')"
+                                width="180">
+                        </el-table-column>
+                        <el-table-column
+                                prop="amount"
+                                :formatter="formatAmount"
+                                :label="$t('mining.attribute.amount')">
+                        </el-table-column>
+                        <el-table-column
+                                prop="startBlockNo"
+                                :formatter="formatHeight"
+                                :label="$t('mining.attribute.height_range')">
+                        </el-table-column>
+                        <el-table-column
+                                fixed="right"
+                                :label="$t('mining.attribute.exit_pool')"
+                                width="80">
+                            <template slot-scope="scope">
+                                <el-button class="confirm" :loading="btnLoading" @click="miningExit(scope.row,scope.$index)" type="text" size="small">{{$t('mining.attribute.confirm')}}</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </template>
             </div>
         </div>
         <!--删除矿池-->
@@ -202,13 +232,20 @@
                     timestamp: 0,
                     startBlockNo: 0,
                     endBlockNo: 0,
+                    consignor: {},
                     level: {}
                 },
                 loading: true,
-                btnLoading: true
+                btnLoading: false
             }
         },
         methods: {
+            formatAmount(row, column) {
+                return this.$global.getSSNumberFormat(row.amount);
+            },
+            formatHeight(row, column) {
+                return row.startBlockNo + " - " + row.endBlockNo;
+            },
             remainBlocks() {
                 let _t = this;
                 if (_t.mining.startBlockNo > _t.newestBlock.height) {
@@ -217,46 +254,32 @@
                     return _t.mining.endBlockNo - _t.newestBlock.height
                 }
             },
-            miningExit() {
+            miningExit(_tx,_index) {
+                console.log(_tx);
+                console.log(_index);
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
-                this.$http.get('/sharder?requestType=getBlockchainTransactions', {
-                    params: {
-                        account: SSO.accountRS,
-                        type: 8
+                _this.btnLoading = true;
+                _this.$global.fetch("POST", {
+                    txId: _tx.transactionId,
+                    poolId: _this.miningInfo.poolId,
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    feeNQT: 100000000
+                }, "quitPool").then(val => {
+                    if (val.errorDescription) {
+                        _this.$message.error(val.errorDescription);
                     }
-                }).then(res => {
-                    if (res.data.errorDescription) {
-                        return _this.$message.error(res.data.errorDescription);
-                    }
-                    _this.btnLoading = true;
-                    for (let t of res.data.transactions) {
-                        if (t.attachment.poolId === _this.miningInfo.poolId) {
-                            _this.$global.fetch("POST", {
-                                txId: t.transaction,
-                                poolId: _this.miningInfo.poolId,
-                                period: _this.remainBlocks(),
-                                secretPhrase: SSO.secretPhrase,
-                                deadline: 1440,
-                                feeNQT: 100000000
-                            }, "quitPool").then(val => {
-                                if (val.errorDescription) {
-                                    _this.$message.error(val.errorDescription);
-                                }
-                                _this.$store.state.quitPool[_this.miningInfo.poolId] -= t.attachment.amount;
-                                _this.$global.optHeight.quit = _this.newestBlock.height;
-                            });
-                        }
-                    }
-                    _this.$message.success(_this.$t("mining.attribute.exit_success"));
-                    _this.$store.state.mask = false;
                     _this.isExitPool = false;
-                    _this.btnLoading = false;
-                }).catch(err => {
-                    _this.$message.error(err);
+                    _this.$global.optHeight.quit = _this.newestBlock.height;
+                    _this.$store.state.quitPool[_this.miningInfo.poolId] -= _tx.amount;
+                    delete _this.miningInfo.consignor.txs[_index];
+                    _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
+                _this.$store.state.mask = false;
+                _this.btnLoading = false;
             },
             miningDestroy() {
                 let _this = this;
@@ -287,7 +310,6 @@
             miningJoin() {
                 let _this = this;
                 if (_this.validationJoinMining()) return;
-                alert("period: " + _this.remainBlocks());
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
@@ -343,6 +365,7 @@
                     _this.miningInfo.level = res.rule.level0 ? res.rule.level0 : res.rule.level1;
                     _this.miningInfo.joinAmount = res.joinAmount;
                     _this.miningInfo.rewardAmount = res.rewardAmount;
+                    _this.miningInfo.consignor = res.consignor;
                     _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max;
                     let nxtAddress = new NxtAddress();
                     if (nxtAddress.set(_this.miningInfo.accountId)) {
@@ -607,7 +630,7 @@
         height: 40px;
     }
 
-    .join-pool .btn button {
+    .join-pool .btn button{
         outline: none;
         width: 200px;
         height: 40px;
@@ -617,25 +640,32 @@
         cursor: pointer;
     }
 
-    .btn button.cancel {
+    .btn button.cancel{
         border: 1px solid #513acB;
         color: #513acB;
         float: left;
         background: #fff;
     }
 
-    .btn button.confirm {
+    .btn button.confirm{
         float: right;
         background: #513acB;
         color: #fff;
         border: none;
     }
 
+    button.confirm {
+        background: #513acB;
+        color: #fff;
+        padding: 5px;
+    }
+
     .btn button.cancel:hover {
         background: #513acB11;
     }
 
-    .btn button.confirm:hover {
+    .btn button.confirm:hover,
+    button.confirm:hover {
         background: #513acBdd;
     }
 
@@ -661,7 +691,7 @@
 
     .exit-pool .info {
         text-align: center;
-        padding: 35px;
+        padding-bottom: 20px;
         font-size: 14px;
         color: #333;
     }
