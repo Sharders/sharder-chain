@@ -244,7 +244,7 @@ public class CheckSumValidator {
     }
     
     
-    static private boolean closeIgnor= true;
+    static private boolean closeIgnor= false;
     
     private static boolean updateSingle(JSONObject object){
         try{
