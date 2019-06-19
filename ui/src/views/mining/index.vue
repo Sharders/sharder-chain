@@ -364,7 +364,7 @@
                 
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 1,
+                pageSize: 20,
 
                 loading: true
             }

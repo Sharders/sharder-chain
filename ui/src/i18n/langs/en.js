@@ -283,7 +283,7 @@ const en = {
             'exit_success': "Exited",
             'tx_id': "Tx ID",
             'amount': "Amount",
-            'height_range': "Height Range",
+            'height_range': "Height",
             'not_join': "Not joined",
             'return_previous': "Return",
             'pool_number': "Pool Number ",

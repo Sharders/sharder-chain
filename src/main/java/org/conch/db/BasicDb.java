@@ -22,6 +22,7 @@
 package org.conch.db;
 
 import org.conch.Conch;
+import org.conch.common.Constants;
 import org.conch.util.Logger;
 import org.h2.jdbcx.JdbcConnectionPool;
 
@@ -190,7 +191,7 @@ public class BasicDb {
     }
     
     private static int exceedMaxCount = 0;
-    private static final int RESTART_COUNT = 500;
+    private static final int RESTART_COUNT = Constants.isDevnet() ? 10 : 500;
     private static int predefinedMaxDbConnections = Conch.getIntProperty("sharder.maxDbConnections");
     protected Connection getPooledConnection() throws SQLException {
         Connection con = null;

@@ -64,7 +64,7 @@
                                 @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0 && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.quit < newestBlock.height "
+                        <button v-if="typeof(miningInfo.consignor) !== 'undefined' && typeof(miningInfo.consignor.txs) !== 'undefined' && miningInfo.consignor.txs.length > 0 && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.quit < newestBlock.height "
                                 class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
