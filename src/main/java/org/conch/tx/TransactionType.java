@@ -3621,23 +3621,23 @@ public abstract class TransactionType {
                 //TODO unconfirmed transaction already has this kind of transaction double spend
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if (forgePool == null)  {
+                SharderPoolProcessor pool = SharderPoolProcessor.getPool(join.getPoolId());
+                if (pool == null)  {
                     Logger.logWarningMessage("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
                     return;
 //                    throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
                 }
                 
-                int poolStartHeight = forgePool.getStartBlockNo();
-                int poolEndHeight = forgePool.getEndBlockNo();
+                int poolStartHeight = pool.getStartBlockNo();
+                int poolEndHeight = pool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
-                    Logger.logWarningMessage("Pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
+                    Logger.logWarningMessage("Pool[%d] will destroyed at height[%d]  before tx[id=%d applied height[%d]", pool.getPoolId(), poolEndHeight, transaction.getId(),  curHeight);
                     return;
                 }
                 
                 if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
                     if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
-                        Logger.logWarningMessage("Pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                        Logger.logWarningMessage("Pool[%d] will start at height[%d] and current tx[id=%d] apply at height[%d] ", pool.getPoolId(), poolStartHeight , transaction.getId(), curHeight);
                         return;
                     }  
                 }
@@ -3649,15 +3649,15 @@ public abstract class TransactionType {
                     level = 1;
                 }
                 
-                if (!PoolRule.validateConsignor(level, join, forgePool.getRule())) {
-                    Logger.logWarningMessage("current condition is out of rule");
+                if (!PoolRule.validateConsignor(level, join, pool.getRule())) {
+                    Logger.logWarningMessage("current condition in the tx[id=%d] is out of rule ", transaction.getId());
                     return;
                 }
 
                 com.alibaba.fastjson.JSONObject json = new com.alibaba.fastjson.JSONObject();
-                json.putAll(forgePool.getRootRuleMap());
+                json.putAll(pool.getRootRuleMap());
                 long maxCapacity = json.getJSONObject("consignor").getJSONObject("amount").getLong("max");
-                if (join.getAmount() + forgePool.getPower() > maxCapacity) {
+                if (join.getAmount() + pool.getPower() > maxCapacity) {
                     Logger.logWarningMessage("exceeding total upper limit of pool");
                     return;
                 }

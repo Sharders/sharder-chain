@@ -57,7 +57,7 @@
                 <span class="notice-info">
                     {{$t('mining.index.mineral') + $t('mining.index.net_mining_number',{number:newestBlock.height})}} |
                     {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getSSNumberFormat(newBlockReward)}}
-            </span>
+                </span>
             </div>
             <div class="mining-list">
                 <h5>
@@ -80,7 +80,7 @@
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>
+                                    <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                     </h2>
                                     <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
@@ -802,7 +802,10 @@
         width: 140px;
         padding: 12px 25px;
     }
-
+    
+    .my-pool-title {
+        color: #14c6fc;
+    }
 
 </style>
 <!--豆匣矿场-->
