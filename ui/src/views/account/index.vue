@@ -768,7 +768,7 @@
                 //分页信息
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 50,
+                pageSize: 10,
 
                 latesetVersion: '',
                 upgradeMode: '',
@@ -1733,8 +1733,8 @@
                     i = _this.unconfirmedTransactionsList.length;
                 }
 
-                params.append("firstIndex", (_this.currentPage - 1) * _this.pagesize);
-                params.append("lastIndex", _this.currentPage * _this.pagesize - 1 - i);
+                params.append("firstIndex", (_this.currentPage - 1) * _this.pageSize);
+                params.append("lastIndex", _this.currentPage * _this.pageSize - 1 - i);
 
                 if (_this.selectType === 1.5) {
                     params.append("type", "1");

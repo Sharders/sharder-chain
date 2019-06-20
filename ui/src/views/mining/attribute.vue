@@ -278,6 +278,7 @@
                     _this.$global.optHeight.quit = _this.newestBlock.height;
                     _this.$store.state.quitPool[_this.miningInfo.poolId] -= _tx.amount;
                     delete _this.miningInfo.consignor.txs[_index];
+                    _this.miningInfo.joinAmount -= _tx.amount;
                     _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
                 _this.$store.state.mask = false;
@@ -312,6 +313,7 @@
             miningJoin() {
                 let _this = this;
                 if (_this.validationJoinMining()) return;
+                let joinAmount = _this.joinPool * 100000000
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
@@ -319,7 +321,7 @@
                     deadline: 1440,
                     feeNQT: 100000000,// 手续费默认是 1 SS
                     poolId: _this.mining.poolId,
-                    amount: _this.joinPool * 100000000
+                    amount: joinAmount
                 }, "joinPool").then(res => {
                     _this.btnLoading = false;
                     if (typeof res.errorDescription === "undefined") {
@@ -327,6 +329,7 @@
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
                         _this.$global.optHeight.join = _this.newestBlock.height;
+                        _this.miningInfo.joinAmount += joinAmount;
                     } else {
                         _this.$message.error(res.errorDescription);
                     }

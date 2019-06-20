@@ -3593,7 +3593,7 @@ public abstract class TransactionType {
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
-                senderAccount.addUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT, 0);
+                senderAccount.addFrozen(getLedgerEvent(), transaction.getId(), -amountNQT);
             }
 
             @Override
