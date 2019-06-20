@@ -715,10 +715,13 @@ export default {
      */
     getTransactionAmountNQT(t, accountRS) {
         let isJoinPoolTx = (t.type === 8 && t.subtype === 2) ? true : false;
-        let amountNQT = new BigNumber(isJoinPoolTx ? t.attachment.amount : t.amountNQT).dividedBy("100000000").toFixed();
-        
-        if(isJoinPoolTx) {
+        let isQuitTx = (t.type === 8 && t.subtype === 3) ? true : false;
+        let amountNQT = new BigNumber((isJoinPoolTx || isQuitTx) ? t.attachment.amount : t.amountNQT).dividedBy("100000000").toFixed();
+
+        if (isJoinPoolTx) {
             return -amountNQT + this.unit
+        } else if (isQuitTx){
+            return "+" + amountNQT + this.unit
         }else if (amountNQT <= 0) {
             return this.placeholder
         } else if (t.senderRS === accountRS && t.type !== 9) {

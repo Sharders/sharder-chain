@@ -364,11 +364,11 @@
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_amount')}}</th>
-                        <td>{{transactionInfo.amountNQT/100000000}}</td>
+                        <td>{{$global.getTransactionAmountNQT(transactionInfo,accountInfo.accountRS)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_info_fee')}}</th>
-                        <td>{{transactionInfo.feeNQT/100000000}}</td>
+                        <td>{{$global.getTransactionFeeNQT(transactionInfo)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('dialog.account_transaction_recipient')}}</th>
