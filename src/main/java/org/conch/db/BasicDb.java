@@ -193,7 +193,7 @@ public class BasicDb {
     private static int exceedMaxCount = 0;
     private static final int RESTART_COUNT = Constants.isDevnet() ? 10 : 500;
     private static int predefinedMaxDbConnections = Conch.getIntProperty("sharder.maxDbConnections");
-    private static boolean debugDetail = false;
+    private static boolean debugDetail = true;
     protected Connection getPooledConnection() throws SQLException {
         Connection con = null;
         try {

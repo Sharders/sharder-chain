@@ -3669,7 +3669,7 @@ public abstract class TransactionType {
                 long amountNQT = forgePoolJoin.getAmount();
                 long poolId = forgePoolJoin.getPoolId();
                 long transactionId = transaction.getId();
-                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transactionId, amountNQT);
+                senderAccount.addFrozenSubBalance(getLedgerEvent(), transactionId, amountNQT);
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
                 if(miningPool != null) {
                     height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
@@ -3756,7 +3756,7 @@ public abstract class TransactionType {
                 try{
                     long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
                     if (amountNQT != -1 && amountNQT > 0) {
-                        senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
+                        senderAccount.addFrozenSubBalance(getLedgerEvent(), transaction.getId(), -amountNQT);
                     }
                     Account.getAccount(miningPool.getCreatorId()).pocChanged();
                 }catch(Account.DoubleSpendingException e) {

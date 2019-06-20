@@ -1264,6 +1264,7 @@ public final class Account {
             if (activeLesseeId == 0) {
                 effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height);
             }
+            effectiveBalanceNQT = effectiveBalanceNQT - frozenBalanceNQT;
             return (height > Constants.SHUFFLING_BLOCK_HEIGHT && effectiveBalanceNQT < Constants.MIN_FORGING_BALANCE_NQT) ? 0 : effectiveBalanceNQT / Constants.ONE_SS;
         } finally {
             Conch.getBlockchain().readUnlock();
@@ -1766,7 +1767,7 @@ public final class Account {
         if(changeUnconfirmed) {
             this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
         }
-        addGuaranteedBalance(-amountNQT);
+//        addGuaranteedBalance(-amountNQT);
         
         this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
        
