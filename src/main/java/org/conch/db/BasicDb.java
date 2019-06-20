@@ -193,6 +193,7 @@ public class BasicDb {
     private static int exceedMaxCount = 0;
     private static final int RESTART_COUNT = Constants.isDevnet() ? 10 : 500;
     private static int predefinedMaxDbConnections = Conch.getIntProperty("sharder.maxDbConnections");
+    private static boolean debugDetail = false;
     protected Connection getPooledConnection() throws SQLException {
         Connection con = null;
         try {
@@ -209,7 +210,9 @@ public class BasicDb {
                         stacksDetails += "[DEBUG] stack in getPooledConnection=> " + ele.getClassName() + "$" + ele.getMethodName() + "$" + ele.getFileName() + "#" + ele.getLineNumber() + "\n";
                     }
                     Logger.logWarningMessage(stacks);
-                    Logger.logDebugMessage(stacksDetails);
+                    if(debugDetail) {
+                        Logger.logDebugMessage(stacksDetails);
+                    }
                 }
             }
 

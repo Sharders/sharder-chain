@@ -51,7 +51,7 @@ public abstract class Order {
 
             askOrder.updateQuantityQNT(Math.subtractExact(askOrder.getQuantityQNT(), trade.getQuantityQNT()));
             Account askAccount = Account.getAccount(askOrder.getAccountId());
-            askAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.ASSET_TRADE, askOrder.getId(),
+            askAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.ASSET_TRADE, askOrder.getId(),
                             Math.multiplyExact(trade.getQuantityQNT(), trade.getPriceNQT()));
             askAccount.addToAssetBalanceQNT(AccountLedger.LedgerEvent.ASSET_TRADE, askOrder.getId(), assetId, -trade.getQuantityQNT());
 
@@ -59,9 +59,9 @@ public abstract class Order {
             Account bidAccount = Account.getAccount(bidOrder.getAccountId());
             bidAccount.addToAssetAndUnconfirmedAssetBalanceQNT(AccountLedger.LedgerEvent.ASSET_TRADE, bidOrder.getId(),
                             assetId, trade.getQuantityQNT());
-            bidAccount.addToBalanceNQT(AccountLedger.LedgerEvent.ASSET_TRADE, bidOrder.getId(),
+            bidAccount.addBalance(AccountLedger.LedgerEvent.ASSET_TRADE, bidOrder.getId(),
                             -Math.multiplyExact(trade.getQuantityQNT(), trade.getPriceNQT()));
-            bidAccount.addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.ASSET_TRADE, bidOrder.getId(),
+            bidAccount.addToUnconfirmedNQT(AccountLedger.LedgerEvent.ASSET_TRADE, bidOrder.getId(),
                             Math.multiplyExact(trade.getQuantityQNT(), (bidOrder.getPriceNQT() - trade.getPriceNQT())));
         }
 

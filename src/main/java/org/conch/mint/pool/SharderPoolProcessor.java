@@ -128,7 +128,7 @@ public class SharderPoolProcessor implements Serializable {
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
-        creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
         
         if (destroyedPools.containsKey(creatorId)) {
@@ -205,7 +205,7 @@ public class SharderPoolProcessor implements Serializable {
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
         try{
-            creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
+            creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
             power -= PLEDGE_AMOUNT;
         }catch(Account.DoubleSpendingException e) {
             if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
@@ -217,7 +217,7 @@ public class SharderPoolProcessor implements Serializable {
                 power -= amount;
                 Account account = Account.getAccount(consignor.getId());
                 try {
-                    account.frozenBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
+                    account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
                 }catch(Account.DoubleSpendingException e) {
                     if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
                 }
@@ -272,6 +272,25 @@ public class SharderPoolProcessor implements Serializable {
             Logger.logDebugMessage("account[id=" + id + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
         }
         return amount;
+    }
+    
+    private static void autoQuitWhenTxLifeEnd(SharderPoolProcessor sharderPool, int height){
+        //  life end txs processing
+        for (Consignor consignor : sharderPool.consignors.values()) {
+            long amount = consignor.validateHeight(height);
+            if (amount != 0) {
+                sharderPool.power -= amount;
+                Account account = Account.getAccount(consignor.getId());
+                Logger.logDebugMessage("auto quit when the tx's life is end. amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
+
+                try{
+                    account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
+                }catch(Account.DoubleSpendingException e) {
+                    if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
+                }
+
+            }
+        }
     }
 
     public boolean hasSenderAndTransaction(long senderId, long txId) {
@@ -358,7 +377,7 @@ public class SharderPoolProcessor implements Serializable {
      * - Coinbase reward unfreeze
      * - Persistence the pool to local disk
      */
-    private static void processNewBlockAccepted(Block block){
+    private static void acceptNewBlock(Block block){
         int height = block.getHeight();
         
         for (SharderPoolProcessor sharderPool : sharderPools.values()) {
@@ -386,25 +405,8 @@ public class SharderPoolProcessor implements Serializable {
                 sharderPool.state = State.WORKING;
                 continue;
             }
-            
-            if(block.getHeight() < Constants.POOL_CAL_START){
-                //  life end pool txs processing
-                for (Consignor consignor : sharderPool.consignors.values()) {
-                    long amount = consignor.validateHeight(height);
-                    if (amount != 0) {
-                        sharderPool.power -= amount;
-                        Account account = Account.getAccount(consignor.getId());
-                        Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
-    
-                        try{
-                            account.frozenBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
-                        }catch(Account.DoubleSpendingException e) {
-                            if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
-                        }
-    
-                    }
-                }
-            }
+
+            autoQuitWhenTxLifeEnd(sharderPool, height);
 
             if (sharderPool.startBlockNo < height) {
                 sharderPool.totalBlocks++;
@@ -504,7 +506,7 @@ public class SharderPoolProcessor implements Serializable {
         instFromDB();
         
         // AFTER_BLOCK_APPLY event listener
-        Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block),
+        Conch.getBlockchainProcessor().addListener(block -> acceptNewBlock(block),
                 BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
 

@@ -536,15 +536,15 @@ public final class BlockImpl implements Block {
                 totalBackFees += backFees[i];
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
                 Logger.logDebugMessage("Back fees %f SS to miner at height %d", ((double)backFees[i])/Constants.ONE_SS, this.height - i - 1);
-                previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
-                previousGeneratorAccount.addToMintedBalanceNQT(backFees[i]);
+                previousGeneratorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
+                previousGeneratorAccount.addMintedBalance(backFees[i]);
             }
         }
         if (totalBackFees != 0) {
             Logger.logDebugMessage("Fee reduced by %f SS at height %d", ((double)totalBackFees)/Constants.ONE_SS, this.height);
         }
-        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
-        generatorAccount.addToMintedBalanceNQT(totalFeeNQT - totalBackFees);
+        generatorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
+        generatorAccount.addMintedBalance(totalFeeNQT - totalBackFees);
     }
 
     public void setPrevious(BlockImpl block) {

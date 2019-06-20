@@ -139,7 +139,7 @@ public abstract class StorageTx extends TransactionType {
             }
             long storeFee = transaction.getFeeNQT() - ((TransactionImpl) transaction).getMinimumFeeNQT(BlockchainImpl.getInstance().getHeight());
             Account account = Account.getAccount(transaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_UPLOAD, transaction.getId(), storeFee);
+            account.addFrozen(AccountLedger.LedgerEvent.STORAGE_UPLOAD, transaction.getId(), storeFee);
         }
 
         @Override
@@ -230,12 +230,12 @@ public abstract class StorageTx extends TransactionType {
 
             // Freeze store fee from  uploader who process the upload tx sender (storage customer)
             Account account = Account.getAccount(storeTransaction.getSenderId());
-            account.frozenNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), -storeFee);
+            account.addFrozen(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), -storeFee);
 
             // Transfer storage reward to storer who process the storage tx
             Account backupAccount = Account.getAccount(transaction.getSenderId());
-            backupAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), storeFee);
-            backupAccount.addToMintedBalanceNQT(storeFee);
+            backupAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.STORAGE_BACKUP, transaction.getId(), storeFee);
+            backupAccount.addMintedBalance(storeFee);
         }
 
         @Override

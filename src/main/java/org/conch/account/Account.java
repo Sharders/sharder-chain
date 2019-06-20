@@ -1721,7 +1721,7 @@ public final class Account {
      * @param eventId
      * @param amountNQT
      */
-    public void frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         frozen(event,eventId,amountNQT,true);
     }
 
@@ -1733,17 +1733,17 @@ public final class Account {
      * @param eventId
      * @param amountNQT
      */
-    public void frozenBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addFrozenSubBalance(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         frozen(event,eventId,amountNQT,false);
     }
 
     /**
-     * - add frozen balance
+     * - add frozen balance only 
      * @param event
      * @param eventId
      * @param amountNQT
      */
-    public void frozenNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addFrozen(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
@@ -1757,19 +1757,19 @@ public final class Account {
      * @param event
      * @param eventId
      * @param amountNQT
-     * @param subUnconfirmed
+     * @param changeUnconfirmed
      */
-    private void frozen(AccountLedger.LedgerEvent event, long eventId, long amountNQT, boolean subUnconfirmed){
-        if (amountNQT == 0) {
-            return;
-        }
+    private void frozen(AccountLedger.LedgerEvent event, long eventId, long amountNQT, boolean changeUnconfirmed){
+        if (amountNQT == 0)   return;
+        
         this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
-        if(subUnconfirmed) {
+        if(changeUnconfirmed) {
             this.unconfirmedBalanceNQT = Math.subtractExact(this.unconfirmedBalanceNQT, amountNQT);
         }
+        addGuaranteedBalance(-amountNQT);
+        
         this.frozenBalanceNQT = Math.addExact(this.frozenBalanceNQT, amountNQT);
-        addToGuaranteedBalanceNQT(amountNQT);
-
+       
         checkAndSave();
     }
     
@@ -1781,7 +1781,7 @@ public final class Account {
         save();
     }
 
-    public void addToBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+    public void addBalance(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
         addToBalanceNQT(event, eventId, amountNQT, 0);
     }
 
@@ -1789,8 +1789,8 @@ public final class Account {
         addBalance(event,eventId,amountNQT,feeNQT,Event.BALANCE);
     }
 
-    public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
-        addToUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
+    public void addToUnconfirmedNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        addUnconfirmed(event, eventId, amountNQT, 0);
     }
     
     public void pocChanged(){
@@ -1815,7 +1815,7 @@ public final class Account {
         if(Event.BALANCE == balanceEvent){
             this.balanceNQT = Math.addExact(this.balanceNQT, totalAmountNQT);
             //add the guaranteed balance
-            addToGuaranteedBalanceNQT(totalAmountNQT);
+            addGuaranteedBalance(totalAmountNQT);
         }else if(Event.UNCONFIRMED_BALANCE == balanceEvent){
             this.unconfirmedBalanceNQT = Math.addExact(this.unconfirmedBalanceNQT, totalAmountNQT);
         }
@@ -1852,22 +1852,22 @@ public final class Account {
         }
     }
 
-    public void addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+    public void addUnconfirmed(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
         addBalance(event,eventId,amountNQT,feeNQT,Event.UNCONFIRMED_BALANCE);
     }
 
-    public void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
-        addToBalanceAndUnconfirmedBalanceNQT(event, eventId, amountNQT, 0);
+    public void addBalanceAddUnconfirmed(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
+        addBalanceAddUnconfirmed(event, eventId, amountNQT, 0);
     }
 
-    public void addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
+    public void addBalanceAddUnconfirmed(AccountLedger.LedgerEvent event, long eventId, long amountNQT, long feeNQT) {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
         long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
         this.balanceNQT = Math.addExact(this.balanceNQT, totalAmountNQT);
         this.unconfirmedBalanceNQT = Math.addExact(this.unconfirmedBalanceNQT, totalAmountNQT);
-        addToGuaranteedBalanceNQT(totalAmountNQT);
+        addGuaranteedBalance(totalAmountNQT);
         checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
         save();
         listeners.notify(this, Event.BALANCE);
@@ -1894,7 +1894,7 @@ public final class Account {
         }
     }
 
-    public void addToMintedBalanceNQT(long amountNQT) {
+    public void addMintedBalance(long amountNQT) {
         if (amountNQT == 0) {
             return;
         }
@@ -1917,7 +1917,7 @@ public final class Account {
         }
     }
 
-    private void addToGuaranteedBalanceNQT(long amountNQT) {
+    private void addGuaranteedBalance(long amountNQT) {
         if (amountNQT <= 0) {
             return;
         }
@@ -1967,12 +1967,12 @@ public final class Account {
             if (accountAsset.getAccountId() != this.id && accountAsset.getQuantityQNT() != 0) {
                 long dividend = Math.multiplyExact(accountAsset.getQuantityQNT(), amountNQTPerQNT);
                 Account.getAccount(accountAsset.getAccountId())
-                        .addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, dividend);
+                        .addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, dividend);
                 totalDividend += dividend;
                 numAccounts += 1;
             }
         }
-        this.addToBalanceNQT(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, -totalDividend);
+        this.addBalance(AccountLedger.LedgerEvent.ASSET_DIVIDEND_PAYMENT, transactionId, -totalDividend);
         AssetDividend.addAssetDividend(transactionId, attachment, totalDividend, numAccounts);
     }
 

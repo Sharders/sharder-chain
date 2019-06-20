@@ -66,7 +66,7 @@ public final class DigitalGoodsStore {
             }
             for (Purchase purchase : expiredPurchases) {
                 Account buyer = Account.getAccount(purchase.getBuyerId());
-                buyer.addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_PURCHASE_EXPIRED, purchase.getId(),
+                buyer.addToUnconfirmedNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_PURCHASE_EXPIRED, purchase.getId(),
                         Math.multiplyExact((long) purchase.getQuantity(), purchase.getPriceNQT()));
                 Goods.getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
                 purchase.setPending(false);
@@ -948,7 +948,7 @@ public final class DigitalGoodsStore {
             purchaseListeners.notify(purchase, Event.PURCHASE);
         } else {
             Account buyer = Account.getAccount(transaction.getSenderId());
-            buyer.addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELISTED, transaction.getId(),
+            buyer.addToUnconfirmedNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELISTED, transaction.getId(),
                     Math.multiplyExact((long) attachment.getQuantity(), attachment.getPriceNQT()));
             // restoring the unconfirmed balance if purchase not successful, however buyer still lost the transaction fees
         }
@@ -960,11 +960,11 @@ public final class DigitalGoodsStore {
         long totalWithoutDiscount = Math.multiplyExact((long) purchase.getQuantity(), purchase.getPriceNQT());
         Account buyer = Account.getAccount(purchase.getBuyerId());
         long transactionId = transaction.getId();
-        buyer.addToBalanceNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELIVERY, transactionId,
+        buyer.addBalance(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELIVERY, transactionId,
                 Math.subtractExact(attachment.getDiscountNQT(), totalWithoutDiscount));
-        buyer.addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELIVERY, transactionId, attachment.getDiscountNQT());
+        buyer.addToUnconfirmedNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELIVERY, transactionId, attachment.getDiscountNQT());
         Account seller = Account.getAccount(transaction.getSenderId());
-        seller.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELIVERY, transactionId,
+        seller.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.DIGITAL_GOODS_DELIVERY, transactionId,
                 Math.subtractExact(totalWithoutDiscount, attachment.getDiscountNQT()));
         purchase.setEncryptedGoods(attachment.getGoods(), attachment.goodsIsText());
         purchase.setDiscountNQT(attachment.getDiscountNQT());
@@ -975,9 +975,9 @@ public final class DigitalGoodsStore {
                        Appendix.EncryptedMessage encryptedMessage) {
         Purchase purchase = Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
         Account seller = Account.getAccount(sellerId);
-        seller.addToBalanceNQT(event, eventId, -refundNQT);
+        seller.addBalance(event, eventId, -refundNQT);
         Account buyer = Account.getAccount(purchase.getBuyerId());
-        buyer.addToBalanceAndUnconfirmedBalanceNQT(event, eventId, refundNQT);
+        buyer.addBalanceAddUnconfirmed(event, eventId, refundNQT);
         if (encryptedMessage != null) {
             purchase.setRefundNote(encryptedMessage.getEncryptedData());
         }

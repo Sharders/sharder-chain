@@ -1430,7 +1430,7 @@ public interface Appendix {
         public void reject(TransactionImpl transaction) {
             Account senderAccount = Account.getAccount(transaction.getSenderId());
             transaction.getType().undoAttachmentUnconfirmed(transaction, senderAccount);
-            senderAccount.addToUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.REJECT_PHASED_TRANSACTION, transaction.getId(),
+            senderAccount.addToUnconfirmedNQT(AccountLedger.LedgerEvent.REJECT_PHASED_TRANSACTION, transaction.getId(),
                                                      transaction.getAmountNQT());
             TransactionProcessorImpl.getInstance()
                     .notifyListeners(Collections.singletonList(transaction), TransactionProcessor.Event.REJECT_PHASED_TRANSACTION);
