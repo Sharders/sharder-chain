@@ -768,7 +768,7 @@
                 //分页信息
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 10,
+                pageSize: 50,
 
                 latesetVersion: '',
                 upgradeMode: '',

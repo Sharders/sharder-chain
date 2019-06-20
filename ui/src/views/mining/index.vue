@@ -15,7 +15,7 @@
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
                             {number:newestBlock.height})}}
                         </li>
-                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}}
+                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS)}}
                             SS
                         </li>
                         <li>

@@ -8,6 +8,7 @@
                     <div class="attribute-text">
                         <span class="pool-serial-number">
                             {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
+                            | {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS
                             <!-- close chance of pool -->
                             <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
                         </span>
@@ -217,6 +218,7 @@
                 isDestroyPool: false,
                 joinRSPool: '',
                 myAccount: SSO.accountRS,
+                accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 miningInfo: {
                     account: '',
