@@ -1733,8 +1733,8 @@
                     i = _this.unconfirmedTransactionsList.length;
                 }
 
-                params.append("firstIndex", (_this.currentPage - 1) * 10);
-                params.append("lastIndex", _this.currentPage * 10 - 1 - i);
+                params.append("firstIndex", (_this.currentPage - 1) * _this.pagesize);
+                params.append("lastIndex", _this.currentPage * _this.pagesize - 1 - i);
 
                 if (_this.selectType === 1.5) {
                     params.append("type", "1");

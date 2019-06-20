@@ -64,7 +64,7 @@ public class Consignor implements Serializable {
         return false;
     }
 
-    public long validateHeight(int height) {
+    public long validateHeightAndRemove(int height) {
         long amount = 0;
         List<JoinTransaction> timeout = new ArrayList<>();
         for (JoinTransaction joinTransaction : transactions) {

@@ -128,7 +128,7 @@ public class SharderPoolProcessor implements Serializable {
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
-        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
         
         if (destroyedPools.containsKey(creatorId)) {
@@ -205,7 +205,7 @@ public class SharderPoolProcessor implements Serializable {
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
         try{
-            creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
+            creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
             power -= PLEDGE_AMOUNT;
         }catch(Account.DoubleSpendingException e) {
             if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
@@ -213,14 +213,14 @@ public class SharderPoolProcessor implements Serializable {
 
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
-            if (amount != 0) {
-                power -= amount;
-                Account account = Account.getAccount(consignor.getId());
-                try {
-                    account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
-                }catch(Account.DoubleSpendingException e) {
-                    if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
-                }
+            if (amount <= 0) continue;
+            
+            power -= amount;
+            Account account = Account.getAccount(consignor.getId());
+            try {
+                account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -amount);
+            }catch(Account.DoubleSpendingException e) {
+                if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
             }
         }
 
@@ -277,19 +277,19 @@ public class SharderPoolProcessor implements Serializable {
     private static void autoQuitWhenTxLifeEnd(SharderPoolProcessor sharderPool, int height){
         //  life end txs processing
         for (Consignor consignor : sharderPool.consignors.values()) {
-            long amount = consignor.validateHeight(height);
-            if (amount != 0) {
-                sharderPool.power -= amount;
-                Account account = Account.getAccount(consignor.getId());
-                Logger.logDebugMessage("auto quit when the tx's life is end. amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
+            long amount = consignor.validateHeightAndRemove(height);
+            if(amount <= 0) continue;
+            
+            sharderPool.power -= amount;
+            Account account = Account.getAccount(consignor.getId());
+            Logger.logDebugMessage("auto quit when the tx's life is end. amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
 
-                try{
-                    account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
-                }catch(Account.DoubleSpendingException e) {
-                    if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
-                }
-
+            try{
+                account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, sharderPool.getPoolId(), -amount);
+            }catch(Account.DoubleSpendingException e) {
+                if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
             }
+
         }
     }
 

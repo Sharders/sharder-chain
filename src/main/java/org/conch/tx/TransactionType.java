@@ -543,25 +543,25 @@ public abstract class TransactionType {
          * total 2 stages: 
          * stage one is in tx accepted, the rewards need be lock; 
          * stage two is the block confirmations reached, means unlock the rewards and record mined amount
-         * @param transaction reward tx
+         * @param tx reward tx
          * @param stageTwo true - stage two; false - stage one
          * @return
          */
-        public static long mintReward(Transaction transaction, boolean stageTwo) {
-            Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-            Account senderAccount = Account.getAccount(transaction.getSenderId());
+        public static long mintReward(Transaction tx, boolean stageTwo) {
+            Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
+            Account senderAccount = Account.getAccount(tx.getSenderId());
             Map<Long, Long> consignors = coinBase.getConsignors();
             
             if (consignors.size() == 0) {
-                calAndSetMiningReward(senderAccount, transaction, transaction.getAmountNQT(), stageTwo);
+                calAndSetMiningReward(senderAccount, tx, tx.getAmountNQT(), stageTwo);
             } else {
-                Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
+                Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
                 for (long id : rewardList.keySet()) {
                     Account account = Account.getAccount(id);
-                    calAndSetMiningReward(account, transaction, rewardList.get(id), stageTwo);
+                    calAndSetMiningReward(account, tx, rewardList.get(id), stageTwo);
                 }
             }
-            return transaction.getAmountNQT();
+            return tx.getAmountNQT();
         }
 
         public static final TransactionType ORDINARY = new CoinBase() {
@@ -3586,7 +3586,7 @@ public abstract class TransactionType {
                 if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT && !isGenesis) {
                     return false;
                 }
-                senderAccount.addUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT, 0);
+                senderAccount.addFrozen(getLedgerEvent(), transaction.getId(), amountNQT);
                 return true;
             }
 
@@ -3668,8 +3668,9 @@ public abstract class TransactionType {
                 Attachment.SharderPoolJoin forgePoolJoin = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 long amountNQT = forgePoolJoin.getAmount();
                 long poolId = forgePoolJoin.getPoolId();
-                long transactionId = transaction.getId();
-                senderAccount.addFrozenSubBalance(getLedgerEvent(), transactionId, amountNQT);
+                long txId = transaction.getId();
+                senderAccount.addFrozen(getLedgerEvent(), txId, -amountNQT);
+                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), txId, amountNQT);
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
                 if(miningPool != null) {
                     height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
@@ -3688,7 +3689,6 @@ public abstract class TransactionType {
 
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-                //TODO unconfirmedBalance
                 return true;
             }
 
@@ -3755,8 +3755,8 @@ public abstract class TransactionType {
 
                 try{
                     long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
-                    if (amountNQT != -1 && amountNQT > 0) {
-                        senderAccount.addFrozenSubBalance(getLedgerEvent(), transaction.getId(), -amountNQT);
+                    if (amountNQT > 0) {
+                        senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT);
                     }
                     Account.getAccount(miningPool.getCreatorId()).pocChanged();
                 }catch(Account.DoubleSpendingException e) {
