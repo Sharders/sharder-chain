@@ -207,13 +207,11 @@ public final class Constants {
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
     public static final int POC_BLOCK_HEIGHT = 0;
-    public static final int POC_NODETYPE_V2_HEIGHT = isTestnet() ? 3 : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
-    public static final int POOL_CAL_START = 3930;
     public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 268 : 500);
     public static final int TESTNET_PHASE_ONE = 500000;
     public static final int TESTNET_PHASE_TWO = 990000;
