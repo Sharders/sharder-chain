@@ -26,6 +26,7 @@ import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.CurrencyTransfer;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
@@ -1238,7 +1239,7 @@ public final class Account {
     }
 
     public long getEffectiveBalanceSS() {
-        return getEffectiveBalanceSS(Conch.getBlockchain().getHeight());
+        return getEffectiveBalanceSS(Conch.getHeight());
     }
 
     public long getEffectiveBalanceSS(int height) {
@@ -1715,7 +1716,11 @@ public final class Account {
      * @param amountNQT
      */
     public void addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
-        frozen(event,eventId,amountNQT,true);
+        try{
+            frozen(event,eventId,amountNQT,true);
+        }catch(Account.DoubleSpendingException e) {
+            if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), id)) throw e;
+        }
     }
 
     /**

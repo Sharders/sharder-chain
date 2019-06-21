@@ -3582,7 +3582,7 @@ public abstract class TransactionType {
                 boolean isGenesis = transaction.getTimestamp() == 0 
                                     && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY);
                 //Balance and genesis creator check
-                if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT && !isGenesis) {
+                if (senderAccount.getBalanceNQT() < amountNQT && !isGenesis) {
                     return false;
                 }
                 senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT);
@@ -3754,7 +3754,7 @@ public abstract class TransactionType {
                 try{
                     long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
                     if (amountNQT > 0) {
-                        senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT);
+                        senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
                     }
                     Account.getAccount(miningPool.getCreatorId()).pocChanged();
                 }catch(Account.DoubleSpendingException e) {

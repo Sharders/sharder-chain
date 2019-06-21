@@ -9,7 +9,6 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
 import org.conch.mint.Generator;
@@ -204,12 +203,9 @@ public class SharderPoolProcessor implements Serializable {
         state = State.DESTROYED;
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
-        try{
-            creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
-            power -= PLEDGE_AMOUNT;
-        }catch(Account.DoubleSpendingException e) {
-            if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
-        }
+        
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
+        power -= PLEDGE_AMOUNT;
 
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
@@ -217,11 +213,7 @@ public class SharderPoolProcessor implements Serializable {
             
             power -= amount;
             Account account = Account.getAccount(consignor.getId());
-            try {
-                account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -amount);
-            }catch(Account.DoubleSpendingException e) {
-                if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
-            }
+            account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -amount);
         }
 
         if (startBlockNo > endBlockNo) {
@@ -283,13 +275,7 @@ public class SharderPoolProcessor implements Serializable {
             sharderPool.power -= amount;
             Account account = Account.getAccount(consignor.getId());
             Logger.logDebugMessage("auto quit when the tx's life is end. amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
-
-            try{
-                account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, sharderPool.getPoolId(), -amount);
-            }catch(Account.DoubleSpendingException e) {
-                if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
-            }
-
+            account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, sharderPool.getPoolId(), -amount);
         }
     }
 
