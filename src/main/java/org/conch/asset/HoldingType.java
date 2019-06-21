@@ -49,7 +49,7 @@ public enum HoldingType {
             if (holdingId != 0) {
                 throw new IllegalArgumentException("holdingId must be 0");
             }
-            account.addToBalanceNQT(event, eventId, amount);
+            account.addBalance(event, eventId, amount);
         }
 
         @Override
@@ -57,7 +57,7 @@ public enum HoldingType {
             if (holdingId != 0) {
                 throw new IllegalArgumentException("holdingId must be 0");
             }
-            account.addToUnconfirmedBalanceNQT(event, eventId, amount);
+            account.addToUnconfirmedNQT(event, eventId, amount);
         }
 
         @Override
@@ -65,7 +65,7 @@ public enum HoldingType {
             if (holdingId != 0) {
                 throw new IllegalArgumentException("holdingId must be 0");
             }
-            account.addToBalanceAndUnconfirmedBalanceNQT(event, eventId, amount);
+            account.addBalanceAddUnconfirmed(event, eventId, amount);
         }
 
     },

@@ -15,7 +15,7 @@
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
                             {number:newestBlock.height})}}
                         </li>
-                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.balanceNQT/100000000)}}
+                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS)}}
                             SS
                         </li>
                         <li>
@@ -47,7 +47,7 @@
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
                 </div>
-                <div class="create" @click="isVisible('isCreatePool')">
+                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined'">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
@@ -57,7 +57,7 @@
                 <span class="notice-info">
                     {{$t('mining.index.mineral') + $t('mining.index.net_mining_number',{number:newestBlock.height})}} |
                     {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getSSNumberFormat(newBlockReward)}}
-            </span>
+                </span>
             </div>
             <div class="mining-list">
                 <h5>
@@ -77,10 +77,10 @@
                 </h5>
                 <div class="mining-list-info" v-loading="loading">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-for="(mining,index) in miningList">
+                        <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
-                                    <h2>
+                                    <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                     </h2>
                                     <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
@@ -114,11 +114,12 @@
                     </el-row>
                 </div>
             </div>
-            <div class="mining-paging" v-if="miningList.length > 0">
+            <div class="mining-paging" v-if="totalSize > pageSize">
                 <el-pagination
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
-                    :page-size=15
+                    :current-page.sync="currentPage"
+                    :page-size="pageSize"
                     layout="total, prev, pager, next ,jumper"
                     :total=totalSize>
                 </el-pagination>
@@ -323,7 +324,7 @@
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolInvestment: 0,
-                maxPoolsNum: 51,
+                maxPoolsNum: 1000,
                 maxForgeTime: 1 * 60 * 60,
                 options: [
                     {
@@ -359,9 +360,24 @@
                 rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
+                secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
-                totalSize: 15, 
+                
+                currentPage: 1,
+                totalSize: 0,
+                pageSize: 20,
+
                 loading: true
+            }
+        },
+        mounted() {
+            let _this = this;
+            if (!window.$miningInitial) {
+                window.$miningInitial = setInterval(() => {
+                    if (_this.$router.currentRoute.name !== "mining") return;
+                    _this.loginAfter();
+                    _this.$forceUpdate();
+                }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
             }
         },
         computed: {
@@ -394,7 +410,7 @@
             },
             getAmountMax(rule) {
                 let level = rule.level0 ? rule.level0 : rule.level1;
-                return level.consignor.amount.max / 100000000;
+                return (level.consignor.amount.max + this.$global.poolPledgeAmount) / 100000000;
             },
             getPoolInvestmentAmount(mining) {
                 return (mining.power + mining.joiningAmount) / 100000000;
@@ -464,6 +480,7 @@
                     if (res.broadcasted) {
                         _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
+                        _this.$global.optHeight.create = _this.newestBlock.height;
                     } else {
                         _this.$message.error(res.errorDescription);
                     }
@@ -555,13 +572,6 @@
                 _this.getAssetsRanking();
                 _this.getAccountRanking();
 
-                if (!window.$miningInitial) {
-                    window.$miningInitial = setInterval(() => {
-                        if (_this.$router.currentRoute.name !== "mining") return;
-                        _this.loginAfter();
-                        _this.$forceUpdate();//通知Vue渲染
-                    }, _this.$global.cfg.defaultInterval);
-                }
             },
             getCoinBase(height) {
                 let _this = this;
@@ -604,6 +614,7 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
+                    _this.miningList.splice(0,_this.miningList.length)
                     _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
@@ -796,7 +807,10 @@
         width: 140px;
         padding: 12px 25px;
     }
-
+    
+    .my-pool-title {
+        color: #14c6fc;
+    }
 
 </style>
 <!--豆匣矿场-->

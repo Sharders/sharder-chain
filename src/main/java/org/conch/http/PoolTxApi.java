@@ -38,7 +38,13 @@ public abstract class PoolTxApi {
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
-            int currentHeight = Conch.getBlockchain().getHeight();
+            int currentHeight = Conch.getHeight();
+
+            long txId = SharderPoolProcessor.hasProcessingCreateTx(account.getId());
+            if(txId != -1){
+                throw new ConchException.NotValidException("Account %s has a Create Pool tx[%d] be processing, wait for tx confirmed", account.getRsAddress(), txId);
+            }
+            
             if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId(), currentHeight) && !Constants.isDevnet()) {
                 String errorDetail = "Can't create a mining pool, because account " + account.getRsAddress() + " is not linked to a certified peer";
                 Logger.logInfoMessage(errorDetail);
@@ -63,7 +69,7 @@ public abstract class PoolTxApi {
             }
 
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 150 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 10 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
 //            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
@@ -89,6 +95,12 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+
+            long txId = SharderPoolProcessor.hasProcessingDestroyTx(poolId);
+            if(txId != -1){
+                throw new ConchException.NotValidException("Account %s has a Destroy Pool tx[%d] of pool[%d] be processing, wait for tx confirmed", account.getRsAddress(), txId, poolId);
+            }
+            
             Attachment attachment = new Attachment.SharderPoolDestroy(poolId);
             return createTransaction(request, account, 0, 0, attachment);
         }
@@ -105,8 +117,14 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-            long txId = ParameterParser.getUnsignedLong(request, "txId", true);
-            Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
+            long joinTxId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE,true);
+
+            long txId = SharderPoolProcessor.hasProcessingQuitTx(joinTxId);
+            if(txId != -1){
+                throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", txId);
+            }
+            
+            Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
             JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
             return aware;
         }
@@ -124,10 +142,10 @@ public abstract class PoolTxApi {
             JSONStreamAware aware = null;
             try{
                 Account account = ParameterParser.getSenderAccount(request);
+                
                 long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
                 SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
-
-
+                
                 long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
                 long allowedInvestAmount = investmentRule[1];
 
@@ -139,8 +157,21 @@ public abstract class PoolTxApi {
 
                 long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
 
+                // account balance check
+                if(amount > (account.getBalanceNQT() + account.getUnconfirmedBalanceNQT()) ) {
+                    String errorDetail = String.format("Account balance[%d] is smaller than join amount[%d]" 
+                            , account.getBalanceNQT()/Constants.ONE_SS, amount/Constants.ONE_SS);
+                    Logger.logWarningMessage(errorDetail);
+                    throw new ConchException.NotValidException(errorDetail);
+                }
+                
+                // period check
                 int[] lifeCycleRule = PoolRule.predefinedLifecycle();
                 int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+                int poolRemainBlocks = poolProcessor.getRemainBlocks();
+                if(period > poolRemainBlocks){
+                    period = poolRemainBlocks;
+                }
 
                 Attachment attachment = new Attachment.SharderPoolJoin(poolId, amount, period);
                 aware = createTransaction(request, account, 0, 0, attachment);
@@ -299,6 +330,9 @@ public abstract class PoolTxApi {
                     Logger.logErrorMessage("can't calculate the investor's mining reward",e);
                 }
                 
+                if(consignor != null) {
+                    json.put("consignor", consignor.toJsonObj()); 
+                }
                 json.put("joinAmount", joinAmount);
                 json.put("rewardAmount", rewardAmount);
             }

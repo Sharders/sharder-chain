@@ -25,7 +25,6 @@ public class PocDb {
         if (pocScore == null || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ) {
             return;
         }
-        
         Connection con = null;
         try {
             con = Db.db.getConnection();

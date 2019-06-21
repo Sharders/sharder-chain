@@ -19,6 +19,7 @@ import org.conch.db.DbUtils;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.conch.util.*;
 
 import java.io.IOException;
@@ -121,6 +122,19 @@ public class CheckSumValidator {
         }
     }
     
+    static Set<Long> debugAccounts = Sets.newHashSet(
+//            3960463107034192150L,
+//            2792673654720227339L
+//            963382008953913442L
+    );
+    /** DEBUG **/
+    public static boolean isDebugPoint(long accountId){
+        return debugAccounts.contains(accountId);
+    }
+    /** DEBUG **/
+    
+    
+    
     static int badCount = 0;
     static boolean synIgnoreBlock = false;
     /**  **/
@@ -129,7 +143,10 @@ public class CheckSumValidator {
             //Testnet
             -8556361949057624360L,
             211456030592803100L,
-            -9051459710885545966L
+            -9051459710885545966L,
+            -9040736285988428238L,          // height 1465
+            665016367944624517L,            // height 1478
+            -7482224415980390345L           // height 1480
     );
     
     private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
@@ -139,7 +156,8 @@ public class CheckSumValidator {
     static Map<Integer, Map<Long, PocTxBody.PocNodeTypeV2>> pocNodeTypeTxsMap = Maps.newHashMap();
     
     
-    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 1000);
+    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 30);
+    
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
     
@@ -157,13 +175,21 @@ public class CheckSumValidator {
     };
 
     static {
-        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, 30, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, CHECK_INTERVAL, TimeUnit.MINUTES);
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
         boolean result = knownIgnoreBlocks.contains(blockId);
         
         return result;
+    }
+
+    public static boolean isDoubleSpendingIgnoreTx(TransactionImpl tx){
+        if(tx.getType() != null 
+        && TransactionType.TYPE_SHARDER_POOL == tx.getType().getType()){
+            return true;
+        }
+        return false;
     }
     
     public static boolean isKnownIgnoreTx(long txId){
@@ -218,8 +244,11 @@ public class CheckSumValidator {
     }
     
     
+    static private boolean closeIgnor= false;
+    
     private static boolean updateSingle(JSONObject object){
         try{
+            if(closeIgnor) return true;
             
             try{
                 if(object.containsKey("id") && object.getLong("id") != -1L) {
@@ -345,23 +374,18 @@ public class CheckSumValidator {
             if(response == null) return;
             
             String content = response.getContent();
-            String updateDetail = "\n\r";
             String totalIgnoreBlocks = "\n\r";
             if(content.startsWith("[")) {
                 com.alibaba.fastjson.JSONArray array = JSON.parseArray(content);
                 for(int i = 0; i < array.size(); i++) {
                     JSONObject object = array.getJSONObject(i);
                     totalIgnoreBlocks += object.toString() + "\n\r";
-                    if(updateSingle(object)){
-                        updateDetail += object.toString() + "\n\r";
-                    }
+                    updateSingle(object);
                 }
             }else if(content.startsWith("{")){
                 com.alibaba.fastjson.JSONObject object = JSON.parseObject(content);
                 totalIgnoreBlocks += object.toString() + "\n\r";
-                if(updateSingle(object)){
-                    updateDetail += object.toString() + "\n\r";
-                }
+                updateSingle(object);
             }else{
                 Logger.logWarningMessage("not correct known ignore block get from " + url + " : " + content);
                 return ;
@@ -369,11 +393,7 @@ public class CheckSumValidator {
             if(totalIgnoreBlocks.length() > 4){
                 Logger.logDebugMessage("total ignore blocks get from %s as follow:" + totalIgnoreBlocks, url);
             }
-            
-            if(updateDetail.length() > 4){
-                Logger.logDebugMessage("last known ignore blocks updated:" + updateDetail);
-            }
-            
+  
             // remove the dirty poc txs
             if(knownDirtyPocTxs.size() > 0) {
                 Set<Long> dirtyPocTxs = Sets.newHashSet();

@@ -700,7 +700,7 @@ public final class Shuffling {
                 Account participantAccount = Account.getAccount(participant.getAccountId());
                 holdingType.addToBalance(participantAccount, event, this.id, this.holdingId, -amount);
                 if (holdingType != HoldingType.SS) {
-                    participantAccount.addToBalanceNQT(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
+                    participantAccount.addBalance(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
                 }
             }
         }finally {  
@@ -712,7 +712,7 @@ public final class Shuffling {
             recipientAccount.apply(recipientPublicKey);
             holdingType.addToBalanceAndUnconfirmedBalance(recipientAccount, event, this.id, this.holdingId, amount);
             if (holdingType != HoldingType.SS) {
-                recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(event, this.id, Constants.SHUFFLING_DEPOSIT_NQT);
+                recipientAccount.addBalanceAddUnconfirmed(event, this.id, Constants.SHUFFLING_DEPOSIT_NQT);
             }
         }
         setStage(Stage.DONE, 0, (short)0);
@@ -736,13 +736,13 @@ public final class Shuffling {
                 holdingType.addToUnconfirmedBalance(participantAccount, event, this.id, this.holdingId, this.amount);
                 if (participantAccount.getId() != blamedAccountId) {
                     if (holdingType != HoldingType.SS) {
-                        participantAccount.addToUnconfirmedBalanceNQT(event, this.id, Constants.SHUFFLING_DEPOSIT_NQT);
+                        participantAccount.addToUnconfirmedNQT(event, this.id, Constants.SHUFFLING_DEPOSIT_NQT);
                     }
                 } else {
                     if (holdingType == HoldingType.SS) {
-                        participantAccount.addToUnconfirmedBalanceNQT(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
+                        participantAccount.addToUnconfirmedNQT(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
                     }
-                    participantAccount.addToBalanceNQT(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
+                    participantAccount.addBalance(event, this.id, -Constants.SHUFFLING_DEPOSIT_NQT);
                 }
             }
         }finally {
@@ -753,14 +753,14 @@ public final class Shuffling {
             long fee = Constants.SHUFFLING_DEPOSIT_NQT / 4;
             for (int i = 0; i < 3; i++) {
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(block.getHeight() - i - 1).getGeneratorId());
-                previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
-                previousGeneratorAccount.addToMintedBalanceNQT(fee);
+                previousGeneratorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
+                previousGeneratorAccount.addMintedBalance(fee);
                 Logger.logDebugMessage("Shuffling penalty %f SS awarded to miner at height %d", ((double)fee) / Constants.ONE_SS, block.getHeight() - i - 1);
             }
             fee = Constants.SHUFFLING_DEPOSIT_NQT - 3 * fee;
             Account blockGeneratorAccount = Account.getAccount(block.getGeneratorId());
-            blockGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
-            blockGeneratorAccount.addToMintedBalanceNQT(fee);
+            blockGeneratorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, block.getId(), fee);
+            blockGeneratorAccount.addMintedBalance(fee);
             Logger.logDebugMessage("Shuffling penalty %f SS awarded to miner at height %d", ((double)fee) / Constants.ONE_SS, block.getHeight());
         }
         setStage(Stage.CANCELLED, blamedAccountId, (short)0);

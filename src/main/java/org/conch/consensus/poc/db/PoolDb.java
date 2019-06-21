@@ -113,7 +113,7 @@ public class PoolDb {
         pstmtUpdate.setInt(2, poolProcessor.getState().ordinal());
         pstmtUpdate.setString(3, detail);
         pstmtUpdate.setLong(4, poolProcessor.getPoolId());
-        Logger.logDebugMessage("Update Pool Json String: " + detail);
+//        Logger.logDebugMessage("Update Pool Json String: " + detail);
         return pstmtUpdate.executeUpdate();
     }
 

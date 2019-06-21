@@ -24,6 +24,7 @@ package org.conch.common;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainProcessorImpl;
+import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.Generator;
 
@@ -206,15 +207,14 @@ public final class Constants {
     public static final int MIN_EXISTENCE_HEIGHT = 100;
 
     public static final int POC_BLOCK_HEIGHT = 0;
-    public static final int POC_NODETYPE_V2_HEIGHT = isTestnet() ? 3 : 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
     public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 268 : 500);
-    public static final int TESTNET_PHASE_ONE = 20000;
-    public static final int TESTNET_PHASE_TWO = 39000;
+    public static final int TESTNET_PHASE_ONE = 500000;
+    public static final int TESTNET_PHASE_TWO = 990000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
     public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
 
@@ -394,6 +394,7 @@ public final class Constants {
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
     public static final String BlockchainProcessor_P_downloadPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer";
     public static final String BlockchainProcessor_P_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
+    public static final String GetNodeHardware_P_report = GetNodeHardware.class.getName() + "#report";
     
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");
     public static final boolean initFromArchivedDbFile = Conch.getBooleanProperty("sharder.initFromArchivedDbFile");

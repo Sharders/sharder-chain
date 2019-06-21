@@ -292,11 +292,11 @@ public abstract class TransactionType {
                     && !(transaction.getTimestamp() == 0 && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY))) {
                 return false;
             }
-            senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, -feeNQT);
+            senderAccount.addUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT, -feeNQT);
         }
 
         if (!applyAttachmentUnconfirmed(transaction, senderAccount)) {
-            senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), amountNQT, feeNQT);
+            senderAccount.addUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT, feeNQT);
             return false;
         }
         return true;
@@ -305,17 +305,17 @@ public abstract class TransactionType {
     public abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
     public final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
-        //transfer processing except coinbase tx
+        //transfer processing except coinbase tx (org.conch.tx.TransactionType.CoinBase#applyByType)
         if (transaction.getType().getType() != TYPE_COIN_BASE) {
             long amount = transaction.getAmountNQT();
             long transactionId = transaction.getId();
             if (!transaction.attachmentIsPhased()) {
                 senderAccount.addToBalanceNQT(getLedgerEvent(), transactionId, -amount, -transaction.getFeeNQT());
             } else {
-                senderAccount.addToBalanceNQT(getLedgerEvent(), transactionId, -amount);
+                senderAccount.addBalance(getLedgerEvent(), transactionId, -amount);
             }
             if (recipientAccount != null) {
-                recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transactionId, amount);
+                recipientAccount.addBalanceAddUnconfirmed(getLedgerEvent(), transactionId, amount);
             }
         }
         applyAttachment(transaction, senderAccount, recipientAccount);
@@ -328,11 +328,11 @@ public abstract class TransactionType {
         if (transaction.getType().getType() == TYPE_COIN_BASE) {
             return;
         }
-        senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
+        senderAccount.addUnconfirmed(getLedgerEvent(), transaction.getId(),
                 transaction.getAmountNQT(), transaction.getFeeNQT());
         if (transaction.referencedTransactionFullHash() != null
                 && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
-            senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), 0,
+            senderAccount.addUnconfirmed(getLedgerEvent(), transaction.getId(), 0,
                     Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
         }
     }
@@ -439,7 +439,7 @@ public abstract class TransactionType {
         public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
             // exception processing
             if (recipientAccount == null) {
-                Account.getAccount(SharderGenesis.KEEPER_ID).addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(),
+                Account.getAccount(SharderGenesis.KEEPER_ID).addBalanceAddUnconfirmed(getLedgerEvent(),
                         transaction.getId(), transaction.getAmountNQT());
             }
         }
@@ -526,13 +526,13 @@ public abstract class TransactionType {
         
         private static void calAndSetMiningReward(Account account, Transaction transaction,long amount, boolean stageTwo){
             if(!stageTwo) {
-                account.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
                 Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
                         amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
             }else{
-                account.frozenNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
-                account.addToMintedBalanceNQT(amount);
+                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+                account.addMintedBalance(amount);
                 account.pocChanged();
                 Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
                         amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
@@ -542,25 +542,25 @@ public abstract class TransactionType {
          * total 2 stages: 
          * stage one is in tx accepted, the rewards need be lock; 
          * stage two is the block confirmations reached, means unlock the rewards and record mined amount
-         * @param transaction reward tx
+         * @param tx reward tx
          * @param stageTwo true - stage two; false - stage one
          * @return
          */
-        public static long mintReward(Transaction transaction, boolean stageTwo) {
-            Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-            Account senderAccount = Account.getAccount(transaction.getSenderId());
+        public static long mintReward(Transaction tx, boolean stageTwo) {
+            Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
+            Account senderAccount = Account.getAccount(tx.getSenderId());
             Map<Long, Long> consignors = coinBase.getConsignors();
             
             if (consignors.size() == 0) {
-                calAndSetMiningReward(senderAccount, transaction, transaction.getAmountNQT(), stageTwo);
+                calAndSetMiningReward(senderAccount, tx, tx.getAmountNQT(), stageTwo);
             } else {
-                Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), transaction.getAmountNQT(), consignors);
+                Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
                 for (long id : rewardList.keySet()) {
                     Account account = Account.getAccount(id);
-                    calAndSetMiningReward(account, transaction, rewardList.get(id), stageTwo);
+                    calAndSetMiningReward(account, tx, rewardList.get(id), stageTwo);
                 }
             }
-            return transaction.getAmountNQT();
+            return tx.getAmountNQT();
         }
 
         public static final TransactionType ORDINARY = new CoinBase() {
@@ -625,9 +625,9 @@ public abstract class TransactionType {
                     if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {
                         if (Constants.isDevnet()) {
                             Logger.logDebugMessage("add balance to genesis account in devnet[account id=" + senderAccount.getId() + ",amount=" + transaction.getAmountNQT() + "]");
-                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), transaction.getAmountNQT());
+                            senderAccount.addBalanceAddUnconfirmed(getLedgerEvent(), transaction.getId(), transaction.getAmountNQT());
                         } else {
-                            senderAccount.addToBalanceAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), transaction.getAmountNQT());
+                            senderAccount.addBalanceAddUnconfirmed(getLedgerEvent(), transaction.getId(), transaction.getAmountNQT());
                         }
                     }
                 }
@@ -2101,7 +2101,7 @@ public abstract class TransactionType {
             public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
                 if (senderAccount.getUnconfirmedBalanceNQT() >= Math.multiplyExact(attachment.getQuantityQNT(), attachment.getPriceNQT())) {
-                    senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
+                    senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(),
                             -Math.multiplyExact(attachment.getQuantityQNT(), attachment.getPriceNQT()));
                     return true;
                 }
@@ -2117,7 +2117,7 @@ public abstract class TransactionType {
             @Override
             public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
+                senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(),
                         Math.multiplyExact(attachment.getQuantityQNT(), attachment.getPriceNQT()));
             }
 
@@ -2238,7 +2238,7 @@ public abstract class TransactionType {
                 Order order = Order.Bid.getBidOrder(attachment.getOrderId());
                 Order.Bid.removeOrder(attachment.getOrderId());
                 if (order != null) {
-                    senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
+                    senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(),
                             Math.multiplyExact(order.getQuantityQNT(), order.getPriceNQT()));
                 }
             }
@@ -2296,7 +2296,7 @@ public abstract class TransactionType {
                 long quantityQNT = asset.getQuantityQNT() - senderAccount.getAssetBalanceQNT(assetId, attachment.getHeight());
                 long totalDividendPayment = Math.multiplyExact(attachment.getAmountNQTPerQNT(), quantityQNT);
                 if (senderAccount.getUnconfirmedBalanceNQT() >= totalDividendPayment) {
-                    senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -totalDividendPayment);
+                    senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(), -totalDividendPayment);
                     return true;
                 }
                 return false;
@@ -2318,7 +2318,7 @@ public abstract class TransactionType {
                 }
                 long quantityQNT = asset.getQuantityQNT() - senderAccount.getAssetBalanceQNT(assetId, attachment.getHeight());
                 long totalDividendPayment = Math.multiplyExact(attachment.getAmountNQTPerQNT(), quantityQNT);
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), totalDividendPayment);
+                senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(), totalDividendPayment);
             }
 
             @Override
@@ -2729,7 +2729,7 @@ public abstract class TransactionType {
             public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
                 if (senderAccount.getUnconfirmedBalanceNQT() >= Math.multiplyExact((long) attachment.getQuantity(), attachment.getPriceNQT())) {
-                    senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
+                    senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(),
                             -Math.multiplyExact((long) attachment.getQuantity(), attachment.getPriceNQT()));
                     return true;
                 }
@@ -2739,7 +2739,7 @@ public abstract class TransactionType {
             @Override
             public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(),
+                senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(),
                         Math.multiplyExact((long) attachment.getQuantity(), attachment.getPriceNQT()));
             }
 
@@ -2986,7 +2986,7 @@ public abstract class TransactionType {
             public boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
                 if (senderAccount.getUnconfirmedBalanceNQT() >= attachment.getRefundNQT()) {
-                    senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -attachment.getRefundNQT());
+                    senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(), -attachment.getRefundNQT());
                     return true;
                 }
                 return false;
@@ -2995,7 +2995,7 @@ public abstract class TransactionType {
             @Override
             public void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), attachment.getRefundNQT());
+                senderAccount.addToUnconfirmedNQT(getLedgerEvent(), transaction.getId(), attachment.getRefundNQT());
             }
 
             @Override
@@ -3438,13 +3438,16 @@ public abstract class TransactionType {
 
         public static final TransactionType SHARDER_POOL_CREATE = new SharderPool() {
             @Override
-            public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolCreate createTx = (Attachment.SharderPoolCreate) tx.getAttachment();
+                SharderPoolProcessor.addProcessingCreateTx(tx.getSenderId(), createTx, tx.getId());
                 return true;
             }
 
             @Override
-            public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
+            public void attachmentUndoUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolCreate v = (Attachment.SharderPoolCreate) tx.getAttachment();
+                SharderPoolProcessor.delProcessingCreateTx(tx.getSenderId());
             }
 
             @Override
@@ -3475,6 +3478,10 @@ public abstract class TransactionType {
             @Override
             public void validateAttachment(Transaction tx) throws ConchException.ValidationException {
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
+                if(SharderPoolProcessor.hasProcessingCreateTx(tx.getSenderId()) != -1){
+                    throw new ConchException.NotValidException("Has a Create Pool tx[%d] be processing, wait for tx confirmed", tx.getId());
+                }
+                
                 if (!PoolRule.validateRule(tx.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
                     throw new ConchException.NotValidException("pool[id=%d, creator id=%s] rule not matched", tx.getId(), Account.rsAccount(tx.getSenderId()));
                 }
@@ -3502,12 +3509,16 @@ public abstract class TransactionType {
 
         public static final TransactionType SHARDER_POOL_DESTROY = new SharderPool() {
             @Override
-            public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
+                SharderPoolProcessor.addProcessingDestroyTx(destroy,tx.getId());
                 return true;
             }
 
             @Override
-            public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void attachmentUndoUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
+                SharderPoolProcessor.delProcessingDestroyTx(destroy.getPoolId());
             }
 
             @Override
@@ -3537,8 +3548,12 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //TODO unconfirmed transaction already has this kind of transaction
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
+
+                if(SharderPoolProcessor.hasProcessingDestroyTx(destroy.getPoolId()) != -1){
+                    throw new ConchException.NotValidException("Has a Destroy Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
+                }
+                
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
                     Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
@@ -3551,7 +3566,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 int endHeight = forgePool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
-                    throw new ConchException.NotValidException("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight);
+                    Logger.logWarningMessage("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight + ", still to destroy it");
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
                     throw new ConchException.NotValidException("Pool can't be destroyed, because it start at %d and current height %d is out of manual destroy range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
@@ -3582,17 +3597,17 @@ public abstract class TransactionType {
                 boolean isGenesis = transaction.getTimestamp() == 0 
                                     && Arrays.equals(transaction.getSenderPublicKey(), SharderGenesis.CREATOR_PUBLIC_KEY);
                 //Balance and genesis creator check
-                if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT && !isGenesis) {
+                if (senderAccount.getBalanceNQT() < amountNQT && !isGenesis) {
                     return false;
                 }
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT, 0);
+                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT);
                 return true;
             }
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
-                senderAccount.addToUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), amountNQT, 0);
+                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
             }
 
             @Override
@@ -3617,26 +3632,25 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //TODO unconfirmed transaction already has this kind of transaction double spend
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolJoin join = (Attachment.SharderPoolJoin) transaction.getAttachment();
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(join.getPoolId());
-                if (forgePool == null)  {
+                SharderPoolProcessor pool = SharderPoolProcessor.getPool(join.getPoolId());
+                if (pool == null)  {
                     Logger.logWarningMessage("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
                     return;
 //                    throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
                 }
                 
-                int poolStartHeight = forgePool.getStartBlockNo();
-                int poolEndHeight = forgePool.getEndBlockNo();
+                int poolStartHeight = pool.getStartBlockNo();
+                int poolEndHeight = pool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
-                    Logger.logWarningMessage("Pool will destroyed at height " + poolEndHeight + " before transaction applied height " + curHeight);
+                    Logger.logWarningMessage("Pool[%d] will destroyed at height[%d]  before tx[id=%d applied height[%d]", pool.getPoolId(), poolEndHeight, transaction.getId(),  curHeight);
                     return;
                 }
                 
                 if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
                     if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
-                        Logger.logWarningMessage("Pool will start at height " + poolStartHeight + " and current transaction apply at height " + curHeight);
+                        Logger.logWarningMessage("Pool[%d] will start at height[%d] and current tx[id=%d] apply at height[%d] ", pool.getPoolId(), poolStartHeight , transaction.getId(), curHeight);
                         return;
                     }  
                 }
@@ -3648,23 +3662,18 @@ public abstract class TransactionType {
                     level = 1;
                 }
                 
-                if (!PoolRule.validateConsignor(level, join, forgePool.getRule())) {
-                    Logger.logWarningMessage("current condition is out of rule");
+                if (!PoolRule.validateConsignor(level, join, pool.getRule())) {
+                    Logger.logWarningMessage("current condition in the tx[id=%d] is out of rule ", transaction.getId());
                     return;
                 }
 
                 com.alibaba.fastjson.JSONObject json = new com.alibaba.fastjson.JSONObject();
-                json.putAll(forgePool.getRootRuleMap());
+                json.putAll(pool.getRootRuleMap());
                 long maxCapacity = json.getJSONObject("consignor").getJSONObject("amount").getLong("max");
-                if (join.getAmount() + forgePool.getPower() > maxCapacity) {
+                if (join.getAmount() + pool.getPower() > maxCapacity) {
                     Logger.logWarningMessage("exceeding total upper limit of pool");
                     return;
                 }
-
-                //TODO forge pool lifeTime is less than join period
-                /*if(join.getPeriod() < curHeight + Constants.FORGE_POOL_DELAY + org.conch.ForgePool.getForgePool(join.getForgePoolId()).getEndBlockNo()){
-                    throw new ConchException.NotValidException("Forge pool life");
-                }*/
             }
 
             @Override
@@ -3673,8 +3682,8 @@ public abstract class TransactionType {
                 Attachment.SharderPoolJoin forgePoolJoin = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 long amountNQT = forgePoolJoin.getAmount();
                 long poolId = forgePoolJoin.getPoolId();
-                long transactionId = transaction.getId();
-                senderAccount.frozenBalanceNQT(getLedgerEvent(), transactionId, amountNQT);
+                long txId = transaction.getId();
+                // balance be subtracted in org.conch.tx.TransactionType.SharderPool.attachmentApplyUnconfirmed
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
                 if(miningPool != null) {
                     height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
@@ -3692,14 +3701,16 @@ public abstract class TransactionType {
         public static final TransactionType SHARDER_POOL_QUIT = new SharderPool() {
 
             @Override
-            public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-                //TODO unconfirmedBalance
+            public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
+                SharderPoolProcessor.addProcessingQuitTx(quit,tx.getId());
                 return true;
             }
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
+                Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
+                SharderPoolProcessor.delProcessingQuitTx(quit.getTxId());
             }
 
             @Override
@@ -3724,17 +3735,22 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //FIXME[pool] unconfirmed transaction already has this kind of transaction
-                int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
+                int curHeight = Conch.getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
+                
+                if(SharderPoolProcessor.hasProcessingQuitTx(quit.getTxId()) != -1){
+                    throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
+                }
+                
                 long poolId = quit.getPoolId();
                 SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
                 if (sharderPool == null) {
-                    throw new ConchException.NotValidException("sharder pool " + poolId + " doesn't exists");
+                    Logger.logWarningMessage("sharder pool " + poolId + " doesn't exists, ignore this tx[id=%d]", transaction.getId());
+                    return;
                 }
                 boolean ownerQuit = sharderPool.getCreatorId() == transaction.getSenderId();
                 if (!ownerQuit && !sharderPool.hasSenderAndTransaction(transaction.getSenderId(), quit.getTxId())) {
-                    Logger.logWarningMessage("sharder pool doesn't have the transaction of sender, txId:" + quit.getTxId() + ", poolId:" + poolId);
+                    Logger.logWarningMessage("sharder pool doesn't have the related join tx, txId:" + quit.getTxId() + ", poolId:" + poolId + ",sender " + transaction.getSenderId());
                     return;
                 }
                 if (curHeight + Constants.SHARDER_POOL_DELAY > sharderPool.getEndBlockNo()) {
@@ -3752,10 +3768,16 @@ public abstract class TransactionType {
                 Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 long poolId = sharderPoolQuit.getPoolId();
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
-                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
-                if (amountNQT != -1) {
-                    senderAccount.frozenAndUnconfirmedBalanceNQT(getLedgerEvent(), transaction.getId(), -amountNQT);
+                if (miningPool == null) {
+                    Logger.logWarningMessage("sharder pool " + poolId + " doesn't exists, ignore this tx[id=%d]", transaction.getId());
+                    return;
                 }
+
+                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                if (amountNQT > 0) {
+                    senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
+                }
+                SharderPoolProcessor.delProcessingQuitTx(sharderPoolQuit.getTxId());
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 

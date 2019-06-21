@@ -7,7 +7,7 @@ export default {
     sharderFoundationHost: 'sharder.org',
     sharderFoundationTestHost: 'test.sharder.org',
     apiUrl: '',
-    cfg: {defaultInterval: 30000, soonInterval: 10000, slowInterval: 180000},
+    cfg: {defaultInterval: 60000, soonInterval: 30000, slowInterval: 180000},
     epochBeginning: -1,
     newConsole: null,
     isOpenConsole: false,
@@ -17,6 +17,8 @@ export default {
     $vue: {},
     placeholder: "--",
     unit: " SS",
+    poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
+    optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
     fetch(type, date, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -713,8 +715,15 @@ export default {
      * @returns {string}
      */
     getTransactionAmountNQT(t, accountRS) {
-        let amountNQT = new BigNumber(t.amountNQT).dividedBy("100000000").toFixed();
-        if (amountNQT <= 0) {
+        let isJoinPoolTx = (t.type === 8 && t.subtype === 2) ? true : false;
+        let isQuitTx = (t.type === 8 && t.subtype === 3) ? true : false;
+        let amountNQT = new BigNumber((isJoinPoolTx || isQuitTx) ? t.attachment.amount : t.amountNQT).dividedBy("100000000").toFixed();
+
+        if (isJoinPoolTx) {
+            return -amountNQT + this.unit
+        } else if (isQuitTx){
+            return "+" + amountNQT + this.unit
+        }else if (amountNQT <= 0) {
             return this.placeholder
         } else if (t.senderRS === accountRS && t.type !== 9) {
             return -amountNQT + this.unit

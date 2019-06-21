@@ -435,30 +435,40 @@
                 });
             },
             networkUrlBlocks() {
-                console.info("networkUrlBlocks");
                 const _this = this;
+                // console.info("networkUrlBlocks，currentPage=" + _this.currentPage);
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
-                        _this.blocklist = res.blocks;
+                        // console.info("refresh block list, newest height is " + _this.newestHeight);
+                        _this.blocklist.splice(0,_this.blocklist.length)
+                        _this.blocklist = res.blocks
+                        // let blocksStr = JSON.stringify(res.blocks)
+                        // _this.blocklist = JSON.parse(blocksStr);
                     }
-                    _this.$forceUpdate();//通知Vue渲染
+                    // _this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
                     console.info('error', error)
                 });
             },
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                // console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
+                // console.log(`当前页: ${val}`);
                 let _this = this;
                 _this.loading = true;
                 _this.getBlocks(val).then(res => {
-                    _this.blocklist = res.blocks;
+                    _this.blocklist.splice(0,_this.blocklist.length)
+                    _this.blocklist = res.blocks
+                    // _this.blocklist = res.blocks
+                    console.info(_this.blocklist);
+                    // let blocksStr = JSON.stringify(res.blocks);
+                    // _this.blocklist = JSON.parse(blocksStr);
                     _this.loading = false;
+                    // _this.$forceUpdate()
                 }).catch(err => {
                     console.info('error', err);
                     _this.$message.error(err);

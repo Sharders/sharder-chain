@@ -73,7 +73,9 @@ public class PocProcessorImpl implements PocProcessor {
                 for (Account account : balanceChangedMap.get(block.getHeight()).values()) {
                     balanceChangedProcess(block.getHeight(), account);
                 }
+               
                 balanceChangedMap.get(block.getHeight()).clear();
+                balanceChangedMap.remove(block.getHeight());
             }
 
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
@@ -275,39 +277,24 @@ public class PocProcessorImpl implements PocProcessor {
         }
     }
 
-
     public static void init() {
-        ThreadPool.scheduleThread("PocTxSynThread", pocTxSynThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
+        ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
     }
 
-
-    private static final Runnable pocTxSynThread = () -> {
+    private static final Runnable oldPocTxsProcessThread = () -> {
         try {
-//      if(!Conch.getBlockchainProcessor().isUpToDate()) {
-//        Logger.logDebugMessage("block chain state isn't UP_TO_DATE, don't process delayed poc txs till blocks sync finished...");
-//        return;
-//      }
-            int currentHeight = Conch.getBlockchain().getHeight();
-            if (instance.processDelayedPocTxs(currentHeight) && !oldPocTxsProcess) {
-                Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
-                return;
-            }
 
-            if (!Conch.reachLastKnownBlock()) {
+            if (!oldPocTxsProcess) {
+                Logger.logDebugMessage("all old poc txs be processed yet, sleep for the next round check...");
                 return;
-            }
-
-            try {
-                instance.processDelayedPocTxs(currentHeight);
-            } catch (Exception e) {
-                Logger.logErrorMessage("Process delayed poc txs failed caused by [%s]", e.getMessage());
             }
             
             // old poc txs process: a) miss the poc tx, b) restart the cos client
             if (oldPocTxsProcess) {
                 // total poc txs from last height
                 int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
-                int toHeight = BlockchainImpl.getInstance().getHeight();
+                int toHeight = Conch.getHeight();
                 Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight, toHeight);
                 DbIterator<BlockImpl> blocks = null;
                 try {
@@ -324,7 +311,33 @@ public class PocProcessorImpl implements PocProcessor {
             }
 
         } catch (Exception e) {
-            Logger.logErrorMessage("poc tx syn thread interrupted caused by %s", e);
+            Logger.logErrorMessage("old poc txs processing thread interrupted", e);
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
+
+    private static final Runnable delayedPocTxsProcessThread = () -> {
+        try {
+            int currentHeight = Conch.getBlockchain().getHeight();
+            if (instance.processDelayedPocTxs(currentHeight)) {
+                Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
+                return;
+            }
+
+            if (!Conch.reachLastKnownBlock()) {
+                return;
+            }
+
+            try {
+                instance.processDelayedPocTxs(currentHeight);
+            } catch (Exception e) {
+                Logger.logErrorMessage("Process delayed poc txs failed caused by [%s]", e.getMessage());
+            }
+
+        } catch (Exception e) {
+            Logger.logErrorMessage("delayed poc txs process thread interrupted", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
@@ -474,7 +487,7 @@ public class PocProcessorImpl implements PocProcessor {
         long accountId = nodeTypeV2.getAccountId();
         
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        pocScoreToUpdate.nodeTypeCal(nodeTypeV2).saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV2));
 
         PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);
         return true;
@@ -493,8 +506,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(certifiedPeer == null) return false;
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
-
-        pocScoreToUpdate.nodeConfCal(pocNodeConf).saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeConfCal(pocNodeConf));
 
         return true;
     }
@@ -511,8 +523,7 @@ public class PocProcessorImpl implements PocProcessor {
         if(certifiedPeer == null) return false;
 
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, certifiedPeer.getBoundAccountId());
-
-        pocScoreToUpdate.onlineRateCal(certifiedPeer.getType(), onlineRate).saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).onlineRateCal(certifiedPeer.getType(), onlineRate));
 
         return true;
     }
@@ -529,13 +540,13 @@ public class PocProcessorImpl implements PocProcessor {
         List<Long> missAccountIds = pocBlockMissing.getMissingAccountIds();
         for (Long missAccountId : missAccountIds) {
             PocScore pocScoreToUpdate = PocHolder.getPocScore(height, missAccountId);
-            pocScoreToUpdate.blockMissCal(pocBlockMissing).saveOrUpdate();
+            PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).blockMissCal(pocBlockMissing));
         }
         return true;
     }
 
     /**
-     * process the balance of account changed
+     * process the balance, poc  of account changed
      *
      * @param height  block height that included this tx
      * @param account which balance is changed
@@ -547,7 +558,7 @@ public class PocProcessorImpl implements PocProcessor {
         }
         long accountId = account.getId();
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        pocScoreToUpdate.ssCal().saveOrUpdate();
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).ssCal());
         return true;
     }
 

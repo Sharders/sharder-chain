@@ -9,7 +9,6 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
-import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
 import org.conch.mint.Generator;
@@ -34,10 +33,17 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
-    private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = Maps.newConcurrentMap();
+    private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = Maps.newConcurrentMap();
     public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
-
+    
+    // join tx id <-> tx id
+    private static ConcurrentMap<Long, Long> processingQuitTxMap = Maps.newConcurrentMap();
+    // creator id <-> tx id
+    private static ConcurrentMap<Long, Long> processingCreateTxMap = Maps.newConcurrentMap();
+    // pool id <-> tx id
+    private static ConcurrentMap<Long, Long> processingDestroyTxMap = Maps.newConcurrentMap();
+    
     public enum State {
         INIT, //user created pool, but not produce block yet
         CREATING,
@@ -116,6 +122,58 @@ public class SharderPoolProcessor implements Serializable {
        return endBlockNo;
     }
     
+    
+    public static boolean addProcessingQuitTx(Attachment.SharderPoolQuit quitTx, long txId){
+        if(processingQuitTxMap.containsKey(quitTx.getTxId())) return false;
+
+        processingQuitTxMap.put(quitTx.getTxId(), txId);
+        return true;
+    }
+
+    public static void delProcessingQuitTx(long joinTxId){
+        if(!processingQuitTxMap.containsKey(joinTxId)) return;
+        
+        processingQuitTxMap.remove(joinTxId);
+    }
+    
+    public static long hasProcessingQuitTx(long joinTxId){
+        return processingQuitTxMap.containsKey(joinTxId) ? processingQuitTxMap.get(joinTxId) : -1;
+    }
+
+    public static boolean addProcessingCreateTx(long creatorId, Attachment.SharderPoolCreate tx, long txId){
+        if(processingCreateTxMap.containsKey(creatorId)) return false;
+
+        processingCreateTxMap.put(creatorId, txId);
+        return true;
+    }
+
+    public static void delProcessingCreateTx(long creatorId){
+        if(!processingCreateTxMap.containsKey(creatorId)) return;
+
+        processingCreateTxMap.remove(creatorId);
+    }
+
+    public static long hasProcessingCreateTx(long creatorId){
+        return processingCreateTxMap.containsKey(creatorId) ? processingCreateTxMap.get(creatorId) : -1;
+    }
+
+    public static boolean addProcessingDestroyTx(Attachment.SharderPoolDestroy tx, long txId){
+        if(processingDestroyTxMap.containsKey(tx.getPoolId())) return false;
+
+        processingDestroyTxMap.put(tx.getPoolId(), txId);
+        return true;
+    }
+
+    public static void delProcessingDestroyTx(long poolId){
+        if(!processingDestroyTxMap.containsKey(poolId)) return;
+
+        processingDestroyTxMap.remove(poolId);
+    }
+    
+    public static long hasProcessingDestroyTx(long poolId){
+        return processingDestroyTxMap.containsKey(poolId) ? processingDestroyTxMap.get(poolId) : -1;
+    }
+    
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
         Account creator = Account.getAccount(creatorId);
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(creatorId);
@@ -128,7 +186,7 @@ public class SharderPoolProcessor implements Serializable {
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
-        creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, -1, PLEDGE_AMOUNT);
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT);
         pool.power += PLEDGE_AMOUNT;
         
         if (destroyedPools.containsKey(creatorId)) {
@@ -204,24 +262,17 @@ public class SharderPoolProcessor implements Serializable {
         state = State.DESTROYED;
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
-        try{
-            creator.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -PLEDGE_AMOUNT);
-            power -= PLEDGE_AMOUNT;
-        }catch(Account.DoubleSpendingException e) {
-            if(!CheckSumValidator.isDirtyPoolTx(height,creatorId)) throw e;
-        }
+        
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
+        power -= PLEDGE_AMOUNT;
 
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
-            if (amount != 0) {
-                power -= amount;
-                Account account = Account.getAccount(consignor.getId());
-                try {
-                    account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, -1, -amount);
-                }catch(Account.DoubleSpendingException e) {
-                    if(!CheckSumValidator.isDirtyPoolTx(height,consignor.getId())) throw e;
-                }
-            }
+            if (amount <= 0) continue;
+            
+            power -= amount;
+            Account account = Account.getAccount(consignor.getId());
+            account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -amount);
         }
 
         if (startBlockNo > endBlockNo) {
@@ -256,22 +307,35 @@ public class SharderPoolProcessor implements Serializable {
 
     public long quitConsignor(long id, long txId) {
         if (!consignors.containsKey(id)) {
-            Logger.logErrorMessage("mining pool:" + poolId + " don't have consignor:" + id);
+            Logger.logErrorMessage("mining pool:" + poolId + " don't have this consignor:" + id);
             return -1;
         }
         Consignor consignor = consignors.get(id);
         long amount = consignor.getTransactionAmount(txId);
         if (amount == -1) {
-            Logger.logErrorMessage("consignor:" + id + " don't have transaction:" + txId);
+            Logger.logErrorMessage("consignor:" + id + " don't have this tx [id=" + txId + "]");
             return -1;
         }
         power -= amount;
         if (consignor.removeTransaction(txId)) {
             consignors.remove(id);
             number--;
-            Logger.logDebugMessage(id + "quit mining pool " + poolId + ",tx id is " + txId);
+            Logger.logDebugMessage("account[id=" + id + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
         }
         return amount;
+    }
+    
+    private static void autoQuitWhenTxLifeEnd(SharderPoolProcessor sharderPool, int height){
+        //  life end txs processing
+        for (Consignor consignor : sharderPool.consignors.values()) {
+            long amount = consignor.validateHeightAndRemove(height);
+            if(amount <= 0) continue;
+            
+            sharderPool.power -= amount;
+            Account account = Account.getAccount(consignor.getId());
+            Logger.logDebugMessage("auto quit when the tx's life is end. amount[%d] account %s [id=%d]", -amount, account.getRsAddress(), account.getId());
+            account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, sharderPool.getPoolId(), -amount);
+        }
     }
 
     public boolean hasSenderAndTransaction(long senderId, long txId) {
@@ -349,7 +413,7 @@ public class SharderPoolProcessor implements Serializable {
             Generator.forceOpenAutoMining();
         }
     }
-
+    
     /**
      * After block accepted:
      * - Update the pool state
@@ -358,8 +422,9 @@ public class SharderPoolProcessor implements Serializable {
      * - Coinbase reward unfreeze
      * - Persistence the pool to local disk
      */
-    private static void processNewBlockAccepted(Block block){
+    private static void acceptNewBlock(Block block){
         int height = block.getHeight();
+        
         for (SharderPoolProcessor sharderPool : sharderPools.values()) {
             sharderPool.updateHeight = height;
             sharderPool.clearJoiningAmount();
@@ -385,23 +450,8 @@ public class SharderPoolProcessor implements Serializable {
                 sharderPool.state = State.WORKING;
                 continue;
             }
-            
-            //  time out transaction
-            for (Consignor consignor : sharderPool.consignors.values()) {
-                long amount = consignor.validateHeight(height);
-                if (amount != 0) {
-                    sharderPool.power -= amount;
-                    Account account = Account.getAccount(consignor.getId());
-                    Logger.logDebugMessage("frozenAndUnconfirmedBalanceNQT in Pool#processNewBlockAccepted amount[%d] account[%s]", -amount, account.getRsAddress());
 
-                    try{
-                        account.frozenAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.FORGE_POOL_QUIT, 0, -amount);
-                    }catch(Account.DoubleSpendingException e) {
-                        if(!CheckSumValidator.isDirtyPoolTx(height, consignor.getId())) throw e;
-                    }
-                   
-                }
-            }
+            autoQuitWhenTxLifeEnd(sharderPool, height);
 
             if (sharderPool.startBlockNo < height) {
                 sharderPool.totalBlocks++;
@@ -411,7 +461,6 @@ public class SharderPoolProcessor implements Serializable {
             } else {
                 sharderPool.chance = sharderPool.historicalBlocks / sharderPool.totalBlocks;
             }
-            
         }
 
         // update pool summary
@@ -502,7 +551,7 @@ public class SharderPoolProcessor implements Serializable {
         instFromDB();
         
         // AFTER_BLOCK_APPLY event listener
-        Conch.getBlockchainProcessor().addListener(block -> processNewBlockAccepted(block),
+        Conch.getBlockchainProcessor().addListener(block -> acceptNewBlock(block),
                 BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
     }
 
@@ -621,6 +670,13 @@ public class SharderPoolProcessor implements Serializable {
     public int getEndBlockNo() {
         return endBlockNo;
     }
+
+    public int getRemainBlocks() {
+        if(startBlockNo < 0 || endBlockNo < 0) return 0;
+        int remain = endBlockNo - startBlockNo;
+        return remain < 0 ? 0 : remain;
+    }
+
 
     public Map<String, Object> getRule() {
         return rule;

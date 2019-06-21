@@ -399,7 +399,7 @@ public final class Currency {
 
     public static void increaseReserve(AccountLedger.LedgerEvent event, long eventId, Account account, long currencyId, long amountPerUnitNQT) {
         Currency currency = Currency.getCurrency(currencyId);
-        account.addToBalanceNQT(event, eventId, -Math.multiplyExact(currency.getReserveSupply(), amountPerUnitNQT));
+        account.addBalance(event, eventId, -Math.multiplyExact(currency.getReserveSupply(), amountPerUnitNQT));
         CurrencySupply currencySupply = currency.getSupplyData();
         currencySupply.currentReservePerUnitNQT += amountPerUnitNQT;
         currencySupplyTable.insert(currencySupply);
@@ -410,7 +410,7 @@ public final class Currency {
         account.addToCurrencyUnits(event, eventId, currencyId, -units);
         Currency currency = Currency.getCurrency(currencyId);
         currency.increaseSupply(- units);
-        account.addToBalanceAndUnconfirmedBalanceNQT(event, eventId,
+        account.addBalanceAddUnconfirmed(event, eventId,
                 Math.multiplyExact(units, currency.getCurrentReservePerUnitNQT()));
     }
 
@@ -487,7 +487,7 @@ public final class Currency {
                     founders = CurrencyFounder.getCurrencyFounders(currencyId, 0, Integer.MAX_VALUE);
                     for (CurrencyFounder founder : founders) {
                         Account.getAccount(founder.getAccountId())
-                                .addToBalanceAndUnconfirmedBalanceNQT(event, eventId, Math.multiplyExact(reserveSupply,
+                                .addBalanceAddUnconfirmed(event, eventId, Math.multiplyExact(reserveSupply,
                                         founder.getAmountPerUnitNQT()));
                     }
                 }finally {
@@ -549,7 +549,7 @@ public final class Currency {
                 founders = CurrencyFounder.getCurrencyFounders(currency.getId(), 0, Integer.MAX_VALUE);
                 for (CurrencyFounder founder : founders) {
                     Account.getAccount(founder.getAccountId())
-                            .addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.CURRENCY_UNDO_CROWDFUNDING, currency.getId(),
+                            .addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.CURRENCY_UNDO_CROWDFUNDING, currency.getId(),
                                     Math.multiplyExact(currency.getReserveSupply(),
                                             founder.getAmountPerUnitNQT()));
                 }
@@ -591,7 +591,7 @@ public final class Currency {
             issuerAccount.addToCurrencyAndUnconfirmedCurrencyUnits(AccountLedger.LedgerEvent.CURRENCY_DISTRIBUTION, currency.getId(),
                     currency.getId(), currency.getReserveSupply() - currency.getCurrentSupply());
             if (!currency.is(CurrencyType.CLAIMABLE)) {
-                issuerAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.CURRENCY_DISTRIBUTION, currency.getId(),
+                issuerAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.CURRENCY_DISTRIBUTION, currency.getId(),
                         Math.multiplyExact(totalAmountPerUnit, currency.getReserveSupply()));
             }
             currencySupply.currentSupply = currency.getReserveSupply();

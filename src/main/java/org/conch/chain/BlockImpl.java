@@ -476,14 +476,19 @@ public final class BlockImpl implements Block {
     public boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
         try {
+//            if(Constants.isTestnet() && Conch.getHeight() <= 1000 && SharderGenesis.isGenesisRecipients(getGeneratorId())){
+//                return true;
+//            }
+            
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
             Account creator = Account.getAccount(getGeneratorId());
+            
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(creator,previousBlock.getHeight());
             BigInteger pocScore = pocScoreObj.total();
-            if (pocScore.signum() <= 0) {
+            if (!pocScoreObj.qualifiedMiner()) {
                 Logger.logWarningMessage(creator.getRsAddress() + " poc score is less than 0 in this block calculation generation signature verification");
                 return false;
             }
@@ -507,7 +512,7 @@ public final class BlockImpl implements Block {
             return validHit || isIgnoreBlock;
 
         } catch (RuntimeException e) {
-            Logger.logMessage("Error verifying block generation signature", e);
+            Logger.logMessage("Error verifying block generation signature " + toString(), e);
             return false;
         }
     }
@@ -531,15 +536,15 @@ public final class BlockImpl implements Block {
                 totalBackFees += backFees[i];
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
                 Logger.logDebugMessage("Back fees %f SS to miner at height %d", ((double)backFees[i])/Constants.ONE_SS, this.height - i - 1);
-                previousGeneratorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
-                previousGeneratorAccount.addToMintedBalanceNQT(backFees[i]);
+                previousGeneratorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
+                previousGeneratorAccount.addMintedBalance(backFees[i]);
             }
         }
         if (totalBackFees != 0) {
             Logger.logDebugMessage("Fee reduced by %f SS at height %d", ((double)totalBackFees)/Constants.ONE_SS, this.height);
         }
-        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
-        generatorAccount.addToMintedBalanceNQT(totalFeeNQT - totalBackFees);
+        generatorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
+        generatorAccount.addMintedBalance(totalFeeNQT - totalBackFees);
     }
 
     public void setPrevious(BlockImpl block) {

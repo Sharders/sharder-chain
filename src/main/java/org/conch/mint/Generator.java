@@ -622,7 +622,7 @@ public class Generator implements Comparable<Generator> {
         detailedPocScore = pocScoreObj.toJsonObject();
         pocScore = pocScoreObj.total();
 
-        if (pocScore.signum() <= 0) {
+        if (!pocScoreObj.qualifiedMiner()) {
             hitTime = 0;
             hit = BigInteger.ZERO;
             return;
@@ -806,19 +806,19 @@ public class Generator implements Comparable<Generator> {
     private static final String HUB_BIND_PR = Conch.getStringProperty("sharder.HubBindPassPhrase", "", true).trim();
     private static final String AUTO_MINT_ADDRESS = autoMintAccountRs();
     static boolean autoMintRunning = false;
-    
+
+
+    private static String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
     /**
      * local auto mint rs account
      *
      * @return
      */
     private static String autoMintAccountRs() {
-        String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
         return StringUtils.isEmpty(autoMintPR) ? null : Account.rsAccount(Account.getId(autoMintPR));
     }
 
     private static long autoMintAccountId() {
-        String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
         return StringUtils.isEmpty(autoMintPR) ? 0 : Account.getId(autoMintPR);
     }
 

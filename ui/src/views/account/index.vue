@@ -201,14 +201,20 @@
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                           v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
                                     <img src="../../assets/img/right_arrow.svg"/>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                          v-if="transaction.type === 9">{{$t('transaction.self')}}</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                          v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
-                                    <span class="linker"
-                                          v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                          v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">
+                                        {{$t('transaction.self')}}
+                                    </span>
+                                    <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 3">
+                                        {{$t('transaction.transaction_type_pool_join_tx')}}-{{transaction.attachment.txId}}
+                                    </span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">
+                                        {{$t('transaction.self')}}
+                                    </span>
+                                    <span class="linker" v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">
+                                        {{transaction.recipientRS}}
+                                    </span>
+                                  
                                 </td>
                                 <td>{{$global.returnObj(transaction.block,transaction.confirmations)}}</td>
                                 <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">
@@ -869,7 +875,6 @@
         },
         created() {
             const _this = this;
-            console.log("_this.initHUb", _this.initHUb);
             _this.getAccount(_this.accountInfo.accountRS).then(res => {
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -880,7 +885,6 @@
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
                 _this.accountInfo.name = res.name;
             });
-            console.log("mingchengshi:", _this.accountInfo.name);
             _this.getAccountTransactionList();
             _this.getDrawData();
             _this.getYieldData();
@@ -1733,8 +1737,8 @@
                     i = _this.unconfirmedTransactionsList.length;
                 }
 
-                params.append("firstIndex", (_this.currentPage - 1) * 10);
-                params.append("lastIndex", _this.currentPage * 10 - 1 - i);
+                params.append("firstIndex", (_this.currentPage - 1) * _this.pageSize);
+                params.append("lastIndex", _this.currentPage * _this.pageSize - 1 - i);
 
                 if (_this.selectType === 1.5) {
                     params.append("type", "1");
@@ -1749,7 +1753,6 @@
                 _this.loading = true;
                 this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
                     _this.accountTransactionList = res1.data.transactions;
-
                     params.delete("firstIndex");
                     params.delete("lastIndex");
                     _this.$http.get('/sharder?requestType=getBlockchainTransactionsCount', {params}).then(function (res2) {

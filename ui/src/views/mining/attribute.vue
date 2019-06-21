@@ -8,6 +8,7 @@
                     <div class="attribute-text">
                         <span class="pool-serial-number">
                             {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
+                            | {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS
                             <!-- close chance of pool -->
                             <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
                         </span>
@@ -60,16 +61,13 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal && typeof(secretPhrase) !== 'undefined'" class="join"
-                                @click="miningMask('isJoinPool')">
+                        <button v-if="displayBtn('join')" class="join" @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="miningInfo.joinAmount > 0 && $store.state.quitPool[miningInfo.poolId] > 0 && typeof(secretPhrase) !== 'undefined'"
-                                class="exit" @click="miningMask('isExitPool')">
+                        <button v-if="displayBtn('quit')" class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId] && typeof(secretPhrase) !== 'undefined'"
-                                class="exit" @click="miningMask('isDestroyPool')">
+                        <button v-if="displayBtn('destroy')" class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
                     </div>
@@ -131,13 +129,16 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal
-                    - miningInfo.currentInvestment)}} | 
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
+<!--                    <br/>-->
+<!--                    {{$t('mining.index.my_assets') + $global.formatMoney(accountInfo.effectiveBalanceSS)}} SS-->
                 </p>
+<!--                <p class="input">-->
+<!--                    <el-input type="number" value="remainBlocks()" :readonly></el-input>-->
+<!--                </p>-->
                 <p class="input">
-                    <el-input v-model="joinPool" type="number"
-                              :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
+                    <el-input v-model="joinPool" type="number" :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
@@ -151,10 +152,37 @@
                 <span class="img-close" @click="miningMask('isExitPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.exit_pool')}}</h1>
                 <p class="info">{{$t('mining.attribute.exit_pool_tip')}}</p>
-                <p class="btn">
-                    <button class="cancel" @click="miningMask('isExitPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" :loading="btnLoading" @click="miningExit">{{$t('mining.attribute.confirm')}}</button>
-                </p>
+
+                <template>
+                    <el-table
+                            :data="miningInfo.consignor.txs"
+                            stripe
+                            style="width: 100%">
+                        <el-table-column
+                                prop="transactionId"
+                                :label="$t('mining.attribute.tx_id')"
+                                width="180">
+                        </el-table-column>
+                        <el-table-column
+                                prop="amount"
+                                :formatter="formatAmount"
+                                :label="$t('mining.attribute.amount')">
+                        </el-table-column>
+                        <el-table-column
+                                prop="startBlockNo"
+                                :formatter="formatHeight"
+                                :label="$t('mining.attribute.height_range')">
+                        </el-table-column>
+                        <el-table-column
+                                fixed="right"
+                                :label="$t('mining.attribute.exit_pool')"
+                                width="80">
+                            <template slot-scope="scope">
+                                <el-button class="confirm" :loading="btnLoading" @click="miningExit(scope.row,scope.$index)" type="text" size="small">{{$t('mining.attribute.confirm')}}</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </template>
             </div>
         </div>
         <!--删除矿池-->
@@ -187,6 +215,7 @@
                 isDestroyPool: false,
                 joinRSPool: '',
                 myAccount: SSO.accountRS,
+                accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 miningInfo: {
                     account: '',
@@ -202,53 +231,78 @@
                     timestamp: 0,
                     startBlockNo: 0,
                     endBlockNo: 0,
+                    consignor: {},
                     level: {}
                 },
                 loading: true,
-                btnLoading: true
+                btnLoading: false
             }
         },
         methods: {
-            miningExit() {
+            displayBtn(btnName){
+                const _t = this;
+                if('join' === btnName) {
+                    return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
+                    && typeof(_t.secretPhrase) !== 'undefined' 
+                    &&  _t.$global.optHeight.join < _t.newestBlock.height 
+                    && _t.miningInfo.endBlockNo <= (_t.newestBlock.height -1)
+                }else if('quit' === btnName) {
+                    return typeof(_t.miningInfo.consignor) !== 'undefined' 
+                    && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
+                    && _t.miningInfo.consignor.txs.length > 0 
+                    && typeof(_t.secretPhrase) !== 'undefined' 
+                    && _t.$global.optHeight.quit < _t.newestBlock.height 
+                    && _t.miningInfo.endBlockNo <= (_t.newestBlock.height -1)
+                }else if('destroy' === btnName) {
+                    return _t.myAccount === _t.miningInfo.account 
+                        && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
+                        && typeof(_t.secretPhrase) !== 'undefined' 
+                        && _t.$global.optHeight.destroy < _t.newestBlock.height
+                }
+                return false;
+                
+            },
+            formatAmount(row, column) {
+                return this.$global.getSSNumberFormat(row.amount);
+            },
+            formatHeight(row, column) {
+                return row.startBlockNo + " - " + row.endBlockNo;
+            },
+            remainBlocks() {
+                let _t = this;
+                if (_t.mining.startBlockNo > _t.newestBlock.height) {
+                    return _t.mining.endBlockNo - _t.mining.startBlockNo
+                } else {
+                    return _t.mining.endBlockNo - _t.newestBlock.height
+                }
+            },
+            miningExit(_tx,_index) {
+                // console.log(_tx);
+                // console.log(_index);
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
-                this.$http.get('/sharder?requestType=getBlockchainTransactions', {
-                    params: {
-                        account: SSO.accountRS,
-                        type: 8
+                _this.btnLoading = true;
+                _this.$global.fetch("POST", {
+                    txId: _tx.transactionId,
+                    poolId: _this.miningInfo.poolId,
+                    secretPhrase: SSO.secretPhrase,
+                    deadline: 1440,
+                    feeNQT: 100000000
+                }, "quitPool").then(val => {
+                    if (val.errorDescription) {
+                        _this.$message.error(val.errorDescription);
                     }
-                }).then(res => {
-                    if (res.data.errorDescription) {
-                        return _this.$message.error(res.data.errorDescription);
-                    }
-                    _this.btnLoading = true;
-                    for (let t of res.data.transactions) {
-                        if (t.attachment.poolId === _this.miningInfo.poolId) {
-                            _this.$global.fetch("POST", {
-                                txId: t.transaction,
-                                poolId: _this.miningInfo.poolId,
-                                period: 400,
-                                secretPhrase: SSO.secretPhrase,
-                                deadline: 1440,
-                                feeNQT: 100000000
-                            }, "quitPool").then(val => {
-                                if (val.errorDescription) {
-                                    _this.$message.error(val.errorDescription);
-                                }
-                                _this.$store.state.quitPool[_this.miningInfo.poolId] -= t.attachment.amount;
-                            });
-                        }
-
-                    }
-                    _this.$message.warning("Request submitted");
-                    _this.$store.state.mask = false;
                     _this.isExitPool = false;
-                    _this.btnLoading = false;
-                }).catch(err => {
-                    _this.$message.error(err);
+                    _this.$global.optHeight.quit = _this.newestBlock.height;
+                    _this.$store.state.quitPool[_this.miningInfo.poolId] -= _tx.amount;
+                    delete _this.miningInfo.consignor.txs[_index];
+                    _this.miningInfo.joinAmount -= _tx.amount;
+                    _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
+                _this.$store.state.mask = false;
+                _this.btnLoading = false;
             },
             miningDestroy() {
                 let _this = this;
@@ -259,7 +313,7 @@
 
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
-                    period: 400,
+                    period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 1440,
                     feeNQT: 100000000,
@@ -272,26 +326,30 @@
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
                     _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
+                    _this.$global.optHeight.destroy = _this.newestBlock.height;
                     return _this.$message.success(_this.$t("mining.attribute.delete_success"));
                 });
             },
             miningJoin() {
                 let _this = this;
                 if (_this.validationJoinMining()) return;
+                let joinAmount = _this.joinPool * 100000000
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
-                    period: 400,
+                    period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 1440,
                     feeNQT: 100000000,// 手续费默认是 1 SS
                     poolId: _this.mining.poolId,
-                    amount: _this.joinPool * 100000000
+                    amount: joinAmount
                 }, "joinPool").then(res => {
                     _this.btnLoading = false;
                     if (typeof res.errorDescription === "undefined") {
                         _this.$message.success(_this.$t("mining.attribute.join_success"));
                         _this.$store.state.mask = false;
                         _this.isJoinPool = false;
+                        _this.$global.optHeight.join = _this.newestBlock.height;
+                        _this.miningInfo.joinAmount += joinAmount;
                     } else {
                         _this.$message.error(res.errorDescription);
                     }
@@ -332,7 +390,8 @@
                     _this.miningInfo.level = res.rule.level0 ? res.rule.level0 : res.rule.level1;
                     _this.miningInfo.joinAmount = res.joinAmount;
                     _this.miningInfo.rewardAmount = res.rewardAmount;
-                    _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max;
+                    _this.miningInfo.consignor = res.consignor;
+                    _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max + _this.$global.poolPledgeAmount;
                     let nxtAddress = new NxtAddress();
                     if (nxtAddress.set(_this.miningInfo.accountId)) {
                         _this.miningInfo.account = nxtAddress.toString();
@@ -347,6 +406,11 @@
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
+
+                if(this.joinPool > this.accountInfo.effectiveBalanceSS) {
+                    return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
+                }
+                
                 let min = this.miningInfo.level.consignor.amount.min / 100000000;
                 let max = this.miningInfo.level.consignor.amount.max / 100000000;
                 if (this.joinPool < min || this.joinPool > max) {
@@ -355,6 +419,7 @@
                         max: max
                     }));
                 }
+                
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));
                 }
@@ -596,7 +661,7 @@
         height: 40px;
     }
 
-    .join-pool .btn button {
+    .join-pool .btn button{
         outline: none;
         width: 200px;
         height: 40px;
@@ -606,25 +671,32 @@
         cursor: pointer;
     }
 
-    .btn button.cancel {
+    .btn button.cancel{
         border: 1px solid #513acB;
         color: #513acB;
         float: left;
         background: #fff;
     }
 
-    .btn button.confirm {
+    .btn button.confirm{
         float: right;
         background: #513acB;
         color: #fff;
         border: none;
     }
 
+    button.confirm {
+        background: #513acB;
+        color: #fff;
+        padding: 5px;
+    }
+
     .btn button.cancel:hover {
         background: #513acB11;
     }
 
-    .btn button.confirm:hover {
+    .btn button.confirm:hover,
+    button.confirm:hover {
         background: #513acBdd;
     }
 
@@ -650,7 +722,7 @@
 
     .exit-pool .info {
         text-align: center;
-        padding: 35px;
+        padding-bottom: 20px;
         font-size: 14px;
         color: #333;
     }

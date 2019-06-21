@@ -64,7 +64,7 @@ public class Consignor implements Serializable {
         return false;
     }
 
-    public long validateHeight(int height) {
+    public long validateHeightAndRemove(int height) {
         long amount = 0;
         List<JoinTransaction> timeout = new ArrayList<>();
         for (JoinTransaction joinTransaction : transactions) {
@@ -107,12 +107,24 @@ public class Consignor implements Serializable {
         return id == consignor.id;
     }
 
-    public String toJsonStr(){
+    public JSONObject toJsonObj(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", id);
 //        jsonObject.put("transactions", transactions);
-        jsonObject.put("transactions", JSONArray.toJSONString(transactions));
-        return jsonObject.toString();
+        JSONArray txArray = new JSONArray();
+        for(JoinTransaction joinTx : transactions){
+            if(SharderPoolProcessor.hasProcessingQuitTx(joinTx.transactionId) != -1){
+                continue;
+            }
+            txArray.add(joinTx.toJsonObj());
+        }
+        jsonObject.put("txs", txArray);
+        return jsonObject;
+    }
+    
+
+    public String toJsonStr(){
+        return toJsonObj().toString();
     }
 
 
@@ -174,6 +186,15 @@ public class Consignor implements Serializable {
             this.amount = amount;
         }
 
+        public JSONObject toJsonObj(){
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("transactionId", String.valueOf(transactionId));
+            jsonObject.put("startBlockNo", startBlockNo);
+            jsonObject.put("endBlockNo", endBlockNo);
+            jsonObject.put("amount", String.valueOf(amount));
+            return jsonObject;
+        }
+        
         @Override
         public String toString() {
             return ToStringBuilder.reflectionToString(this);

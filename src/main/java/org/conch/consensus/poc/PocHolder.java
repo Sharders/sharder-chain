@@ -278,6 +278,19 @@ class PocHolder implements Serializable {
     
     private PocHolder(){}
 
+
+    static PocScore saveOrUpdate(PocScore pocScore) {
+        PocDb.saveOrUpdate(pocScore);
+        
+        PocScore pocScoreDetail = inst.scoreMap.get(pocScore.accountId);
+        
+        if(pocScore.height >= pocScoreDetail.height) {
+            inst.scoreMap.put(pocScore.accountId, pocScore);
+        }
+        
+        return pocScore;
+    }
+    
     /**
      * get the poc score and detail of the specified height
      * @param height
@@ -287,18 +300,27 @@ class PocHolder implements Serializable {
     static PocScore getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
 
-        //new a default PocScore
-        if (!inst.scoreMap.containsKey(accountId)) {
-            PocScore pocScore = getHistoryPocScore(height, accountId);
-            if(pocScore == null) pocScore = new PocScore(accountId,height);
-            
-            scoreMapping(pocScore);
+        PocScore pocScore = inst.scoreMap.containsKey(accountId) ? inst.scoreMap.get(accountId) : null;
+        PocScore existedScore = getExistedPocScore(height, accountId);
+        // current poc score and existed poc score compare
+        if(pocScore == null) {
+            pocScore = existedScore;
+        }else if (existedScore != null) {
+            if(Conch.getHeight() >= existedScore.height && existedScore.height > pocScore.height) {
+                inst.scoreMap.put(accountId, existedScore);
+                pocScore = existedScore;
+            }else if(pocScore.height > Conch.getHeight() && Conch.getHeight() >= existedScore.height){
+                inst.scoreMap.put(accountId, existedScore);
+                pocScore = existedScore;
+            }
         }
         
-        PocScore pocScoreDetail = inst.scoreMap.get(accountId);
-        pocScoreDetail.setHeight(height);
-
-        return pocScoreDetail;
+        if(pocScore == null) {
+            pocScore = new PocScore(accountId,height);
+            scoreMapping(pocScore);
+        }
+       
+        return pocScore;
     }
     
     /**
@@ -335,17 +357,28 @@ class PocHolder implements Serializable {
      * @param accountId
      * @return
      */
-    static PocScore getHistoryPocScore(int height,long accountId){
-        if(!inst.historyScore.containsKey(height)) {
-            PocScore pocScore = PocDb.getPocScore(accountId, height, true);
+    static PocScore getExistedPocScore(int height,long accountId){
+        boolean containedInHistory = inst.historyScore.size() > 0 
+                                    && inst.historyScore.containsKey(height) 
+                                    && inst.historyScore.get(height).containsKey(accountId);
 
-            if(pocScore == null) return null;
-
-            pocScore.setHeight(height);
-            recordHistoryScore(pocScore);
+        PocScore score = null;
+        if(!containedInHistory) {
+            PocScore historyScore = PocDb.getPocScore(accountId, height, true);
+            if(historyScore != null) {
+                // update history map
+                if(!inst.historyScore.containsKey(historyScore.height)) {
+                    inst.historyScore.put(historyScore.height, Maps.newHashMap());
+                }
+                inst.historyScore.get(historyScore.height).put(accountId, historyScore);
+                score = historyScore;
+            }
+        }else{
+            score = inst.historyScore.get(height).get(accountId);
         }
+        
         PocScorePrinter.print();
-        return inst.historyScore.get(height).get(accountId);
+        return score;
     }
     
     /**
@@ -382,8 +415,8 @@ class PocHolder implements Serializable {
         static int count = 0;
         static final int printCount = 1;
         
-        protected static boolean debug = Constants.isTestnetOrDevnet()  ? true : false;
-        protected static boolean debugHistory = Constants.isDevnet() ? true : false;
+        protected static boolean debug = Constants.isTestnetOrDevnet()  ? false : false;
+        protected static boolean debugHistory = Constants.isDevnet() ? false : false;
         
         protected static String summary = reset();
         private static final String splitter = "\n\r";

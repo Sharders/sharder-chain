@@ -969,6 +969,19 @@ public final class JSONData {
 
                 attachmentJSON.replace("data","");
             }
+            
+            // quit pool tx
+            if((TransactionType.TYPE_SHARDER_POOL == transaction.getType().getType())
+                    && 3 == transaction.getType().getSubtype()
+                    && attachmentJSON.containsKey("txId")){
+                
+                String txId = String.valueOf(attachmentJSON.get("txId"));
+                Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
+                if(joinTx != null && joinTx.getAttachment() != null){
+                    attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
+                }  
+            }
+            
             json.put("attachment", attachmentJSON);
         }
         putAccount(json, "sender", transaction.getSenderId());
@@ -978,6 +991,8 @@ public final class JSONData {
             json.put("ecBlockId", Long.toUnsignedString(transaction.getECBlockId()));
             json.put("ecBlockHeight", transaction.getECBlockHeight());
         }
+        
+      
 
         return json;
     }
@@ -1139,6 +1154,7 @@ public final class JSONData {
 
     public static void putAccount(JSONObject json, String name, long accountId) {
         json.put(name, Long.toUnsignedString(accountId));
+        json.put("accountId", String.valueOf(accountId));
         json.put(name + "RS", Account.rsAccount(accountId));
     }
 

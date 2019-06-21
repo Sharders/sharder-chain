@@ -3,7 +3,8 @@ const SERVER_API = "http://localhost:7215";
 // const SERVER_API_DEV = "47.107.188.3:8215";
 // const SERVER_API_DEV = "http://localhost:8215";
 // const SERVER_API_TEST = "http://localhost:8215";
-const SERVER_API_DEV = "http://localhost:7215";
+const SERVER_API_DEV = "http://localhost:9215";
+const SERVER_API_TEST = "http://localhost:7215";
 const SHARDER_URL = process.env.NODE_ENV === 'development' ? "http://localhost:8080" : "https://sharder.org";
 
 function getUrl() {
@@ -12,12 +13,6 @@ function getUrl() {
     } else {
         return "";
     }
-    // if (process.env.NODE_ENV === 'development' ) {
-    //     return SERVER_API_DEV;
-    //     // return '';
-    // } else {
-    //     return "";
-    // }
 }
 
 const api = {

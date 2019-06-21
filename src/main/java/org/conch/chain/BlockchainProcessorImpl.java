@@ -134,6 +134,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         return;
                     }
 
+                    if (!Conch.getPocProcessor().pocTxsProcessed(Conch.getHeight())) {
+                        Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] processed", Conch.getHeight());
+                        return;
+                    }
+
                     int chainHeight = blockchain.getHeight();
                     downloadPeer();
                     if (blockchain.getHeight() == chainHeight) {
@@ -1367,11 +1372,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         int curTime = Conch.getEpochTime();
         blockchain.writeLock();
         try {
-            boolean delayedPocTxsProcessed = (Constants.isDevnet() && Generator.isBootNode)
-                    || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getBlockchain().getHeight()));
-            if (Conch.reachLastKnownBlock()
-                    && !delayedPocTxsProcessed) {
-                Logger.logDebugMessage("should process delayed poc txs <= [ height %d ] before accepting blocks", Conch.getBlockchain().getHeight());
+            boolean delayedOrOldPocTxsProcessed = (Constants.isDevnet() && Generator.isBootNode)
+//                    || (!Constants.isDevnet() && Conch.getPocProcessor().processDelayedPocTxs(Conch.getHeight()));
+                    || (!Constants.isDevnet() && Conch.getPocProcessor().pocTxsProcessed(Conch.getHeight()));
+            
+//            if (Conch.reachLastKnownBlock() && !delayedPocTxsProcessed) {
+            if (!delayedOrOldPocTxsProcessed) {
+                Logger.logDebugMessage("should process delayed or old poc txs <= [ height %d ] before accepting blocks, break block pushing till poc txs processed ", Conch.getHeight());
                 return;
             }
 
@@ -1489,7 +1496,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
             Account generatorAccount = Account.getAccount(block.getGeneratorId());
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount, previousLastBlock.getHeight());
-            String errorMsg = String.format("Generation signature verification failed, account %s poc score is %d at height %d", generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1));
+            String errorMsg = String.format("Generation signature verification failed, account %s poc score is %d at height %d. %s", generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1), pocScoreObj.toString());
             throw new BlockNotAcceptedException(errorMsg, block);
         }
         if (!block.verifyBlockSignature()) {
@@ -1655,9 +1662,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             throws TransactionNotAcceptedException {
         try {
             isProcessingBlock = true;
+            // unconfirmed balance update
             for (TransactionImpl transaction : block.getTransactions()) {
                 if (!transaction.applyUnconfirmed()) {
-                    throw new TransactionNotAcceptedException("Double spending", transaction);
+                    if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
+                       Logger.logWarningMessage("Ignore the double spending of tx => " + transaction.getJSONObject().toJSONString()); 
+                    }else{
+                        throw new TransactionNotAcceptedException("Double spending", transaction);  
+                    }
                 }
             }
             blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
@@ -1667,7 +1679,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             int fromTimestamp = Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME;
             for (TransactionImpl transaction : block.getTransactions()) {
                 try {
-                    transaction.apply();
+                    
+                    try{
+                        transaction.apply();   
+                    }catch(Account.DoubleSpendingException e){
+                        if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
+                            Logger.logWarningMessage("Ignore the double spending of tx => " + transaction.getJSONObject().toJSONString());
+                            Logger.logErrorMessage("Ignore the double spending of tx", e);
+                        }else{
+                            throw e;
+                        }
+                    }
+                    
                     if (transaction.getTimestamp() > fromTimestamp) {
                         for (Appendix.AbstractAppendix appendage : transaction.getAppendages(true)) {
                             if ((appendage instanceof Appendix.Prunable) && !((Appendix.Prunable) appendage).hasPrunableData()) {
@@ -1737,7 +1760,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     transaction.validate();
                                     transaction.getPhasing().tryCountVotes(transaction, duplicates);
                                 } catch (ConchException.ValidationException e) {
-                                    Logger.logDebugMessage("At height " + block.getHeight() + " phased transaction " + transaction.getStringId() + " no longer passes validation: " + e.getMessage() + ", cannot finish early");
+                                    Logger.logDebugMessage("At height " + block.getHeight() + " phased transaction " + transaction.getId() + " no longer passes validation: " + e.getMessage() + ", cannot finish early");
                                 }
                             }
                         });

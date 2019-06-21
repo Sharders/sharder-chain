@@ -303,8 +303,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void init() {
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         
-        if(Conch.versionCompare("0.1.6") <= 0 && !Generator.isBootNode) {
-            Logger.logInfoMessage("Manual to delete the local db when cos version <= 0.1.6");
+        if(Conch.versionCompare("0.1.7") <= 0 && !Generator.isBootNode) {
+            Logger.logInfoMessage("Manual to delete the local db when cos version <= 0.1.7");
             manualReset();
         }
         
