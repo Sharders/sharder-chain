@@ -47,7 +47,7 @@
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
                 </div>
-                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height">
+                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined'">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
@@ -360,6 +360,7 @@
                 rewardList: [/*'1', '2', '3', '4'*/],
                 rankingList: [],
                 accountInfo: SSO.accountInfo,
+                secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
                 
                 currentPage: 1,
@@ -399,7 +400,7 @@
             },
             getAmountMax(rule) {
                 let level = rule.level0 ? rule.level0 : rule.level1;
-                return level.consignor.amount.max / 100000000;
+                return (level.consignor.amount.max + this.$global.poolPledgeAmount) / 100000000;
             },
             getPoolInvestmentAmount(mining) {
                 return (mining.power + mining.joiningAmount) / 100000000;

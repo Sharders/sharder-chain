@@ -132,16 +132,16 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal
-                    - miningInfo.currentInvestment)}} | 
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
+<!--                    <br/>-->
+<!--                    {{$t('mining.index.my_assets') + $global.formatMoney(accountInfo.effectiveBalanceSS)}} SS-->
                 </p>
 <!--                <p class="input">-->
 <!--                    <el-input type="number" value="remainBlocks()" :readonly></el-input>-->
 <!--                </p>-->
                 <p class="input">
-                    <el-input v-model="joinPool" type="number"
-                              :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
+                    <el-input v-model="joinPool" type="number" :placeholder="$t('mining.attribute.join_pool_tip')"></el-input>
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
@@ -371,7 +371,7 @@
                     _this.miningInfo.joinAmount = res.joinAmount;
                     _this.miningInfo.rewardAmount = res.rewardAmount;
                     _this.miningInfo.consignor = res.consignor;
-                    _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max;
+                    _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max + _this.$global.poolPledgeAmount;
                     let nxtAddress = new NxtAddress();
                     if (nxtAddress.set(_this.miningInfo.accountId)) {
                         _this.miningInfo.account = nxtAddress.toString();
@@ -386,6 +386,11 @@
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
+
+                if(this.joinPool > this.accountInfo.effectiveBalanceSS) {
+                    return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
+                }
+                
                 let min = this.miningInfo.level.consignor.amount.min / 100000000;
                 let max = this.miningInfo.level.consignor.amount.max / 100000000;
                 if (this.joinPool < min || this.joinPool > max) {
@@ -394,6 +399,7 @@
                         max: max
                     }));
                 }
+                
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));
                 }
