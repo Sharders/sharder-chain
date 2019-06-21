@@ -1247,13 +1247,6 @@ public final class Account {
             this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
         }
 
-        //FIXME[rp-conch]
-        /**
-         if (this.publicKey == null || this.publicKey.publicKey == null || this.publicKey.height == 0 || height - this.publicKey.height <= 1440) {
-         return 0; // cfb: Accounts with the public key revealed less than 1440 blocks ago are not allowed to generate blocks
-         }
-         **/
-
         if (this.publicKey == null || this.publicKey.publicKey == null) {
             return 0;
         }
@@ -1264,7 +1257,6 @@ public final class Account {
             if (activeLesseeId == 0) {
                 effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height);
             }
-            effectiveBalanceNQT = effectiveBalanceNQT - frozenBalanceNQT;
             return (height > Constants.SHUFFLING_BLOCK_HEIGHT && effectiveBalanceNQT < Constants.MIN_FORGING_BALANCE_NQT) ? 0 : effectiveBalanceNQT / Constants.ONE_SS;
         } finally {
             Conch.getBlockchain().readUnlock();

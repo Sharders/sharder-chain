@@ -3538,7 +3538,6 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //TODO unconfirmed transaction already has this kind of transaction
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
@@ -3586,14 +3585,14 @@ public abstract class TransactionType {
                 if (senderAccount.getUnconfirmedBalanceNQT() < amountNQT && !isGenesis) {
                     return false;
                 }
-                senderAccount.addFrozen(getLedgerEvent(), transaction.getId(), amountNQT);
+                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), amountNQT);
                 return true;
             }
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
                 long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
-                senderAccount.addFrozen(getLedgerEvent(), transaction.getId(), -amountNQT);
+                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
             }
 
             @Override
@@ -3669,8 +3668,7 @@ public abstract class TransactionType {
                 long amountNQT = forgePoolJoin.getAmount();
                 long poolId = forgePoolJoin.getPoolId();
                 long txId = transaction.getId();
-                senderAccount.addFrozen(getLedgerEvent(), txId, -amountNQT);
-                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), txId, amountNQT);
+                // balance be subtracted in org.conch.tx.TransactionType.SharderPool.attachmentApplyUnconfirmed
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
                 if(miningPool != null) {
                     height = height > miningPool.getStartBlockNo() ? height : miningPool.getStartBlockNo();
