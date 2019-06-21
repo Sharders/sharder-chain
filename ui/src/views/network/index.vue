@@ -443,9 +443,10 @@
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
                         // console.info("refresh block list, newest height is " + _this.newestHeight);
-                        let blocksStr = JSON.stringify(res.blocks);
-                        // console.info("convert to blocksStr");
-                        _this.blocklist = JSON.parse(blocksStr);
+                        _this.blocklist.splice(0,_this.blocklist.length)
+                        _this.blocklist = res.blocks
+                        // let blocksStr = JSON.stringify(res.blocks)
+                        // _this.blocklist = JSON.parse(blocksStr);
                     }
                     // _this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
@@ -460,8 +461,12 @@
                 let _this = this;
                 _this.loading = true;
                 _this.getBlocks(val).then(res => {
-                    let blocksStr = JSON.stringify(res.blocks);
-                    _this.blocklist = JSON.parse(blocksStr);
+                    _this.blocklist.splice(0,_this.blocklist.length)
+                    _this.blocklist = res.blocks
+                    // _this.blocklist = res.blocks
+                    console.info(_this.blocklist);
+                    // let blocksStr = JSON.stringify(res.blocks);
+                    // _this.blocklist = JSON.parse(blocksStr);
                     _this.loading = false;
                     // _this.$forceUpdate()
                 }).catch(err => {

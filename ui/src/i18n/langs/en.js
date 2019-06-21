@@ -55,7 +55,7 @@ const en = {
         'title': "COS Upgrade",
         'current_version': "Current Version is ",
         'discover_new_version': "Found New Version ",
-        'no_new_version': "Current Version is the latest version",
+        'no_new_version': "Current Version is up to date",
         'update': "Upgrade",
         'cancel': "Cancel",
     },

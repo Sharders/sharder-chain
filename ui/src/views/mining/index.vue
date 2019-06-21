@@ -614,8 +614,8 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    let poolStr = JSON.stringify(res.pools);
-                    _this.miningList = JSON.parse(poolStr);
+                    _this.miningList.splice(0,_this.miningList.length)
+                    _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });
