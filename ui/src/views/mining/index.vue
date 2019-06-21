@@ -370,6 +370,16 @@
                 loading: true
             }
         },
+        mounted() {
+            let _this = this;
+            if (!window.$miningInitial) {
+                window.$miningInitial = setInterval(() => {
+                    if (_this.$router.currentRoute.name !== "mining") return;
+                    _this.loginAfter();
+                    _this.$forceUpdate();
+                }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+            }
+        },
         computed: {
             getLang: function () {
                 return this.$store.state.currentLang;
@@ -562,13 +572,6 @@
                 _this.getAssetsRanking();
                 _this.getAccountRanking();
 
-                if (!window.$miningInitial) {
-                    window.$miningInitial = setInterval(() => {
-                        if (_this.$router.currentRoute.name !== "mining") return;
-                        _this.loginAfter();
-                        _this.$forceUpdate();//通知Vue渲染
-                    }, _this.$global.cfg.defaultInterval);
-                }
             },
             getCoinBase(height) {
                 let _this = this;
@@ -611,7 +614,8 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    _this.miningList = res.pools;
+                    let poolStr = JSON.stringify(res.pools);
+                    _this.miningList = JSON.parse(poolStr);
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });

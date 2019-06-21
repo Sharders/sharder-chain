@@ -869,7 +869,6 @@
         },
         created() {
             const _this = this;
-            console.log("_this.initHUb", _this.initHUb);
             _this.getAccount(_this.accountInfo.accountRS).then(res => {
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -880,7 +879,6 @@
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
                 _this.accountInfo.name = res.name;
             });
-            console.log("mingchengshi:", _this.accountInfo.name);
             _this.getAccountTransactionList();
             _this.getDrawData();
             _this.getYieldData();
