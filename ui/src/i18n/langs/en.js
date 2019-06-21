@@ -117,6 +117,7 @@ const en = {
         'transaction_type_poc_online': "PoC Online Rate",
         'transaction_type_poc_bc_speed': "PoC BC Speed",
         'transaction_type_poc': "PoC",
+        'transaction_type_pool_join_tx': "Join Tx",
         'self': "You",
         'view_details': "View Details",
     },

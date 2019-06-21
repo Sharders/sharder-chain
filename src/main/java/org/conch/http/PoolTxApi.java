@@ -105,9 +105,13 @@ public abstract class PoolTxApi {
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
-//            long txId = ParameterParser.getUnsignedLong(request, "txId", true);
-            long txId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE,true);
-            Attachment attachment = new Attachment.SharderPoolQuit(txId, poolId);
+            long joinTxId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE,true);
+
+            if(SharderPoolProcessor.hasProcessingQuitTx(joinTxId)){
+                throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed");
+            }
+            
+            Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
             JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
             return aware;
         }
@@ -128,7 +132,7 @@ public abstract class PoolTxApi {
                 
                 long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
                 SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
-
+                
                 long[] investmentRule = PoolRule.predefinedInvestment(PoolRule.Role.USER);
                 long allowedInvestAmount = investmentRule[1];
 

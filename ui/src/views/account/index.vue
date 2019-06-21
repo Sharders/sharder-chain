@@ -201,14 +201,20 @@
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                           v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
                                     <img src="../../assets/img/right_arrow.svg"/>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                          v-if="transaction.type === 9">{{$t('transaction.self')}}</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                          v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
-                                    <span class="linker"
-                                          v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)"
-                                          v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.recipientRS}}</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">
+                                        {{$t('transaction.self')}}
+                                    </span>
+                                    <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 3">
+                                        {{$t('transaction.transaction_type_pool_join_tx')}}-{{transaction.attachment.txId}}
+                                    </span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">
+                                        {{$t('transaction.self')}}
+                                    </span>
+                                    <span class="linker" v-else-if="typeof transaction.recipientRS === 'undefined'">/</span>
+                                    <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">
+                                        {{transaction.recipientRS}}
+                                    </span>
+                                  
                                 </td>
                                 <td>{{$global.returnObj(transaction.block,transaction.confirmations)}}</td>
                                 <td class="linker" @click="openTradingInfoDialog(transaction.transaction)">

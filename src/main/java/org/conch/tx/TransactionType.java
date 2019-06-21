@@ -33,7 +33,6 @@ import org.conch.asset.Asset;
 import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.MonetaryTx;
-import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
@@ -3687,12 +3686,15 @@ public abstract class TransactionType {
 
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+                Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
+                SharderPoolProcessor.addProcessingQuitTx(quit);
                 return true;
             }
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
+                Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
+                SharderPoolProcessor.delProcessingQuitTx(quit.getTxId());
             }
 
             @Override
@@ -3717,9 +3719,13 @@ public abstract class TransactionType {
 
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
-                //FIXME[pool] unconfirmed transaction already has this kind of transaction
-                int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
+                int curHeight = Conch.getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
+                
+                if(SharderPoolProcessor.hasProcessingQuitTx(quit.getTxId())){
+                    throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
+                }
+                
                 long poolId = quit.getPoolId();
                 SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
                 if (sharderPool == null) {
@@ -3751,17 +3757,12 @@ public abstract class TransactionType {
                     return;
                 }
 
-                try{
-                    long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
-                    if (amountNQT > 0) {
-                        senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
-                    }
-                    Account.getAccount(miningPool.getCreatorId()).pocChanged();
-                }catch(Account.DoubleSpendingException e) {
-                    if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), senderAccount.getId())) {
-                        throw e;
-                    }
+                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                if (amountNQT > 0) {
+                    senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
                 }
+                SharderPoolProcessor.delProcessingQuitTx(sharderPoolQuit.getTxId());
+                Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 
             @Override

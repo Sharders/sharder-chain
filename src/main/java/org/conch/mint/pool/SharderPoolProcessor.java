@@ -33,10 +33,13 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
-    private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = Maps.newConcurrentMap();
+    private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = Maps.newConcurrentMap();
     public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
-
+    
+    // join tx id <-> SharderPoolQuit
+    private static ConcurrentMap<Long, Attachment.SharderPoolQuit> processingQuitTxMap = Maps.newConcurrentMap();
+    
     public enum State {
         INIT, //user created pool, but not produce block yet
         CREATING,
@@ -113,6 +116,24 @@ public class SharderPoolProcessor implements Serializable {
             e.printStackTrace();
         }
        return endBlockNo;
+    }
+    
+    
+    public static boolean addProcessingQuitTx(Attachment.SharderPoolQuit quitTx){
+        if(processingQuitTxMap.containsKey(quitTx.getTxId())) return false;
+
+        processingQuitTxMap.put(quitTx.getTxId(), quitTx);
+        return true;
+    }
+
+    public static void delProcessingQuitTx(long joinTxId){
+        if(!processingQuitTxMap.containsKey(joinTxId)) return;
+        
+        processingQuitTxMap.remove(joinTxId);
+    }
+    
+    public static boolean hasProcessingQuitTx(long joinTxId){
+        return processingQuitTxMap.containsKey(joinTxId);
     }
     
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
