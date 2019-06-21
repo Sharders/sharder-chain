@@ -63,7 +63,7 @@ public abstract class PoolTxApi {
             }
 
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 50 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = Constants.isDevnet() ? 10 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
 //            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
             JSONObject rules = null;
             try {
@@ -142,8 +142,8 @@ public abstract class PoolTxApi {
 
                 // account balance check
                 if(amount > (account.getBalanceNQT() + account.getUnconfirmedBalanceNQT()) ) {
-                    String errorDetail = String.format("Account balance[%d] or unconfirmed balance[%d] is smaller than join amount[%d]" 
-                            , account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(), amount);
+                    String errorDetail = String.format("Account balance[%d] is smaller than join amount[%d]" 
+                            , account.getBalanceNQT()/Constants.ONE_SS, amount/Constants.ONE_SS);
                     Logger.logWarningMessage(errorDetail);
                     throw new ConchException.NotValidException(errorDetail);
                 }

@@ -435,30 +435,37 @@
                 });
             },
             networkUrlBlocks() {
-                console.info("networkUrlBlocks");
                 const _this = this;
+                console.info("networkUrlBlocks，currentPage=" + _this.currentPage);
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
+                        console.info("refresh block list, newest height is " + _this.newestHeight);
+                        // let list = [];
+                        // for (let i = 0; i < res.blocks.length; i++) {
+                        //     list.push(res.blocks[i]);
+                        // }
+                        // _this.blocklist = list;
                         _this.blocklist = res.blocks;
                     }
-                    _this.$forceUpdate();//通知Vue渲染
+                    // _this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
                     console.info('error', error)
                 });
             },
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                // console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
+                // console.log(`当前页: ${val}`);
                 let _this = this;
                 _this.loading = true;
                 _this.getBlocks(val).then(res => {
                     _this.blocklist = res.blocks;
                     _this.loading = false;
+                    _this.$forceUpdate()
                 }).catch(err => {
                     console.info('error', err);
                     _this.$message.error(err);

@@ -1749,7 +1749,6 @@
                 _this.loading = true;
                 this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
                     _this.accountTransactionList = res1.data.transactions;
-
                     params.delete("firstIndex");
                     params.delete("lastIndex");
                     _this.$http.get('/sharder?requestType=getBlockchainTransactionsCount', {params}).then(function (res2) {
