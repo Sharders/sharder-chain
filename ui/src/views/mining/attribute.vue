@@ -61,16 +61,13 @@
                         </el-row>
                     </div>
                     <div class="attribute-btn">
-                        <button v-if="miningInfo.currentInvestment < miningInfo.investmentTotal && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.join < newestBlock.height" class="join"
-                                @click="miningMask('isJoinPool')">
+                        <button v-if="displayBtn('join')" class="join" @click="miningMask('isJoinPool')">
                             {{$t('mining.attribute.investing_diamonds')}}
                         </button>
-                        <button v-if="typeof(miningInfo.consignor) !== 'undefined' && typeof(miningInfo.consignor.txs) !== 'undefined' && miningInfo.consignor.txs.length > 0 && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.quit < newestBlock.height "
-                                class="exit" @click="miningMask('isExitPool')">
+                        <button v-if="displayBtn('quit')" class="exit" @click="miningMask('isExitPool')">
                             {{$t('mining.attribute.exit_pool')}}
                         </button>
-                        <button v-if="myAccount === miningInfo.account && !$store.state.destroyPool[miningInfo.poolId] && typeof(secretPhrase) !== 'undefined' &&  $global.optHeight.destroy < newestBlock.height"
-                                class="exit" @click="miningMask('isDestroyPool')">
+                        <button v-if="displayBtn('destroy')" class="exit" @click="miningMask('isDestroyPool')">
                             {{$t('mining.attribute.destroy_pool')}}
                         </button>
                     </div>
@@ -242,6 +239,29 @@
             }
         },
         methods: {
+            displayBtn(btnName){
+                const _t = this;
+                if('join' === btnName) {
+                    return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
+                    && typeof(_t.secretPhrase) !== 'undefined' 
+                    &&  _t.$global.optHeight.join < _t.newestBlock.height 
+                    && _t.miningInfo.endBlockNo <= (_t.newestBlock.height -1)
+                }else if('quit' === btnName) {
+                    return typeof(_t.miningInfo.consignor) !== 'undefined' 
+                    && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
+                    && _t.miningInfo.consignor.txs.length > 0 
+                    && typeof(_t.secretPhrase) !== 'undefined' 
+                    && _t.$global.optHeight.quit < _t.newestBlock.height 
+                    && _t.miningInfo.endBlockNo <= (_t.newestBlock.height -1)
+                }else if('destroy' === btnName) {
+                    return _t.myAccount === _t.miningInfo.account 
+                        && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
+                        && typeof(_t.secretPhrase) !== 'undefined' 
+                        && _t.$global.optHeight.destroy < _t.newestBlock.height
+                }
+                return false;
+                
+            },
             formatAmount(row, column) {
                 return this.$global.getSSNumberFormat(row.amount);
             },
@@ -257,8 +277,8 @@
                 }
             },
             miningExit(_tx,_index) {
-                console.log(_tx);
-                console.log(_index);
+                // console.log(_tx);
+                // console.log(_index);
                 let _this = this;
                 if (SSO.downloadingBlockchain) {
                     return this.$message.warning(this.$t("account.synchronization_block"));

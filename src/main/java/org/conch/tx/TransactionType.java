@@ -3438,13 +3438,16 @@ public abstract class TransactionType {
 
         public static final TransactionType SHARDER_POOL_CREATE = new SharderPool() {
             @Override
-            public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolCreate createTx = (Attachment.SharderPoolCreate) tx.getAttachment();
+                SharderPoolProcessor.addProcessingCreateTx(tx.getSenderId(), createTx, tx.getId());
                 return true;
             }
 
             @Override
-            public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-
+            public void attachmentUndoUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolCreate v = (Attachment.SharderPoolCreate) tx.getAttachment();
+                SharderPoolProcessor.delProcessingCreateTx(tx.getSenderId());
             }
 
             @Override
@@ -3475,6 +3478,10 @@ public abstract class TransactionType {
             @Override
             public void validateAttachment(Transaction tx) throws ConchException.ValidationException {
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
+                if(SharderPoolProcessor.hasProcessingCreateTx(tx.getSenderId()) != -1){
+                    throw new ConchException.NotValidException("Has a Create Pool tx[%d] be processing, wait for tx confirmed", tx.getId());
+                }
+                
                 if (!PoolRule.validateRule(tx.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
                     throw new ConchException.NotValidException("pool[id=%d, creator id=%s] rule not matched", tx.getId(), Account.rsAccount(tx.getSenderId()));
                 }
@@ -3502,12 +3509,16 @@ public abstract class TransactionType {
 
         public static final TransactionType SHARDER_POOL_DESTROY = new SharderPool() {
             @Override
-            public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
+            public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
+                SharderPoolProcessor.addProcessingDestroyTx(destroy,tx.getId());
                 return true;
             }
 
             @Override
-            public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
+            public void attachmentUndoUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
+                SharderPoolProcessor.delProcessingDestroyTx(destroy.getPoolId());
             }
 
             @Override
@@ -3538,6 +3549,11 @@ public abstract class TransactionType {
             @Override
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
+
+                if(SharderPoolProcessor.hasProcessingDestroyTx(destroy.getPoolId()) != -1){
+                    throw new ConchException.NotValidException("Has a Destroy Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
+                }
+                
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
                     Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
@@ -3685,9 +3701,9 @@ public abstract class TransactionType {
         public static final TransactionType SHARDER_POOL_QUIT = new SharderPool() {
 
             @Override
-            public boolean attachmentApplyUnconfirmed(Transaction transaction, Account senderAccount) {
-                Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
-                SharderPoolProcessor.addProcessingQuitTx(quit);
+            public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
+                Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
+                SharderPoolProcessor.addProcessingQuitTx(quit,tx.getId());
                 return true;
             }
 
@@ -3722,7 +3738,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
                 
-                if(SharderPoolProcessor.hasProcessingQuitTx(quit.getTxId())){
+                if(SharderPoolProcessor.hasProcessingQuitTx(quit.getTxId()) != -1){
                     throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
                 }
                 

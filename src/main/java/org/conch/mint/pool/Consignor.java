@@ -113,7 +113,7 @@ public class Consignor implements Serializable {
 //        jsonObject.put("transactions", transactions);
         JSONArray txArray = new JSONArray();
         for(JoinTransaction joinTx : transactions){
-            if(SharderPoolProcessor.hasProcessingQuitTx(joinTx.transactionId)){
+            if(SharderPoolProcessor.hasProcessingQuitTx(joinTx.transactionId) != -1){
                 continue;
             }
             txArray.add(joinTx.toJsonObj());

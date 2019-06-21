@@ -37,8 +37,12 @@ public class SharderPoolProcessor implements Serializable {
     private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = Maps.newConcurrentMap();
     public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
     
-    // join tx id <-> SharderPoolQuit
-    private static ConcurrentMap<Long, Attachment.SharderPoolQuit> processingQuitTxMap = Maps.newConcurrentMap();
+    // join tx id <-> tx id
+    private static ConcurrentMap<Long, Long> processingQuitTxMap = Maps.newConcurrentMap();
+    // creator id <-> tx id
+    private static ConcurrentMap<Long, Long> processingCreateTxMap = Maps.newConcurrentMap();
+    // pool id <-> tx id
+    private static ConcurrentMap<Long, Long> processingDestroyTxMap = Maps.newConcurrentMap();
     
     public enum State {
         INIT, //user created pool, but not produce block yet
@@ -119,10 +123,10 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     
-    public static boolean addProcessingQuitTx(Attachment.SharderPoolQuit quitTx){
+    public static boolean addProcessingQuitTx(Attachment.SharderPoolQuit quitTx, long txId){
         if(processingQuitTxMap.containsKey(quitTx.getTxId())) return false;
 
-        processingQuitTxMap.put(quitTx.getTxId(), quitTx);
+        processingQuitTxMap.put(quitTx.getTxId(), txId);
         return true;
     }
 
@@ -132,8 +136,42 @@ public class SharderPoolProcessor implements Serializable {
         processingQuitTxMap.remove(joinTxId);
     }
     
-    public static boolean hasProcessingQuitTx(long joinTxId){
-        return processingQuitTxMap.containsKey(joinTxId);
+    public static long hasProcessingQuitTx(long joinTxId){
+        return processingQuitTxMap.containsKey(joinTxId) ? processingQuitTxMap.get(joinTxId) : -1;
+    }
+
+    public static boolean addProcessingCreateTx(long creatorId, Attachment.SharderPoolCreate tx, long txId){
+        if(processingCreateTxMap.containsKey(creatorId)) return false;
+
+        processingCreateTxMap.put(creatorId, txId);
+        return true;
+    }
+
+    public static void delProcessingCreateTx(long creatorId){
+        if(!processingCreateTxMap.containsKey(creatorId)) return;
+
+        processingCreateTxMap.remove(creatorId);
+    }
+
+    public static long hasProcessingCreateTx(long creatorId){
+        return processingCreateTxMap.containsKey(creatorId) ? processingCreateTxMap.get(creatorId) : -1;
+    }
+
+    public static boolean addProcessingDestroyTx(Attachment.SharderPoolDestroy tx, long txId){
+        if(processingDestroyTxMap.containsKey(tx.getPoolId())) return false;
+
+        processingDestroyTxMap.put(tx.getPoolId(), txId);
+        return true;
+    }
+
+    public static void delProcessingDestroyTx(long poolId){
+        if(!processingDestroyTxMap.containsKey(poolId)) return;
+
+        processingDestroyTxMap.remove(poolId);
+    }
+    
+    public static long hasProcessingDestroyTx(long poolId){
+        return processingDestroyTxMap.containsKey(poolId) ? processingDestroyTxMap.get(poolId) : -1;
     }
     
     public static SharderPoolProcessor createSharderPool(long creatorId, long poolId, int startBlockNo, int endBlockNo, Map<String, Object> rule) {
