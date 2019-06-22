@@ -58,7 +58,13 @@ public final class UpgradeClientApi extends APIServlet.APIRequestHandler {
             response.put("error", "version can not be null");
             return response;
         }
-        ClientUpgradeTool.upgradePackageThread(version,mode,bakMode,restart);
+
+        com.alibaba.fastjson.JSONObject cosVerObj = new com.alibaba.fastjson.JSONObject();
+        cosVerObj.put("version",version);
+        cosVerObj.put("mode",mode);
+        cosVerObj.put("bakMode",bakMode);
+        
+        ClientUpgradeTool.upgradePackageThread(cosVerObj,restart);
         response.put("upgraded", true);
         return response;
     }

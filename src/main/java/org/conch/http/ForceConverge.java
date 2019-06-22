@@ -23,7 +23,6 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
@@ -42,7 +41,6 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -253,9 +251,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     static boolean reset = false;
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
     public static void writeForkNameIntoPropertiesFile(){
-        HashMap<String, String> parameters = Maps.newHashMap();
-        parameters.put(PROPERTY_FORK_NAME, "Giant");
-        Conch.storePropertiesToFile(parameters);
+        Conch.storePropertieToFile(PROPERTY_FORK_NAME, "Giant");
     }
     
     public static void switchFork(){

@@ -30,6 +30,9 @@ public class ClientUpgradeTool {
     public static final String BAK_MODE_BACKUP = "backup";
 
     public static final String DB_ARCHIVE_DEFAULT = "default";
+    
+    public static final String PROPERTY_COS_UPDATE = "sharder.cosUpdateDate";
+    public static final String cosLastUpdateDate = Conch.getStringProperty(PROPERTY_COS_UPDATE,"");
 
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
@@ -39,20 +42,17 @@ public class ClientUpgradeTool {
         try{
             Conch.pause();
             com.alibaba.fastjson.JSONObject cosVer = ClientUpgradeTool.fetchLastCosVersion();
-            String version = cosVer.getString("version");
-            String mode = cosVer.getString("mode");
-            String bakMode = cosVer.getString("bakMode");
-            upgradePackageThread(version,mode,bakMode,restart);  
+            upgradePackageThread(cosVer,restart);  
         }finally{
             Conch.unpause();
         }
     }
     
-    public static Thread upgradePackageThread(String version, String mode,String bakMode, Boolean restart) {
+    public static Thread upgradePackageThread(com.alibaba.fastjson.JSONObject cosVerObj, Boolean restart) {
         Thread upgradePackageThread = new Thread(
                 () -> {
                     try {
-                        fetchUpgradePackage(version, mode, bakMode);
+                        fetchAndInstallUpgradePackage(cosVerObj);
                         if (restart) {
                             Conch.restartApplication(null);
                         }
@@ -68,11 +68,16 @@ public class ClientUpgradeTool {
         return upgradePackageThread;
     }
     
-    public static void fetchUpgradePackage(String version, String mode, String bakmode) throws IOException {
+    public static void fetchAndInstallUpgradePackage(com.alibaba.fastjson.JSONObject cosVerObj) throws IOException {
+        String version = cosVerObj.getString("version");
+        String mode = cosVerObj.getString("mode");
+        String bakMode = cosVerObj.getString("bakMode");
+        String updateTime = cosVerObj.getString("updateTime");
+        
         File tempPath = new File("temp/");
         File archive = new File(tempPath, "cos-" + version + ".zip");
         boolean delete = true;
-        if(StringUtils.isNotEmpty(bakmode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakmode)) {
+        if(StringUtils.isNotEmpty(bakMode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakMode)) {
             delete = false;
         }
         if (!archive.exists()) {
@@ -87,6 +92,10 @@ public class ClientUpgradeTool {
             }
         } catch (Exception e) {
             Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);
+        }
+        
+        if(StringUtils.isNotEmpty(updateTime)){
+            Conch.storePropertieToFile(PROPERTY_COS_UPDATE, updateTime);
         }
     }
 
