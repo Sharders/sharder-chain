@@ -456,7 +456,7 @@ public final class Account {
 
     public static class DoubleSpendingException extends RuntimeException {
         DoubleSpendingException(String message, long accountId, long confirmed, long unconfirmed) {
-            super(message + " account: " +  Account.rsAccount(accountId) + "[string id=" + Long.toUnsignedString(accountId) + ", id=" + accountId + "], confirmed: " + confirmed + ", unconfirmed: " + unconfirmed + ", current height:" + Conch.getHeight());
+            super(message + " account: " +  Account.rsAccount(accountId) + "[id=" + accountId + "], confirmed: " + confirmed + ", unconfirmed: " + unconfirmed + ", current height:" + Conch.getHeight());
         }
 
     }
