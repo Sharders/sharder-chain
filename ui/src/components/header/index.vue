@@ -143,9 +143,12 @@
             </div>
             <div class="modal-body">
                 <div class="version-info">
-                    <span>{{$t('upgrade.current_version')}}{{blockchainStatus.version}}</span><br/>
+                    <span>{{$t('upgrade.current_version')}}{{blockchainStatus.version}}</span>
+                    <span style="color: #555;font-style: italic;font-size: smaller;"> {{blockchainStatus.cosLastUpgradeDate}}</span>
+                    <br/>
                     <span v-if="isUpdate">
-                        {{$t('upgrade.discover_new_version')}}<span class="found-new-version">{{latestVersion}}</span>
+                        {{$t('upgrade.discover_new_version')}}
+                        <span class="found-new-version">{{latestVersion}}</span>
                     </span>
                     <span class="no-new-version" v-else>
                         {{$t('upgrade.no_new_version')}}
@@ -490,7 +493,6 @@
                 }
             },
             openCosUpgradeDialog: function () {
-                console.info("in openCosUpgradeDialog...")
                 const _this = this;
                 // _this.$store.state.mask = true;
                 _this.cosUpgradeDialog = true;
@@ -563,11 +565,10 @@
     }
 
     .modal_cosUpgrade {
-       
         position: absolute;
         background: #fff;
         top: 100px;
-        width: 300px;
+        width: 337px;
         border-radius: 7px;
         margin: 0 auto;
         left: 0;
