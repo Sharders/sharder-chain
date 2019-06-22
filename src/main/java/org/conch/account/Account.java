@@ -1716,11 +1716,7 @@ public final class Account {
      * @param amountNQT
      */
     public void addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
-        try{
-            frozen(event,eventId,amountNQT,true);
-        }catch(Account.DoubleSpendingException e) {
-            if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), id)) throw e;
-        }
+        frozen(event,eventId,amountNQT,true);
     }
 
     /**
@@ -1772,11 +1768,15 @@ public final class Account {
     }
     
     private void checkAndSave() throws DoubleSpendingException {
-        checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
-        if (this.frozenBalanceNQT < 0) {
-            throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
+        try{
+            checkBalance(this.id, this.balanceNQT, this.unconfirmedBalanceNQT);
+            if (this.frozenBalanceNQT < 0) {
+                throw new DoubleSpendingException("Negative frozen balance or quantity: ", this.id, this.balanceNQT, this.frozenBalanceNQT);
+            }
+            save();
+        }catch(Account.DoubleSpendingException e) {
+            if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), id)) throw e;
         }
-        save();
     }
 
     public void addBalance(AccountLedger.LedgerEvent event, long eventId, long amountNQT) {
