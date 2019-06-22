@@ -529,7 +529,8 @@ export default {
      * 将数字转换成无符号long
      */
     longUnsigned(num) {
-        if (num > 0) return num;
+        if(typeof(num) == 'number' && num > 0) return num;
+        
         num = new BigInteger(num).abs();
         return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
     },

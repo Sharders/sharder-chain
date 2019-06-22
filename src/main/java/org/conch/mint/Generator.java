@@ -86,8 +86,8 @@ public class Generator implements Comparable<Generator> {
             return str;
         }
         static String reset(){
-            String generatorSummary = appendSplitter("--------------Active Miners-------------",false);
-            generatorSummary += appendSplitter("Local bind account[ hub rs=" + HUB_BIND_ADDRESS + " | autoMint rs=" + AUTO_MINT_ADDRESS + " ]",false);
+            String generatorSummary = appendSplitter("[ DEBUG ]--------------Active Miners-------------",false);
+            generatorSummary += appendSplitter("[ DEBUG ]Local bind account[ hub rs=" + HUB_BIND_ADDRESS + " | autoMint rs=" + AUTO_MINT_ADDRESS + " ]",false);
             count=0;
             return generatorSummary;
         }

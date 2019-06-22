@@ -2127,7 +2127,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
             pushBlock(block);
             blockListeners.notify(block, Event.BLOCK_GENERATED);
-            Logger.logDebugMessage(
+            Logger.logInfoMessage(
                     "Account[id="
                             + Long.toUnsignedString(creator.getId())
                             + ", RS="

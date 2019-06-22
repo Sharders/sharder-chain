@@ -11,6 +11,8 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -140,17 +142,19 @@ public class SharderPoolProcessor implements Serializable {
         return processingQuitTxMap.containsKey(joinTxId) ? processingQuitTxMap.get(joinTxId) : -1;
     }
 
-    public static boolean addProcessingCreateTx(long creatorId, Attachment.SharderPoolCreate tx, long txId){
+    public static boolean addProcessingCreateTx(long creatorId, long txId){
         if(processingCreateTxMap.containsKey(creatorId)) return false;
 
         processingCreateTxMap.put(creatorId, txId);
         return true;
     }
 
-    public static void delProcessingCreateTx(long creatorId){
+    public static void delProcessingCreateTx(long creatorId, long txId){
         if(!processingCreateTxMap.containsKey(creatorId)) return;
-
-        processingCreateTxMap.remove(creatorId);
+        
+        if(processingCreateTxMap.get(creatorId) == txId) {
+            processingCreateTxMap.remove(creatorId);  
+        }
     }
 
     public static long hasProcessingCreateTx(long creatorId){
@@ -545,10 +549,33 @@ public class SharderPoolProcessor implements Serializable {
             destroyedPools.get(pool.creatorId).add(pool);
         });
     }
+    
+    private static void instProcessingMapFromTxs(){
+        DbIterator<? extends Transaction> unconfirmedTxs = null;
+        try {
+            unconfirmedTxs = Conch.getTransactionProcessor().getAllUnconfirmedTransactions();
+            unconfirmedTxs.forEach(tx -> {
+                if (tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)) {
+                    if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_CREATE)) {
+                       addProcessingCreateTx(tx.getSenderId(),tx.getId());
+                    } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_DESTROY)) {
+                        Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
+                        addProcessingDestroyTx(destroy, tx.getId());
+                    } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)) {
+                        Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
+                        addProcessingQuitTx(quit,  tx.getId());
+                    }
+                }
+            });
+        } finally {
+            DbUtils.close(unconfirmedTxs);
+        }
+    }
 
     public static void init() {
         PoolRule.init();
         instFromDB();
+        instProcessingMapFromTxs();
         
         // AFTER_BLOCK_APPLY event listener
         Conch.getBlockchainProcessor().addListener(block -> acceptNewBlock(block),

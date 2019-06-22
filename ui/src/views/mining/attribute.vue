@@ -245,19 +245,19 @@
                     return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
                     && typeof(_t.secretPhrase) !== 'undefined' 
                     &&  _t.$global.optHeight.join < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo <= (_t.newestBlock.height -1)
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height;
                 }else if('quit' === btnName) {
                     return typeof(_t.miningInfo.consignor) !== 'undefined' 
                     && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
                     && _t.miningInfo.consignor.txs.length > 0 
                     && typeof(_t.secretPhrase) !== 'undefined' 
                     && _t.$global.optHeight.quit < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo <= (_t.newestBlock.height -1)
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height;
                 }else if('destroy' === btnName) {
                     return _t.myAccount === _t.miningInfo.account 
                         && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
                         && typeof(_t.secretPhrase) !== 'undefined' 
-                        && _t.$global.optHeight.destroy < _t.newestBlock.height
+                        && _t.$global.optHeight.destroy < _t.newestBlock.height;
                 }
                 return false;
                 
@@ -374,7 +374,6 @@
                     account: SSO.account,
                     poolId: _this.mining.poolId,
                 }, "getPoolInfo").then(res => {
-                    console.info(res);
                     if (res.errorDescription) {
                         _this.$message.warning(_this.$t("mining.attribute.pool_destruction"));
                         return _this.$router.back()

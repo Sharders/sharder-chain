@@ -183,7 +183,7 @@ class PocHolder implements Serializable {
         int peerCertifiedHeight = existPeer.getHeight();
         int historyHeight = height - 1;
         if(peerCertifiedHeight == -1 || historyHeight <= peerCertifiedHeight) {
-            Logger.logWarningMessage("#addOrUpdateBoundPeer# can't update this certified peer which certified height is %d and update height is %d. Old=> %s, New=> %s"
+            Logger.logDebugMessage("#addOrUpdateBoundPeer# can't update this certified peer which certified height is %d and update height is %d. Old=> %s, New=> %s"
                     , peerCertifiedHeight, height, existPeer.toString() ,newPeer.toString());
             inst.certifiedPeers.put(accountId, newPeer);
             return;

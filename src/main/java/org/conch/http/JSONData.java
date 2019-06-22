@@ -971,8 +971,8 @@ public final class JSONData {
             }
             
             // quit pool tx
-            if((TransactionType.TYPE_SHARDER_POOL == transaction.getType().getType())
-                    && 3 == transaction.getType().getSubtype()
+            if(transaction.getType().isType(TransactionType.TYPE_SHARDER_POOL)
+                    && transaction.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)
                     && attachmentJSON.containsKey("txId")){
                 
                 String txId = String.valueOf(attachmentJSON.get("txId"));
