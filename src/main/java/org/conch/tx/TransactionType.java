@@ -537,7 +537,13 @@ public abstract class TransactionType {
                 Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
                         amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
             }else{
-                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+                if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
+                    account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), account.getFrozenBalanceNQT());
+                }else if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= amount){
+                    account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -account.getFrozenBalanceNQT());
+                }else{
+                    account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+                }
                 account.addMintedBalance(amount);
                 account.pocChanged();
                 Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",

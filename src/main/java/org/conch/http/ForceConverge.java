@@ -330,8 +330,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void resetPoolAndAccounts(Block block){
         if(!Constants.isTestnet() || block.getHeight() != 4500) return;
         
-
-        
         try{
             Conch.pause();
             Logger.logInfoMessage("[Reset] start to reset the pools and accounts to avoid the balance and block generator validation error");
@@ -384,9 +382,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            long balance = new Long(baArray[0]);
                            long minedBalance = new Long(baArray[1]);
                            long frozenBlance = 0;
-//                           if(generatorFrozenMap.containsKey(accountId)) {
-//                               frozenBlance = generatorFrozenMap.get(accountId);
-//                           }
+                           if(block.getGeneratorId() == accountId) {
+                               frozenBlance = 12800000000L;
+                           }
                            Account account = Account.getAccount(accountId);
                            account.reset(con, balance, balance, minedBalance, frozenBlance);
                        } catch (SQLException e) {
@@ -401,8 +399,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             }
             Logger.logInfoMessage("[Reset] accounts balance and guaranteed balance finished");
 
-
-        
             try {
                 // block generator frozen balance calculate
                 Db.db.beginTransaction();
@@ -426,7 +422,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
                         TransactionType.CoinBase.mintReward(transaction,false);
                     }
-                    
                     i--;
                 }
                 Db.db.commitTransaction();
