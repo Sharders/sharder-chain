@@ -1352,9 +1352,24 @@ public final class Account {
         
         Conch.getBlockchain().readLock();
         try {
+
+            Connection connDel = Db.db.getConnection();
+            try{
+                // delete records which the height larger than the current height
+                PreparedStatement pstmtDel = connDel.prepareStatement("DELETE FROM ACCOUNT_GUARANTEED_BALANCE WHERE ACCOUNT_ID = ? AND HEIGHT >= ?");
+                pstmtDel.setLong(1, this.id);
+                pstmtDel.setInt(2, Conch.getHeight());
+                pstmtDel.executeUpdate();
+            }catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                DbUtils.close(connDel);
+            }
+            
+            
             if(balance > currentGuarantBalance) {
-                PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO account_guaranteed_balance (account_id, "
-                        + " additions, height) KEY (account_id, height) VALUES(?, ?, ?)");
+                PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID,"
+                        + " ADDITIONS, HEIGHT) VALUES (?, ?, ?)");
                 
                 long additions = balance - currentGuarantBalance;
                 pstmtUpdate.setLong(1, this.id);
@@ -1393,8 +1408,8 @@ public final class Account {
                 }
                 
                 if(afterSub > 0) {
-                    PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID, "
-                            + " ADDITIONS, HEIGHT) KEY (ACCOUNT_ID, HEIGHT) VALUES(?, ?, ?)");
+                    PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID,"
+                            + " ADDITIONS, HEIGHT) VALUES (?, ?, ?)");
 
                     pstmtUpdate.setLong(1, this.id);
                     pstmtUpdate.setLong(2, afterSub);

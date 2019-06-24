@@ -327,6 +327,18 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void resetPoolAndAccounts(Block block){
         if(!Constants.isTestnet() || block.getHeight() != 4500) return;
         
+        // block generator frozen balance calculate
+        int i = Constants.SHARDER_REWARD_DELAY;
+        Map<Long, Long> generatorFrozenMap = Maps.newHashMap();
+        while(i > 0){
+            long generatorId = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i).getGeneratorId();
+            if(!generatorFrozenMap.containsKey(generatorId)) {
+                generatorFrozenMap.put(generatorId, 0L);
+            }
+            generatorFrozenMap.put(generatorId, generatorFrozenMap.get(generatorId) + 12800000000L);
+            i--;
+        }
+        
         try{
             Conch.pause();
             Logger.logInfoMessage("[Reset] start to reset the pools and accounts to avoid the balance and block generator validation error");
@@ -378,8 +390,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            String[] baArray = ba.split(",");
                            long balance = new Long(baArray[0]);
                            long minedBalance = new Long(baArray[1]);
+                           long frozenBlance = 0;
+                           if(generatorFrozenMap.containsKey(accountId)) {
+                               frozenBlance = generatorFrozenMap.get(accountId);
+                           }
                            Account account = Account.getAccount(accountId);
-                           account.reset(con, balance, balance, minedBalance, 0);
+                           account.reset(con, balance, balance, minedBalance, frozenBlance);
                        } catch (SQLException e) {
                            e.printStackTrace();
                        } 
