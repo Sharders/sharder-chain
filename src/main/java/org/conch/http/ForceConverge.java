@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
+import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
@@ -262,7 +263,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
     static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
-    
     public static void switchFork(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         
@@ -308,7 +308,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         if(manualReset && !Generator.isBootNode) {
             Logger.logInfoMessage("Manual to delete the local db");
             manualReset();
-            Conch.storePropertieToFile(PROPERTY_MANUAL_RESET, "false");
         }
         
         // switch fork
@@ -317,13 +316,16 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             switchFork(); // execute immediately once
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
+        
+        // correct the blockchain of Testnet
+        Conch.getBlockchainProcessor().addListener(block -> resetPoolAndAccounts(block), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     }
 
     /**
      * to correct the account balance of Testnet
      */
-    public static void resetPoolAndAccounts(){
-        if(!Constants.isTestnet() || Conch.getHeight() == 4500) return;
+    public static void resetPoolAndAccounts(Block block){
+        if(!Constants.isTestnet() || block.getHeight() != 4500) return;
         
         try{
             Conch.pause();
@@ -339,8 +341,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             });
             PoolDb.saveOrUpdate(poolProcessors);
             Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
-
-
+            
+            // get all accounts
             Map<Long, String> accountMinedBalanceMap = Maps.newHashMap();
             Connection con = null;
             try {
@@ -360,7 +362,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 DbUtils.close(con);
             }
-
+            
+            // reset the all accounts balance
             try {
                 con = Db.db.getConnection();
                 if(accountMinedBalanceMap.size() > 0) {
@@ -374,7 +377,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            long minedBalance = new Long(baArray[1]);
                            Account account = Account.getAccount(accountId);
                            account.reset(con, balance, balance, minedBalance, 0);
-                           
                        } catch (SQLException e) {
                            DbUtils.close(con);
                            throw new RuntimeException(e.toString(), e);
@@ -389,21 +391,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 DbUtils.close(con);
             }
-            Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
-            
-         
-           
-            
-            
-            
-            // Guaranteed balance reset
-            Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
-          
-            
-            
+            Logger.logInfoMessage("[Reset] accounts balance and guaranteed balance finished");
 
-            //Account.getAccount()
-
+            Logger.logInfoMessage("[Reset] write the manual reset property to false into properties file");
+            Conch.storePropertieToFile(PROPERTY_MANUAL_RESET, "false");
         }catch (RuntimeException e) {
             Logger.logErrorMessage("[Reset] reset pools and accounts failed", e);
         }finally {

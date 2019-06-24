@@ -156,7 +156,8 @@ public abstract class PoolTxApi {
 
                 // remain amount of pool
                 long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
-                long remainAmount = minerInvestmentRule[1] - Constants.ONE_SS - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
+                long remainAmount = minerInvestmentRule[1] + SharderPoolProcessor.PLEDGE_AMOUNT 
+                        - Constants.ONE_SS - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
                 if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
                 long minInvestAmount = investmentRule[0] > allowedInvestAmount ? allowedInvestAmount : investmentRule[0];
                 
