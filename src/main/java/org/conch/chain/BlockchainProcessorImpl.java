@@ -191,7 +191,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 peerHasMore = true;
                 final Peer peer = Peers.getWeightedPeer(connectedPublicPeers);
                 if (peer == null) return;
-
+                
                 // [NAT] inject useNATService property to the request params
                 JSONObject request = new JSONObject();
                 request.put("requestType", "getCumulativeDifficulty");
@@ -205,7 +205,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 BigInteger betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
                 if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
-
+                
+                if(Conch.versionCompare(peer.getVersion()) > 0) return;
+                
                 if (response.get("blockchainHeight") != null) {
                     lastBlockchainFeeder = peer;
                     lastBlockchainFeederHeight = ((Long) response.get("blockchainHeight")).intValue();

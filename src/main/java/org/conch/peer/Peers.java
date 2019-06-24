@@ -1363,6 +1363,10 @@ public final class Peers {
             || Constants.isBootNode(peer.getAnnouncedAddress())){
                 return peer;
             }
+            // larger version 
+            if(Conch.versionCompare(peer.getVersion()) <= 0) {
+                return peer;
+            }
         }
         
         if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
