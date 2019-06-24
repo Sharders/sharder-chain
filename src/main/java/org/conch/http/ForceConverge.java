@@ -23,13 +23,17 @@ package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.consensus.poc.db.PoolDb;
+import org.conch.db.Db;
+import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peers;
@@ -44,7 +48,13 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public final class ForceConverge extends APIServlet.APIRequestHandler {
@@ -313,32 +323,89 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
      * to correct the account balance of Testnet
      */
     public static void resetPoolAndAccounts(){
-        if(!Constants.isTestnet() || Conch.getHeight() == 5000) return;
+        if(!Constants.isTestnet() || Conch.getHeight() == 4500) return;
         
         try{
             Conch.pause();
-            Logger.logInfoMessage("start to reset the pools and accounts to avoid the balance and block generator validation error");
+            Logger.logInfoMessage("[Reset] start to reset the pools and accounts to avoid the balance and block generator validation error");
 
             List<SharderPoolProcessor> poolProcessors = PoolDb.list(SharderPoolProcessor.State.DESTROYED.ordinal(), false);
             poolProcessors.forEach(pool -> {
                 try{
                     pool.destroy(Conch.getHeight());
                 }catch (Exception e) {
-                    Logger.logWarningMessage("can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
+                    Logger.logWarningMessage("[Reset] can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
                 }
             });
             PoolDb.saveOrUpdate(poolProcessors);
+            Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
+
+
+            Map<Long, String> accountMinedBalanceMap = Maps.newHashMap();
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM ACCOUNT WHERE LATEST=TRUE ORDER BY HEIGHT ASC");
+
+                ResultSet rs = pstmt.executeQuery();
+               
+                while(rs.next()){
+                    String ba = rs.getLong("BALANCE") + "," + rs.getLong("FORGED_BALANCE");
+                    accountMinedBalanceMap.put(rs.getLong("ID"), ba);
+                }
+
+            } catch (SQLException e) {
+                DbUtils.close(con);
+                throw new RuntimeException(e.toString(), e);
+            } finally {
+                DbUtils.close(con);
+            }
+
+            try {
+                con = Db.db.getConnection();
+                if(accountMinedBalanceMap.size() > 0) {
+                   Set<Long> accountIds = accountMinedBalanceMap.keySet();
+                   for(long accountId : accountIds){
+                       try {
+                           String ba = accountMinedBalanceMap.get(accountId);
+                           if(StringUtils.isEmpty(ba) || !ba.contains(",")) continue;
+                           String[] baArray = ba.split(",");
+                           long balance = new Long(baArray[0]);
+                           long minedBalance = new Long(baArray[1]);
+                           Account account = Account.getAccount(accountId);
+                           account.reset(con, balance, balance, minedBalance, 0);
+                           
+                       } catch (SQLException e) {
+                           DbUtils.close(con);
+                           throw new RuntimeException(e.toString(), e);
+                       } finally {
+                           DbUtils.close(con);
+                       }
+                   }
+                }
+            } catch (SQLException e) {
+                DbUtils.close(con);
+                throw new RuntimeException(e.toString(), e);
+            } finally {
+                DbUtils.close(con);
+            }
+            Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
+            
+         
+           
+            
+            
             
             // Guaranteed balance reset
-            
-            // 
+            Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
+          
             
             
 
             //Account.getAccount()
 
         }catch (RuntimeException e) {
-            Logger.logErrorMessage("reset pools and accounts failed", e);
+            Logger.logErrorMessage("[Reset] reset pools and accounts failed", e);
         }finally {
             Conch.unpause();
         }

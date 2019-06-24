@@ -21,6 +21,7 @@
 
 package org.conch.account;
 
+import com.google.common.collect.Sets;
 import org.conch.Conch;
 import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
@@ -1149,7 +1150,7 @@ public final class Account {
             pstmt.setLong(++i, this.frozenBalanceNQT);
             DbUtils.setLongZeroToNull(pstmt, ++i, this.activeLesseeId);
             pstmt.setBoolean(++i, controls.contains(ControlType.PHASING_ONLY));
-            pstmt.setInt(++i, Conch.getBlockchain().getHeight());
+            pstmt.setInt(++i, Conch.getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -1160,6 +1161,25 @@ public final class Account {
         } else {
             accountTable.insert(this);
         }
+    }
+
+    /**
+     * Don't use this method if you don't know this method's usage:
+     * - reset balance of account
+     * - reset the additions of guarant balance
+     * @param balance
+     * @param unconfirmedBalance
+     * @param forgedBalance
+     * @param frozenBalance
+     */
+    public void reset(Connection con,long balance,long unconfirmedBalance, long forgedBalance, long frozenBalance) throws SQLException {
+        this.balanceNQT = balance;
+        this.unconfirmedBalanceNQT = unconfirmedBalance;
+        this.forgedBalanceNQT = forgedBalance;
+        this.frozenBalanceNQT = frozenBalance;
+        save(con);
+
+        resetGuaranteedBalance(con, this.balanceNQT);
     }
 
     public long getId() {
@@ -1327,8 +1347,69 @@ public final class Account {
         return accountTable.getManyBy(new DbClause.LongClause("active_lessee_id", id), height, 0, -1, " ORDER BY id ASC ");
     }
 
+    private void resetGuaranteedBalance(Connection con, final long balance) {
+        long currentGuarantBalance = getGuaranteedBalanceNQT();
+        Conch.getBlockchain().readLock();
+        try {
+            if(balance > currentGuarantBalance) {
+                PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO account_guaranteed_balance (account_id, "
+                        + " additions, height) KEY (account_id, height) VALUES(?, ?, ?)");
+                
+                long additions = balance - currentGuarantBalance;
+                pstmtUpdate.setLong(1, this.id);
+                pstmtUpdate.setLong(2, additions);
+                pstmtUpdate.setInt(3, Conch.getHeight());
+                pstmtUpdate.executeUpdate();
+            }else {
+                PreparedStatement pstmt = con.prepareStatement("SELECT DB_ID, ADDITIONS "
+                        + "FROM ACCOUNT_GUARANTEED_BALANCE WHERE ACCOUNT_ID = ? AND HEIGHT <= ? ORDER BY HEIGHT DESC");
+                pstmt.setLong(1, this.id);
+                pstmt.setInt(2, Conch.getHeight());
+                long afterSub = currentGuarantBalance;
+                
+                String delIds = "";
+                Set<Long> delList = Sets.newHashSet();
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        long tmp = Math.subtractExact(afterSub, rs.getLong("ADDITIONS"));
+                        
+                        Long dbId = rs.getLong("DB_ID");
+                        delList.add(dbId);
+                        delIds += dbId + ",";
+                        if(tmp > balance) {
+                            afterSub = tmp;
+                        }else{
+                            afterSub = Math.subtractExact(afterSub,balance);
+                            break;
+                        }
+                    }
+                }
+                
+                if(delIds.length() > 1) {
+                    delIds = delIds.substring(0, delIds.length() - 1);
+                    PreparedStatement pstmtUpdate = con.prepareStatement("DELETE FROM ACCOUNT_GUARANTEED_BALANCE WHERE DB_ID IN (" + delIds + ")");
+                    pstmtUpdate.executeUpdate();
+                }
+                
+                if(afterSub > 0) {
+                    PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID, "
+                            + " ADDITIONS, HEIGHT) KEY (ACCOUNT_ID, HEIGHT) VALUES(?, ?, ?)");
+
+                    pstmtUpdate.setLong(1, this.id);
+                    pstmtUpdate.setLong(2, afterSub);
+                    pstmtUpdate.setInt(3, Conch.getHeight());
+                    pstmtUpdate.executeUpdate(); 
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            Conch.getBlockchain().readUnlock();
+        }
+    }
+
     public long getGuaranteedBalanceNQT() {
-        return getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, Conch.getBlockchain().getHeight());
+        return getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, Conch.getHeight());
     }
 
     public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
@@ -1919,7 +2000,7 @@ public final class Account {
         if (amountNQT <= 0) {
             return;
         }
-        int blockchainHeight = Conch.getBlockchain().getHeight();
+        int blockchainHeight = Conch.getHeight();
         Connection con = null;
         try {
             con = Db.db.getConnection();
