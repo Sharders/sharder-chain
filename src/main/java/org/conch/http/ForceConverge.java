@@ -321,9 +321,21 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
             List<SharderPoolProcessor> poolProcessors = PoolDb.list(SharderPoolProcessor.State.DESTROYED.ordinal(), false);
             poolProcessors.forEach(pool -> {
-                pool.destroy(Conch.getHeight());
+                try{
+                    pool.destroy(Conch.getHeight());
+                }catch (Exception e) {
+                    Logger.logWarningMessage("can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
+                }
             });
-            //        Account.getAccount()
+            PoolDb.saveOrUpdate(poolProcessors);
+            
+            // Guaranteed balance reset
+            
+            // 
+            
+            
+
+            //Account.getAccount()
 
         }catch (RuntimeException e) {
             Logger.logErrorMessage("reset pools and accounts failed", e);
