@@ -39,6 +39,9 @@ import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peers;
 import org.conch.tools.ClientUpgradeTool;
+import org.conch.tx.Attachment;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
@@ -327,17 +330,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void resetPoolAndAccounts(Block block){
         if(!Constants.isTestnet() || block.getHeight() != 4500) return;
         
-        // block generator frozen balance calculate
-        int i = Constants.SHARDER_REWARD_DELAY;
-        Map<Long, Long> generatorFrozenMap = Maps.newHashMap();
-        while(i > 0){
-            long generatorId = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i).getGeneratorId();
-            if(!generatorFrozenMap.containsKey(generatorId)) {
-                generatorFrozenMap.put(generatorId, 0L);
-            }
-            generatorFrozenMap.put(generatorId, generatorFrozenMap.get(generatorId) + 12800000000L);
-            i--;
-        }
+
         
         try{
             Conch.pause();
@@ -391,9 +384,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            long balance = new Long(baArray[0]);
                            long minedBalance = new Long(baArray[1]);
                            long frozenBlance = 0;
-                           if(generatorFrozenMap.containsKey(accountId)) {
-                               frozenBlance = generatorFrozenMap.get(accountId);
-                           }
+//                           if(generatorFrozenMap.containsKey(accountId)) {
+//                               frozenBlance = generatorFrozenMap.get(accountId);
+//                           }
                            Account account = Account.getAccount(accountId);
                            account.reset(con, balance, balance, minedBalance, frozenBlance);
                        } catch (SQLException e) {
@@ -407,6 +400,43 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 DbUtils.close(con);
             }
             Logger.logInfoMessage("[Reset] accounts balance and guaranteed balance finished");
+
+
+        
+            try {
+                // block generator frozen balance calculate
+                Db.db.beginTransaction();
+                
+                int i = Constants.SHARDER_REWARD_DELAY;
+                while(i > 0){
+    //                long generatorId = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i).getGeneratorId();
+    //                if(!generatorFrozenMap.containsKey(generatorId)) {
+    //                    generatorFrozenMap.put(generatorId, 0L);
+    //                }
+    //                generatorFrozenMap.put(generatorId, generatorFrozenMap.get(generatorId) + 12800000000L);
+    
+                    Block pastBlock = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i);
+    
+                    for (Transaction transaction : pastBlock.getTransactions()) {
+                        Attachment attachment = transaction.getAttachment();
+                        if(!(attachment instanceof Attachment.CoinBase)) continue;
+    
+                        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+                        if(!coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)) continue;
+    
+                        TransactionType.CoinBase.mintReward(transaction,false);
+                    }
+                    
+                    i--;
+                }
+                Db.db.commitTransaction();
+            } catch (Exception e) {
+                Db.db.rollbackTransaction();
+                throw new RuntimeException(e.toString(), e);
+            } finally {
+                Db.db.endTransaction();
+            }
+            Logger.logInfoMessage("[Reset] block generator and ref consignors's frozen balance update finished");
 
             Logger.logInfoMessage("[Reset] write the manual reset property to false into properties file");
             Conch.storePropertieToFile(PROPERTY_MANUAL_RESET, "false");

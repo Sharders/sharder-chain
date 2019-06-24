@@ -312,7 +312,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                         + totalTime
                                         * (lastBlockchainFeederHeight - blockchain.getHeight())
                                         / ((long) totalBlocks * 1000 * 60)
-                                        + " min left");
+                                        + " min left"
+                                        + " current height "
+                                        + blockchain.getHeight()
+                                        );
                     } else {
                         Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
                     }
