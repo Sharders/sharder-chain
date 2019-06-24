@@ -35,6 +35,12 @@ public abstract class PoolTxApi {
             super(new APITag[]{APITag.FORGING, APITag.CREATE_TRANSACTION}, "period", "rule");
         }
 
+        private static int calPoolPeriod(HttpServletRequest req,Account account, int[] lifeCycleRule) throws ParameterException {
+            if(Constants.isDevnet() && Generator.isBindAddress(account.getRsAddress())) return 100;
+            
+            return Constants.isDevnet() ? 10 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+        }
+
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
@@ -69,8 +75,7 @@ public abstract class PoolTxApi {
             }
 
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 10 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
-//            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = calPoolPeriod(req, account, lifeCycleRule);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
@@ -151,11 +156,12 @@ public abstract class PoolTxApi {
 
                 // remain amount of pool
                 long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
-                long remainAmount = minerInvestmentRule[1] - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
-
+                long remainAmount = minerInvestmentRule[1] + SharderPoolProcessor.PLEDGE_AMOUNT 
+                        - Constants.ONE_SS - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
                 if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
-
-                long amount = ParameterParser.getLong(request, "amount", investmentRule[0], allowedInvestAmount, true);
+                long minInvestAmount = investmentRule[0] > allowedInvestAmount ? allowedInvestAmount : investmentRule[0];
+                
+                long amount = ParameterParser.getLong(request, "amount", minInvestAmount, allowedInvestAmount, true);
 
                 // account balance check
                 if(amount > (account.getBalanceNQT() + account.getUnconfirmedBalanceNQT()) ) {

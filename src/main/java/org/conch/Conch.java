@@ -22,6 +22,7 @@
 package org.conch;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -69,6 +70,7 @@ import org.conch.storage.StorageBackup;
 import org.conch.storage.StorageManager;
 import org.conch.storage.TaggedData;
 import org.conch.storage.tx.StorageTxProcessorImpl;
+import org.conch.tools.ClientUpgradeTool;
 import org.conch.tx.*;
 import org.conch.user.Users;
 import org.conch.util.*;
@@ -470,8 +472,13 @@ public final class Conch {
         }
     }
 
+    public static void storePropertieToFile(String k, String v) {
+        HashMap<String, String> parameters = Maps.newHashMap();
+        parameters.put(k, v);
+        storePropertiesToFile(parameters);
+    }
+    
     public static void storePropertiesToFile(HashMap<String, String> parameters) {
-
         OutputStream output = null;
         Properties userProperties = loadProperties(properties, CONCH_PROPERTIES, false);
         parameters.entrySet().forEach(map -> userProperties.setProperty(map.getKey(), map.getValue()));
@@ -961,7 +968,7 @@ public final class Conch {
 
     public static boolean reachLastKnownBlock(){
         if(Constants.isDevnet() && Generator.isBootNode) return true;
-        int height = Conch.getBlockchain().getHeight();
+        int height = Conch.getHeight();
         if (height < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.printNow(Constants.CONCH_P_reachLastKnownBlock)) {
                 Logger.logDebugMessage("current height %d is less than last known height %s and current state is %s, wait till blocks sync finished..."
@@ -1069,10 +1076,9 @@ public final class Conch {
      */
     public static int versionCompare(String version){
         if(StringUtils.isEmpty(version)) return -1;
-        String currentVer = String.valueOf(VERSION);
         
         Integer verInt = Integer.valueOf(version.replaceAll("\\.", ""));
-        Integer currentVerInt = Integer.valueOf(currentVer.replaceAll("\\.", ""));
+        Integer currentVerInt = Integer.valueOf(VERSION.replaceAll("\\.", ""));
         
         return currentVerInt.compareTo(verInt);
     }
@@ -1087,5 +1093,6 @@ public final class Conch {
         return VERSION + STAGE;
     }
     public static String getVersion(){ return VERSION; }
+    public static String getCosLastUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
 
 }

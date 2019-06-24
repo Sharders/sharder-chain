@@ -77,7 +77,6 @@ public class PocProcessorImpl implements PocProcessor {
                 balanceChangedMap.get(block.getHeight()).clear();
                 balanceChangedMap.remove(block.getHeight());
             }
-
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
         // balance changed event

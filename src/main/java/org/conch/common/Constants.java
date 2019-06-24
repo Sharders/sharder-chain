@@ -241,10 +241,10 @@ public final class Constants {
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
-    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 3; //transaction become effective
+    public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 1; //transaction become effective
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
     public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7; 
-    public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 10);
+    public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 7);
     public static final int SHARDER_POOL_JOIN_CHECK_BLOCK = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
 
     //Coinbase

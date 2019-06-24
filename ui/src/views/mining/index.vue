@@ -365,7 +365,7 @@
                 
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 20,
+                pageSize: 18,
 
                 loading: true
             }
@@ -1025,6 +1025,7 @@
         z-index: 99;
         float: right;
         margin-top: 20px;
+        margin-bottom: 20px;
     }
 
     .mining-paging > div {

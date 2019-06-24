@@ -464,7 +464,7 @@
                     _this.blocklist.splice(0,_this.blocklist.length)
                     _this.blocklist = res.blocks
                     // _this.blocklist = res.blocks
-                    console.info(_this.blocklist);
+                    // console.info(_this.blocklist);
                     // let blocksStr = JSON.stringify(res.blocks);
                     // _this.blocklist = JSON.parse(blocksStr);
                     _this.loading = false;

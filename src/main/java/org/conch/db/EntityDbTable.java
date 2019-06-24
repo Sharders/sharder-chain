@@ -209,7 +209,6 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             i = DbUtils.setLimits(i, pstmt, from, to);
             return getManyBy(con, pstmt, true);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -243,7 +242,6 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             i = DbUtils.setLimits(++i, pstmt, from, to);
             return getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -287,7 +285,6 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             i = DbUtils.setLimits(i, pstmt, from, to);
             return getManyBy(con, pstmt, true);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -306,7 +303,6 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             DbUtils.setLimits(1, pstmt, from, to);
             return getManyBy(con, pstmt, true);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -338,7 +334,6 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             i = DbUtils.setLimits(++i, pstmt, from, to);
             return getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -351,8 +346,9 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
                     + (multiversion ? " WHERE latest = TRUE" : ""));
             return getCount(pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            DbUtils.close(con);
         }
     }
 
@@ -365,8 +361,9 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             dbClause.set(pstmt, 1);
             return getCount(pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -393,8 +390,9 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             }
             return getCount(pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 
@@ -405,8 +403,9 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table);
             return getCount(pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
         }
     }
 

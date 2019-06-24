@@ -114,13 +114,12 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_DATA_TAGGED_DATA_EXTEND = 1;
 
     // sharder-pool
-    private static final byte SUBTYPE_SHARDER_POOL_CREATE = 0;
-    private static final byte SUBTYPE_SHARDER_POOL_DESTROY = 1;
-    private static final byte SUBTYPE_SHARDER_POOL_JOIN = 2;
-    private static final byte SUBTYPE_SHARDER_POOL_QUIT = 3;
+    public static final byte SUBTYPE_SHARDER_POOL_CREATE = 0;
+    public static final byte SUBTYPE_SHARDER_POOL_DESTROY = 1;
+    public static final byte SUBTYPE_SHARDER_POOL_JOIN = 2;
+    public static final byte SUBTYPE_SHARDER_POOL_QUIT = 3;
 
     private static final byte SUBTYPE_COIN_BASE_ORDINARY = 0;
-
     private static final byte SUBTYPE_CONTRACT_ORDINARY = 0;
 
 
@@ -263,7 +262,14 @@ public abstract class TransactionType {
     }
 
 
-    protected TransactionType() {
+    protected TransactionType() {}
+    
+    public boolean isType(byte type){
+        return type == getType();
+    }
+    
+    public boolean isSubType(byte subType){
+        return subType == getSubtype();
     }
 
     public abstract byte getType();
@@ -3439,15 +3445,13 @@ public abstract class TransactionType {
         public static final TransactionType SHARDER_POOL_CREATE = new SharderPool() {
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
-                Attachment.SharderPoolCreate createTx = (Attachment.SharderPoolCreate) tx.getAttachment();
-                SharderPoolProcessor.addProcessingCreateTx(tx.getSenderId(), createTx, tx.getId());
+                SharderPoolProcessor.addProcessingCreateTx(tx.getSenderId(), tx.getId());
                 return true;
             }
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction tx, Account senderAccount) {
-                Attachment.SharderPoolCreate v = (Attachment.SharderPoolCreate) tx.getAttachment();
-                SharderPoolProcessor.delProcessingCreateTx(tx.getSenderId());
+                SharderPoolProcessor.delProcessingCreateTx(tx.getSenderId(), tx.getId());
             }
 
             @Override
@@ -3461,12 +3465,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion)  {
                 return new Attachment.SharderPoolCreate(buffer, transactionVersion);
             }
 
             @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData)  {
                 return new Attachment.SharderPoolCreate(attachmentData);
             }
 
@@ -3478,9 +3482,6 @@ public abstract class TransactionType {
             @Override
             public void validateAttachment(Transaction tx) throws ConchException.ValidationException {
                 Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
-                if(SharderPoolProcessor.hasProcessingCreateTx(tx.getSenderId()) != -1){
-                    throw new ConchException.NotValidException("Has a Create Pool tx[%d] be processing, wait for tx confirmed", tx.getId());
-                }
                 
                 if (!PoolRule.validateRule(tx.getSenderId(), PoolRule.mapToJsonObject(create.getRule()))) {
                     throw new ConchException.NotValidException("pool[id=%d, creator id=%s] rule not matched", tx.getId(), Account.rsAccount(tx.getSenderId()));
@@ -3488,15 +3489,16 @@ public abstract class TransactionType {
             }
 
             @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction tx, Account senderAccount, Account recipientAccount) {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
-                Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) transaction.getAttachment();
-                SharderPoolProcessor miningPool = SharderPoolProcessor.createSharderPool(senderAccount.getId(), transaction.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
+                Attachment.SharderPoolCreate create = (Attachment.SharderPoolCreate) tx.getAttachment();
+                SharderPoolProcessor miningPool = SharderPoolProcessor.createSharderPool(senderAccount.getId(), tx.getId(), curHeight + Constants.SHARDER_POOL_DELAY,
                         curHeight + Constants.SHARDER_POOL_DELAY + create.getPeriod(),
                         PoolRule.getRuleInstance(senderAccount.getId(), PoolRule.mapToJsonObject(create.getRule())));
                 if(miningPool == null) {
-                    Logger.logWarningMessage("current pool creation tx[id=%d, height=%d] be ignored, maybe this account already has a working pool or something is wrong", transaction.getId(), transaction.getHeight());
+                    Logger.logWarningMessage("current pool creation tx[id=%d, height=%d] failed. Ignored it maybe this account already has a working pool or something is wrong", tx.getId(), tx.getHeight());
                 }
+                SharderPoolProcessor.delProcessingCreateTx(tx.getSenderId(), tx.getId());
                 senderAccount.pocChanged();
             }
 
@@ -3532,12 +3534,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
                 return new Attachment.SharderPoolDestroy(buffer, transactionVersion);
             }
 
             @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData)  {
                 return new Attachment.SharderPoolDestroy(attachmentData);
             }
 
@@ -3550,10 +3552,6 @@ public abstract class TransactionType {
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
 
-                if(SharderPoolProcessor.hasProcessingDestroyTx(destroy.getPoolId()) != -1){
-                    throw new ConchException.NotValidException("Has a Destroy Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
-                }
-                
                 SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
                 if (forgePool == null) {
                     Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
@@ -3579,7 +3577,8 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                miningPool.destroySharderPool(curHeight);
+                miningPool.destroyAndRecord(curHeight);
+                SharderPoolProcessor.delProcessingDestroyTx(miningPool.getPoolId());
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 
@@ -3621,12 +3620,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
                 return new Attachment.SharderPoolJoin(buffer, transactionVersion);
             }
 
             @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData)  {
                 return new Attachment.SharderPoolJoin(attachmentData);
             }
 
@@ -3682,7 +3681,6 @@ public abstract class TransactionType {
                 Attachment.SharderPoolJoin forgePoolJoin = (Attachment.SharderPoolJoin) transaction.getAttachment();
                 long amountNQT = forgePoolJoin.getAmount();
                 long poolId = forgePoolJoin.getPoolId();
-                long txId = transaction.getId();
                 // balance be subtracted in org.conch.tx.TransactionType.SharderPool.attachmentApplyUnconfirmed
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
                 if(miningPool != null) {
@@ -3724,12 +3722,12 @@ public abstract class TransactionType {
             }
 
             @Override
-            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
                 return new Attachment.SharderPoolQuit(buffer, transactionVersion);
             }
 
             @Override
-            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) {
                 return new Attachment.SharderPoolQuit(attachmentData);
             }
 
@@ -3737,10 +3735,6 @@ public abstract class TransactionType {
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 int curHeight = Conch.getHeight();
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) transaction.getAttachment();
-                
-                if(SharderPoolProcessor.hasProcessingQuitTx(quit.getTxId()) != -1){
-                    throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", transaction.getId());
-                }
                 
                 long poolId = quit.getPoolId();
                 SharderPoolProcessor sharderPool = SharderPoolProcessor.getPool(poolId);
@@ -3765,19 +3759,19 @@ public abstract class TransactionType {
 
             @Override
             public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-                Attachment.SharderPoolQuit sharderPoolQuit = (Attachment.SharderPoolQuit) transaction.getAttachment();
-                long poolId = sharderPoolQuit.getPoolId();
-                SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+                Attachment.SharderPoolQuit quitTx = (Attachment.SharderPoolQuit) transaction.getAttachment();
+                
+                SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(quitTx.getPoolId());
                 if (miningPool == null) {
-                    Logger.logWarningMessage("sharder pool " + poolId + " doesn't exists, ignore this tx[id=%d]", transaction.getId());
+                    Logger.logWarningMessage("sharder pool " + quitTx.getPoolId() + " doesn't exists, ignore this tx[id=%d]", transaction.getId());
                     return;
                 }
 
-                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), sharderPoolQuit.getTxId());
+                long amountNQT = miningPool.quitConsignor(senderAccount.getId(), quitTx.getTxId());
                 if (amountNQT > 0) {
                     senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
                 }
-                SharderPoolProcessor.delProcessingQuitTx(sharderPoolQuit.getTxId());
+                SharderPoolProcessor.delProcessingQuitTx(quitTx.getTxId());
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }
 

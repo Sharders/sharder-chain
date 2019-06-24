@@ -98,7 +98,6 @@ public final class CurrencyTransfer {
             DbUtils.setLimits(++i, pstmt, from, to);
             return currencyTransferTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -119,7 +118,6 @@ public final class CurrencyTransfer {
             DbUtils.setLimits(++i, pstmt, from, to);
             return currencyTransferTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
