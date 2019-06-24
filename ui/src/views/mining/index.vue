@@ -1025,6 +1025,7 @@
         z-index: 99;
         float: right;
         margin-top: 20px;
+        margin-bottom: 20px;
     }
 
     .mining-paging > div {
