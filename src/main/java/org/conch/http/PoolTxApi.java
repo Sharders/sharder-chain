@@ -35,6 +35,12 @@ public abstract class PoolTxApi {
             super(new APITag[]{APITag.FORGING, APITag.CREATE_TRANSACTION}, "period", "rule");
         }
 
+        private static int calPoolPeriod(HttpServletRequest req,Account account, int[] lifeCycleRule) throws ParameterException {
+            if(Constants.isDevnet() && Generator.isBindAddress(account.getRsAddress())) return 100;
+            
+            return Constants.isDevnet() ? 10 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+        }
+
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
             Account account = ParameterParser.getSenderAccount(req);
@@ -69,8 +75,7 @@ public abstract class PoolTxApi {
             }
 
             int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = Constants.isDevnet() ? 10 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
-//            int period = Constants.isDevnet() ? 5 : ParameterParser.getInt(req, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+            int period = calPoolPeriod(req, account, lifeCycleRule);
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");

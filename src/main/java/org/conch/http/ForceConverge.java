@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
+import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.mint.Generator;
 import org.conch.peer.Peers;
@@ -236,7 +237,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Conch.pause();
             
             Logger.logDebugMessage("start to reset the blockchain");
-//            Conch.getBlockchainProcessor().fullReset();
             FileUtil.deleteDbFolder();
             FileUtil.clearAllLogs();
             
@@ -245,28 +245,20 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }finally {
             Conch.unpause();
         }
-    
     }
     
-    static boolean reset = false;
+
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
-    public static void writeForkNameIntoPropertiesFile(){
-        Conch.storePropertieToFile(PROPERTY_FORK_NAME, "Giant");
-    }
+    static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
     
     public static void switchFork(){
-//        if(!Constants.isTestnet() || Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         
         Logger.logInfoMessage("Start to switch the fork to Giant");
         String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
-            if(!reset) {
-                manualReset();
-                Logger.logDebugMessage("pause the blockchain till fork switched...");
-                Conch.pause();
-                reset = true;
-            }
+            Logger.logDebugMessage("pause the blockchain till fork switched...");
+            Conch.pause();
         }else{
             Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
             return;
@@ -291,23 +283,37 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         boolean unpause = !cmdObj.getBooleanValue(Command.PAUSE_SYNC.val());
         if(unpause) {
             Conch.unpause();
-            writeForkNameIntoPropertiesFile();
+            // writeForkNameIntoPropertiesFile
+            Conch.storePropertieToFile(PROPERTY_FORK_NAME, "Giant");
             Logger.logInfoMessage("Switch to fork Giant successfully, start to syncing blocks...");
         }
     }
     
     public static void init() {
-        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        
-        if(Conch.versionCompare("0.1.7") <= 0 && !Generator.isBootNode) {
-            Logger.logInfoMessage("Manual to delete the local db when cos version <= 0.1.7");
+        // manual reset
+        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
+        boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
+        if(manualReset && !Generator.isBootNode) {
+            Logger.logInfoMessage("Manual to delete the local db");
             manualReset();
+            Conch.storePropertieToFile(PROPERTY_MANUAL_RESET, "false");
         }
         
+        // switch fork
+        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
         if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)){
             switchFork(); // execute immediately once
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
+    }
+
+    /**
+     * to correct the account balance of Testenet
+     */
+    public static void resetAllAccounts(){
+        if(!Constants.isTestnet() && !Conch.getBlockchainProcessor().isUpToDate()) return;
+            
+//        Account.getAccount()
     }
 
     private static final Runnable switchForkThread = () -> {
