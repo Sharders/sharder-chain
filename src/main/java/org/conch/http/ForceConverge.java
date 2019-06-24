@@ -332,15 +332,17 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Logger.logInfoMessage("[Reset] start to reset the pools and accounts to avoid the balance and block generator validation error");
 
             List<SharderPoolProcessor> poolProcessors = PoolDb.list(SharderPoolProcessor.State.DESTROYED.ordinal(), false);
-            poolProcessors.forEach(pool -> {
+            int successCount = 0;
+            for(SharderPoolProcessor pool : poolProcessors){
                 try{
                     pool.destroy(Conch.getHeight());
+                    successCount++;
                 }catch (Exception e) {
                     Logger.logWarningMessage("[Reset] can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
                 }
-            });
+            }
             PoolDb.saveOrUpdate(poolProcessors);
-            Logger.logInfoMessage("[Reset] all pools be destroyed[size=" + poolProcessors.size() + "]");
+            Logger.logInfoMessage("[Reset] all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
             
             // get all accounts
             Map<Long, String> accountMinedBalanceMap = Maps.newHashMap();
@@ -357,7 +359,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 }
 
             } catch (SQLException e) {
-                DbUtils.close(con);
                 throw new RuntimeException(e.toString(), e);
             } finally {
                 DbUtils.close(con);
@@ -378,15 +379,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            Account account = Account.getAccount(accountId);
                            account.reset(con, balance, balance, minedBalance, 0);
                        } catch (SQLException e) {
-                           DbUtils.close(con);
-                           throw new RuntimeException(e.toString(), e);
-                       } finally {
-                           DbUtils.close(con);
-                       }
+                           e.printStackTrace();
+                       } 
                    }
                 }
             } catch (SQLException e) {
-                DbUtils.close(con);
                 throw new RuntimeException(e.toString(), e);
             } finally {
                 DbUtils.close(con);

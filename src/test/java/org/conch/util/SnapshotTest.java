@@ -115,7 +115,6 @@ public class SnapshotTest {
             System.out.println(transferRecords);
             System.out.println(transferJson);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         } finally {
             DbUtils.close(con);

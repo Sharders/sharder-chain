@@ -256,7 +256,6 @@ public final class PhasingPoll extends AbstractPoll {
             pstmt.setInt(1, height);
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -282,14 +281,12 @@ public final class PhasingPoll extends AbstractPoll {
 
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
 
     public static DbIterator<TransactionImpl> getHoldingPhasedTransactions(long holdingId, VoteWeighting.VotingModel votingModel,
                                                                            long accountId, boolean withoutWhitelist, int from, int to) {
-
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -314,7 +311,6 @@ public final class PhasingPoll extends AbstractPoll {
 
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -337,7 +333,6 @@ public final class PhasingPoll extends AbstractPoll {
 
             return BlockchainImpl.getInstance().getTransactions(con, pstmt);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }

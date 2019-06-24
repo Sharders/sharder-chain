@@ -943,7 +943,6 @@ public final class Account {
             pstmt.setInt(++i, height);
             return accountLeaseTable.getManyBy(con, pstmt, true);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -1349,6 +1348,8 @@ public final class Account {
 
     private void resetGuaranteedBalance(Connection con, final long balance) {
         long currentGuarantBalance = getGuaranteedBalanceNQT();
+        if(currentGuarantBalance == balance) return;
+        
         Conch.getBlockchain().readLock();
         try {
             if(balance > currentGuarantBalance) {

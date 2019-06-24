@@ -274,7 +274,6 @@ public final class Shuffling {
             DbUtils.setLimits(++i, pstmt, from, to);
             return shufflingTable.getManyBy(con, pstmt, false);
         } catch (SQLException e) {
-            DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
         }
     }
