@@ -3577,7 +3577,7 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                miningPool.destroySharderPool(curHeight);
+                miningPool.destroyAndRecord(curHeight);
                 SharderPoolProcessor.delProcessingDestroyTx(miningPool.getPoolId());
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();
             }

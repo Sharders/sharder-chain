@@ -29,7 +29,9 @@ import org.conch.chain.Block;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.consensus.poc.db.PoolDb;
 import org.conch.mint.Generator;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peers;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.FileUtil;
@@ -308,12 +310,26 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
 
     /**
-     * to correct the account balance of Testenet
+     * to correct the account balance of Testnet
      */
-    public static void resetAllAccounts(){
-        if(!Constants.isTestnet() && !Conch.getBlockchainProcessor().isUpToDate()) return;
-            
-//        Account.getAccount()
+    public static void resetPoolAndAccounts(){
+        if(!Constants.isTestnet() || Conch.getHeight() == 5000) return;
+        
+        try{
+            Conch.pause();
+            Logger.logInfoMessage("start to reset the pools and accounts to avoid the balance and block generator validation error");
+
+            List<SharderPoolProcessor> poolProcessors = PoolDb.list(SharderPoolProcessor.State.DESTROYED.ordinal(), false);
+            poolProcessors.forEach(pool -> {
+                pool.destroy(Conch.getHeight());
+            });
+            //        Account.getAccount()
+
+        }catch (RuntimeException e) {
+            Logger.logErrorMessage("reset pools and accounts failed", e);
+        }finally {
+            Conch.unpause();
+        }
     }
 
     private static final Runnable switchForkThread = () -> {

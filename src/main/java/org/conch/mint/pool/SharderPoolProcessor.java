@@ -239,7 +239,7 @@ public class SharderPoolProcessor implements Serializable {
                 if(pool.startBlockNo <= removeHeight
                     && removeMap.get(removeHeight).contains(pool.creatorId)) {
                     try{
-                        pool.destroySharderPool(removeHeight);
+                        pool.destroyAndRecord(removeHeight);
                         removePoolId.add(pool.poolId);
                     }catch(Exception e){
                         Logger.logDebugMessage("destroy dirty mining pool [id=%d, account=%s] at height [%d] failed caused by [%s], ignore and continue to do next one", 
@@ -255,29 +255,34 @@ public class SharderPoolProcessor implements Serializable {
         
         return true;
     }
-
     
-    /**
-     * - set the attributes of pool
-     * - calculate and reset the ref balances of pool owner and joiners
-     * @param height
-     */
-    public void destroySharderPool(int height) {
+    public void destroy(int height){
         state = State.DESTROYED;
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
-        
+
         creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
         power -= PLEDGE_AMOUNT;
 
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
             if (amount <= 0) continue;
-            
+
             power -= amount;
             Account account = Account.getAccount(consignor.getId());
             account.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -amount);
         }
+    }
+
+    
+    /**
+     * - set the attributes of pool
+     * - calculate and reset the ref balances of pool owner and joiners
+     * - update the records
+     * @param height
+     */
+    public void destroyAndRecord(int height) {
+        destroy(height);
 
         if (startBlockNo > endBlockNo) {
             sharderPools.remove(poolId);
@@ -292,7 +297,7 @@ public class SharderPoolProcessor implements Serializable {
             destroyedPools.put(creatorId, destroy);
             sharderPools.remove(poolId);
         }
-        Logger.logDebugMessage("destroy mining pool [id=" + poolId + ", creator=" + creator.getRsAddress() + "]");
+        Logger.logDebugMessage("destroy mining pool [id=%d, creator=%s,height=%d]", poolId, Account.rsAccount(creatorId), height);
     }
 
     public void addOrUpdateConsignor(long id, long txId, int startBlockNo, int endBlockNo, long amount) {
@@ -436,11 +441,11 @@ public class SharderPoolProcessor implements Serializable {
             //pool will be destroyed automatically when it has nobody join
             if (sharderPool.consignors.size() == 0 
                 && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
-                sharderPool.destroySharderPool(height);
+                sharderPool.destroyAndRecord(height);
                 continue;
             }
             if (sharderPool.endBlockNo <= height) {
-                sharderPool.destroySharderPool(sharderPool.endBlockNo);
+                sharderPool.destroyAndRecord(sharderPool.endBlockNo);
                 continue;
             }
             
