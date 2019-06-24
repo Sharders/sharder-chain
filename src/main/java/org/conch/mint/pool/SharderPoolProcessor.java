@@ -540,7 +540,10 @@ public class SharderPoolProcessor implements Serializable {
         }
     }
     
-    private static void instFromDB(){
+    public static void instFromDB(){
+        sharderPools.clear();
+        destroyedPools.clear();
+        
         List<SharderPoolProcessor> poolProcessors = PoolDb.list(State.DESTROYED.ordinal(), false);
         poolProcessors.forEach(pool -> {
             sharderPools.put(pool.poolId, pool);
