@@ -125,10 +125,13 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     
-    public static boolean addProcessingQuitTx(Attachment.SharderPoolQuit quitTx, long txId){
-        if(processingQuitTxMap.containsKey(quitTx.getTxId())) return false;
+    public static boolean addProcessingQuitTx(long relatedJoinTxId, long txId){
+        if(processingQuitTxMap.containsKey(relatedJoinTxId) 
+            && processingQuitTxMap.get(relatedJoinTxId) != -1) {
+            return false;
+        }
 
-        processingQuitTxMap.put(quitTx.getTxId(), txId);
+        processingQuitTxMap.put(relatedJoinTxId, txId);
         return true;
     }
 
@@ -143,7 +146,10 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static boolean addProcessingCreateTx(long creatorId, long txId){
-        if(processingCreateTxMap.containsKey(creatorId)) return false;
+        if(processingCreateTxMap.containsKey(creatorId)
+            && processingCreateTxMap.get(creatorId) != -1) {
+            return false;
+        }
 
         processingCreateTxMap.put(creatorId, txId);
         return true;
@@ -161,10 +167,13 @@ public class SharderPoolProcessor implements Serializable {
         return processingCreateTxMap.containsKey(creatorId) ? processingCreateTxMap.get(creatorId) : -1;
     }
 
-    public static boolean addProcessingDestroyTx(Attachment.SharderPoolDestroy tx, long txId){
-        if(processingDestroyTxMap.containsKey(tx.getPoolId())) return false;
+    public static boolean addProcessingDestroyTx(long poolId, long txId){
+        if(processingDestroyTxMap.containsKey(poolId)
+            && processingDestroyTxMap.get(poolId) != -1) {
+            return false;
+        }
 
-        processingDestroyTxMap.put(tx.getPoolId(), txId);
+        processingDestroyTxMap.put(poolId, txId);
         return true;
     }
 
@@ -299,19 +308,31 @@ public class SharderPoolProcessor implements Serializable {
         }
         Logger.logDebugMessage("destroy mining pool [id=%d, creator=%s,height=%d]", poolId, Account.rsAccount(creatorId), height);
     }
+    
+    public boolean consignorHasTx(long accountId, long txId){
+        
+        if (!consignors.containsKey(accountId)) return false;
+        
+        Consignor consignor = consignors.get(accountId);
+        return consignor.hasTx(txId);
+    }
 
-    public void addOrUpdateConsignor(long id, long txId, int startBlockNo, int endBlockNo, long amount) {
-        if (consignors.containsKey(id)) {
-            Consignor consignor = consignors.get(id);
+    public void addOrUpdateConsignor(long accountId, long txId, int startBlockNo, int endBlockNo, long amount) {
+        if (consignors.containsKey(accountId)) {
+            Consignor consignor = consignors.get(accountId);
+            if(consignor.hasTx(txId)) {
+                Logger.logDebugMessage("the tx[id=%d] of this account " + accountId + " already joined this mining pool", txId);
+                return;
+            }
             consignor.addTransaction(txId, startBlockNo, endBlockNo, amount);
             power += amount;
         } else {
-            Consignor consignor = new Consignor(id, txId, startBlockNo, endBlockNo, amount);
-            consignors.put(id, consignor);
+            Consignor consignor = new Consignor(accountId, txId, startBlockNo, endBlockNo, amount);
+            consignors.put(accountId, consignor);
             power += amount;
             number++;
         }
-        Logger.logDebugMessage(id + " join in mining pool " + poolId);
+        Logger.logDebugMessage("account " + accountId + " join in mining pool " + poolId);
     }
 
     public long quitConsignor(long id, long txId) {
@@ -348,7 +369,8 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public boolean hasSenderAndTransaction(long senderId, long txId) {
-        if (consignors.containsKey(senderId) && consignors.get(senderId).hasTransaction(txId)) {
+        if (consignors.containsKey(senderId) 
+            && consignors.get(senderId).hasTx(txId)) {
             return true;
         } else {
             return false;
@@ -568,10 +590,10 @@ public class SharderPoolProcessor implements Serializable {
                        addProcessingCreateTx(tx.getSenderId(),tx.getId());
                     } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_DESTROY)) {
                         Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
-                        addProcessingDestroyTx(destroy, tx.getId());
+                        addProcessingDestroyTx(destroy.getPoolId(), tx.getId());
                     } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)) {
                         Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
-                        addProcessingQuitTx(quit,  tx.getId());
+                        addProcessingQuitTx(quit.getTxId(),  tx.getId());
                     }
                 }
             });

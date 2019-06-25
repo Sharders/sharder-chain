@@ -50,6 +50,7 @@ public abstract class PoolTxApi {
             if(txId != -1){
                 throw new ConchException.NotValidException("Account %s has a Create Pool tx[%d] be processing, wait for tx confirmed", account.getRsAddress(), txId);
             }
+            SharderPoolProcessor.addProcessingCreateTx(account.getId(), -1);
             
             if (!Conch.getPocProcessor().isCertifiedPeerBind(account.getId(), currentHeight) && !Constants.isDevnet()) {
                 String errorDetail = "Can't create a mining pool, because account " + account.getRsAddress() + " is not linked to a certified peer";
@@ -105,6 +106,7 @@ public abstract class PoolTxApi {
             if(txId != -1){
                 throw new ConchException.NotValidException("Account %s has a Destroy Pool tx[%d] of pool[%d] be processing, wait for tx confirmed", account.getRsAddress(), txId, poolId);
             }
+            SharderPoolProcessor.addProcessingDestroyTx(poolId, -1);
             
             Attachment attachment = new Attachment.SharderPoolDestroy(poolId);
             return createTransaction(request, account, 0, 0, attachment);
@@ -128,6 +130,7 @@ public abstract class PoolTxApi {
             if(txId != -1){
                 throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", txId);
             }
+            SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
             
             Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
             JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);

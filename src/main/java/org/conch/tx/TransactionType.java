@@ -60,8 +60,8 @@ import java.util.Map;
 
 public abstract class TransactionType {
 
-    private static final byte TYPE_PAYMENT = 0;
-    private static final byte TYPE_MESSAGING = 1;
+    public static final byte TYPE_PAYMENT = 0;
+    public static final byte TYPE_MESSAGING = 1;
     private static final byte TYPE_COLORED_COINS = 2;
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
@@ -443,6 +443,8 @@ public abstract class TransactionType {
 
         @Override
         public final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            // transfer be processed in: org.conch.tx.TransactionType.apply
+            
             // exception processing
             if (recipientAccount == null) {
                 Account.getAccount(SharderGenesis.KEEPER_ID).addBalanceAddUnconfirmed(getLedgerEvent(),
@@ -3519,7 +3521,7 @@ public abstract class TransactionType {
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
-                SharderPoolProcessor.addProcessingDestroyTx(destroy,tx.getId());
+                SharderPoolProcessor.addProcessingDestroyTx(destroy.getPoolId(),tx.getId());
                 return true;
             }
 
@@ -3645,7 +3647,12 @@ public abstract class TransactionType {
                     return;
 //                    throw new ConchException.NotValidException("Can't process join tx[tx id=%d] caused by pool doesn't exists[pool id=%d], maybe PoolCreateTx haven't executed" , transaction.getId(),join.getPoolId());
                 }
-                
+
+                if(pool.consignorHasTx(transaction.getSenderId(), transaction.getId())){
+                    Logger.logWarningMessage("The tx[id=%d] of this account %d already joined this mining pool", transaction.getId(), transaction.getSenderId());
+                    return;
+                }
+
                 int poolStartHeight = pool.getStartBlockNo();
                 int poolEndHeight = pool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > poolEndHeight) {
@@ -3707,7 +3714,7 @@ public abstract class TransactionType {
             @Override
             public boolean attachmentApplyUnconfirmed(Transaction tx, Account senderAccount) {
                 Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
-                SharderPoolProcessor.addProcessingQuitTx(quit,tx.getId());
+                SharderPoolProcessor.addProcessingQuitTx(quit.getTxId(),tx.getId());
                 return true;
             }
 

@@ -293,7 +293,7 @@
                         <div class="pool-bth">
                             <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}
                             </button>
-                            <button class="immediately-create" @click="createPool()">{{$t('mining.index.create_now')}}
+                            <button class="immediately-create" :loading="btnLoading" @click="createPool()">{{$t('mining.index.create_now')}}
                             </button>
                         </div>
                     </div>
@@ -367,7 +367,8 @@
                 totalSize: 0,
                 pageSize: 18,
 
-                loading: true
+                loading: true,
+                btnLoading: false
             }
         },
         mounted() {
@@ -450,6 +451,7 @@
             },
             createPool() {
                 let _this = this;
+                
                 if (SSO.downloadingBlockchain) {
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
@@ -458,7 +460,7 @@
                     _this.isVisible('isCreatePool');
                     return _this.$message.info(_this.$t('notification.insufficient_permissions'));
                 }
-
+                _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.rule.rule.totalBlocks.max,
                     secretPhrase: SSO.secretPhrase,
@@ -481,8 +483,10 @@
                         _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
                         _this.$global.optHeight.create = _this.newestBlock.height;
+                        _this.btnLoading = false;
                     } else {
                         _this.$message.error(res.errorDescription);
+                        _this.btnLoading = false;
                     }
                 });
             },
