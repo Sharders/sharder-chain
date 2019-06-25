@@ -325,7 +325,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     
-    private static final int RESET_HEIGHT = 4500;
+    private static final int RESET_HEIGHT = 4740;
     /**
      * to correct the account balance of Testnet
      */
