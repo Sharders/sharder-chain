@@ -293,7 +293,7 @@
                         <div class="pool-bth">
                             <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}
                             </button>
-                            <button class="immediately-create" :loading="btnLoading" @click="createPool()">{{$t('mining.index.create_now')}}
+                            <button class="immediately-create" v-loading="btnLoading" :disabled="btnLoading" @click="createPool()">{{$t('mining.index.create_now')}}
                             </button>
                         </div>
                     </div>

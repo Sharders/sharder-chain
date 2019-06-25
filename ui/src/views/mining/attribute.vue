@@ -142,7 +142,7 @@
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" :loading="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
@@ -178,7 +178,7 @@
                                 :label="$t('mining.attribute.exit_pool')"
                                 width="80">
                             <template slot-scope="scope">
-                                <el-button class="confirm" :loading="btnLoading" @click="miningExit(scope.row,scope.$index)" type="text" size="small">{{$t('mining.attribute.confirm')}}</el-button>
+                                <el-button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningExit(scope.row,scope.$index)" type="text" size="small">{{$t('mining.attribute.confirm')}}</el-button>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -194,7 +194,7 @@
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}
                     </button>
-                    <button class="confirm" :loading="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</button>
                 </p>
             </div>
         </div>
