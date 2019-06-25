@@ -323,12 +323,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         // correct the blockchain of Testnet
         Conch.getBlockchainProcessor().addListener(block -> resetPoolAndAccounts(block), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     }
-
+    
+    
+    private static final int RESET_HEIGHT = 4740;
     /**
      * to correct the account balance of Testnet
      */
     public static void resetPoolAndAccounts(Block block){
-        if(!Constants.isTestnet() || block.getHeight() != 4500) return;
+        if(!Constants.isTestnet() || block.getHeight() != RESET_HEIGHT) return;
         
         try{
             Conch.pause();
