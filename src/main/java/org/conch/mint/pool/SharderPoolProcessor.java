@@ -335,22 +335,22 @@ public class SharderPoolProcessor implements Serializable {
         Logger.logDebugMessage("account " + accountId + " join in mining pool " + poolId);
     }
 
-    public long quitConsignor(long id, long txId) {
-        if (!consignors.containsKey(id)) {
-            Logger.logErrorMessage("mining pool:" + poolId + " don't have this consignor:" + id);
+    public long quitConsignor(long accountId, long txId) {
+        if (!consignors.containsKey(accountId)) {
+            Logger.logErrorMessage("mining pool:" + poolId + " don't have this consignor:" + accountId);
             return -1;
         }
-        Consignor consignor = consignors.get(id);
+        Consignor consignor = consignors.get(accountId);
         long amount = consignor.getTransactionAmount(txId);
         if (amount == -1) {
-            Logger.logErrorMessage("consignor:" + id + " don't have this tx [id=" + txId + "]");
+            Logger.logErrorMessage("consignor:" + accountId + " don't have this tx [id=" + txId + "]");
             return -1;
         }
         power -= amount;
         if (consignor.removeTransaction(txId)) {
-            consignors.remove(id);
+            consignors.remove(accountId);
             number--;
-            Logger.logDebugMessage("account[id=" + id + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
+            Logger.logDebugMessage("account[id=" + accountId + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
         }
         return amount;
     }
