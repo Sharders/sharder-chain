@@ -174,6 +174,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             try {
                 long startTime = System.currentTimeMillis();
                 int limitConnectedSize = Math.min(1, defaultNumberOfForkConfirmations);
+                Peers.checkOrConnectBootNode();
                 connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
                 int connectedSize = connectedPublicPeers.size();
                 if (connectedSize <= limitConnectedSize) {
