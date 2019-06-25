@@ -325,7 +325,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     
-    private static final int RESET_HEIGHT = 4740;
+    private static final int RESET_HEIGHT = 4500;
     /**
      * to correct the account balance of Testnet
      */
@@ -383,12 +383,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            String[] baArray = ba.split(",");
                            long balance = new Long(baArray[0]);
                            long minedBalance = new Long(baArray[1]);
-                           long frozenBlance = 0;
+                           long frozenBalance = 0;
                            if(block.getGeneratorId() == accountId) {
-                               frozenBlance = 12800000000L;
+                               frozenBalance = 12800000000L;
                            }
                            Account account = Account.getAccount(accountId);
-                           account.reset(con, balance, balance, minedBalance, frozenBlance);
+                           account.reset(con, balance, balance, minedBalance, frozenBalance);
                        } catch (SQLException e) {
                            e.printStackTrace();
                        } 
