@@ -872,6 +872,16 @@ public class SharderPoolProcessor implements Serializable {
     public void clearJoiningAmount() {
         joiningAmount = 0;
     }
+    
+    public void subJoiningAmount(long amount) {
+        if(joiningAmount <= 0) return;
+        
+        if(joiningAmount > amount) {
+            joiningAmount -= amount;
+        }else {
+            joiningAmount = 0;
+        }
+    }
 
     /**
      * whether creator has created a working mine pool
