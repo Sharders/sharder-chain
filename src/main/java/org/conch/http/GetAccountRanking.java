@@ -3,6 +3,7 @@ package org.conch.http;
 
 import org.conch.common.ConchException;
 import org.conch.db.Db;
+import org.conch.db.DbUtils;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -48,17 +49,18 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
      */
     private Object getAccountRanking(int num) {
         num = num > 100 ? 100 : num;
-        Connection con = getConnection();
         Object obj = null;
-        ArrayList<Map<String, Object>> mapList = new ArrayList<>();
+        Connection con = null;
         try {
+            con = Db.db.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT a.ID,a.BALANCE from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc limit ?");
             ps.setInt(1, num);
             obj = result(ps.executeQuery());
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            DbUtils.close(con);
         }
-        commitAndClose(con);
         return obj;
     }
 
@@ -69,46 +71,19 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
      * @return
      */
     private Object getAccountRanking(long account) {
-        Connection con = getConnection();
+        Connection con = null;
         Object obj = null;
         try {
+            con = Db.db.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) as randking from (SELECT * from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc) as ma where ma.BALANCE >= (SELECT a.BALANCE from ACCOUNT as a where a.ID = ? order by a.DB_ID desc limit 1)");
             ps.setLong(1, account);
             obj = result(ps.executeQuery());
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            DbUtils.close(con);
         }
-        commitAndClose(con);
         return obj;
-    }
-
-    /**
-     * 获得数据库连接对象
-     *
-     * @return
-     */
-    private Connection getConnection() {
-        Connection con = null;
-        try {
-            con = Db.db.getConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return con;
-    }
-
-    /**
-     * 提交并关闭当前连接
-     *
-     * @param con
-     */
-    private void commitAndClose(Connection con) {
-        try {
-            con.commit();
-            con.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
