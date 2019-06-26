@@ -316,7 +316,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                         * (lastBlockchainFeederHeight - blockchain.getHeight())
                                         / ((long) totalBlocks * 1000 * 60)
                                         + " min left"
-                                        + " current height "
+                                        + ", current height "
                                         + blockchain.getHeight()
                                         );
                     } else {
