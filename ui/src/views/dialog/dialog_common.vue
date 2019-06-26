@@ -46,7 +46,8 @@
                                               :class="'type' + transactions.type + transactions.subtype"></span>
                                         <span>{{$global.getTransactionTypeStr(transactions)}}</span>
                                     </td>
-                                    <td>{{transactions.amountNQT/100000000}}</td>
+<!--                                    <td>{{transactions.amountNQT/100000000}}</td>-->
+                                    <td>{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
                                     <td>{{$global.getTransactionFeeNQT(transactions)}}</td>
                                     <td class="linker" style="font-size:11px;" @click="checkAccountInfo(transactions.senderRS)">
                                         <span>{{transactions.senderRS}}</span>
@@ -117,7 +118,8 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_amount')}}</th>
-                            <td>{{transactionInfo.amountNQT/100000000}}</td>
+<!--                            <td>{{transactionInfo.amountNQT/100000000}}</td>-->
+                            <td>{{$global.getTransactionAmountNQT(transactionInfo,accountInfo.accountRS)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_info_fee')}}</th>
@@ -191,7 +193,8 @@
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
                             </td>
-                            <td>{{transaction.amountNQT/100000000}}</td>
+<!--                            <td>{{transaction.amountNQT/100000000}}</td>-->
+                            <td>{{$global.getTransactionAmountNQT(transaction,"")}}</td>
                             <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
                             <td v-if="transaction.type === 9">CoinBase</td>
                             <td class="linker" style="font-size:11px;" v-else @click="openAccountInfo(transaction.senderRS)">

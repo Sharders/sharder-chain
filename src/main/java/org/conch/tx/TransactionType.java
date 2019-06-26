@@ -3613,8 +3613,11 @@ public abstract class TransactionType {
 
             @Override
             public void attachmentUndoUnconfirmed(Transaction transaction, Account senderAccount) {
-                long amountNQT = ((Attachment.SharderPoolJoin) transaction.getAttachment()).getAmount();
-                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -amountNQT);
+                Attachment.SharderPoolJoin join =  ((Attachment.SharderPoolJoin) transaction.getAttachment());
+                senderAccount.addFrozenSubBalanceSubUnconfirmed(getLedgerEvent(), transaction.getId(), -join.getAmount());
+                SharderPoolProcessor pool = SharderPoolProcessor.getPool(join.getPoolId());
+                if (pool == null) return;
+                pool.subJoiningAmount(join.getAmount());
             }
 
             @Override

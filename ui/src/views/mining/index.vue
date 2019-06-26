@@ -291,10 +291,8 @@
                             <p>{{$t('mining.index.income_distribution_tip')}}</p>
                         </div>
                         <div class="pool-bth">
-                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}
-                            </button>
-                            <button class="immediately-create" v-loading="btnLoading" :disabled="btnLoading" @click="createPool()">{{$t('mining.index.create_now')}}
-                            </button>
+                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}</button>
+                            <el-button class="immediately-create" v-loading="btnLoading" :disabled="btnLoading" @click="createPool()">{{$t('mining.index.create_now')}}</el-button>
                         </div>
                     </div>
                 </div>

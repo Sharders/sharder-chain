@@ -142,7 +142,7 @@
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
+                    <el-button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</el-button>
                 </p>
             </div>
         </div>
@@ -192,9 +192,8 @@
                 <h1 class="title">{{$t('mining.attribute.destroy_pool')}}</h1>
                 <p class="info">{{$t('mining.attribute.destroy_pool_tip')}}</p>
                 <p class="btn">
-                    <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}
-                    </button>
-                    <button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}</button>
+                    <el-button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</el-button>
                 </p>
             </div>
         </div>
@@ -299,10 +298,10 @@
                     _this.$store.state.quitPool[_this.miningInfo.poolId] -= _tx.amount;
                     delete _this.miningInfo.consignor.txs[_index];
                     _this.miningInfo.joinAmount -= _tx.amount;
+                    _this.$store.state.mask = false;
+                    _this.btnLoading = false;
                     _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
-                _this.$store.state.mask = false;
-                _this.btnLoading = false;
             },
             miningDestroy() {
                 let _this = this;

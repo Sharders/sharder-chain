@@ -53,7 +53,8 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
         Connection con = null;
         try {
             con = Db.db.getConnection();
-            PreparedStatement ps = con.prepareStatement("SELECT a.ID,a.BALANCE from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc limit ?");
+            PreparedStatement ps = con.prepareStatement("SELECT a.ID,a.BALANCE from ACCOUNT as a " +
+                    "where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc limit ?");
             ps.setInt(1, num);
             obj = result(ps.executeQuery());
         } catch (SQLException e) {
@@ -75,7 +76,10 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
         Object obj = null;
         try {
             con = Db.db.getConnection();
-            PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) as randking from (SELECT * from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc) as ma where ma.BALANCE >= (SELECT a.BALANCE from ACCOUNT as a where a.ID = ? order by a.DB_ID desc limit 1)");
+            PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) as randking from " +
+                    "(SELECT * from ACCOUNT as a where a.DB_ID in " +
+                    "(select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc) as ma " +
+                    "where ma.BALANCE >= (SELECT a.BALANCE from ACCOUNT as a where a.ID = ? order by a.DB_ID desc limit 1)");
             ps.setLong(1, account);
             obj = result(ps.executeQuery());
         } catch (SQLException e) {
