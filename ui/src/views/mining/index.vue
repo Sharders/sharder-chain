@@ -231,7 +231,7 @@
                     </table>
                     <div class="my-assets">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
-                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
+<!--                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}-->
                     </div>
                 </div>
             </div>
