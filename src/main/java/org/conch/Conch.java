@@ -711,6 +711,7 @@ public final class Conch {
     public static void shutdown() {
         Logger.logShutdownMessage("Shutting down...");
         AddOns.shutdown();
+        SharderPoolProcessor.persistence();
         API.shutdown();
         Users.shutdown();
         FundingMonitor.shutdown();
@@ -718,7 +719,6 @@ public final class Conch {
         BlockchainProcessorImpl.getInstance().shutdown();
         Peers.shutdown();
         Db.shutdown();
-        SharderPoolProcessor.persistence();
         Logger.logShutdownMessage("COS server " + VERSION + " stopped.");
         Logger.shutdown();
         runtimeMode.shutdown();
