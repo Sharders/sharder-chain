@@ -360,8 +360,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     Transaction getUnconfirmedTransaction(DbKey dbKey) {
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             Transaction transaction = transactionCache.get(dbKey);
             if (transaction != null) {
                 return transaction;
@@ -393,8 +393,9 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public UnconfirmedTransaction[] getAllWaitingTransactions() {
         UnconfirmedTransaction[] transactions;
-        BlockchainImpl.getInstance().readLock();
+     
         try {
+            BlockchainImpl.getInstance().readLock();
             transactions = waitingTransactions.toArray(new UnconfirmedTransaction[waitingTransactions.size()]);
         } finally {
             BlockchainImpl.getInstance().readUnlock();
@@ -409,11 +410,12 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
     @Override
     public TransactionImpl[] getAllBroadcastedTransactions() {
-        BlockchainImpl.getInstance().readLock();
+  
         try {
+            Conch.getBlockchain().readLock();
             return broadcastedTransactions.toArray(new TransactionImpl[broadcastedTransactions.size()]);
         } finally {
-            BlockchainImpl.getInstance().readUnlock();
+            Conch.getBlockchain().readUnlock();
         }
     }
 
@@ -799,8 +801,9 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public SortedSet<? extends Transaction> getCachedUnconfirmedTransactions(List<String> exclude) {
         SortedSet<UnconfirmedTransaction> transactionSet = new TreeSet<>(cachedUnconfirmedTransactionComparator);
-        Conch.getBlockchain().readLock();
+      
         try {
+            Conch.getBlockchain().readLock();
             //
             // Initialize the unconfirmed transaction cache if it hasn't been done yet
             //
@@ -843,8 +846,9 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public List<Transaction> restorePrunableData(JSONArray transactions) throws ConchException.NotValidException {
         List<Transaction> processed = new ArrayList<>();
-        Conch.getBlockchain().readLock();
+    
         try {
+            Conch.getBlockchain().readLock();
             Db.db.beginTransaction();
             try {
                 //

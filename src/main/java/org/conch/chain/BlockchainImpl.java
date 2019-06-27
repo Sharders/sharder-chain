@@ -649,8 +649,10 @@ public final class BlockchainImpl implements Blockchain {
         Map<TransactionType, Map<String, Integer>> duplicates = new HashMap<>();
         BlockchainProcessorImpl blockchainProcessor = BlockchainProcessorImpl.getInstance();
         List<TransactionImpl> result = new ArrayList<>();
-        readLock();
+      
         try {
+            readLock();
+            
             if (getHeight() >= Constants.PHASING_BLOCK_HEIGHT) {
                 DbIterator<TransactionImpl> phasedTransactions = null;
                 try {

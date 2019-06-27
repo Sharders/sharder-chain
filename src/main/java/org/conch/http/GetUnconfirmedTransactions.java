@@ -49,8 +49,9 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
         int lastIndex = ParameterParser.getLastIndex(req);
         JSONObject response = new JSONObject();
 
-        Conch.getBlockchain().readLock();
+  
         try{
+            Conch.getBlockchain().readLock();
             JSONArray transactions = new JSONArray();
             if (accountIds.isEmpty()) {
                 DbIterator<? extends Transaction> transactionsIterator = null;

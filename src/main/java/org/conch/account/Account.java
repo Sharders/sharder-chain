@@ -1271,8 +1271,8 @@ public final class Account {
             return 0;
         }
         
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
             if (activeLesseeId == 0) {
                 effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height);
@@ -1350,9 +1350,9 @@ public final class Account {
         long currentGuarantBalance = getGuaranteedBalanceNQT();
         if(currentGuarantBalance == balance) return;
         
-        Conch.getBlockchain().readLock();
+     
         try {
-
+            Conch.getBlockchain().readLock();
             Connection connDel = Db.db.getConnection();
             try{
                 // delete records which the height larger than the current height
@@ -1429,8 +1429,10 @@ public final class Account {
     }
 
     public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
-        Conch.getBlockchain().readLock();
+      
         try {
+            Conch.getBlockchain().readLock();
+            
             int fromHeight = currentHeight - numberOfConfirmations;
             if(fromHeight < 0){
                 fromHeight = 0;

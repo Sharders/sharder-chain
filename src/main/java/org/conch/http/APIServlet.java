@@ -230,10 +230,12 @@ public final class APIServlet extends HttpServlet {
                     ParameterParser.getUnsignedLong(req, "requireBlock", false) : 0;
             final long requireLastBlockId = apiRequestHandler.allowRequiredBlockParameters() ?
                     ParameterParser.getUnsignedLong(req, "requireLastBlock", false) : 0;
-            if (requireBlockId != 0 || requireLastBlockId != 0) {
-                Conch.getBlockchain().readLock();
-            }
+           
             try {
+                if (requireBlockId != 0 || requireLastBlockId != 0) {
+                    Conch.getBlockchain().readLock();
+                }
+                
                 try {
                     if (apiRequestHandler.startDbTransaction()) {
                         Db.db.beginTransaction();

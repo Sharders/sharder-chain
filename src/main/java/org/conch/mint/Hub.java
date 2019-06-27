@@ -88,8 +88,9 @@ public class Hub {
             List<Hit> currentHits = new ArrayList<>();
             long currentLastBlockId;
 
-            BlockchainImpl.getInstance().readLock();
             try {
+                Conch.getBlockchain().readLock();
+                
                 currentLastBlockId = BlockchainImpl.getInstance().getLastBlock().getId();
                 if (currentLastBlockId != block.getId()) {
                     return Collections.emptyList();
@@ -113,7 +114,7 @@ public class Hub {
                     DbUtils.close(hubs);
                 }
             } finally {
-                BlockchainImpl.getInstance().readUnlock();
+                Conch.getBlockchain().readUnlock();
             }
 
             Collections.sort(currentHits);

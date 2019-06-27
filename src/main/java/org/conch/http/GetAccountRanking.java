@@ -5,6 +5,7 @@ import org.conch.common.ConchException;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -24,6 +25,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+        long startMS = System.currentTimeMillis();
         String account = request.getParameter("account");
         String ranking = request.getParameter("ranking");
         JSONObject json = new JSONObject();
@@ -32,22 +34,25 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
             if (account != null) {
                 json.put("data", getAccountRanking(Convert.parseUnsignedLong(account)));
             } else if (ranking != null) {
-                json.put("data", getAccountRanking(Integer.valueOf(ranking)));
+                json.put("data", getRankingList(Integer.valueOf(ranking)));
             }
         } catch (Exception e) {
             e.printStackTrace();
             json.put("success", false);
         }
+        long endMS = System.currentTimeMillis();
+        long between = endMS - startMS;
+        Logger.logInfoMessage("GetAccountRanking Api: %d S, %d MS", between/1000L, between);
         return json;
     }
 
     /**
      * 获得资产最排行
      *
-     * @param num
+     * @param num list size
      * @return
      */
-    private Object getAccountRanking(int num) {
+    private Object getRankingList(int num) {
         num = num > 100 ? 100 : num;
         Object obj = null;
         Connection con = null;

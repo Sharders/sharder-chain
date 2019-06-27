@@ -98,8 +98,8 @@ public class PocDb {
     }
 
     private static String get(long accountId, int height, boolean loadHistory) {
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             if(height < 0) return null;
             
             // close the start height in query 
@@ -154,8 +154,8 @@ public class PocDb {
     public static Map<Long,PocScore>  listAll() {
         Map<Long,PocScore> scoreMap = Maps.newHashMap();
         
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             Connection con = null;
             try {
                 con = Db.db.getConnection();

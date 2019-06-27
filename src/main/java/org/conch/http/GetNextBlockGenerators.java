@@ -80,8 +80,9 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         int limit = Math.max(1, ParameterParser.getInt(req, "limit", 1, Integer.MAX_VALUE, false));
         Blockchain blockchain = Conch.getBlockchain();
-        blockchain.readLock();
+      
         try {
+            blockchain.readLock();
             Block lastBlock = blockchain.getLastBlock();
             response.put("timestamp", lastBlock.getTimestamp());
             response.put("height", lastBlock.getHeight());

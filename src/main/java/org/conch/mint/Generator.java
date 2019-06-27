@@ -418,8 +418,9 @@ public class Generator implements Comparable<Generator> {
     }
 
     public static long getNextHitTime(long lastBlockId, int curTime) {
-        BlockchainImpl.getInstance().readLock();
         try {
+            BlockchainImpl.getInstance().readLock();
+            
             if (lastBlockId == Generator.lastBlockId && sortedMiners != null) {
                 for (Generator generator : sortedMiners) {
                     if (generator.getHitTime() >= curTime - Constants.MINING_DELAY) {

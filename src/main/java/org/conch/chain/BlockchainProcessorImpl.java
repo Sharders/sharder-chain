@@ -1105,8 +1105,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         lastTrimHeight = Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0);
         if (lastTrimHeight > 0) {
             for (DerivedDbTable table : derivedTables) {
-                blockchain.readLock();
+               
                 try {
+                    blockchain.readLock();
                     table.trim(lastTrimHeight);
                     Db.db.commitTransaction();
                 } finally {

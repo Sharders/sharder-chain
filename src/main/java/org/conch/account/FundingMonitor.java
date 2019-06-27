@@ -242,8 +242,10 @@ public final class FundingMonitor {
         //
         FundingMonitor monitor = new FundingMonitor(holdingType, holdingId, property,
                 amount, threshold, interval, accountId, secretPhrase);
-        Conch.getBlockchain().readLock();
+      
         try {
+            Conch.getBlockchain().readLock();
+            
             //
             // Locate monitored accounts based on the account property and the setter identifier
             //

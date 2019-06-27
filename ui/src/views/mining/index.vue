@@ -571,8 +571,8 @@
                     _this.accountInfo = res;
                 });
 
-                _this.getAssetsRanking();
-                _this.getAccountRanking();
+                // _this.getAssetsRanking();
+                // _this.getAccountRanking();
 
             },
             getCoinBase(height) {
