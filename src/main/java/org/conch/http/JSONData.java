@@ -947,7 +947,7 @@ public final class JSONData {
             json.put("signature", Convert.toHexString(signature));
             json.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(signature)));
             json.put("fullHash", transaction.getFullHash());
-            json.put("transaction", transaction.getId());
+            json.put("transaction", transaction.getStringId());
         }
         JSONObject attachmentJSON = new JSONObject();
         if (filter == null) {
@@ -977,6 +977,7 @@ public final class JSONData {
                 
                 String txId = String.valueOf(attachmentJSON.get("txId"));
                 Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
+                attachmentJSON.put("txSId", joinTx.getStringId());
                 if(joinTx != null && joinTx.getAttachment() != null){
                     attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
                 }  

@@ -205,7 +205,7 @@
                                         {{$t('transaction.self')}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 3">
-                                        {{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txId}}
+                                        {{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txSId}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 2">
                                         {{$t('transaction.transaction_type_forge_pool')}}:{{$global.longUnsigned(transaction.attachment.poolId)}}
