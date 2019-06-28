@@ -721,13 +721,25 @@ export default {
      * @returns {string}
      */
     getTransactionAmountNQT(t, accountRS) {
+        let _this = this;
+   
+        let isCreatePoolTx = (t.type === 8 && t.subtype === 0) ? true : false;
+        let isDestroyPoolTx = (t.type === 8 && t.subtype === 1) ? true : false;
         let isJoinPoolTx = (t.type === 8 && t.subtype === 2) ? true : false;
-        let isQuitTx = (t.type === 8 && t.subtype === 3) ? true : false;
-        let amountNQT = new BigNumber((isJoinPoolTx || isQuitTx) ? t.attachment.amount : t.amountNQT).dividedBy("100000000").toFixed();
+        let isQuitPoolTx = (t.type === 8 && t.subtype === 3) ? true : false;
+        
+        let amountNQT = t.amountNQT;
+        if(isJoinPoolTx || isQuitPoolTx){
+            amountNQT = t.attachment.amount
+        }else if(isCreatePoolTx || isDestroyPoolTx){
+            amountNQT = _this.poolPledgeAmount;
+        }
+        
+        amountNQT = new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
-        if (isJoinPoolTx) {
+        if (isJoinPoolTx || isCreatePoolTx) {
             return -amountNQT + this.unit
-        } else if (isQuitTx){
+        } else if (isQuitPoolTx || isDestroyPoolTx){
             return "+" + amountNQT + this.unit
         }else if (amountNQT <= 0) {
             return this.placeholder

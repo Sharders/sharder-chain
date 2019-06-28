@@ -74,7 +74,7 @@ public final class JSONData {
     }
 
     public static JSONObject accountBalance(Account account, boolean includeEffectiveBalance) {
-        return accountBalance(account, includeEffectiveBalance, Conch.getBlockchain().getHeight());
+        return accountBalance(account, includeEffectiveBalance, Conch.getHeight());
     }
 
     static JSONObject accountBalance(Account account, boolean includeEffectiveBalance, int height) {
