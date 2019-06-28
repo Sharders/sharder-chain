@@ -1385,7 +1385,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             
 //            if (Conch.reachLastKnownBlock() && !delayedPocTxsProcessed) {
             if (!delayedOrOldPocTxsProcessed) {
-                Logger.logDebugMessage("should process delayed or old poc txs <= [ height %d ] before accepting blocks, break block pushing till poc txs processed ", Conch.getHeight());
+                Logger.logInfoMessage("should process delayed or old poc txs <= [ height %d ] before accepting blocks, break block pushing till poc txs processed ", Conch.getHeight());
                 return;
             }
 
@@ -1400,7 +1400,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (nextHitTime > 0 && block.getTimestamp() > nextHitTime + 1) {
                     String msg = "Rejecting block " + block.getStringId() + " at height " + previousLastBlock.getHeight() + " block timestamp " + block.getTimestamp() + " next hit time "
                             + nextHitTime + " current time " + curTime;
-                    Logger.logDebugMessage(msg);
+                    Logger.logInfoMessage(msg);
                     Generator.setDelay(-Constants.MINING_SPEEDUP);
                     throw new BlockOutOfOrderException(msg, block);
                 }

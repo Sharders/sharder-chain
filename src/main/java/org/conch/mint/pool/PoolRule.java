@@ -335,9 +335,9 @@ public class PoolRule implements Serializable {
         if(maxRewardRate == null) return result;
         
         // calculate the creator amount
-        long creatorAmount = Math.round(amount * (1 - maxRewardRate));
-        result.put(creator, creatorAmount);
-        long leftAmount = amount - creatorAmount;
+        long poolFees = Float.valueOf(amount * maxRewardRate).longValue();
+        result.put(creator, poolFees);
+        long distributionRewards = amount - poolFees;
         
         // sum the total amount according to investment recording in the map
         long totalInvest = 0;
@@ -346,25 +346,25 @@ public class PoolRule implements Serializable {
         }
         
         BigDecimal totalInvestAmount = BigDecimal.valueOf(totalInvest);
-        BigDecimal remainInvestAmount = new BigDecimal(leftAmount);
+        BigDecimal distributionRewardsAmount = new BigDecimal(distributionRewards);
         // calculate the single investor's rewards
-        long totalReward = 0;
+        long investorTotalRewards = 0;
         for (Long id : investmentMap.keySet()) {
             BigDecimal investAmount = BigDecimal.valueOf(investmentMap.get(id));
             BigDecimal investRate = investAmount.divide(totalInvestAmount,4,BigDecimal.ROUND_DOWN);
             
-            long reward = remainInvestAmount.multiply(investRate).longValue();
+            long rewards = distributionRewardsAmount.multiply(investRate).longValue();
             if (result.containsKey(id)) {
-                result.put(id, result.get(id) + reward);
+                result.put(id, result.get(id) + rewards);
             }else{
-                result.put(id, reward);  
+                result.put(id, rewards);  
             }
-            totalReward += reward;
+            investorTotalRewards += rewards;
         }
 
         // remain amount distribute to creator
-        long remainReward = (amount > totalReward) ? (amount - totalReward) : 0;
-        result.put(creator, result.get(creator) + remainReward);
+        long remainRewards = (distributionRewards > investorTotalRewards) ? (distributionRewards - investorTotalRewards) : 0;
+        result.put(creator, result.get(creator) + remainRewards);
 
         return result;
     }
