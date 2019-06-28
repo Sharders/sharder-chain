@@ -234,7 +234,8 @@
                     level: {}
                 },
                 loading: true,
-                btnLoading: false
+                btnLoading: false,
+                deletingPools: []
             }
         },
         methods: {
@@ -244,14 +245,16 @@
                     return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
                     && typeof(_t.secretPhrase) !== 'undefined' 
                     &&  _t.$global.optHeight.join < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height;
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height 
+                    && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('quit' === btnName) {
                     return typeof(_t.miningInfo.consignor) !== 'undefined' 
                     && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
                     && _t.miningInfo.consignor.txs.length > 0 
                     && typeof(_t.secretPhrase) !== 'undefined' 
                     && _t.$global.optHeight.quit < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height;
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height
+                    && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('destroy' === btnName) {
                     return _t.myAccount === _t.miningInfo.account 
                         && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
@@ -324,6 +327,7 @@
                     _this.btnLoading = false;
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
+                    _this.deletingPools.push(_this.miningInfo.poolId);
                     _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
                     _this.$global.optHeight.destroy = _this.newestBlock.height;
                     return _this.$message.success(_this.$t("mining.attribute.delete_success"));

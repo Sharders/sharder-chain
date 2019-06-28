@@ -640,7 +640,11 @@ public class SharderPoolProcessor implements Serializable {
 
     public static JSONObject getPoolsFromNow(){
         JSONArray array = new JSONArray();
-        sharderPools.values().forEach(pool -> array.add(pool.toJsonObject()));
+        sharderPools.values().forEach(pool -> {
+            if(hasProcessingDestroyTx(pool.getPoolId()) == -1){
+                array.add(pool.toJsonObject()); 
+            }
+        });
         JSONObject json = new JSONObject();
         json.put("pools",array);
         return json;
