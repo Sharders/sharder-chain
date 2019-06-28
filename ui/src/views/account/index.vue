@@ -1300,7 +1300,7 @@
                     _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.fetchNatServiceConfig), formData)
                         .then(res => {
                             _this.hubsetting.loadingData = false;
-                            console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
+                            // console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
                             if (res.data.success && res.data.data) {
                                 _this.hubsetting.address = res.data.data.natServiceIp;
                                 _this.hubsetting.port = res.data.data.natServicePort;
