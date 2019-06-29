@@ -32,7 +32,8 @@ public class PocScore implements Serializable {
 
     BigInteger effectiveBalance;
     
-    private static BigInteger MULTIPLIER = new BigInteger("10");
+    private static BigInteger SCORE_MULTIPLIER = new BigInteger("10");
+    private static BigInteger NO_POOL_MULTIPLIER = new BigInteger("0.5");
     
     //TODO 
     int luck = 0;
@@ -48,7 +49,7 @@ public class PocScore implements Serializable {
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;
-        this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
+        this.effectiveBalance = this.ssScore = _calEffectiveSS(accountId, height);
         PocCalculator.inst.ssHoldCal(this);
     }
     
@@ -71,7 +72,7 @@ public class PocScore implements Serializable {
         // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
         BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
-        return score.multiply(MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
+        return score.multiply(SCORE_MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
     }
 
     public PocScore nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
@@ -110,7 +111,7 @@ public class PocScore implements Serializable {
     }
     
     public PocScore ssCal(){
-        this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
+        this.effectiveBalance = this.ssScore = _calEffectiveSS(accountId, height);
         PocCalculator.inst.ssHoldCal(this);
         return this;
     }
@@ -147,28 +148,30 @@ public class PocScore implements Serializable {
     }
 
     /**
-     * effective balance is pool balance if the miner own a sharder pool
-     *
+     * - effective ss is pool balance if the miner own a sharder pool
+     * - effective ss is not equals to effective balance always
+     * - the max effective ss is all pools amounts that account owned
      * @param accountId
      * @param height
      * @return
      */
-    private static BigInteger _calBalance(Long accountId, int height) {
-        BigInteger balance = BigInteger.ZERO;
-        if (accountId == null) return balance;
+    private static BigInteger _calEffectiveSS(Long accountId, int height) {
+        BigInteger effectiveSS = BigInteger.ZERO;
+        if (accountId == null) return effectiveSS;
 
         Account account = Account.getAccount(accountId, height);
-        if (account == null) return balance;
+        if (account == null) return effectiveSS;
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(accountId);
-        BigInteger accountBalance = BigInteger.valueOf(account.getEffectiveBalanceSS(height));
+        long accountBalance = account.getEffectiveBalanceNQT(height);
+        
         if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
-            balance = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
-                    .add(accountBalance);
+            effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
         } else {
-            balance = accountBalance;
+            boolean exceedPoolMaxAmount = accountBalance >  SharderPoolProcessor.POOL_MAX_AMOUNT;
+            effectiveSS = exceedPoolMaxAmount ? BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT) : BigInteger.valueOf(accountBalance / Constants.ONE_SS);
         }
-        return balance;
+        return effectiveSS;
     }
 
     private static final String SCORE_KEY = "poc_score";

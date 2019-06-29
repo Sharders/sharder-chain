@@ -539,7 +539,7 @@ public final class DebugTrace {
                 long previousGeneratorId = BlockDb.findBlockAtHeight(block.getHeight() - i - 1).getGeneratorId();
                 if (include(previousGeneratorId)) {
                     Map<String,String> map = getValues(previousGeneratorId, false);
-                    map.put("effective balance", String.valueOf(Account.getAccount(previousGeneratorId).getEffectiveBalanceSS()));
+                    map.put("effective balance", String.valueOf(Account.getAccount(previousGeneratorId).getCurrentEffectiveBalanceSS()));
                     map.put("generation fee", String.valueOf(backFees[i]));
                     map.put("block", block.getStringId());
                     map.put("event", "block");
@@ -550,7 +550,7 @@ public final class DebugTrace {
             }
         }
         Map<String,String> map = getValues(accountId, false);
-        map.put("effective balance", String.valueOf(Account.getAccount(accountId).getEffectiveBalanceSS()));
+        map.put("effective balance", String.valueOf(Account.getAccount(accountId).getCurrentEffectiveBalanceSS()));
         map.put("generation fee", String.valueOf(fee - totalBackFees));
         map.put("block", block.getStringId());
         map.put("event", "block");

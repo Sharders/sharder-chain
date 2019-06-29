@@ -766,10 +766,6 @@ public class Generator implements Comparable<Generator> {
             setLastBlock(Conch.getBlockchain().getLastBlock());
         }
 
-        public long getEffectiveBalance() {
-            return effectiveBalance.longValue();
-        }
-
         public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {

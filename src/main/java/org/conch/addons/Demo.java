@@ -32,7 +32,7 @@ public final class Demo implements AddOn {
     public void init() {
         Conch.getBlockchainProcessor().addListener(block -> Logger.logInfoMessage("Block " + block.getStringId()
                 + " has been forged by account " + Account.rsAccount(block.getGeneratorId()) + " having effective balance of "
-                + Account.getAccount(block.getGeneratorId()).getEffectiveBalanceSS()),
+                + Account.getAccount(block.getGeneratorId()).getCurrentEffectiveBalanceSS()),
                 BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
     }
 

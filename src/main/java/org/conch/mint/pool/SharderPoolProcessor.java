@@ -38,6 +38,7 @@ public class SharderPoolProcessor implements Serializable {
     private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = Maps.newConcurrentMap();
     private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = Maps.newConcurrentMap();
     public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
+    public static final long POOL_MAX_AMOUNT = 500000 * Constants.ONE_SS;
     
     // join tx id <-> tx id
     private static ConcurrentMap<Long, Long> processingQuitTxMap = Maps.newConcurrentMap();
@@ -78,7 +79,7 @@ public class SharderPoolProcessor implements Serializable {
      * fees
      */
     private long historicalFees;
-    private long power;
+    private long power = 0;
     private long joiningAmount = 0;
     private ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
     private int number = 0;
