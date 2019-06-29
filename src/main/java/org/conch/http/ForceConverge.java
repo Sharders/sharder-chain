@@ -402,7 +402,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
             try {
                 // block generator frozen balance calculate
-                Db.db.beginTransaction();
+                if(!Db.db.isInTransaction()) {
+                    Db.db.beginTransaction();
+                }
                 
                 int i = Constants.SHARDER_REWARD_DELAY;
                 while(i > 0){
