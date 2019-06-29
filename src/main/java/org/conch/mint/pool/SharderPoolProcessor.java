@@ -37,8 +37,8 @@ public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
     private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = Maps.newConcurrentMap();
     private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = Maps.newConcurrentMap();
-    public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
-    public static final long POOL_MAX_AMOUNT = 500000 * Constants.ONE_SS;
+    public static final long PLEDGE_AMOUNT_NQT = 20000 * Constants.ONE_SS;
+    public static final long POOL_MAX_AMOUNT_NQT = 500000 * Constants.ONE_SS;
     
     // join tx id <-> tx id
     private static ConcurrentMap<Long, Long> processingQuitTxMap = Maps.newConcurrentMap();
@@ -200,8 +200,8 @@ public class SharderPoolProcessor implements Serializable {
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
-        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT);
-        pool.power += PLEDGE_AMOUNT;
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT_NQT);
+        pool.power += PLEDGE_AMOUNT_NQT;
         
         if (destroyedPools.containsKey(creatorId)) {
             SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
@@ -271,8 +271,8 @@ public class SharderPoolProcessor implements Serializable {
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
 
-        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
-        power -= PLEDGE_AMOUNT;
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT_NQT);
+        power -= PLEDGE_AMOUNT_NQT;
 
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();

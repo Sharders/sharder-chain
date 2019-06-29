@@ -8,7 +8,7 @@
                     <div class="attribute-text">
                         <span class="pool-serial-number">
                             {{$t('mining.attribute.pool_number')}} {{$global.longUnsigned(mining.poolId)}}
-                            | {{$t('mining.index.my_assets')}} {{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS
+                            | {{$t('mining.index.my_assets')}} {{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                             <!-- close chance of pool -->
                             <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
                         </span>
@@ -131,8 +131,6 @@
                 <p class="attribute">
                     {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
-<!--                    <br/>-->
-<!--                    {{$t('mining.index.my_assets') + $global.formatMoney(accountInfo.effectiveBalanceSS)}} SS-->
                 </p>
 <!--                <p class="input">-->
 <!--                    <el-input type="number" value="remainBlocks()" :readonly></el-input>-->
@@ -406,7 +404,7 @@
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
 
-                if(this.joinPool > this.accountInfo.effectiveBalanceSS) {
+                if(this.joinPool > this.accountInfo.effectiveBalanceNQT) {
                     return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
                 }
                 

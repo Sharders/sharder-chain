@@ -84,7 +84,7 @@ public final class JSONData {
             json.put("unconfirmedBalanceNQT", "0");
             json.put("forgedBalanceNQT", "0");
             if (includeEffectiveBalance) {
-                json.put("effectiveBalanceSS", "0");
+                json.put("effectiveBalanceNQT", "0");
                 json.put("guaranteedBalanceNQT", "0");
             }
         } else {
@@ -93,7 +93,7 @@ public final class JSONData {
             json.put("forgedBalanceNQT", String.valueOf(account.getForgedBalanceNQT()));
             json.put("frozenBalanceNQT", String.valueOf(account.getFrozenBalanceNQT()));
             if (includeEffectiveBalance) {
-                json.put("effectiveBalanceSS", account.getEffectiveBalanceNQT(height));
+                json.put("effectiveBalanceNQT", String.valueOf(account.getEffectiveBalanceNQT(height)));
                 json.put("guaranteedBalanceNQT", String.valueOf(account.getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height)));
             }
         }
@@ -108,7 +108,7 @@ public final class JSONData {
             json.put("currentHeightFrom", String.valueOf(accountLease.getCurrentLeasingHeightFrom()));
             json.put("currentHeightTo", String.valueOf(accountLease.getCurrentLeasingHeightTo()));
             if (includeEffectiveBalance) {
-                json.put("effectiveBalanceSS", String.valueOf(account.getGuaranteedBalanceNQT() / Constants.ONE_SS));
+                json.put("effectiveBalanceNQT", String.valueOf(account.getGuaranteedBalanceNQT()));
             }
         }
         if (accountLease.getNextLesseeId() != 0) {

@@ -33,7 +33,6 @@ public class PocScore implements Serializable {
     BigInteger effectiveBalance;
     
     private static BigInteger SCORE_MULTIPLIER = new BigInteger("10");
-    private static BigInteger NO_POOL_MULTIPLIER = new BigInteger("0.5");
     
     //TODO 
     int luck = 0;
@@ -49,7 +48,12 @@ public class PocScore implements Serializable {
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;
-        this.effectiveBalance = this.ssScore = _calEffectiveSS(accountId, height);
+        if (accountId != null) {
+            Account account = Account.getAccount(accountId, height);
+            long accountBalanceNQT = account != null ? account.getEffectiveBalanceNQT(height) : 0L;
+            this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+            this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
+        }
         PocCalculator.inst.ssHoldCal(this);
     }
     
@@ -111,7 +115,12 @@ public class PocScore implements Serializable {
     }
     
     public PocScore ssCal(){
-        this.effectiveBalance = this.ssScore = _calEffectiveSS(accountId, height);
+        if (accountId != null) {
+            Account account = Account.getAccount(accountId, height);
+            long accountBalanceNQT = account != null ? account.getEffectiveBalanceNQT(height) : 0L;
+            this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+            this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
+        }
         PocCalculator.inst.ssHoldCal(this);
         return this;
     }
@@ -151,25 +160,25 @@ public class PocScore implements Serializable {
      * - effective ss is pool balance if the miner own a sharder pool
      * - effective ss is not equals to effective balance always
      * - the max effective ss is all pools amounts that account owned
-     * @param accountId
+     * @param account
      * @param height
      * @return
      */
-    private static BigInteger _calEffectiveSS(Long accountId, int height) {
+    private static BigInteger _calEffectiveSS(Account account,long accountBalanceNQT,int height) {
         BigInteger effectiveSS = BigInteger.ZERO;
-        if (accountId == null) return effectiveSS;
-
-        Account account = Account.getAccount(accountId, height);
         if (account == null) return effectiveSS;
 
-        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(accountId);
-        long accountBalance = account.getEffectiveBalanceNQT(height);
-        
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
         if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
             effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
         } else {
-            boolean exceedPoolMaxAmount = accountBalance >  SharderPoolProcessor.POOL_MAX_AMOUNT;
-            effectiveSS = exceedPoolMaxAmount ? BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT) : BigInteger.valueOf(accountBalance / Constants.ONE_SS);
+            boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
+            long noPoolMultiplier = 5 / 10;
+            if(exceedPoolMaxAmount){
+                effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS * noPoolMultiplier);
+            }else{
+                effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS * noPoolMultiplier);
+            }
         }
         return effectiveSS;
     }

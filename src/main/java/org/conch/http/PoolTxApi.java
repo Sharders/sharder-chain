@@ -71,7 +71,7 @@ public abstract class PoolTxApi {
                 throw new ConchException.NotValidException(rsAddress + " has created a pool already");
             }
             
-            if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT - Long.valueOf(req.getParameter("feeNQT")) < 0){
+            if(account.getBalanceNQT() - SharderPoolProcessor.PLEDGE_AMOUNT_NQT - Long.valueOf(req.getParameter("feeNQT")) < 0){
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
 
@@ -159,7 +159,7 @@ public abstract class PoolTxApi {
 
                 // remain amount of pool
                 long[] minerInvestmentRule = PoolRule.predefinedInvestment(PoolRule.Role.MINER);
-                long remainAmount = minerInvestmentRule[1] + SharderPoolProcessor.PLEDGE_AMOUNT 
+                long remainAmount = minerInvestmentRule[1] + SharderPoolProcessor.PLEDGE_AMOUNT_NQT 
                         - Constants.ONE_SS - poolProcessor.getPower() - poolProcessor.getJoiningAmount();
                 if(remainAmount < allowedInvestAmount) allowedInvestAmount = remainAmount;
                 long minInvestAmount = investmentRule[0] > allowedInvestAmount ? allowedInvestAmount : investmentRule[0];
@@ -326,7 +326,7 @@ public abstract class PoolTxApi {
                 long joinAmount = (consignor == null) ? 0 : consignor.getAmount();
            
                 if(miningPool.getCreatorId() == accountId){
-                    joinAmount += SharderPoolProcessor.PLEDGE_AMOUNT;
+                    joinAmount += SharderPoolProcessor.PLEDGE_AMOUNT_NQT;
                 }
 
                 long rewardAmount = 0;
