@@ -18,8 +18,7 @@
                         <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                         </li>
                         <li>
-                            {{$t('mining.index.my_income')}}{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}}
-                            SS
+                            {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
                         </li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">

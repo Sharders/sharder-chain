@@ -14,7 +14,8 @@
                     </div>
                     <p class="account_info" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</p>
                     <p class="account_asset" v-loading="loading">
-                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceNQT, 8) + $global.unit}}
+<!--                        {{$t('account.assets') + $global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}-->
+                        {{$t('account.assets') + $global.formatNQTMoney(accountInfo.effectiveBalanceNQT,2)}}
                     </p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
