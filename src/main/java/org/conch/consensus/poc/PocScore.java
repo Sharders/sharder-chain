@@ -48,13 +48,7 @@ public class PocScore implements Serializable {
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;
-        if (accountId != null) {
-            Account account = Account.getAccount(accountId, height);
-            long accountBalanceNQT = account != null ? account.getEffectiveBalanceNQT(height) : 0L;
-            this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
-            this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
-        }
-        PocCalculator.inst.ssHoldCal(this);
+        ssCal();
     }
     
     public PocScore(int height, PocScore another) {
@@ -118,6 +112,12 @@ public class PocScore implements Serializable {
         if (accountId != null) {
             Account account = Account.getAccount(accountId, height);
             long accountBalanceNQT = account != null ? account.getEffectiveBalanceNQT(height) : 0L;
+//            if(height < 6000){
+//                this.effectiveBalance = this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
+//            } else{
+//                this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+//                this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height); 
+//            }
             this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
             this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
         }
@@ -169,17 +169,28 @@ public class PocScore implements Serializable {
         if (account == null) return effectiveSS;
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
-        if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
-            effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
-        } else {
-            boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
-            long noPoolMultiplier = 5 / 10;
-            if(exceedPoolMaxAmount){
-                effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS * noPoolMultiplier);
-            }else{
-                effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS * noPoolMultiplier);
+        
+        if(Constants.isTestnet() && height <= Constants.TESTNET_POC_ALGO_HEIGHT){
+            if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
+                effectiveSS = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
+                        .add(BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS));
+            } else {
+                effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+            }
+        }else{
+            if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
+                effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
+            } else {
+                boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
+                long noPoolMultiplier = 5 / 10;
+                if(exceedPoolMaxAmount){
+                    effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS * noPoolMultiplier);
+                }else{
+                    effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS * noPoolMultiplier);
+                }
             }
         }
+        
         return effectiveSS;
     }
 

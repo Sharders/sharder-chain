@@ -325,12 +325,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     
-    private static final int RESET_HEIGHT = 4500;
     /**
      * to correct the account balance of Testnet
      */
     public static void resetPoolAndAccounts(Block block){
-        if(!Constants.isTestnet() || block.getHeight() != RESET_HEIGHT) return;
+        if(!Constants.isTestnet() || block.getHeight() != Constants.TESTNET_POC_ALGO_HEIGHT) return;
         
         try{
             Conch.pause();

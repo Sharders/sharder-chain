@@ -2,6 +2,7 @@ package org.conch.mint.pool;
 
 import com.google.common.collect.Maps;
 import org.conch.Conch;
+import org.conch.common.Constants;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -305,8 +306,83 @@ public class PoolRule implements Serializable {
     public static Map<String, Object> getRules() {
         return rules;
     }
+
+
+    /**
+     * old rewards distribution calculation method
+     * don't use it anymore
+     * @return
+     */
+    @Deprecated
+    private static Map<Long, Long> oldCalRewardMapAccordingToRules(Long creator, Long poolId, Long amount, Map<Long, Long> investmentMap) {
+        Map<Long, Long> result = new HashMap<>();
+        if(investmentMap.size() == 0) return result;
+
+        SharderPoolProcessor forgePool = SharderPoolProcessor.getPoolFromAll(creator, poolId);
+        if(forgePool == null) return result;
+        int level = forgePool.getLevel();
+
+        Map<String, Object> levelRuleMap = (Map<String, Object>) forgePool.getRule().get("level" + level);
+        Map<String, Object> ruleMap = (Map<String, Object>) levelRuleMap.get("forgepool");
+        Object rewardRule = ((Map<String, Object>) ruleMap.get("reward")).get("max");
+
+        // reward distribution rate of pool
+        Float maxRewardRate = null;
+        if (rewardRule instanceof Float) {
+            maxRewardRate = (Float) rewardRule;
+        } else if (rewardRule instanceof Double) {
+            maxRewardRate = ((Double) rewardRule).floatValue();
+        } else if(rewardRule instanceof String){
+            maxRewardRate = Float.parseFloat((String) rewardRule);
+        } else if(rewardRule instanceof BigDecimal){
+            maxRewardRate = ((BigDecimal) rewardRule).floatValue();
+        } else{
+            maxRewardRate = Float.parseFloat(rewardRule.toString());
+        }
+
+        if(maxRewardRate == null) return result;
+
+        // calculate the creator amount
+        long creatorAmount = Math.round(amount * (1 - maxRewardRate));
+        result.put(creator, creatorAmount);
+        long leftAmount = amount - creatorAmount;
+
+        // sum the total amount according to investment recording in the map
+        long totalInvest = 0;
+        for (Long value : investmentMap.values()) {
+            totalInvest += value;
+        }
+
+        BigDecimal totalInvestAmount = BigDecimal.valueOf(totalInvest);
+        BigDecimal remainInvestAmount = new BigDecimal(leftAmount);
+        // calculate the single investor's rewards
+        long totalReward = 0;
+        for (Long id : investmentMap.keySet()) {
+            BigDecimal investAmount = BigDecimal.valueOf(investmentMap.get(id));
+            BigDecimal investRate = investAmount.divide(totalInvestAmount,4,BigDecimal.ROUND_DOWN);
+
+            long reward = remainInvestAmount.multiply(investRate).longValue();
+            if (result.containsKey(id)) {
+                result.put(id, result.get(id) + reward);
+            }else{
+                result.put(id, reward);
+            }
+            totalReward += reward;
+        }
+
+        // remain amount distribute to creator
+        long remainReward = (amount > totalReward) ? (amount - totalReward) : 0;
+        result.put(creator, result.get(creator) + remainReward);
+
+        return result;
+    }
     
     public static Map<Long, Long> calRewardMapAccordingToRules(Long creator, Long poolId, Long amount, Map<Long, Long> investmentMap) {
+        // temporary codes to avoid block sync error
+        if(Constants.isTestnet() && Conch.getHeight() <= Constants.TESTNET_POC_ALGO_HEIGHT){
+            return oldCalRewardMapAccordingToRules(creator, poolId, amount, investmentMap);
+        }
+        
         Map<Long, Long> result = new HashMap<>();
         if(investmentMap.size() == 0) return result;
         
