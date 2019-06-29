@@ -399,12 +399,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 DbUtils.close(con);
             }
             Logger.logInfoMessage("[Reset] accounts balance and guaranteed balance finished");
-
+            
             try {
                 // block generator frozen balance calculate
-                if(!Db.db.isInTransaction()) {
-                    Db.db.beginTransaction();
-                }
+                Db.db.beginTransaction();
                 
                 int i = Constants.SHARDER_REWARD_DELAY;
                 while(i > 0){
