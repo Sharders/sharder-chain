@@ -217,7 +217,7 @@ public final class Constants {
     public static final int TESTNET_PHASE_TWO = 990000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
     public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
-    public static final int TESTNET_POC_ALGO_HEIGHT = 4931;
+    public static final int TESTNET_POC_ALGO_HEIGHT = 4930;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
