@@ -25,7 +25,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.util.FileUtil;
-import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
