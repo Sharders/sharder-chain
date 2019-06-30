@@ -823,7 +823,7 @@ public class Generator implements Comparable<Generator> {
      * force to open auto mining once
      */
     public static void forceOpenAutoMining(){
-        autoMintRunning = true;
+        autoMintRunning = false;
     }
     
     public static boolean isBindAddress(String rsAddress){

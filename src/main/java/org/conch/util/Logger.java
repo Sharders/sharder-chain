@@ -463,7 +463,7 @@ public final class Logger {
             messageListeners.notify(message, Event.MESSAGE);
     }
     
-    private  static final int DEFAULT_PRINT_COUNT = 100;
+    private  static final int DEFAULT_PRINT_COUNT = 50;
     static Map<String, Integer> logControlMap = Maps.newHashMap();
     static Map<String, Integer> printCountMap = Maps.newHashMap();
 
