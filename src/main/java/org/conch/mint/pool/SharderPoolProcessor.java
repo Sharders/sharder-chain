@@ -658,9 +658,12 @@ public class SharderPoolProcessor implements Serializable {
         }
         
         if(destroyedPools != null && destroyedPools.size() > 0) {
-            for (SharderPoolProcessor destroy : destroyedPools.get(creatorId)) {
-                if (destroy != null && destroy.poolId == poolId) {
-                    return destroy;
+            List<SharderPoolProcessor> dpools = destroyedPools.get(creatorId);
+            if(dpools != null && dpools.size() > 0) {
+                for (SharderPoolProcessor destroy : dpools) {
+                    if (destroy != null && destroy.poolId == poolId) {
+                        return destroy;
+                    }
                 }
             }
         }
