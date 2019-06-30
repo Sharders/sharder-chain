@@ -182,11 +182,13 @@ public class PocScore implements Serializable {
                 effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
             } else {
                 boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
-                long noPoolMultiplier = 5 / 10;
+                
+                // 1/2
+                long noPoolMultiplier = 2;
                 if(exceedPoolMaxAmount){
-                    effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS * noPoolMultiplier);
+                    effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS / noPoolMultiplier);
                 }else{
-                    effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS * noPoolMultiplier);
+                    effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS / noPoolMultiplier);
                 }
             }
         }
