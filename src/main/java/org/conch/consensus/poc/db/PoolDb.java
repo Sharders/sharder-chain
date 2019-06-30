@@ -137,9 +137,9 @@ public class PoolDb {
     }
 
     public static List<SharderPoolProcessor> list(int state,boolean equal){
-        Conch.getBlockchain().readLock();
         List<SharderPoolProcessor> list = Lists.newArrayList();
         try {
+            Conch.getBlockchain().readLock();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
@@ -169,8 +169,8 @@ public class PoolDb {
     }
     
     private static String get(long poolId) {
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             Connection con = null;
             try {
                 con = Db.db.getConnection();

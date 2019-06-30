@@ -186,6 +186,28 @@ export default {
             return val;
         }
     },
+    formatNQTMoney(num, n = 8) {
+        let s = new BigNumber(num).dividedBy("100000000").toFixed();
+        
+        if (isNaN(s)) {
+            return 0 + this.unit;
+        }
+
+        n = n >= 0 && n <= 20 ? n : 2;
+        s = parseFloat((s + "").replace(/[^\d\.-]/g, "")).toFixed(n) + "";
+        let l = s.split(".")[0].split("").reverse(),
+            r = s.split(".")[1].replace(/(0+)\b/, '');         //去除末尾的零
+        let t = "";
+        for (let i = 0; i < l.length; i++) {
+            t += l[i] + ((i + 1) % 3 === 0 && (i + 1) !== l.length ? "," : "");
+        }
+        if (r === '') {
+            return t.split("").reverse().join("") + this.unit
+        } else
+            return t.split("").reverse().join("") + "." + r + this.unit;
+
+
+    },
     /**
      * 格式化金额
      * @param s
@@ -531,6 +553,11 @@ export default {
     longUnsigned(num) {
         if(typeof(num) == 'number' && num > 0) return num;
         
+        if(typeof(num) == 'string') {
+            num = new BigInteger(num)
+            if(num > 0) return num.toString();
+        }
+        
         num = new BigInteger(num).abs();
         return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
     },
@@ -716,13 +743,25 @@ export default {
      * @returns {string}
      */
     getTransactionAmountNQT(t, accountRS) {
+        let _this = this;
+   
+        let isCreatePoolTx = (t.type === 8 && t.subtype === 0) ? true : false;
+        let isDestroyPoolTx = (t.type === 8 && t.subtype === 1) ? true : false;
         let isJoinPoolTx = (t.type === 8 && t.subtype === 2) ? true : false;
-        let isQuitTx = (t.type === 8 && t.subtype === 3) ? true : false;
-        let amountNQT = new BigNumber((isJoinPoolTx || isQuitTx) ? t.attachment.amount : t.amountNQT).dividedBy("100000000").toFixed();
+        let isQuitPoolTx = (t.type === 8 && t.subtype === 3) ? true : false;
+        
+        let amountNQT = t.amountNQT;
+        if(isJoinPoolTx || isQuitPoolTx){
+            amountNQT = t.attachment.amount
+        }else if(isCreatePoolTx || isDestroyPoolTx){
+            amountNQT = _this.poolPledgeAmount;
+        }
+        
+        amountNQT = new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
-        if (isJoinPoolTx) {
+        if (isJoinPoolTx || isCreatePoolTx) {
             return -amountNQT + this.unit
-        } else if (isQuitTx){
+        } else if (isQuitPoolTx || isDestroyPoolTx){
             return "+" + amountNQT + this.unit
         }else if (amountNQT <= 0) {
             return this.placeholder

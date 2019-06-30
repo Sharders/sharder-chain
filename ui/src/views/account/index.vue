@@ -14,7 +14,7 @@
                     </div>
                     <p class="account_info" @click="isUserInfoDialog(true)">{{$t('account.account_info')}}</p>
                     <p class="account_asset" v-loading="loading">
-                        {{$t('account.assets') + $global.formatMoney(accountInfo.effectiveBalanceSS, 8) + $global.unit}}
+                        {{$t('account.assets') + $global.formatNQTMoney(accountInfo.effectiveBalanceNQT,2)}}
                     </p>
                     <div class="account_tool">
                         <button class="common_btn imgBtn writeBtn" @click="openTransferDialog">
@@ -205,7 +205,13 @@
                                         {{$t('transaction.self')}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 3">
-                                        {{$t('transaction.transaction_type_pool_join_tx')}}:{{$global.longUnsigned(transaction.attachment.txId)}}
+                                        {{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txSId}}
+                                    </span>
+                                    <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 2">
+                                        {{$t('transaction.transaction_type_forge_pool')}}:{{$global.longUnsigned(transaction.attachment.poolId)}}
+                                    </span>
+                                    <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 1">
+                                        {{$t('transaction.transaction_type_forge_pool')}}:{{$global.longUnsigned(transaction.attachment.poolId)}}
                                     </span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">
                                         {{$t('transaction.self')}}
@@ -609,7 +615,7 @@
                     </tr>
                     <tr>
                         <th>{{$t('account_info.account_available_balance')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceSS,true)}}</td>
+                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.frozen_balance_nqt')}}</th>
@@ -735,7 +741,7 @@
                     name: '',
                     accountRS: SSO.accountRS,
                     balanceNQT: 0,              //账户余额
-                    effectiveBalanceSS: 0,      //可用余额
+                    effectiveBalanceNQT: 0,      //可用余额
                     forgedBalanceNQT: 0,        //挖矿余额
                     frozenBalanceNQT: 0,        //冻结余额
                     guaranteedBalanceNQT: 0,    //保证余额
@@ -878,7 +884,7 @@
             _this.getAccount(_this.accountInfo.accountRS).then(res => {
                 _this.accountInfo.account = res.account;
                 _this.accountInfo.balanceNQT = res.balanceNQT;
-                _this.accountInfo.effectiveBalanceSS = res.effectiveBalanceSS;
+                _this.accountInfo.effectiveBalanceNQT = res.effectiveBalanceNQT;
                 _this.accountInfo.forgedBalanceNQT = res.forgedBalanceNQT;
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
                 _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
@@ -1294,7 +1300,7 @@
                     _this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.fetchNatServiceConfig), formData)
                         .then(res => {
                             _this.hubsetting.loadingData = false;
-                            console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
+                            // console.log(`获取NAT服务响应：${JSON.stringify(res)}`);
                             if (res.data.success && res.data.data) {
                                 _this.hubsetting.address = res.data.data.natServiceIp;
                                 _this.hubsetting.port = res.data.data.natServicePort;
@@ -1652,7 +1658,7 @@
                         }
                     }
                     _this.accountInfo = res;
-                    if (_this.transfer.number > _this.accountInfo.effectiveBalanceSS) {
+                    if (_this.transfer.number > _this.accountInfo.effectiveBalanceNQT) {
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }

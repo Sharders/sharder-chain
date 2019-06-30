@@ -7,8 +7,8 @@
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
-                            | {{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS)}} SS
+                            {{$t('mining.attribute.pool_number')}} {{$global.longUnsigned(mining.poolId)}}
+                            | {{$t('mining.index.my_assets')}} {{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                             <!-- close chance of pool -->
                             <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
                         </span>
@@ -20,7 +20,7 @@
                             class="number">{{newestBlock.height}}</span>{{$t('mining.attribute.mining_current_number2')}}
                         </h1>
                     </div>
-                    <div class="earnings">{{$t('mining.attribute.income') + "+" +
+                    <div class="earnings">{{$t('mining.attribute.income') + " +" +
                         $global.getSSNumberFormat(miningInfo.income)}}
                     </div>
                 </div>
@@ -87,32 +87,32 @@
                         <el-row :gutter="20">
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.creator')}}{{miningInfo.account}}
+                                    {{$t('mining.attribute.creator')}}: {{miningInfo.account}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.participating_users')}}{{miningInfo.amount}}
+                                    {{$t('mining.attribute.participating_users')}}: {{miningInfo.amount}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_number')}}{{$global.longUnsigned(mining.poolId)}}
+                                    {{$t('mining.attribute.pool_number')}}: {{$global.longUnsigned(mining.poolId)}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.capacity')}}{{miningInfo.currentInvestment/100000000}}/{{miningInfo.investmentTotal/100000000}}
+                                    {{$t('mining.attribute.capacity')}}: {{miningInfo.currentInvestment/100000000}}/{{miningInfo.investmentTotal/100000000}}
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_income')}}{{miningInfo.income/100000000}}
+                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} SS
                                 </button>
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.reward_distribution') + $global.getRewardRate(miningInfo)}}
+                                    {{$t('mining.attribute.reward_distribution') }}: {{$global.getRewardRate(miningInfo)}}
                                 </button>
                             </el-col>
                         </el-row>
@@ -131,8 +131,6 @@
                 <p class="attribute">
                     {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
-<!--                    <br/>-->
-<!--                    {{$t('mining.index.my_assets') + $global.formatMoney(accountInfo.effectiveBalanceSS)}} SS-->
                 </p>
 <!--                <p class="input">-->
 <!--                    <el-input type="number" value="remainBlocks()" :readonly></el-input>-->
@@ -142,7 +140,7 @@
                 </p>
                 <p class="btn">
                     <button class="cancel" @click="miningMask('isJoinPool')">{{$t('mining.attribute.cancel')}}</button>
-                    <button class="confirm" :loading="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</button>
+                    <el-button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningJoin">{{$t('mining.attribute.confirm')}}</el-button>
                 </p>
             </div>
         </div>
@@ -178,7 +176,7 @@
                                 :label="$t('mining.attribute.exit_pool')"
                                 width="80">
                             <template slot-scope="scope">
-                                <el-button class="confirm" :loading="btnLoading" @click="miningExit(scope.row,scope.$index)" type="text" size="small">{{$t('mining.attribute.confirm')}}</el-button>
+                                <el-button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningExit(scope.row,scope.$index)" type="text" size="small">{{$t('mining.attribute.confirm')}}</el-button>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -192,9 +190,8 @@
                 <h1 class="title">{{$t('mining.attribute.destroy_pool')}}</h1>
                 <p class="info">{{$t('mining.attribute.destroy_pool_tip')}}</p>
                 <p class="btn">
-                    <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}
-                    </button>
-                    <button class="confirm" :loading="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</button>
+                    <button class="cancel" @click="miningMask('isDestroyPool')">{{$t('mining.attribute.cancel')}}</button>
+                    <el-button class="confirm" v-loading="btnLoading" :disabled="btnLoading" @click="miningDestroy()">{{$t('mining.attribute.confirm')}}</el-button>
                 </p>
             </div>
         </div>
@@ -235,7 +232,8 @@
                     level: {}
                 },
                 loading: true,
-                btnLoading: false
+                btnLoading: false,
+                deletingPools: []
             }
         },
         methods: {
@@ -245,14 +243,16 @@
                     return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
                     && typeof(_t.secretPhrase) !== 'undefined' 
                     &&  _t.$global.optHeight.join < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height;
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height 
+                    && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('quit' === btnName) {
                     return typeof(_t.miningInfo.consignor) !== 'undefined' 
                     && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
                     && _t.miningInfo.consignor.txs.length > 0 
                     && typeof(_t.secretPhrase) !== 'undefined' 
                     && _t.$global.optHeight.quit < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height;
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height
+                    && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('destroy' === btnName) {
                     return _t.myAccount === _t.miningInfo.account 
                         && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
@@ -299,10 +299,10 @@
                     _this.$store.state.quitPool[_this.miningInfo.poolId] -= _tx.amount;
                     delete _this.miningInfo.consignor.txs[_index];
                     _this.miningInfo.joinAmount -= _tx.amount;
+                    _this.$store.state.mask = false;
+                    _this.btnLoading = false;
                     _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
-                _this.$store.state.mask = false;
-                _this.btnLoading = false;
             },
             miningDestroy() {
                 let _this = this;
@@ -325,6 +325,7 @@
                     _this.btnLoading = false;
                     _this.$store.state.mask = false;
                     _this.isDestroyPool = false;
+                    _this.deletingPools.push(_this.miningInfo.poolId);
                     _this.$store.state.destroyPool[_this.miningInfo.poolId] = _this.myAccount;
                     _this.$global.optHeight.destroy = _this.newestBlock.height;
                     return _this.$message.success(_this.$t("mining.attribute.delete_success"));
@@ -391,10 +392,7 @@
                     _this.miningInfo.rewardAmount = res.rewardAmount;
                     _this.miningInfo.consignor = res.consignor;
                     _this.miningInfo.investmentTotal = _this.miningInfo.level.consignor.amount.max + _this.$global.poolPledgeAmount;
-                    let nxtAddress = new NxtAddress();
-                    if (nxtAddress.set(_this.miningInfo.accountId)) {
-                        _this.miningInfo.account = nxtAddress.toString();
-                    }
+                    _this.miningInfo.account = res.creatorRS;
                     if (!_this.$store.state.quitPool[res.poolId]) {
                         _this.$store.state.quitPool[res.poolId] = res.joinAmount;
                     }
@@ -406,7 +404,7 @@
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
 
-                if(this.joinPool > this.accountInfo.effectiveBalanceSS) {
+                if(this.joinPool > this.accountInfo.effectiveBalanceNQT) {
                     return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
                 }
                 
@@ -496,12 +494,12 @@
     }
 
     .attribute-info .earnings {
-        width: 100px;
+        width: 140px;
         text-align: center;
         margin: auto;
         position: absolute;
         top: 180px;
-        left: calc(50% - 50px);
+        left: calc(50% - 70px);
         font-size: 16px;
         color: #fff;
     }

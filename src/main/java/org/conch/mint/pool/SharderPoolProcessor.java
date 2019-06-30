@@ -37,7 +37,8 @@ public class SharderPoolProcessor implements Serializable {
     private static final long serialVersionUID = 8653213465471743671L;
     private static ConcurrentMap<Long, SharderPoolProcessor> sharderPools = Maps.newConcurrentMap();
     private static ConcurrentMap<Long, List<SharderPoolProcessor>> destroyedPools = Maps.newConcurrentMap();
-    public static final long PLEDGE_AMOUNT = 20000 * Constants.ONE_SS;
+    public static final long PLEDGE_AMOUNT_NQT = 20000 * Constants.ONE_SS;
+    public static final long POOL_MAX_AMOUNT_NQT = 500000 * Constants.ONE_SS;
     
     // join tx id <-> tx id
     private static ConcurrentMap<Long, Long> processingQuitTxMap = Maps.newConcurrentMap();
@@ -78,7 +79,7 @@ public class SharderPoolProcessor implements Serializable {
      * fees
      */
     private long historicalFees;
-    private long power;
+    private long power = 0;
     private long joiningAmount = 0;
     private ConcurrentMap<Long, Consignor> consignors = new ConcurrentHashMap<>();
     private int number = 0;
@@ -125,10 +126,13 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     
-    public static boolean addProcessingQuitTx(Attachment.SharderPoolQuit quitTx, long txId){
-        if(processingQuitTxMap.containsKey(quitTx.getTxId())) return false;
+    public static boolean addProcessingQuitTx(long relatedJoinTxId, long txId){
+        if(processingQuitTxMap.containsKey(relatedJoinTxId) 
+            && processingQuitTxMap.get(relatedJoinTxId) != -1) {
+            return false;
+        }
 
-        processingQuitTxMap.put(quitTx.getTxId(), txId);
+        processingQuitTxMap.put(relatedJoinTxId, txId);
         return true;
     }
 
@@ -143,7 +147,10 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static boolean addProcessingCreateTx(long creatorId, long txId){
-        if(processingCreateTxMap.containsKey(creatorId)) return false;
+        if(processingCreateTxMap.containsKey(creatorId)
+            && processingCreateTxMap.get(creatorId) != -1) {
+            return false;
+        }
 
         processingCreateTxMap.put(creatorId, txId);
         return true;
@@ -161,10 +168,13 @@ public class SharderPoolProcessor implements Serializable {
         return processingCreateTxMap.containsKey(creatorId) ? processingCreateTxMap.get(creatorId) : -1;
     }
 
-    public static boolean addProcessingDestroyTx(Attachment.SharderPoolDestroy tx, long txId){
-        if(processingDestroyTxMap.containsKey(tx.getPoolId())) return false;
+    public static boolean addProcessingDestroyTx(long poolId, long txId){
+        if(processingDestroyTxMap.containsKey(poolId)
+            && processingDestroyTxMap.get(poolId) != -1) {
+            return false;
+        }
 
-        processingDestroyTxMap.put(tx.getPoolId(), txId);
+        processingDestroyTxMap.put(poolId, txId);
         return true;
     }
 
@@ -190,8 +200,8 @@ public class SharderPoolProcessor implements Serializable {
         
         endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
-        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT);
-        pool.power += PLEDGE_AMOUNT;
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT_NQT);
+        pool.power += PLEDGE_AMOUNT_NQT;
         
         if (destroyedPools.containsKey(creatorId)) {
             SharderPoolProcessor pastPool = newPoolFromDestroyed(creatorId);
@@ -261,8 +271,8 @@ public class SharderPoolProcessor implements Serializable {
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
 
-        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT);
-        power -= PLEDGE_AMOUNT;
+        creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_DESTROY, poolId, -PLEDGE_AMOUNT_NQT);
+        power -= PLEDGE_AMOUNT_NQT;
 
         for (Consignor consignor : consignors.values()) {
             long amount = consignor.getAmount();
@@ -299,37 +309,49 @@ public class SharderPoolProcessor implements Serializable {
         }
         Logger.logDebugMessage("destroy mining pool [id=%d, creator=%s,height=%d]", poolId, Account.rsAccount(creatorId), height);
     }
+    
+    public boolean consignorHasTx(long accountId, long txId){
+        
+        if (!consignors.containsKey(accountId)) return false;
+        
+        Consignor consignor = consignors.get(accountId);
+        return consignor.hasTx(txId);
+    }
 
-    public void addOrUpdateConsignor(long id, long txId, int startBlockNo, int endBlockNo, long amount) {
-        if (consignors.containsKey(id)) {
-            Consignor consignor = consignors.get(id);
+    public void addOrUpdateConsignor(long accountId, long txId, int startBlockNo, int endBlockNo, long amount) {
+        if (consignors.containsKey(accountId)) {
+            Consignor consignor = consignors.get(accountId);
+            if(consignor.hasTx(txId)) {
+                Logger.logDebugMessage("the tx[id=%d] of this account " + accountId + " already joined this mining pool", txId);
+                return;
+            }
             consignor.addTransaction(txId, startBlockNo, endBlockNo, amount);
             power += amount;
         } else {
-            Consignor consignor = new Consignor(id, txId, startBlockNo, endBlockNo, amount);
-            consignors.put(id, consignor);
+            Consignor consignor = new Consignor(accountId, txId, startBlockNo, endBlockNo, amount);
+            consignors.put(accountId, consignor);
             power += amount;
             number++;
         }
-        Logger.logDebugMessage(id + " join in mining pool " + poolId);
+        Logger.logDebugMessage("account " + accountId + " join in mining pool " + poolId);
     }
 
-    public long quitConsignor(long id, long txId) {
-        if (!consignors.containsKey(id)) {
-            Logger.logErrorMessage("mining pool:" + poolId + " don't have this consignor:" + id);
+    public long quitConsignor(long accountId, long txId) {
+        if (!consignors.containsKey(accountId)) {
+            Logger.logErrorMessage("mining pool:" + poolId + " don't have this consignor:" + accountId);
             return -1;
         }
-        Consignor consignor = consignors.get(id);
+        Consignor consignor = consignors.get(accountId);
         long amount = consignor.getTransactionAmount(txId);
         if (amount == -1) {
-            Logger.logErrorMessage("consignor:" + id + " don't have this tx [id=" + txId + "]");
+            Logger.logErrorMessage("consignor:" + accountId + " don't have this tx [id=" + txId + "]");
             return -1;
         }
         power -= amount;
         if (consignor.removeTransaction(txId)) {
-            consignors.remove(id);
+            consignors.remove(accountId);
             number--;
-            Logger.logDebugMessage("account[id=" + id + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
+            Logger.logDebugMessage("account[id=" + accountId + "] quit mining pool[pool id=" + poolId + ",tx id=" + txId + "]");
         }
         return amount;
     }
@@ -348,7 +370,8 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public boolean hasSenderAndTransaction(long senderId, long txId) {
-        if (consignors.containsKey(senderId) && consignors.get(senderId).hasTransaction(txId)) {
+        if (consignors.containsKey(senderId) 
+            && consignors.get(senderId).hasTx(txId)) {
             return true;
         } else {
             return false;
@@ -568,10 +591,10 @@ public class SharderPoolProcessor implements Serializable {
                        addProcessingCreateTx(tx.getSenderId(),tx.getId());
                     } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_DESTROY)) {
                         Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
-                        addProcessingDestroyTx(destroy, tx.getId());
+                        addProcessingDestroyTx(destroy.getPoolId(), tx.getId());
                     } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)) {
                         Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
-                        addProcessingQuitTx(quit,  tx.getId());
+                        addProcessingQuitTx(quit.getTxId(),  tx.getId());
                     }
                 }
             });
@@ -618,7 +641,11 @@ public class SharderPoolProcessor implements Serializable {
 
     public static JSONObject getPoolsFromNow(){
         JSONArray array = new JSONArray();
-        sharderPools.values().forEach(pool -> array.add(pool.toJsonObject()));
+        sharderPools.values().forEach(pool -> {
+            if(hasProcessingDestroyTx(pool.getPoolId()) == -1){
+                array.add(pool.toJsonObject()); 
+            }
+        });
         JSONObject json = new JSONObject();
         json.put("pools",array);
         return json;
@@ -631,9 +658,12 @@ public class SharderPoolProcessor implements Serializable {
         }
         
         if(destroyedPools != null && destroyedPools.size() > 0) {
-            for (SharderPoolProcessor destroy : destroyedPools.get(creatorId)) {
-                if (destroy != null && destroy.poolId == poolId) {
-                    return destroy;
+            List<SharderPoolProcessor> dPools = destroyedPools.get(creatorId);
+            if(dPools != null && dPools.size() > 0) {
+                for (SharderPoolProcessor destroy : dPools) {
+                    if (destroy != null && destroy.poolId == poolId) {
+                        return destroy;
+                    }
                 }
             }
         }
@@ -849,6 +879,16 @@ public class SharderPoolProcessor implements Serializable {
 
     public void clearJoiningAmount() {
         joiningAmount = 0;
+    }
+    
+    public void subJoiningAmount(long amount) {
+        if(joiningAmount <= 0) return;
+        
+        if(joiningAmount > amount) {
+            joiningAmount -= amount;
+        }else {
+            joiningAmount = 0;
+        }
     }
 
     /**

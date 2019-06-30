@@ -100,33 +100,35 @@ public final class Shuffler {
 
     public static List<Shuffler> getAllShufflers() {
         List<Shuffler> shufflers = new ArrayList<>();
-        BlockchainImpl.getInstance().readLock();
+        
         try {
+            Conch.getBlockchain().readLock();
             shufflingsMap.values().forEach(shufflerMap -> shufflers.addAll(shufflerMap.values()));
         } finally {
-            BlockchainImpl.getInstance().readUnlock();
+            Conch.getBlockchain().readUnlock();
         }
         return shufflers;
     }
 
     public static List<Shuffler> getShufflingShufflers(byte[] shufflingFullHash) {
         List<Shuffler> shufflers = new ArrayList<>();
-        BlockchainImpl.getInstance().readLock();
         try {
+            Conch.getBlockchain().readLock();
             Map<Long, Shuffler> shufflerMap = shufflingsMap.get(Convert.toHexString(shufflingFullHash));
             if (shufflerMap != null) {
                 shufflers.addAll(shufflerMap.values());
             }
         } finally {
-            BlockchainImpl.getInstance().readUnlock();
+            Conch.getBlockchain().readUnlock();
         }
         return shufflers;
     }
 
     public static List<Shuffler> getAccountShufflers(long accountId) {
         List<Shuffler> shufflers = new ArrayList<>();
-        BlockchainImpl.getInstance().readLock();
+       
         try {
+            Conch.getBlockchain().readLock();
             shufflingsMap.values().forEach(shufflerMap -> {
                 Shuffler shuffler = shufflerMap.get(accountId);
                 if (shuffler != null) {
@@ -134,20 +136,21 @@ public final class Shuffler {
                 }
             });
         } finally {
-            BlockchainImpl.getInstance().readUnlock();
+            Conch.getBlockchain().readUnlock();
         }
         return shufflers;
     }
 
     public static Shuffler getShuffler(long accountId, byte[] shufflingFullHash) {
-        BlockchainImpl.getInstance().readLock();
+        
         try {
+            Conch.getBlockchain().readLock();
             Map<Long, Shuffler> shufflerMap = shufflingsMap.get(Convert.toHexString(shufflingFullHash));
             if (shufflerMap != null) {
                 return shufflerMap.get(accountId);
             }
         } finally {
-            BlockchainImpl.getInstance().readUnlock();
+            Conch.getBlockchain().readUnlock();
         }
         return null;
     }
@@ -175,8 +178,9 @@ public final class Shuffler {
     }
 
     private static Shuffler getRecipientShuffler(long recipientId) {
-        BlockchainImpl.getInstance().readLock();
+       
         try {
+            Conch.getBlockchain().readLock();
             for (Map<Long,Shuffler> shufflerMap : shufflingsMap.values()) {
                 for (Shuffler shuffler : shufflerMap.values()) {
                     if (Account.getId(shuffler.recipientPublicKey) == recipientId) {
@@ -186,7 +190,7 @@ public final class Shuffler {
             }
             return null;
         } finally {
-            BlockchainImpl.getInstance().readUnlock();
+            Conch.getBlockchain().readUnlock();
         }
     }
 

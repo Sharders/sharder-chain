@@ -455,10 +455,11 @@ public final class Shuffling {
         byte[] shufflingStateHash = null;
         int participantIndex = 0;
         List<ShufflingParticipant> shufflingParticipants = new ArrayList<>();
-        Conch.getBlockchain().readLock();
+   
         // Read the participant list for the shuffling
         DbIterator<ShufflingParticipant> participants = null;
         try {
+            Conch.getBlockchain().readLock();
             participants = ShufflingParticipant.getParticipants(id);
             for (ShufflingParticipant participant : participants) {
                 shufflingParticipants.add(participant);
@@ -533,9 +534,10 @@ public final class Shuffling {
     }
 
     public Attachment.ShufflingCancellation revealKeySeeds(final String secretPhrase, long cancellingAccountId, byte[] shufflingStateHash) {
-        Conch.getBlockchain().readLock();
+     
         DbIterator<ShufflingParticipant> participants = null;
         try {
+            Conch.getBlockchain().readLock();
             participants = ShufflingParticipant.getParticipants(id);
             if (cancellingAccountId != this.assigneeAccountId) {
                 throw new RuntimeException(String.format("Current shuffling cancellingAccountId %s does not match %s",

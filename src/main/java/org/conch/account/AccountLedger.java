@@ -345,9 +345,13 @@ public class AccountLedger {
         //
         // Get the ledger entries
         //
-        blockchain.readLock();
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement(sb.toString())) {
+      
+        Connection con = null;
+        try {
+            blockchain.readLock();
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(sb.toString());
+            
             int i = 0;
             if (accountId != 0) {
                 pstmt.setLong(++i, accountId);
@@ -374,6 +378,7 @@ public class AccountLedger {
             throw new RuntimeException(e.toString(), e);
         } finally {
             blockchain.readUnlock();
+            DbUtils.close(con);
         }
         return entryList;
     }

@@ -32,6 +32,8 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.consensus.poc.PocScore;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.db.PoolDb;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
@@ -323,18 +325,22 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         // correct the blockchain of Testnet
         Conch.getBlockchainProcessor().addListener(block -> resetPoolAndAccounts(block), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
     }
-
+    
+    
     /**
      * to correct the account balance of Testnet
      */
     public static void resetPoolAndAccounts(Block block){
-        if(!Constants.isTestnet() || block.getHeight() != 4500) return;
+        boolean reachHeight = (block.getHeight() == Constants.TESTNET_POC_LEDGER_RESET_HEIGHT) 
+                || (block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT);
         
-
+        if(!Constants.isTestnet() || !reachHeight) return;
+        String logPrefix = "[Reset-Height " + block.getHeight() + "]";
         
         try{
             Conch.pause();
-            Logger.logInfoMessage("[Reset] start to reset the pools and accounts to avoid the balance and block generator validation error");
+         
+            Logger.logInfoMessage(logPrefix + " start to reset the pools and accounts to avoid the balance and block generator validation error");
 
             List<SharderPoolProcessor> poolProcessors = PoolDb.list(SharderPoolProcessor.State.DESTROYED.ordinal(), false);
             int successCount = 0;
@@ -344,12 +350,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 //                    pool.destroy(Conch.getHeight());
                     successCount++;
                 }catch (Exception e) {
-                    Logger.logWarningMessage("[Reset] can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
+                    Logger.logWarningMessage(logPrefix + "can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
                 }
             }
             PoolDb.saveOrUpdate(poolProcessors);
             SharderPoolProcessor.instFromDB();
-            Logger.logInfoMessage("[Reset] all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
+            Logger.logInfoMessage(logPrefix + " all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
             
             // get all accounts
             Map<Long, String> accountMinedBalanceMap = Maps.newHashMap();
@@ -372,23 +378,31 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             }
             
             // reset the all accounts balance
+            List<PocScore> pocScoreList = Lists.newArrayList();
+            String scoreRecalAccounts = "";
             try {
                 con = Db.db.getConnection();
                 if(accountMinedBalanceMap.size() > 0) {
                    Set<Long> accountIds = accountMinedBalanceMap.keySet();
                    for(long accountId : accountIds){
                        try {
+                           Account account = Account.getAccount(accountId);
+                           if(block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+                               pocScoreList.add(Conch.getPocProcessor().calPocScore(account,block.getHeight()));
+                               scoreRecalAccounts += account.getRsAddress() + ",";
+                           }
+                           
                            String ba = accountMinedBalanceMap.get(accountId);
                            if(StringUtils.isEmpty(ba) || !ba.contains(",")) continue;
                            String[] baArray = ba.split(",");
                            long balance = new Long(baArray[0]);
                            long minedBalance = new Long(baArray[1]);
-                           long frozenBlance = 0;
-//                           if(generatorFrozenMap.containsKey(accountId)) {
-//                               frozenBlance = generatorFrozenMap.get(accountId);
-//                           }
-                           Account account = Account.getAccount(accountId);
-                           account.reset(con, balance, balance, minedBalance, frozenBlance);
+                           long frozenBalance = 0;
+                           if(block.getGeneratorId() == accountId) {
+                               frozenBalance = 12800000000L;
+                           }
+                      
+                           account.reset(con, balance, balance, minedBalance, frozenBalance);
                        } catch (SQLException e) {
                            e.printStackTrace();
                        } 
@@ -399,22 +413,27 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 DbUtils.close(con);
             }
-            Logger.logInfoMessage("[Reset] accounts balance and guaranteed balance finished");
+            Logger.logInfoMessage(logPrefix + " accounts balance and guaranteed balance reset finished, size is " + accountMinedBalanceMap.size());
 
-
-        
+            // re-cal the all accounts poc score
+            try {
+                if(pocScoreList.size() > 0) {
+                    con = Db.db.getConnection();
+                    PocDb.batchUpdate(con, pocScoreList);
+                    Logger.logInfoMessage(logPrefix + " accounts poc score re-calculate finished, size is " + pocScoreList.size() + ", accounts[" + scoreRecalAccounts + "]");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            } finally {
+                DbUtils.close(con);
+            }
+           
             try {
                 // block generator frozen balance calculate
                 Db.db.beginTransaction();
                 
                 int i = Constants.SHARDER_REWARD_DELAY;
                 while(i > 0){
-    //                long generatorId = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i).getGeneratorId();
-    //                if(!generatorFrozenMap.containsKey(generatorId)) {
-    //                    generatorFrozenMap.put(generatorId, 0L);
-    //                }
-    //                generatorFrozenMap.put(generatorId, generatorFrozenMap.get(generatorId) + 12800000000L);
-    
                     Block pastBlock = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i);
     
                     for (Transaction transaction : pastBlock.getTransactions()) {
@@ -426,7 +445,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
                         TransactionType.CoinBase.mintReward(transaction,false);
                     }
-                    
                     i--;
                 }
                 Db.db.commitTransaction();
@@ -436,12 +454,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 Db.db.endTransaction();
             }
-            Logger.logInfoMessage("[Reset] block generator and ref consignors's frozen balance update finished");
+            Logger.logInfoMessage(logPrefix + " block generator and ref consignors's frozen balance update finished");
 
-            Logger.logInfoMessage("[Reset] write the manual reset property to false into properties file");
+            Logger.logInfoMessage(logPrefix + " write the manual reset property to false into properties file");
             Conch.storePropertieToFile(PROPERTY_MANUAL_RESET, "false");
         }catch (RuntimeException e) {
-            Logger.logErrorMessage("[Reset] reset pools and accounts failed", e);
+            Logger.logErrorMessage(logPrefix + " reset pools and accounts failed", e);
         }finally {
             Conch.unpause();
         }

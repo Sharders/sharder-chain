@@ -105,5 +105,4 @@ public interface PocProcessor {
      */
     void notifySynTxNow();
     
-//    void saveToDisk();
 }

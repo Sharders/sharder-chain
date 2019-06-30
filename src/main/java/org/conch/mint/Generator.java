@@ -418,8 +418,9 @@ public class Generator implements Comparable<Generator> {
     }
 
     public static long getNextHitTime(long lastBlockId, int curTime) {
-        BlockchainImpl.getInstance().readLock();
         try {
+            BlockchainImpl.getInstance().readLock();
+            
             if (lastBlockId == Generator.lastBlockId && sortedMiners != null) {
                 for (Generator generator : sortedMiners) {
                     if (generator.getHitTime() >= curTime - Constants.MINING_DELAY) {
@@ -765,10 +766,6 @@ public class Generator implements Comparable<Generator> {
             setLastBlock(Conch.getBlockchain().getLastBlock());
         }
 
-        public long getEffectiveBalance() {
-            return effectiveBalance.longValue();
-        }
-
         public long getPocScore() { return pocScore.longValue(); }
 
         private void setLastBlock(Block lastBlock) {
@@ -826,7 +823,7 @@ public class Generator implements Comparable<Generator> {
      * force to open auto mining once
      */
     public static void forceOpenAutoMining(){
-        autoMintRunning = true;
+        autoMintRunning = false;
     }
     
     public static boolean isBindAddress(String rsAddress){

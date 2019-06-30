@@ -15,12 +15,10 @@
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
                             {number:newestBlock.height})}}
                         </li>
-                        <li>{{$t('mining.index.my_assets')}}{{$global.formatMoney(accountInfo.effectiveBalanceSS)}}
-                            SS
+                        <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                         </li>
                         <li>
-                            {{$t('mining.index.my_income')}}{{$global.formatMoney(accountInfo.forgedBalanceNQT/100000000)}}
-                            SS
+                            {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
                         </li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
@@ -231,7 +229,7 @@
                     </table>
                     <div class="my-assets">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
-                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
+<!--                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}-->
                     </div>
                 </div>
             </div>
@@ -291,10 +289,8 @@
                             <p>{{$t('mining.index.income_distribution_tip')}}</p>
                         </div>
                         <div class="pool-bth">
-                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}
-                            </button>
-                            <button class="immediately-create" @click="createPool()">{{$t('mining.index.create_now')}}
-                            </button>
+                            <button class="cancel" @click="isVisible('isCreatePool')">{{$t('enter.enter_cancel')}}</button>
+                            <el-button class="immediately-create" v-loading="btnLoading" :disabled="btnLoading" @click="createPool()">{{$t('mining.index.create_now')}}</el-button>
                         </div>
                     </div>
                 </div>
@@ -367,7 +363,8 @@
                 totalSize: 0,
                 pageSize: 18,
 
-                loading: true
+                loading: true,
+                btnLoading: false
             }
         },
         mounted() {
@@ -450,6 +447,7 @@
             },
             createPool() {
                 let _this = this;
+                
                 if (SSO.downloadingBlockchain) {
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
@@ -458,7 +456,7 @@
                     _this.isVisible('isCreatePool');
                     return _this.$message.info(_this.$t('notification.insufficient_permissions'));
                 }
-
+                _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.rule.rule.totalBlocks.max,
                     secretPhrase: SSO.secretPhrase,
@@ -481,8 +479,10 @@
                         _this.$message.success(_this.$t("mining.index.creating_success"));
                         _this.isVisible('isCreatePool');
                         _this.$global.optHeight.create = _this.newestBlock.height;
+                        _this.btnLoading = false;
                     } else {
                         _this.$message.error(res.errorDescription);
+                        _this.btnLoading = false;
                     }
                 });
             },
@@ -569,8 +569,8 @@
                     _this.accountInfo = res;
                 });
 
-                _this.getAssetsRanking();
-                _this.getAccountRanking();
+                // _this.getAssetsRanking();
+                // _this.getAccountRanking();
 
             },
             getCoinBase(height) {

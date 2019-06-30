@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +22,20 @@ import java.util.Map;
  */
 public class PocDb {
 
+    public static void batchUpdate(Connection con, List<PocScore> pocScoreList) {
+        if (pocScoreList == null || pocScoreList.size() < 0 ) {
+            return;
+        }
+        
+        pocScoreList.forEach(pocScore -> {
+            try {
+                _saveOrUpdate(con, pocScore);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
     public static void saveOrUpdate(PocScore pocScore) {
         if (pocScore == null || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ) {
             return;
@@ -28,24 +43,27 @@ public class PocDb {
         Connection con = null;
         try {
             con = Db.db.getConnection();
-
-            PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id from account_poc_score " 
-                                                                + "WHERE account_id = ? AND height = ?");
-            pstmtCount.setLong(1, pocScore.getAccountId());
-            pstmtCount.setInt(2, pocScore.getHeight());
-            
-            ResultSet rs = pstmtCount.executeQuery();
-            boolean exist = (rs != null) && rs.next();
-            
-            if(exist){
-                update(con, pocScore);
-            }else{
-                insert(con, pocScore);
-            }
+            _saveOrUpdate(con,pocScore);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
             DbUtils.close(con);
+        }
+    }
+
+    private static void _saveOrUpdate(Connection con, PocScore pocScore) throws SQLException {
+        PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id from account_poc_score "
+                + "WHERE account_id = ? AND height = ?");
+        pstmtCount.setLong(1, pocScore.getAccountId());
+        pstmtCount.setInt(2, pocScore.getHeight());
+
+        ResultSet rs = pstmtCount.executeQuery();
+        boolean exist = (rs != null) && rs.next();
+
+        if(exist){
+            update(con, pocScore);
+        }else{
+            insert(con, pocScore);
         }
     }
     
@@ -98,8 +116,8 @@ public class PocDb {
     }
 
     private static String get(long accountId, int height, boolean loadHistory) {
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             if(height < 0) return null;
             
             // close the start height in query 
@@ -154,8 +172,8 @@ public class PocDb {
     public static Map<Long,PocScore>  listAll() {
         Map<Long,PocScore> scoreMap = Maps.newHashMap();
         
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().readLock();
             Connection con = null;
             try {
                 con = Db.db.getConnection();

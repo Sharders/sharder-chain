@@ -21,6 +21,15 @@ public class Consignor implements Serializable {
         this.id = id;
         this.transactions.add(joinTransaction);
     }
+    
+    public boolean hasTx(long txId){
+        for (JoinTransaction joinTx : transactions) {
+            if (joinTx.getTransactionId() == txId) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void addTransaction(long transactionId, int startBlockNo, int endBlockNo, long amount) {
         JoinTransaction joinTransaction = new JoinTransaction(transactionId, startBlockNo, endBlockNo, amount);
@@ -54,14 +63,6 @@ public class Consignor implements Serializable {
             return transactions.get(index).getEndBlockNo();
         }
         return -1;
-    }
-
-    public boolean hasTransaction(long txId) {
-        JoinTransaction joinTransaction = new JoinTransaction(txId, 0, 0, 0);
-        if (transactions.contains(joinTransaction)) {
-            return true;
-        }
-        return false;
     }
 
     public long validateHeightAndRemove(int height) {

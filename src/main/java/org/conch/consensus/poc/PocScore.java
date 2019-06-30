@@ -32,7 +32,7 @@ public class PocScore implements Serializable {
 
     BigInteger effectiveBalance;
     
-    private static BigInteger MULTIPLIER = new BigInteger("10");
+    private static BigInteger SCORE_MULTIPLIER = new BigInteger("10");
     
     //TODO 
     int luck = 0;
@@ -48,8 +48,7 @@ public class PocScore implements Serializable {
     public PocScore(Long accountId, int height) {
         this.accountId = accountId;
         this.height = height;
-        this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
-        PocCalculator.inst.ssHoldCal(this);
+        ssCal();
     }
     
     public PocScore(int height, PocScore another) {
@@ -71,7 +70,7 @@ public class PocScore implements Serializable {
         // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
         BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
-        return score.multiply(MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
+        return score.multiply(SCORE_MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
     }
 
     public PocScore nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
@@ -110,7 +109,12 @@ public class PocScore implements Serializable {
     }
     
     public PocScore ssCal(){
-        this.effectiveBalance = this.ssScore = _calBalance(accountId, height);
+        if (accountId != null) {
+            Account account = Account.getAccount(accountId, height);
+            long accountBalanceNQT = account != null ? account.getEffectiveBalanceNQT(height) : 0L;
+            this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+            this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
+        }
         PocCalculator.inst.ssHoldCal(this);
         return this;
     }
@@ -147,27 +151,47 @@ public class PocScore implements Serializable {
     }
 
     /**
-     * effective balance is pool balance if the miner own a sharder pool
-     *
-     * @param accountId
+     * - effective ss is pool balance if the miner own a sharder pool
+     * - effective ss is not equals to effective balance always
+     * - the max effective ss is all pools amounts that account owned
+     * @param account
      * @param height
      * @return
      */
-    private static BigInteger _calBalance(Long accountId, int height) {
-        BigInteger balance = BigInteger.ZERO;
-        if (accountId == null) return balance;
+    private static BigInteger _calEffectiveSS(Account account,long accountBalanceNQT,int height) {
+        BigInteger effectiveSS = BigInteger.ZERO;
+        if (account == null) return effectiveSS;
 
-        Account account = Account.getAccount(accountId, height);
-        if (account == null) return balance;
-
-        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(accountId);
-        if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
-            balance = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
-                    .add(BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0)));
-        } else {
-            balance = BigInteger.valueOf(Math.max(account.getEffectiveBalanceSS(height), 0));
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
+        
+        if(Constants.isTestnet() && height < Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+            if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
+                effectiveSS = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
+                        .add(BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS));
+            } else {
+                effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+            }
+        }else{
+            if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
+                effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
+            } else {
+                boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
+                
+                // 1/3 of pool capacity
+                long noPoolMultiplier = 3;
+                if(Constants.isTestnet() && height < 4765) {
+                    noPoolMultiplier = 2;
+                }
+                
+                if(exceedPoolMaxAmount){
+                    effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS / noPoolMultiplier);
+                }else{
+                    effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS / noPoolMultiplier);
+                }
+            }
         }
-        return balance;
+        
+        return effectiveSS;
     }
 
     private static final String SCORE_KEY = "poc_score";

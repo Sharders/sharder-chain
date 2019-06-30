@@ -44,9 +44,9 @@ public class DbBackupTask extends Task{
     public static String execute(String path, String fileName) {
         String pathStr;
         String fileNameStr;
-        Conch.getBlockchain().updateLock();
-        Conch.getBlockchain().readLock();
         try {
+            Conch.getBlockchain().updateLock();
+            Conch.getBlockchain().readLock();
             pathStr = path==null?defaultPath:path;
             if(fileName == null) {
                 LocalDateTime currentDateTime = LocalDateTime.now();
