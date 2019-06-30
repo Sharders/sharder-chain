@@ -81,12 +81,10 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             // delete db
             Conch.getBlockchainProcessor().fullReset();
             // reset user define properties file
+            RESET_MAP.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
             Conch.storePropertiesToFile(RESET_MAP);
             // delete log files when resetting configuration
             FileUtil.clearAllLogs();
-            
-            Logger.logInfoMessage("[Recovery] write the manual reset property to false into properties file");
-            Conch.storePropertieToFile(ForceConverge.PROPERTY_MANUAL_RESET, "true");
             
             response.put("done", true);
         } catch (RuntimeException | FileNotFoundException e) {
