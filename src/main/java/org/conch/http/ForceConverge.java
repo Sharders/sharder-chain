@@ -329,11 +329,16 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
      * to correct the account balance of Testnet
      */
     public static void resetPoolAndAccounts(Block block){
-        if(!Constants.isTestnet() || block.getHeight() != Constants.TESTNET_POC_ALGO_HEIGHT) return;
+        boolean reachHeight = (block.getHeight() == Constants.TESTNET_POC_LEDGER_RESET_HEIGHT) 
+                || (block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT);
+        
+        if(!Constants.isTestnet() || !reachHeight) return;
+        String logPrefix = "[Reset-Height " + block.getHeight() + "]";
         
         try{
             Conch.pause();
-            Logger.logInfoMessage("[Reset] start to reset the pools and accounts to avoid the balance and block generator validation error");
+         
+            Logger.logInfoMessage(logPrefix + " start to reset the pools and accounts to avoid the balance and block generator validation error");
 
             List<SharderPoolProcessor> poolProcessors = PoolDb.list(SharderPoolProcessor.State.DESTROYED.ordinal(), false);
             int successCount = 0;
@@ -343,12 +348,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 //                    pool.destroy(Conch.getHeight());
                     successCount++;
                 }catch (Exception e) {
-                    Logger.logWarningMessage("[Reset] can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
+                    Logger.logWarningMessage(logPrefix + "can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
                 }
             }
             PoolDb.saveOrUpdate(poolProcessors);
             SharderPoolProcessor.instFromDB();
-            Logger.logInfoMessage("[Reset] all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
+            Logger.logInfoMessage(logPrefix + " all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
             
             // get all accounts
             Map<Long, String> accountMinedBalanceMap = Maps.newHashMap();
@@ -398,7 +403,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 DbUtils.close(con);
             }
-            Logger.logInfoMessage("[Reset] accounts balance and guaranteed balance finished");
+            Logger.logInfoMessage(logPrefix + " accounts balance and guaranteed balance finished");
             
             try {
                 // block generator frozen balance calculate
@@ -432,12 +437,12 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 Db.db.endTransaction();
             }
-            Logger.logInfoMessage("[Reset] block generator and ref consignors's frozen balance update finished");
+            Logger.logInfoMessage(logPrefix + " block generator and ref consignors's frozen balance update finished");
 
-            Logger.logInfoMessage("[Reset] write the manual reset property to false into properties file");
+            Logger.logInfoMessage(logPrefix + " write the manual reset property to false into properties file");
             Conch.storePropertieToFile(PROPERTY_MANUAL_RESET, "false");
         }catch (RuntimeException e) {
-            Logger.logErrorMessage("[Reset] reset pools and accounts failed", e);
+            Logger.logErrorMessage(logPrefix + " reset pools and accounts failed", e);
         }finally {
             Conch.unpause();
         }

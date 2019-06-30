@@ -199,23 +199,27 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 request.putAll(Peers.getNatAndAddressMap());
                 JSONObject response = peer.send(JSON.prepareRequest(request));
                 if (response == null) return;
-
+                
+                // can't get the mining difficulty of remote peer
                 BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
                 String peerCumulativeDifficulty = (String) response.get("cumulativeDifficulty");
                 if (peerCumulativeDifficulty == null) return;
 
+                // the mining difficulty of the feeder peer is smaller than the current peer
                 BigInteger betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
                 if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
-                
-                if(Conch.versionCompare(peer.getVersion()) > 0) return;
-                
+
+                // the mining difficulty of the feeder peer is same with the current peer
                 if (response.get("blockchainHeight") != null) {
                     lastBlockchainFeeder = peer;
                     lastBlockchainFeederHeight = ((Long) response.get("blockchainHeight")).intValue();
                 }
                 if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) return;
 
-                // milestone block
+                // the cos version of the feeder peer is smaller than current peer
+                if(Conch.versionCompare(peer.getVersion()) > 0) return;
+
+                // milestone block and block number check
                 long commonMilestoneBlockId = SharderGenesis.GENESIS_BLOCK_ID;
 
                 if (blockchain.getLastBlock().getId() != SharderGenesis.GENESIS_BLOCK_ID) {
@@ -240,6 +244,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     isDownloading = true;
                     return;
                 }
+                
                 if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
                     Logger.logMessage("Blockchain download in progress[height is from " + blockchain.getHeight() + " to " + lastBlockchainFeederHeight + "]");
                     isDownloading = true;
@@ -1503,7 +1508,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
             Account generatorAccount = Account.getAccount(block.getGeneratorId());
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount, previousLastBlock.getHeight());
-            String errorMsg = String.format("Generation signature verification failed, account %s poc score is %d at height %d. %s", generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1), pocScoreObj.toString());
+            String errorMsg = String.format("Block generation signature verification failed, generator %s poc score is %d at height %d.",
+                    generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1));
             throw new BlockNotAcceptedException(errorMsg, block);
         }
         if (!block.verifyBlockSignature()) {
