@@ -112,12 +112,6 @@ public class PocScore implements Serializable {
         if (accountId != null) {
             Account account = Account.getAccount(accountId, height);
             long accountBalanceNQT = account != null ? account.getEffectiveBalanceNQT(height) : 0L;
-//            if(height < 6000){
-//                this.effectiveBalance = this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
-//            } else{
-//                this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
-//                this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height); 
-//            }
             this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
             this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
         }
@@ -170,7 +164,7 @@ public class PocScore implements Serializable {
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
         
-        if(Constants.isTestnet() && height <= Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+        if(Constants.isTestnet() && height < Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
                 effectiveSS = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
                         .add(BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS));

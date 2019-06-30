@@ -32,6 +32,8 @@ import org.conch.chain.BlockchainProcessor;
 import org.conch.chain.CheckSumValidator;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.consensus.poc.PocScore;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.db.PoolDb;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
@@ -375,6 +377,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 DbUtils.close(con);
             }
             
+            List<PocScore> pocScoreList = Lists.newArrayList();
             // reset the all accounts balance
             try {
                 con = Db.db.getConnection();
@@ -393,6 +396,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            }
                            Account account = Account.getAccount(accountId);
                            account.reset(con, balance, balance, minedBalance, frozenBalance);
+
+                           if(block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+                               pocScoreList.add(Conch.getPocProcessor().calPocScore(account,block.getHeight()));
+                           }
                        } catch (SQLException e) {
                            e.printStackTrace();
                        } 
@@ -403,20 +410,27 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 DbUtils.close(con);
             }
-            Logger.logInfoMessage(logPrefix + " accounts balance and guaranteed balance finished");
-            
+            Logger.logInfoMessage(logPrefix + " accounts balance and guaranteed balance reset finished, updated size is " + accountMinedBalanceMap.size());
+
+            // re-cal the all accounts poc score
+            try {
+                if(pocScoreList.size() > 0) {
+                    con = Db.db.getConnection();
+                    PocDb.batchUpdate(con, pocScoreList);
+                    Logger.logInfoMessage(logPrefix + " accounts poc score re-calculate finished, updated size is " + pocScoreList.size());
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            } finally {
+                DbUtils.close(con);
+            }
+           
             try {
                 // block generator frozen balance calculate
                 Db.db.beginTransaction();
                 
                 int i = Constants.SHARDER_REWARD_DELAY;
                 while(i > 0){
-    //                long generatorId = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i).getGeneratorId();
-    //                if(!generatorFrozenMap.containsKey(generatorId)) {
-    //                    generatorFrozenMap.put(generatorId, 0L);
-    //                }
-    //                generatorFrozenMap.put(generatorId, generatorFrozenMap.get(generatorId) + 12800000000L);
-    
                     Block pastBlock = Conch.getBlockchain().getBlockAtHeight(block.getHeight() - i);
     
                     for (Transaction transaction : pastBlock.getTransactions()) {
