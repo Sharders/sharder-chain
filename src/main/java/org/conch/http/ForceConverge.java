@@ -377,14 +377,21 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 DbUtils.close(con);
             }
             
-            List<PocScore> pocScoreList = Lists.newArrayList();
             // reset the all accounts balance
+            List<PocScore> pocScoreList = Lists.newArrayList();
+            String scoreRecalAccounts = "";
             try {
                 con = Db.db.getConnection();
                 if(accountMinedBalanceMap.size() > 0) {
                    Set<Long> accountIds = accountMinedBalanceMap.keySet();
                    for(long accountId : accountIds){
                        try {
+                           Account account = Account.getAccount(accountId);
+                           if(block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+                               pocScoreList.add(Conch.getPocProcessor().calPocScore(account,block.getHeight()));
+                               scoreRecalAccounts += account.getRsAddress() + ",";
+                           }
+                           
                            String ba = accountMinedBalanceMap.get(accountId);
                            if(StringUtils.isEmpty(ba) || !ba.contains(",")) continue;
                            String[] baArray = ba.split(",");
@@ -394,12 +401,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                            if(block.getGeneratorId() == accountId) {
                                frozenBalance = 12800000000L;
                            }
-                           Account account = Account.getAccount(accountId);
+                      
                            account.reset(con, balance, balance, minedBalance, frozenBalance);
-
-                           if(block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
-                               pocScoreList.add(Conch.getPocProcessor().calPocScore(account,block.getHeight()));
-                           }
                        } catch (SQLException e) {
                            e.printStackTrace();
                        } 
@@ -410,14 +413,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             } finally {
                 DbUtils.close(con);
             }
-            Logger.logInfoMessage(logPrefix + " accounts balance and guaranteed balance reset finished, updated size is " + accountMinedBalanceMap.size());
+            Logger.logInfoMessage(logPrefix + " accounts balance and guaranteed balance reset finished, size is " + accountMinedBalanceMap.size());
 
             // re-cal the all accounts poc score
             try {
                 if(pocScoreList.size() > 0) {
                     con = Db.db.getConnection();
                     PocDb.batchUpdate(con, pocScoreList);
-                    Logger.logInfoMessage(logPrefix + " accounts poc score re-calculate finished, updated size is " + pocScoreList.size());
+                    Logger.logInfoMessage(logPrefix + " accounts poc score re-calculate finished, size is " + pocScoreList.size() + ", accounts[" + scoreRecalAccounts + "]");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);

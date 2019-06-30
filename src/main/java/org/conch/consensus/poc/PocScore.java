@@ -179,6 +179,10 @@ public class PocScore implements Serializable {
                 
                 // 1/3 of pool capacity
                 long noPoolMultiplier = 3;
+                if(Constants.isTestnet() && height < 4765) {
+                    noPoolMultiplier = 2;
+                }
+                
                 if(exceedPoolMaxAmount){
                     effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS / noPoolMultiplier);
                 }else{
