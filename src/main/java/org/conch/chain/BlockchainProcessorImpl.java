@@ -2140,13 +2140,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
             pushBlock(block);
             blockListeners.notify(block, Event.BLOCK_GENERATED);
+            PocScore generatorScore = Conch.getPocProcessor().calPocScore(creator, previousBlock.getHeight());
             Logger.logInfoMessage(
                     "Account[id="
-                            + Long.toUnsignedString(creator.getId())
+                            + creator.getId()
                             + ", RS="
                             + creator.getRsAddress()
                             + ", PoC="
-                            + Conch.getPocProcessor().calPocScore(creator, previousBlock.getHeight())
+                            + generatorScore.total()
                             + "]"
                             + " generated block "
                             + block.getStringId()
