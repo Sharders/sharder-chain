@@ -201,7 +201,7 @@ public class BasicDb {
             int activeConnections = cp.getActiveConnections();
             if (activeConnections > maxActiveConnections) {
                 maxActiveConnections = activeConnections;
-                Logger.logWarningMessage("Database connection pool current size " + activeConnections + " is larger than max size " + maxActiveConnections);
+                Logger.logDebugMessage("Database connection pool current size " + activeConnections + " is larger than max size " + maxActiveConnections);
 
                 if (Logger.isLevel(Logger.Level.DEBUG)) {
                     String stacks = String.format("Stacks as following[conn size=%d]\n\r", activeConnections);
