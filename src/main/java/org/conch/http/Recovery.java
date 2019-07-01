@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import com.google.common.collect.Maps;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.mint.pool.SharderPoolProcessor;
@@ -76,22 +77,29 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             response.put("failedReason", "user has created a working pool, failed to recovery hub");
             return response;
         }
+        
         try {
-            // delete db
-            Conch.getBlockchainProcessor().fullReset();
+            Conch.pause();
+            
             // reset user define properties file
-            RESET_MAP.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
-            Conch.storePropertiesToFile(RESET_MAP);
+            HashMap<String, String> paramMap =  Maps.newHashMap(RESET_MAP);
+            paramMap.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
+            Conch.storePropertiesToFile(paramMap);
+            
             // delete log files when resetting configuration
             FileUtil.clearAllLogs();
             
+            if (restart) {
+                new Thread(() -> Conch.restartApplication(null)).start();
+            }
             response.put("done", true);
+            
         } catch (RuntimeException | FileNotFoundException e) {
             JSONData.putException(response, e);
+        } finally {
+            Conch.unpause();
         }
-        if (restart) {
-            new Thread(() -> Conch.restartApplication(null)).start();
-        }
+      
         return response;
     }
 
