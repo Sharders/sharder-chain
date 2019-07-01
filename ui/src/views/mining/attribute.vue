@@ -404,7 +404,7 @@
                     return this.$message.warning(this.$t("account.synchronization_block"));
                 }
 
-                if(this.joinPool > this.accountInfo.effectiveBalanceNQT) {
+                if(this.joinPool > this.accountInfo.effectiveBalanceNQT / 100000000) {
                     return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
                 }
                 
