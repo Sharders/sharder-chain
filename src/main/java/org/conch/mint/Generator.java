@@ -334,7 +334,7 @@ public class Generator implements Comparable<Generator> {
         if(!isOwner && generators.size() >= MAX_MINERS) {
             throw new RuntimeException("the limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
-
+        
         Long accountId = Account.getId(secretPhrase);
         /**
         // whether own the pool
@@ -617,6 +617,14 @@ public class Generator implements Comparable<Generator> {
         
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
+      
+        /**
+        // if the miner dose not be public to the network yet, new a account locally
+        if(account == null) {
+            account = Account.addOrGetAccount(accountId);
+            account.apply(getPublicKey());
+        }
+        **/
 
         PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(account,lastHeight);
         effectiveBalance = pocScoreObj.getEffectiveBalance();
