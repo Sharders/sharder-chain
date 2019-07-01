@@ -1654,7 +1654,7 @@
                         }
                     }
                     _this.accountInfo = res;
-                    if (_this.transfer.number > _this.accountInfo.effectiveBalanceNQT) {
+                    if (_this.transfer.number > _this.accountInfo.effectiveBalanceNQT / 100000000) {
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
