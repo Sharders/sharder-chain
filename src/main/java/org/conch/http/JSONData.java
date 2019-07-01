@@ -977,9 +977,7 @@ public final class JSONData {
                 
                 String txId = String.valueOf(attachmentJSON.get("txId"));
                 Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
-                if(joinTx != null) {
-                    attachmentJSON.put("txSId", joinTx.getStringId());
-                }
+                attachmentJSON.put("txSId",joinTx != null ? joinTx.getStringId() : "none");
               
                 if(joinTx != null && joinTx.getAttachment() != null){
                     attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
