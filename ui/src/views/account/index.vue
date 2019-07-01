@@ -1430,10 +1430,6 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                /*               if(_this.transfer.errorCode){
-                                   _this.$message.warning(_this.$t('notification.null_information_warning'));
-                                   return;
-                               }*/
 
                 if (_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____") {
@@ -1458,7 +1454,7 @@
                         }
                     }
                     _this.accountInfo = res;
-                    if (_this.transfer.number > _this.accountInfo.unconfirmedBalanceNQT / 100000000) {
+                    if (_this.transfer.number > _this.accountInfo.effectiveBalanceNQT / 100000000) {
                         _this.$message.warning(_this.$t('notification.transfer_balance_insufficient'));
                         return;
                     }
