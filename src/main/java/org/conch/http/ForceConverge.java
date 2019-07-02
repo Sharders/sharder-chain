@@ -253,11 +253,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     public static void manualReset(){
        try{
             Conch.pause();
-            
-            Logger.logDebugMessage("start to reset the blockchain");
+
+            Logger.logInfoMessage("[ManualReset] start to manual reset...");
             FileUtil.deleteDbFolder();
             FileUtil.clearAllLogs();
-            
+            Logger.logInfoMessage("[ManualReset] manual reset finished");
         }catch (RuntimeException | FileNotFoundException e) {
             Logger.logErrorMessage("reset failed", e);
         }finally {
@@ -311,7 +311,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
         boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
         if(manualReset && !Generator.isBootNode) {
-            Logger.logInfoMessage("Manual to delete the local db");
             manualReset();
         }
         

@@ -528,7 +528,7 @@ public final class API {
                 HttpServletResponse response = (HttpServletResponse) resp;
 
                 if(isRoute(urlStr)) {
-                    Logger.logInfoMessage("urlStr=" + urlStr + ",PathInfo=" + request.getPathInfo() + ",Method=" + request.getMethod() + ",request=" + request.toString());
+                    Logger.logDebugMessage("urlStr=" + urlStr + ",PathInfo=" + request.getPathInfo() + ",Method=" + request.getMethod() + ",request=" + request.toString());
                     response.sendRedirect("/index.html");
                 }
             }

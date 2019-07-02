@@ -94,7 +94,7 @@ public class Generator implements Comparable<Generator> {
         static void putin(){
             if(sortedMiners != null && sortedMiners.size() > 0){
                 for(Generator generator : sortedMiners){
-                    generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
+                    generatorSummary += "[ DEBUG ]" + appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
                             + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
                 }
             }
@@ -138,7 +138,7 @@ public class Generator implements Comparable<Generator> {
 
         if(!Conch.isInitialized()) {
             if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logWarningMessage("wait for Conch initialized...");
+                Logger.logDebugMessage("wait for Conch initialized...");
             }
             return false;
         }
@@ -334,7 +334,7 @@ public class Generator implements Comparable<Generator> {
         if(!isOwner && generators.size() >= MAX_MINERS) {
             throw new RuntimeException("the limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
-
+        
         Long accountId = Account.getId(secretPhrase);
         /**
         // whether own the pool
@@ -617,6 +617,14 @@ public class Generator implements Comparable<Generator> {
         
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
+      
+        /**
+        // if the miner dose not be public to the network yet, new a account locally
+        if(account == null) {
+            account = Account.addOrGetAccount(accountId);
+            account.apply(getPublicKey());
+        }
+        **/
 
         PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(account,lastHeight);
         effectiveBalance = pocScoreObj.getEffectiveBalance();
