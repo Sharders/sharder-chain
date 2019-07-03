@@ -1678,10 +1678,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             // unconfirmed balance update
             for (TransactionImpl transaction : block.getTransactions()) {
                 if (!transaction.applyUnconfirmed()) {
-                    if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
-                       Logger.logWarningMessage("Ignore the double spending of tx => " + transaction.getJSONObject().toJSONString()); 
-                    }else{
-                        throw new TransactionNotAcceptedException("Double spending", transaction);  
+                    if(CheckSumValidator.isKnownIgnoreTx(transaction.getId())){
+                        Logger.logWarningMessage("this tx[id=%d, creator=%s, height=%d] is known ignored tx, don't apply and ignore it"
+                                , transaction.getId(), Account.rsAccount(transaction.getSenderId()), transaction.getHeight());
+                    }else {
+                        throw new TransactionNotAcceptedException("Double spending", transaction);
                     }
                 }
             }
