@@ -617,14 +617,28 @@ public class Generator implements Comparable<Generator> {
         
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
-      
-        
-        // if the miner dose not be public to the network yet, new a account locally
         if(account == null) {
-            account = Account.addOrGetAccount(accountId);
-            account.apply(getPublicKey());
+            Logger.logWarningMessage("current account %s [id=%d] is a new account, please create some txs or receive some SS from other accounts", rsAddress, accountId);
+            return;
         }
-
+        /**
+        // if the miner dose not be public to the network yet, new a account locally
+        if (!Db.db.isInTransaction()) {
+            try {
+                Db.db.beginTransaction();
+                if(account == null) {
+                    Account.addOrGetAccount(accountId).apply(getPublicKey());
+                }
+                Db.db.commitTransaction();
+            } catch (Exception e) {
+                Db.db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.db.endTransaction();
+            }
+        }
+        **/
+    
         PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(account,lastHeight);
         effectiveBalance = pocScoreObj.getEffectiveBalance();
         detailedPocScore = pocScoreObj.toJsonObject();
