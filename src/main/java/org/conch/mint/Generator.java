@@ -618,13 +618,12 @@ public class Generator implements Comparable<Generator> {
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
       
-        /**
+        
         // if the miner dose not be public to the network yet, new a account locally
         if(account == null) {
             account = Account.addOrGetAccount(accountId);
             account.apply(getPublicKey());
         }
-        **/
 
         PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(account,lastHeight);
         effectiveBalance = pocScoreObj.getEffectiveBalance();
