@@ -95,7 +95,7 @@ public class Generator implements Comparable<Generator> {
             if(sortedMiners != null && sortedMiners.size() > 0){
                 for(Generator generator : sortedMiners){
                     generatorSummary += "[ DEBUG ]" + appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
-                            + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false);
+                            + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false) + "】";
                 }
             }
         }
