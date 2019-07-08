@@ -252,6 +252,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 blockchain.updateLock();
                 try {
+                    Peer feederPeer = peer;
                     if (betterCumulativeDifficulty.compareTo(blockchain.getLastBlock().getCumulativeDifficulty()) <= 0) {
                         return;
                     }
@@ -300,6 +301,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             continue;
                         }
                         Logger.logDebugMessage("Found a peer with better difficulty");
+                        feederPeer = otherPeer;
                         downloadBlockchain(otherPeer, otherPeerCommonBlock, commonBlock.getHeight());
                     }
                     Logger.logDebugMessage("Got " + confirmations + " confirmations");
@@ -312,7 +314,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         Logger.logMessage(
                                 "Downloaded "
                                         + numBlocks
-                                        + " blocks in "
+                                        + " blocks from "
+                                        + feederPeer.getAnnouncedAddress() + "[" + feederPeer.getHost() + "]"
+                                        + " in "
                                         + time / 1000
                                         + " s, "
                                         + (totalBlocks * 1000) / totalTime
