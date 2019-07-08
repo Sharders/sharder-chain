@@ -375,7 +375,7 @@ public final class Constants {
     
     
     private static Map<String,Integer> bootNodeConnectCountMap = Maps.newConcurrentMap();
-    public static boolean isValidBootNode(Peer peer){
+    public static synchronized boolean isValidBootNode(Peer peer){
         boolean isBootNode = bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
         
         if(!isBootNode) return false;
@@ -388,7 +388,7 @@ public final class Constants {
             bootNodeConnectCountMap.put(peer.getHost(), 0);
             return false;
         }else {
-            bootNodeConnectCountMap.put(peer.getHost(), connectCount++);
+            bootNodeConnectCountMap.put(peer.getHost(), connectCount+1);
         }
         return true;
 //        return Peer.State.CONNECTED == peer.getState();
