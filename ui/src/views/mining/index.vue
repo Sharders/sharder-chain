@@ -255,7 +255,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{$global.getSSNumberFormat(maxPoolInvestment)}}</span>
+                            <span>{{$global.getSSNumberFormat(maxPoolInvestment+$global.poolPledgeAmount)}}</span>
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.mining_time')}}</span>:
