@@ -1358,9 +1358,8 @@ public final class Peers {
                 weight = 1;
             }
             totalWeight += weight;
-            // boot node check
-            if(Constants.isBootNode(peer.getHost())
-            || Constants.isBootNode(peer.getAnnouncedAddress())){
+            // boot nodes check
+            if(Constants.isValidBootNode(peer)) {
                 return peer;
             }
 //            // larger version 

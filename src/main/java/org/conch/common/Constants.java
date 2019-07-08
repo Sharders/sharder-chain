@@ -21,16 +21,17 @@
 
 package org.conch.common;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.Generator;
+import org.conch.peer.Peer;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.TimeZone;
+import java.util.*;
 
 public final class Constants {
 
@@ -90,7 +91,7 @@ public final class Constants {
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
-    public static final String BootNodeHost = parseBootNodeHost();
+    public static final Set<String> bootNodesHost = parseBootNodesHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -363,17 +364,34 @@ public final class Constants {
         return networkInProperties;
     }
     
-    private static final String parseBootNodeHost() {
+    private static final Set<String> parseBootNodesHost() {
        if(isMainnet()){
-           return "boot.sharder.io";
+           return Sets.newHashSet("boot.sharder.io");
        }else if(isTestnet()){
-           return "testboot.sharder.io";
+           return Sets.newHashSet("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
        }
-       return "devboot.sharder.io";
+       return Sets.newHashSet("devboot.sharder.io");
     }
     
-    public static boolean isBootNode(String host){
-        return BootNodeHost.equals(host);
+    
+    private static Map<String,Integer> bootNodeConnectCountMap = Maps.newConcurrentMap();
+    public static boolean isValidBootNode(Peer peer){
+        boolean isBootNode = bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
+        
+        if(!isBootNode) return false;
+        
+        if(!bootNodeConnectCountMap.containsKey(peer.getHost())) {
+            bootNodeConnectCountMap.put(peer.getHost(), 0);
+        }
+        int connectCount = bootNodeConnectCountMap.get(peer.getHost());
+        if(connectCount >= 3) {
+            bootNodeConnectCountMap.put(peer.getHost(), 0);
+            return false;
+        }else {
+            bootNodeConnectCountMap.put(peer.getHost(), connectCount++);
+        }
+        return true;
+//        return Peer.State.CONNECTED == peer.getState();
     }
 
     public static final String SUCCESS = "success";

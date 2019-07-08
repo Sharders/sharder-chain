@@ -123,11 +123,15 @@ public class Generator implements Comparable<Generator> {
     }
     
     /**
-     * check current height whether reached last known block
+     * check current blockchain state:
+     * - mining height
+     * - block synchronization state check
+     * - boot node and obsolete state check
+     * - poc txns processing state check
      * @param lastBlock
      * @return
      */
-    private static boolean isMintHeightReached(Block lastBlock, int generationLimit){
+    private static boolean miningConditionReached(Block lastBlock, int generationLimit){
         if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
                 Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
@@ -208,7 +212,7 @@ public class Generator implements Comparable<Generator> {
 
                         final int generationLimit = Conch.getEpochTime() - delayTime;
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
-                        if(!isMintHeightReached(lastBlock, generationLimit)) return;
+                        if(!miningConditionReached(lastBlock, generationLimit)) return;
 
                         checkOrStartAutoMining();
 
