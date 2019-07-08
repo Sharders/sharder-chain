@@ -70,7 +70,8 @@ public class Generator implements Comparable<Generator> {
     private static volatile Set<Long> blackedGenerators = Sets.newConcurrentHashSet();
     private static long lastBlockId;
     private static int delayTime = Constants.MINING_DELAY;
-
+    private static Generator linkedGenerator = null;
+    
     private static class MinerPrinter {
         static int count = 0;
         static boolean debug = true;
@@ -126,7 +127,7 @@ public class Generator implements Comparable<Generator> {
      * @param lastBlock
      * @return
      */
-    private static boolean isMintHeightReached(Block lastBlock){
+    private static boolean isMintHeightReached(Block lastBlock, int generationLimit){
         if(isBootNode && Conch.getBlockchain().getHeight() < 1000) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
                 Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
@@ -156,12 +157,27 @@ public class Generator implements Comparable<Generator> {
         
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
             // when blockchain be blocked and last block is obsolete, boot node need mining the block
-            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
-            if(isObsoleteTime && isBootNode) {
-                Logger.logInfoMessage("[BootNode] boot node need keep mining when the state isn't UP_TO_DATE and the last block is obsolete.");
-            }else {
+            long secondsSinceLastBlock = Conch.getEpochTime() - 600 - Conch.getBlockchain().getLastBlockTimestamp();
+            boolean isObsoleteTime =  secondsSinceLastBlock > (60 * 60 * 1); // block mining delay > 1h
+            boolean foundBlockStuckOnBootNode = isObsoleteTime && isBootNode;
+            boolean linedMinerMatchedHit = false;
+            
+            // linked miner's hit validation
+            if(linkedGenerator != null) {
+                int timestamp = linkedGenerator.getTimestamp(generationLimit);
+                if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
+                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node should keep mining when miner[%s]' hit is matched.", secondsSinceLastBlock ,linkedGenerator.rsAddress);
+                    linedMinerMatchedHit = true;
+                }else{
+                    Logger.logWarningMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node miner[%s]'s hit isn't matched now, wait for next round check.", secondsSinceLastBlock ,linkedGenerator.rsAddress);
+                    linedMinerMatchedHit = false;
+                }
+            }
+            
+            
+            if(!foundBlockStuckOnBootNode || !linedMinerMatchedHit) {
                 if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                    Logger.logDebugMessage("block chain state isn't UP_TO_DATE, may it is in downloading or process blocks. don't start mining till blocks sync finished...");
+                    Logger.logDebugMessage("block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck. don't mining till blocks sync finished...");
                 }
                 return false;
             }
@@ -189,13 +205,14 @@ public class Generator implements Comparable<Generator> {
                     BlockchainImpl.getInstance().updateLock();
                     try {
                         if(forcePause) return;
-                        
+
+                        final int generationLimit = Conch.getEpochTime() - delayTime;
                         Block lastBlock = Conch.getBlockchain().getLastBlock();
-                        if(!isMintHeightReached(lastBlock)) return;
+                        if(!isMintHeightReached(lastBlock, generationLimit)) return;
 
                         checkOrStartAutoMining();
 
-                        final int generationLimit = Conch.getEpochTime() - delayTime;
+                       
                         if (lastBlock.getId() != lastBlockId || sortedMiners == null || sortedMiners.size() == 0) {
                             lastBlockId = lastBlock.getId();
                             if (lastBlock.getTimestamp() > Conch.getEpochTime() - 600) {
@@ -672,13 +689,13 @@ public class Generator implements Comparable<Generator> {
      * @throws BlockchainProcessor.GeneratorNotAcceptedException
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
-        if(!isBootNode && !Constants.isDevnet()) {
-            if(!isMintHeightReached(lastBlock)) return false;
-            if(!isValid(this.accountId, lastBlock.getHeight())) return false;
-        }
+//        if(!isBootNode && !Constants.isDevnet()) {
+//            if(!isMintHeightReached(lastBlock)) return false;
+//            if(!isValid(this.accountId, lastBlock.getHeight())) return false;
+//        }
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
-            Logger.logDebugMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
+            Logger.logInfoMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
             return false;
         }
         
@@ -911,6 +928,7 @@ public class Generator implements Comparable<Generator> {
                 stopMining(HUB_BIND_PR);
                 Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " is not same with Generator's passphrase");
             } else {
+                linkedGenerator = hubGenerator;
                 Logger.logInfoMessage("account " + HUB_BIND_ADDRESS + " started mining...");
             }
         }else {
@@ -918,6 +936,7 @@ public class Generator implements Comparable<Generator> {
             String autoMintPR = Convert.emptyToNull(Conch.getStringProperty("sharder.autoMint.secretPhrase", "", true));
             if(autoMintPR != null) {
                 Generator bindGenerator = startMining(autoMintPR.trim());
+                linkedGenerator = bindGenerator;
                 Logger.logInfoMessage("account " + Account.rsAccount(bindGenerator.getAccountId()) + " start to mining...");
             }
         }
