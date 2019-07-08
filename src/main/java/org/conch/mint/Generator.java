@@ -122,6 +122,8 @@ public class Generator implements Comparable<Generator> {
         return forcePause;
     }
     
+    // obsolete time delay, default value is 60 minutes
+    public static final int OBSOLETE_DELAY = Conch.getIntProperty("sharder.obsoleteDelay", 60);
     /**
      * check current blockchain state:
      * - mining height
@@ -162,7 +164,7 @@ public class Generator implements Comparable<Generator> {
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
             // when blockchain be blocked and last block is obsolete, boot node need mining the block
             long secondsSinceLastBlock = Conch.getEpochTime() - 600 - Conch.getBlockchain().getLastBlockTimestamp();
-            boolean isObsoleteTime =  secondsSinceLastBlock > (60 * 60 * 1); // block mining delay > 1h
+            boolean isObsoleteTime =  secondsSinceLastBlock > (60 * OBSOLETE_DELAY); // default block mining delay > 1h
             boolean foundBlockStuckOnBootNode = isObsoleteTime && isBootNode;
             boolean linedMinerMatchedHit = false;
             
