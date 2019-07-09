@@ -80,7 +80,6 @@ public class Generator implements Comparable<Generator> {
         private static final String splitter = "\n\r";
 
         static private String appendSplitter(String str, boolean appendEnd) {
-            str = splitter + str ;
             if(appendEnd) {
                 str += splitter;
             }
