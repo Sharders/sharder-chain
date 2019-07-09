@@ -80,6 +80,7 @@ public class Generator implements Comparable<Generator> {
         private static final String splitter = "\n\r";
 
         static private String appendSplitter(String str, boolean appendEnd) {
+            str = "[ DEBUG ]" + splitter + str ;
             if(appendEnd) {
                 str += splitter;
             }
@@ -94,7 +95,7 @@ public class Generator implements Comparable<Generator> {
         static void putin(){
             if(sortedMiners != null && sortedMiners.size() > 0){
                 for(Generator generator : sortedMiners){
-                    generatorSummary += "[ DEBUG ]" + appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
+                    generatorSummary += appendSplitter(Account.rsAccount(generator.accountId) + "[id=" + generator.accountId + ",poc score=" + generator.pocScore
                             + ",deadline=" + generator.deadline + ",hit=" + generator.hit + ",hitTime=" + generator.hitTime,false) + "】";
                 }
             }
