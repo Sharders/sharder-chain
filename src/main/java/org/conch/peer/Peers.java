@@ -263,7 +263,7 @@ public final class Peers {
             }
         }
         configuredServerPort = Conch.getIntProperty("sharder.peerServerPort");
-        checkNetworkWhetherRight(myHost, Conch.getPeerPort(), true);
+        checkNetworkWhetherRight(myHost, Conch.getPeerPort());
         shareMyAddress = Conch.getBooleanProperty("sharder.shareMyAddress") && !Constants.isOffline;
         enablePeerUPnP = Conch.getBooleanProperty("sharder.enablePeerUPnP");
         myHallmark = Convert.emptyToNull(Conch.getStringProperty("sharder.myHallmark", "").trim());
@@ -1176,13 +1176,13 @@ public final class Peers {
         peer = new PeerImpl(host, announcedAddress);
         peer.setUseNATService(useNATService);
         if (!useNATService) {
-            checkNetworkWhetherRight(host, peer.getPort(), false);
+            checkNetworkWhetherRight(host, peer.getPort());
         }
         return peer;
     }
 
-    static void checkNetworkWhetherRight(String host, int port, boolean abortWhenBadNetwork) {
-        Logger.logInfoMessage("Network is " + Constants.getNetwork().getName() + ", host is " + host + ", port is " + port);
+    static void checkNetworkWhetherRight(String host, int port) {
+        Logger.logDebugMessage("Network is " + Constants.getNetwork().getName() + ", host is " + host + ", port is " + port);
         host = StringUtils.isEmpty(host) ? "null" : host;
         String networkDetail = "";
         boolean badNetwork = false;
@@ -1201,8 +1201,6 @@ public final class Peers {
             networkDetail = "Peer host " + host + " is using devnet port " + port;
             badNetwork = true;
         }
-
-//        if(badNetwork && abortWhenBadNetwork) throw new RuntimeException(networkDetail);
 
         if (badNetwork) {
             Logger.logDebugMessage(networkDetail, "ignoring");
