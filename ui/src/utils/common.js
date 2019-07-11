@@ -7,7 +7,7 @@ export default {
     sharderFoundationHost: 'sharder.org',
     sharderFoundationTestHost: 'test.sharder.org',
     apiUrl: '',
-    cfg: {defaultInterval: 90000, soonInterval: 30000, slowInterval: 180000},
+    cfg: {defaultInterval: 60000, soonInterval: 30000, slowInterval: 180000},
     epochBeginning: -1,
     newConsole: null,
     isOpenConsole: false,
@@ -551,15 +551,19 @@ export default {
      * 将数字转换成无符号long
      */
     longUnsigned(num) {
+        console.info("num1:"+new BigNumber(num));
+        num = new BigNumber(num);
+        console.info("num2:"+num);
         if(typeof(num) == 'number' && num > 0) return num;
         
         if(typeof(num) == 'string') {
-            num = new BigInteger(num)
+            num = new BigInteger(num);
             if(num > 0) return num.toString();
         }
-        
-        num = new BigInteger(num).abs();
-        return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
+
+        num = new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
+        console.info("num3:"+num);
+        return num;
     },
     isTestNet() {
         return SSO.netWorkType === 'Testnet';

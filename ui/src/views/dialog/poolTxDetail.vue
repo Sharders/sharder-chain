@@ -13,13 +13,13 @@
                             <strong>{{$t('transaction.transaction_pool_id')}}:</strong>{{ rowData.poolInfo.poolId }}
                         </p>
                         <p v-if="rowData.poolInfo.amount" class="node-type">
-                            <strong>{{$t('network.block_list_fee')}}:</strong>{{$global.getTransactionFeeNQT(rowData)}}
+                            <strong>{{$t('transaction.transaction_amount')}}:</strong>{{formatAmount(rowData)}}
                         </p>
                         <p v-if="rowData.poolInfo.period" class="node-type">
                             <strong>{{$t('mining.attribute.remaining_mining_time')}}:</strong>{{rowData.poolInfo.period}}
                         </p>
                         <p v-if="rowData.poolInfo.txSId" class="node-type">
-                            <strong>{{txSId}}:</strong>{{rowData.poolInfo.txSId}}
+                            <strong>txSId:</strong>{{rowData.poolInfo.txSId}}
                         </p>
                         <p v-if="rowData.poolInfo.txId" class="node-type">
                             <strong>{{$t('mining.attribute.tx_id')}}:</strong>{{rowData.poolInfo.txId}}
@@ -44,8 +44,7 @@
     import BigNumber from "bignumber.js";
 
     export default {
-        unit: " SS",
-        poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
+
         name: "poolTxDetail",
         props: {
             rowData: {}
@@ -62,11 +61,12 @@
                amountNQT =new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
                if (subtype===2 || subtype===0) {
-                   return -amountNQT + this.unit
+                   return "-"+amountNQT + " SS";
                } else if (subtype===1 || subtype===3){
-                   return "+" + amountNQT + this.unit
+                   return "+" + amountNQT + " SS";
                }
            },
+
 
         },
 
