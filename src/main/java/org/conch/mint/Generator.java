@@ -87,8 +87,8 @@ public class Generator implements Comparable<Generator> {
             return str;
         }
         static String reset(){
-            String generatorSummary = appendSplitter("[ DEBUG ]--------------Active Miners-------------",false);
-            generatorSummary += appendSplitter("[ DEBUG ]Local bind account[ hub rs=" + HUB_BIND_ADDRESS + " | autoMint rs=" + AUTO_MINT_ADDRESS + " ]",false);
+            String generatorSummary = appendSplitter("--------------Active Miners-------------",false);
+            generatorSummary += appendSplitter("Local bind account[ hub rs=" + HUB_BIND_ADDRESS + " | autoMint rs=" + AUTO_MINT_ADDRESS + " ]",false);
             count=0;
             return generatorSummary;
         }
@@ -189,7 +189,7 @@ public class Generator implements Comparable<Generator> {
                 }
             }else{
                 if(Logger.printNow(Constants.Generator_isBlockStuckOnBootNode)) {
-                    Logger.logInfoMessage("Current node is normal node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. don't mining till blocks synchronizing finished...", lastBlock.getHeight());
+                    Logger.logInfoMessage("[ TIPS ] Current node is normal node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. don't mining till blocks synchronizing finished...", lastBlock.getHeight());
                 }
                 return false;
             }
@@ -198,7 +198,7 @@ public class Generator implements Comparable<Generator> {
         
         if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
             if(Logger.printNow(Constants.Generator_isPocTxsProcessed)) {
-                Logger.logDebugMessage("delayed poc txs or old poc txs haven't processed, don't mining till poc txs be processed before height[%d]...", lastBlock.getHeight());
+                Logger.logDebugMessage("[ TIPS ] Delayed poc txs or old poc txs haven't processed, don't mining till poc txs be processed before height[%d]...", lastBlock.getHeight());
             }
             return false;
         }

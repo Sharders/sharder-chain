@@ -1071,11 +1071,12 @@
                     _this.$message.error(err.message);
                 });
             },
-            resetHub(adminPwd) {
+            resetHub(adminPwd,type) {
                 const _this = this;
                 let resetData = new FormData();
                 resetData.append("adminPassword", adminPwd);
                 resetData.append("restart", "true");
+                resetData.append("type", type);
                 this.$http.post('/sharder?requestType=recovery', resetData).then(res => {
                     if (res.data.done) {
                         _this.$message.success(_this.$t('restart.restarting'));
@@ -1895,13 +1896,14 @@
                 const _this = this;
                 _this.adminPassword = adminPwd;
                 _this.adminPasswordDialog = false;
-                if (_this.adminPasswordTitle === 'reset' || _this.adminPasswordTitle === 'resetNormal') {
-                    _this.resetHub(adminPwd);
+                if (_this.adminPasswordTitle === 'reset' 
+                    || _this.adminPasswordTitle === 'resetNormal') {
+                    _this.resetHub(adminPwd,'reset');
+                } else if (_this.adminPasswordTitle === 'factoryReset') {
+                    _this.resetHub(adminPwd,'factoryReset');
                 } else if (_this.adminPasswordTitle === 'restart') {
                     _this.restartHub(adminPwd);
-                }  else if (_this.adminPasswordTitle === 'recovery') {
-                    _this.restartHub(adminPwd);
-                }else if (_this.adminPasswordTitle === 'update') {
+                } else if (_this.adminPasswordTitle === 'update') {
                     _this.updateHubVersion(adminPwd);
                 } else if (_this.adminPasswordTitle === 'reConfig') {
                     _this.params.append("adminPassword", adminPwd);
@@ -2342,7 +2344,7 @@
                     if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                         this.$refs["useNATForm"].clearValidate();
                     }
-                } else if (this.operationType === 'reset') {
+                } else if (this.operationType === 'reset' || this.operationType === 'factoryReset') {
                     this.formRules = this.resettingRules;
                 } else if (this.operationType === 'resetNormal') {
                     this.formRules = this.resettingRules;
