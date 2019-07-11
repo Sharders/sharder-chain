@@ -38,6 +38,7 @@ const en = {
         'current_version': "Current version",
         'discover_new_version': "New version available",
         'update': "Update",
+        'factory_reset': "Factory Reset",
         'reset': "Reset",
         'restart': "Reboot",
         'title': "Hub Settings",

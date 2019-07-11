@@ -432,8 +432,9 @@
         <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-loading="hubsetting.loadingData" v-show="hubSettingDialog">
             <div class="modal-header" @click="displaySerialNo('setting')">
-                <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
+                <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
+                <button class="common_btn" @click="openAdminDialog('factoryReset')">{{$t('hubsetting.factory_reset')}}</button>
                 <h4 class="modal-title">
                     <span>{{$t('hubsetting.title')}}</span>
                 </h4>
@@ -1868,6 +1869,9 @@
                 } else if (title === 'reset') {
                     this.operationType = 'reset';
                     _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
+                } else if (title === 'factoryReset') {
+                    this.operationType = 'factoryReset';
+                    _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
                 } else if (title === 'resetNormal') {
                     this.operationType = 'resetNormal';
                     _this.hubSettingConfirmThenGoAdmin('resetNormal', 'useNATForm');
@@ -1895,7 +1899,9 @@
                     _this.resetHub(adminPwd);
                 } else if (_this.adminPasswordTitle === 'restart') {
                     _this.restartHub(adminPwd);
-                } else if (_this.adminPasswordTitle === 'update') {
+                }  else if (_this.adminPasswordTitle === 'recovery') {
+                    _this.restartHub(adminPwd);
+                }else if (_this.adminPasswordTitle === 'update') {
                     _this.updateHubVersion(adminPwd);
                 } else if (_this.adminPasswordTitle === 'reConfig') {
                     _this.params.append("adminPassword", adminPwd);
@@ -2356,7 +2362,7 @@
                 } else {
                     clearInterval(periodicTransactions);
                 }
-            }, _this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
 
             $('#receiver').on("blur", function () {
                 _this.validationReceiver("messageForm");
