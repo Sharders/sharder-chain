@@ -432,9 +432,10 @@
         <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-loading="hubsetting.loadingData" v-show="hubSettingDialog">
             <div class="modal-header" @click="displaySerialNo('setting')">
-                <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
+                <button class="common_btn long" @click="openAdminDialog('factoryReset')">{{$t('hubsetting.factory_reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
-                <button class="common_btn" @click="openAdminDialog('factoryReset')">{{$t('hubsetting.factory_reset')}}</button>
+                <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
+               
                 <h4 class="modal-title">
                     <span>{{$t('hubsetting.title')}}</span>
                 </h4>
@@ -1162,6 +1163,16 @@
                         _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
                         return false;
                     }
+                    console.info("input PR:" + _this.hubsetting.modifyMnemonicWord + ", sso PR:" + SSO.secretPhrase);
+                    if(SSO.secretPhrase === ''){
+                        _this.$message.warning(_this.$t('notification.hubsetting_login_again'));
+                        return false;
+                    }
+                    
+                    if(_this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase){
+                        _this.$message.warning(_this.$t('notification.hubsetting_not_matched_mnemonic_word'));
+                        return false;
+                    }
                     formData.append("sharder.HubBindPassPhrase", _this.hubsetting.modifyMnemonicWord);
                 } else {
                     formData.append("sharder.HubBind", false);
@@ -1251,19 +1262,12 @@
                     window.location.reload();
                 }, 40000);
             },
-            hubSettingConfirmThenGoAdmin(type, formName) {
-                let _this = this;
-                _this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        _this.hubSettingDialog = false;
-                        _this.useNATServiceDialog = false;
-                        _this.adminPasswordDialog = true;
-                    } else {
-                        console.log(`operation of ${type} missing field`);
-                        return false;
-                    }
-                });
-            },
+            // hubSettingConfirmThenGoAdmin(type, formName) {
+            //     let _this = this;
+            //     _this.$refs[formName].validate((valid) => {
+            //         return valid;
+            //     });
+            // },
             reconfigure(data) {
                 let _this = this;
                 this.$http.post('/sharder?requestType=reConfig', data).then(res1 => {
@@ -1853,6 +1857,9 @@
             openAdminDialog: function (title) {
                 const _this = this;
                 _this.adminPasswordTitle = title;
+                
+                let validationPassed;
+                let formName = '';
                 if (title === 'reConfig') {
                     this.operationType = 'reConfig';
                     _this.$refs['reconfigureForm'].validate((valid) => {
@@ -1867,17 +1874,27 @@
                             return false;
                         }
                     });
-                } else if (title === 'reset') {
-                    this.operationType = 'reset';
-                    _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
-                } else if (title === 'factoryReset') {
-                    this.operationType = 'factoryReset';
-                    _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
+                } else if (title === 'reset' 
+                        || title === 'factoryReset') {
+                    this.operationType = title;
+                    formName = 'reconfigureForm';
                 } else if (title === 'resetNormal') {
                     this.operationType = 'resetNormal';
-                    _this.hubSettingConfirmThenGoAdmin('resetNormal', 'useNATForm');
+                    formName = 'useNATForm';
                 } else {
                     this.operationType = 'init';
+                    validationPassed = true;
+                }
+                
+                // validate the parameters of the form
+                if(formName.length > 1) {
+                    _this.$refs[formName].validate((valid) => {
+                        validationPassed = valid;
+                    });
+                }
+                
+                // set the dialog state and visible 
+                if(validationPassed){
                     _this.hubSettingDialog = false;
                     _this.useNATServiceDialog = false;
                     _this.adminPasswordDialog = true;
@@ -1920,6 +1937,7 @@
                 if (this.hubSettingDialog && this.$refs['reconfigureForm']) {
                     // do not reset fields, otherwise the setting button will hide
                     // because "this.hubsetting.SS_Address" is used to display judgment
+                    this.$refs["reconfigureForm"].resetFields();
                     this.$refs["reconfigureForm"].clearValidate();
                 }
                 if (this.hubInitDialog && this.$refs['initForm']) {
@@ -2182,7 +2200,7 @@
                 */
                 return this.secretPhrase
                     && !this.initHUb
-                    && this.userConfig.nodeType === 'Hub'
+                    // && this.userConfig.nodeType === 'Hub'
                     && this.userConfig.ssAddress === this.accountInfo.accountRS;
             },
             whetherShowHubInitBtn() {
@@ -2444,5 +2462,13 @@
         right: 20px;
         top: 0;
         cursor: pointer;
+    }
+
+    .modal_hubSetting .modal-header button {
+        margin-left: 10px!important;
+    }
+
+    .modal_hubSetting .modal-header .long {
+        width: 110px;
     }
 </style>

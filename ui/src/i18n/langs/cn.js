@@ -864,6 +864,8 @@ const cn = {
         'hubsetting_sharder_account_no_permission': "请联系管理员获取Hub设置",
         'hubsetting_account_address_error_format': "关联SS地址格式错误！",
         'hubsetting_no_mnemonic_word': "开启矿池必须填写助记词！",
+        'hubsetting_not_matched_mnemonic_word': "助记词和的登录用的助记词不一致",
+        'hubsetting_login_again': "请使用助记词再次登录",
         'hubsetting_inconsistent_password': "两次输入的管理员密码不一致！",
         'new_account_warning': "您有一个全新的帐户，请先给它充值。",
         'null_information_warning': "请检查是否还有未填的信息",

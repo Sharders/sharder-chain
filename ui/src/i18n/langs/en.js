@@ -866,6 +866,8 @@ const en = {
         'hubsetting_sharder_account_no_permission': "Please contact an admin for hub settings",
         'hubsetting_account_address_error_format': "SS address format error",
         'hubsetting_no_mnemonic_word': "Your mnemonic phrase must be entered to start a pool",
+        'hubsetting_not_matched_mnemonic_word': "Mnemonic phrase entered does not match the mnemonic phrase used for login",
+        'hubsetting_login_again': "Please login with the mnemonic phrase again",
         'hubsetting_inconsistent_password': "Hub passwords do not match",
         'new_account_warning': "You have a new account, please deposit some SS",
         'null_information_warning': "Please confirm whether all required fields are filled-in",
