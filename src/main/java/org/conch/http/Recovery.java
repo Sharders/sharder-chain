@@ -75,7 +75,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
     @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
-        String type = Conch.getStringProperty("type");
+        String type = req.getParameter("type");
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
 
         try {
