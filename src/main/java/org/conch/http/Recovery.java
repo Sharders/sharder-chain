@@ -88,11 +88,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
                 reset();
             }
 
-        } catch (ConchException.NotValidException e) {
-            response.put("done", false);
-            response.put("failedReason", e.getMessage());
-            return response;
-        } catch (RuntimeException | FileNotFoundException e) {
+        } catch (Exception e) {
             response.put("done", false);
             JSONData.putException(response, e);
             return response;

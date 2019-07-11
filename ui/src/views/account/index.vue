@@ -2224,7 +2224,7 @@
                 */
                 return this.secretPhrase
                     && !this.initHUb
-                    // && this.userConfig.nodeType === 'Hub'
+                    && this.userConfig.nodeType === 'Hub'
                     && this.userConfig.ssAddress === this.accountInfo.accountRS;
             },
             whetherShowHubInitBtn() {
