@@ -1585,7 +1585,22 @@ public final class Peers {
         }
         return services;
     }
-
+    
+    public static JSONObject getBlockchainSummary(){
+        JSONObject json = new JSONObject();
+        Block lastBlock = Conch.getBlockchain().getLastBlock();
+        if(lastBlock != null){
+            json.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+            json.put("lastBlockHeight", lastBlock.getHeight());
+            json.put("lastBlockId", lastBlock.getId());
+            json.put("lastBlockHash",  Convert.toHexString(lastBlock.getPayloadHash()));
+            json.put("lastBlockGenerator", Account.rsAccount(lastBlock.getGeneratorId()));
+            json.put("lastBlockTimestamp", Convert.dateFromEpochTime(lastBlock.getTimestamp()));
+            json.put("currentFork", ForceConverge.currentFork);
+        }
+        return json;
+    }
+    
     private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
         // generate my peer details and update state
         if (state != currentBlockchainState) {
@@ -1596,17 +1611,8 @@ public final class Peers {
             json.put("requestType", "getInfo");
             json.put("bestPeer", getBestPeerUri());
             json.put("bestPeer", getBestPeerUri());
-            
-            Block lastBlock = Conch.getBlockchain().getLastBlock();
-            if(lastBlock != null){
-                json.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
-                json.put("lastBlockHeight", lastBlock.getHeight());
-                json.put("lastBlockId", lastBlock.getId());
-                json.put("lastBlockHash",  Convert.toHexString(lastBlock.getPayloadHash()));
-                json.put("lastBlockGenerator", Account.rsAccount(lastBlock.getGeneratorId()));
-                json.put("lastBlockTimestamp", Convert.dateFromEpochTime(lastBlock.getTimestamp()));
-                json.put("currentFork", ForceConverge.currentFork);
-            }
+
+            json.putAll(getBlockchainSummary());
          
             json.put("bestPeer", getBestPeerUri());
             myPeerInfoRequest = JSON.prepareRequest(json);
