@@ -27,6 +27,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
@@ -41,8 +45,22 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
 
         String accountIds = req.getParameter("accountId");
         JSONObject response = new JSONObject();
+        Map<String, String> rsAccountMap = new HashMap<String, String>();
+        List<Map> lm = new ArrayList<Map>();
         if(accountIds!=null){
-            response.put("rsAccount", Account.rsAccount(Long.parseLong(accountIds)));
+            if(accountIds.contains(",")){
+                String[] accountIdArr = accountIds.split(",");
+                for (int i = 0; i < accountIdArr.length; i++){
+                    rsAccountMap.putIfAbsent("accountId",accountIdArr[i]);
+                    rsAccountMap.putIfAbsent("rsaccountId",Account.rsAccount(Long.parseLong(accountIdArr[i])));
+                    lm.add(rsAccountMap);
+                }
+            }else {
+                rsAccountMap.put("accountId",accountIds);
+                rsAccountMap.put("rsaccountId",Account.rsAccount(Long.parseLong(accountIds)));
+                lm.add(rsAccountMap);
+            }
+            response.put("rsAccountInfo", lm);
         }
         else {
             byte[] publicKey = ParameterParser.getPublicKey(req);
