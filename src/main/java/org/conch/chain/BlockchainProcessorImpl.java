@@ -98,6 +98,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private static long lastDownloadMS = System.currentTimeMillis();
     private static final long MAX_DOWNLOAD_TIME = 3 * 60 * 60 * 1000L;
 
+    private boolean syncFromBootNodesOnly = false;
+    public void forceSyncFromBootNodes(boolean isOpen){
+        syncFromBootNodesOnly = isOpen;
+    }
+    
     private final Runnable getMoreBlocksThread = new Runnable() {
         private final JSONStreamAware getCumulativeDifficultyRequest;
 
@@ -176,7 +181,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
         }
 
-
+        
         private void downloadPeer() throws InterruptedException {
             try {
                 long startTime = System.currentTimeMillis();
@@ -310,7 +315,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                 <= 0) {
                             continue;
                         }
-                        Logger.logDebugMessage("Found a peer with better difficulty");
+                        Logger.logInfoMessage("Found a peer %s[%s] with better difficulty[%s]", 
+                                otherPeer.getAnnouncedAddress(), otherPeer.getHost(), otherPeerCumulativeDifficulty);
                         lastBlockchainFeeder = otherPeer;
                         downloadBlockchain(otherPeer, otherPeerCommonBlock, commonBlock.getHeight());
                     }
@@ -669,8 +675,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }
         }
+
+        // FIXME[switch fork]
+        public void switchToBootNodesFork(){
+            // connect to the boot nodes
+
+            // compare the height 
+
+            // synchronize the blocks from boot nodes
+
+            // record the exception count 
+
+            // rollback to last check point when exception occurence count exceed the max count
+
+            // reconnect to boot nodes and synchronize the blocks
+            forceSyncFromBootNodes(true);
+
+            // check the state of current blockchain
+            forceSyncFromBootNodes(false);
+        }
+        
     };
 
+    
+    
 
     /**
      * Callable method to get the next block segment from the selected peer

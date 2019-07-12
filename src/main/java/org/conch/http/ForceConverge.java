@@ -310,22 +310,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
     }
     
-    
-    // FIXME[switch fork]
-    public static void switchToBootNodesFork(){
-        // connect to the boot nodes
-        
-        // compare the height 
-        
-        // synchronize the blocks from boot nodes
-        
-        // record the exception count 
-        
-        // rollback to last check point when exception occurence count exceed the max count
-        
-        // reconnect to boot nodes and synchronize the blocks
-    }
-
     /**
      * - check the last cos version on the OSS
      * - auto upgrade at the new version be found
