@@ -81,6 +81,8 @@ public class AccountTest extends BaseTest {
     }
 
     public static void main(String[] args) throws IOException {
+        System.out.println("rs address:" + Account.rsAccount(-90778548339644322L));
+
 //        String secretPhrase = getSpFromConsole();
 //        accountInfoPrint(secretPhrase);
 //        accountSignInfo(secretPhrase);

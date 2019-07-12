@@ -167,6 +167,7 @@
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}
                     </el-radio-button>
                     <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
+                    <el-radio-button v-if="poolInfoList.length > 0" label="poolInfo" class="btn">Pool</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
@@ -293,9 +294,10 @@
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="senderRS"
+                            prop="accountId"
                             align="center"
-                            :label="$t('poc.creator')">
+                            :label="$t('poc.linkedAccount')"
+                            :formatter="rsAccount">
                         </el-table-column>
                         <el-table-column
                             prop="subType"
@@ -304,15 +306,62 @@
                             :formatter="parseSubType">
                         </el-table-column>
                         <el-table-column
-                                prop="height"
-                                align="center"
-                                :label="$t('poc.started_height')">
+                            prop="ip"
+                            align="center"
+                            :label="$t('poc.ip')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="nodeType"
+                            align="center"
+                            :label="$t('poc.nodeType')"
+                            :formatter="parseNodeType">
+                        </el-table-column>
+
+                        <el-table-column
+                            prop="heightandblock"
+                            align="center"
+                            :label="$t('poc.heightandblock_id')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="transaction"
+                            align="center"
+                            :label="$t('poc.tx')">
+                        </el-table-column>
+                    </el-table>
+                </div>
+                <div v-if="tabTitle === 'poolInfo'" class="blockInfo">
+                    <el-table :data="poolInfoList" class="pool" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline>
+                                    <el-row>
+                                        <PoolTxDetail :rowData="props.row"></PoolTxDetail>
+                                    </el-row>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="senderRS"
+                            align="center"
+                            :label="$t('poc.creator')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="subType"
+                            align="center"
+                            :label="$t('poc.type')"
+                            :formatter="parseSubTypePool">
+                        </el-table-column>
+                        <el-table-column
+                            prop="height"
+                            align="center"
+                            :label="$t('poc.started_height')">
                         </el-table-column>
                         <el-table-column
                             prop="block"
                             align="center"
                             :label="$t('poc.started_block')">
                         </el-table-column>
+
                         <el-table-column
                             prop="transaction"
                             align="center"
@@ -399,8 +448,10 @@
 </template>
 
 <script>
+    import PoolTxDetail from "./poolTxDetail";
     export default {
         name: "dialog_all",
+        components: {PoolTxDetail},
         props: {
             accountInfoOpen: Boolean,
             blockInfoOpen: Boolean,
@@ -418,7 +469,6 @@
                 accountInfoDialog: this.accountInfoOpen,
                 accountInfo: [],
                 accountTransactionInfo: [],
-
                 accountTransactionDialog: false,
                 transactionInfo: [],
                 transaction: '',
@@ -427,6 +477,7 @@
                 blockInfoDialog: this.blockInfoOpen,
                 blockInfo: [],
                 pocInfoList:[],
+                poolInfoList:[],
                 tradingInfoDialog: this.tradingInfoOpen,
             }
         },
@@ -460,9 +511,11 @@
                     });
                 })
             },
+
             httpGetBlockInfo(height, BlockID) {
                 const _this = this;
                 _this.pocInfoList = [];
+                _this.poolInfoList = [];
                 return new Promise((resolve, reject) => {
                     _this.$http.get('/sharder?requestType=getBlock', {
                         params: {
@@ -480,8 +533,22 @@
                                         senderRS:t.senderRS,
                                         block:t.block,
                                         height:t.height,
+                                        heightandblock:t.height+"/"+t.block,
                                         transaction:t.transaction,
                                         subType:t.subtype,
+                                        ip:t.attachment.ip,
+                                        nodeType:t.attachment.type,
+                                        accountId:t.attachment.accountId,
+                                    });
+                                }else if (t.type === 8) {
+                                    _this.poolInfoList.push({
+                                        poolInfo:t.attachment,
+                                        senderRS:t.senderRS,
+                                        block:t.block,
+                                        height:t.height,
+                                        transaction:t.transaction,
+                                        subType:t.subtype,
+                                        feeNQT:t.feeNQT,
                                     });
                                 }
                             }
@@ -615,7 +682,7 @@
             },
             parseSubType(row, column) {
                 let subtype = row.subType;
-                console.log("poc")
+                /*console.log("poc")*/
                 switch (subtype) {
                     case 0:
                         return this.$root.$t("transaction.transaction_type_poc_node_type");
@@ -632,6 +699,69 @@
                     default:
                         return this.$root.$t("transaction.transaction_type_poc");
                 }
+            },
+            parseNodeType(row,column) {
+                let type = row.pocInfo.type;
+/*                console.info("type:"+type);*/
+                switch (type) {
+                    case 1:
+                        return this.$root.$t("poc.sharder_node");
+                    case 2:
+                        return this.$root.$t("poc.community_node");
+                    case 3:
+                        return this.$root.$t("poc.normal_node");
+                    case 4:
+                        return this.$root.$t("poc.hub_node");
+                    case 5:
+                        return this.$root.$t("poc.box_node");
+                    default:
+                        return this.$root.$t("poc.normal_node");
+                }
+            },
+            parseSubTypePool(row, column) {
+                let subtype = row.subType;
+                console.log("pool")
+                switch (subtype) {
+                    case 0:
+                        return this.$root.$t("transaction.transaction_type_pool_create");
+                    case 1:
+                        return this.$root.$t("transaction.transaction_type_pool_destroy");
+                    case 2:
+                        return this.$root.$t("transaction.transaction_type_pool_join");
+                    case 3:
+                        return this.$root.$t("transaction.transaction_type_pool_quit");
+                    default:
+                        return this.$root.$t("transaction.transaction_type_forge_pool");
+                }
+            },
+            rsAccount(row,column) {
+
+                let accountId = row.pocInfo.accountId;
+                let nxtAddress = new NxtAddress();
+                let accountRS = "";
+                accountId = "-90778548339644322";
+              /*  console.info("common测试换算："+this.$global.longUnsigned(accountId));
+                console.info("common测试换算1："+nxtAddress.set(this.$global.longUnsigned(accountId)));
+                console.info("common测试换算2："+nxtAddress.set(accountId));*/
+                /*let accountId1 =new BigNumber(accountId).abs();
+                 if (nxtAddress.set(accountId1,this.$global.longUnsigned(accountId))) {
+                     accountRS = nxtAddress.toString();
+                     console.info("common-accountRS:"+accountRS);
+                     return accountRS;
+                 }*/
+               if (typeof(accountId) == 'string') {
+                   console.info("common-accountId1:"+BigNumber(accountId));
+                   if(BigNumber(accountId)<0){
+                       accountId = BigNumber(accountId.toString());
+                       console.info("common-accountId2:"+accountId);
+                   }
+                   if (nxtAddress.set(accountId)) {
+                       accountRS = nxtAddress.toString();
+                       console.info("accountRS:"+accountRS);
+                       return accountRS;
+                   }
+               }
+                return accountId;
             },
         },
         watch: {
@@ -678,6 +808,7 @@
                     });
                 }
             },
+
             tradingInfoOpen: function (val) {
                 const _this = this;
                 if (val) {

@@ -551,19 +551,31 @@ export default {
      * 将数字转换成无符号long
      */
     longUnsigned(num) {
-        console.info("num1:"+new BigNumber(num));
-        num = new BigNumber(num);
-        console.info("num2:"+num);
+        console.info("num1:"+num);
+        //num = new BigInteger(num);
+        //console.info("num2:"+num);
+       /* let num3 ="";
         if(typeof(num) == 'number' && num > 0) return num;
         
         if(typeof(num) == 'string') {
-            num = new BigInteger(num);
+            num = new BigNumber(num);
+            if(num > 0) return num.toString();
+        }
+        num = new BigNumber(num);
+        num3 = new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
+        console.info("num3:"+num3);
+        return num3;*/
+        if(typeof(num) == 'number' && num > 0) return num;
+
+        if(typeof(num) == 'string') {
+            num = new BigNumber(num)
             if(num > 0) return num.toString();
         }
 
-        num = new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
+        num = new BigNumber(num).abs();
         console.info("num3:"+num);
-        return num;
+        return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
+
     },
     isTestNet() {
         return SSO.netWorkType === 'Testnet';

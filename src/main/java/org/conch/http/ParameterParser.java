@@ -891,7 +891,22 @@ public final class ParameterParser {
         return new Attachment.DataStorageUpload(name, description, type, ssid, channel, existence_height, replicated_number);
     }
 
+
+    public static String getRsAccount(HttpServletRequest req) throws ParameterException{
+
+        String accountId = req.getParameter("accountId");
+        try {
+            String rsaccount = Account.rsAccount(Long.parseLong(accountId));
+            return rsaccount;
+        } catch (RuntimeException e) {
+            throw new ParameterException(null);
+        }
+
+    }
+
     private ParameterParser() {} // never
+
+
 
     public static class FileData {
         private final Part part;
