@@ -36,7 +36,7 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
     static final GetPeers instance = new GetPeers();
 
     private GetPeers() {
-        super(new APITag[] {APITag.NETWORK}, "active", "state", "service", "service", "service", "includePeerInfo");
+        super(new APITag[] {APITag.NETWORK}, "active", "state", "service", "service", "service", "includePeerInfo", "includeOwn");
     }
 
     @Override
@@ -46,6 +46,7 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         String stateValue = Convert.emptyToNull(req.getParameter("state"));
         String[] serviceValues = req.getParameterValues("service");
         boolean includePeerInfo = "true".equalsIgnoreCase(req.getParameter("includePeerInfo"));
+        boolean includeOwn = "true".equalsIgnoreCase(req.getParameter("includeOwn"));
         Peer.State state;
         if (stateValue != null) {
             try {
@@ -90,6 +91,10 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             } else {
                 peers.forEach(peer -> peersJSON.add(peer.getHost()));
             }
+        }
+        
+        if(includeOwn) {
+            peersJSON.add(Peers.generateMyPeerJson());
         }
 //        ForkConvergeTest.printPeerClient();
         JSONObject response = new JSONObject();

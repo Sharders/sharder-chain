@@ -1601,21 +1601,24 @@ public final class Peers {
     
     private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
         // generate my peer details and update state
+        // generate the request and response api
         if (state != currentBlockchainState) {
-            JSONObject json = new JSONObject(myPeerInfo);
-            json.put("blockchainState", state.ordinal());
-            json.put("peerLoad", getBestPeerLoad().toJson());
-            myPeerInfoResponse = JSON.prepare(json);
-            json.put("requestType", "getInfo");
-            json.put("bestPeer", getBestPeerUri());
-            json.put("bestPeer", getBestPeerUri());
+            JSONObject myPeerJson = generateMyPeerJson();
+            myPeerJson.put("blockchainState", state.ordinal());
+            myPeerInfoResponse = JSON.prepare(myPeerJson);
 
-            json.putAll(getBlockchainSummary());
-         
-            json.put("bestPeer", getBestPeerUri());
-            myPeerInfoRequest = JSON.prepareRequest(json);
+            myPeerJson.put("requestType", "getInfo");
+            myPeerJson.put("bestPeer", getBestPeerUri());
+            myPeerInfoRequest = JSON.prepareRequest(myPeerJson);
             currentBlockchainState = state;
         }
+    }
+    
+    public static JSONObject generateMyPeerJson(){
+        JSONObject json = new JSONObject(myPeerInfo);
+        json.put("peerLoad", getBestPeerLoad().toJson());
+        json.putAll(getBlockchainSummary());
+        return json;
     }
 
     /**

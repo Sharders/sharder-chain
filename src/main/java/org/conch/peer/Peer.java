@@ -311,6 +311,8 @@ public interface Peer extends Comparable<Peer> {
 
     PeerLoad getPeerLoad();
 
+    JSONObject getBlockSummary();
+
     JSONObject send(JSONStreamAware request);
 
     JSONObject send(JSONStreamAware request, int maxResponseSize);
