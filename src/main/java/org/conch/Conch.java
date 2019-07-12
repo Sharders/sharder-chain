@@ -35,10 +35,7 @@ import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.*;
-import org.conch.chain.Blockchain;
-import org.conch.chain.BlockchainImpl;
-import org.conch.chain.BlockchainProcessor;
-import org.conch.chain.BlockchainProcessorImpl;
+import org.conch.chain.*;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
@@ -807,7 +804,7 @@ public final class Conch {
                 testSecureRandom();
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
-                Logger.logMessage("COS server " + getFullVersion() + " " + getCosLastUpgradeDate() + " started successfully.");
+                Logger.logMessage("COS server " + getFullVersion() + " " + getCosUpgradeDate() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI URL is " + API.getWelcomePageUri());
@@ -1095,6 +1092,6 @@ public final class Conch {
         return VERSION + STAGE;
     }
     public static String getVersion(){ return VERSION; }
-    public static String getCosLastUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
+    public static String getCosUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
 
 }

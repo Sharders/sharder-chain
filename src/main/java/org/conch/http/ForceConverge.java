@@ -271,16 +271,17 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
     static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
+    public static String currentFork = Conch.getStringProperty(PROPERTY_FORK_NAME);
     public static void switchFork(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         
         Logger.logInfoMessage("Start to switch the fork to Giant");
-        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
+ 
+        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)) {
             Logger.logDebugMessage("pause the blockchain till fork switched...");
             Conch.pause();
         }else{
-            Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
+            Logger.logInfoMessage("Current node stay on the " + currentFork + " already, no needs to switch");
             return;
         }
         
@@ -366,8 +367,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
         
         // switch fork
-        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)){
+        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
             switchFork(); // execute immediately once
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }

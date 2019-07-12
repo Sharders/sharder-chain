@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.peer.Peer;
@@ -110,6 +111,11 @@ public final class Convert {
         return bigInteger.longValue();
     }
 
+    private static final String DATE_TIME_FORMAT = "yyyy-mm-dd HH:MM:SS";
+    public static String dateFromEpochTime(int epochTime) {
+        return DateFormatUtils.format(new Date(fromEpochTime(epochTime)),DATE_TIME_FORMAT);
+    }
+    
     public static long fromEpochTime(int epochTime) {
         return epochTime * 1000L + Constants.EPOCH_BEGINNING - 500L;
     }

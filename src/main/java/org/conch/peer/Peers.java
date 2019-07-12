@@ -33,6 +33,7 @@ import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
+import org.conch.http.ForceConverge;
 import org.conch.mint.Generator;
 import org.conch.tx.Transaction;
 import org.conch.util.*;
@@ -322,6 +323,7 @@ public final class Peers {
         myPeerInfoJson.put("version", Conch.VERSION);
         myPeerInfoJson.put("platform", Peers.myPlatform);
         myPeerInfoJson.put("shareAddress", Peers.shareMyAddress);
+        myPeerInfoJson.put("cosUpdateTime", Conch.getCosUpgradeDate());
         if (API.openAPIPort > 0 || API.openAPISSLPort > 0) {
             EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
@@ -1593,6 +1595,19 @@ public final class Peers {
             myPeerInfoResponse = JSON.prepare(json);
             json.put("requestType", "getInfo");
             json.put("bestPeer", getBestPeerUri());
+            json.put("bestPeer", getBestPeerUri());
+            
+            Block lastBlock = Conch.getBlockchain().getLastBlock();
+            if(lastBlock != null){
+                json.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+                json.put("lastBlockHeight", lastBlock.getHeight());
+                json.put("lastBlockId", lastBlock.getId());
+                json.put("lastBlockHash",  Convert.toHexString(lastBlock.getPayloadHash()));
+                json.put("lastBlockGenerator", Account.rsAccount(lastBlock.getGeneratorId()));
+                json.put("lastBlockTimestamp", Convert.dateFromEpochTime(lastBlock.getTimestamp()));
+                json.put("currentFork", ForceConverge.currentFork);
+            }
+         
             json.put("bestPeer", getBestPeerUri());
             myPeerInfoRequest = JSON.prepareRequest(json);
             currentBlockchainState = state;
