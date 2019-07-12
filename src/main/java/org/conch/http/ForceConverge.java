@@ -272,7 +272,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     static final String PROPERTY_FORK_NAME = "sharder.forkName";
     static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
     public static String currentFork = Conch.getStringProperty(PROPERTY_FORK_NAME);
-    public static void switchFork(){
+    public static void forceSwitchForkAccordingToCmdTool(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         
         Logger.logInfoMessage("Start to switch the fork to Giant");
@@ -308,6 +308,22 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Conch.storePropertieToFile(PROPERTY_FORK_NAME, "Giant");
             Logger.logInfoMessage("Switch to fork Giant successfully, start to syncing blocks...");
         }
+    }
+    
+    
+    // FIXME[switch fork]
+    public static void switchToBootNodesFork(){
+        // connect to the boot nodes
+        
+        // compare the height 
+        
+        // synchronize the blocks from boot nodes
+        
+        // record the exception count 
+        
+        // rollback to last check point when exception occurence count exceed the max count
+        
+        // reconnect to boot nodes and synchronize the blocks
     }
 
     /**
@@ -368,7 +384,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         
         // switch fork
         if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
-            switchFork(); // execute immediately once
+            forceSwitchForkAccordingToCmdTool(); // execute immediately once
             ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
         }
         
@@ -524,7 +540,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     private static final Runnable switchForkThread = () -> {
         try {
-            switchFork();
+            forceSwitchForkAccordingToCmdTool();
         } catch (Exception e) {
             Logger.logErrorMessage("Switch fork thread interrupted caused by %s", e.getMessage());
         } catch (Throwable t) {

@@ -143,7 +143,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     downloadPeer();
                     if (blockchain.getHeight() == chainHeight) {
                         if (isDownloading && !simulateEndlessDownload) {
-                            Logger.logMessage("Finished blockchain download[current height=" + blockchain.getHeight() + "]");
+                            Logger.logInfoMessage(
+                                    "Finished blockchain downloaded "
+                                            + totalBlocks
+                                            + " blocks from "
+                                            + lastBlockchainFeeder.getAnnouncedAddress() + "[" + lastBlockchainFeeder.getHost() + "]"
+                                            + ", current height "
+                                            + blockchain.getHeight()
+                            );
                             isDownloading = false;
                         }
                         break;
@@ -174,7 +181,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             try {
                 long startTime = System.currentTimeMillis();
                 int limitConnectedSize = Math.min(1, defaultNumberOfForkConfirmations);
-                Peers.checkOrConnectBootNode();
+//                Peers.checkOrConnectBootNode();
                 connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
                 int connectedSize = connectedPublicPeers.size();
                 if (connectedSize <= limitConnectedSize) {
@@ -254,11 +261,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 blockchain.updateLock();
                 try {
-                    Peer feederPeer = peer;
                     if (betterCumulativeDifficulty.compareTo(blockchain.getLastBlock().getCumulativeDifficulty()) <= 0) {
                         return;
                     }
                     long lastBlockId = blockchain.getLastBlock().getId();
+                    Logger.logInfoMessage("Start to synchornize the blocks from feeder[%s], feeder's height is %d",(lastBlockchainFeeder.getAnnouncedAddress() + " | " + lastBlockchainFeeder.getHost()), lastBlockchainFeederHeight);
                     downloadBlockchain(peer, commonBlock, commonBlock.getHeight());
                     if (blockchain.getHeight() - commonBlock.getHeight() <= 10) {
                         return;
@@ -303,7 +310,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             continue;
                         }
                         Logger.logDebugMessage("Found a peer with better difficulty");
-                        feederPeer = otherPeer;
+                        lastBlockchainFeeder = otherPeer;
                         downloadBlockchain(otherPeer, otherPeerCommonBlock, commonBlock.getHeight());
                     }
                     Logger.logDebugMessage("Got " + confirmations + " confirmations");
@@ -313,11 +320,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         totalTime += time;
                         int numBlocks = blockchain.getHeight() - commonBlock.getHeight();
                         totalBlocks += numBlocks;
-                        Logger.logMessage(
+                        Logger.logInfoMessage(
                                 "Downloaded "
                                         + numBlocks
                                         + " blocks from "
-                                        + feederPeer.getAnnouncedAddress() + "[" + feederPeer.getHost() + "]"
+                                        + lastBlockchainFeeder.getAnnouncedAddress() + "[" + lastBlockchainFeeder.getHost() + "]"
                                         + " in "
                                         + time / 1000
                                         + " s, "

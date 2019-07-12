@@ -1362,7 +1362,7 @@ public final class Peers {
         }
         int connectCount = weightedPeerCountMap.get(peer.getHost());
     
-        if(connectCount >= 3) {
+        if(connectCount >= 3 && connectCount < MAX_CONNECT_CHECK_COUNT) {
             weightedPeerCountMap.put(peer.getHost(), connectCount+1);
             return false;
         } else if(connectCount >= MAX_CONNECT_CHECK_COUNT){
@@ -1384,9 +1384,7 @@ public final class Peers {
      * @return
      */
     public static Peer getWeightedPeer(List<Peer> selectedPeers) {
-        if (selectedPeers.isEmpty()) {
-            return null;
-        }
+        if (selectedPeers.isEmpty()) return null;
     
         long totalWeight = 0;
         for (Peer peer : selectedPeers) {
