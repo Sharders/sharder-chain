@@ -265,7 +265,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         return;
                     }
                     long lastBlockId = blockchain.getLastBlock().getId();
-                    Logger.logInfoMessage("Start to synchornize the blocks from feeder[%s], feeder's height is %d",(lastBlockchainFeeder.getAnnouncedAddress() + " | " + lastBlockchainFeeder.getHost()), lastBlockchainFeederHeight);
+                    Logger.logInfoMessage("Start to synchronize the blocks from feeder %s[%s], feeder's height is %d. Current height is %d",
+                            lastBlockchainFeeder.getAnnouncedAddress() ,lastBlockchainFeeder.getHost(), lastBlockchainFeederHeight, blockchain.getHeight());
                     downloadBlockchain(peer, commonBlock, commonBlock.getHeight());
                     if (blockchain.getHeight() - commonBlock.getHeight() <= 10) {
                         return;
