@@ -1072,7 +1072,9 @@ public final class Conch {
     /**
      * version compare
      * @param version compared version
-     * @return -1 : Conch.version < version; 0: version = Conch.version; 1 : Conch.version > version
+     * @return -1 : Conch.version < version; 
+     *         0 : Conch.version = version; 
+     *         1 : Conch.version > version
      */
     public static int versionCompare(String version){
         if(StringUtils.isEmpty(version)) return -1;

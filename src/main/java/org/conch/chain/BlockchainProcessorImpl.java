@@ -182,10 +182,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         Logger.logDebugMessage("No enough connected peers[limit size=" + (limitConnectedSize + 1) + ",current connected size=" + connectedSize + "], break syn blocks...");
                         Logger.logDebugMessage("Current peers => " + Arrays.toString(connectedPublicPeers.toArray()));
                     }
+                    
+                    // use the fork switch to process the follow situation - 2019.07.12
                     // restart the cos if download not finished in 8 hours
-                    if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME) {
-                        new Thread(() -> Conch.restartApplication(null)).start();
-                    }
+                    //if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME) {
+                    //    new Thread(() -> Conch.restartApplication(null)).start();
+                    //}
                     return;
                 }
                 lastDownloadMS = System.currentTimeMillis();

@@ -21,7 +21,6 @@
 
 package org.conch.common;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
@@ -31,7 +30,10 @@ import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Set;
+import java.util.TimeZone;
 
 public final class Constants {
 
@@ -374,24 +376,8 @@ public final class Constants {
     }
     
     
-    private static Map<String,Integer> bootNodeConnectCountMap = Maps.newConcurrentMap();
     public static synchronized boolean isValidBootNode(Peer peer){
-        boolean isBootNode = bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
-        
-        if(!isBootNode) return false;
-        
-        if(!bootNodeConnectCountMap.containsKey(peer.getHost())) {
-            bootNodeConnectCountMap.put(peer.getHost(), 0);
-        }
-        int connectCount = bootNodeConnectCountMap.get(peer.getHost());
-        if(connectCount >= 3) {
-            bootNodeConnectCountMap.put(peer.getHost(), 0);
-            return false;
-        }else {
-            bootNodeConnectCountMap.put(peer.getHost(), connectCount+1);
-        }
-        return true;
-//        return Peer.State.CONNECTED == peer.getState();
+        return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
     }
 
     public static final String SUCCESS = "success";

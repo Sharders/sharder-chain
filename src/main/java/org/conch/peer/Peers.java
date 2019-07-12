@@ -1344,6 +1344,43 @@ public final class Peers {
                 && (!applyPullThreshold || !Peers.enableHallmarkProtection || peer.getWeight() >= Peers.pullThreshold));
     }
 
+
+    private static Map<String,Integer> weightedPeerCountMap = Maps.newConcurrentMap();
+    private static int MAX_CONNECT_CHECK_COUNT = (Constants.bootNodesHost.size() + 3) * 3;
+    /**
+     *  true: count < 3
+     *  false: 3 =< count <= 6
+     *  reset the count to 0 and re-calculate: count > 6
+     * @param peer
+     * @return
+     */
+    private synchronized static boolean countAndCheck(Peer peer) {
+        if(!weightedPeerCountMap.containsKey(peer.getHost())) {
+            weightedPeerCountMap.put(peer.getHost(), 0);
+        }
+        int connectCount = weightedPeerCountMap.get(peer.getHost());
+    
+        if(connectCount >= 3) {
+            weightedPeerCountMap.put(peer.getHost(), connectCount+1);
+            return false;
+        } else if(connectCount >= MAX_CONNECT_CHECK_COUNT){
+            weightedPeerCountMap.put(peer.getHost(), 0);
+            return false;
+        } else {
+            weightedPeerCountMap.put(peer.getHost(), connectCount+1);
+        }
+
+        // cos version compare 
+        return  Conch.versionCompare(peer.getVersion()) <= 0;
+    }
+    /**
+     * remote node's cos version should larger than current cos version, and priority sequences is:
+     * - connected boot nodes
+     * - connected well-known nodes
+     * - normal nodes sorted by weight
+     * @param selectedPeers
+     * @return
+     */
     public static Peer getWeightedPeer(List<Peer> selectedPeers) {
         if (selectedPeers.isEmpty()) {
             return null;
@@ -1351,33 +1388,25 @@ public final class Peers {
     
         long totalWeight = 0;
         for (Peer peer : selectedPeers) {
-            long weight = peer.getWeight();
-            if (weight == 0) {
-                weight = 1;
-            }
+            long weight = (peer.getWeight() == 0) ? 1 : peer.getWeight();
             totalWeight += weight;
-            // boot nodes check
-            if(Constants.isValidBootNode(peer)) {
+            // return boot node directly
+            if(Constants.isValidBootNode(peer)
+             && countAndCheck(peer)) {
                 return peer;
             }
-//            // larger version 
-//            if(Conch.versionCompare(peer.getVersion()) < 0) {
-//                return peer;
-//            }
         }
-        
+
         if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
-            return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
+            Peer randomPeer = selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
+            if(countAndCheck(randomPeer)) return randomPeer;
         }
         
         long hit = ThreadLocalRandom.current().nextLong(totalWeight);
         for (Peer peer : selectedPeers) {
-            long weight = peer.getWeight();
-            if (weight == 0) {
-                weight = 1;
-            }
+            long weight = (peer.getWeight() == 0) ? 1 : peer.getWeight();
             if ((hit -= weight) < 0) {
-                return peer;
+                if(countAndCheck(peer)) return peer;
             }
         }
         return null;
