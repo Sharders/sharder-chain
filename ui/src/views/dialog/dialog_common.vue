@@ -294,10 +294,13 @@
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="accountId"
                             align="center"
                             :label="$t('poc.linkedAccount')"
-                            :formatter="rsAccount">
+                            :formatter="rsAccount"
+                            >
+                            <!--<template>
+                                <div :id="'EID_'+{{accountId}}"></div>
+                            </template>-->
                         </el-table-column>
                         <el-table-column
                             prop="subType"
@@ -456,12 +459,12 @@
             accountInfoOpen: Boolean,
             blockInfoOpen: Boolean,
             tradingInfoOpen: Boolean,
-
             isSearch: Boolean,
             searchValue: '',
             generatorRS: '',
             trading: '',
             height: '',
+
         },
         data() {
             return {
@@ -478,10 +481,13 @@
                 blockInfo: [],
                 pocInfoList:[],
                 poolInfoList:[],
+                accountIdMap:[],
                 tradingInfoDialog: this.tradingInfoOpen,
+                rs:'',
             }
         },
         methods: {
+
             httpGetAccountInfo(accountID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
@@ -526,6 +532,7 @@
                     }).then(function (res) {
                         if (!res.data.errorDescription) {
                             _this.blockInfo = res.data;
+                            let accoutIdArray = [];
                             for (let t of res.data.transactions) {
                                 if (t.type === 12) {
                                     _this.pocInfoList.push({
@@ -538,8 +545,10 @@
                                         subType:t.subtype,
                                         ip:t.attachment.ip,
                                         nodeType:t.attachment.type,
-                                        accountId:t.attachment.accountId,
+                                        accountId:t.attachment.accountId
+
                                     });
+                                    accoutIdArray.push(t.attachment.accountId);
                                 }else if (t.type === 8) {
                                     _this.poolInfoList.push({
                                         poolInfo:t.attachment,
@@ -550,8 +559,29 @@
                                         subType:t.subtype,
                                         feeNQT:t.feeNQT,
                                     });
+
                                 }
+
                             }
+                            _this.$http.get('/sharder?requestType=getAccountId', {
+                                params: {
+                                    accoutId: accoutIdArray.join(","),
+                                }
+                            }).then(function (res) {
+                                if (!res.data.errorDescription) {
+                                    console.info(res.data);
+                                    console.info("rs:"+_this.rs);
+                                    _this.accountIdMap = res.data.rsAccountInfo;
+                                    console.info("map:"+_this.accountIdMap);
+
+
+                                } else {
+                                    console.info(res.data.errorDescription);
+                                }
+                            }).catch(function (err) {
+                                console.info(err);
+                            });
+
                             resolve("success");
                         } else {
                             resolve(res.data.errorDescription);
@@ -734,37 +764,30 @@
                         return this.$root.$t("transaction.transaction_type_forge_pool");
                 }
             },
-            rsAccount(row,column) {
-
+            rsAccount:function(row,column) {
+                const _this = this;
                 let accountId = row.pocInfo.accountId;
-                let nxtAddress = new NxtAddress();
-                let accountRS = "";
-                accountId = "-90778548339644322";
-              /*  console.info("common测试换算："+this.$global.longUnsigned(accountId));
-                console.info("common测试换算1："+nxtAddress.set(this.$global.longUnsigned(accountId)));
-                console.info("common测试换算2："+nxtAddress.set(accountId));*/
-                /*let accountId1 =new BigNumber(accountId).abs();
-                 if (nxtAddress.set(accountId1,this.$global.longUnsigned(accountId))) {
-                     accountRS = nxtAddress.toString();
-                     console.info("common-accountRS:"+accountRS);
-                     return accountRS;
-                 }*/
-               if (typeof(accountId) == 'string') {
-                   console.info("common-accountId1:"+BigNumber(accountId));
-                   if(BigNumber(accountId)<0){
-                       accountId = BigNumber(accountId.toString());
-                       console.info("common-accountId2:"+accountId);
-                   }
-                   if (nxtAddress.set(accountId)) {
-                       accountRS = nxtAddress.toString();
-                       console.info("accountRS:"+accountRS);
-                       return accountRS;
-                   }
-               }
-                return accountId;
+                let accountIdMaps = _this.accountIdMap;
+                if(!accountId){
+                    return "--";
+                }else{
+                    for(let t of accountIdMaps){
+
+                        if(t.accountId == accountId){
+                            return t.rsaccountId;
+                        }
+                    }
+
+                }
+
             },
+
+        },
+        filter:{
+
         },
         watch: {
+
             blockInfoOpen: function (val) {
                 const _this = this;
                 if (val) {

@@ -43,19 +43,23 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
 
-        String accountIds = req.getParameter("accountId");
+        String accountIds = req.getParameter("accoutId");
         JSONObject response = new JSONObject();
-        Map<String, String> rsAccountMap = new HashMap<String, String>();
+
         List<Map> lm = new ArrayList<Map>();
         if(accountIds!=null){
             if(accountIds.contains(",")){
                 String[] accountIdArr = accountIds.split(",");
                 for (int i = 0; i < accountIdArr.length; i++){
-                    rsAccountMap.putIfAbsent("accountId",accountIdArr[i]);
-                    rsAccountMap.putIfAbsent("rsaccountId",Account.rsAccount(Long.parseLong(accountIdArr[i])));
-                    lm.add(rsAccountMap);
+                    Map<String, String> rsAccountMap = new HashMap<String, String>();
+                    if(accountIdArr[i]!=""&&accountIdArr[i].length()!=0) {
+                        rsAccountMap.put("accountId", accountIdArr[i]);
+                        rsAccountMap.put("rsaccountId", Account.rsAccount(Long.parseLong(accountIdArr[i])));
+                        lm.add(rsAccountMap);
+                    }
                 }
             }else {
+                Map<String, String> rsAccountMap = new HashMap<String, String>();
                 rsAccountMap.put("accountId",accountIds);
                 rsAccountMap.put("rsaccountId",Account.rsAccount(Long.parseLong(accountIds)));
                 lm.add(rsAccountMap);
