@@ -183,6 +183,8 @@ public class PocScore implements Serializable {
                     noPoolMultiplier = 2;
                 }
                 
+                //TODO multiplier chaned to 0.19
+                
                 if(exceedPoolMaxAmount){
                     effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS / noPoolMultiplier);
                 }else{

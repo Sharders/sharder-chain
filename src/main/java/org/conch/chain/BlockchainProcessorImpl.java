@@ -96,7 +96,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private volatile boolean alreadyInitialized = false;
 
     private static long lastDownloadMS = System.currentTimeMillis();
-    private static final long MAX_DOWNLOAD_TIME = 1 * 60 * 60 * 1000L;
+    private static final long MAX_DOWNLOAD_TIME = Constants.isDevnet() ? (1 * 1000L) : (1 * 60 * 60 * 1000L);
 
 
     private boolean peerHasMore;
@@ -104,20 +104,23 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private List<Long> chainBlockIds;
     private long totalTime = 1;
     private int totalBlocks;
-    
+
+    private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 100;
+    private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 50;
+    private static final int FORK_COUNT_LAST_CHECKPONIT = Constants.isDevnet() ? 10: 30;
+    private static final int FORK_COUNT_SWITCH_TO_BOOTNODE = Constants.isDevnet() ? 10: 10;
     private int forkProcessFaildCount = 0;
     private int switchToBootNodeFaildCount = 0;
 
     
     private final Runnable getMoreBlocksThread = new Runnable() {
-        private final JSONStreamAware getCumulativeDifficultyRequest;
-
-        {
-            JSONObject request = new JSONObject();
-            request.put("requestType", "getCumulativeDifficulty");
-            getCumulativeDifficultyRequest = JSON.prepareRequest(request);
-        }
-
+//        private final JSONStreamAware getCumulativeDifficultyRequest;
+//
+//        {
+//            JSONObject request = new JSONObject();
+//            request.put("requestType", "getCumulativeDifficulty");
+//            getCumulativeDifficultyRequest = JSON.prepareRequest(request);
+//        }
 
         @Override
         public void run() {
@@ -273,6 +276,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         lastBlockchainFeeder.getAnnouncedAddress() ,lastBlockchainFeeder.getHost(), lastBlockchainFeederHeight, blockchain.getHeight());
                 downloadBlockchain(peer, commonBlock, commonBlock.getHeight());
                 if (blockchain.getHeight() - commonBlock.getHeight() <= 10) {
+                    checkAndSwitchToBootNodesFork();
                     return;
                 }
 
@@ -340,8 +344,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     + blockchain.getHeight()
                     );
                 } else {
+                    checkAndSwitchToBootNodesFork();
                     Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
                 }
+
             } finally {
                 blockchain.updateUnlock();
             }
@@ -668,11 +674,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     break;
                 }
             }
-            
-            // switch to boot bodes fork
-            if(forkProcessFaildCount++ > 10) {
-                switchToBootNodesFork();
-            }
+            forkProcessFaildCount++;
         } else {
             Logger.logDebugMessage("Switched to peer's fork");
             for (BlockImpl block : myPoppedOffBlocks) {
@@ -681,6 +683,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
     
+    
     private JSONObject getPeersDifficulty(Peer peer){
         JSONObject request = new JSONObject();
         request.put("requestType", "getCumulativeDifficulty");
@@ -688,11 +691,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         request.putAll(Peers.getNatAndAddressMap());
         return peer.send(JSON.prepareRequest(request));
     }
+    
+    public void forceToSwitchTooBootNodesFork(){
+        switchToBootNodeFaildCount = 11;
+    }
 
-    public boolean switchToBootNodesFork() {
+    public boolean checkAndSwitchToBootNodesFork() {
         try{
+            
+            if(forkProcessFaildCount < FORK_COUNT_SWITCH_TO_BOOTNODE) return false;
+                
             // connect to the boot nodes
             Peer peer = Peers.checkOrConnectBootNode();
+            Logger.logInfoMessage("Start to switch to BootNode %s[%s]'s fork",peer.getAnnouncedAddress(), peer.getHost());
 
             JSONObject response = getPeersDifficulty(peer);
             if (response == null) return false;
@@ -701,7 +712,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             long lastBlockId = blockchain.getLastBlock().getId();
 
             // compare the height
-            if(switchToBootNodeFaildCount++ > 10){
+            if(switchToBootNodeFaildCount++ > FORK_COUNT_RESET_REBOOT) {
+                //manual reset and reboot
+                Conch.resetAndReboot(null,true);
+            } else if(switchToBootNodeFaildCount++ > FORK_COUNT_FULL_RESET){
+                startHeight = 0;
+            } else if(switchToBootNodeFaildCount++ > FORK_COUNT_LAST_CHECKPONIT){
                 // rollback to last check point when exception occurrence counts exceed the max count
                 startHeight = Constants.LAST_KNOWN_BLOCK;
             }else if(bootNodeHeight < Conch.getHeight() && bootNodeHeight > Constants.LAST_KNOWN_BLOCK) {
@@ -715,7 +731,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if(startHeight < Conch.getHeight()) {
                 popOffTo(startBlock);
             }
-
+            
             // synchronize the blocks from boot nodes
             downloadBlockchain(peer, startBlock, startHeight);
 
@@ -724,7 +740,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if(lastBlockAfterSync.getHeight() > startHeight && lastBlockAfterSync.getId() != lastBlockId){
                 switchToBootNodeFaildCount = 0;
                 forkProcessFaildCount = 0;
-                Logger.logDebugMessage("Switched to BootNode %s[%s]'s fork, height is %d",peer.getAnnouncedAddress(), peer.getHost(), lastBlockAfterSync.getHeight());
+                Logger.logInfoMessage("Switched to BootNode %s[%s]'s fork, height is %d",peer.getAnnouncedAddress(), peer.getHost(), lastBlockAfterSync.getHeight());
                 return true;
             }
         }catch(Exception e){

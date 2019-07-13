@@ -267,10 +267,10 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Conch.unpause();
         }
     }
-    
 
-    static final String PROPERTY_FORK_NAME = "sharder.forkName";
-    static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
+
+    public static final String PROPERTY_FORK_NAME = "sharder.forkName";
+    public static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
     public static String currentFork = Conch.getStringProperty(PROPERTY_FORK_NAME);
     public static void forceSwitchForkAccordingToCmdTool(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;

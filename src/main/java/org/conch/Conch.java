@@ -1062,6 +1062,36 @@ public final class Conch {
     }
 
     /**
+     * 
+     * @param paramMap properties need be reset before reboot
+     * @param restart
+     * @return 
+     */
+    public static boolean resetAndReboot(HashMap<String, String> paramMap, boolean restart){
+        try {
+            Conch.pause();
+            
+            if(paramMap == null) paramMap = Maps.newHashMap();
+            // delete the local db
+            paramMap.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
+            Conch.storePropertiesToFile(paramMap);
+
+            // delete log files
+            FileUtil.clearAllLogs();
+
+            if (restart) {
+                new Thread(() -> Conch.restartApplication(null)).start();
+            }
+            
+        } catch (Exception e) {
+            Logger.logErrorMessage("reset settings and reboot failed",e);
+        } finally {
+            Conch.unpause();
+        }
+        return true;
+    }
+
+    /**
      * version compare
      * @param version compared version
      * @return -1 : Conch.version < version; 
