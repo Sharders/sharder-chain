@@ -342,10 +342,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     + " min left"
                                     + ", current height "
                                     + blockchain.getHeight()
+                                    + ", fork switch failed "
+                                    + forkProcessFaildCount
                     );
                 } else {
                     checkAndSwitchToBootNodesFork();
-                    Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork");
+                    Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork"
+                            + ", fork switch failed " + forkProcessFaildCount);
                 }
 
             } finally {
