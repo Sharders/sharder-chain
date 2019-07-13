@@ -126,11 +126,6 @@ public final class Conch {
         return Constants.isMainnet() ? "beta" : Constants.isTestnet() ? "alpha" : "dev";
     }
 
-    public static String getBootNode(){
-        if(Constants.isDevnet()) return "devboot.sharder.io";
-        if(Constants.isTestnet()) return "testboot.sharder.io";
-        return "mainboot.sharder.io";
-    }
     
     public static String getNodeType(){
         CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(Account.rsAccountToId(Generator.getAutoMiningRS()), getHeight());

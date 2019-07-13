@@ -21,7 +21,7 @@
 
 package org.conch.common;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainProcessorImpl;
@@ -30,10 +30,7 @@ import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.Generator;
 import org.conch.peer.Peer;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 public final class Constants {
 
@@ -93,7 +90,7 @@ public final class Constants {
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
-    public static final Set<String> bootNodesHost = parseBootNodesHost();
+    public static final List<String> bootNodesHost = parseBootNodesHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -366,18 +363,22 @@ public final class Constants {
         return networkInProperties;
     }
     
-    private static final Set<String> parseBootNodesHost() {
+    private static final List<String> parseBootNodesHost() {
        if(isMainnet()){
-           return Sets.newHashSet("boot.sharder.io");
+           return Lists.newArrayList("boot.sharder.io");
        }else if(isTestnet()){
-           return Sets.newHashSet("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
+           return Lists.newArrayList("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
        }
-       return Sets.newHashSet("devboot.sharder.io");
+       return Lists.newArrayList("devboot.sharder.io");
     }
     
     
     public static synchronized boolean isValidBootNode(Peer peer){
         return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
+    }
+
+    public static String getBootNodeRandom(){
+        return bootNodesHost.get(new Random().nextInt(bootNodesHost.size()));
     }
 
     public static final String SUCCESS = "success";

@@ -1686,13 +1686,12 @@ public final class Peers {
         return myServices.contains(service);
     }
     
-    public static void checkOrConnectBootNode(){
-        Peer bootNode = Peers.getPeer(Conch.getBootNode(), true);
-        if(bootNode != null 
-            && Peer.State.CONNECTED != bootNode.getState()) {
-            
-            Peers.connectPeer(bootNode);
+    public static Peer checkOrConnectBootNode(){
+        Peer bootNode = Peers.getPeer(Constants.getBootNodeRandom(), true);
+        if(bootNode != null && Peer.State.CONNECTED != bootNode.getState()) {
+            connectPeer(bootNode);
         }
+        return bootNode;
     }
 
 }
