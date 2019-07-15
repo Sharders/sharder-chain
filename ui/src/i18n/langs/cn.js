@@ -398,6 +398,7 @@ const cn = {
         index: {
             'pool_no_permissions': "您还未拥有创建矿池的权限",
             'creating_success': "创建成功",
+            'manual_deletion': "手动销毁",
             'sharder_mining': "豆匣矿池",
             'free_collar': "免费领SS",
             'ss_exchange': "SS兑换",

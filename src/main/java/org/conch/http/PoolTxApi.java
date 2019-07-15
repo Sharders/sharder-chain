@@ -60,7 +60,7 @@ public abstract class PoolTxApi {
             
             String rsAddress = account.getRsAddress();
             if(!Generator.HUB_IS_BIND){
-                throw new ConchException.NotValidException("Please finish hub initialization firstly");
+                throw new ConchException.NotValidException("Please finish the hub initialization firstly");
             }
             
             if(!Generator.isBindAddress(account.getRsAddress()) && !Constants.isDevnet()){
@@ -75,8 +75,10 @@ public abstract class PoolTxApi {
                 throw new ConchException.NotValidException("Insufficient account balance");
             }
 
-            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-            int period = calPoolPeriod(req, account, lifeCycleRule);
+//            int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+//            int period = calPoolPeriod(req, account, lifeCycleRule);
+            // never end the pool auto after the Constants.POC_POOL_NEVER_END_HEIGHT
+            int period = Integer.MAX_VALUE;
             JSONObject rules = null;
             try {
                 String rule = req.getParameter("rule");
@@ -104,7 +106,7 @@ public abstract class PoolTxApi {
 
             long txId = SharderPoolProcessor.hasProcessingDestroyTx(poolId);
             if(txId != -1){
-                throw new ConchException.NotValidException("Account %s has a Destroy Pool tx[%d] of pool[%d] be processing, wait for tx confirmed", account.getRsAddress(), txId, poolId);
+                throw new ConchException.NotValidException("Account %s has a DestroyPool tx[%d] of pool[%d] be processing already, wait for tx confirmed", account.getRsAddress(), txId, poolId);
             }
             SharderPoolProcessor.addProcessingDestroyTx(poolId, -1);
             
@@ -128,7 +130,7 @@ public abstract class PoolTxApi {
 
             long txId = SharderPoolProcessor.hasProcessingQuitTx(joinTxId);
             if(txId != -1){
-                throw new ConchException.NotValidException("Has a Quit Pool tx[%d] be processing, wait for tx confirmed", txId);
+                throw new ConchException.NotValidException("Has a QuitPool tx[%d] be processing already, wait for tx confirmed", txId);
             }
             SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
             

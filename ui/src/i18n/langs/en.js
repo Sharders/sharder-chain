@@ -105,7 +105,7 @@ const en = {
         'transaction_type_storage_service': "Storage",
         'transaction_type_forge_pool': "Pool",
         'transaction_type_pool_create': "Create Pool",
-        'transaction_type_pool_destroy': "Destroy Pool",
+        'transaction_type_pool_destroy': "Delete Pool",
         'transaction_type_pool_join': "Join Pool",
         'transaction_type_pool_quit': "Quit Pool",
         'transaction_type_system_reward': "Rewards",
@@ -400,6 +400,7 @@ const en = {
         index: {
             'pool_no_permissions': "You do not have permission to create a pool",
             'creating_success': "Creation Success",
+            'manual_deletion': "Manual Deletion",
             'sharder_mining': "Sharder Pool",
             'free_collar': "Free SS",
             'ss_exchange': "SS Exchange",
