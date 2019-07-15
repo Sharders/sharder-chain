@@ -379,7 +379,7 @@ public class PoolRule implements Serializable {
     
     public static Map<Long, Long> calRewardMapAccordingToRules(Long creator, Long poolId, Long amount, Map<Long, Long> investmentMap) {
         // FIXME temporary codes to avoid block sync error
-        if(Constants.isTestnet() && Conch.getHeight() <= Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+        if(Constants.isTestnet() && Conch.getHeight() <= Constants.POC_NEW_ALGO_HEIGHT){
             return oldCalRewardMapAccordingToRules(creator, poolId, amount, investmentMap);
         }
         

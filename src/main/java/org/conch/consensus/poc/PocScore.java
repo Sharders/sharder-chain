@@ -151,6 +151,27 @@ public class PocScore implements Serializable {
     }
 
     /**
+     * 
+     * Testnet:
+     * 0.5 :  0 < height < 4765      
+     * 0.3 : 4765 < height < 19555 
+     * 0.19 : 19555 <= height
+     * NOTE: please see the height definition at: Constants.POC_SS_HELD_SCORE_PHASE1_HEIGHT
+     * @return
+     */
+    private static Float ssHeldRate(int height){
+        if(height < Constants.POC_SS_HELD_SCORE_PHASE1_HEIGHT){
+            return 2f;
+        }else if (Constants.POC_SS_HELD_SCORE_PHASE1_HEIGHT <= height 
+                && height < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT){
+            return 3f;
+        } if(Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT <= height) {
+            return 0.19f;
+        }
+        return 1.0f;
+    }
+
+    /**
      * - effective ss is pool balance if the miner own a sharder pool
      * - effective ss is not equals to effective balance always
      * - the max effective ss is all pools amounts that account owned
@@ -164,7 +185,7 @@ public class PocScore implements Serializable {
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
         
-        if(Constants.isTestnet() && height < Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+        if(Constants.isTestnet() && height < Constants.POC_NEW_ALGO_HEIGHT){
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
                 effectiveSS = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
                         .add(BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS));
@@ -176,19 +197,15 @@ public class PocScore implements Serializable {
                 effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
             } else {
                 boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
+                long heldAmount = exceedPoolMaxAmount ? SharderPoolProcessor.POOL_MAX_AMOUNT_NQT : accountBalanceNQT;
                 
-                // 1/3 of pool capacity
-                long noPoolMultiplier = 3;
-                if(Constants.isTestnet() && height < 4765) {
-                    noPoolMultiplier = 2;
-                }
-                
-                //TODO multiplier chaned to 0.19
-                
-                if(exceedPoolMaxAmount){
-                    effectiveSS = BigInteger.valueOf(SharderPoolProcessor.POOL_MAX_AMOUNT_NQT / Constants.ONE_SS / noPoolMultiplier);
-                }else{
-                    effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS / noPoolMultiplier);
+                // !!NOTE: effective ss calculation method be changed from multiply to divide after phase 2 
+                Float ssHeldRate = ssHeldRate(height);
+                if(height < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT){
+                    effectiveSS = BigInteger.valueOf( heldAmount / Constants.ONE_SS / ssHeldRate.longValue());
+                }else {
+                    Float effectiveSSF = heldAmount / Constants.ONE_SS * ssHeldRate;
+                    effectiveSS = BigInteger.valueOf(effectiveSSF.longValue());
                 }
             }
         }

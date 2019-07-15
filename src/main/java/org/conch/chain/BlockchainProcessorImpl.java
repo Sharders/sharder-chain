@@ -272,7 +272,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     return;
                 }
                 long lastBlockId = blockchain.getLastBlock().getId();
-                Logger.logInfoMessage("Start to synchronize the blocks from feeder %s[%s], feeder's height is %d. Current height is %d",
+                Logger.logInfoMessage("Synchronize the blocks from feeder %s[%s], feeder's height is %d. Current height is %d",
                         lastBlockchainFeeder.getAnnouncedAddress() ,lastBlockchainFeeder.getHost(), lastBlockchainFeederHeight, blockchain.getHeight());
                 downloadBlockchain(peer, commonBlock, commonBlock.getHeight());
                 if (blockchain.getHeight() - commonBlock.getHeight() <= 10) {
@@ -348,7 +348,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 } else {
                     checkAndSwitchToBootNodesFork();
                     Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork"
-                            + ", fork switch failed " + forkProcessFaildCount);
+                            + ", fork switch failed count " + forkProcessFaildCount);
                 }
 
             } finally {
