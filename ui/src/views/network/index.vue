@@ -377,14 +377,15 @@
         },
         mounted() {
             let _this = this;
-            if (!window.NETWORK_URL) {
-                window.NETWORK_URL = setInterval(() => {
-                    if (_this.$route.path === '/network') {
-                        _this.init();
-                        // _this.handleCurrentChange(_this.currentPage);
-                    }
-                }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
-            }
+
+            window.NETWORK_URL = setInterval(() => {
+                if (_this.$route.path === '/network') {
+                    //_this.init();
+                    _this.networkUrlBlocks();
+                    // _this.handleCurrentChange(_this.currentPage);
+                }
+            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+
         },
         methods: {
             init() {
@@ -442,13 +443,13 @@
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
-                        // console.info("refresh block list, newest height is " + _this.newestHeight);
+                      //   console.info("refresh block list, newest height is: " + _this.newestHeight);
                         _this.blocklist.splice(0,_this.blocklist.length)
                         _this.blocklist = res.blocks
                         // let blocksStr = JSON.stringify(res.blocks)
                         // _this.blocklist = JSON.parse(blocksStr);
                     }
-                    // _this.$forceUpdate();//通知Vue渲染
+                    //_this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
                     console.info('error', error)
                 });

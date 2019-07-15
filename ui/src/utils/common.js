@@ -552,14 +552,16 @@ export default {
      */
     longUnsigned(num) {
         if(typeof(num) == 'number' && num > 0) return num;
-        
+
         if(typeof(num) == 'string') {
-            num = new BigInteger(num)
+            num = new BigNumber(num)
             if(num > 0) return num.toString();
         }
-        
-        num = new BigInteger(num).abs();
+
+        num = new BigNumber(num).abs();
+        console.info("num3:"+num);
         return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
+
     },
     isTestNet() {
         return SSO.netWorkType === 'Testnet';

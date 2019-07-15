@@ -370,13 +370,13 @@
         },
         mounted() {
             let _this = this;
-            if (!window.$miningInitial) {
-                window.$miningInitial = setInterval(() => {
-                    if (_this.$router.currentRoute.name !== "mining") return;
-                    _this.loginAfter();
-                    _this.$forceUpdate();
-                }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
-            }
+
+            window.$miningInitial = setInterval(() => {
+                if (_this.$router.currentRoute.name !== "mining") return;
+                _this.loginAfter();
+                _this.$forceUpdate();
+            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+
         },
         computed: {
             getLang: function () {
