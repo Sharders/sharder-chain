@@ -123,7 +123,7 @@ public class Generator implements Comparable<Generator> {
     }
     
     // obsolete time delay, default value is 60 minutes
-    public static final int OBSOLETE_DELAY = Conch.getIntProperty("sharder.obsoleteDelay", 60);
+    public static final int OBSOLETE_DELAY = Constants.isDevnet() ? 1 : Conch.getIntProperty("sharder.obsoleteDelay", 60);
     /**
      * check current blockchain state:
      * - mining height
@@ -189,7 +189,8 @@ public class Generator implements Comparable<Generator> {
                 }
             }else{
                 if(Logger.printNow(Constants.Generator_isBlockStuckOnBootNode)) {
-                    Logger.logInfoMessage("[ TIPS ] Current node is normal node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. don't mining till blocks synchronizing finished...", lastBlock.getHeight());
+                    String nodeType = isBootNode ? "Boot" : "Normal";
+                    Logger.logInfoMessage("[ TIPS ] Current node is %s node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. don't mining till blocks synchronizing finished...", nodeType, lastBlock.getHeight());
                 }
                 return false;
             }
