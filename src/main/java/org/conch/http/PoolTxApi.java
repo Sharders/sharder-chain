@@ -177,8 +177,9 @@ public abstract class PoolTxApi {
                 }
                 
                 // period check
-                int[] lifeCycleRule = PoolRule.predefinedLifecycle();
-                int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
+                int period = Integer.MAX_VALUE;
+//                int[] lifeCycleRule = PoolRule.predefinedLifecycle();
+//                int period = ParameterParser.getInt(request, "period", lifeCycleRule[0], lifeCycleRule[1], true);
                 int poolRemainBlocks = poolProcessor.getRemainBlocks();
                 if(period > poolRemainBlocks){
                     period = poolRemainBlocks;
