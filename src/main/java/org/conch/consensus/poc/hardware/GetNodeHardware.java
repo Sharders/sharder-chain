@@ -241,7 +241,7 @@ public class GetNodeHardware {
                 Logger.logInfoMessage("<=== Your configuration performance was successfully reported");
                 return true;
             } else {
-                Logger.logErrorMessage("<=== failed to report configuration performance, remote error");
+                Logger.logErrorMessage("<=== failed to report configuration performance");
                 return false;
             }
         }catch(ConnectException e){
