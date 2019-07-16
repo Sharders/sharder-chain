@@ -94,9 +94,10 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         }
         
         if(includeOwn) {
-            peersJSON.add(Peers.generateMyPeerJson());
+            JSONObject myPeerInfoJson = Peers.generateMyPeerJson();
+            myPeerInfoJson.put("isOwn", "true");
+            peersJSON.add(myPeerInfoJson);
         }
-//        ForkConvergeTest.printPeerClient();
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);
        
