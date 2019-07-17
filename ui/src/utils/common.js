@@ -551,15 +551,15 @@ export default {
      * 将数字转换成无符号long
      */
     longUnsigned(num) {
+
         if(typeof(num) == 'number' && num > 0) return num;
 
         if(typeof(num) == 'string') {
-            num = new BigNumber(num)
+            num = new BigInteger(num)
             if(num > 0) return num.toString();
         }
 
-        num = new BigNumber(num).abs();
-        console.info("num3:"+num);
+        num = new BigInteger(num).abs();
         return new BigInteger("9223372036854775808").subtract(num).multiply(new BigInteger("2")).add(num).toString();
 
     },
