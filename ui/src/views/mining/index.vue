@@ -101,7 +101,8 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining') + getMinerBlock(mining) + $t('mining.index.unit_block')}}</span>
+<!--                                        <span>{{$t('mining.index.remaining_mining') + getMinerBlock(mining) + $t('mining.index.unit_block')}}</span>-->
+                                        <span>{{$t('mining.index.manual_deletion')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -255,12 +256,12 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{$global.getSSNumberFormat(maxPoolInvestment)}}</span>
+                            <span>{{$global.getSSNumberFormat(maxPoolInvestment+$global.poolPledgeAmount)}}</span>
                         </p>
-                        <p>
-                            <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}} (≈ {{getMinerTime()}}h)</span>
-                        </p>
+<!--                        <p>-->
+<!--                            <span class="strong">{{$t('mining.index.mining_time')}}</span>:-->
+<!--                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}} (≈ {{getMinerTime()}}h)</span>-->
+<!--                        </p>-->
                     </div>
                     <div class="pool-set">
                         <h1 class="pool-title">
@@ -369,13 +370,13 @@
         },
         mounted() {
             let _this = this;
-            if (!window.$miningInitial) {
-                window.$miningInitial = setInterval(() => {
-                    if (_this.$router.currentRoute.name !== "mining") return;
-                    _this.loginAfter();
-                    _this.$forceUpdate();
-                }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
-            }
+
+            window.$miningInitial = setInterval(() => {
+                if (_this.$router.currentRoute.name !== "mining") return;
+                _this.loginAfter();
+                _this.$forceUpdate();
+            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+
         },
         computed: {
             getLang: function () {

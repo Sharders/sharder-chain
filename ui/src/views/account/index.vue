@@ -432,8 +432,10 @@
         <!--view hub resetting dialog-->
         <div class="modal_hubSetting" id="hub_setting" v-loading="hubsetting.loadingData" v-show="hubSettingDialog">
             <div class="modal-header" @click="displaySerialNo('setting')">
+                <button class="common_btn long" @click="openAdminDialog('factoryReset')">{{$t('hubsetting.factory_reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('reset')">{{$t('hubsetting.reset')}}</button>
                 <button class="common_btn" @click="openAdminDialog('restart')">{{$t('hubsetting.restart')}}</button>
+               
                 <h4 class="modal-title">
                     <span>{{$t('hubsetting.title')}}</span>
                 </h4>
@@ -798,12 +800,26 @@
                     publicAddress: [{ required: true, message: this.$t('rules.mustRequired') }],
                     sharderAccount: [{ required: true, message: this.$t('rules.mustRequired') }],
                     sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
-                    modifyMnemonicWord: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    modifyMnemonicWord: [{ 
+                        required: true, 
+                        // message: this.$t('rules.mustRequired') 
+                        validator: (rule, value, callback) => {
+                            if (value) {
+                                if (this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase) {
+                                    callback(new Error(this.$t('notification.hubsetting_not_matched_mnemonic_word')));
+                                }
+                            }else {
+                                callback(new Error(this.$t('rules.mustRequired')));
+                            }
+                        },
+                        trigger: 'blur'
+                    }],
                     address: [{ required: true, message: this.$t('rules.mustRequired') }],
                     port: [{ required: true, message: this.$t('rules.mustRequired') }],
                     clientSecretkey: [{ required: true, message: this.$t('rules.mustRequired') }],
                     newPwd: [
                         {
+                            required: true,
                             validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
@@ -814,12 +830,12 @@
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd')));
                                 }
                             },
-                            trigger: 'blur',
-                            required
+                            trigger: 'blur'
                         }
                     ],
                     confirmPwd: [
                         {
+                            required: true,
                             validator: (rule, value, callback) => {
                                 if (!value && this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
@@ -829,23 +845,34 @@
                                     callback();
                                 }
                             },
-                            trigger: 'blur',
-                            required
+                            trigger: 'blur'
                         }
                     ],
                 },
                 hubReconfigureSettingRules: {
                     sharderAccount: [{ required: true, message: this.$t('rules.mustRequired') }],
-                    // sharderAccount: [required],
                     sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
-                    modifyMnemonicWord: [{ required: true, message: this.$t('rules.mustRequired') }],
+                    modifyMnemonicWord: [{
+                        required: true,
+                        // message: this.$t('rules.mustRequired') 
+                        validator: (rule, value, callback) => {
+                            if (value) {
+                                if (this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase) {
+                                    callback(new Error(this.$t('notification.hubsetting_not_matched_mnemonic_word')));
+                                }
+                            }else {
+                                callback(new Error(this.$t('rules.mustRequired')));
+                            }
+                        },
+                        trigger: 'blur'
+                    }],
                     address: [{ required: true, message: this.$t('rules.mustRequired') }],
                     port: [{ required: true, message: this.$t('rules.mustRequired') }],
                     clientSecretkey: [{ required: true, message: this.$t('rules.mustRequired') }],
                     publicAddress: [{ required: true, message: this.$t('rules.mustRequired') }],
                     newPwd: [
                         {
-                            required: false,
+                            required: true,
                             validator: (rule, value, callback) => {
                                 if (value) {
                                     if (this.hubsetting.confirmPwd) {
@@ -859,7 +886,7 @@
                     ],
                     confirmPwd: [
                         {
-                            required: false,
+                            required: true,
                             validator: (rule, value, callback) => {
                                 if (!value && this.hubsetting.newPwd) {
                                     callback(new Error(this.$t('rules.plz_input_admin_pwd_again')));
@@ -1070,11 +1097,12 @@
                     _this.$message.error(err.message);
                 });
             },
-            resetHub(adminPwd) {
+            resetHub(adminPwd,type) {
                 const _this = this;
                 let resetData = new FormData();
                 resetData.append("adminPassword", adminPwd);
                 resetData.append("restart", "true");
+                resetData.append("type", type);
                 this.$http.post('/sharder?requestType=recovery', resetData).then(res => {
                     if (res.data.done) {
                         _this.$message.success(_this.$t('restart.restarting'));
@@ -1160,12 +1188,21 @@
                         _this.$message.warning(_this.$t('notification.hubsetting_no_mnemonic_word'));
                         return false;
                     }
+                    if(SSO.secretPhrase === ''){
+                        _this.$message.warning(_this.$t('notification.hubsetting_login_again'));
+                        return false;
+                    }
+                    
+                    if(_this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase){
+                        _this.$message.warning(_this.$t('notification.hubsetting_not_matched_mnemonic_word'));
+                        return false;
+                    }
                     formData.append("sharder.HubBindPassPhrase", _this.hubsetting.modifyMnemonicWord);
                 } else {
                     formData.append("sharder.HubBind", false);
                 }
                 
-                if (_this.hubsetting.newPwd !== "" || _this.hubsetting.confirmPwd !== "") {
+                if (_this.hubsetting.newPwd !== '' || _this.hubsetting.confirmPwd !== '') {
                     if (_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd) {
                         _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
                         return false;
@@ -1249,19 +1286,12 @@
                     window.location.reload();
                 }, 40000);
             },
-            hubSettingConfirmThenGoAdmin(type, formName) {
-                let _this = this;
-                _this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        _this.hubSettingDialog = false;
-                        _this.useNATServiceDialog = false;
-                        _this.adminPasswordDialog = true;
-                    } else {
-                        console.log(`operation of ${type} missing field`);
-                        return false;
-                    }
-                });
-            },
+            // hubSettingConfirmThenGoAdmin(type, formName) {
+            //     let _this = this;
+            //     _this.$refs[formName].validate((valid) => {
+            //         return valid;
+            //     });
+            // },
             reconfigure(data) {
                 let _this = this;
                 this.$http.post('/sharder?requestType=reConfig', data).then(res1 => {
@@ -1851,6 +1881,12 @@
             openAdminDialog: function (title) {
                 const _this = this;
                 _this.adminPasswordTitle = title;
+
+                this.$refs["reconfigureForm"].clearValidate();
+                this.$refs["initForm"].clearValidate();
+                
+                let validationPassed;
+                let formName = '';
                 if (title === 'reConfig') {
                     this.operationType = 'reConfig';
                     _this.$refs['reconfigureForm'].validate((valid) => {
@@ -1865,14 +1901,23 @@
                             return false;
                         }
                     });
-                } else if (title === 'reset') {
-                    this.operationType = 'reset';
-                    _this.hubSettingConfirmThenGoAdmin(title, 'reconfigureForm');
                 } else if (title === 'resetNormal') {
                     this.operationType = 'resetNormal';
-                    _this.hubSettingConfirmThenGoAdmin('resetNormal', 'useNATForm');
+                    formName = 'useNATForm';
                 } else {
                     this.operationType = 'init';
+                    validationPassed = true;
+                }
+                
+                // validate the parameters of the form
+                if(formName.length > 1) {
+                    _this.$refs[formName].validate((valid) => {
+                        validationPassed = valid;
+                    });
+                }
+                
+                // set the dialog state and visible 
+                if(validationPassed){
                     _this.hubSettingDialog = false;
                     _this.useNATServiceDialog = false;
                     _this.adminPasswordDialog = true;
@@ -1891,8 +1936,11 @@
                 const _this = this;
                 _this.adminPassword = adminPwd;
                 _this.adminPasswordDialog = false;
-                if (_this.adminPasswordTitle === 'reset' || _this.adminPasswordTitle === 'resetNormal') {
-                    _this.resetHub(adminPwd);
+                if (_this.adminPasswordTitle === 'reset' 
+                    || _this.adminPasswordTitle === 'resetNormal') {
+                    _this.resetHub(adminPwd,'reset');
+                } else if (_this.adminPasswordTitle === 'factoryReset') {
+                    _this.resetHub(adminPwd,'factoryReset');
                 } else if (_this.adminPasswordTitle === 'restart') {
                     _this.restartHub(adminPwd);
                 } else if (_this.adminPasswordTitle === 'update') {
@@ -1908,19 +1956,21 @@
                 _this.setName(secretPhrase);
             },
             closeDialog: function () {
+                this.$refs["reconfigureForm"].clearValidate();
+                this.$refs["useNATForm"].clearValidate();
+                this.$refs["initForm"].clearValidate();
+                
                 // clear dialog form fields
                 if (this.hubSettingDialog && this.$refs['reconfigureForm']) {
                     // do not reset fields, otherwise the setting button will hide
                     // because "this.hubsetting.SS_Address" is used to display judgment
-                    this.$refs["reconfigureForm"].clearValidate();
+                    this.$refs["reconfigureForm"].resetFields();
                 }
                 if (this.hubInitDialog && this.$refs['initForm']) {
                     this.$refs["initForm"].resetFields();
-                    this.$refs["initForm"].clearValidate();
                 }
                 if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                     this.$refs["useNATForm"].resetFields();
-                    this.$refs["useNATForm"].clearValidate();
                 }
 
                 this.operationType = 'init';
@@ -2336,7 +2386,8 @@
                     if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                         this.$refs["useNATForm"].clearValidate();
                     }
-                } else if (this.operationType === 'reset') {
+                } else if (this.operationType === 'reset' 
+                        || this.operationType === 'factoryReset') {
                     this.formRules = this.resettingRules;
                 } else if (this.operationType === 'resetNormal') {
                     this.formRules = this.resettingRules;
@@ -2356,7 +2407,7 @@
                 } else {
                     clearInterval(periodicTransactions);
                 }
-            }, _this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
 
             $('#receiver').on("blur", function () {
                 _this.validationReceiver("messageForm");
@@ -2425,7 +2476,7 @@
     }
 
     .modal_hubSetting .modal-body .el-form .el-form-item {
-        margin-top: 15px !important;
+        margin-top: 18px !important;
     }
 
     /*.modal_hubSetting .modal-body .el-form .create_account .el-input{
@@ -2436,5 +2487,13 @@
         right: 20px;
         top: 0;
         cursor: pointer;
+    }
+
+    .modal_hubSetting .modal-header button {
+        margin-left: 10px!important;
+    }
+
+    .modal_hubSetting .modal-header .long {
+        width: 110px;
     }
 </style>

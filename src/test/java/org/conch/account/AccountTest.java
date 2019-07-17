@@ -10,10 +10,7 @@ import org.conch.crypto.Crypto;
 import org.conch.tx.TransactionImpl;
 import org.conch.util.Convert;
 
-import java.io.BufferedReader;
-import java.io.Console;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +78,8 @@ public class AccountTest extends BaseTest {
     }
 
     public static void main(String[] args) throws IOException {
+        System.out.println("rs address:" + Account.rsAccount(-90778548339644322L));
+
 //        String secretPhrase = getSpFromConsole();
 //        accountInfoPrint(secretPhrase);
 //        accountSignInfo(secretPhrase);

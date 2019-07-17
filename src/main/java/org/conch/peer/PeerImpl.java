@@ -78,6 +78,7 @@ final class PeerImpl implements Peer {
     private volatile BlockchainState blockchainState;
     private volatile Type type;
     private volatile PeerLoad peerLoad;
+    private volatile JSONObject blockSummaryJson = new JSONObject();
     
 
     PeerImpl(String host, String announcedAddress) {
@@ -979,6 +980,10 @@ final class PeerImpl implements Peer {
     public PeerLoad getPeerLoad() {
         return peerLoad;
     }
+    
+    public JSONObject getBlockSummary() {
+        return blockSummaryJson;
+    }
 
     public void setPeerLoad(PeerLoad peerLoad) {
         this.peerLoad = peerLoad;
@@ -1013,6 +1018,7 @@ final class PeerImpl implements Peer {
         json.put("blockchainState", state.ordinal());
         json.put("peerLoad",peerLoad.toJson());
         json.put("bindRsAccount", bindRsAccount);
+        json.putAll(blockSummaryJson);
         return json;
     }
 
@@ -1032,6 +1038,14 @@ final class PeerImpl implements Peer {
         analyzeHallmark((String) json.get("hallmark"));
         parsePeerLoad((JSONObject)json.get("peerLoad"));
         setBindRsAccount((String)json.get("bindRsAccount"));
+        blockSummaryJson.put("cumulativeDifficulty", json.get("cumulativeDifficulty"));
+        blockSummaryJson.put("lastBlockHeight", json.get("lastBlockHeight"));
+        blockSummaryJson.put("lastBlockId", json.get("lastBlockId"));
+        blockSummaryJson.put("lastBlockHash",  json.get("lastBlockHash"));
+        blockSummaryJson.put("lastBlockGenerator", json.get("lastBlockGenerator"));
+        blockSummaryJson.put("lastBlockTimestamp", json.get("lastBlockTimestamp"));
+        blockSummaryJson.put("currentFork", json.get("currentFork"));
+        
         return this;
     }
 }

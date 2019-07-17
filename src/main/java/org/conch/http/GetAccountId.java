@@ -27,6 +27,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
@@ -39,11 +43,36 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
 
-        byte[] publicKey = ParameterParser.getPublicKey(req);
-        long accountId = Account.getId(publicKey);
+        String accountIds = req.getParameter("accoutId");
         JSONObject response = new JSONObject();
-        JSONData.putAccount(response, "account", accountId);
-        response.put("publicKey", Convert.toHexString(publicKey));
+
+        List<Map> lm = new ArrayList<Map>();
+        if(accountIds!=null){
+            if(accountIds.contains(",")){
+                String[] accountIdArr = accountIds.split(",");
+                for (int i = 0; i < accountIdArr.length; i++){
+                    Map<String, String> rsAccountMap = new HashMap<String, String>();
+                    if(accountIdArr[i]!=""&&accountIdArr[i].length()!=0) {
+                        rsAccountMap.put("accountId", accountIdArr[i]);
+                        rsAccountMap.put("rsaccountId", Account.rsAccount(Long.parseLong(accountIdArr[i])));
+                        lm.add(rsAccountMap);
+                    }
+                }
+            }else {
+                Map<String, String> rsAccountMap = new HashMap<String, String>();
+                rsAccountMap.put("accountId",accountIds);
+                rsAccountMap.put("rsaccountId",Account.rsAccount(Long.parseLong(accountIds)));
+                lm.add(rsAccountMap);
+            }
+            response.put("rsAccountInfo", lm);
+        }
+        else {
+            byte[] publicKey = ParameterParser.getPublicKey(req);
+            long accountId = Account.getId(publicKey);
+
+            JSONData.putAccount(response, "account", accountId);
+            response.put("publicKey", Convert.toHexString(publicKey));
+        }
 
         return response;
     }

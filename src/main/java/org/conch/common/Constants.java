@@ -21,16 +21,16 @@
 
 package org.conch.common;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.Generator;
+import org.conch.peer.Peer;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.TimeZone;
+import java.util.*;
 
 public final class Constants {
 
@@ -90,7 +90,7 @@ public final class Constants {
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
-    public static final String BootNodeHost = parseBootNodeHost();
+    public static final List<String> bootNodesHost = parseBootNodesHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -217,8 +217,11 @@ public final class Constants {
     public static final int TESTNET_PHASE_TWO = 990000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
     public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
-    public static final int TESTNET_POC_LEDGER_RESET_HEIGHT = 4500;
-    public static final int TESTNET_POC_NEW_ALGO_HEIGHT = 4751;
+    public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? 4500 : 0;
+    public static final int POC_NEW_ALGO_HEIGHT = isTestnet() ? 4751 : 0;
+    public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
+    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 19555 : 0;
+    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 19555 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -363,17 +366,22 @@ public final class Constants {
         return networkInProperties;
     }
     
-    private static final String parseBootNodeHost() {
+    private static final List<String> parseBootNodesHost() {
        if(isMainnet()){
-           return "boot.sharder.io";
+           return Lists.newArrayList("boot.sharder.io");
        }else if(isTestnet()){
-           return "testboot.sharder.io";
+           return Lists.newArrayList("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
        }
-       return "devboot.sharder.io";
+       return Lists.newArrayList("devboot.sharder.io");
     }
     
-    public static boolean isBootNode(String host){
-        return BootNodeHost.equals(host);
+    
+    public static synchronized boolean isValidBootNode(Peer peer){
+        return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
+    }
+
+    public static String getBootNodeRandom(){
+        return bootNodesHost.get(new Random().nextInt(bootNodesHost.size()));
     }
 
     public static final String SUCCESS = "success";
@@ -393,6 +401,8 @@ public final class Constants {
     /** log count check key **/
     public static final String Generator_getNextGenerators = Generator.class.getName() + "#getNextGenerators";
     public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
+    public static final String Generator_isBlockStuckOnBootNode = Generator.class.getName() + "#isBlockStuckOnBootNode";
+    public static final String Generator_isPocTxsProcessed = Generator.class.getName() + "#isPocTxsProcessed";
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
     public static final String BlockchainProcessor_P_downloadPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer";
     public static final String BlockchainProcessor_P_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";

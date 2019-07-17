@@ -266,7 +266,7 @@ public class SharderPoolProcessor implements Serializable {
         return true;
     }
     
-    public void destroy(int height){
+    private void destroy(int height){
         state = State.DESTROYED;
         endBlockNo = height;
         Account creator = Account.getAccount(creatorId);
@@ -296,7 +296,7 @@ public class SharderPoolProcessor implements Serializable {
 
         if (startBlockNo > endBlockNo) {
             sharderPools.remove(poolId);
-            Logger.logDebugMessage("destroy mining pool " + poolId + " before start ");
+            Logger.logDebugMessage("destroy mining pool " + poolId + " before it running ");
             return;
         }
         if (destroyedPools.containsKey(creatorId)) {
@@ -460,16 +460,19 @@ public class SharderPoolProcessor implements Serializable {
         for (SharderPoolProcessor sharderPool : sharderPools.values()) {
             sharderPool.updateHeight = height;
             sharderPool.clearJoiningAmount();
-
-            //pool will be destroyed automatically when it has nobody join
-            if (sharderPool.consignors.size() == 0 
-                && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
-                sharderPool.destroyAndRecord(height);
-                continue;
-            }
-            if (sharderPool.endBlockNo <= height) {
-                sharderPool.destroyAndRecord(sharderPool.endBlockNo);
-                continue;
+            
+            // never end the pool auto after the Constants.POC_POOL_NEVER_END_HEIGHT
+            if(height < Constants.POC_POOL_NEVER_END_HEIGHT){
+                //pool will be destroyed automatically when it has nobody join
+                if (sharderPool.consignors.size() == 0
+                        && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
+                    sharderPool.destroyAndRecord(height);
+                    continue;
+                }
+                if (sharderPool.endBlockNo <= height) {
+                    sharderPool.destroyAndRecord(sharderPool.endBlockNo);
+                    continue;
+                }  
             }
             
             // check the miner whether running before poll started

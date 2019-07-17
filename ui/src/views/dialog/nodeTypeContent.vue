@@ -10,10 +10,10 @@
                         <p class="node-type"> 
                             <strong>{{ $t('poc.nodeType') }}: </strong>{{ parseNodeType(pocInfo.type) }}
                         </p>
-                        <p class="linked-account">
+                       <!-- <p class="linked-account">
                             <strong>{{ $t('poc.linkedAccount') }}: </strong><br/>
                             {{ rsAccount(pocInfo.accountId) }}
-                        </p>
+                        </p>-->
                     </el-card>
                 </el-col>
             </el-row>
@@ -45,10 +45,14 @@
                 }
             },
             rsAccount(accountId) {
-                var nxtAddress = new NxtAddress();
-                var accountRS = "";
-                if (nxtAddress.set(this.$global.longUnsigned(accountId))) {
-                    return accountRS = nxtAddress.toString();
+                //TODO  calculate the right address when the account id < 0 
+                let nxtAddress = new NxtAddress();
+                let accountRS = "";
+
+                if (nxtAddress.set(accountId)) {
+                    accountRS = nxtAddress.toString();
+                    console.info("node-accountRS:"+accountRS);
+                    return accountRS;
                 }
                 return accountId;
             }

@@ -24,23 +24,27 @@ package org.conch.http;
 import com.google.common.collect.Maps;
 import org.conch.Conch;
 import org.conch.account.Account;
+import org.conch.common.ConchException;
 import org.conch.mint.pool.SharderPoolProcessor;
-import org.conch.util.FileUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 /**
  * @author jangbubai
+ * @date  2019-07-11 updated by Ben: support the type 
  */
 public final class Recovery extends APIServlet.APIRequestHandler {
 
     static final Recovery INSTANCE = new Recovery();
+    
+    private static final String TYPE_RESET = "reset";
+    private static final String TYPE_FACTORY_RESET = "factoryReset";
+    
     private static final List<String> RESET_PARAMS = Arrays.asList(
             "sharder.adminPassword",
             "sharder.disableAdminPassword",
@@ -69,38 +73,56 @@ public final class Recovery extends APIServlet.APIRequestHandler {
     @SuppressWarnings("unchecked")
     protected JSONStreamAware processRequest(HttpServletRequest req) {
         JSONObject response = new JSONObject();
+        String type = req.getParameter("type");
         boolean restart = "true".equalsIgnoreCase(req.getParameter("restart"));
-        long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
 
-        if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
-            response.put("done", false);
-            response.put("failedReason", "user has created a working pool, failed to recovery hub");
-            return response;
-        }
-        
         try {
-            Conch.pause();
             
-            // reset user define properties file
-            HashMap<String, String> paramMap =  Maps.newHashMap(RESET_MAP);
-            paramMap.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
-            Conch.storePropertiesToFile(paramMap);
-            
-            // delete log files when resetting configuration
-            FileUtil.clearAllLogs();
-            
-            if (restart) {
-                new Thread(() -> Conch.restartApplication(null)).start();
+            if(TYPE_RESET.equalsIgnoreCase(type)){
+                reset(restart);
+            }else if(TYPE_FACTORY_RESET.equalsIgnoreCase(type)){
+                factoryReset(restart);
+            }else{
+                reset(restart);
             }
-            response.put("done", true);
-            
-        } catch (RuntimeException | FileNotFoundException e) {
+
+        } catch (Exception e) {
+            response.put("done", false);
             JSONData.putException(response, e);
-        } finally {
-            Conch.unpause();
-        }
-      
+            return response;
+        } 
+
+        response.put("done", true);
         return response;
+    }
+    
+    
+    private void resetProperties(boolean fullReset, boolean reboot) throws RuntimeException {
+        HashMap<String, String> paramMap = Maps.newHashMap();
+        if(fullReset) paramMap.putAll(RESET_MAP);
+        
+        Conch.resetAndReboot(paramMap, reboot);
+    }
+    
+    /**
+     * - rollback the blockchain to the height 0 or the last check point
+     */
+    private void reset(boolean reboot) {
+        resetProperties(false, reboot);
+    }
+
+    /**
+     * - rollback the blockchain to the height 0 or the last check point
+     * - reset the hub to the factory state (need initialize the hub)
+     */
+    private void factoryReset(boolean reboot) throws ConchException.NotValidException {
+        // working pool check
+        long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
+        if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
+            throw new ConchException.NotValidException("Current user has created a working pool, failed to reset the hub");
+        }
+
+        resetProperties(true, reboot);
     }
 
     @Override
@@ -122,5 +144,4 @@ public final class Recovery extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
-
 }
