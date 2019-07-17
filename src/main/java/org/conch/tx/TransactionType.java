@@ -3574,10 +3574,10 @@ public abstract class TransactionType {
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
                     Logger.logWarningMessage("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight + ", still to destroy it");
                 }
-                if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
-                    throw new ConchException.NotValidException("Pool can't be destroyed, because it start at %d and current height %d is out of manual destroy range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
-                }
-
+                
+//                if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
+//                    throw new ConchException.NotValidException("Pool can't be deleted, because it start at %d and current height %d is out of manual deletion range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
+//                }
             }
 
             @Override
@@ -3663,7 +3663,7 @@ public abstract class TransactionType {
                     return;
                 }
                 
-                if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
+                if(curHeight >= Constants.SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT){
                     if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
                         Logger.logWarningMessage("Pool[%d] will start at height[%d] and current tx[id=%d] apply at height[%d] ", pool.getPoolId(), poolStartHeight , transaction.getId(), curHeight);
                         return;
