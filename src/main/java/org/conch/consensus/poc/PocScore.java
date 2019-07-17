@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
+import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
@@ -185,7 +186,7 @@ public class PocScore implements Serializable {
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
         
-        if(Constants.isDevnet()){
+        if(Constants.isDevnet() && SharderGenesis.isGenesisRecipients(account.getId())){
             effectiveSS = BigInteger.valueOf(accountBalanceNQT * 10 / Constants.ONE_SS);
         }else if(Constants.isTestnet() && height < Constants.POC_NEW_ALGO_HEIGHT){
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
