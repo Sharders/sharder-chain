@@ -181,10 +181,13 @@ public class Generator implements Comparable<Generator> {
             // linked miner's hit validation if node is the boot node
             if(foundBlockStuckOnBootNode && linkedGenerator != null) {
                 int timestamp = linkedGenerator.getTimestamp(generationLimit);
-                if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
-                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", secondsSinceLastBlock ,linkedGenerator.rsAddress, lastBlock.getHeight());
+                long minutesSinceLastBlock = secondsSinceLastBlock/60;
+                if(Constants.isOffline){
+                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node should keep mining in the offline mode at height[%d].", minutesSinceLastBlock, lastBlock.getHeight());
+                } else if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
+                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", minutesSinceLastBlock,linkedGenerator.rsAddress, lastBlock.getHeight());
                 }else{
-                    Logger.logWarningMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node miner[%s]'s hit didn't matched now at height[%d], wait for next round check.", secondsSinceLastBlock ,linkedGenerator.rsAddress, lastBlock.getHeight());
+                    Logger.logWarningMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node miner[%s]'s hit[%d] didn't matched now at height[%d], wait for next round check.", minutesSinceLastBlock,linkedGenerator.rsAddress,linkedGenerator.hit, lastBlock.getHeight());
                     return false;
                 }
             }else{
