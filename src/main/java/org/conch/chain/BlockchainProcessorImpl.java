@@ -218,7 +218,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             // can't get the mining difficulty of remote peer
             BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
-            Object remoteDifficultyObj = response.get("cumulativeDifficulty");
+            Object remoteDifficultyObj = response != null ? response.get("cumulativeDifficulty") : null;
             String peerCumulativeDifficulty = remoteDifficultyObj != null ? (String) remoteDifficultyObj : null;
             if (peerCumulativeDifficulty == null) return;
 
