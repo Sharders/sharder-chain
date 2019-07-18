@@ -323,7 +323,6 @@
     </div>
 </template>
 <script>
-
     export default {
         name: "Network",
         data() {
@@ -339,7 +338,6 @@
                 transactionId: '',
                 transactionDialog: false,
                 accountInfo: [],
-
                 minerlistDialog: false,
                 minerlist: [],
                 minerlistHeight: 590,
@@ -371,50 +369,39 @@
         },
         created() {
             let _this = this;
-            // _this.networkUrlBlocks();
-            _this.init();
+
             _this.handleCurrentChange(_this.currentPage);
         },
         mounted() {
             let _this = this;
-
+            _this.init();
             window.NETWORK_URL = setInterval(() => {
                 if (_this.$route.path === '/network') {
-                    //_this.init();
                     _this.networkUrlBlocks();
-                    // _this.handleCurrentChange(_this.currentPage);
+                    _this.httpGetPeersNum();
+
                 }
             }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
 
         },
         methods: {
+
             init() {
+
                 const _this = this;
                 _this.networkUrlBlocks();
-                _this.$global.fetch("GET", {}, "getPeers").then(res => {
-                    _this.peerNum = res.peers.length;
-                    return _this.$global.byIPtoCoordinates(res.peers);
-                }).then(res => {
-                    let json = JSON.parse(res);
-                    for (let i of Object.keys(json)) {
-                        if (json[i]["X"] !== "" && json[i]["X"] !== "0"
-                            && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
-                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
-                            let arr = [];
-                            arr.push(json[i]["Y"]);
-                            arr.push(json[i]["X"]);
-                            _this.peersLocationList[i] = arr;
-                            arr = [];
-                            arr.push(i);
-                            arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
-                            _this.peersTimeList.push(arr);
-                        }
-                    }
-                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
-                }).catch(err => {
-                    console.info("error", err);
-                });
-
+                _this.httpGetNextBlockGennerators();
+                _this.httpGetPeersNum();
+                _this.httpGetTxStatistics();
+                let peersArr=localStorage.getItem("coordinates");
+                if(JSON.parse(peersArr)===null||JSON.parse(peersArr)==="{}"){
+                    _this.httpGetPeersAndDraw();
+                }else{
+                    _this.getPeersListAndDraw(peersArr);
+                }
+            },
+            httpGetNextBlockGennerators(){
+                const _this = this;
                 _this.$global.fetch("GET", {
                     limit: 99999
                 }, "getNextBlockGenerators").then(res => {
@@ -423,7 +410,9 @@
                 }).catch(err => {
                     console.info("error", err);
                 });
-
+            },
+            httpGetTxStatistics(){
+                const _this = this;
                 _this.$global.fetch("GET", {}, "getTxStatistics").then(res => {
                     _this.transferCount = res.transferCount;
                     _this.storageCount = res.storageCount;
@@ -434,6 +423,55 @@
                 }).catch(err => {
                     console.info("error", err);
                 });
+            },
+            httpGetPeersNum(){
+                const _this = this;
+                _this.$global.fetch("GET", {}, "getPeers").then(res => {
+                    _this.peerNum = res.peers.length;
+                    let pn = localStorage.getItem('peerNum');
+                    if(pn===null||pn===""){
+                        localStorage.setItem('peerNum',_this.peerNum);
+                    }else if(pn != res.peers.length){
+                        localStorage.setItem('peerNum',res.peers.length);
+                        _this.httpGetPeersAndDraw();
+                    }
+
+                }).catch(err => {
+                    console.info("error", err);
+                });
+            },
+            httpGetPeersAndDraw(){
+                const _this = this;
+                _this.$global.fetch("GET", {}, "getPeers").then(res => {
+                return _this.$global.byIPtoCoordinates(res.peers);
+                }).then(res => {
+                    localStorage.setItem('coordinates',JSON.stringify(res));
+                    let json = JSON.parse(res);
+                    _this.getPeersListAndDraw(json);
+
+                }).catch(err => {
+                    console.info("error", err);
+                });
+            },
+            getPeersListAndDraw(json){
+                const _this = this;
+                json = JSON.parse(json);
+                for (let i of Object.keys(json)) {
+                   // console.info("X:"+json[i]["X"]+",Y:"+json[i]["Y"]);
+                    if (json[i]["X"] !== "" && json[i]["X"] !== "0"
+                        && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
+                        && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
+                        let arr = [];
+                        arr.push(json[i]["Y"]);
+                        arr.push(json[i]["X"]);
+                        _this.peersLocationList[i] = arr;
+                        arr = [];
+                        arr.push(i);
+                        arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
+                        _this.peersTimeList.push(arr);
+                    }
+                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
+                }
             },
             networkUrlBlocks() {
                 const _this = this;
@@ -543,7 +581,8 @@
             dateFormat(val) {
                 return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
-        }
+        },
+
     };
 </script>
 <style lang="scss" type="text/scss">
