@@ -93,6 +93,7 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             }
         }
         
+        long start = System.currentTimeMillis();
         if(includeOwn) {
             JSONObject myPeerInfoJson = Peers.generateMyPeerJson();
             myPeerInfoJson.put("isOwn", "true");
@@ -100,7 +101,8 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         }
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);
-       
+        long end = System.currentTimeMillis();
+        System.out.println("GetPeers api response use " + (end-start)/1000 + " seconds");
         return response;
     }
 
