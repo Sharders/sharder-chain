@@ -435,6 +435,8 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     private static void checkOrAddIntoActiveGenerator(SharderPoolProcessor sharderPool){
+        Generator.addMiner(sharderPool.creatorId);
+        
         if(Generator.containMiner(sharderPool.creatorId)) {
             Logger.logInfoMessage("current creator %s of pool %s already mining on this node", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
             return;
@@ -475,7 +477,7 @@ public class SharderPoolProcessor implements Serializable {
                 }  
             }
             
-            // check the miner whether running before poll started
+            // check the miner whether running before pool started
             if(sharderPool.startBlockNo-height <=3 
                 && sharderPool.startBlockNo > height){
                 checkOrAddIntoActiveGenerator(sharderPool);
