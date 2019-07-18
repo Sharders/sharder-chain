@@ -379,7 +379,6 @@
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
                     _this.httpGetPeersNum();
-
                 }
             }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
         },
@@ -568,7 +567,7 @@
             dateFormat(val) {
                 return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
-        },
+        }
 
     };
 </script>

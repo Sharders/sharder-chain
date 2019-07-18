@@ -164,10 +164,11 @@ public class Generator implements Comparable<Generator> {
         
         if(dontWait) return true;
         
-        // blockchain is synchronizing block or stuck
+        // blockchain is synchronizing blocks or stuck
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
             // when blockchain be blocked and last block is obsolete, boot node need mining the block
             long secondsSinceLastBlock = Conch.getEpochTime() - 600 - Conch.getBlockchain().getLastBlockTimestamp();
+            long minutesSinceLastBlock = secondsSinceLastBlock/60;
             boolean isObsoleteTime =  secondsSinceLastBlock > (60 * OBSOLETE_DELAY); // default block mining delay > 1h
             boolean foundBlockStuckOnBootNode = isObsoleteTime && isBootNode;
             
@@ -178,13 +179,11 @@ public class Generator implements Comparable<Generator> {
                 }
             }
             
-            // linked miner's hit validation if node is the boot node
-            if(foundBlockStuckOnBootNode && linkedGenerator != null) {
+            if(Constants.isOffline && isBootNode){
+                Logger.logInfoMessage("[BootNode] Current node is boot node should keep mining in the offline mode at height[%d].", lastBlock.getHeight());
+            } else if(foundBlockStuckOnBootNode && linkedGenerator != null) {
                 int timestamp = linkedGenerator.getTimestamp(generationLimit);
-                long minutesSinceLastBlock = secondsSinceLastBlock/60;
-                if(Constants.isOffline){
-                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node should keep mining in the offline mode at height[%d].", minutesSinceLastBlock, lastBlock.getHeight());
-                } else if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
+                if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
                     Logger.logInfoMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", minutesSinceLastBlock,linkedGenerator.rsAddress, lastBlock.getHeight());
                 }else{
                     Logger.logWarningMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node miner[%s]'s hit[%d] didn't matched now at height[%d], wait for next round check.", minutesSinceLastBlock,linkedGenerator.rsAddress,linkedGenerator.hit, lastBlock.getHeight());
