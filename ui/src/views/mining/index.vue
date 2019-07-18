@@ -534,7 +534,7 @@
                         _this.maxPoolInvestment = res.consignor.amount.max - 100000000;
                     }
                 });
-
+                
                 _this.getPools({sort: _this.sortFun});
 
                 _this.$global.fetch("POST", {limit: 99999}, "getNextBlockGenerators").then(res => {
@@ -611,12 +611,12 @@
             getPools(parameter) {
                 let _this = this;
                 _this.loading = true;
+                let poolArr1 = [];
+                let poolArr2 = [];
                 _this.$global.fetch("POST", parameter, "getPools").then(res => {
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    let poolArr1 = [];
-                    let poolArr2 = [];
                     for(let t of res.pools){
                         if(t.creatorRS === _this.accountInfo.accountRS){
                             poolArr1.push(t);
@@ -624,12 +624,7 @@
                             poolArr2.push(t);
                         }
                     }
-                    if(poolArr1.length !=0 && poolArr2.length !=0){
-                        _this.miningList=poolArr1.join(poolArr2);
-                    }else{
-                        _this.miningList =res.pools;
-                    }
-
+                    _this.miningList=poolArr1.concat(poolArr2);
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });
@@ -682,6 +677,7 @@
                 deep: true
             },
             sortFun(v) {
+                alert("in sortFun method")
                 console.info(v);
                 this.getPools({sort: v});
             }
