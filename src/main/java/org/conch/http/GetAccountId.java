@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.conch.account.Account;
 import org.conch.util.Convert;
 import org.json.simple.JSONObject;
@@ -46,12 +47,12 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
         String accountIds = req.getParameter("accoutId");
         JSONObject response = new JSONObject();
 
-        List<Map> lm = new ArrayList<Map>();
-        if(accountIds!=null){
+        List<Map> lm = new ArrayList<>();
+        if(StringUtils.isNotEmpty(accountIds)){
             if(accountIds.contains(",")){
                 String[] accountIdArr = accountIds.split(",");
                 for (int i = 0; i < accountIdArr.length; i++){
-                    Map<String, String> rsAccountMap = new HashMap<String, String>();
+                    Map<String, String> rsAccountMap = new HashMap<>();
                     if(accountIdArr[i]!=""&&accountIdArr[i].length()!=0) {
                         rsAccountMap.put("accountId", accountIdArr[i]);
                         rsAccountMap.put("rsaccountId", Account.rsAccount(Long.parseLong(accountIdArr[i])));
@@ -59,14 +60,13 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
                     }
                 }
             }else {
-                Map<String, String> rsAccountMap = new HashMap<String, String>();
+                Map<String, String> rsAccountMap = new HashMap<>();
                 rsAccountMap.put("accountId",accountIds);
                 rsAccountMap.put("rsaccountId",Account.rsAccount(Long.parseLong(accountIds)));
                 lm.add(rsAccountMap);
             }
             response.put("rsAccountInfo", lm);
-        }
-        else {
+        }else {
             byte[] publicKey = ParameterParser.getPublicKey(req);
             long accountId = Account.getId(publicKey);
 
