@@ -615,8 +615,18 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    // _this.miningList.splice(0,_this.miningList.length)
-                    _this.miningList = res.pools;
+                    let poolArr =[];
+                    for(let t of res.pools){
+                        if(t.creatorRS === _this.accountInfo.accountRS){
+                            poolArr.push(t);
+                        }
+                    }
+                    for(let t of res.pools){
+                        if(t.creatorRS != _this.accountInfo.accountRS){
+                            poolArr.push(t);
+                        }
+                    }
+                    _this.miningList=poolArr;
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });

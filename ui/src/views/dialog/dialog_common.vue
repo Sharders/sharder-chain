@@ -330,7 +330,7 @@
                     </el-table>
                 </div>
                 <div v-if="tabTitle === 'poolInfo'" class="blockInfo">
-                    <el-table :data="poolInfoList" class="pool" style="width: 100%">
+                    <el-table :data="poolInfoList" class="poc" style="width: 100%">
                         <el-table-column type="expand">
                             <template slot-scope="props">
                                 <el-form label-position="left" inline>
