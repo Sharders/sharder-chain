@@ -615,7 +615,7 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    _this.miningList.splice(0,_this.miningList.length)
+                    // _this.miningList.splice(0,_this.miningList.length)
                     _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
