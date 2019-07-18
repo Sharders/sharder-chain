@@ -31,6 +31,7 @@ public class IpUtil {
             
             if(!isDomain(url)) return url;
             return InetAddress.getByName(url).getHostAddress();
+
         } catch (UnknownHostException e) {
             Logger.logErrorMessage("can't finish checkOrToIp with url[" + url + "] caused by " + e.getMessage());
         }

@@ -163,8 +163,9 @@ public class PocScore implements Serializable {
         if (account == null) return effectiveSS;
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
-        
-        if(Constants.isTestnet() && height < Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+        if(Constants.isDevnet()){
+            return BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
+        }else if(Constants.isTestnet() && height < Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
                 effectiveSS = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
                         .add(BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS));
