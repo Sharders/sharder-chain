@@ -137,14 +137,18 @@ public class Generator implements Comparable<Generator> {
         // boot node check before the last known height
         if(isBootNode && Conch.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
-                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly at height[%d].", lastBlock.getHeight());
             }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly at height[%d].", lastBlock.getHeight());
             }
             return true;
         }
-        
-        // wait till Conch initialized finished
+
+        if(Constants.isOffline && isBootNode){
+            Logger.logInfoMessage("[BootNode] Current node is boot node should keep mining in the offline mode at height[%d].", lastBlock.getHeight());
+        }
+
+            // wait till Conch initialized finished
         if(!Conch.isInitialized()) {
             if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
                 Logger.logDebugMessage("Wait for Conch initialized...");
@@ -179,9 +183,7 @@ public class Generator implements Comparable<Generator> {
                 }
             }
             
-            if(Constants.isOffline && isBootNode){
-                Logger.logInfoMessage("[BootNode] Current node is boot node should keep mining in the offline mode at height[%d].", lastBlock.getHeight());
-            } else if(foundBlockStuckOnBootNode && linkedGenerator != null) {
+            if(foundBlockStuckOnBootNode && linkedGenerator != null) {
                 int timestamp = linkedGenerator.getTimestamp(generationLimit);
                 if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
                     Logger.logInfoMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", minutesSinceLastBlock,linkedGenerator.rsAddress, lastBlock.getHeight());

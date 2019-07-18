@@ -349,7 +349,8 @@ public final class Constants {
     public static int getBlockGapSeconds(){
         int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
         // offline mode: 10 seconds
-        return Constants.isOffline ? 10 : (gap*60); 
+//        return Constants.isOffline ? 10 : (gap*60); 
+        return gap*60; 
     }
 
     /**
