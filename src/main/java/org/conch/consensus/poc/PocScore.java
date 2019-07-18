@@ -174,7 +174,20 @@ public class PocScore implements Serializable {
             }
         }else{
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
-                effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
+                long remainLimit = SharderPoolProcessor.POOL_MAX_AMOUNT_NQT - poolProcessor.getPower();
+                if(remainLimit > 0 
+                && remainLimit > accountBalanceNQT){
+                    remainLimit = (accountBalanceNQT <= 0) ? 0 : accountBalanceNQT;
+                }
+                
+                Float remainEffectiveF = 0f;
+                if(remainLimit > 0 
+                && height >= Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT) {
+                    remainEffectiveF = remainLimit * ssHeldRate(height);
+                }
+
+                Float effectiveSSF = (remainEffectiveF + poolProcessor.getPower()) / Constants.ONE_SS;
+                effectiveSS = BigInteger.valueOf(effectiveSSF.longValue());
             } else {
                 boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
                 
