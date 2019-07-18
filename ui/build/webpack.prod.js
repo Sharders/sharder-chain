@@ -43,7 +43,7 @@ base.plugins.push(
   new webpack.DefinePlugin({
     "process.env.NODE_ENV": JSON.stringify("production")
   }),
-  /*new webpack.optimize.UglifyJsPlugin({
+  new webpack.optimize.UglifyJsPlugin({
     sourceMap: false,
     compress: {
       warnings: false,
@@ -53,7 +53,7 @@ base.plugins.push(
     output: {
       comments: false
     }
-  }),*/
+  }),
   // extract vendor chunks
   new webpack.optimize.CommonsChunkPlugin({
     name: "vendor",
