@@ -422,7 +422,9 @@
             },
             httpGetPeersNum(){
                 const _this = this;
-                _this.$global.fetch("GET", {}, "getPeers").then(res => {
+                _this.$global.fetch("GET", {
+                    includeOwn: "true"
+                }, "getPeers").then(res => {
                     _this.peerNum = res.peers.length;
                     let pn = localStorage.getItem('peerNum');
                     if(pn===null||pn===""){
@@ -438,7 +440,9 @@
             },
             httpGetPeersAndDraw(){
                 const _this = this;
-                _this.$global.fetch("GET", {}, "getPeers").then(res => {
+                _this.$global.fetch("GET", {
+                    includeOwn: "true"
+                }, "getPeers").then(res => {
                 return _this.$global.byIPtoCoordinates(res.peers);
                 }).then(res => {
                     localStorage.setItem('coordinates',JSON.stringify(res));

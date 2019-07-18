@@ -146,6 +146,7 @@ public class Generator implements Comparable<Generator> {
 
         if(Constants.isOffline && isBootNode){
             Logger.logInfoMessage("[BootNode] Current node is boot node should keep mining in the offline mode at height[%d].", lastBlock.getHeight());
+            return true;
         }
 
             // wait till Conch initialized finished
