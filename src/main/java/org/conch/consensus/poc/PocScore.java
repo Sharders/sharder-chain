@@ -173,6 +173,10 @@ public class PocScore implements Serializable {
                 effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
             }
         }else{
+            /**
+             * pool owner: my_pool_power + other_held_ss(limit is pool capacity) * 0.19
+             * normal miner: held_ss(limit is pool capacity) * 0.19
+             */
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
                 long remainLimit = SharderPoolProcessor.POOL_MAX_AMOUNT_NQT - poolProcessor.getPower();
                 if(remainLimit > 0 
