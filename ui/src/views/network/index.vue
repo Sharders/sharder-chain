@@ -382,25 +382,22 @@
 
                 }
             }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
-
         },
         methods: {
-
             init() {
-
                 const _this = this;
                 _this.networkUrlBlocks();
-                _this.httpGetNextBlockGennerators();
+                _this.httpGetNextBlockGenerators();
                 _this.httpGetPeersNum();
                 _this.httpGetTxStatistics();
-                let peersArr=localStorage.getItem("coordinates");
-                if(JSON.parse(peersArr)===null||JSON.parse(peersArr)==="{}"){
+                let peersArr = localStorage.getItem("coordinates");
+                if(undefined === peersArr || JSON.parse(peersArr)=== null || JSON.parse(peersArr) === "{}"){
                     _this.httpGetPeersAndDraw();
                 }else{
                     _this.getPeersListAndDraw(peersArr);
                 }
             },
-            httpGetNextBlockGennerators(){
+            httpGetNextBlockGenerators(){
                 const _this = this;
                 _this.$global.fetch("GET", {
                     limit: 99999
@@ -448,7 +445,6 @@
                     localStorage.setItem('coordinates',JSON.stringify(res));
                     let json = JSON.parse(res);
                     _this.getPeersListAndDraw(json);
-
                 }).catch(err => {
                     console.info("error", err);
                 });
@@ -481,13 +477,9 @@
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
-                      //   console.info("refresh block list, newest height is: " + _this.newestHeight);
-                        _this.blocklist.splice(0,_this.blocklist.length)
+                      //   _this.blocklist.splice(0,_this.blocklist.length)
                         _this.blocklist = res.blocks
-                        // let blocksStr = JSON.stringify(res.blocks)
-                        // _this.blocklist = JSON.parse(blocksStr);
                     }
-                    //_this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
                     console.info('error', error)
                 });
@@ -500,14 +492,9 @@
                 let _this = this;
                 _this.loading = true;
                 _this.getBlocks(val).then(res => {
-                    _this.blocklist.splice(0,_this.blocklist.length)
+                    // _this.blocklist.splice(0,_this.blocklist.length)
                     _this.blocklist = res.blocks
-                    // _this.blocklist = res.blocks
-                    // console.info(_this.blocklist);
-                    // let blocksStr = JSON.stringify(res.blocks);
-                    // _this.blocklist = JSON.parse(blocksStr);
                     _this.loading = false;
-                    // _this.$forceUpdate()
                 }).catch(err => {
                     console.info('error', err);
                     _this.$message.error(err);
