@@ -24,6 +24,7 @@ package org.conch.http;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -102,7 +103,7 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);
         long end = System.currentTimeMillis();
-        System.out.println("GetPeers api response use " + (end-start)/1000 + " seconds");
+        Logger.logDebugMessage("GetPeers api response use " + (end-start)/1000 + " seconds");
         return response;
     }
 
