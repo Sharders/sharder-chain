@@ -615,9 +615,6 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    // _this.miningList.splice(0,_this.miningList.length)
-                    //_this.miningList = res.pools;
-                    console.info("miningList:"+res.pools);
                     let poolArr =[];
                     for(let t of res.pools){
                         if(t.creatorRS === _this.accountInfo.accountRS){
@@ -630,7 +627,6 @@
                         }
                     }
                     _this.miningList=poolArr;
-                    console.info("miningList2:"+res.pools);
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });
