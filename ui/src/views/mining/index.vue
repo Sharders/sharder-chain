@@ -615,18 +615,16 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    let poolArr =[];
+                    let poolArr1 =[];
+                    let poolArr2 =[];
                     for(let t of res.pools){
                         if(t.creatorRS === _this.accountInfo.accountRS){
-                            poolArr.push(t);
+                            poolArr1.push(t);
+                        }else{
+                            poolArr2.push(t);
                         }
                     }
-                    for(let t of res.pools){
-                        if(t.creatorRS != _this.accountInfo.accountRS){
-                            poolArr.push(t);
-                        }
-                    }
-                    _this.miningList=poolArr;
+                    _this.miningList=poolArr1.join(poolArr2);
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });
