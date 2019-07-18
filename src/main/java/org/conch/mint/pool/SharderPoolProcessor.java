@@ -642,6 +642,24 @@ public class SharderPoolProcessor implements Serializable {
         return poolProcessor != null ? poolProcessor.getCreatorId() : -1;
     }
 
+    /**
+     * return all working pool's creator 
+     * @return
+     */
+    public static Set<Long> getAllCreators(){
+        Set<Long> creators = Sets.newHashSet();
+        sharderPools.values().forEach(pool -> {
+            if(hasProcessingDestroyTx(pool.getPoolId()) == -1){
+                creators.add(pool.getCreatorId());
+            }
+        });
+        return creators;
+    }
+
+    /**
+     * get all working pools
+     * @return
+     */
     public static JSONObject getPoolsFromNow(){
         JSONArray array = new JSONArray();
         sharderPools.values().forEach(pool -> {
