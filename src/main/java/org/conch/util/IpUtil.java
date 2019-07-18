@@ -19,11 +19,16 @@ import java.util.regex.Pattern;
 public class IpUtil {
 
     /**
-     * @param url can't include the port
+     * @param url don't include the port
      * @return
      */
     public static String checkOrToIp(String url) {
         try {
+            if(StringUtils.isEmpty(url) 
+            || "undefined".equalsIgnoreCase(url)){
+                return "";    
+            }
+            
             if(!isDomain(url)) return url;
             return InetAddress.getByName(url).getHostAddress();
 

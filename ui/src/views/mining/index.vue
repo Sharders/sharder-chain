@@ -101,7 +101,8 @@
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuangchishenyu.png">
-                                        <span>{{$t('mining.index.remaining_mining') + getMinerBlock(mining) + $t('mining.index.unit_block')}}</span>
+<!--                                        <span>{{$t('mining.index.remaining_mining') + getMinerBlock(mining) + $t('mining.index.unit_block')}}</span>-->
+                                        <span>{{$t('mining.index.manual_deletion')}}</span>
                                     </p>
                                 </div>
                             </div>
@@ -257,10 +258,10 @@
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
                             <span>{{$global.getSSNumberFormat(maxPoolInvestment+$global.poolPledgeAmount)}}</span>
                         </p>
-                        <p>
-                            <span class="strong">{{$t('mining.index.mining_time')}}</span>:
-                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}} (≈ {{getMinerTime()}}h)</span>
-                        </p>
+<!--                        <p>-->
+<!--                            <span class="strong">{{$t('mining.index.mining_time')}}</span>:-->
+<!--                            <span>{{rule.rule.totalBlocks.max + $t("mining.index.unit_block")}} (≈ {{getMinerTime()}}h)</span>-->
+<!--                        </p>-->
                     </div>
                     <div class="pool-set">
                         <h1 class="pool-title">
@@ -614,7 +615,7 @@
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    _this.miningList.splice(0,_this.miningList.length)
+                    // _this.miningList.splice(0,_this.miningList.length)
                     _this.miningList = res.pools;
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;

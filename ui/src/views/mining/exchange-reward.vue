@@ -57,6 +57,7 @@
                     }
                 ],
                 isSSA: false,
+                linkedSSAddr: this.$store.state.userConfig['sharder.HubBindAddress'],
                 sharderAccount: '',
                 recipient: "",
                 exchangeSS: 0
@@ -65,6 +66,9 @@
         created() {
             let _this = this;
             let data = new FormData();
+            let ownerLogin = SSO.secretPhrase && _this.linkedSSAddr === SSO.accountRS;
+            if(!ownerLogin) return;
+            
             data.append("ssa", SSO.accountRS);
             _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
                 _this.isSSA = true;

@@ -21,8 +21,7 @@
 
 package org.conch.common;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainProcessorImpl;
@@ -91,7 +90,7 @@ public final class Constants {
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
-    public static final Set<String> bootNodesHost = parseBootNodesHost();
+    public static final List<String> bootNodesHost = parseBootNodesHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -218,8 +217,11 @@ public final class Constants {
     public static final int TESTNET_PHASE_TWO = 990000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
     public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
-    public static final int TESTNET_POC_LEDGER_RESET_HEIGHT = 4500;
-    public static final int TESTNET_POC_NEW_ALGO_HEIGHT = 4751;
+    public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? 4500 : 0;
+    public static final int POC_NEW_ALGO_HEIGHT = isTestnet() ? 4751 : 0;
+    public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
+    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 19555 : 0;
+    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 19555 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -248,7 +250,7 @@ public final class Constants {
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
     public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7; 
     public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 7);
-    public static final int SHARDER_POOL_JOIN_CHECK_BLOCK = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
+    public static final int SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
@@ -339,7 +341,8 @@ public final class Constants {
     }
     
     //default gap of mainnet & testnet is 7 min
-    private static final int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
+    private static final int blockGapInProperties = isDevnet() ?  Conch.getIntProperty("sharder.devnetBlockGap") : 
+            ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
 
     /**
      * interval between two block generation, the min is 1min
@@ -347,8 +350,9 @@ public final class Constants {
      */
     public static int getBlockGapSeconds(){
         int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
-        // convert to second
-        return gap * 60;
+        // offline mode: 10 seconds
+//        return Constants.isOffline ? 10 : (gap*60); 
+        return gap*60; 
     }
 
     /**
@@ -364,34 +368,22 @@ public final class Constants {
         return networkInProperties;
     }
     
-    private static final Set<String> parseBootNodesHost() {
+    private static final List<String> parseBootNodesHost() {
        if(isMainnet()){
-           return Sets.newHashSet("boot.sharder.io");
+           return Lists.newArrayList("boot.sharder.io");
        }else if(isTestnet()){
-           return Sets.newHashSet("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
+           return Lists.newArrayList("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
        }
-       return Sets.newHashSet("devboot.sharder.io");
+       return Lists.newArrayList("devboot.sharder.io");
     }
     
     
-    private static Map<String,Integer> bootNodeConnectCountMap = Maps.newConcurrentMap();
     public static synchronized boolean isValidBootNode(Peer peer){
-        boolean isBootNode = bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
-        
-        if(!isBootNode) return false;
-        
-        if(!bootNodeConnectCountMap.containsKey(peer.getHost())) {
-            bootNodeConnectCountMap.put(peer.getHost(), 0);
-        }
-        int connectCount = bootNodeConnectCountMap.get(peer.getHost());
-        if(connectCount >= 3) {
-            bootNodeConnectCountMap.put(peer.getHost(), 0);
-            return false;
-        }else {
-            bootNodeConnectCountMap.put(peer.getHost(), connectCount+1);
-        }
-        return true;
-//        return Peer.State.CONNECTED == peer.getState();
+        return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
+    }
+
+    public static String getBootNodeRandom(){
+        return bootNodesHost.get(new Random().nextInt(bootNodesHost.size()));
     }
 
     public static final String SUCCESS = "success";

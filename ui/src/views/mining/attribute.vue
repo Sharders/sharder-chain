@@ -53,9 +53,10 @@
                             <el-col :span="6">
                                 <button class="info">
                                     <p>{{$t('mining.attribute.remaining_mining_time')}}</p>
-                                    <p class="strong">{{miningInfo.startBlockNo > newestBlock.height ?
-                                        miningInfo.endBlockNo - miningInfo.startBlockNo : miningInfo.endBlockNo -
-                                        newestBlock.height}}</p>
+<!--                                    <p class="strong">{{miningInfo.startBlockNo > newestBlock.height ?-->
+<!--                                        miningInfo.endBlockNo - miningInfo.startBlockNo : miningInfo.endBlockNo - -->
+<!--                                        newestBlock.height}}</p>-->
+                                    <p class="time">∞</p>
                                 </button>
                             </el-col>
                         </el-row>
@@ -547,6 +548,11 @@
     .my-attribute .info .strong {
         font-size: 20px;
         margin-top: 16px;
+    }
+
+    .my-attribute .info .time {
+        font-size: 20px;
+        margin-top: 10px;
     }
 
     .my-info .attribute-btn button {

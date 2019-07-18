@@ -47,12 +47,13 @@ public final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
         response.put("application", Conch.APPLICATION);
         response.put("version", Conch.getVersion());
         response.put("fullVersion", Conch.getFullVersion());
-        response.put("cosLastUpgradeDate", Conch.getCosLastUpgradeDate());
+        response.put("cosLastUpgradeDate", Conch.getCosUpgradeDate());
         response.put("time", Conch.getEpochTime());
         Block lastBlock = Conch.getBlockchain().getLastBlock();
         response.put("lastBlock", lastBlock.getStringId());
-        response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
         response.put("numberOfBlocks", lastBlock.getHeight() + 1);
+        response.putAll(Peers.getBlockchainSummary());
+        
         BlockchainProcessor blockchainProcessor = Conch.getBlockchainProcessor();
         Peer lastBlockchainFeeder = blockchainProcessor.getLastBlockchainFeeder();
         response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());

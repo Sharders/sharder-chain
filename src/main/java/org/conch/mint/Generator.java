@@ -123,7 +123,7 @@ public class Generator implements Comparable<Generator> {
     }
     
     // obsolete time delay, default value is 60 minutes
-    public static final int OBSOLETE_DELAY = Conch.getIntProperty("sharder.obsoleteDelay", 60);
+    public static final int OBSOLETE_DELAY = Constants.isDevnet() ? 1 : Conch.getIntProperty("sharder.obsoleteDelay", 60);
     /**
      * check current blockchain state:
      * - mining height
@@ -137,14 +137,19 @@ public class Generator implements Comparable<Generator> {
         // boot node check before the last known height
         if(isBootNode && Conch.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
-                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly at height[%d].", lastBlock.getHeight());
             }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly");
+                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly at height[%d].", lastBlock.getHeight());
             }
             return true;
         }
-        
-        // wait till Conch initialized finished
+
+        if(Constants.isOffline && isBootNode){
+            Logger.logInfoMessage("[BootNode] Current node is boot node should keep mining in the offline mode at height[%d].", lastBlock.getHeight());
+            return true;
+        }
+
+            // wait till Conch initialized finished
         if(!Conch.isInitialized()) {
             if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
                 Logger.logDebugMessage("Wait for Conch initialized...");
@@ -164,10 +169,11 @@ public class Generator implements Comparable<Generator> {
         
         if(dontWait) return true;
         
-        // blockchain is synchronizing block or stuck
+        // blockchain is synchronizing blocks or stuck
         if(!Conch.getBlockchainProcessor().isUpToDate()) {
             // when blockchain be blocked and last block is obsolete, boot node need mining the block
             long secondsSinceLastBlock = Conch.getEpochTime() - 600 - Conch.getBlockchain().getLastBlockTimestamp();
+            long minutesSinceLastBlock = secondsSinceLastBlock/60;
             boolean isObsoleteTime =  secondsSinceLastBlock > (60 * OBSOLETE_DELAY); // default block mining delay > 1h
             boolean foundBlockStuckOnBootNode = isObsoleteTime && isBootNode;
             
@@ -178,18 +184,18 @@ public class Generator implements Comparable<Generator> {
                 }
             }
             
-            // linked miner's hit validation if node is the boot node
             if(foundBlockStuckOnBootNode && linkedGenerator != null) {
                 int timestamp = linkedGenerator.getTimestamp(generationLimit);
                 if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
-                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", secondsSinceLastBlock ,linkedGenerator.rsAddress, lastBlock.getHeight());
+                    Logger.logInfoMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", minutesSinceLastBlock,linkedGenerator.rsAddress, lastBlock.getHeight());
                 }else{
-                    Logger.logWarningMessage("[BootNode] Current blockchain was stuck[minutesSinceLastBlock=%d], but boot node miner[%s]'s hit didn't matched now at height[%d], wait for next round check.", secondsSinceLastBlock ,linkedGenerator.rsAddress, lastBlock.getHeight());
+                    Logger.logWarningMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node miner[%s]'s hit[%d] didn't matched now at height[%d], wait for next round check.", minutesSinceLastBlock,linkedGenerator.rsAddress,linkedGenerator.hit, lastBlock.getHeight());
                     return false;
                 }
             }else{
                 if(Logger.printNow(Constants.Generator_isBlockStuckOnBootNode)) {
-                    Logger.logInfoMessage("[ TIPS ] Current node is normal node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. don't mining till blocks synchronizing finished...", lastBlock.getHeight());
+                    String nodeType = isBootNode ? "Boot" : "Normal";
+                    Logger.logInfoMessage("[ TIPS ] Current node is %s node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. wait for blocks synchronizing finished...", nodeType, lastBlock.getHeight());
                 }
                 return false;
             }
@@ -198,7 +204,7 @@ public class Generator implements Comparable<Generator> {
         
         if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
             if(Logger.printNow(Constants.Generator_isPocTxsProcessed)) {
-                Logger.logDebugMessage("[ TIPS ] Delayed poc txs or old poc txs haven't processed, don't mining till poc txs be processed before height[%d]...", lastBlock.getHeight());
+                Logger.logDebugMessage("[ TIPS ] Delayed or old poc txs haven't processed, don't mining till poc txs be processed before height[%d]...", lastBlock.getHeight());
             }
             return false;
         }
@@ -296,7 +302,8 @@ public class Generator implements Comparable<Generator> {
     };
     
     public static void blackGenerator(long generatorId){
-        blackedGenerators.add(generatorId);
+       // temporary closed, no needs to black the generator. - 2019.07.13
+       // blackedGenerators.add(generatorId);
     }
 
     /**
