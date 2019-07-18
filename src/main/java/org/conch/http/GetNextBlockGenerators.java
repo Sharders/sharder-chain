@@ -26,6 +26,7 @@ import org.conch.chain.Block;
 import org.conch.chain.Blockchain;
 import org.conch.common.ConchException;
 import org.conch.mint.Generator;
+import org.conch.mint.pool.SharderPoolProcessor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -99,6 +100,9 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
                     break;
                 }
             }
+
+            SharderPoolProcessor.getPoolsFromNow();
+            
             response.put("generators", generators);
         } finally {
             blockchain.readUnlock();

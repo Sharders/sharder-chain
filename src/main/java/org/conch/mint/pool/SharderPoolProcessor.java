@@ -435,6 +435,8 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     private static void checkOrAddIntoActiveGenerator(SharderPoolProcessor sharderPool){
+        Generator.addMiner(sharderPool.creatorId);
+        
         if(Generator.containMiner(sharderPool.creatorId)) {
             Logger.logInfoMessage("current creator %s of pool %s already mining on this node", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
             return;
@@ -475,7 +477,7 @@ public class SharderPoolProcessor implements Serializable {
                 }  
             }
             
-            // check the miner whether running before poll started
+            // check the miner whether running before pool started
             if(sharderPool.startBlockNo-height <=3 
                 && sharderPool.startBlockNo > height){
                 checkOrAddIntoActiveGenerator(sharderPool);
@@ -642,6 +644,24 @@ public class SharderPoolProcessor implements Serializable {
         return poolProcessor != null ? poolProcessor.getCreatorId() : -1;
     }
 
+    /**
+     * return all working pool's creator 
+     * @return
+     */
+    public static Set<Long> getAllCreators(){
+        Set<Long> creators = Sets.newHashSet();
+        sharderPools.values().forEach(pool -> {
+            if(hasProcessingDestroyTx(pool.getPoolId()) == -1){
+                creators.add(pool.getCreatorId());
+            }
+        });
+        return creators;
+    }
+
+    /**
+     * get all working pools
+     * @return
+     */
     public static JSONObject getPoolsFromNow(){
         JSONArray array = new JSONArray();
         sharderPools.values().forEach(pool -> {

@@ -19,13 +19,13 @@ export default {
     unit: " SS",
     poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
     optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
-    fetch(type, date, requestType) {
+    fetch(type, requestData, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
                 url: window.api.sharderUrl + "?requestType=" + requestType,
                 dataType: "json",
                 type: type,
-                data: date,
+                data: requestData,
                 timeout: 60000,
                 success: function (data) {
                     resolve(data)

@@ -447,6 +447,17 @@ public class Generator implements Comparable<Generator> {
         }
         return false;
     }
+
+    /**
+     * add cuurent miner into active miner list
+     * @param minerId
+     */
+    public static void addMiner(long minerId){
+        if(containMiner(minerId)) return;
+        
+        // add into active genera
+        activeGeneratorMp.put(minerId,new ActiveGenerator(minerId));
+    }
     
     public static List<Generator> getSortedMiners() {
         List<Generator> forgers = sortedMiners;
@@ -767,9 +778,14 @@ public class Generator implements Comparable<Generator> {
         List<ActiveGenerator> generatorList;
         Blockchain blockchain = Conch.getBlockchain();
         synchronized(activeGeneratorMp) {
-            // load history miners 
+          
             if (!generatorsInitialized) {
-                Set<Long> generatorIds = BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE));
+                Set<Long> generatorIds = Sets.newHashSet();
+                // load history block generators 
+                generatorIds.addAll(BlockDb.getBlockGenerators(Math.max(1, blockchain.getHeight() - MAX_ACTIVE_GENERATOR_LIFECYCLE)));
+                // load working pool creators 
+                generatorIds.addAll(SharderPoolProcessor.getAllCreators());
+                        
                 generatorIds.forEach(generatorId -> activeGeneratorMp.put(generatorId,new ActiveGenerator(generatorId)));
                 generatorsInitialized = true;
             }
