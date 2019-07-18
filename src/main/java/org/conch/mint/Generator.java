@@ -447,6 +447,17 @@ public class Generator implements Comparable<Generator> {
         }
         return false;
     }
+
+    /**
+     * add cuurent miner into active miner list
+     * @param minerId
+     */
+    public static void addMiner(long minerId){
+        if(containMiner(minerId)) return;
+        
+        // add into active genera
+        activeGeneratorMp.put(minerId,new ActiveGenerator(minerId));
+    }
     
     public static List<Generator> getSortedMiners() {
         List<Generator> forgers = sortedMiners;
