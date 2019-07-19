@@ -676,8 +676,6 @@
                 deep: true
             },
             sortFun(v) {
-                alert("in sortFun method")
-                console.info(v);
                 this.getPools({sort: v});
             }
         },
