@@ -474,7 +474,7 @@
             },
             networkUrlBlocks() {
                 const _this = this;
-                // console.info("networkUrlBlocks，currentPage=" + _this.currentPage);
+
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
