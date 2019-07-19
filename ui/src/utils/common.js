@@ -14,6 +14,7 @@ export default {
     blockchainState: [],
     peers: [],
     userConfig: [],
+    coordinatesMap: null,
     $vue: {},
     placeholder: "--",
     unit: " SS",
@@ -591,27 +592,46 @@ export default {
     /**
      * 渲染节点坐标
      */
-    drawPeers(peersLocationList, peersTimeList) {
+    drawPeers() {
         let _this = this.$vue;
         let myChart = _this.$echarts.init(document.getElementById("peers-map"));
-
-        function makeMapData(rawData) {
+        
+        function parseData (coordinatesMap) {
+            if(undefined == coordinatesMap || null == coordinatesMap) return;
+            
+            console.info(coordinatesMap)
             let mapData = [];
-            for (let i = 0; i < rawData.length; i++) {
-                const geoCoord = peersLocationList[rawData[i][0]];
-                if (geoCoord) {
+            for (let i of Object.keys(coordinatesMap)) {
+                if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
+                    && coordinatesMap[i]["Y"] !== "" && coordinatesMap[i]["Y"] !== "0"
+                    && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
+                    let locationArray = [coordinatesMap[i]["Y"],coordinatesMap[i]["X"]];
                     mapData.push({
-                        name: rawData[i][0],
-                        value: geoCoord
+                        name: i, 
+                        value: locationArray
                     });
                 }
             }
             return mapData;
-        }
+        };
+        
+        // function makeMapData(rawData) {
+        //     let mapData = [];
+        //     for (let i = 0; i < rawData.length; i++) {
+        //         const geoCoord = peersLocationList[rawData[i][0]];
+        //         if (geoCoord) {
+        //             mapData.push({
+        //                 name: rawData[i][0],
+        //                 value: geoCoord
+        //             });
+        //         }
+        //     }
+        //     return mapData;
+        // }
 
         let option = {
             geo: {
-                map: "World",
+                map: "world",
                 silent: true,
                 label: {
                     emphasis: {
@@ -669,7 +689,8 @@ export default {
                     type: "scatter",
                     coordinateSystem: "geo",
                     symbolSize: 8,
-                    data: makeMapData(peersTimeList),
+                    // data: makeMapData(peersTimeList),
+                    data: parseData(this.coordinatesMap),
                     activeOpacity: 1,
                     label: {
                         normal: {

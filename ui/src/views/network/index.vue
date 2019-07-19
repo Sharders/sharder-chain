@@ -352,7 +352,7 @@
                 newestTime: 0,
                 averageAmount: 0,
                 peerNum: 0,
-                loadLocalCoordinates: false,
+                fetchCoordinates: false,
                 //旷工信息
                 activeCount: 0,
                 totalCount: 0,
@@ -378,7 +378,6 @@
             window.NETWORK_URL = setInterval(() => {
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
-                    // _this.httpGetPeersNum();
                     _this.drawPeerMap();
                 }
             }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
@@ -388,15 +387,8 @@
                 const _this = this;
                 _this.networkUrlBlocks();
                 _this.httpGetNextBlockGenerators();
-                //_this.drawPeerMap();
-                // _this.httpGetPeersNum();
+                _this.drawPeerMap();
                 _this.httpGetTxStatistics();
-                // let peersArr = localStorage.getItem("coordinates");
-                // if(undefined === peersArr || peersArr.substring(1,peersArr.length-1) === "{}"){
-                //     _this.drawPeerMap();
-                // }else{
-                //     _this.parsePeerCoordinatesAndDraw(JSON.parse(peersArr));
-                // }
             },
             httpGetNextBlockGenerators(){
                 const _this = this;
@@ -422,530 +414,54 @@
                     console.info("error", err);
                 });
             },
-            // httpGetPeersNum(){
-            //     const _this = this;
-            //    
-            //     _this.$global.fetch("GET", {}, "getPeers").then(res => {
-            //         _this.peerNum = res.peers.length;
-            //         let pn = localStorage.getItem('peerNum');
-            //         if (pn === null || pn === "") {
-            //             localStorage.setItem('peerNum', _this.peerNum);
-            //         } else if (pn != res.peers.length) {
-            //             localStorage.setItem('peerNum', res.peers.length);
-            //             _this.drawPeerMap();
-            //         }
-            //         resolve(res);
-            //
-            //     }).catch(err => {
-            //         reject(err);
-            //         console.info("error", err);
-            //     });
-            //
-            // },
             drawPeerMap(){
                 const _this = this;
                 _this.$global.fetch("GET", {}, "getPeers").then(res => { 
                     _this.peerNum = res.peers.length;
                     let cachedPeerNum = localStorage.getItem('peerNum');
+
+                    // first time or peer numbers changed
                     let fetchCoordinates = (cachedPeerNum === null || cachedPeerNum === "" || undefined === cachedPeerNum) 
-                                          || cachedPeerNum != _this.peerNum; // first time or peer numbers changed
-                    console.info(cachedPeerNum)
+                                          || cachedPeerNum != _this.peerNum
+                                          || this.$global.coordinatesMap === null || undefined === this.$global.coordinatesMap;
+                    console.info("fetchCoordinates:" + fetchCoordinates);
                     if (fetchCoordinates) {
                         localStorage.setItem('peerNum', _this.peerNum);
-                        _this.loadLocalCoordinates = false;
+                        _this.fetchCoordinates = true;
                         return _this.$global.byIPtoCoordinates(res.peers);
-                    } else{
-                        _this.loadLocalCoordinates = true;
-                        return ;
-                    }
+                    } 
                 }).then(res => {
-                    let coordinatesMap;
-                    if(_this.loadLocalCoordinates){
-                        coordinatesMap = JSON.parse(localStorage.getItem("coordinates"));
-                    }else{
-                        coordinatesMap = JSON.parse(res);
-                        localStorage.setItem('coordinates', JSON.stringify(res));
+                    if(_this.fetchCoordinates) {
+                        this.$global.coordinatesMap = JSON.parse(res);
+                        // console.info(this.$global.coordinatesMap);
                     }
-                    alert(coordinatesMap)
-                    _this.parsePeerCoordinatesAndDraw(coordinatesMap);
+                    return _this.$global.drawPeers();
                 }).catch(err => {
                     console.info("error", err);
                 });
                 
             },
-            parsePeerCoordinatesAndDraw(coordinatesMap){
-                const _this = this;
-                
-                // let XX = "{\n" +
-                //     "  \"eu.testnat.sharder.io:8706\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"usa.testnat.sharder.io:8532\": {\n" +
-                //     "    \"X\": \"43.6683\",\n" +
-                //     "    \"Y\": \"-79.4205\",\n" +
-                //     "    \"time\": 1563505605902\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8686\": {\n" +
-                //     "    \"X\": \"14.55027\",\n" +
-                //     "    \"Y\": \"121.03269\",\n" +
-                //     "    \"time\": 1563505604599\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8684\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8966\": {\n" +
-                //     "    \"X\": \"38.69889\",\n" +
-                //     "    \"Y\": \"116.09361\",\n" +
-                //     "    \"time\": 1563505621395\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8422\": {\n" +
-                //     "    \"X\": \"37.481\",\n" +
-                //     "    \"Y\": \"-5.9153\",\n" +
-                //     "    \"time\": 1563506129977\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8664\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8466\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8700\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8666\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8468\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8426\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8668\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8704\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8662\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8962\": {\n" +
-                //     "    \"X\": \"38.69889\",\n" +
-                //     "    \"Y\": \"116.09361\",\n" +
-                //     "    \"time\": 1563505621395\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8682\": {\n" +
-                //     "    \"X\": \"14.55027\",\n" +
-                //     "    \"Y\": \"121.03269\",\n" +
-                //     "    \"time\": 1563505608761\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8960\": {\n" +
-                //     "    \"X\": \"32.0617\",\n" +
-                //     "    \"Y\": \"118.7778\",\n" +
-                //     "    \"time\": 1563506132374\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8718\": {\n" +
-                //     "    \"X\": \"51.95358\",\n" +
-                //     "    \"Y\": \"-2.89325\",\n" +
-                //     "    \"time\": 1563505610729\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8934\": {\n" +
-                //     "    \"time\": 1563505606124\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8734\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8458\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"usa.testnat.sharder.io:8506\": {\n" +
-                //     "    \"X\": \"25.8833\",\n" +
-                //     "    \"Y\": \"-97.5\",\n" +
-                //     "    \"time\": 1563506132474\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8676\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8738\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"47.107.183.179\": {\n" +
-                //     "    \"X\": \"45.3155\",\n" +
-                //     "    \"Y\": \"-75.837\",\n" +
-                //     "    \"time\": 1563506602847\n" +
-                //     "  },\n" +
-                //     "  \"47.107.188.3\": {\n" +
-                //     "    \"X\": \"30.2936\",\n" +
-                //     "    \"Y\": \"120.1614\",\n" +
-                //     "    \"time\": 1563505612063\n" +
-                //     "  },\n" +
-                //     "  \"119.23.61.59\": {\n" +
-                //     "    \"X\": \"30.29365\",\n" +
-                //     "    \"Y\": \"120.16142\",\n" +
-                //     "    \"time\": 1563505611142\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8438\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8516\": {\n" +
-                //     "    \"X\": \"53.1921\",\n" +
-                //     "    \"Y\": \"5.7919\",\n" +
-                //     "    \"time\": 1563505613007\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8470\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8670\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8472\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8672\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8792\": {\n" +
-                //     "    \"X\": \"50.8828\",\n" +
-                //     "    \"Y\": \"5.9623\",\n" +
-                //     "    \"time\": 1563506134336\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8432\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8674\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8970\": {\n" +
-                //     "    \"X\": \"23.6977\",\n" +
-                //     "    \"Y\": \"103.3037\",\n" +
-                //     "    \"time\": 1563506134441\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8500\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8742\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8620\": {\n" +
-                //     "    \"X\": \"15.6689\",\n" +
-                //     "    \"Y\": \"120.5806\",\n" +
-                //     "    \"time\": 1563506129002\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8606\": {\n" +
-                //     "    \"X\": \"51.95358\",\n" +
-                //     "    \"Y\": \"-2.89325\",\n" +
-                //     "    \"time\": 1563505610729\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8740\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8746\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8744\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8502\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8946\": {\n" +
-                //     "    \"X\": \"32.0617\",\n" +
-                //     "    \"Y\": \"118.7778\",\n" +
-                //     "    \"time\": 1563506137274\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8720\": {\n" +
-                //     "    \"X\": \"51.95358\",\n" +
-                //     "    \"Y\": \"-2.89325\",\n" +
-                //     "    \"time\": 1563505610729\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8524\": {\n" +
-                //     "    \"X\": \"52.21833\",\n" +
-                //     "    \"Y\": \"6.89583\",\n" +
-                //     "    \"time\": 1563506137944\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8748\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8626\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8446\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8688\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8724\": {\n" +
-                //     "    \"X\": \"51.95358\",\n" +
-                //     "    \"Y\": \"-2.89325\",\n" +
-                //     "    \"time\": 1563505610729\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8602\": {\n" +
-                //     "    \"X\": \"51.95358\",\n" +
-                //     "    \"Y\": \"-2.89325\",\n" +
-                //     "    \"time\": 1563505610729\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8708\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8604\": {\n" +
-                //     "    \"X\": \"51.95358\",\n" +
-                //     "    \"Y\": \"-2.89325\",\n" +
-                //     "    \"time\": 1563505610729\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8648\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8482\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8562\": {\n" +
-                //     "    \"X\": \"54.8167\",\n" +
-                //     "    \"Y\": \"9.45\",\n" +
-                //     "    \"time\": 1563505615177\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8484\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8442\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8640\": {\n" +
-                //     "    \"X\": \"46.62472\",\n" +
-                //     "    \"Y\": \"14.30528\",\n" +
-                //     "    \"time\": 1563506138524\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8940\": {\n" +
-                //     "    \"X\": \"29.5628\",\n" +
-                //     "    \"Y\": \"106.5528\",\n" +
-                //     "    \"time\": 1563506138621\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8942\": {\n" +
-                //     "    \"X\": \"32.0617\",\n" +
-                //     "    \"Y\": \"118.7778\",\n" +
-                //     "    \"time\": 1563506132374\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8462\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8460\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8752\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"cn.testnat.sharder.io:8918\": {\n" +
-                //     "    \"X\": \"29.5628\",\n" +
-                //     "    \"Y\": \"106.5528\",\n" +
-                //     "    \"time\": 1563505618176\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8756\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8712\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8678\": {\n" +
-                //     "    \"X\": \"14.629\",\n" +
-                //     "    \"Y\": \"121.0726\",\n" +
-                //     "    \"time\": 1563505606841\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8710\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8754\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8698\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8610\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8576\": {\n" +
-                //     "    \"X\": \"51.35\",\n" +
-                //     "    \"Y\": \"3.26667\",\n" +
-                //     "    \"time\": 1563505620078\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8716\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8656\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"as.testnat.sharder.io:8714\": {\n" +
-                //     "    \"X\": \"35.8569\",\n" +
-                //     "    \"Y\": \"139.6489\",\n" +
-                //     "    \"time\": 1563505610384\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8614\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8658\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8690\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8692\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8450\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8452\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8650\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8694\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8652\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  },\n" +
-                //     "  \"eu.testnat.sharder.io:8696\": {\n" +
-                //     "    \"X\": \"51.1\",\n" +
-                //     "    \"Y\": \"17.0333\",\n" +
-                //     "    \"time\": 1563505603134\n" +
-                //     "  }\n" +
-                //     "}"
-                // coordinatesMap = JSON.parse(XX);
-                
-                let now = new Date();
-                for (let i of Object.keys(coordinatesMap)) {
-                    if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
-                        && coordinatesMap[i]["Y"] !== "" && coordinatesMap[i]["Y"] !== "0"
-                        && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
-                        let arr = [];
-                        arr.push(coordinatesMap[i]["Y"]);
-                        arr.push(coordinatesMap[i]["X"]);
-                        _this.peersLocationList[i] = arr;
-                        arr = [];
-                        arr.push(i);
-                        arr.push(_this.$global.myFormatTime(coordinatesMap[i]["time"], "HMS", false));
-                        _this.peersTimeList.push(arr);
-                    }
-                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
-                }
-                console.info("use " + (new Date().getMilliseconds() - now.getMilliseconds()) + " milliseconds to draw map")
-            },
+            // parsePeerCoordinatesAndDraw(coordinatesMap){
+            //     const _this = this;
+            //    
+            //     let now = new Date();
+            //     for (let i of Object.keys(coordinatesMap)) {
+            //         if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
+            //             && coordinatesMap[i]["Y"] !== "" && coordinatesMap[i]["Y"] !== "0"
+            //             && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
+            //             let arr = [];
+            //             arr.push(coordinatesMap[i]["Y"]);
+            //             arr.push(coordinatesMap[i]["X"]);
+            //             _this.peersLocationList[i] = arr;
+            //             arr = [];
+            //             arr.push(i);
+            //             arr.push(_this.$global.myFormatTime(coordinatesMap[i]["time"], "HMS", false));
+            //             _this.peersTimeList.push(arr);
+            //         }
+            //         return _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
+            //     }
+            //     console.info("use " + (new Date().getMilliseconds() - now.getMilliseconds()) + " milliseconds to draw map")
+            // },
             networkUrlBlocks() {
                 const _this = this;
 
