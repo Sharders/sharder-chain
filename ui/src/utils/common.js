@@ -611,7 +611,7 @@ export default {
 
         let option = {
             geo: {
-                map: "world",
+                map: "World",
                 silent: true,
                 label: {
                     emphasis: {
@@ -665,7 +665,7 @@ export default {
             },
             series: [
                 {
-                    name: "节点",
+                    name: "Node",
                     type: "scatter",
                     coordinateSystem: "geo",
                     symbolSize: 8,
