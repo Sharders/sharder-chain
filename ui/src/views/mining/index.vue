@@ -309,7 +309,6 @@
 </template>
 
 <script>
-
     export default {
         name: 'mining',
         data() {
@@ -736,7 +735,7 @@
     }
 
     .mining .el-input {
-        top: -4px;
+        top: 0px;
         border: none;
     }
 
