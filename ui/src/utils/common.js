@@ -600,7 +600,6 @@ export default {
         function parseData (coordinatesMap) {
             if(undefined == coordinatesMap || null == coordinatesMap) return;
             
-            console.info(coordinatesMap)
             let mapData = [];
             for (let i of Object.keys(coordinatesMap)) {
                 if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
@@ -615,20 +614,6 @@ export default {
             }
             return mapData;
         };
-        
-        // function makeMapData(rawData) {
-        //     let mapData = [];
-        //     for (let i = 0; i < rawData.length; i++) {
-        //         const geoCoord = peersLocationList[rawData[i][0]];
-        //         if (geoCoord) {
-        //             mapData.push({
-        //                 name: rawData[i][0],
-        //                 value: geoCoord
-        //             });
-        //         }
-        //     }
-        //     return mapData;
-        // }
 
         let option = {
             geo: {
@@ -690,7 +675,6 @@ export default {
                     type: "scatter",
                     coordinateSystem: "geo",
                     symbolSize: 8,
-                    // data: makeMapData(peersTimeList),
                     data: parseData(this.coordinatesMap),
                     activeOpacity: 1,
                     label: {

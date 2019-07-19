@@ -382,9 +382,9 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static long findOwnPoolId(long creator) {
-        for (SharderPoolProcessor forgePool : sharderPools.values()) {
-            if (forgePool.creatorId == creator) {
-                return forgePool.poolId;
+        for (SharderPoolProcessor poolProcessor : sharderPools.values()) {
+            if (poolProcessor.creatorId == creator) {
+                return poolProcessor.poolId;
             }
         }
         return -1;
@@ -421,7 +421,11 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     private static void updateHistoricalFees(long poolId, long fee) {
-        if(poolId != -1 && SharderPoolProcessor.getPool(poolId).getState().equals(SharderPoolProcessor.State.WORKING)) {
+        if(poolId == -1) return;
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+        if(poolProcessor == null) return;
+        
+        if(SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
             SharderPoolProcessor pool = sharderPools.get(poolId);
             pool.historicalBlocks++;
             pool.historicalIncome += fee;
@@ -429,11 +433,15 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     private static void updateHistoricalRewards(long poolId, long reward) {
-        if(poolId != -1 && SharderPoolProcessor.getPool(poolId).getState().equals(SharderPoolProcessor.State.WORKING)) {
+        if(poolId == -1) return;
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+        if(poolProcessor == null) return;
+        
+        if(SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
             SharderPoolProcessor pool = sharderPools.get(poolId);
             pool.historicalIncome += reward;
             pool.historicalMintRewards += reward;
-            pool.mintRewards += reward;
+            pool.mintRewards += reward;  
         }
     }
     
