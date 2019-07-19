@@ -2407,7 +2407,7 @@
                 } else {
                     clearInterval(periodicTransactions);
                 }
-            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
             $('#receiver').on("blur", function () {
                 _this.validationReceiver("messageForm");

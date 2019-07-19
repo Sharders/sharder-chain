@@ -370,11 +370,17 @@
         mounted() {
             let _this = this;
 
-            window.$miningInitial = setInterval(() => {
-                if (_this.$router.currentRoute.name !== "mining") return;
-                _this.loginAfter();
-                _this.$forceUpdate();
-            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+            // window.$miningInitial = setInterval(() => {
+            let miningDataLoader = setInterval(() => {
+                if (_this.$route.path === '/mining') {
+                    _this.loginAfter();
+                    _this.$forceUpdate();
+                }else{
+                    clearInterval(miningDataLoader);
+                }
+                // if (_this.$router.currentRoute.name !== "mining") return;
+            
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
         },
         computed: {

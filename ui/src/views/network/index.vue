@@ -375,12 +375,15 @@
         mounted() {
             let _this = this;
             _this.init();
-            window.NETWORK_URL = setInterval(() => {
+            // window.NETWORK_URL = setInterval(() => {
+            let networkDataLoader = setInterval(() => {
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
-                    _this.drawPeerMap();
+                    _this.drawPeerMap(); 
+                }else{
+                    clearInterval(networkDataLoader); 
                 }
-            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
         },
         methods: {
             init() {
