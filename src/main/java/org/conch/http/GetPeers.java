@@ -93,16 +93,19 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             }
         }
         
-//        long start = System.currentTimeMillis();
         if(includeOwn) {
             JSONObject myPeerInfoJson = Peers.generateMyPeerJson();
             myPeerInfoJson.put("isOwn", "true");
             peersJSON.add(myPeerInfoJson);
         }
+        
+        // return my address which the peer list size is 0
+        if(peersJSON.size() <= 0) {
+            peersJSON.add(Peers.getMyAddress());
+        }
+        
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);
-//        long end = System.currentTimeMillis();
-//        Logger.logDebugMessage("GetPeers api response use " + (end-start)/1000 + " seconds");
         return response;
     }
 
