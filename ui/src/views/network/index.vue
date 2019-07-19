@@ -441,27 +441,6 @@
                 });
                 
             },
-            // parsePeerCoordinatesAndDraw(coordinatesMap){
-            //     const _this = this;
-            //    
-            //     let now = new Date();
-            //     for (let i of Object.keys(coordinatesMap)) {
-            //         if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
-            //             && coordinatesMap[i]["Y"] !== "" && coordinatesMap[i]["Y"] !== "0"
-            //             && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
-            //             let arr = [];
-            //             arr.push(coordinatesMap[i]["Y"]);
-            //             arr.push(coordinatesMap[i]["X"]);
-            //             _this.peersLocationList[i] = arr;
-            //             arr = [];
-            //             arr.push(i);
-            //             arr.push(_this.$global.myFormatTime(coordinatesMap[i]["time"], "HMS", false));
-            //             _this.peersTimeList.push(arr);
-            //         }
-            //         return _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
-            //     }
-            //     console.info("use " + (new Date().getMilliseconds() - now.getMilliseconds()) + " milliseconds to draw map")
-            // },
             networkUrlBlocks() {
                 const _this = this;
 

@@ -29,7 +29,6 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.PocScore;
-import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
@@ -113,10 +112,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 //    private static final int SMALLER_HEIGHT = 60;
     private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
     private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 30;
-    private static final int FORK_COUNT_LAST_CHECKPONIT = Constants.isDevnet() ? 10: 20;
-    private static final int FORK_COUNT_SWITCH_TO_BOOTNODE = Constants.isDevnet() ? 10: 10;
+    private static final int FORK_COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 20;
+    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 10: 10;
     private int forkProcessFailedCount = 0;
     private int switchToBootNodeFailedCount = 0;
+//    private boolean isSwitchingToBootNodesFork = false;
     private boolean isSwitchingToBootNodesFork = Conch.getBooleanProperty(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK);
 
     private final Runnable getMoreBlocksThread = new Runnable() {
@@ -743,7 +743,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     public boolean checkAndSwitchToBootNodesFork() {
         try{
             
-            if(forkProcessFailedCount < FORK_COUNT_SWITCH_TO_BOOTNODE) return false;
+            if(forkProcessFailedCount < FORK_COUNT_SWITCH_TO_BOOT_NODE) return false;
             
             isSwitchingToBootNodesFork = true;
             // connect to the boot nodes
@@ -760,9 +760,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if(switchToBootNodeFailedCount++ > FORK_COUNT_RESET_REBOOT) {
                 //manual reset and reboot
                 HashMap<String, String> paramMap = Maps.newHashMap();
-                paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
+//                paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
                 Conch.resetAndReboot(paramMap,true);
-            } else if(switchToBootNodeFailedCount++ > FORK_COUNT_LAST_CHECKPONIT){
+            } else if(switchToBootNodeFailedCount++ > FORK_COUNT_LAST_CHECKPOINT){
                 // rollback to last check point when exception occurrence counts exceed the max count
                 startHeight = Constants.LAST_KNOWN_BLOCK;
             } else if(switchToBootNodeFailedCount++ > FORK_COUNT_FULL_RESET){
@@ -770,7 +770,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             } else if(bootNodeHeight < Conch.getHeight() && bootNodeHeight > Constants.LAST_KNOWN_BLOCK) {
                 startHeight = bootNodeHeight;
             } else if(bootNodeHeight > Conch.getHeight()){
-                startHeight = Conch.getHeight() - 10;
+                startHeight = Conch.getHeight() - 720;
             }
             
             // rollback or full reset
@@ -791,13 +791,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             // synchronize the blocks from boot nodes
             downloadBlockchain(peer, startBlock, startHeight);
-
+            
             // check the blockchain state after sync
             Block lastBlockAfterSync = blockchain.getLastBlock();
             if(lastBlockAfterSync.getHeight() > startHeight && lastBlockAfterSync.getId() != lastBlockId){
                 switchToBootNodeFailedCount = 0;
                 forkProcessFailedCount = 0;
                 isSwitchingToBootNodesFork = false;
+                // Conch.storePropertieToFile(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "false");
                 Logger.logInfoMessage("Switched to BootNode %s[%s]'s fork, height is %d",peer.getAnnouncedAddress(), peer.getHost(), lastBlockAfterSync.getHeight());
                 return true;
             }
@@ -1977,8 +1978,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 for (DerivedDbTable table : derivedTables) {
                     table.rollback(commonBlock.getHeight());
                 }
-                SharderPoolProcessor.rollback(commonBlock.getHeight());
-                PocDb.rollback(commonBlock.getHeight());
+//                SharderPoolProcessor.rollback(commonBlock.getHeight());
+//                PocDb.rollback(commonBlock.getHeight());
                 
                 Db.db.clearCache();
                 Db.db.commitTransaction();
