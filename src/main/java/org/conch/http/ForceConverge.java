@@ -366,11 +366,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             manualReset();
         }
         
-        // switch fork
-        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
-            forceSwitchForkAccordingToCmdTool(); // execute immediately once
-            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
-        }
+//        // switch fork
+//        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
+//            forceSwitchForkAccordingToCmdTool(); // execute immediately once
+//            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
+//        }
         
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
