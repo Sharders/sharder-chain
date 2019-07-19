@@ -220,8 +220,8 @@ public final class Constants {
     public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? 4500 : 0;
     public static final int POC_NEW_ALGO_HEIGHT = isTestnet() ? 4751 : 0;
     public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
-    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 19555 : 0;
-    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 19555 : 0;
+    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 12500 : 0;
+    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 12500 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;

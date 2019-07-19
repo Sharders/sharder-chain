@@ -3560,17 +3560,19 @@ public abstract class TransactionType {
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
 
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                if (forgePool == null) {
+                SharderPoolProcessor pool = SharderPoolProcessor.getPool(destroy.getPoolId());
+                if (pool == null) {
                     Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
+                    return;
 //                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
                 }
-                if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
-                    Logger.logWarningMessage("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId() + "don't execute this tx[id=" + transaction.getId() + "]");
+                if (transaction.getSenderId() != pool.getCreatorId()) {
+                    Logger.logWarningMessage("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + pool.getCreatorId() + "don't execute this tx[id=" + transaction.getId() + "]");
+                    return;
 //                    throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId());
                 }
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
-                int endHeight = forgePool.getEndBlockNo();
+                int endHeight = pool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
                     Logger.logWarningMessage("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight + ", still to destroy it");
                 }
@@ -3585,6 +3587,10 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(destroy.getPoolId());
+                if(miningPool == null) {
+                    Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
+                    return;
+                }
                 miningPool.destroyAndRecord(curHeight);
                 SharderPoolProcessor.delProcessingDestroyTx(miningPool.getPoolId());
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();

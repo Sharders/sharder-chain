@@ -104,15 +104,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private List<Long> chainBlockIds;
     private long totalTime = 1;
     private int totalBlocks;
-
-    private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 100;
-    private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 50;
-    private static final int FORK_COUNT_LAST_CHECKPONIT = Constants.isDevnet() ? 10: 30;
+    
+    // auto fork switch
+    private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
+    private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 30;
+    private static final int FORK_COUNT_LAST_CHECKPONIT = Constants.isDevnet() ? 10: 20;
     private static final int FORK_COUNT_SWITCH_TO_BOOTNODE = Constants.isDevnet() ? 10: 10;
     private int forkProcessFaildCount = 0;
     private int switchToBootNodeFaildCount = 0;
 
-    
     private final Runnable getMoreBlocksThread = new Runnable() {
 //        private final JSONStreamAware getCumulativeDifficultyRequest;
 //
@@ -332,6 +332,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     + numBlocks
                                     + " blocks from "
                                     + lastBlockchainFeeder.getAnnouncedAddress() + "[" + lastBlockchainFeeder.getHost() + "]"
+                                    + " at height "
+                                    + blockchain.getHeight()
                                     + " in "
                                     + time / 1000
                                     + " s, "
@@ -341,8 +343,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     * (lastBlockchainFeederHeight - blockchain.getHeight())
                                     / ((long) totalBlocks * 1000 * 60)
                                     + " min left"
-                                    + ", current height "
-                                    + blockchain.getHeight()
                                     + ", fork switch failed "
                                     + forkProcessFaildCount
                     );

@@ -155,8 +155,8 @@ public class PocScore implements Serializable {
      * 
      * Testnet:
      * 0.5 :  0 < height < 4765      
-     * 0.3 : 4765 < height < 19555 
-     * 0.19 : 19555 <= height
+     * 0.3 : 4765 < height < 12500 
+     * 0.19 : 12500 <= height
      * NOTE: please see the height definition at: Constants.POC_SS_HELD_SCORE_PHASE1_HEIGHT
      * @return
      */
@@ -201,27 +201,31 @@ public class PocScore implements Serializable {
              * normal miner: held_ss(limit is pool capacity) * 0.19
              */
             if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
-                long remainLimit = SharderPoolProcessor.POOL_MAX_AMOUNT_NQT - poolProcessor.getPower();
-                if(remainLimit > 0 
-                && remainLimit > accountBalanceNQT){
-                    remainLimit = (accountBalanceNQT <= 0) ? 0 : accountBalanceNQT;
-                }
-                
-                Float remainEffectiveF = 0f;
-                if(remainLimit > 0 
-                && height >= Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT) {
-                    remainEffectiveF = remainLimit * ssHeldRate(height);
-                }
+                if (height < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT) {
+                    effectiveSS = BigInteger.valueOf(poolProcessor.getPower() / Constants.ONE_SS);
+                } else {
+                    long remainLimit = SharderPoolProcessor.POOL_MAX_AMOUNT_NQT - poolProcessor.getPower();
+                    if(remainLimit > 0
+                            && remainLimit > accountBalanceNQT){
+                        remainLimit = (accountBalanceNQT <= 0) ? 0 : accountBalanceNQT;
+                    }
 
-                Float effectiveSSF = (remainEffectiveF + poolProcessor.getPower()) / Constants.ONE_SS;
-                effectiveSS = BigInteger.valueOf(effectiveSSF.longValue());
+                    Float remainEffectiveF = 0f;
+                    if(remainLimit > 0
+                    && height >= Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT) {
+                        remainEffectiveF = remainLimit * ssHeldRate(height);
+                    }
+
+                    Float effectiveSSF = (remainEffectiveF + poolProcessor.getPower()) / Constants.ONE_SS;
+                    effectiveSS = BigInteger.valueOf(effectiveSSF.longValue());
+                }
             } else {
                 boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
                 long heldAmount = exceedPoolMaxAmount ? SharderPoolProcessor.POOL_MAX_AMOUNT_NQT : accountBalanceNQT;
                 
                 // !!NOTE: effective ss calculation method be changed from multiply to divide after phase 2 
                 Float ssHeldRate = ssHeldRate(height);
-                if(height < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT){
+                if (height < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT) {
                     effectiveSS = BigInteger.valueOf( heldAmount / Constants.ONE_SS / ssHeldRate.longValue());
                 }else {
                     Float effectiveSSF = heldAmount / Constants.ONE_SS * ssHeldRate;
