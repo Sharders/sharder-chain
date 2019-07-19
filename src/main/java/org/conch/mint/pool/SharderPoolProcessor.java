@@ -11,6 +11,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
+import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
@@ -22,6 +23,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -524,6 +527,75 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     /**
+     * roll back to specified height
+     * @param height
+     */
+    public static void rollback(int height){
+        List<SharderPoolProcessor> poolList = Lists.newArrayList();
+        List<SharderPoolProcessor> deleteList = Lists.newArrayList();
+
+        if(sharderPools.size() > 0){
+            List<Long> tmpList = Lists.newArrayList();
+            sharderPools.values().forEach(poolProcessor -> {
+                if(poolProcessor.getStartBlockNo() <= height
+                    && height <= poolProcessor.getEndBlockNo()){
+                    poolList.add(poolProcessor);
+                }else{
+                    tmpList.add(poolProcessor.getCreatorId());
+                    deleteList.add(poolProcessor);
+                }
+            });
+            
+            if(tmpList.size() > 0) {
+                tmpList.forEach(creatorId -> sharderPools.remove(creatorId));
+            }
+        }
+
+        if(destroyedPools.size() > 0){
+            Set<Long> accountIds = destroyedPools.keySet();
+            for(Long accountId : accountIds){
+                List<SharderPoolProcessor> poolsInDeletion = destroyedPools.get(accountId);
+                if(poolsInDeletion == null || poolsInDeletion.size() <=0 ) continue;
+
+                List<SharderPoolProcessor> tmpList = Lists.newArrayList();
+                for(SharderPoolProcessor poolProcessor : poolsInDeletion){
+                    if(poolProcessor.getStartBlockNo() <= height 
+                    && height <= poolProcessor.getEndBlockNo()){
+                        tmpList.add(poolProcessor);
+                        
+                        poolProcessor.setState(State.WORKING);
+                        sharderPools.put(poolProcessor.getCreatorId(),poolProcessor);
+                        poolList.add(poolProcessor);
+                    }else if(poolProcessor.getStartBlockNo() < height){
+                        tmpList.add(poolProcessor);
+                        deleteList.add(poolProcessor);
+                    }else {
+                        poolList.add(poolProcessor);
+                    }
+                }
+                poolsInDeletion.removeAll(tmpList);
+            }
+        }
+
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+
+            if(poolList.size() > 0) {
+                PoolDb.saveOrUpdate(con, poolList);
+            }
+
+            if(deleteList.size() > 0) {
+                for(SharderPoolProcessor poolProcessor : deleteList){
+                    PoolDb.delete(con, poolProcessor);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
      * save the pools into db,
      * If be called outside, the caller should be org.conch.Conch#shutdown()
      */
@@ -560,7 +632,7 @@ public class SharderPoolProcessor implements Serializable {
         }
       
         if(poolList.size() > 0) {
-            PoolDb.saveOrUpdate(poolList);  
+            PoolDb.saveOrUpdate(null,poolList);  
         }
         
         if(deleteList.size() > 0) {
@@ -619,7 +691,7 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static SharderPoolProcessor newPoolFromDestroyed(long creator) {
-        if (!destroyedPools.containsKey(creator)) {
+        if (!destroyedPools.containsKey(creator) || destroyedPools.get(creator).size() == 0) {
             return null;
         }
         SharderPoolProcessor past = destroyedPools.get(creator).get(0);

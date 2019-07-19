@@ -96,19 +96,13 @@ public final class Recovery extends APIServlet.APIRequestHandler {
         return response;
     }
     
-    
-    private void resetProperties(boolean fullReset, boolean reboot) throws RuntimeException {
-        HashMap<String, String> paramMap = Maps.newHashMap();
-        if(fullReset) paramMap.putAll(RESET_MAP);
-        
-        Conch.resetAndReboot(paramMap, reboot);
-    }
-    
     /**
      * - rollback the blockchain to the height 0 or the last check point
      */
     private void reset(boolean reboot) {
-        resetProperties(false, reboot);
+        HashMap<String, String> paramMap = Maps.newHashMap();
+//        paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
+        Conch.resetAndReboot(paramMap, reboot);
     }
 
     /**
@@ -121,8 +115,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             throw new ConchException.NotValidException("Current user has created a working pool, failed to reset the hub");
         }
-
-        resetProperties(true, reboot);
+        Conch.resetAndReboot(Maps.newHashMap(RESET_MAP), reboot);
     }
 
     @Override

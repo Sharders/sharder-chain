@@ -115,6 +115,19 @@ public class PocDb {
         }
     }
 
+    public static void rollback(int height) {
+        if (!Db.db.isInTransaction()) {
+            throw new IllegalStateException("Not in transaction");
+        }
+        try (Connection con = Db.db.getConnection(); 
+            PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE WHERE height > ?")) {
+            pstmtDelete.setInt(1, height);
+            pstmtDelete.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
     private static String get(long accountId, int height, boolean loadHistory) {
         try {
             Conch.getBlockchain().readLock();
