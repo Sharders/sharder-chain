@@ -106,6 +106,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private int totalBlocks;
     
     // auto fork switch
+    private volatile int lastBootNodeBlockHeight = -1;
     private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
     private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 30;
     private static final int FORK_COUNT_LAST_CHECKPONIT = Constants.isDevnet() ? 10: 20;
@@ -209,6 +210,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
                 return;
             }
+            
+            if(lastBootNodeBlockHeight == -1) {
+                Peer peer = Peers.checkOrConnectBootNode();
+                JSONObject response = getPeersDifficulty(peer);
+                if (response != null) {
+                    lastBootNodeBlockHeight = response.get("blockchainHeight") != null ? ((Long) response.get("blockchainHeight")).intValue() : -1;
+                }
+            }
+            if(lastBootNodeBlockHeight == -1) {
+                Logger.logWarningMessage("Can't connected to boot nodes, break syn blocks...");
+                return;
+            }
+            
             lastDownloadMS = System.currentTimeMillis();
             peerHasMore = true;
             final Peer peer = Peers.getWeightedPeer(connectedPublicPeers);
@@ -232,6 +246,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 lastBlockchainFeederHeight = ((Long) response.get("blockchainHeight")).intValue();
             }
             if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) return;
+            
+            //
+            if(lastBootNodeBlockHeight != -1 && lastBootNodeBlockHeight - lastBlockchainFeederHeight > 60) {
+                String msg = String.format("Peer %s contain the maller height[%d] than boot node height[%d]"
+                        ,lastBlockchainFeeder.getAnnouncedAddress(), lastBlockchainFeederHeight, lastBootNodeBlockHeight);
+                lastBlockchainFeeder.blacklist(msg);
+                Logger.logWarningMessage("Black the peer caused by: " + msg + ",break syn blocks...");
+                return;
+            }
+            
 
             // the cos version of the feeder peer is smaller than current peer
             if(Conch.versionCompare(peer.getVersion()) > 0) return;
