@@ -156,7 +156,7 @@ public class CheckSumValidator {
     static Map<Integer, Map<Long, PocTxBody.PocNodeTypeV2>> pocNodeTypeTxsMap = Maps.newHashMap();
     
     
-    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 30);
+    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 60);
     
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
