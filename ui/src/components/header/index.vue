@@ -265,7 +265,7 @@
             let _this = this;
             setInterval(() => {
                 _this.getData();
-            }, _this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
         },
         methods: {
             getData: function () {
