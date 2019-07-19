@@ -369,7 +369,6 @@
         },
         created() {
             let _this = this;
-
             _this.handleCurrentChange(_this.currentPage);
         },
         mounted() {
@@ -390,10 +389,10 @@
                 _this.httpGetPeersNum();
                 _this.httpGetTxStatistics();
                 let peersArr = localStorage.getItem("coordinates");
-                if(undefined === peersArr || JSON.parse(peersArr)=== null || JSON.parse(peersArr) === "{}"){
+                if(undefined === peersArr || peersArr.substring(1,peersArr.length-1) === "{}"){
                     _this.httpGetPeersAndDraw();
                 }else{
-                    _this.getPeersListAndDraw(peersArr);
+                    _this.getPeersListAndDraw(JSON.parse(peersArr));
                 }
             },
             httpGetNextBlockGenerators(){
@@ -422,37 +421,41 @@
             },
             httpGetPeersNum(){
                 const _this = this;
+
                 _this.$global.fetch("GET", {}, "getPeers").then(res => {
                     _this.peerNum = res.peers.length;
                     let pn = localStorage.getItem('peerNum');
-                    if(pn===null||pn===""){
-                        localStorage.setItem('peerNum',_this.peerNum);
-                    }else if(pn != res.peers.length){
-                        localStorage.setItem('peerNum',res.peers.length);
+                    if (pn === null || pn === "") {
+                        localStorage.setItem('peerNum', _this.peerNum);
+                    } else if (pn != res.peers.length) {
+                        localStorage.setItem('peerNum', res.peers.length);
                         _this.httpGetPeersAndDraw();
                     }
+                    resolve(res);
 
                 }).catch(err => {
+                    reject(err);
                     console.info("error", err);
                 });
+
             },
             httpGetPeersAndDraw(){
                 const _this = this;
+
                 _this.$global.fetch("GET", {}, "getPeers").then(res => {
-                return _this.$global.byIPtoCoordinates(res.peers);
+                    return _this.$global.byIPtoCoordinates(res.peers);
                 }).then(res => {
-                    localStorage.setItem('coordinates',JSON.stringify(res));
+                    localStorage.setItem('coordinates', JSON.stringify(res));
                     let json = JSON.parse(res);
                     _this.getPeersListAndDraw(json);
                 }).catch(err => {
                     console.info("error", err);
                 });
+
             },
             getPeersListAndDraw(json){
                 const _this = this;
-                json = JSON.parse(json);
                 for (let i of Object.keys(json)) {
-                   // console.info("X:"+json[i]["X"]+",Y:"+json[i]["Y"]);
                     if (json[i]["X"] !== "" && json[i]["X"] !== "0"
                         && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
                         && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
@@ -467,10 +470,11 @@
                     }
                     _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
                 }
+
             },
             networkUrlBlocks() {
                 const _this = this;
-                // console.info("networkUrlBlocks，currentPage=" + _this.currentPage);
+
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
