@@ -220,8 +220,8 @@ public final class Constants {
     public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? 4500 : 0;
     public static final int POC_NEW_ALGO_HEIGHT = isTestnet() ? 4751 : 0;
     public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
-    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 19555 : 0;
-    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 19555 : 0;
+    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
+    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -250,7 +250,7 @@ public final class Constants {
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
     public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7; 
     public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 7);
-    public static final int SHARDER_POOL_JOIN_CHECK_BLOCK = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
+    public static final int SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
@@ -341,7 +341,8 @@ public final class Constants {
     }
     
     //default gap of mainnet & testnet is 7 min
-    private static final int blockGapInProperties = isDevnet() ? Conch.getIntProperty("sharder.devnetBlockGap") : ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
+    private static final int blockGapInProperties = isDevnet() ?  Conch.getIntProperty("sharder.devnetBlockGap") : 
+            ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
 
     /**
      * interval between two block generation, the min is 1min
@@ -349,8 +350,9 @@ public final class Constants {
      */
     public static int getBlockGapSeconds(){
         int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
-        // convert to second
-        return gap * 60;
+        // offline mode: 10 seconds
+//        return Constants.isOffline ? 10 : (gap*60); 
+        return gap*60; 
     }
 
     /**

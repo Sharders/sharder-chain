@@ -323,7 +323,6 @@
     </div>
 </template>
 <script>
-
     export default {
         name: "Network",
         data() {
@@ -339,7 +338,6 @@
                 transactionId: '',
                 transactionDialog: false,
                 accountInfo: [],
-
                 minerlistDialog: false,
                 minerlist: [],
                 minerlistHeight: 590,
@@ -354,6 +352,7 @@
                 newestTime: 0,
                 averageAmount: 0,
                 peerNum: 0,
+                fetchCoordinates: false,
                 //旷工信息
                 activeCount: 0,
                 totalCount: 0,
@@ -371,50 +370,31 @@
         },
         created() {
             let _this = this;
-            // _this.networkUrlBlocks();
-            _this.init();
             _this.handleCurrentChange(_this.currentPage);
         },
         mounted() {
             let _this = this;
-
-            window.NETWORK_URL = setInterval(() => {
+            _this.init();
+            // window.NETWORK_URL = setInterval(() => {
+            let networkDataLoader = setInterval(() => {
                 if (_this.$route.path === '/network') {
-                    //_this.init();
                     _this.networkUrlBlocks();
-                    // _this.handleCurrentChange(_this.currentPage);
+                    _this.drawPeerMap(); 
+                }else{
+                    clearInterval(networkDataLoader); 
                 }
-            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
-
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
         },
         methods: {
             init() {
                 const _this = this;
                 _this.networkUrlBlocks();
-                _this.$global.fetch("GET", {}, "getPeers").then(res => {
-                    _this.peerNum = res.peers.length;
-                    return _this.$global.byIPtoCoordinates(res.peers);
-                }).then(res => {
-                    let json = JSON.parse(res);
-                    for (let i of Object.keys(json)) {
-                        if (json[i]["X"] !== "" && json[i]["X"] !== "0"
-                            && json[i]["Y"] !== "" && json[i]["Y"] !== "0"
-                            && !isNaN(json[i]["X"]) && !isNaN(json[i]["Y"])) {
-                            let arr = [];
-                            arr.push(json[i]["Y"]);
-                            arr.push(json[i]["X"]);
-                            _this.peersLocationList[i] = arr;
-                            arr = [];
-                            arr.push(i);
-                            arr.push(_this.$global.myFormatTime(json[i]["time"], "HMS", false));
-                            _this.peersTimeList.push(arr);
-                        }
-                    }
-                    _this.$global.drawPeers(_this.peersLocationList, _this.peersTimeList);
-                }).catch(err => {
-                    console.info("error", err);
-                });
-
+                _this.httpGetNextBlockGenerators();
+                _this.drawPeerMap();
+                _this.httpGetTxStatistics();
+            },
+            httpGetNextBlockGenerators(){
+                const _this = this;
                 _this.$global.fetch("GET", {
                     limit: 99999
                 }, "getNextBlockGenerators").then(res => {
@@ -423,7 +403,9 @@
                 }).catch(err => {
                     console.info("error", err);
                 });
-
+            },
+            httpGetTxStatistics(){
+                const _this = this;
                 _this.$global.fetch("GET", {}, "getTxStatistics").then(res => {
                     _this.transferCount = res.transferCount;
                     _this.storageCount = res.storageCount;
@@ -435,21 +417,44 @@
                     console.info("error", err);
                 });
             },
+            drawPeerMap(){
+                const _this = this;
+                _this.$global.fetch("GET", {}, "getPeers").then(res => { 
+                    _this.peerNum = res.peers.length;
+                    let cachedPeerNum = localStorage.getItem('peerNum');
+
+                    // first time or peer numbers changed
+                    let fetchCoordinates = (cachedPeerNum === null || cachedPeerNum === "" || undefined === cachedPeerNum) 
+                                          || cachedPeerNum != _this.peerNum
+                                          || this.$global.coordinatesMap === null || undefined === this.$global.coordinatesMap;
+                    console.info("fetchCoordinates:" + fetchCoordinates);
+                    if (fetchCoordinates) {
+                        localStorage.setItem('peerNum', _this.peerNum);
+                        _this.fetchCoordinates = true;
+                        return _this.$global.byIPtoCoordinates(res.peers);
+                    } 
+                }).then(res => {
+                    if(_this.fetchCoordinates) {
+                        this.$global.coordinatesMap = JSON.parse(res);
+                        // console.info(this.$global.coordinatesMap);
+                    }
+                    return _this.$global.drawPeers();
+                }).catch(err => {
+                    console.info("error", err);
+                });
+                
+            },
             networkUrlBlocks() {
                 const _this = this;
-                // console.info("networkUrlBlocks，currentPage=" + _this.currentPage);
+
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
-                      //   console.info("refresh block list, newest height is: " + _this.newestHeight);
-                        _this.blocklist.splice(0,_this.blocklist.length)
+                      //   _this.blocklist.splice(0,_this.blocklist.length)
                         _this.blocklist = res.blocks
-                        // let blocksStr = JSON.stringify(res.blocks)
-                        // _this.blocklist = JSON.parse(blocksStr);
                     }
-                    //_this.$forceUpdate();//通知Vue渲染
                 }).catch(error => {
                     console.info('error', error)
                 });
@@ -462,14 +467,9 @@
                 let _this = this;
                 _this.loading = true;
                 _this.getBlocks(val).then(res => {
-                    _this.blocklist.splice(0,_this.blocklist.length)
+                    // _this.blocklist.splice(0,_this.blocklist.length)
                     _this.blocklist = res.blocks
-                    // _this.blocklist = res.blocks
-                    // console.info(_this.blocklist);
-                    // let blocksStr = JSON.stringify(res.blocks);
-                    // _this.blocklist = JSON.parse(blocksStr);
                     _this.loading = false;
-                    // _this.$forceUpdate()
                 }).catch(err => {
                     console.info('error', err);
                     _this.$message.error(err);
@@ -544,6 +544,7 @@
                 return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
         }
+
     };
 </script>
 <style lang="scss" type="text/scss">

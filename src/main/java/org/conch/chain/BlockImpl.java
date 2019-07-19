@@ -596,12 +596,12 @@ public final class BlockImpl implements Block {
             }
         } else if (previousBlock.getHeight() != 0 && previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-            int blocktimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.getBlockGapSeconds();
-            if (blocktimeAverage > 60) {
-                baseTarget = (prevBaseTarget * Math.min(blocktimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
+            int blockTimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.getBlockGapSeconds();
+            if (blockTimeAverage > 60) {
+                baseTarget = (prevBaseTarget * Math.min(blockTimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
                 baseTarget = prevBaseTarget - prevBaseTarget * Constants.BASE_TARGET_GAMMA
-                        * (60 - Math.max(blocktimeAverage, Constants.MIN_BLOCKTIME_LIMIT)) / 6000;
+                        * (60 - Math.max(blockTimeAverage, Constants.MIN_BLOCKTIME_LIMIT)) / 6000;
             }
             if (baseTarget < 0 || baseTarget > Constants.MAX_BASE_TARGET_2) {
                 baseTarget = Constants.MAX_BASE_TARGET_2;

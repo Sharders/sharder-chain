@@ -265,7 +265,7 @@
             let _this = this;
             setInterval(() => {
                 _this.getData();
-            }, _this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
         },
         methods: {
             getData: function () {
@@ -430,6 +430,8 @@
                 window.location.href = "/";
                 _this.secretPhrase = undefined;
                 _this.accountRS = undefined;
+                this.$global.coordinatesMap = null;
+                // localStorage.setItem('peerNum', 0);
                 // _this.$router.push("/login");
             },
             isClose: function () {

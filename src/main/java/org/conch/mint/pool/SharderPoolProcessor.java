@@ -11,6 +11,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
+import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
@@ -22,6 +23,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -379,9 +382,9 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static long findOwnPoolId(long creator) {
-        for (SharderPoolProcessor forgePool : sharderPools.values()) {
-            if (forgePool.creatorId == creator) {
-                return forgePool.poolId;
+        for (SharderPoolProcessor poolProcessor : sharderPools.values()) {
+            if (poolProcessor.creatorId == creator) {
+                return poolProcessor.poolId;
             }
         }
         return -1;
@@ -418,7 +421,11 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     private static void updateHistoricalFees(long poolId, long fee) {
-        if(poolId != -1 && SharderPoolProcessor.getPool(poolId).getState().equals(SharderPoolProcessor.State.WORKING)) {
+        if(poolId == -1) return;
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+        if(poolProcessor == null) return;
+        
+        if(SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
             SharderPoolProcessor pool = sharderPools.get(poolId);
             pool.historicalBlocks++;
             pool.historicalIncome += fee;
@@ -426,15 +433,21 @@ public class SharderPoolProcessor implements Serializable {
     }
     
     private static void updateHistoricalRewards(long poolId, long reward) {
-        if(poolId != -1 && SharderPoolProcessor.getPool(poolId).getState().equals(SharderPoolProcessor.State.WORKING)) {
+        if(poolId == -1) return;
+        SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(poolId);
+        if(poolProcessor == null) return;
+        
+        if(SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
             SharderPoolProcessor pool = sharderPools.get(poolId);
             pool.historicalIncome += reward;
             pool.historicalMintRewards += reward;
-            pool.mintRewards += reward;
+            pool.mintRewards += reward;  
         }
     }
     
     private static void checkOrAddIntoActiveGenerator(SharderPoolProcessor sharderPool){
+        Generator.addMiner(sharderPool.creatorId);
+        
         if(Generator.containMiner(sharderPool.creatorId)) {
             Logger.logInfoMessage("current creator %s of pool %s already mining on this node", Account.rsAccount(sharderPool.creatorId), sharderPool.poolId);
             return;
@@ -475,7 +488,7 @@ public class SharderPoolProcessor implements Serializable {
                 }  
             }
             
-            // check the miner whether running before poll started
+            // check the miner whether running before pool started
             if(sharderPool.startBlockNo-height <=3 
                 && sharderPool.startBlockNo > height){
                 checkOrAddIntoActiveGenerator(sharderPool);
@@ -522,6 +535,75 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     /**
+     * roll back to specified height
+     * @param height
+     */
+    public static void rollback(int height){
+        List<SharderPoolProcessor> poolList = Lists.newArrayList();
+        List<SharderPoolProcessor> deleteList = Lists.newArrayList();
+
+        if(sharderPools.size() > 0){
+            List<Long> tmpList = Lists.newArrayList();
+            sharderPools.values().forEach(poolProcessor -> {
+                if(poolProcessor.getStartBlockNo() <= height
+                    && height <= poolProcessor.getEndBlockNo()){
+                    poolList.add(poolProcessor);
+                }else{
+                    tmpList.add(poolProcessor.getCreatorId());
+                    deleteList.add(poolProcessor);
+                }
+            });
+            
+            if(tmpList.size() > 0) {
+                tmpList.forEach(creatorId -> sharderPools.remove(creatorId));
+            }
+        }
+
+        if(destroyedPools.size() > 0){
+            Set<Long> accountIds = destroyedPools.keySet();
+            for(Long accountId : accountIds){
+                List<SharderPoolProcessor> poolsInDeletion = destroyedPools.get(accountId);
+                if(poolsInDeletion == null || poolsInDeletion.size() <=0 ) continue;
+
+                List<SharderPoolProcessor> tmpList = Lists.newArrayList();
+                for(SharderPoolProcessor poolProcessor : poolsInDeletion){
+                    if(poolProcessor.getStartBlockNo() <= height 
+                    && height <= poolProcessor.getEndBlockNo()){
+                        tmpList.add(poolProcessor);
+                        
+                        poolProcessor.setState(State.WORKING);
+                        sharderPools.put(poolProcessor.getCreatorId(),poolProcessor);
+                        poolList.add(poolProcessor);
+                    }else if(poolProcessor.getStartBlockNo() < height){
+                        tmpList.add(poolProcessor);
+                        deleteList.add(poolProcessor);
+                    }else {
+                        poolList.add(poolProcessor);
+                    }
+                }
+                poolsInDeletion.removeAll(tmpList);
+            }
+        }
+
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+
+            if(poolList.size() > 0) {
+                PoolDb.saveOrUpdate(con, poolList);
+            }
+
+            if(deleteList.size() > 0) {
+                for(SharderPoolProcessor poolProcessor : deleteList){
+                    PoolDb.delete(con, poolProcessor);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
      * save the pools into db,
      * If be called outside, the caller should be org.conch.Conch#shutdown()
      */
@@ -558,7 +640,7 @@ public class SharderPoolProcessor implements Serializable {
         }
       
         if(poolList.size() > 0) {
-            PoolDb.saveOrUpdate(poolList);  
+            PoolDb.saveOrUpdate(null,poolList);  
         }
         
         if(deleteList.size() > 0) {
@@ -617,7 +699,7 @@ public class SharderPoolProcessor implements Serializable {
     }
 
     public static SharderPoolProcessor newPoolFromDestroyed(long creator) {
-        if (!destroyedPools.containsKey(creator)) {
+        if (!destroyedPools.containsKey(creator) || destroyedPools.get(creator).size() == 0) {
             return null;
         }
         SharderPoolProcessor past = destroyedPools.get(creator).get(0);
@@ -642,6 +724,24 @@ public class SharderPoolProcessor implements Serializable {
         return poolProcessor != null ? poolProcessor.getCreatorId() : -1;
     }
 
+    /**
+     * return all working pool's creator 
+     * @return
+     */
+    public static Set<Long> getAllCreators(){
+        Set<Long> creators = Sets.newHashSet();
+        sharderPools.values().forEach(pool -> {
+            if(hasProcessingDestroyTx(pool.getPoolId()) == -1){
+                creators.add(pool.getCreatorId());
+            }
+        });
+        return creators;
+    }
+
+    /**
+     * get all working pools
+     * @return
+     */
     public static JSONObject getPoolsFromNow(){
         JSONArray array = new JSONArray();
         sharderPools.values().forEach(pool -> {

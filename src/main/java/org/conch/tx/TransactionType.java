@@ -3560,24 +3560,26 @@ public abstract class TransactionType {
             public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
 
-                SharderPoolProcessor forgePool = SharderPoolProcessor.getPool(destroy.getPoolId());
-                if (forgePool == null) {
+                SharderPoolProcessor pool = SharderPoolProcessor.getPool(destroy.getPoolId());
+                if (pool == null) {
                     Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
+                    return;
 //                    throw new ConchException.NotValidException("Pool " + destroy.getPoolId() + " doesn't exists");
                 }
-                if (transaction.getSenderId() != SharderPoolProcessor.getPool(destroy.getPoolId()).getCreatorId()) {
-                    Logger.logWarningMessage("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId() + "don't execute this tx[id=" + transaction.getId() + "]");
+                if (transaction.getSenderId() != pool.getCreatorId()) {
+                    Logger.logWarningMessage("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + pool.getCreatorId() + "don't execute this tx[id=" + transaction.getId() + "]");
+                    return;
 //                    throw new ConchException.NotValidException("Transaction creator " + transaction.getSenderId() + "isn't' pool creator " + forgePool.getCreatorId());
                 }
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
-                int endHeight = forgePool.getEndBlockNo();
+                int endHeight = pool.getEndBlockNo();
                 if (curHeight + Constants.SHARDER_POOL_DELAY > endHeight) {
                     Logger.logWarningMessage("Pool will be destroyed at " + endHeight + " before transaction apply at height " + curHeight + ", still to destroy it");
                 }
-                if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
-                    throw new ConchException.NotValidException("Pool can't be destroyed, because it start at %d and current height %d is out of manual destroy range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
-                }
-
+                
+//                if (curHeight + Constants.SHARDER_POOL_DELAY - forgePool.getStartBlockNo() > Constants.SHARDER_POOL_MAX_BLOCK_DESTROY) {
+//                    throw new ConchException.NotValidException("Pool can't be deleted, because it start at %d and current height %d is out of manual deletion range %d", forgePool.getStartBlockNo(), curHeight, forgePool.getStartBlockNo());
+//                }
             }
 
             @Override
@@ -3585,6 +3587,10 @@ public abstract class TransactionType {
                 int curHeight = Conch.getBlockchain().getLastBlock().getHeight();
                 Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) transaction.getAttachment();
                 SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(destroy.getPoolId());
+                if(miningPool == null) {
+                    Logger.logWarningMessage("Pool " + destroy.getPoolId() + " doesn't exists, don't execute this tx[id=" + transaction.getId() + ",sender=" + transaction.getSenderId() + "]");
+                    return;
+                }
                 miningPool.destroyAndRecord(curHeight);
                 SharderPoolProcessor.delProcessingDestroyTx(miningPool.getPoolId());
                 Account.getAccount(miningPool.getCreatorId()).pocChanged();
@@ -3663,7 +3669,7 @@ public abstract class TransactionType {
                     return;
                 }
                 
-                if(curHeight >= Constants.SHARDER_POOL_JOIN_CHECK_BLOCK){
+                if(curHeight >= Constants.SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT){
                     if(curHeight < poolStartHeight || (curHeight + Constants.SHARDER_POOL_DELAY) < poolStartHeight) {
                         Logger.logWarningMessage("Pool[%d] will start at height[%d] and current tx[id=%d] apply at height[%d] ", pool.getPoolId(), poolStartHeight , transaction.getId(), curHeight);
                         return;

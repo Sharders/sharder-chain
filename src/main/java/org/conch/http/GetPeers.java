@@ -98,9 +98,14 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             myPeerInfoJson.put("isOwn", "true");
             peersJSON.add(myPeerInfoJson);
         }
+        
+        // return my address which the peer list size is 0
+        if(peersJSON.size() <= 0) {
+            peersJSON.add(Peers.getMyAddress());
+        }
+        
         JSONObject response = new JSONObject();
         response.put("peers", peersJSON);
-       
         return response;
     }
 

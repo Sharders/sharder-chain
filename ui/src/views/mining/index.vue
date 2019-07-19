@@ -309,7 +309,6 @@
 </template>
 
 <script>
-
     export default {
         name: 'mining',
         data() {
@@ -371,11 +370,17 @@
         mounted() {
             let _this = this;
 
-            window.$miningInitial = setInterval(() => {
-                if (_this.$router.currentRoute.name !== "mining") return;
-                _this.loginAfter();
-                _this.$forceUpdate();
-            }, SSO.downloadingBlockchain ? _this.$global.cfg.soonInterval : _this.$global.cfg.defaultInterval);
+            // window.$miningInitial = setInterval(() => {
+            let miningDataLoader = setInterval(() => {
+                if (_this.$route.path === '/mining') {
+                    _this.loginAfter();
+                    _this.$forceUpdate();
+                }else{
+                    clearInterval(miningDataLoader);
+                }
+                // if (_this.$router.currentRoute.name !== "mining") return;
+            
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
         },
         computed: {
@@ -534,7 +539,7 @@
                         _this.maxPoolInvestment = res.consignor.amount.max - 100000000;
                     }
                 });
-
+                
                 _this.getPools({sort: _this.sortFun});
 
                 _this.$global.fetch("POST", {limit: 99999}, "getNextBlockGenerators").then(res => {
@@ -611,12 +616,20 @@
             getPools(parameter) {
                 let _this = this;
                 _this.loading = true;
+                let poolArr1 = [];
+                let poolArr2 = [];
                 _this.$global.fetch("POST", parameter, "getPools").then(res => {
                     if (res.errorDescription) {
                         return _this.$message.error(res.errorDescription);
                     }
-                    _this.miningList.splice(0,_this.miningList.length)
-                    _this.miningList = res.pools;
+                    for(let t of res.pools){
+                        if(t.creatorRS === _this.accountInfo.accountRS){
+                            poolArr1.push(t);
+                        }else{
+                            poolArr2.push(t);
+                        }
+                    }
+                    _this.miningList=poolArr1.concat(poolArr2);
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });
@@ -669,7 +682,6 @@
                 deep: true
             },
             sortFun(v) {
-                console.info(v);
                 this.getPools({sort: v});
             }
         },
@@ -727,7 +739,7 @@
     }
 
     .mining .el-input {
-        top: -4px;
+        top: 0px;
         border: none;
     }
 

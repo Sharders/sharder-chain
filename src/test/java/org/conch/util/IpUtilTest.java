@@ -14,6 +14,7 @@ public class IpUtilTest {
         System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io"));
         System.out.println(IpUtil.getIpFromUrl("192.168.31.1:8080"));
         System.out.println(IpUtil.getIpFromUrl("devboot.sharder.io:8080"));  
+        System.out.println(IpUtil.getIpFromUrl("cn.testnat.sharder.io:8917"));  
     }
     
     public static void getHostFromUrl(){
@@ -24,6 +25,7 @@ public class IpUtilTest {
         System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io"));
         System.out.println(IpUtil.getHostFromUrl("192.168.31.1:8080"));
         System.out.println(IpUtil.getHostFromUrl("devboot.sharder.io:8080"));  
+        System.out.println(IpUtil.getHostFromUrl("cn.testnat.sharder.io:8917"));  
     }
     
     public static void isDomainTest(){
@@ -36,9 +38,10 @@ public class IpUtilTest {
     
     public static void main(String[] args) {
 //        isDomainTest();
-        getHostFromUrl();
-        System.out.println("-----");
+        System.out.println("---getIpFromUrl--");
         getIpFromUrl();
+        System.out.println("--getHostFromUrl---");
+        getHostFromUrl();
         System.out.println("-----");
         System.out.println(IpUtil.getNetworkIp());
     }

@@ -21,19 +21,19 @@ import java.util.List;
  * @since 2019-05-25
  */
 public class PoolDb {
-
-    public static void saveOrUpdate(List<SharderPoolProcessor> list) {
+    
+    public static void saveOrUpdate(Connection con, List<SharderPoolProcessor> list) {
         if(list == null || list.size() <=0 ) return;
-        Connection con = null;
+        boolean ctlCon = (con == null);
         try {
-            con = Db.db.getConnection();
+            if(ctlCon)  con = Db.db.getConnection();
             for(SharderPoolProcessor poolProcessor : list){
                 saveOrUpdate(con, poolProcessor);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if(ctlCon)  DbUtils.close(con);
         }
     }
     
@@ -60,7 +60,7 @@ public class PoolDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        }finally {
+        } finally {
             if(ctlCon)  DbUtils.close(con);
         }
     }
@@ -118,21 +118,25 @@ public class PoolDb {
     }
 
     public static void delete(SharderPoolProcessor poolProcessor) {
-        delete(poolProcessor.getPoolId());
+        delete(null, poolProcessor.getPoolId());
+    }
+    
+    public static void delete(Connection con, SharderPoolProcessor poolProcessor) {
+        delete(con, poolProcessor.getPoolId());
     }
 
-    public static void delete(long poolId) {
-        Connection con = null;
+    public static void delete(Connection con, long poolId) {
+        boolean ctlCon = (con == null);
         try {
-            con = Db.db.getConnection();
+            if(ctlCon) con = Db.db.getConnection();
+            
             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM account_pool WHERE pool_id = ?");
-
             pstmtDelete.setLong(1, poolId);
             pstmtDelete.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } finally {
-            DbUtils.close(con);
+            if(ctlCon) DbUtils.close(con);
         }
     }
 

@@ -92,7 +92,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.7";
+    public static final String VERSION = "0.1.8";
     public static final String STAGE = "-Alpha";
     public static final String APPLICATION = "COS";
 
@@ -1060,7 +1060,8 @@ public final class Conch {
         }
         return true;
     }
-
+    
+    
     /**
      * 
      * @param paramMap properties need be reset before reboot

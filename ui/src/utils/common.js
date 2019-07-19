@@ -14,18 +14,19 @@ export default {
     blockchainState: [],
     peers: [],
     userConfig: [],
+    coordinatesMap: null,
     $vue: {},
     placeholder: "--",
     unit: " SS",
     poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
     optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
-    fetch(type, date, requestType) {
+    fetch(type, requestData, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
                 url: window.api.sharderUrl + "?requestType=" + requestType,
                 dataType: "json",
                 type: type,
-                data: date,
+                data: requestData,
                 timeout: 60000,
                 success: function (data) {
                     resolve(data)
@@ -591,23 +592,27 @@ export default {
     /**
      * 渲染节点坐标
      */
-    drawPeers(peersLocationList, peersTimeList) {
+    drawPeers() {
         let _this = this.$vue;
         let myChart = _this.$echarts.init(document.getElementById("peers-map"));
-
-        function makeMapData(rawData) {
+        
+        function parseData (coordinatesMap) {
+            if(undefined == coordinatesMap || null == coordinatesMap) return;
+            
             let mapData = [];
-            for (let i = 0; i < rawData.length; i++) {
-                const geoCoord = peersLocationList[rawData[i][0]];
-                if (geoCoord) {
+            for (let i of Object.keys(coordinatesMap)) {
+                if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
+                    && coordinatesMap[i]["Y"] !== "" && coordinatesMap[i]["Y"] !== "0"
+                    && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
+                    let locationArray = [coordinatesMap[i]["Y"],coordinatesMap[i]["X"]];
                     mapData.push({
-                        name: rawData[i][0],
-                        value: geoCoord
+                        name: i, 
+                        value: locationArray
                     });
                 }
             }
             return mapData;
-        }
+        };
 
         let option = {
             geo: {
@@ -665,11 +670,11 @@ export default {
             },
             series: [
                 {
-                    name: "节点",
+                    name: "Node",
                     type: "scatter",
                     coordinateSystem: "geo",
                     symbolSize: 8,
-                    data: makeMapData(peersTimeList),
+                    data: parseData(this.coordinatesMap),
                     activeOpacity: 1,
                     label: {
                         normal: {

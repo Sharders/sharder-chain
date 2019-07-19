@@ -271,6 +271,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     public static final String PROPERTY_FORK_NAME = "sharder.forkName";
     public static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
+    public static final String PROPERTY_SWITCH_TO_BOOT_FORK = "sharder.switchToBootFork";
     public static String currentFork = Conch.getStringProperty(PROPERTY_FORK_NAME);
     public static void forceSwitchForkAccordingToCmdTool(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
@@ -366,11 +367,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             manualReset();
         }
         
-        // switch fork
-        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
-            forceSwitchForkAccordingToCmdTool(); // execute immediately once
-            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
-        }
+//        // switch fork
+//        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
+//            forceSwitchForkAccordingToCmdTool(); // execute immediately once
+//            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
+//        }
         
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
@@ -410,7 +411,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                     Logger.logWarningMessage(logPrefix + "can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
                 }
             }
-            PoolDb.saveOrUpdate(poolProcessors);
+            PoolDb.saveOrUpdate(null, poolProcessors);
             SharderPoolProcessor.instFromDB();
             Logger.logInfoMessage(logPrefix + " all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
             
