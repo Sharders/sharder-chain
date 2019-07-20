@@ -22,6 +22,7 @@
 package org.conch.tx;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.BlockDb;
@@ -164,20 +165,20 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     private final Map<TransactionType, Map<String, Integer>> unconfirmedDuplicates = new HashMap<>();
     
     public void processDirtyOrViciousTx(Exception e){
-//        if(e == null) return;
-//
-//        String errorMsg = e.getMessage();
-//        if(StringUtils.isEmpty(errorMsg)) return;
-//        
-//        if(errorMsg.contains("NotValidException") 
-//        || errorMsg.contains("DirtyTxID")){
-//            if(errorMsg.contains(";")){
-//                String[] array = errorMsg.split(";");
-//                String[] idArray = array[0].split("=");
-//                dirtyOrViciousTxs.add(Long.parseLong(idArray[1]));
-//            }
-//            removeTxsById(dirtyOrViciousTxs);
-//        }
+        if(e == null) return;
+
+        String errorMsg = e.getMessage();
+        if(StringUtils.isEmpty(errorMsg)) return;
+
+        if(errorMsg.contains("NotValidException") 
+        || errorMsg.contains("DirtyTxID")){
+            if(errorMsg.contains(";")){
+                String[] array = errorMsg.split(";");
+                String[] idArray = array[0].split("=");
+                dirtyOrViciousTxs.add(Long.parseLong(idArray[1]));
+            }
+            removeTxsById(dirtyOrViciousTxs);
+        }
     }
     
     private void removeTxsById(Set<Long> dirtyIds){
