@@ -21,6 +21,7 @@
 
 package org.conch.tx;
 
+import com.google.common.collect.Sets;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.BlockDb;
@@ -62,6 +63,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
     private final Map<DbKey, UnconfirmedTransaction> transactionCache = new HashMap<>();
     private volatile boolean cacheInitialized = false;
+    
+    private Set<Long> dirtyOrViciousTxs = Sets.newConcurrentHashSet();
 
     final DbKey.LongKeyFactory<UnconfirmedTransaction> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<UnconfirmedTransaction>("id") {
 
@@ -159,8 +162,70 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     };
 
     private final Map<TransactionType, Map<String, Integer>> unconfirmedDuplicates = new HashMap<>();
-
-
+    
+    public void processDirtyOrViciousTx(Exception e){
+//        if(e == null) return;
+//
+//        String errorMsg = e.getMessage();
+//        if(StringUtils.isEmpty(errorMsg)) return;
+//        
+//        if(errorMsg.contains("NotValidException") 
+//        || errorMsg.contains("DirtyTxID")){
+//            if(errorMsg.contains(";")){
+//                String[] array = errorMsg.split(";");
+//                String[] idArray = array[0].split("=");
+//                dirtyOrViciousTxs.add(Long.parseLong(idArray[1]));
+//            }
+//            removeTxsById(dirtyOrViciousTxs);
+//        }
+    }
+    
+    private void removeTxsById(Set<Long> dirtyIds){
+        if (dirtyIds == null || dirtyIds.size() <= 0)
+            
+        BlockchainImpl.getInstance().writeLock();
+        try {
+            try {
+                Db.db.beginTransaction();
+                dirtyIds.forEach(dirtyId -> {
+                    removeUnconfirmedTransactionById(dirtyId);
+                });
+                Db.db.commitTransaction();
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.toString(), e);
+                Db.db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.db.endTransaction();
+            }
+        } finally {
+            BlockchainImpl.getInstance().writeUnlock();
+        }
+    }
+    
+    private void removeTxs(List<UnconfirmedTransaction> expiredTransactions){
+        if (expiredTransactions == null || expiredTransactions.size() <= 0)
+            
+        BlockchainImpl.getInstance().writeLock();
+        try {
+            try {
+                Db.db.beginTransaction();
+                expiredTransactions.forEach(unconfirmedTransaction -> {
+                    removeUnconfirmedTransaction(unconfirmedTransaction.getTransaction());
+                });
+                Db.db.commitTransaction();
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.toString(), e);
+                Db.db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.db.endTransaction();
+            }
+        } finally {
+            BlockchainImpl.getInstance().writeUnlock();
+        }
+    }
+    
     private final Runnable removeUnconfirmedTransactionsThread = () -> {
 
         try {
@@ -176,29 +241,14 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     while (iterator.hasNext()) {
                         expiredTransactions.add(iterator.next());
                     }
-                }finally {
+                }catch(Exception e){
+                    processDirtyOrViciousTx(e);
+                    throw e;
+                } finally {
                     DbUtils.close(iterator);
                 }
-                if (expiredTransactions.size() > 0) {
-                    BlockchainImpl.getInstance().writeLock();
-                    try {
-                        try {
-                            Db.db.beginTransaction();
-                            for (UnconfirmedTransaction unconfirmedTransaction : expiredTransactions) {
-                                removeUnconfirmedTransaction(unconfirmedTransaction.getTransaction());
-                            }
-                            Db.db.commitTransaction();
-                        } catch (Exception e) {
-                            Logger.logErrorMessage(e.toString(), e);
-                            Db.db.rollbackTransaction();
-                            throw e;
-                        } finally {
-                            Db.db.endTransaction();
-                        }
-                    } finally {
-                        BlockchainImpl.getInstance().writeUnlock();
-                    }
-                }
+
+                removeTxs(expiredTransactions);
             } catch (Exception e) {
                 Logger.logMessage("Error removing unconfirmed transactions", e);
             }
@@ -590,6 +640,36 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 transactionCache.remove(transaction.getDbKey());
                 transactionListeners.notify(Collections.singletonList(transaction), Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
             }
+        } catch (SQLException e) {
+            Logger.logErrorMessage(e.toString(), e);
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
+        }
+    }
+    
+    private void removeUnconfirmedTransactionById(long id){
+
+        if (!Db.db.isInTransaction()) {
+            try {
+                Db.db.beginTransaction();
+                removeUnconfirmedTransactionById(id);
+                Db.db.commitTransaction();
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.toString(), e);
+                Db.db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.db.endTransaction();
+            }
+            return;
+        }
+        
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("DELETE FROM unconfirmed_transaction WHERE id = ?");
+            pstmt.setLong(1, id);
         } catch (SQLException e) {
             Logger.logErrorMessage(e.toString(), e);
             throw new RuntimeException(e.toString(), e);

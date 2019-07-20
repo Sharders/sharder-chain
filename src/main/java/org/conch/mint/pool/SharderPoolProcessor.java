@@ -17,6 +17,7 @@ import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionProcessorImpl;
 import org.conch.tx.TransactionType;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -683,6 +684,9 @@ public class SharderPoolProcessor implements Serializable {
                     }
                 }
             });
+        } catch(Exception e){
+            TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
+            throw e;
         } finally {
             DbUtils.close(unconfirmedTxs);
         }

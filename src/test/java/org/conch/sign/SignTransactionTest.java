@@ -35,6 +35,7 @@ import org.conch.tools.SignTransactionJSON;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
+import org.conch.util.Convert;
 
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -120,6 +121,12 @@ public final class SignTransactionTest extends BaseTest {
         System.out.println(transaction);
     }
     
+    
+    public static void newTx() throws ConchException.NotValidException {
+        byte[] bytes = Convert.toBytes("0c30c0ce7f050a00561112d186285166f709240fc8521f51468aad3271123f5d4c09a91a8e2dc71fa75972d003a1bb6a000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000f35b7484f8e4b23adbac5ee28694d2f2eac2e4daf23344f979696e9e0d2af30751413997146fdd7ed1034732ddaa000bd1d0c55b18ebbf54d7842d205c0bce160000000006290000ff43bc54bb4b671901040000002e004144324631414230354645413236394437443430303231333342423545413736422e61737573636f6d6d2e636f6d6a5395f0b0c5ded8");
+        TransactionImpl.newTransactionBuilder(bytes);
+    }
+    
     public static void signTranscationFile(String[] args){
         SignTransactionJSON.signTranscationFile(args);
     }
@@ -131,8 +138,9 @@ public final class SignTransactionTest extends BaseTest {
      * @throws ConchException.NotValidException
      */
     public static void main(String[] args) throws ConchException.NotValidException {
+        newTx();
     //        System.out.println("genesis1=>");
-            blockHash(SharderGenesis.genesisBlock());
+//            blockHash(SharderGenesis.genesisBlock());
 //        signPocWeightTx(getSpFromConsole());
 
 //        signCoinbaseTx(getSpFromConsole());

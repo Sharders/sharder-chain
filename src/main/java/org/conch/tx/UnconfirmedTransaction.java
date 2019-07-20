@@ -58,7 +58,8 @@ public class UnconfirmedTransaction implements Transaction {
             this.arrivalTimestamp = rs.getLong("arrival_timestamp");
             this.feePerByte = rs.getLong("fee_per_byte");
         } catch (ConchException.ValidationException e) {
-            throw new RuntimeException(e.toString(), e);
+            Long id = rs.getLong("id");
+            throw new RuntimeException("DirtyTxID=" + id + ";" + e.toString(), e);
         }
     }
 
