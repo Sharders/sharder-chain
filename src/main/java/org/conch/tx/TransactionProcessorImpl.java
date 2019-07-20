@@ -663,6 +663,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         
         Connection con = null;
         try {
+            Logger.logDebugMessage("delete unconfirmed transaction by id " + id);
             con = Db.db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("DELETE FROM unconfirmed_transaction WHERE id = ?");
             pstmt.setLong(1, id);
