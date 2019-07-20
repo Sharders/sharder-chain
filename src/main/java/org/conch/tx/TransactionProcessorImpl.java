@@ -184,23 +184,18 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     private void removeTxsById(Set<Long> dirtyIds){
         if (dirtyIds == null || dirtyIds.size() <= 0)
             
-        BlockchainImpl.getInstance().writeLock();
         try {
-            try {
-                Db.db.beginTransaction();
-                dirtyIds.forEach(dirtyId -> {
-                    removeUnconfirmedTransactionById(dirtyId);
-                });
-                Db.db.commitTransaction();
-            } catch (Exception e) {
-                Logger.logErrorMessage(e.toString(), e);
-                Db.db.rollbackTransaction();
-                throw e;
-            } finally {
-                Db.db.endTransaction();
-            }
+            Db.db.beginTransaction();
+            dirtyIds.forEach(dirtyId -> {
+                removeUnconfirmedTransactionById(dirtyId);
+            });
+            Db.db.commitTransaction();
+        } catch (Exception e) {
+            Logger.logErrorMessage(e.toString(), e);
+            Db.db.rollbackTransaction();
+            throw e;
         } finally {
-            BlockchainImpl.getInstance().writeUnlock();
+            Db.db.endTransaction();
         }
     }
     
