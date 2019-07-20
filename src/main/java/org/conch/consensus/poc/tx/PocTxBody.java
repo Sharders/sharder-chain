@@ -161,7 +161,7 @@ public interface PocTxBody {
             try {
                 this.ip = Convert.readString(buffer, buffer.getShort(), 10);
             } catch (ConchException.NotValidException e) {
-                Logger.logErrorMessage("Can't parse the ip of the PocNodeType",e);
+                Logger.logErrorMessage("Can't parse the ip of the PocNodeType caused by: " + e.getMessage());
                 this.ip = "";
             }
         }
