@@ -244,7 +244,26 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     DbUtils.close(iterator);
                 }
 
-                removeTxs(expiredTransactions);
+                if (expiredTransactions.size() > 0) {
+                    BlockchainImpl.getInstance().writeLock();
+                    try {
+                        try {
+                            Db.db.beginTransaction();
+                            for (UnconfirmedTransaction unconfirmedTransaction : expiredTransactions) {
+                                removeUnconfirmedTransaction(unconfirmedTransaction.getTransaction());
+                            }
+                            Db.db.commitTransaction();
+                        } catch (Exception e) {
+                            Logger.logErrorMessage(e.toString(), e);
+                            Db.db.rollbackTransaction();
+                            throw e;
+                        } finally {
+                            Db.db.endTransaction();
+                        }
+                    } finally {
+                        BlockchainImpl.getInstance().writeUnlock();
+                    }
+                }
             } catch (Exception e) {
                 Logger.logMessage("Error removing unconfirmed transactions", e);
             }
