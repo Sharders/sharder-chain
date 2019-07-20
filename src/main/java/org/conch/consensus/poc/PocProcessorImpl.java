@@ -489,7 +489,7 @@ public class PocProcessorImpl implements PocProcessor {
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV2));
         
-        if(StringUtils.isEmpty(nodeTypeV2.getIp()) || nodeTypeV2.getType() == null || accountId <= 0) {
+        if(StringUtils.isEmpty(nodeTypeV2.getIp()) || nodeTypeV2.getType() == null) {
             Logger.logWarningMessage("NodeType tx[id=%d,height=%d,summary=%s] is a bad tx, don't add the certified peer", tx.getId(), tx.getHeight(), summary);
         }else{
             PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);  
