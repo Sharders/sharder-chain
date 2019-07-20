@@ -3,6 +3,7 @@ package org.conch.consensus.poc;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
@@ -487,8 +488,12 @@ public class PocProcessorImpl implements PocProcessor {
         
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV2));
-
-        PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);
+        
+        if(StringUtils.isEmpty(nodeTypeV2.getIp()) || nodeTypeV2.getType() == null || accountId <= 0) {
+            Logger.logWarningMessage("NodeType tx[id=%d,height=%d,summary=%s] is a bad tx, don't add the certified peer", tx.getId(), tx.getHeight(), summary);
+        }else{
+            PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);  
+        }
         return true;
     }
 

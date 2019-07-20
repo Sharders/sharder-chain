@@ -68,7 +68,8 @@ public class UnconfirmedTransaction implements Transaction {
             String arrivalTime = Convert.dateFromEpochTime(arrivalTimeL.intValue());
             Logger.logErrorMessage("Can't new the unconfirmed tx[id=%d,dbId=%d,txHeight=%d,height=%d,arrivalTime=%s,arrivalTimeLong=%d]",
                     id, dbId, txHeight, height, arrivalTime, arrivalTimeL);
-            throw new RuntimeException("DirtyTxID=" + id + ";" + e.toString(), e);
+//            throw new RuntimeException("DirtyTxID=" + id + ";" + e.toString(), e);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
