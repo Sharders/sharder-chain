@@ -770,7 +770,8 @@ final public class TransactionImpl implements Transaction {
             if ((flags & position) != 0) {
                 builder.appendix(new Appendix.PrunableEncryptedMessage(buffer, version));
             }
-            
+            // emergency fix for vicious tx at height 12222 of the Testnet
+            // TODO improve following logic
             if (buffer.hasRemaining()) {
                 if(builder.type.isType(TransactionType.TYPE_POC)){
                     if(builder.attachment instanceof PocTxBody.PocNodeTypeV2) {
