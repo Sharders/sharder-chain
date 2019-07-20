@@ -686,11 +686,12 @@ public class SharderPoolProcessor implements Serializable {
                     }
                 }catch(Exception e){
                     TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
+                    Logger.logErrorMessage("instProcessingMapFromTxs in sharder pool failed", e);
                 }
             });
         } catch(Exception e){
             TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
-            throw e;
+            Logger.logErrorMessage("instProcessingMapFromTxs in sharder pool failed", e);
         } finally {
             DbUtils.close(unconfirmedTxs);
         }
