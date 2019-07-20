@@ -672,16 +672,20 @@ public class SharderPoolProcessor implements Serializable {
         try {
             unconfirmedTxs = Conch.getTransactionProcessor().getAllUnconfirmedTransactions();
             unconfirmedTxs.forEach(tx -> {
-                if (tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)) {
-                    if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_CREATE)) {
-                       addProcessingCreateTx(tx.getSenderId(),tx.getId());
-                    } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_DESTROY)) {
-                        Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
-                        addProcessingDestroyTx(destroy.getPoolId(), tx.getId());
-                    } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)) {
-                        Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
-                        addProcessingQuitTx(quit.getTxId(),  tx.getId());
+                try {
+                    if (tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)) {
+                        if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_CREATE)) {
+                            addProcessingCreateTx(tx.getSenderId(), tx.getId());
+                        } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_DESTROY)) {
+                            Attachment.SharderPoolDestroy destroy = (Attachment.SharderPoolDestroy) tx.getAttachment();
+                            addProcessingDestroyTx(destroy.getPoolId(), tx.getId());
+                        } else if (tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)) {
+                            Attachment.SharderPoolQuit quit = (Attachment.SharderPoolQuit) tx.getAttachment();
+                            addProcessingQuitTx(quit.getTxId(), tx.getId());
+                        }
                     }
+                }catch(Exception e){
+                    TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
                 }
             });
         } catch(Exception e){
