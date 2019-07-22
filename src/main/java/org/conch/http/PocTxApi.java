@@ -163,6 +163,13 @@ public abstract class PocTxApi {
                 JSONObject nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
                         .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
 
+                if(StringUtils.isEmpty(nodeTypeJson.getString("ip"))
+                || StringUtils.isEmpty(nodeTypeJson.getString("type"))) {
+                    String errorMsg = "node ip or node type is null" + nodeTypeJson.toString();
+                    Logger.logErrorMessage(errorMsg);
+                    throw new ConchException.NotValidException(errorMsg);
+                }
+                
                 PocTxBody.PocNodeTypeV2 pocNodeType = null;
                 // v2 need account id or account rs
                 Long accountId = -1L;
@@ -187,7 +194,7 @@ public abstract class PocTxApi {
                     Logger.logErrorMessage(errorMsg);
                     throw new ConchException.NotValidException(errorMsg);
                 }
-                
+
                 Logger.logInfoMessage("creating node type tx %s", pocNodeType.toString());
                 createTransaction(request, account, 0, 0, pocNodeType);
                 Logger.logInfoMessage("success to create node type tx");

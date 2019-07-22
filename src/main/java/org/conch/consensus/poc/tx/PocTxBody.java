@@ -9,6 +9,7 @@ import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
 import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
@@ -160,7 +161,8 @@ public interface PocTxBody {
             try {
                 this.ip = Convert.readString(buffer, buffer.getShort(), 10);
             } catch (ConchException.NotValidException e) {
-                e.printStackTrace();
+                Logger.logErrorMessage("Can't parse the ip of the PocNodeType caused by: " + e.getMessage());
+                this.ip = "";
             }
         }
 

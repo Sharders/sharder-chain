@@ -458,7 +458,10 @@ public final class Shuffler {
                     Logger.logDebugMessage("Transaction already submitted");
                     return;
                 }
-            }finally {
+            } catch(Exception e) {
+                TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
+                throw e;
+            } finally {
                 DbUtils.close(unconfirmedTransactions);
             }
         }

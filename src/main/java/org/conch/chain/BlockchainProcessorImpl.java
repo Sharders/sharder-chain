@@ -2050,6 +2050,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 orderedUnconfirmedTransactions.add(unconfirmedTransaction);
             }
 
+        } catch(Exception e){
+            TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
+            throw e;
         } finally {
             DbUtils.close(unconfirmedTransactions);
         }

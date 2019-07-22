@@ -21,6 +21,7 @@
 
 package org.conch.tx;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -29,6 +30,7 @@ import org.conch.chain.*;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
+import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
 import org.conch.util.Convert;
@@ -768,8 +770,20 @@ final public class TransactionImpl implements Transaction {
             if ((flags & position) != 0) {
                 builder.appendix(new Appendix.PrunableEncryptedMessage(buffer, version));
             }
+            // emergency fix for vicious tx at height 12222 of the Testnet
+            // TODO improve following logic
             if (buffer.hasRemaining()) {
-                throw new ConchException.NotValidException("Transaction bytes too long, " + buffer.remaining() + " extra bytes");
+                if(builder.type.isType(TransactionType.TYPE_POC)){
+                    if(builder.attachment instanceof PocTxBody.PocNodeTypeV2) {
+                        PocTxBody.PocNodeTypeV2 nodeTypeV2 = (PocTxBody.PocNodeTypeV2) builder.attachment;
+                        if(StringUtils.isEmpty(nodeTypeV2.getIp()) 
+                        || nodeTypeV2.getType() == null) {
+                            Logger.logWarningMessage("It is a bad or vicious PocNodeType tx, it will be ignored in the execution of the PocProcessor. Don't throw a exception now");
+                        }
+                    }
+                }else{
+                    throw new ConchException.NotValidException("Transaction bytes too long, " + buffer.remaining() + " extra bytes");
+                }
             }
             return builder;
         } catch (ConchException.NotValidException|RuntimeException e) {
