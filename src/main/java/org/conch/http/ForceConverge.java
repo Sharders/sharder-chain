@@ -376,8 +376,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
         if(!closeAutoUpgrade) {
-            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is 60 minutes");
-            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, 60, TimeUnit.MINUTES); 
+            int interval = Constants.isDevnet() ? 1 : 60;
+            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
+            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES); 
         }
         
         // correct the blockchain of Testnet
