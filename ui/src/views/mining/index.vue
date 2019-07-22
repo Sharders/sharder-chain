@@ -89,6 +89,10 @@
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
+                                   <!-- <p>
+                                        <img src="../../assets/img/kuangchisouyi.png">
+                                        <span>{{mining.senderRS}}</span>
+                                    </p>-->
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
                                         <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
@@ -358,7 +362,7 @@
                 accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
-                
+                accountTransactionList: [],
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 18,
@@ -532,15 +536,12 @@
             loginAfter() {
                 let _this = this;
                 _this.getAllIncome();
-
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
                         _this.rule = res;
                         _this.maxPoolInvestment = res.consignor.amount.max - 100000000;
                     }
                 });
-                
-                _this.getPools({sort: _this.sortFun});
 
                 _this.$global.fetch("POST", {limit: 99999}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
@@ -550,7 +551,7 @@
                     _this.newestBlockCreator = res.generators[0].accountRS;
                     _this.getCoinBase(res.height);
                 });
-
+                _this.getPools({sort: _this.sortFun});
                 _this.$global.fetch("GET", {
                     firstIndex: 0,
                     lastIndex: 9
@@ -575,10 +576,29 @@
                     _this.accountInfo = res;
                 });
 
+
+
                 // _this.getAssetsRanking();
                 // _this.getAccountRanking();
 
             },
+          /*  getAccountTransactionList() {
+                const _this = this;
+                let params = new URLSearchParams();
+                console.info("_this.accountInfo.accountRS："+_this.accountInfo.accountRS);
+                params.append("account", _this.accountInfo.accountRS);
+
+                params.append("type", "8");
+                params.append("subtype", "2");
+
+                _this.loading = true;
+                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
+                    _this.accountTransactionList = res1.data.transactions;
+                }).catch(function (err) {
+                    _this.loading = false;
+                    _this.$message.error(err.message);
+                });
+            },*/
             getCoinBase(height) {
                 let _this = this;
                 _this.$global.fetch("GET", {
@@ -618,22 +638,81 @@
                 _this.loading = true;
                 let poolArr1 = [];
                 let poolArr2 = [];
-                _this.$global.fetch("POST", parameter, "getPools").then(res => {
-                    if (res.errorDescription) {
-                        return _this.$message.error(res.errorDescription);
-                    }
-                    for(let t of res.pools){
-                        if(t.creatorRS === _this.accountInfo.accountRS){
-                            poolArr1.push(t);
-                        }else{
-                            poolArr2.push(t);
+                let poolArr3 = [];
+                let poolArr4 = [];
+
+                let params = new URLSearchParams();
+                console.info("_this.accountInfo.accountRS："+_this.accountInfo.accountRS);
+                params.append("account", _this.accountInfo.accountRS);
+
+                params.append("type", "8");
+                params.append("subtype", "2");
+
+                _this.loading = true;
+                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
+                    _this.accountTransactionList = res1.data.transactions;
+                    _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                        if (res.errorDescription) {
+                            return _this.$message.error(res.errorDescription);
                         }
-                    }
-                    _this.miningList=poolArr1.concat(poolArr2);
-                    _this.totalSize = _this.miningList.length;
+                        /* for(let t of res.pools){
+                             if(t.creatorRS === _this.accountInfo.accountRS){
+                                 poolArr1.push(t);
+                             }else{
+                                 poolArr2.push(t);
+                             }
+                         }*/
+                        for(let t of res.pools){
+                            if(t.creatorRS === _this.accountInfo.accountRS ){
+                                console.info("t.creatorRS:"+t.creatorRS);
+                                console.info("_this.accountTransactionList:"+_this.accountTransactionList);
+                                let i=0;
+                                for(let p of _this.accountTransactionList) {
+                                    console.info("p.attachment.poolId:"+p.attachment.poolId);
+                                    if (p.attachment.poolId === t.poolId) {
+                                        poolArr1.push(t);
+                                        i++;
+                                        continue;
+                                    }
+                                    i++;
+                                    if(i > _this.accountTransactionList.length){
+                                        poolArr2.push(t);
+                                        break;
+                                    }
+
+                                }
+
+                            }else{
+                                let j=0;
+                                for(let p of _this.accountTransactionList) {
+                                    if (p.attachment.poolId === t.poolId) {
+                                        poolArr3.push(t);
+                                        j++;
+                                        continue;
+                                    }
+                                    j++;
+                                    if(j > _this.accountTransactionList.length){
+                                        poolArr4.push(t);
+                                        break;
+                                    }
+
+                                }
+
+                            }
+                        }
+
+                        _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                        _this.totalSize = _this.miningList.length;
+                        _this.loading = false;
+                    });
+                }).catch(function (err) {
                     _this.loading = false;
+                    _this.$message.error(err.message);
                 });
+
+
             },
+
             getMinerBlock(mining) {
                 let _t = this;
                 if (!_t.newestBlock) {
@@ -1020,12 +1099,12 @@
         height: 120px;
         color: #000;
         padding: 0;
-        font-size: 14px;
+        font-size: 15px;
         position: relative;
     }
 
     .grid-content .tag p {
-        padding-bottom: 15px;
+        padding-bottom: 12px;
         position: relative;
     }
 
