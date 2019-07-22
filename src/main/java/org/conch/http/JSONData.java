@@ -984,6 +984,8 @@ public final class JSONData {
                     attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
                 }  
             }
+
+            // join pool tx or deletion poo tx: convert the pool id
             
             json.put("attachment", attachmentJSON);
         }

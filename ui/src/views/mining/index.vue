@@ -81,7 +81,7 @@
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                     </h2>
-                                    <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
+                                    <p class="pool-no">No.{{mining.poolId}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
                                     <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} SS</p>
                                     <el-progress

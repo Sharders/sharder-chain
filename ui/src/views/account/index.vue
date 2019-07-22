@@ -208,10 +208,10 @@
                                         {{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txSId}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 2">
-                                        {{$t('transaction.transaction_type_forge_pool')}}:{{$global.longUnsigned(transaction.attachment.poolId)}}
+                                        {{$t('transaction.transaction_type_forge_pool')}}:{{transaction.attachment.poolId}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 1">
-                                        {{$t('transaction.transaction_type_forge_pool')}}:{{$global.longUnsigned(transaction.attachment.poolId)}}
+                                        {{$t('transaction.transaction_type_forge_pool')}}:{{transaction.attachment.poolId}}
                                     </span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9">
                                         {{$t('transaction.self')}}
