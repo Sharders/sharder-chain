@@ -952,8 +952,8 @@
 
     .mining-list .list-title {
         display: inline-block;
-        padding: 20px 0 16px;
-        font-size: 15px;
+        padding: 7px 0 7px;
+        font-size: 14px;
     }
 
     .mining-list .list-title + div {
@@ -1409,7 +1409,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 35%;
+            width: 50%;
         }
 
         .mining .mining-list-info .grid-content .tag {
