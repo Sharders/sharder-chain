@@ -25,6 +25,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
@@ -58,6 +59,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -160,8 +163,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 boolean upgradeCos = cmdObj.getBooleanValue(Command.UPGRADE_COS.val());
                 Logger.logDebugMessage("received upgradeCos is %s ",upgradeCos);
                 if(upgradeCos){
-                    Logger.logDebugMessage("start to auto upgrade...");
-                    ClientUpgradeTool.autoUpgrade(true);
+                    Logger.logDebugMessage("start to upgrade...");
+                    ClientUpgradeTool.upgradeCos(true);
                 }
             }
 
@@ -264,20 +267,22 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Conch.unpause();
         }
     }
-    
 
-    static final String PROPERTY_FORK_NAME = "sharder.forkName";
-    static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
-    public static void switchFork(){
+
+    public static final String PROPERTY_FORK_NAME = "sharder.forkName";
+    public static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
+    public static final String PROPERTY_SWITCH_TO_BOOT_FORK = "sharder.switchToBootFork";
+    public static String currentFork = Conch.getStringProperty(PROPERTY_FORK_NAME);
+    public static void forceSwitchForkAccordingToCmdTool(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
         
         Logger.logInfoMessage("Start to switch the fork to Giant");
-        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)) {
+ 
+        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)) {
             Logger.logDebugMessage("pause the blockchain till fork switched...");
             Conch.pause();
         }else{
-            Logger.logInfoMessage("Current node stay on the " + forkName + " already, no needs to switch");
+            Logger.logInfoMessage("Current node stay on the " + currentFork + " already, no needs to switch");
             return;
         }
         
@@ -306,6 +311,54 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
     }
     
+    /**
+     * - check the last cos version on the OSS
+     * - auto upgrade at the new version be found
+     */
+    static final String PROPERTY_CLOSE_AUTO_UPGRADE = "sharder.closeAutoUpgrade";
+    static final String UPDATE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    static final String UPDATE_DATE_FORMAT_SHORT = "yyyy-MM-dd HH:mm";
+
+    private static Date _convertUpdateDate(String dateStr) throws ParseException {
+        if(StringUtils.isEmpty(dateStr)) return null;
+        
+        // short date format 'yyyyy-MM-dd HH:mm'
+        if(dateStr.length() == 16) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT_SHORT);
+
+        // long date format 'yyyyy-MM-dd HH:mm:ss'
+        if(dateStr.length() == 19) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT);
+            
+        return null;
+    }
+    
+    public static void autoUpgrade(){
+        try {
+            com.alibaba.fastjson.JSONObject cosVerObj = ClientUpgradeTool.fetchLastCosVersion();
+            String version = cosVerObj.getString("version");
+            String updateTime = cosVerObj.getString("updateTime");
+            
+            boolean foundNewVersion = false;
+            if(Conch.versionCompare(version) == -1){
+                foundNewVersion = true;
+            }else if(Conch.versionCompare(version) == 0){
+                Date currentCosUpdateDate = _convertUpdateDate(ClientUpgradeTool.cosLastUpdateDate);
+                Date ossCosUpdateDate = _convertUpdateDate(updateTime);
+                if(ossCosUpdateDate != null && currentCosUpdateDate != null && currentCosUpdateDate.before(ossCosUpdateDate)){
+                    foundNewVersion = true; 
+                }
+            }
+
+            if(!foundNewVersion) return;
+            
+            Logger.logInfoMessage("[AutoUpgrade] Found a new version %s release date %s, auto upgrade current COS version %s to it"
+                    , version, updateTime, Conch.getVersion());
+            ClientUpgradeTool.upgradePackageThread(cosVerObj,true);
+            
+        } catch (Exception e) {
+            Logger.logErrorMessage("autoUpgrade occur unknown exception", e);
+        }
+    }
+    
     public static void init() {
         // manual reset
         String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
@@ -314,11 +367,18 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             manualReset();
         }
         
-        // switch fork
-        String forkName = Conch.getStringProperty(PROPERTY_FORK_NAME);
-        if(StringUtils.isEmpty(forkName) || !"Giant".equals(forkName)){
-            switchFork(); // execute immediately once
-            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
+//        // switch fork
+//        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
+//            forceSwitchForkAccordingToCmdTool(); // execute immediately once
+//            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
+//        }
+        
+        // auto upgrade
+        boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
+        if(!closeAutoUpgrade) {
+            int interval = Constants.isDevnet() ? 1 : 60;
+            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
+            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES); 
         }
         
         // correct the blockchain of Testnet
@@ -327,11 +387,11 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
     
     /**
-     * to correct the account balance of Testnet
+     * Reset the blockchain to correct the account balance of Testnet
      */
     public static void resetPoolAndAccounts(Block block){
-        boolean reachHeight = (block.getHeight() == Constants.TESTNET_POC_LEDGER_RESET_HEIGHT) 
-                || (block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT);
+        boolean reachHeight = (block.getHeight() == Constants.POC_LEDGER_RESET_HEIGHT) 
+                || (block.getHeight() == Constants.POC_NEW_ALGO_HEIGHT);
         
         if(!Constants.isTestnet() || !reachHeight) return;
         String logPrefix = "[Reset-Height " + block.getHeight() + "]";
@@ -352,7 +412,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                     Logger.logWarningMessage(logPrefix + "can't destroy pool, ignore it[" + pool.toJsonStr() + "]", e);
                 }
             }
-            PoolDb.saveOrUpdate(poolProcessors);
+            PoolDb.saveOrUpdate(null, poolProcessors);
             SharderPoolProcessor.instFromDB();
             Logger.logInfoMessage(logPrefix + " all pools be destroyed[size=%d,succeed=%d,failed=%d]",poolProcessors.size(),successCount,poolProcessors.size()-successCount);
             
@@ -386,7 +446,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                    for(long accountId : accountIds){
                        try {
                            Account account = Account.getAccount(accountId);
-                           if(block.getHeight() == Constants.TESTNET_POC_NEW_ALGO_HEIGHT){
+                           if(block.getHeight() == Constants.POC_NEW_ALGO_HEIGHT){
                                pocScoreList.add(Conch.getPocProcessor().calPocScore(account,block.getHeight()));
                                scoreRecalAccounts += account.getRsAddress() + ",";
                            }
@@ -466,9 +526,20 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     private static final Runnable switchForkThread = () -> {
         try {
-            switchFork();
+            forceSwitchForkAccordingToCmdTool();
         } catch (Exception e) {
             Logger.logErrorMessage("Switch fork thread interrupted caused by %s", e.getMessage());
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
+
+    private static final Runnable autoUpgradeThread = () -> {
+        try {
+            autoUpgrade();
+        } catch (Exception e) {
+            Logger.logErrorMessage("Auto upgrade thread interrupted caused by %s", e.getMessage());
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);

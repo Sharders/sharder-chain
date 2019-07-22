@@ -26,12 +26,10 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.mint.pool.SharderPoolProcessor;
-import org.conch.util.FileUtil;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -81,11 +79,11 @@ public final class Recovery extends APIServlet.APIRequestHandler {
         try {
             
             if(TYPE_RESET.equalsIgnoreCase(type)){
-                reset();
+                reset(restart);
             }else if(TYPE_FACTORY_RESET.equalsIgnoreCase(type)){
-                factoryReset();
+                factoryReset(restart);
             }else{
-                reset();
+                reset(restart);
             }
 
         } catch (Exception e) {
@@ -94,58 +92,30 @@ public final class Recovery extends APIServlet.APIRequestHandler {
             return response;
         } 
 
-        if (restart) {
-            new Thread(() -> Conch.restartApplication(null)).start();
-        }
-        
         response.put("done", true);
         return response;
-    }
-    
-    
-    private void resetProperties(boolean fullReset) throws RuntimeException, FileNotFoundException{
-        try {
-            Conch.pause();
-
-            // reset user define properties file
-            HashMap<String, String> paramMap = Maps.newHashMap();
-            if(fullReset){
-                paramMap.putAll(RESET_MAP);
-            }
-            
-            // delete the local db
-            paramMap.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
-            Conch.storePropertiesToFile(paramMap);
-
-            // delete log files
-            FileUtil.clearAllLogs();
-
-        } catch (RuntimeException | FileNotFoundException e) {
-           throw e;
-        } finally {
-            Conch.unpause();
-        }
     }
     
     /**
      * - rollback the blockchain to the height 0 or the last check point
      */
-    private void reset() throws FileNotFoundException {
-        resetProperties(false);
+    private void reset(boolean reboot) {
+        HashMap<String, String> paramMap = Maps.newHashMap();
+//        paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
+        Conch.resetAndReboot(paramMap, reboot);
     }
 
     /**
      * - rollback the blockchain to the height 0 or the last check point
      * - reset the hub to the factory state (need initialize the hub)
      */
-    private void factoryReset() throws ConchException.NotValidException, FileNotFoundException {
+    private void factoryReset(boolean reboot) throws ConchException.NotValidException {
         // working pool check
         long creatorId = Account.rsAccountToId(Conch.getStringProperty("sharder.HubBindAddress"));
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             throw new ConchException.NotValidException("Current user has created a working pool, failed to reset the hub");
         }
-
-        resetProperties(true);
+        Conch.resetAndReboot(Maps.newHashMap(RESET_MAP), reboot);
     }
 
     @Override

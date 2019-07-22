@@ -35,10 +35,7 @@ import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.*;
-import org.conch.chain.Blockchain;
-import org.conch.chain.BlockchainImpl;
-import org.conch.chain.BlockchainProcessor;
-import org.conch.chain.BlockchainProcessorImpl;
+import org.conch.chain.*;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
@@ -95,7 +92,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.7";
+    public static final String VERSION = "0.1.8";
     public static final String STAGE = "-Alpha";
     public static final String APPLICATION = "COS";
 
@@ -129,11 +126,6 @@ public final class Conch {
         return Constants.isMainnet() ? "beta" : Constants.isTestnet() ? "alpha" : "dev";
     }
 
-    public static String getBootNode(){
-        if(Constants.isDevnet()) return "devboot.sharder.io";
-        if(Constants.isTestnet()) return "testboot.sharder.io";
-        return "mainboot.sharder.io";
-    }
     
     public static String getNodeType(){
         CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(Account.rsAccountToId(Generator.getAutoMiningRS()), getHeight());
@@ -807,7 +799,7 @@ public final class Conch {
                 testSecureRandom();
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
-                Logger.logMessage("COS server " + getFullVersion() + " " + getCosLastUpgradeDate() + " started successfully.");
+                Logger.logMessage("COS server " + getFullVersion() + " " + getCosUpgradeDate() + " started successfully.");
                 Logger.logMessage("Copyright © 2017 sharder.org.");
                 Logger.logMessage("Distributed under MIT.");
                 if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI URL is " + API.getWelcomePageUri());
@@ -1071,9 +1063,41 @@ public final class Conch {
     
     
     /**
+     * 
+     * @param paramMap properties need be reset before reboot
+     * @param restart
+     * @return 
+     */
+    public static boolean resetAndReboot(HashMap<String, String> paramMap, boolean restart){
+        try {
+            Conch.pause();
+            
+            if(paramMap == null) paramMap = Maps.newHashMap();
+            // delete the local db
+            paramMap.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
+            Conch.storePropertiesToFile(paramMap);
+
+            // delete log files
+            FileUtil.clearAllLogs();
+
+            if (restart) {
+                new Thread(() -> Conch.restartApplication(null)).start();
+            }
+            
+        } catch (Exception e) {
+            Logger.logErrorMessage("reset settings and reboot failed",e);
+        } finally {
+            Conch.unpause();
+        }
+        return true;
+    }
+
+    /**
      * version compare
      * @param version compared version
-     * @return -1 : Conch.version < version; 0: version = Conch.version; 1 : Conch.version > version
+     * @return -1 : Conch.version < version; 
+     *         0 : Conch.version = version; 
+     *         1 : Conch.version > version
      */
     public static int versionCompare(String version){
         if(StringUtils.isEmpty(version)) return -1;
@@ -1094,6 +1118,6 @@ public final class Conch {
         return VERSION + STAGE;
     }
     public static String getVersion(){ return VERSION; }
-    public static String getCosLastUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
+    public static String getCosUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
 
 }

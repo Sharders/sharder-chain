@@ -33,6 +33,7 @@ import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
+import org.conch.http.ForceConverge;
 import org.conch.mint.Generator;
 import org.conch.tx.Transaction;
 import org.conch.util.*;
@@ -322,6 +323,7 @@ public final class Peers {
         myPeerInfoJson.put("version", Conch.VERSION);
         myPeerInfoJson.put("platform", Peers.myPlatform);
         myPeerInfoJson.put("shareAddress", Peers.shareMyAddress);
+        myPeerInfoJson.put("cosUpdateTime", Conch.getCosUpgradeDate());
         if (API.openAPIPort > 0 || API.openAPISSLPort > 0) {
             EnumSet<APIEnum> disabledAPISet = EnumSet.noneOf(APIEnum.class);
 
@@ -1344,40 +1346,67 @@ public final class Peers {
                 && (!applyPullThreshold || !Peers.enableHallmarkProtection || peer.getWeight() >= Peers.pullThreshold));
     }
 
-    public static Peer getWeightedPeer(List<Peer> selectedPeers) {
-        if (selectedPeers.isEmpty()) {
-            return null;
+
+    private static Map<String,Integer> weightedPeerCountMap = Maps.newConcurrentMap();
+    private static int MAX_CONNECT_CHECK_COUNT = (Constants.bootNodesHost.size() + 3) * 3;
+    /**
+     *  true: count < 3
+     *  false: 3 =< count <= 6
+     *  reset the count to 0 and re-calculate: count > 6
+     * @param peer
+     * @return
+     */
+    private synchronized static boolean countAndCheck(Peer peer) {
+        if(!weightedPeerCountMap.containsKey(peer.getHost())) {
+            weightedPeerCountMap.put(peer.getHost(), 0);
         }
+        int connectCount = weightedPeerCountMap.get(peer.getHost());
+    
+        if(connectCount >= 3 && connectCount < MAX_CONNECT_CHECK_COUNT) {
+            weightedPeerCountMap.put(peer.getHost(), connectCount+1);
+            return false;
+        } else if(connectCount >= MAX_CONNECT_CHECK_COUNT){
+            weightedPeerCountMap.put(peer.getHost(), 0);
+            return false;
+        } else {
+            weightedPeerCountMap.put(peer.getHost(), connectCount+1);
+        }
+
+        // cos version compare 
+        return  Conch.versionCompare(peer.getVersion()) <= 0;
+    }
+    /**
+     * remote node's cos version should larger than current cos version, and priority sequences is:
+     * - connected boot nodes
+     * - connected well-known nodes
+     * - normal nodes sorted by weight
+     * @param selectedPeers
+     * @return
+     */
+    public static Peer getWeightedPeer(List<Peer> selectedPeers) {
+        if (selectedPeers.isEmpty()) return null;
     
         long totalWeight = 0;
         for (Peer peer : selectedPeers) {
-            long weight = peer.getWeight();
-            if (weight == 0) {
-                weight = 1;
-            }
+            long weight = (peer.getWeight() == 0) ? 1 : peer.getWeight();
             totalWeight += weight;
-            // boot nodes check
-            if(Constants.isValidBootNode(peer)) {
+            // return boot node directly
+            if(Constants.isValidBootNode(peer)
+             && countAndCheck(peer)) {
                 return peer;
             }
-//            // larger version 
-//            if(Conch.versionCompare(peer.getVersion()) < 0) {
-//                return peer;
-//            }
         }
-        
+
         if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
-            return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
+            Peer randomPeer = selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
+            if(countAndCheck(randomPeer)) return randomPeer;
         }
         
         long hit = ThreadLocalRandom.current().nextLong(totalWeight);
         for (Peer peer : selectedPeers) {
-            long weight = peer.getWeight();
-            if (weight == 0) {
-                weight = 1;
-            }
+            long weight = (peer.getWeight() == 0) ? 1 : peer.getWeight();
             if ((hit -= weight) < 0) {
-                return peer;
+                if(countAndCheck(peer)) return peer;
             }
         }
         return null;
@@ -1554,20 +1583,42 @@ public final class Peers {
         }
         return services;
     }
-
+    
+    public static JSONObject getBlockchainSummary(){
+        JSONObject json = new JSONObject();
+        Block lastBlock = Conch.getBlockchain().getLastBlock();
+        if(lastBlock != null){
+            json.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
+            json.put("lastBlockHeight", lastBlock.getHeight());
+            json.put("lastBlockId", lastBlock.getId());
+            json.put("lastBlockHash",  Convert.toHexString(lastBlock.getPayloadHash()));
+            json.put("lastBlockGenerator", Account.rsAccount(lastBlock.getGeneratorId()));
+            json.put("lastBlockTimestamp", Convert.dateFromEpochTime(lastBlock.getTimestamp()));
+            json.put("currentFork", ForceConverge.currentFork);
+        }
+        return json;
+    }
+    
     private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
         // generate my peer details and update state
+        // generate the request and response api
         if (state != currentBlockchainState) {
-            JSONObject json = new JSONObject(myPeerInfo);
-            json.put("blockchainState", state.ordinal());
-            json.put("peerLoad", getBestPeerLoad().toJson());
-            myPeerInfoResponse = JSON.prepare(json);
-            json.put("requestType", "getInfo");
-            json.put("bestPeer", getBestPeerUri());
-            json.put("bestPeer", getBestPeerUri());
-            myPeerInfoRequest = JSON.prepareRequest(json);
+            JSONObject myPeerJson = generateMyPeerJson();
+            myPeerJson.put("blockchainState", state.ordinal());
+            myPeerInfoResponse = JSON.prepare(myPeerJson);
+
+            myPeerJson.put("requestType", "getInfo");
+            myPeerJson.put("bestPeer", getBestPeerUri());
+            myPeerInfoRequest = JSON.prepareRequest(myPeerJson);
             currentBlockchainState = state;
         }
+    }
+    
+    public static JSONObject generateMyPeerJson(){
+        JSONObject json = new JSONObject(myPeerInfo);
+        json.put("peerLoad", getBestPeerLoad().toJson());
+        json.putAll(getBlockchainSummary());
+        return json;
     }
 
     /**
@@ -1635,13 +1686,12 @@ public final class Peers {
         return myServices.contains(service);
     }
     
-    public static void checkOrConnectBootNode(){
-        Peer bootNode = Peers.getPeer(Conch.getBootNode(), true);
-        if(bootNode != null 
-            && Peer.State.CONNECTED != bootNode.getState()) {
-            
-            Peers.connectPeer(bootNode);
+    public static Peer checkOrConnectBootNode(){
+        Peer bootNode = Peers.getPeer(Constants.getBootNodeRandom(), true);
+        if(bootNode != null && Peer.State.CONNECTED != bootNode.getState()) {
+            connectPeer(bootNode);
         }
+        return bootNode;
     }
 
 }

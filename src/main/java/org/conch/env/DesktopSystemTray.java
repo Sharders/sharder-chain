@@ -21,7 +21,6 @@
 
 package org.conch.env;
 
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
@@ -267,12 +266,11 @@ public class DesktopSystemTray {
 //        addDataRow(statusPanel, getItemDisplay("DatabaseU"), Db.db == null ? getItemDisplay("Unavailable") : Db.db.getUrl());
         addEmptyRow(statusPanel);
 
-        String lastBlockEpochTime = DateFormatUtils.format(new Date(Convert.fromEpochTime(lastBlock.getTimestamp())),"yyyy-mm-dd HH:MM:SS");
         if (lastBlock != null) {
             addLabelRow(statusPanel, getItemDisplay("LastB"));
             addDataRow(statusPanel, getItemDisplay("Height"), String.valueOf(lastBlock.getHeight()));
             addDataRow(statusPanel, getItemDisplay("Timestamp"), String.valueOf(lastBlock.getTimestamp()));
-            addDataRow(statusPanel, getItemDisplay("Time"), lastBlockEpochTime);
+            addDataRow(statusPanel, getItemDisplay("Time"), Convert.dateFromEpochTime(lastBlock.getTimestamp()));
             addDataRow(statusPanel, getItemDisplay("SecondsP"), String.valueOf(Conch.getEpochTime() - lastBlock.getTimestamp()));
             addDataRow(statusPanel, getItemDisplay("Forging"), String.valueOf(allGenerators.size() > 0));
             if (allGenerators.size() > 0) {

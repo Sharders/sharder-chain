@@ -22,9 +22,11 @@
 package org.conch.http;
 
 import org.conch.Conch;
-import org.conch.db.*;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.db.FilteringIterator;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionProcessorImpl;
 import org.conch.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -81,12 +83,12 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
                 }
             }
             response.put("unconfirmedTransactions", transactions);
-        }catch(Exception e) {
+        } catch(Exception e) {
+            TransactionProcessorImpl.getInstance().processDirtyOrViciousTx(e);
             response.put("error", e.getMessage());
-        }finally {
+        } finally {
             Conch.getBlockchain().readUnlock();
         }
         return response;
     }
-
 }

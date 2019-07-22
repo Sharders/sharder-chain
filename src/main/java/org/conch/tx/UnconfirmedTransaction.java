@@ -25,7 +25,9 @@ import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.common.ConchException;
 import org.conch.db.*;
+import org.conch.util.Convert;
 import org.conch.util.Filter;
+import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -58,6 +60,15 @@ public class UnconfirmedTransaction implements Transaction {
             this.arrivalTimestamp = rs.getLong("arrival_timestamp");
             this.feePerByte = rs.getLong("fee_per_byte");
         } catch (ConchException.ValidationException e) {
+            Long id = rs.getLong("id");
+            Long dbId = rs.getLong("db_id");
+            int txHeight = rs.getInt("transaction_height");
+            int height = rs.getInt("height");
+            Long arrivalTimeL = rs.getLong("arrival_timestamp");
+            String arrivalTime = Convert.dateFromEpochTime(arrivalTimeL.intValue());
+            Logger.logErrorMessage("Can't new the unconfirmed tx[id=%d,dbId=%d,txHeight=%d,height=%d,arrivalTime=%s,arrivalTimeLong=%d]",
+                    id, dbId, txHeight, height, arrivalTime, arrivalTimeL);
+//            throw new RuntimeException("DirtyTxID=" + id + ";" + e.toString(), e);
             throw new RuntimeException(e.toString(), e);
         }
     }

@@ -32,37 +32,34 @@ public class ClientUpgradeTool {
     public static final String DB_ARCHIVE_DEFAULT = "default";
     
     public static final String PROPERTY_COS_UPDATE = "sharder.cosUpdateDate";
+    
+    
     public static final String cosLastUpdateDate = Conch.getStringProperty(PROPERTY_COS_UPDATE,"");
 
     public static boolean isFullUpgrade(String mode){
         return VER_MODE_FULL.equalsIgnoreCase(mode);
     }
 
-    public static void autoUpgrade(boolean restart) throws IOException {
-        try{
-            Conch.pause();
-            com.alibaba.fastjson.JSONObject cosVer = ClientUpgradeTool.fetchLastCosVersion();
-            upgradePackageThread(cosVer,restart);  
-        }finally{
-            Conch.unpause();
-        }
+    public static void upgradeCos(boolean restart) throws IOException {
+        upgradePackageThread(fetchLastCosVersion(),restart);  
     }
     
     public static Thread upgradePackageThread(com.alibaba.fastjson.JSONObject cosVerObj, Boolean restart) {
-        Thread upgradePackageThread = new Thread(
-                () -> {
-                    try {
-                        fetchAndInstallUpgradePackage(cosVerObj);
-                        if (restart) {
-                            Conch.restartApplication(null);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Thread.currentThread().interrupt();
-                    }
+        Thread upgradePackageThread = new Thread(() -> {
+            try {
+                Conch.pause();
+                fetchAndInstallUpgradePackage(cosVerObj);
+                if (restart) {
+                    Conch.restartApplication(null);
                 }
-
-        );
+            } catch (IOException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }finally {
+                Conch.unpause();
+            }
+        });
+        
         upgradePackageThread.setDaemon(true);
         upgradePackageThread.start();
         return upgradePackageThread;

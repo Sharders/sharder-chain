@@ -302,7 +302,8 @@ public class Generator implements Comparable<Generator> {
     };
     
     public static void blackGenerator(long generatorId){
-        blackedGenerators.add(generatorId);
+       // temporary closed, no needs to black the generator. - 2019.07.13
+       // blackedGenerators.add(generatorId);
     }
 
     /**

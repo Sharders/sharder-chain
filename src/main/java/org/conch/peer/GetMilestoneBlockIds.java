@@ -44,7 +44,8 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
         try {
 
             JSONArray milestoneBlockIds = new JSONArray();
-
+            
+            // compare the request node's last block id with the local 
             String lastBlockIdString = (String) request.get("lastBlockId");
             if (lastBlockIdString != null) {
                 long lastBlockId = Convert.parseUnsignedLong(lastBlockIdString);
