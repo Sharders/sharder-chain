@@ -1624,7 +1624,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 0 10px 70px 10px;
+            padding: 7px 8px 70px 10px;
         }
 
         .ranking-table th {
