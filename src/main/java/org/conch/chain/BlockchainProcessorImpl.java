@@ -1848,9 +1848,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     try{
                         transaction.apply();   
                     }catch(Account.DoubleSpendingException e){
-                        if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
-                            Logger.logWarningMessage("Ignore the double spending tx => " + transaction.getJSONObject().toJSONString());
-                            Logger.logErrorMessage("Ignore the double spending tx", e);
+                        // TODO remove the following code when launch the Mainnet
+                        if(block.getHeight() < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT){
+                            if(CheckSumValidator.isDoubleSpendingIgnoreTx(transaction)){
+                                Logger.logWarningMessage("Ignore the double spending tx => " + transaction.getJSONObject().toJSONString());
+                                Logger.logErrorMessage("Ignore the double spending tx", e);
+                            }else{
+                                throw e;
+                            } 
                         }else{
                             throw e;
                         }
