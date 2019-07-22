@@ -7,7 +7,7 @@
                     <img src="../../assets/img/shouyi.png" id="shouyi">
                     <div class="attribute-text">
                         <span class="pool-serial-number">
-                            {{$t('mining.attribute.pool_number')}} {{$global.longUnsigned(mining.poolId)}}
+                            {{$t('mining.attribute.pool_number')}} {{mining.poolId}}
                             | {{$t('mining.index.my_assets')}} {{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                             <!-- close chance of pool -->
                             <!-- | {{$t('mining.attribute.mining_probability')}}{{miningInfo.chance * 100}}%-->
@@ -98,7 +98,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_number')}}: {{$global.longUnsigned(mining.poolId)}}
+                                    {{$t('mining.attribute.pool_number')}}: {{mining.poolId}}
                                 </button>
                             </el-col>
                             <el-col :span="12">

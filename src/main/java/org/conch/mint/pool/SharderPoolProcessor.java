@@ -1017,6 +1017,7 @@ public class SharderPoolProcessor implements Serializable {
     public JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("poolId", String.valueOf(poolId));
+        jsonObject.put("poolStringId", String.valueOf(poolId));
         jsonObject.put("creatorID", String.valueOf(creatorId));
         jsonObject.put("creatorRS", Account.rsAccount(creatorId));
         jsonObject.put("level", level);

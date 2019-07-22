@@ -1818,6 +1818,28 @@ public final class Account {
                     units, currencyUnits));
         }
     }
+    
+    private long frozenAmountValidation(long amountNQT){
+        if(amountNQT >= 0) return amountNQT;
+        
+        long absAmount = Math.abs(amountNQT);
+        
+        // freeze amount is 0
+        if(this.frozenBalanceNQT == 0){
+            Logger.logWarningMessage("[Ledger] Want to subtract the Account %s [id=%d]'s freeze amount %d, but current freeze amount is 0, don't subtract anything at height %d"
+                    , Account.rsAccount(this.id), this.id, absAmount, Conch.getHeight());
+            return 0;
+        }
+
+        // not enough freeze amount
+        if(this.frozenBalanceNQT <= absAmount){
+            Logger.logWarningMessage("[Ledger] Want to subtract the Account %s [id=%d]'s freeze amount %d, but current freeze amount isn't enough, just subtract the current freeze amount %d at height %d" 
+                    , Account.rsAccount(this.id), this.id, absAmount, this.frozenBalanceNQT, Conch.getHeight());
+            return -this.frozenBalanceNQT;
+        }
+
+        return amountNQT;
+    }
 
     /**
      * - add frozen balance
@@ -1868,6 +1890,8 @@ public final class Account {
      */
     private void frozen(AccountLedger.LedgerEvent event, long eventId, long amountNQT, boolean changeUnconfirmed){
         if (amountNQT == 0)   return;
+
+        amountNQT = frozenAmountValidation(amountNQT);
         
         this.balanceNQT = Math.subtractExact(this.balanceNQT, amountNQT);
         if(changeUnconfirmed) {
