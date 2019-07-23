@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.time.DateUtils;
 import org.conch.account.*;
 import org.conch.addons.AddOns;
 import org.conch.asset.Asset;
@@ -86,6 +87,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1093,7 +1095,7 @@ public final class Conch {
     }
 
     /**
-     * version compare
+     * Version compare
      * @param version compared version
      * @return -1 : Conch.version < version; 
      *         0 : Conch.version = version; 
@@ -1107,6 +1109,59 @@ public final class Conch {
         
         return currentVerInt.compareTo(verInt);
     }
+
+    /**
+     * -1: compared version is a new version
+     * 0: compared version is a same version
+     * 1: compared version is a old version
+     * @param version compared version, format is x.x.x
+     * @param build build time, format is yyyy-MM-dd HH:mm:ss
+     * @return  -1 : Conch.version < version or Conch.version = version and build time is earlier than the compared version; 
+     *          0 : Conch.version = version and build time is same with the compared version; 
+     *          1 : Conch.version > version or Conch.version = version and build time is later than the compared version; 
+     */
+    public static int versionCompare(String version,String build){
+        try {
+            if(versionCompare(version) == -1){
+                return -1;
+            }else if(Conch.versionCompare(version) == 0){
+                Date currentBuild = _convertUpdateDate(ClientUpgradeTool.cosLastUpdateDate);
+                Date ossBuild = _convertUpdateDate(build);
+                
+                if(ossBuild == null) return 1;
+                if(currentBuild == null) return -1;
+                if(currentBuild.before(ossBuild)) return -1;
+                if(currentBuild.after(ossBuild)) return 1;
+                if(ossBuild.getTime() == currentBuild.getTime()) return 0;
+            }else if(Conch.versionCompare(version) == 1) {
+                return 1;
+            }
+        } catch (Exception e) {
+            Logger.logErrorMessage("versionCompare occur unknown exception", e);
+        }
+        return 0;
+    }
+
+
+    /**
+     * - check the last cos version on the OSS
+     * - auto upgrade at the new version be found
+     */
+    static final String UPDATE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    static final String UPDATE_DATE_FORMAT_SHORT = "yyyy-MM-dd HH:mm";
+
+    private static Date _convertUpdateDate(String dateStr) throws ParseException {
+        if(StringUtils.isEmpty(dateStr)) return null;
+
+        // short date format 'yyyyy-MM-dd HH:mm'
+        if(dateStr.length() == 16) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT_SHORT);
+
+        // long date format 'yyyyy-MM-dd HH:mm:ss'
+        if(dateStr.length() == 19) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT);
+
+        return null;
+    }
+    
     
     
     /**
