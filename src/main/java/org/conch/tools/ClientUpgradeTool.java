@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.db.Db;
 import org.conch.util.FileUtil;
@@ -96,12 +97,31 @@ public class ClientUpgradeTool {
         }
     }
 
+
+    public static void restoreDbFromOss() {
+        try {
+            String dbFileName = fetchDbArchiveDescriptionFile();
+            restoreDb(dbFileName);
+        } catch (IOException e) {
+            Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
+        }
+    }
+
+
     /**
-     * Local db can be updated by fetching archived db files
+     * Update the local db to the archived db file of the specified height
      * @param upgradeDbHeight the height of the archived db file
      */
-    public static void upgradeDbFile(String upgradeDbHeight) {
+    public static void restoreDbAtHeight(String upgradeDbHeight) {
         String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
+        restoreDb(dbFileName);
+    }
+    
+    /**
+     * Update the local db to specified archived db file
+     * @param dbFileName target restore db file name
+     */
+    private static void restoreDb(String dbFileName){
         try{
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
             Conch.pause();
@@ -109,15 +129,17 @@ public class ClientUpgradeTool {
             // fetch the specified archived db file
             File tempPath = new File("temp/");
             File archivedDbFile = new File(tempPath, dbFileName);
-            String downloadingUrl = UrlManager.getArchivedDbFileDownloadUrl(dbFileName);
+            String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
             Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
             FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
-
-            // backup old db folder
+   
+            // backup the old db folder
             String dbFolder = Paths.get(".",Db.getName()).toString();
             Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
             FileUtil.backupFolder(dbFolder, true);
 
+            //FileUtil.deleteDbFolder();
+            
             // unzip the archived db file into application root
             String appRoot = Paths.get(".").toString();
             Logger.logInfoMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
@@ -130,6 +152,7 @@ public class ClientUpgradeTool {
             Conch.unpause();
         }
     }
+
 
     /**
      * {
@@ -147,5 +170,34 @@ public class ClientUpgradeTool {
         Logger.logDebugMessage("fetch the last cos version from " + url);
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
         return JSON.parseObject(response.getContent());
+    }
+
+    public static final String DB_ARCHIVE_LAST_HEIGHT = "LastArchive";
+    public static final String DB_ARCHIVE_KNOWN_HEIGHT = "KnownArchive";
+    /**
+     * testLastArchive=sharder_test_db_12118
+     * testKnownArchive=sharder_test_db_268
+     * @return latest db archive
+     * @throws IOException
+     */
+    public static String fetchDbArchiveDescriptionFile() throws IOException {
+        String url = UrlManager.getDbArchiveDescriptionFileUrl();
+        Logger.logDebugMessage("fetch the db archive description file from " + url);
+        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
+        String content = response.getContent();
+        
+        JSONObject dbArchiveObj = new JSONObject();
+        while(StringUtils.isNotEmpty(content) 
+                && content.contains("\n\r")){
+            String[] array = content.split("\n\r");
+            if(array != null 
+            && array[0].contains("=")){
+                String[] heightConfigAry =array[0].split("=");
+                dbArchiveObj.put(heightConfigAry[0], heightConfigAry[1]);
+            }
+            content = array[1];
+        }
+        String envPrefix = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
+        return dbArchiveObj.getString(envPrefix + DB_ARCHIVE_LAST_HEIGHT);
     }
 }

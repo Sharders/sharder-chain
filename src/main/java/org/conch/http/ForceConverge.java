@@ -171,7 +171,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 Logger.logDebugMessage("received upgradeDb command and upgrade db height is %s ", upgradeDbHeight);
                 if(StringUtils.isNotEmpty(upgradeDbHeight)){
                     Logger.logDebugMessage("start to fetch archived db file from oss and upgrade local db...");
-                    ClientUpgradeTool.upgradeDbFile(upgradeDbHeight);
+                    ClientUpgradeTool.restoreDbAtHeight(upgradeDbHeight);
                 }
             }
 

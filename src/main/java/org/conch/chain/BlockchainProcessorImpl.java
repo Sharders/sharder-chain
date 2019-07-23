@@ -41,6 +41,7 @@ import org.conch.peer.Peers;
 import org.conch.storage.StorageBackup;
 import org.conch.storage.tx.StorageTx;
 import org.conch.storage.tx.StorageTxProcessorImpl;
+import org.conch.tools.ClientUpgradeTool;
 import org.conch.tx.*;
 import org.conch.util.*;
 import org.conch.vote.PhasingPoll;
@@ -111,9 +112,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 //    private volatile int lastBootNodeBlockHeight = -1;
 //    private static final int SMALLER_HEIGHT = 60;
     private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
+//    private static final int FORK_COUNT_RESTORE_DB = Constants.isDevnet() ? 25 : 40;
+    private static final int FORK_COUNT_RESTORE_DB = Constants.isDevnet() ? 1 : 1;
     private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 30;
     private static final int FORK_COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 20;
-    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 10: 10;
+//    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 10: 10;
+    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = 0;
     private int forkProcessFailedCount = 0;
     private int switchToBootNodeFailedCount = 0;
 //    private boolean isSwitchingToBootNodesFork = false;
@@ -648,7 +652,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //
             int myForkSize = blockchain.getHeight() - startHeight;
             if (!forkBlocks.isEmpty() && myForkSize < 720) {
-                Logger.logDebugMessage("Will process a fork of " + forkBlocks.size() + " blocks from start height %d, current block chain have %d size fork blocks from start height %d", startHeight, myForkSize, startHeight);
+                Logger.logDebugMessage("Will process a fork of %d blocks from start height %d, current block chain have %d size fork blocks from start height %d",
+                        forkBlocks.size() , startHeight, myForkSize, startHeight);
                 processFork(feederPeer, forkBlocks, commonBlock);
             }
 
@@ -762,12 +767,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 HashMap<String, String> paramMap = Maps.newHashMap();
 //                paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
                 Conch.resetAndReboot(paramMap,true);
+            } else if(switchToBootNodeFailedCount++ > FORK_COUNT_RESTORE_DB){
+                ClientUpgradeTool.restoreDbFromOss();
+            } else if(switchToBootNodeFailedCount++ > FORK_COUNT_FULL_RESET){
+                startHeight = 0;
             } else if(switchToBootNodeFailedCount++ > FORK_COUNT_LAST_CHECKPOINT){
                 // rollback to last check point when exception occurrence counts exceed the max count
                 startHeight = Constants.LAST_KNOWN_BLOCK;
-            } else if(switchToBootNodeFailedCount++ > FORK_COUNT_FULL_RESET){
-                startHeight = 0;
-            } else if(bootNodeHeight < Conch.getHeight() && bootNodeHeight > Constants.LAST_KNOWN_BLOCK) {
+            }else if(bootNodeHeight < Conch.getHeight() 
+                && bootNodeHeight > Constants.LAST_KNOWN_BLOCK) {
                 startHeight = bootNodeHeight;
             } else if(bootNodeHeight > Conch.getHeight()){
                 startHeight = Conch.getHeight() - 720;
@@ -789,8 +797,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 Conch.unpause();
             }
 
-            // synchronize the blocks from boot nodes
-            downloadBlockchain(peer, startBlock, startHeight);
+//            // synchronize the blocks from boot nodes
+//            downloadBlockchain(peer, startBlock, startHeight);
             
             // check the blockchain state after sync
             Block lastBlockAfterSync = blockchain.getLastBlock();
@@ -798,7 +806,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 switchToBootNodeFailedCount = 0;
                 forkProcessFailedCount = 0;
                 isSwitchingToBootNodesFork = false;
-                // Conch.storePropertieToFile(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "false");
+                // Conch.storePropertiesToFile(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "false");
                 Logger.logInfoMessage("Switched to BootNode %s[%s]'s fork, height is %d",peer.getAnnouncedAddress(), peer.getHost(), lastBlockAfterSync.getHeight());
                 return true;
             }
