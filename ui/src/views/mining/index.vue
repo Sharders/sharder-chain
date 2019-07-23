@@ -58,7 +58,7 @@
                 </span>
             </div>
             <div class="mining-list">
-                <h5>
+                <div class ="sort_type">
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
@@ -72,7 +72,7 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                </h5>
+                </div>
                 <div class="mining-list-info" v-loading="loading">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
@@ -92,9 +92,7 @@
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
-                                    <!--<p>
-                                        <img src="../../assets/img/kuangchisouyi.png">
-                                    </p>-->
+
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
                                         <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
@@ -1027,12 +1025,12 @@
 
     .mining-list .list-title {
         display: inline-block;
-        padding: 7px 0 7px;
+        padding: 14px 0 16px;
         font-size: 14px;
     }
 
     .mining-list .list-title + div {
-        top: 3px;
+        top: 4px;
     }
 
     .mining-list .mining-list-img {
