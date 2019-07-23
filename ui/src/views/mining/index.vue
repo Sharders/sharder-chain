@@ -80,6 +80,9 @@
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
+                                        <span v-if="mining.isJoin">
+                                            <img src="../../assets/img/chatu.png" height="19.2px" width="16px" style="padding-top: 5px">
+                                        </span>
                                     </h2>
                                     <p class="pool-no">No.{{$global.longUnsigned(mining.poolId)}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
@@ -89,9 +92,8 @@
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
-                                   <!-- <p>
+                                    <!--<p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{mining.senderRS}}</span>
                                     </p>-->
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
@@ -582,23 +584,7 @@
                 // _this.getAccountRanking();
 
             },
-          /*  getAccountTransactionList() {
-                const _this = this;
-                let params = new URLSearchParams();
-                console.info("_this.accountInfo.accountRS："+_this.accountInfo.accountRS);
-                params.append("account", _this.accountInfo.accountRS);
 
-                params.append("type", "8");
-                params.append("subtype", "2");
-
-                _this.loading = true;
-                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
-                    _this.accountTransactionList = res1.data.transactions;
-                }).catch(function (err) {
-                    _this.loading = false;
-                    _this.$message.error(err.message);
-                });
-            },*/
             getCoinBase(height) {
                 let _this = this;
                 _this.$global.fetch("GET", {
@@ -642,9 +628,13 @@
                 let poolArr4 = [];
 
                 let params = new URLSearchParams();
-                console.info("_this.accountInfo.accountRS："+_this.accountInfo.accountRS);
                 params.append("account", _this.accountInfo.accountRS);
+                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
 
+                let i = 0;
+                if (typeof _this.unconfirmedTransactionsList !== 'undefined') {
+                    i = _this.unconfirmedTransactionsList.length;
+                }
                 params.append("type", "8");
                 params.append("subtype", "2");
 
@@ -655,53 +645,59 @@
                         if (res.errorDescription) {
                             return _this.$message.error(res.errorDescription);
                         }
-                        /* for(let t of res.pools){
-                             if(t.creatorRS === _this.accountInfo.accountRS){
-                                 poolArr1.push(t);
-                             }else{
-                                 poolArr2.push(t);
-                             }
-                         }*/
-                        for(let t of res.pools){
-                            if(t.creatorRS === _this.accountInfo.accountRS ){
-                                console.info("t.creatorRS:"+t.creatorRS);
-                                console.info("_this.accountTransactionList:"+_this.accountTransactionList);
-                                let i=0;
-                                for(let p of _this.accountTransactionList) {
-                                    console.info("p.attachment.poolId:"+p.attachment.poolId);
-                                    if (p.attachment.poolId === t.poolId) {
-                                        poolArr1.push(t);
-                                        i++;
-                                        continue;
-                                    }
-                                    i++;
-                                    if(i > _this.accountTransactionList.length){
-                                        poolArr2.push(t);
-                                        break;
-                                    }
 
+                        if(_this.accountTransactionList.length === 0){
+                            for(let t of res.pools){
+                                if(t.creatorRS === _this.accountInfo.accountRS){
+                                    poolArr1.push(t);
+                                }else{
+                                    poolArr2.push(t);
                                 }
-
-                            }else{
-                                let j=0;
-                                for(let p of _this.accountTransactionList) {
-                                    if (p.attachment.poolId === t.poolId) {
-                                        poolArr3.push(t);
-                                        j++;
-                                        continue;
-                                    }
-                                    j++;
-                                    if(j > _this.accountTransactionList.length){
-                                        poolArr4.push(t);
-                                        break;
-                                    }
-
-                                }
-
                             }
-                        }
+                            _this.miningList=poolArr1.concat(poolArr2);
+                        } else{
+                            for(let t of res.pools){
+                                if(t.creatorRS === _this.accountInfo.accountRS ){
 
-                        _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                                    let i=0;
+                                    for(let p of _this.accountTransactionList) {
+
+                                        if (p.attachment.poolId === t.poolId) {
+                                            t.isJoin=true;
+                                            poolArr1.push(t);
+                                            i++;
+                                            break;
+                                        }
+                                        i++;
+                                        if(i === _this.accountTransactionList.length){
+                                            poolArr2.push(t);
+                                            continue;
+                                        }
+
+                                    }
+
+                                }else{
+                                    let j = 0;
+                                    for(let p of _this.accountTransactionList) {
+                                        if (p.attachment.poolId === t.poolId) {
+                                            t.isJoin=true;
+                                            poolArr3.push(t);
+                                            j++;
+                                            break;
+                                        }
+                                        j++;
+                                        if(j === _this.accountTransactionList.length){
+                                            poolArr4.push(t);
+                                            continue;
+                                        }
+
+                                    }
+
+                                }
+                            }
+
+                            _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                        }
                         _this.totalSize = _this.miningList.length;
                         _this.loading = false;
                     });
