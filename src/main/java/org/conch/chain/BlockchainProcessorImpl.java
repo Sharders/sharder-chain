@@ -112,17 +112,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 //    private volatile int lastBootNodeBlockHeight = -1;
 //    private static final int SMALLER_HEIGHT = 60;
     private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
-//    private static final int FORK_COUNT_RESTORE_DB = Constants.isDevnet() ? 25 : 40;
-    private static final int FORK_COUNT_RESTORE_DB = Constants.isDevnet() ? 1 : 1;
-    private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 30;
-    private static final int FORK_COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 20;
-//    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 10: 10;
-    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = 0;
+    private static final int FORK_COUNT_RESTORE_DB = Constants.isDevnet() ? 25 : 30;
+    private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 20;
+    private static final int FORK_COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 10;
+    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 5: 5;
     private int forkProcessFailedCount = 0;
     private int switchToBootNodeFailedCount = 0;
 //    private boolean isSwitchingToBootNodesFork = false;
+    
     private boolean isSwitchingToBootNodesFork = Conch.getBooleanProperty(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK);
-
+    private volatile boolean isRestoringDb = false;
+        
     private final Runnable getMoreBlocksThread = new Runnable() {
         @Override
         public void run() {
@@ -768,7 +768,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 //                paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
                 Conch.resetAndReboot(paramMap,true);
             } else if(switchToBootNodeFailedCount++ > FORK_COUNT_RESTORE_DB){
-                ClientUpgradeTool.restoreDbFromOss();
+                if(isRestoringDb) return false;
+                
+                isRestoringDb = true;
+                new Thread(() -> {
+                    ClientUpgradeTool.restoreDbFromOss();
+                    Conch.restartApplication(null);
+                }).start();
+                return false;
             } else if(switchToBootNodeFailedCount++ > FORK_COUNT_FULL_RESET){
                 startHeight = 0;
             } else if(switchToBootNodeFailedCount++ > FORK_COUNT_LAST_CHECKPOINT){

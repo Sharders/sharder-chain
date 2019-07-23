@@ -100,13 +100,12 @@ public class ClientUpgradeTool {
 
     public static void restoreDbFromOss() {
         try {
-            String dbFileName = fetchDbArchiveDescriptionFile();
+            String dbFileName = fetchDbArchiveDescriptionFile() + ".zip";
             restoreDb(dbFileName);
         } catch (IOException e) {
             Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
         }
     }
-
 
     /**
      * Update the local db to the archived db file of the specified height
@@ -188,8 +187,8 @@ public class ClientUpgradeTool {
         
         JSONObject dbArchiveObj = new JSONObject();
         while(StringUtils.isNotEmpty(content) 
-                && content.contains("\n\r")){
-            String[] array = content.split("\n\r");
+                && content.contains("\n")){
+            String[] array = content.split("\n");
             if(array != null 
             && array[0].contains("=")){
                 String[] heightConfigAry =array[0].split("=");

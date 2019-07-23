@@ -985,6 +985,7 @@ public final class Conch {
      */
     public static void restartApplication(Runnable runBeforeRestart) {
         try {
+            pause();
             // java binary
             String java = System.getProperty("java.home") + "/bin/java";
             // vm arguments
@@ -1038,12 +1039,14 @@ public final class Conch {
             // something went wrong
             e.printStackTrace();
             Logger.logErrorMessage("restart application error",e);
+        } finally {
+            unpause();
         }
     }
     
     public static boolean pause(){
         try{
-            Conch.getBlockchainProcessor().setGetMoreBlocks(false);
+            getBlockchainProcessor().setGetMoreBlocks(false);
             Generator.pause(true); 
         }catch(Exception e){
             Logger.logErrorMessage("pause failed",e);
