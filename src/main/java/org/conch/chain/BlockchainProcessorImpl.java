@@ -367,7 +367,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     + forkProcessFailedCount
                     );
                 } else {
-                    checkAndSwitchToBootNodesFork();
+//                    checkAndSwitchToBootNodesFork();
                     Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork"
                             + ", fork switch failed count " + forkProcessFailedCount);
                 }
@@ -724,6 +724,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }
             forkProcessFailedCount++;
+            checkAndSwitchToBootNodesFork();
         } else {
             Logger.logDebugMessage("Switched to peer's fork");
             for (BlockImpl block : myPoppedOffBlocks) {
