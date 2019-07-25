@@ -78,10 +78,12 @@ public class ClientUpgradeTool {
         if(StringUtils.isNotEmpty(bakMode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakMode)) {
             delete = false;
         }
-        if (!archive.exists()) {
-            Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
-            FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
+        
+        if(archive.exists()) {
+            archive.delete();
         }
+        Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
+        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
         Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
         FileUtil.unzipAndReplace(archive, mode, delete);
         try {
@@ -130,6 +132,10 @@ public class ClientUpgradeTool {
             File archivedDbFile = new File(tempPath, dbFileName);
             String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
             Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+            
+            if(archivedDbFile.exists()){
+                archivedDbFile.delete();
+            }
             FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
    
             // backup the old db folder

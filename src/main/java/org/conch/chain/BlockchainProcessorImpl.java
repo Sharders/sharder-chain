@@ -137,6 +137,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         }
                         return;
                     }
+//                    else {
+//                        // restart the server
+//                        if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME) {
+//                            Peers.checkOrConnectBootNode();
+//                        }
+//                    }
 
                     if (Conch.hasSerialNum() && !Constants.hubLinked) {
                         if (Logger.printNow(Constants.BlockchainProcessor_P_getMoreBlocks)) {
