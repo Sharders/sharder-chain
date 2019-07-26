@@ -292,7 +292,7 @@
                             </el-table-column>
                             <el-table-column :label="$t('dialog.account_info_account')" width="220">
                                 <template slot-scope="scope">
-                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === this.SSO.accountRS" style="color:green;"></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === this.SSO.accountRS" style="color:#14c6fc;"></div>
                                     <div v-html="scope.row.accountRS" v-if="scope.row.accountRS != this.SSO.accountRS" style=""></div>
                                 </template>
                             </el-table-column>
