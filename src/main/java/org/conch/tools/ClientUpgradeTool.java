@@ -2,6 +2,7 @@ package org.conch.tools;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -102,7 +105,7 @@ public class ClientUpgradeTool {
 
     public static void restoreDbFromOss() {
         try {
-            String dbFileName = fetchDbArchiveDescriptionFile() + ".zip";
+            String dbFileName = fetchLastDbArchive() + ".zip";
             restoreDb(dbFileName);
         } catch (IOException e) {
             Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
@@ -177,20 +180,24 @@ public class ClientUpgradeTool {
         return JSON.parseObject(response.getContent());
     }
 
-    public static final String DB_ARCHIVE_LAST_HEIGHT = "LastArchive";
-    public static final String DB_ARCHIVE_KNOWN_HEIGHT = "KnownArchive";
+    private static final String KEY_DB_LAST_ARCHIVE = "LastArchive";
+    private static final String KEY_DB_ARCHIVE_KNOWN_HEIGHT = "KnownArchive";
+    
+    public static String lastDbArchive = null;
+    public static List<Integer> knownDbArchives = Lists.newArrayList();
     /**
      * testLastArchive=sharder_test_db_12118
      * testKnownArchive=sharder_test_db_268
      * @return latest db archive
      * @throws IOException
      */
-    public static String fetchDbArchiveDescriptionFile() throws IOException {
+    public static String fetchLastDbArchive() throws IOException {
         String url = UrlManager.getDbArchiveDescriptionFileUrl();
         Logger.logDebugMessage("fetch the db archive description file from " + url);
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
         String content = response.getContent();
         
+        // parse the description file
         JSONObject dbArchiveObj = new JSONObject();
         while(StringUtils.isNotEmpty(content) 
                 && content.contains("\n")){
@@ -202,7 +209,33 @@ public class ClientUpgradeTool {
             }
             content = array[1];
         }
+        
         String envPrefix = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
-        return dbArchiveObj.getString(envPrefix + DB_ARCHIVE_LAST_HEIGHT);
+        // last db archive
+        if(dbArchiveObj.containsKey(envPrefix + KEY_DB_LAST_ARCHIVE)){
+            lastDbArchive = dbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE) + ".zip";
+        }
+        
+        // known archive height
+        if(dbArchiveObj.containsKey(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
+            String knownHeightStr = dbArchiveObj.getString(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
+            if(StringUtils.isNotEmpty(knownHeightStr)) {
+                String[] array = content.split(",");
+                for(int i = 0 ; i < array.length ; i++){
+                    knownDbArchives.add(Integer.valueOf(array[i]));
+                }
+            }
+        }
+        Collections.sort(knownDbArchives);
+        return lastDbArchive;
     }
+
+    public static String getKnownDbArchive() {
+        return "";
+    }
+    
+    public static int getKnownDbArchiveSize() {
+        return knownDbArchives.size();
+    }
+    
 }
