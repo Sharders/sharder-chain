@@ -10,26 +10,25 @@
                             <strong>{{$t('network.block_list_fee')}}:</strong>{{formatAmount(rowData)}}
                         </p>-->
                         <p v-if="rowData.poolInfo.poolId" class="node-type">
-                            <strong>{{$t('transaction.transaction_pool_id')}}:</strong>{{ rowData.poolInfo.poolId }}
+                            <strong>{{$t('transaction.transaction_pool_id')}}: </strong>{{ rowData.poolInfo.poolId }}
                         </p>
                         <p v-if="rowData.poolInfo.amount" class="node-type">
-                            <strong>{{$t('transaction.transaction_amount')}}:</strong>{{formatAmount(rowData)}}
+                            <strong>{{$t('transaction.transaction_amount')}}: </strong>{{formatAmount(rowData)}}
                         </p>
-                        <p v-if="rowData.poolInfo.period" class="node-type">
-                            <strong>{{$t('mining.attribute.remaining_mining_time')}}:</strong>{{rowData.poolInfo.period}}
-                        </p>
+<!--                        <p v-if="rowData.poolInfo.period" class="node-type">-->
+<!--                            <strong>{{$t('mining.attribute.remaining_mining_time')}}:</strong>{{rowData.poolInfo.period}}-->
+<!--                        </p>-->
                         <p v-if="rowData.poolInfo.txSId" class="node-type">
                             <strong>txSId:</strong>{{rowData.poolInfo.txSId}}
                         </p>
                         <p v-if="rowData.poolInfo.txId" class="node-type">
-                            <strong>{{$t('mining.attribute.tx_id')}}:</strong>{{rowData.poolInfo.txId}}
+                            <strong>{{$t('mining.attribute.tx_id')}}: </strong>{{rowData.poolInfo.txId}}
                         </p>
                         <p v-if="rowData.poolInfo.rule" class="node-type">
-                            <strong>{{$t('mining.index.Income_distribution')}}:</strong>{{rowData.poolInfo.rule.forgepool.reward}}
-                            <strong>{{$t('network.block_list_fee')}}:</strong>{{$global.getTransactionFeeNQT(rowData)}}
-
+                            <strong>{{$t('mining.index.Income_distribution')}}: </strong>{{rowData.poolInfo.rule.forgepool.reward}}
+                            <br/>
+                            <strong>{{$t('network.block_list_fee')}}: </strong>{{$global.getTransactionFeeNQT(rowData)}}
                         </p>
-
                     </el-card>
                 </el-col>
             </el-row>
