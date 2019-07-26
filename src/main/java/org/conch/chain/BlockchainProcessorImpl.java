@@ -108,18 +108,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     private int totalBlocks;
     
     // auto fork switch
-//    private volatile int lastBootNodeBlockHeight = -1;
-//    private static final int SMALLER_HEIGHT = 60;
     private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
-    private static final int FORK_COUNT_RESTORE_DB = Constants.isDevnet() ? 25 : 20;
-//    private static final int FORK_COUNT_FULL_RESET = Constants.isDevnet() ? 20 : 20;
-    private static final int FORK_COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 10;
-    private static final int FORK_COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 5: 5;
-    private int forkProcessFailedCount = 0;
+    private static final int COUNT_RESTORE_DB = Constants.isDevnet() ? 25 : 50;
+    private static final int COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 30;
+    private static final int COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 5: 20;
+    private int forkSwitchFailedCount = 0;
     private int switchToBootNodeFailedCount = 0;
-//    private boolean isSwitchingToBootNodesFork = false;
     
-    private boolean isSwitchingToBootNodesFork = Conch.getBooleanProperty(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK);
+    private boolean forceSwitchToBootNodesFork = false;
     private volatile boolean isRestoringDb = false;
         
     private final Runnable getMoreBlocksThread = new Runnable() {
@@ -234,7 +230,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             
             lastDownloadMS = System.currentTimeMillis();
             peerHasMore = true;
-            final Peer peer = isSwitchingToBootNodesFork ? 
+            final Peer peer = forceSwitchToBootNodesFork ? 
                     Peers.checkOrConnectBootNode() : Peers.getWeightedPeer(connectedPublicPeers);
             if (peer == null) return;
 
@@ -372,12 +368,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                     / ((long) totalBlocks * 1000 * 60)
                                     + " min left"
                                     + ", fork switch failed "
-                                    + forkProcessFailedCount
+                                    + forkSwitchFailedCount
                     );
                 } else {
 //                    checkAndSwitchToBootNodesFork();
                     Logger.logDebugMessage("Did not accept peer's blocks, back to our own fork"
-                            + ", fork switch failed count " + forkProcessFailedCount);
+                            + ", fork switch failed count " + forkSwitchFailedCount);
                 }
 
             } finally {
@@ -566,7 +562,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (nextBlocks.getStart() == 0 || nextBlocks.getRequestCount() != 0) {
                     peer = feederPeer;
                 } else {
-                    if(isSwitchingToBootNodesFork){
+                    if(forceSwitchToBootNodesFork){
                         peer = Peers.checkOrConnectBootNode();
                     }else{
                         if (nextPeerIndex >= connectedPublicPeers.size()) {
@@ -700,7 +696,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 .compareTo(curCumulativeDifficulty)
                 < 0;
         
-        if(isSwitchingToBootNodesFork && Constants.isValidBootNode(peer)){
+        if(forceSwitchToBootNodesFork && Constants.isValidBootNode(peer)){
             // in the boot node switching processing, don't check the CumulativeDifficulty
         }else{
             // check original difficulty(before pushed fork blocks) of chain with difficulty of pushed chain 
@@ -731,7 +727,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     break;
                 }
             }
-            forkProcessFailedCount++;
+            forkSwitchFailedCount++;
             checkAndSwitchToBootNodesFork();
         } else {
             Logger.logDebugMessage("Switched to peer's fork");
@@ -749,20 +745,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return peer.send(JSON.prepareRequest(request));
     }
     
-    public void forceToSwitchTooBootNodesFork(){
-        switchToBootNodeFailedCount = 11;
-    }
-
     public boolean checkAndSwitchToBootNodesFork() {
         try{
             if(Generator.isBootNode) return false;
-            if(forkProcessFailedCount < FORK_COUNT_SWITCH_TO_BOOT_NODE) return false;
+            if(ForceConverge.forceSwitchToBootForkClosed) return false;
+            if(forkSwitchFailedCount < COUNT_SWITCH_TO_BOOT_NODE) return false;
             
-            isSwitchingToBootNodesFork = true;
+            forceSwitchToBootNodesFork = true;
             // connect to the boot nodes
             Peer peer = Peers.checkOrConnectBootNode();
             if(peer == null) {
-                Logger.logWarningMessage("Can't connect to boot nodes in the BootNodeForkSwitching processing, break and wait for next round. ForkSwitchingFailed=%d, BootNodeForkSwitchingFailed=%d", forkProcessFailedCount, switchToBootNodeFailedCount);
+                Logger.logWarningMessage("Can't connect to boot nodes in the BootNodeForkSwitching processing, break and wait for next round. ForkSwitchingFailed=%d, SwitchToBootNodeFailedCount=%d", forkSwitchFailedCount, switchToBootNodeFailedCount);
                 return false;
             }
             Logger.logInfoMessage("Start to switch to BootNode %s[%s]'s fork",peer.getAnnouncedAddress(), peer.getHost());
@@ -774,7 +767,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             long lastBlockId = blockchain.getLastBlock().getId();
 
             // restore to lastest db archive
-            if(switchToBootNodeFailedCount++ > FORK_COUNT_RESTORE_DB){
+            if(switchToBootNodeFailedCount++ > COUNT_RESTORE_DB){
                 if(isRestoringDb) return false;
                 
                 isRestoringDb = true;
@@ -785,7 +778,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 
                 return false;
                 
-            } else if(switchToBootNodeFailedCount++ > FORK_COUNT_LAST_CHECKPOINT){
+            } else if(switchToBootNodeFailedCount++ > COUNT_LAST_CHECKPOINT){
                 // restore to the check point(known db archive)
                 // TODO
                 startHeight = Constants.LAST_KNOWN_BLOCK;
@@ -843,8 +836,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     
     private void bootNodeForkSwitchSuccess(){
         switchToBootNodeFailedCount = 0;
-        forkProcessFailedCount = 0;
-        isSwitchingToBootNodesFork = false;
+        forkSwitchFailedCount = 0;
+        forceSwitchToBootNodesFork = false;
     }
     
     
