@@ -23,6 +23,14 @@ const cn = {
         'enable_nat_traversal': "启动内网穿透服务",
         'has_public_address': '我有公网',
         'sharder_account': "SHARDER官网账户",
+        'register_sharder_account':"注册sharder官网账户",
+        'sharder_account_phone_or_email':"注册手机号或邮箱",
+        'verification_code':"验证码",
+        'send_verification_code':"发送验证码",
+        'resend_verification_code':"重新发送",
+        'set_sharder_account_password': "设置sharder账户密码",
+        'confirm_sharder_account_password': "确认sharder账户密码",
+        'picture_verification_code':"图片验证码",
         'sharder_account_password': "SHARDER账户密码",
         'nat_traversal_address': "穿透服务地址",
         'nat_traversal_port': "穿透服务端口",
@@ -51,6 +59,7 @@ const cn = {
         'register_status_pending': "申请中",
         'register_status_approval': "有效",
         'create_account': "创建账户",
+
     },
     upgrade: {
         'title': "COS版本升级",
@@ -804,6 +813,7 @@ const cn = {
         'input_account': "请输入账户",
         'account_error': "账户错误",
         'input_tip_length': "密钥小于50位长度存在被破解的安全隐患，请设置50位以上长度的密钥",
+        'input_sharder_site_pwd':"请输入SHARDER官网密码",
     },
     dialog: {
         'account_info_title1': "账户",
@@ -902,6 +912,8 @@ const cn = {
         'login_no_input_error': "请输入账号或私钥",
         'insufficient_permissions': "权限不足",
         'success_to_register_nat': "NAT服务申请成功，请等待审核",
+        'sendVCode':"发送验证码必须填写注册手机号或者邮箱",
+        '':"",
     },
     enter: {
         'enter_tip': "您的密钥非常重要，请确保您已妥善备份！请填写上一步生成的密钥",
@@ -918,7 +930,12 @@ const cn = {
         plz_input_admin_pwd: '请输入管理员密码',
         plz_input_address_admin_pwd: '请输入节点地址和管理员密码',
         plz_input_admin_pwd_again: '请再次输入管理员密码',
+        'plz_input_sharder_pwd': '请输入SHARDER官网登录密码',
+        'plz_input_sharder_pwd_again': '请再次输入SHARDER官网登录密码',
         inconsistent_admin_password: "两次输入的管理员密码不一致！",
+        'inconsistent_sharder_password': "两次输入的SHARDER官网注册密码不一致！",
+        'plz_input_pic_code': '请输入图片验证码',
+        'plz_input_phone_or_email':"请输入手机号或者邮箱",
     },
     reward: {
         "exchange_success": "兑换成功",
