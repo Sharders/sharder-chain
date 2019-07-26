@@ -173,7 +173,7 @@
                     <div class="modal-body modal-miner">
                         <el-table
                             :data="minerlist"
-                            style="width: 100%">
+                            style="width: 100%" >
                             <el-table-column type="expand">
                                 <template slot-scope="props">
                                     <el-form label-position="left" inline>
@@ -290,10 +290,11 @@
                                     </el-form>
                                 </template>
                             </el-table-column>
-                            <el-table-column
-                                prop="accountRS"
-                                :label="$t('dialog.account_info_account')"
-                                width="220">
+                            <el-table-column :label="$t('dialog.account_info_account')" width="220">
+                                <template slot-scope="scope">
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === this.SSO.accountRS" style="color:green;"></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS != this.SSO.accountRS" style=""></div>
+                                </template>
                             </el-table-column>
                             <el-table-column
                                 prop="bindPeerType"
@@ -340,6 +341,7 @@
                 accountInfo: [],
                 minerlistDialog: false,
                 minerlist: [],
+                isMyMinerDialog:false,
                 minerlistHeight: 590,
                 lastBlockRS:'',
                 peersLocationList: {},
@@ -395,11 +397,20 @@
             },
             httpGetNextBlockGenerators(){
                 const _this = this;
+                let poolArr1 = [];
+                let poolArr2 = [];
                 _this.$global.fetch("GET", {
                     limit: 99999
                 }, "getNextBlockGenerators").then(res => {
                     _this.activeCount = res.activeCount;
-                    _this.minerlist = res.generators;
+                    for(let t of res.generators){
+                        if(t.accountRS === SSO.accountRS){
+                            poolArr1.push(t);
+                        }else{
+                            poolArr2.push(t);
+                        }
+                    }
+                    _this.minerlist = poolArr1.concat(poolArr2);
                 }).catch(err => {
                     console.info("error", err);
                 });
