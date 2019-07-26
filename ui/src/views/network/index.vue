@@ -10,7 +10,7 @@
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_height')}}</p>
                         <p><span>{{newestHeight}}</span></p>
-                        <p>{{$t('network.block_newest_time')}}{{newestTime}}</p>
+                        <p>{{lastBlockRS}}|{{newestTime}}</p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_avg_transaction_volume')}}</p>
@@ -341,7 +341,7 @@
                 minerlistDialog: false,
                 minerlist: [],
                 minerlistHeight: 590,
-
+                lastBlockRS:'',
                 peersLocationList: {},
                 peersTimeList: [],
 
@@ -449,6 +449,7 @@
 
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
+                    _this.lastBlockRS = res.blocks[0].generatorRS;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {

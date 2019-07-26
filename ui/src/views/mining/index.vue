@@ -58,7 +58,7 @@
                 </span>
             </div>
             <div class="mining-list">
-                <h5>
+                <div class ="sort_type">
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
@@ -72,7 +72,7 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                </h5>
+                </div>
                 <div class="mining-list-info" v-loading="loading">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
@@ -81,7 +81,7 @@
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                         <span v-if="mining.isJoin">
-                                            <img src="../../assets/img/chatu.png" height="19.2px" width="16px" style="padding-top: 5px">
+                                            <img src="../../assets/img/chatu.png" height="25px" style="padding-bottom: 3px;float: right">
                                         </span>
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
@@ -92,9 +92,7 @@
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
-                                    <!--<p>
-                                        <img src="../../assets/img/kuangchisouyi.png">
-                                    </p>-->
+
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
                                         <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
@@ -236,7 +234,7 @@
                     </table>
                     <div class="my-assets">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
-<!--                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}-->
+                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -578,10 +576,8 @@
                     _this.accountInfo = res;
                 });
 
-
-
-                // _this.getAssetsRanking();
-                // _this.getAccountRanking();
+                 _this.getAssetsRanking();
+                 _this.getAccountRanking();
 
             },
 
@@ -611,13 +607,25 @@
             },
             getAccountRanking() {
                 let _this = this;
+                let start = new Date();
                 _this.$global.fetch("POST", {
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
                     if (res.success) {
+                        /*let i = 0;
+                        for(let t of res.data){
+                            if(SSO.account === t.ID){
+                                _this.myRanking =i+1;
+                                break;
+                            }else{
+                                i++;
+                            }
+                        }*/
                         _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
+                let end = new Date();
+                console.info("执行时间："+(end.getMilliseconds()-start.getMilliseconds()));
             },
             getPools(parameter) {
                 let _this = this;
@@ -1027,12 +1035,12 @@
 
     .mining-list .list-title {
         display: inline-block;
-        padding: 7px 0 7px;
+        padding: 14px 0 16px;
         font-size: 14px;
     }
 
     .mining-list .list-title + div {
-        top: 3px;
+        top: 4px;
     }
 
     .mining-list .mining-list-img {
