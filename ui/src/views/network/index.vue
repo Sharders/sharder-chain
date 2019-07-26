@@ -10,7 +10,8 @@
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_height')}}</p>
                         <p><span>{{newestHeight}}</span></p>
-                        <p>{{lastBlockRS}}|{{newestTime}}</p>
+<!--                        <p>{{$t('network.block_newest_time')}}{{newestTime}}</p>-->
+                        <p>{{lastBlockRS}} | {{newestTime}}</p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_avg_transaction_volume')}}</p>

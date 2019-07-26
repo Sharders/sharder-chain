@@ -42,7 +42,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
         }
         long endMS = System.currentTimeMillis();
         long between = endMS - startMS;
-        Logger.logInfoMessage("GetAccountRanking Api: %d S, %d MS", between/1000L, between);
+        Logger.logDebugMessage("GetAccountRanking Api: %d S, %d MS", between/1000L, between);
         return json;
     }
 

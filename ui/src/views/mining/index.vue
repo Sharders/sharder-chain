@@ -81,7 +81,7 @@
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                         <span v-if="mining.isJoin">
-                                            <img src="../../assets/img/chatu.png" height="25px" style="padding-bottom: 3px;float: right">
+                                            <img class="pool-badge" src="../../assets/img/chatu.png" height="25px">
                                         </span>
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
@@ -575,9 +575,10 @@
                     }
                     _this.accountInfo = res;
                 });
-
-                 _this.getAssetsRanking();
-                 _this.getAccountRanking();
+                
+                 // temporary closed
+                 //_this.getAssetsRanking();
+                 // _this.getAccountRanking();
 
             },
 
@@ -607,25 +608,13 @@
             },
             getAccountRanking() {
                 let _this = this;
-                let start = new Date();
                 _this.$global.fetch("POST", {
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
                     if (res.success) {
-                        /*let i = 0;
-                        for(let t of res.data){
-                            if(SSO.account === t.ID){
-                                _this.myRanking =i+1;
-                                break;
-                            }else{
-                                i++;
-                            }
-                        }*/
                         _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
-                let end = new Date();
-                console.info("执行时间："+(end.getMilliseconds()-start.getMilliseconds()));
             },
             getPools(parameter) {
                 let _this = this;
@@ -908,6 +897,12 @@
         color: #14c6fc;
     }
 
+    .pool-badge {
+        padding-bottom: 3px;
+        padding-right: 5px;
+        float: right;
+    }
+
 </style>
 <!--豆匣矿场-->
 <style scoped>
@@ -1040,7 +1035,7 @@
     }
 
     .mining-list .list-title + div {
-        top: 4px;
+        /*top: 4px;*/
     }
 
     .mining-list .mining-list-img {
