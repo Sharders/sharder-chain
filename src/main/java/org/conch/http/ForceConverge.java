@@ -329,6 +329,14 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     public static void init() {
+        // auto upgrade
+        boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
+        if(!closeAutoUpgrade) {
+            int interval = Constants.isDevnet() ? 1 : 60;
+            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
+            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES);
+        }
+        
         // manual reset
         String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
         boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
@@ -341,14 +349,6 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 //            forceSwitchForkAccordingToCmdTool(); // execute immediately once
 //            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
 //        }
-        
-        // auto upgrade
-        boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
-        if(!closeAutoUpgrade) {
-            int interval = Constants.isDevnet() ? 1 : 60;
-            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
-            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES); 
-        }
         
         // correct the blockchain of Testnet
         Conch.getBlockchainProcessor().addListener(block -> resetPoolAndAccounts(block), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);

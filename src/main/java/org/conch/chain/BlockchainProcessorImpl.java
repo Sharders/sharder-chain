@@ -110,12 +110,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // auto fork switch
     private static final int FORK_COUNT_RESET_REBOOT = Constants.isDevnet() ? 30 : 50;
     private static final int COUNT_RESTORE_DB = Constants.isDevnet() ? 25 : 50;
-    private static final int COUNT_LAST_CHECKPOINT = Constants.isDevnet() ? 10: 30;
     private static final int COUNT_SWITCH_TO_BOOT_NODE = Constants.isDevnet() ? 5: 20;
     
     // 30 min
     private static final long FORCE_SWITCH_INTERVAL = 30*60*1000L;
-    private static long lastFroceSwitchMS = -1L;
+    private static long lastForceSwitchMS = -1L;
     
     private int forkSwitchFailedCount = 0;
     private int switchToBootNodeFailedCount = 0;
@@ -221,18 +220,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 return;
             }
             
-//            if(lastBootNodeBlockHeight == -1) {
-//                Peer peer = Peers.checkOrConnectBootNode();
-//                JSONObject response = getPeersDifficulty(peer);
-//                if (response != null) {
-//                    lastBootNodeBlockHeight = response.get("blockchainHeight") != null ? ((Long) response.get("blockchainHeight")).intValue() : -1;
-//                }
-//            }
-//            if(lastBootNodeBlockHeight == -1) {
-//                Logger.logWarningMessage("Can't connected to boot nodes, break syn blocks...");
-//                return;
-//            }
-            
             lastDownloadMS = System.currentTimeMillis();
             peerHasMore = true;
             final Peer peer = forceSwitchToBootNodesFork ? 
@@ -258,10 +245,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             if (betterCumulativeDifficulty.equals(curCumulativeDifficulty)) return;
             
-//            if(!isRightHeight(lastBlockchainFeeder, lastBlockchainFeederHeight)){
-//                return;
-//            }
-
             // the cos version of the feeder peer is smaller than current peer
             if(Conch.versionCompare(peer.getVersion()) > 0) return;
 
@@ -391,16 +374,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-//    private boolean isRightHeight(Peer peer, int peerHeight){
-//        if(lastBootNodeBlockHeight != -1 && lastBootNodeBlockHeight - peerHeight > SMALLER_HEIGHT) {
-//            String msg = String.format("Peer %s contain the smaller height[%d] than boot node height[%d]"
-//                    ,peer.getAnnouncedAddress(), peerHeight, lastBootNodeBlockHeight);
-//            peer.blacklist(msg);
-//            Logger.logWarningMessage("Black the peer caused by: " + msg + ",break syn blocks...");
-//            return false;
-//        }
-//        return true;
-//    }
     
     /**
      * common milestone block id: org.conch.peer.GetMilestoneBlockIds
@@ -767,30 +740,22 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (response == null) return false;
             Integer bootNodeHeight = response.get("blockchainHeight") != null ? ((Long) response.get("blockchainHeight")).intValue() : 0;
             int startHeight = Conch.getHeight();
-            long lastBlockId = blockchain.getLastBlock().getId();
-            
             
             if(switchToBootNodeFailedCount++ < COUNT_RESTORE_DB) {
                 // rollback the local blockchain then fetch the blocks once
                 if(bootNodeHeight < Conch.getHeight() 
                 && bootNodeHeight > Constants.LAST_KNOWN_BLOCK) {
-                    // TODO
                     startHeight = bootNodeHeight;
                 } else if(bootNodeHeight > Conch.getHeight()){
                     startHeight = Conch.getHeight() - 12;
                 }
 
-                Block startBlock = blockchain.getBlockAtHeight(startHeight);
                 // rollback 
+                Block startBlock = blockchain.getBlockAtHeight(startHeight);
                 try{
                     Conch.pause();
-                    if(startHeight == 0){
-                        fullReset();
-                    }else{
-                        // rollback
-                        if(startHeight < Conch.getHeight()) {
-                            popOffTo(startBlock);
-                        }
+                    if(startHeight < Conch.getHeight()) {
+                        popOffTo(startBlock);
                     }
                 }finally {
                     Conch.unpause();
@@ -798,51 +763,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 
             }else {
                 // restore to the check point(known db archive)
-                
-            }
-            // restore to lastest db archive
-            if(switchToBootNodeFailedCount++ > COUNT_RESTORE_DB){
                 if(isRestoringDb) return false;
-                
+
                 isRestoringDb = true;
                 new Thread(() -> {
-                    ClientUpgradeTool.restoreDbFromOss();
+                    ClientUpgradeTool.restoreDbToKnownHeight();
                     Conch.restartApplication(null);
                 }).start();
-                
-                return false;
-                
-            } else if(switchToBootNodeFailedCount++ > COUNT_LAST_CHECKPOINT){
-               
-                // TODO
-                startHeight = Constants.LAST_KNOWN_BLOCK;
-            } 
-//            if(switchToBootNodeFailedCount++ > FORK_COUNT_RESET_REBOOT) {
-//                //manual reset and reboot
-//                HashMap<String, String> paramMap = Maps.newHashMap();
-////                paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
-//                Conch.resetAndReboot(paramMap,true);
-//            }
-////            else if(switchToBootNodeFailedCount++ > FORK_COUNT_FULL_RESET){
-////                startHeight = 0;
-////            } 
-       
-            
-            // rollback or full reset
-          
 
-//            // synchronize the blocks from boot nodes
-//            downloadBlockchain(peer, startBlock, startHeight);
+                return false;
+            }
             
-//            // check the blockchain state after sync
-//            Block lastBlockAfterSync = blockchain.getLastBlock();
-//            if(lastBlockAfterSync.getHeight() > startHeight 
-//                && lastBlockAfterSync.getId() != lastBlockId){
-//                bootNodeForkSwitchSuccess();
-//                // Conch.storePropertiesToFile(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "false");
-//               
-//                return true;
-//            }
         }catch(Exception e){
             Logger.logErrorMessage("Switch to boot nodes fork failed", e);
         }

@@ -730,8 +730,8 @@ public final class Conch {
                 logSystemProperties();
                 runtimeMode.init();
                 Thread secureRandomInitThread = initSecureRandom();
-                setServerStatus(ServerStatus.BEFORE_DATABASE, null);
                 ForceConverge.init();
+                setServerStatus(ServerStatus.BEFORE_DATABASE, null);
                 Db.init();
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
@@ -817,6 +817,12 @@ public final class Conch {
                 Logger.logErrorMessage(e.getMessage(), e);
                 runtimeMode.alert(e.getMessage() + "\n" +
                         "See additional information in " + dirProvider.getLogFileDir() + System.getProperty("file.separator") + "sharder.log");
+                // Don't exit when initial the Conch instance occur exception. 
+                // Because the ForceConverge.autoUpgrade will fix the error according to upgrade the COS version
+                
+//                System.exit(1);
+            } catch (Throwable t) {
+                Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
                 System.exit(1);
             }
         }

@@ -102,16 +102,6 @@ public class ClientUpgradeTool {
         }
     }
 
-
-    public static void restoreDbFromOss() {
-        try {
-            String dbFileName = fetchLastDbArchive() + ".zip";
-            restoreDb(dbFileName);
-        } catch (IOException e) {
-            Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
-        }
-    }
-
     /**
      * Update the local db to the archived db file of the specified height
      * @param upgradeDbHeight the height of the archived db file
@@ -127,6 +117,10 @@ public class ClientUpgradeTool {
      */
     private static void restoreDb(String dbFileName){
         try{
+            if(StringUtils.isEmpty(dbFileName)) {
+                Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
+                return;
+            }
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
             Conch.pause();
 
@@ -184,6 +178,8 @@ public class ClientUpgradeTool {
     private static final String KEY_DB_ARCHIVE_KNOWN_HEIGHT = "KnownArchive";
     
     public static String lastDbArchive = null;
+    public static Integer lastDbArchiveHeight = null;
+    public static int restoredDbArchiveHeight = 0;
     public static List<Integer> knownDbArchives = Lists.newArrayList();
     /**
      * testLastArchive=sharder_test_db_12118
@@ -191,10 +187,16 @@ public class ClientUpgradeTool {
      * @return latest db archive
      * @throws IOException
      */
-    public static String fetchLastDbArchive() throws IOException {
+    public static String fetchLastDbArchive()  {
         String url = UrlManager.getDbArchiveDescriptionFileUrl();
         Logger.logDebugMessage("fetch the db archive description file from " + url);
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
+        RestfulHttpClient.HttpResponse response = null;
+        try {
+            response = RestfulHttpClient.getClient(url).get().request();
+        } catch (IOException e) {
+            Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
+            return "";
+        }
         String content = response.getContent();
         
         // parse the description file
@@ -213,7 +215,13 @@ public class ClientUpgradeTool {
         String envPrefix = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
         // last db archive
         if(dbArchiveObj.containsKey(envPrefix + KEY_DB_LAST_ARCHIVE)){
-            lastDbArchive = dbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE) + ".zip";
+            String lastDbArchiveName = dbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE);
+            try {
+                lastDbArchive = lastDbArchiveName + ".zip";
+                lastDbArchiveHeight = Integer.valueOf(lastDbArchiveName.replace(Db.getName() + "_", ""));
+            } catch (Exception e) {
+                Logger.logErrorMessage("Can't parse the lastDbArchive attribute caused by ", e.getMessage());
+            }
         }
         
         // known archive height
@@ -230,12 +238,25 @@ public class ClientUpgradeTool {
         return lastDbArchive;
     }
 
-    public static String getKnownDbArchive() {
-        return "";
-    }
-    
-    public static int getKnownDbArchiveSize() {
-        return knownDbArchives.size();
+    public static void restoreDbToKnownHeight() {
+        if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
+        
+        // calculate the restore height
+        if(restoredDbArchiveHeight == 0) {
+            restoredDbArchiveHeight = lastDbArchiveHeight;
+        } else{
+            int index = knownDbArchives.size() - 1;
+            while(index > 0
+                    && restoredDbArchiveHeight > knownDbArchives.get(index)){
+                index--;
+            }
+            restoredDbArchiveHeight = knownDbArchives.get(index);
+        }
+        
+        if(restoredDbArchiveHeight > 0) {
+            String dbFileName =  Db.getName() + "_" + restoredDbArchiveHeight + ".zip";
+            restoreDb(dbFileName);  
+        }
     }
     
 }
