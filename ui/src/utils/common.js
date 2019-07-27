@@ -31,6 +31,9 @@ export default {
                 mobile: username,
                 bizType: 'biz_register'
             },
+            xhrFields: {
+                withCredentials: true
+            },
             dataType: 'json',
             success: function (res) {
                 console.info(res);
@@ -49,8 +52,8 @@ export default {
             type: 'POST',
             data: data,
             dataType: 'json',
-            beforeSend: function(xhr) {
-                xhr.withCredentials = true;
+            xhrFields: {
+                withCredentials: true
             },
             crossDomain: true,
             success: function (res) {

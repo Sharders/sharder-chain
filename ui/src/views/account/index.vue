@@ -386,21 +386,21 @@
                     <el-form-item :label="$t('hubsetting.register_sharder_account')">
                         <el-checkbox v-model="hubsetting.registerSiteAccount"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account_phone_or_email')" prop="sharderAccountPhoneOrEmail" v-if="hubsetting.registerSiteAccount">
+                    <el-form-item :label="$t('hubsetting.sharder_account_phone_or_email')"  v-if="hubsetting.registerSiteAccount">
                         <el-input v-model="registerSharderSiteUser.sharderAccountPhoneOrEmail" ></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.verification_code')" prop="verificationCode" v-if="hubsetting.registerSiteAccount">
+                    <el-form-item :label="$t('hubsetting.verification_code')" v-if="hubsetting.registerSiteAccount">
                         <el-input v-model="registerSharderSiteUser.verificationCode" ></el-input><el-button type="primary" style="position: absolute;right:0px;top:0px " @click="sendVCode()" :disabled="sendSuccess">
                         {{sendSuccess?time+"s 可"+$t('hubsetting.resend_verification_code'):$t('hubsetting.send_verification_code')}}
                     </el-button>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.set_sharder_account_password')" prop="setSharderPwd" v-if="hubsetting.registerSiteAccount">
+                    <el-form-item :label="$t('hubsetting.set_sharder_account_password')"  v-if="hubsetting.registerSiteAccount">
                         <el-input type="password" v-model="registerSharderSiteUser.setSharderPwd"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.confirm_sharder_account_password')" prop="confirmSharderPwd" v-if="hubsetting.registerSiteAccount">
+                    <el-form-item :label="$t('hubsetting.confirm_sharder_account_password')"  v-if="hubsetting.registerSiteAccount">
                         <el-input type="password" v-model="registerSharderSiteUser.confirmSharderPwd"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.picture_verification_code')" prop="" v-if="hubsetting.registerSiteAccount">
+                    <el-form-item :label="$t('hubsetting.picture_verification_code')"  v-if="hubsetting.registerSiteAccount">
                         <el-input v-model="registerSharderSiteUser.pictureVerificationCode" @blur="checkPicVerificationCode"></el-input>
                         <el-image :src="src" style="width:112px;height:38px;position: absolute;right:1px;top:1px " @click="getPicVCode()">
                             <div slot="placeholder" class="image-slot">
@@ -413,7 +413,6 @@
                             {{$t('hubsetting.register_sharder_account')}}
                         </el-button>
                     </el-form-item>
-
 
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount" v-if="!hubsetting.registerSiteAccount">
                         <el-input v-model="userConfig.siteAccount" ></el-input>
@@ -456,7 +455,7 @@
                 </el-form>
                 <div class="footer-btn">
                     <button class="common_btn writeBtn" v-loading="hubsetting.executing" @click="verifyHubSetting('init')">
-                        {{$t('hubsetting.confirm_restart') }}
+                        {{$t('hubsetting.confirm_restart')}}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -485,6 +484,7 @@
                     <el-form-item :label="$t('hubsetting.serial_no')" v-show="userConfig.xxx&&hubsetting.settingSerialClickCount>=5">
                         <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
                     </el-form-item>
+
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="userConfig.siteAccount"></el-input>
                     </el-form-item>
@@ -689,7 +689,7 @@
             );
             return {
                 //dialog
-                src: "http://localhost:8080/captcha.svl",
+                src: "",
                 requestUrl:"http://localhost:8080",
                 sendSuccess: false, //true验证码发送 false验证码未发送
                 time: 60 , //时间
@@ -719,6 +719,7 @@
                 },
 
                 registerSharderSiteUser:{
+
                     sharderAccountPhoneOrEmail:'',
                     verificationCode:"",
                     setSharderPwd:'',
@@ -1106,6 +1107,16 @@
                 _this.$global.registerSharderSite(requestUrl,data,function (res) {
                     if(res.success){
                         _this.hubsetting.registerSiteAccount = false;
+                        _this.userConfig.siteAccount  = sharderAccount;
+                        _this.hubsetting.sharderPwd = setSharderPwd;
+                        _this.registerSharderSiteUser.sharderAccountPhoneOrEmail = "";
+                        _this.registerSharderSiteUser.verificationCode = "";
+                        _this.registerSharderSiteUser.setSharderPwd = "";
+                        _this.registerSharderSiteUser.confirmSharderPwd = "";
+                        _this.registerSharderSiteUser.pictureVerificationCode = "";
+                    }else{
+                        console.info(res.result.data);
+                        _this.$message.warning(res.result.data);
                     }
                 });
 
@@ -1113,7 +1124,6 @@
 
             getPicVCode(){
               const _this = this;
-                //_this.$global.ajaxGetPicVCode(_this.requestUrl+"/captcha.svl?_"+Math.random());
               _this.src = _this.requestUrl+"/captcha.svl?_"+Math.random();
             },
             activeSelectType(type) {
@@ -2148,14 +2158,25 @@
                     // because "this.hubsetting.SS_Address" is used to display judgment
                     this.$refs["reconfigureForm"].resetFields();
                 }
+                /*console.info("this.$refs['initForm']:"+this.$refs['initForm']);
                 if (this.hubInitDialog && this.$refs['initForm']) {
                     this.$refs["initForm"].resetFields();
-                }
+                    console.log("form名称:"+this.$refs["initForm"].resetFields());
+                }*/
                 if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                     this.$refs["useNATForm"].resetFields();
                 }
 
+                this.sendSuccess = false;
+                this.hubsetting.registerSiteAccount = false;
+                this.registerSharderSiteUser.sharderAccountPhoneOrEmail = "";
+                this.registerSharderSiteUser.verificationCode = "";
+                this.registerSharderSiteUser.setSharderPwd = "";
+                this.registerSharderSiteUser.confirmSharderPwd = "";
+                this.registerSharderSiteUser.pictureVerificationCode = "";
+
                 this.operationType = 'init';
+
 
                 this.$store.state.mask = false;
                 this.sendMessageDialog = false;
@@ -2416,10 +2437,9 @@
                 2. using secretPhrase to login；
                 3. NodeType is Hub。
                 */
-                /*return this.secretPhrase
+                return this.secretPhrase
                     && this.initHUb
-                    && this.userConfig.nodeType === 'Hub';*/
-                return true;
+                    && this.userConfig.nodeType === 'Hub';
             },
             whetherShowUseNATServiceBtn() {
                 /*
