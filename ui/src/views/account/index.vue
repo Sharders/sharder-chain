@@ -661,9 +661,14 @@
                         <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
                     </tr>
                     <tr>
+                        <th>{{$t('network.poc_score')}}</th>
+                        <td>{{accountInfo.pocScore}}</td>
+                    </tr>
+                    <tr>
                         <th>{{$t('account_info.public_key')}}</th>
                         <td>{{accountInfo.publicKey}}</td>
                     </tr>
+
                     </tbody>
                 </table>
             </div>
@@ -797,6 +802,7 @@
                     publicKey: SSO.publicKey,
                     requestProcessingTime: '',
                     unconfirmedBalanceNQT: '',
+                    pocScore:'',
                 },
                 selectType: '',
                 transactionType: [{
@@ -1017,8 +1023,10 @@
             });
             _this.getLatestHubVersion();
             _this.getPicVCode();
+            _this.getPocScore();
         },
         methods: {
+
 
             //定时器
             finish() {
@@ -1129,6 +1137,32 @@
             activeSelectType(type) {
                 return this.selectType === type ? 'active' : ''
             },
+
+            getPocScore(){
+                const _this = this;
+
+                _this.$global.fetch("GET", {
+                    limit: 99999
+                }, "getNextBlockGenerators").then(res => {
+                    _this.activeCount = res.activeCount;
+                    for(let t of res.generators){
+                        if(t.accountRS === SSO.accountRS){
+                            if(t.pocScore){
+                                _this.accountInfo.pocScore = t.pocScore;
+                            }else {
+                                _this.accountInfo.pocScore = '--';
+                            }
+                        }else{
+                            _this.accountInfo.pocScore = '--';
+                        }
+                    }
+
+                }).catch(err => {
+                    console.info("error", err);
+                });
+
+            },
+
             getLatestHubVersion() {
                 const _this = this;
                 _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
