@@ -26,6 +26,7 @@
                         </p>
                         <p v-if="rowData.poolInfo.rule" class="node-type">
                             <strong>{{$t('mining.index.Income_distribution')}}:</strong>{{rowData.poolInfo.rule.forgepool.reward}}
+                            <br>
                             <strong>{{$t('network.block_list_fee')}}:</strong>{{$global.getTransactionFeeNQT(rowData)}}
 
                         </p>
