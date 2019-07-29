@@ -488,11 +488,9 @@
 </template>
 
 <script>
-    import PoolTxDetail from "./poolTxDetail";
     import MessageTxDetail from "./messageTxDetail";
     export default {
         name: "dialog_all",
-        components: {PoolTxDetail},
         components:{MessageTxDetail},
         props: {
             accountInfoOpen: Boolean,
@@ -609,7 +607,8 @@
                                         height:t.height,
                                         transaction:t.transaction,
                                         subType:t.subtype,
-                                        feeNQT:t.feeNQT,
+                                        recipientRS:t.recipientRS,
+                                        accountRS:SSO.accountRS,
                                     });
                                 }
 
