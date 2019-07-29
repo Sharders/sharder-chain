@@ -1123,8 +1123,17 @@
                         _this.registerSharderSiteUser.confirmSharderPwd = "";
                         _this.registerSharderSiteUser.pictureVerificationCode = "";
                     }else{
-                        console.info(res.result.data);
-                        _this.$message.warning(res.result.data);
+                        console.info("jie:"+res.result.data);
+                        if(res.result.data[0] === "短信验证码错误"){
+                            _this.$message.error(_this.$t('hubsetting.register_error_tip2'));
+                        }else if(res.result.data[0] === "图片验证码错误"){
+                            _this.$message.error(_this.$t('hubsetting.register_error_tip3'));
+                        }else if(res.result.data[0] === "验证码无效"){
+                            _this.$message.error(_this.$t('hubsetting.register_error_tip1'));
+                        }else{
+                            _this.$message.error(_this.$t('hubsetting.register_error'));
+                        }
+
                     }
                 });
 

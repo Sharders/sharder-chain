@@ -36,7 +36,6 @@ export default {
             },
             dataType: 'json',
             success: function (res) {
-                console.info(res);
                 fun(res);
             },
             error: function (e) {
@@ -57,11 +56,7 @@ export default {
             },
             crossDomain: true,
             success: function (res) {
-                console.info(res);
-                if (res.success) {
-                    fun(res);
-                }
-
+                fun(res);
             },
             error: function (e) {
                 console.info(e);
