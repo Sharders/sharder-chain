@@ -381,6 +381,7 @@
             let networkDataLoader = setInterval(() => {
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
+                    _this.httpGetNextBlockGenerators();
                     _this.drawPeerMap(); 
                 }else{
                     clearInterval(networkDataLoader); 
