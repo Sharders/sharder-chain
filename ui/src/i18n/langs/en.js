@@ -33,6 +33,7 @@ const en = {
         'register_error_tip2':'Message verification code error',
         'register_error_tip3':'Image verification code error',
         'register_error':'Registered official website account failed',
+        'binding_reservation_penetration_service':'Insufficient reserved penetration service, automatic binding reservation penetration service failed!',
         'picture_verification_code':"Picture Verification Code",
         'sharder_account_password': "Sharder Password",
         'nat_traversal_address': "NAT Server",

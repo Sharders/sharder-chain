@@ -1117,11 +1117,13 @@
                         _this.hubsetting.registerSiteAccount = false;
                         _this.userConfig.siteAccount  = sharderAccount;
                         _this.hubsetting.sharderPwd = setSharderPwd;
+                        _this.bindNatService();
                         _this.registerSharderSiteUser.sharderAccountPhoneOrEmail = "";
                         _this.registerSharderSiteUser.verificationCode = "";
                         _this.registerSharderSiteUser.setSharderPwd = "";
                         _this.registerSharderSiteUser.confirmSharderPwd = "";
                         _this.registerSharderSiteUser.pictureVerificationCode = "";
+
                     }else{
                         console.info("jie:"+res.result.data);
                         if(res.result.data[0] === "短信验证码错误"){
@@ -1514,6 +1516,36 @@
                         _this.registerNatLoading = false;
                         _this.$message.error(err.message);
                     });
+            },
+            bindNatService(){
+                const _this = this;
+                let ssAddr = this.userConfig.ssAddress;
+                if(ssAddr === undefined || ssAddr === '') {
+                    ssAddr = _this.getAccountRsBySecret();
+                }
+                let data = new FormData();
+                data.append("sharderAccount", this.userConfig.siteAccount);
+                data.append("tssAddress", ssAddr);
+                data.append("nodeType", this.userConfig.nodeType);
+                data.append("registerStatus", "0");
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natReservedBinding), data)
+                    .then(response => {
+                        if (response.data.success) {
+                            console.info('success to bind NAT service');
+                            _this.$message.success(_this.$t('notification.success_to_bind_nat'));
+                            _this.closeDialog();
+                        } else {
+                            _this.$message.error(_this.$t('binding_reservation_penetration_service'));
+                            _this.closeDialog();
+                            this.$refs["reconfigureForm"].clearValidate();
+                            this.$refs["reconfigureForm"].resetFields();
+                        }
+                    })
+                    .catch(err => {
+                        _this.registerNatLoading = false;
+                        _this.$message.error(err.message);
+                    });
+
             },
             autoRefresh() {
                 setTimeout(() => {
@@ -2480,9 +2512,10 @@
                 2. using secretPhrase to login；
                 3. NodeType is Hub。
                 */
-                return this.secretPhrase
+                /*return this.secretPhrase
                     && this.initHUb
-                    && this.userConfig.nodeType === 'Hub';
+                    && this.userConfig.nodeType === 'Hub';*/
+                return true;
             },
             whetherShowUseNATServiceBtn() {
                 /*

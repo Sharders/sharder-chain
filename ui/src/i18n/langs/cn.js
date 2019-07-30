@@ -34,6 +34,7 @@ const cn = {
         'register_error_tip2':'信息验证码错误',
         'register_error_tip3':'图片验证码错误',
         'register_error':'注册官网账号失败',
+        'binding_reservation_penetration_service':'预留穿透服务不足，自动绑定预留穿透服务失败！',
         'picture_verification_code':"图片验证码",
         'sharder_account_password': "SHARDER账户密码",
         'nat_traversal_address': "穿透服务地址",
