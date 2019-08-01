@@ -1160,9 +1160,11 @@
                         if(t.accountRS === SSO.accountRS){
                             if(t.pocScore){
                                 _this.accountInfo.pocScore = t.pocScore;
+
                             }else {
                                 _this.accountInfo.pocScore = '--';
                             }
+                            break;
                         }else{
                             _this.accountInfo.pocScore = '--';
                         }
