@@ -2512,10 +2512,10 @@
                 2. using secretPhrase to login；
                 3. NodeType is Hub。
                 */
-                /*return this.secretPhrase
+                return this.secretPhrase
                     && this.initHUb
-                    && this.userConfig.nodeType === 'Hub';*/
-                return true;
+                    && this.userConfig.nodeType === 'Hub';
+                /*return true;*/
             },
             whetherShowUseNATServiceBtn() {
                 /*
@@ -2683,6 +2683,7 @@
             let periodicTransactions = setInterval(() => {
                 if (_this.$route.path === '/account') {
                     _this.getAccountTransactionList();
+                    _this.getPocScore();
                 } else {
                     clearInterval(periodicTransactions);
                 }
