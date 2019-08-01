@@ -22,7 +22,8 @@
                         </li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
-                            <span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>
+                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                            <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
                         </li>
                     </ul>
                 </div>
@@ -209,7 +210,7 @@
         </div>
         <!--挖矿排行-->
         <div v-if="isRanking">
-            <div class="ranking">
+            <div class="ranking"  v-loading="loading">
                 <span class="img-close" @click="isVisible('isRanking')"></span>
                 <div class="ranking-content">
                     <h3 class="ranking-title">{{$t('mining.index.mining_ranking')}}</h3>
@@ -232,7 +233,7 @@
                             </td>
                         </tr>
                     </table>
-                    <div class="my-assets">
+                    <div class="my-assets" v-loading="loading">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
                         | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
                     </div>
@@ -507,6 +508,17 @@
                 this.$store.state.mask = !this[val];
                 this[val] = !this[val];
             },
+            isVisibleRanking(val) {
+                const _this = this;
+                if (val === "isCreatePool" && this.rule === null) {
+                    this.$message.error(this.$t("mining.index.pool_no_permissions"));
+                    return;
+                }
+                _this.getAssetsRanking();
+                _this.getAccountRanking();
+                this.$store.state.mask = !this[val];
+                this[val] = !this[val];
+            },
             handleSizeChange(val) {
                 // console.log(`每页 ${val} 条`);
             },
@@ -576,9 +588,6 @@
                     _this.accountInfo = res;
                 });
 
-                 _this.getAssetsRanking();
-                 _this.getAccountRanking();
-
             },
 
             getCoinBase(height) {
@@ -607,7 +616,6 @@
             },
             getAccountRanking() {
                 let _this = this;
-                let start = new Date();
                 _this.$global.fetch("POST", {
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
@@ -625,7 +633,7 @@
                     }
                 });
                 let end = new Date();
-                console.info("执行时间："+(end.getMilliseconds()-start.getMilliseconds()));
+
             },
             getPools(parameter) {
                 let _this = this;
