@@ -282,7 +282,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 && Constants.isTestnet() 
                 && !isDownloading 
                 && (lastBlockchainFeederHeight - lastBootNodeHeight) > 12){
-                Logger.logWarningMessage("Don't synchronize the blocks from feeder %s[%s], because the BootNode's height is %d but the feeder's height is %d",
+                Logger.logDebugMessage("Don't synchronize the blocks from feeder %s[%s], because the BootNode's height is %d but the feeder's height is %d",
                         lastBlockchainFeeder.getAnnouncedAddress() ,lastBlockchainFeeder.getHost(), lastBootNodeHeight, lastBlockchainFeederHeight);
                 return;
             }
