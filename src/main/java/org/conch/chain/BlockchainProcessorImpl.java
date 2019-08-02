@@ -712,6 +712,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     
     private JSONObject getPeersDifficulty(Peer peer){
+        if(peer == null) return null;
+        
         JSONObject request = new JSONObject();
         request.put("requestType", "getCumulativeDifficulty");
         // [NAT] inject useNATService property to the request params
@@ -790,6 +792,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     
     private void bootNodeHeightCompare(){
+        if(Constants.bootNodeHost.equalsIgnoreCase(Conch.getMyAddress())) {
+            return;
+        }
+        
         Peer bootNode = Peers.getPeer(Constants.bootNodeHost, true);
         JSONObject response = getPeersDifficulty(bootNode);
 
