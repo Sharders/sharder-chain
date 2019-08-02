@@ -2019,6 +2019,9 @@ public final class Account {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
+
+        amountNQT = balanceAmountValidation(amountNQT);
+        
         long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
         this.balanceNQT = Math.addExact(this.balanceNQT, totalAmountNQT);
         this.unconfirmedBalanceNQT = Math.addExact(this.unconfirmedBalanceNQT, totalAmountNQT);

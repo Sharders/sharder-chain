@@ -733,7 +733,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         forkSwitchFailedCount, switchToBootNodeFailedCount);
                 return false;
             }
-            Logger.logInfoMessage("Start to switch to BootNode %s[%s]'s fork",peer.getAnnouncedAddress(), peer.getHost());
+            Logger.logInfoMessage("Start to switch to BootNode %s[%s]'s fork.ForkSwitchingFailed=%d, SwitchToBootNodeFailedCount=%d",
+                    peer.getAnnouncedAddress(), peer.getHost(),forkSwitchFailedCount, switchToBootNodeFailedCount);
 
             JSONObject response = getPeersDifficulty(peer);
             if (response == null) return false;
