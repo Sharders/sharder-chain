@@ -122,6 +122,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     
     private boolean forceSwitchToBootNodesFork = false;
     private volatile boolean isRestoringDb = false;
+    private volatile int lastBootNodeHeight = -1;
         
     private final Runnable getMoreBlocksThread = new Runnable() {
         @Override
@@ -154,6 +155,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] processed", Conch.getHeight());
                         return;
                     }
+                    
+                    if(lastBootNodeHeight == -1) bootNodeHeightCompare();
 
                     int chainHeight = blockchain.getHeight();
                     downloadPeer();
@@ -271,6 +274,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             if (simulateEndlessDownload) {
                 isDownloading = true;
+                return;
+            }
+            
+            if(Constants.isTestnet() 
+                && !isDownloading 
+                && (lastBlockchainFeederHeight - lastBootNodeHeight) > 12){
+                Logger.logWarningMessage("Don't synchronize the blocks from feeder %s[%s], because the BootNode's height is %d but the feeder's height is %d",
+                        lastBlockchainFeeder.getAnnouncedAddress() ,lastBlockchainFeeder.getHost(), lastBootNodeHeight, lastBlockchainFeederHeight);
                 return;
             }
 
@@ -784,7 +795,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     
     private void bootNodeForkSwitchCheck(Peer lastFeeder){
-        if(isUpToDate()) {
+        if(isUpToDate() && forceSwitchToBootNodesFork) {
             Logger.logInfoMessage("Switched to BootNode %s[%s]'s fork at height %d", lastFeeder.getAnnouncedAddress(), lastFeeder.getHost(), Conch.getHeight());
             switchToBootNodeFailedCount = 0;
             forkSwitchFailedCount = 0;
@@ -807,6 +818,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         
         JSONObject response = getPeersDifficulty(bootNode);
+        if (response.get("blockchainHeight") == null){
+            return;
+        }else {
+            lastBootNodeHeight = ((Long) response.get("blockchainHeight")).intValue();  
+        }
 
         // can't get the mining difficulty of remote peer
         BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
@@ -818,11 +834,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         BigInteger betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
         if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
         
-        if (response.get("blockchainHeight") == null) return;
-        
-        int lastBootNodeHeight = ((Long) response.get("blockchainHeight")).intValue();
         if(lastBootNodeHeight == blockchain.getHeight()) {
-            Logger.logInfoMessage("Reach the BootNode %s[%s]'s last height %d, update the blockchain state to UpToDate", bootNode.getAnnouncedAddress(), bootNode.getHost(), Conch.getHeight());
+            Logger.logInfoMessage("Reach the BootNode %s[%s]'s last height %d, update the blockchain state to UpToDate", bootNode.getAnnouncedAddress(), bootNode.getHost(), lastBootNodeHeight);
             Peers.checkAndUpdateBlockchainState(true); 
         }
     }
