@@ -167,10 +167,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                             + blockchain.getHeight()
                             );
                             isDownloading = false;
-                            
-                            if(isUpToDate()) {
-                                bootNodeForkSwitchSuccess(lastBlockchainFeeder);
-                            }
+
+                            bootNodeHeightCompare();
+                            bootNodeForkSwitchCheck(lastBlockchainFeeder);
                         }
                         break;
                     }
@@ -749,7 +748,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 } else if(bootNodeHeight > Conch.getHeight()){
                     startHeight = Conch.getHeight() - 12;
                 }
-
+                
                 // rollback 
                 Block startBlock = blockchain.getBlockAtHeight(startHeight);
                 try{
@@ -780,13 +779,37 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return false;
     }
     
-    private void bootNodeForkSwitchSuccess(Peer lastFeeder){
-        Logger.logInfoMessage("Switched to BootNode %s[%s]'s fork at height %d", lastFeeder.getAnnouncedAddress(), lastFeeder.getHost(), Conch.getHeight());
-        switchToBootNodeFailedCount = 0;
-        forkSwitchFailedCount = 0;
-        forceSwitchToBootNodesFork = false;
+    private void bootNodeForkSwitchCheck(Peer lastFeeder){
+        if(isUpToDate()) {
+            Logger.logInfoMessage("Switched to BootNode %s[%s]'s fork at height %d", lastFeeder.getAnnouncedAddress(), lastFeeder.getHost(), Conch.getHeight());
+            switchToBootNodeFailedCount = 0;
+            forkSwitchFailedCount = 0;
+            forceSwitchToBootNodesFork = false;    
+        }
     }
     
+    private void bootNodeHeightCompare(){
+        Peer bootNode = Peers.getPeer(Constants.bootNodeHost, true);
+        JSONObject response = getPeersDifficulty(bootNode);
+
+        // can't get the mining difficulty of remote peer
+        BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
+        Object remoteDifficultyObj = response != null ? response.get("cumulativeDifficulty") : null;
+        String peerCumulativeDifficulty = remoteDifficultyObj != null ? (String) remoteDifficultyObj : null;
+        if (peerCumulativeDifficulty == null) return;
+
+        // the mining difficulty of the feeder peer is smaller than the current peer
+        BigInteger betterCumulativeDifficulty = new BigInteger(peerCumulativeDifficulty);
+        if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
+        
+        if (response.get("blockchainHeight") == null) return;
+        
+        int lastBootNodeHeight = ((Long) response.get("blockchainHeight")).intValue();
+        if(lastBootNodeHeight == blockchain.getHeight()) {
+            Logger.logInfoMessage("Reach the BootNode %s[%s]'s last height %d, check and update the blockchain state", bootNode.getAnnouncedAddress(), bootNode.getHost(), Conch.getHeight());
+            Peers.checkAndUpdateBlockchainState(true); 
+        }
+    }
     
     /**
      * Callable method to get the next block segment from the selected peer

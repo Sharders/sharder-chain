@@ -1626,31 +1626,44 @@ public final class Peers {
      * peer info request used to tell my peer info to other peers when connected
      *
      */
-    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest() {
+    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest(Boolean reachBootNodeHeight) {
         Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
         if(!Constants.isLightClient) {
             boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
             boolean isBiggerTarget = Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10;
             
+//            state = (Conch.getBlockchainProcessor().isDownloading() || isObsoleteTime) ? Peer.BlockchainState.DOWNLOADING :
+//                    (isBiggerTarget && !Constants.isTestnet()) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
+            
             state = (Conch.getBlockchainProcessor().isDownloading() || isObsoleteTime) ? Peer.BlockchainState.DOWNLOADING :
-                    (isBiggerTarget && !Constants.isTestnet()) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
+                    (isBiggerTarget) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
+            
+            // if current height reach the boot node height and state is fork, change its state to UP_TO_DATE
+            if(reachBootNodeHeight != null 
+            && reachBootNodeHeight == true){
+                state = Peer.BlockchainState.UP_TO_DATE;
+            }
         }
         
         generateMyPeerInfoRequest(state);
     }
 
     public static JSONStreamAware getMyPeerInfoRequest() {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null);
         return myPeerInfoRequest;
     }
 
     public static JSONStreamAware getMyPeerInfoResponse() {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest();
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null);
         return myPeerInfoResponse;
     }
 
     public static Peer.BlockchainState getMyBlockchainState() {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest();
+        return currentBlockchainState;
+    }
+    
+    public static Peer.BlockchainState checkAndUpdateBlockchainState(boolean reachBootNodeHeight) {
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(reachBootNodeHeight);
         return currentBlockchainState;
     }
 

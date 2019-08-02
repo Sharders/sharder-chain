@@ -97,6 +97,11 @@ public class PoolRule implements Serializable {
                 try {
                     Field field = poolProcessor.getClass().getDeclaredField(ruleKey);
                     field.setAccessible(true);
+//                    if(Conch.getHeight() >= Constants.POC_POOL_NEVER_END_HEIGHT){
+//                        if("totalBlocks".equalsIgnoreCase(field.getName())){
+//                            continue;
+//                        }
+//                    }
                     if (!validate((Map<String, Object>) map.get(field.getName()), field.get(poolProcessor))) {
                         break;
                     }
@@ -119,7 +124,7 @@ public class PoolRule implements Serializable {
             if ((long) value <= max && (long) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage("validate mint pool rule failed, min " + min + "max " + max + ", value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed, min " + min + " max " + max + ", value" + value);
                 return false;
             }
         } else if (value instanceof Integer) {
@@ -128,7 +133,7 @@ public class PoolRule implements Serializable {
             if ((int) value <= max && (int) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage("validate mint pool rule failed, min " + min + "max " + max + ", value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed, min " + min + " max " + max + ", value" + value);
                 return false;
             }
         } else {
@@ -137,7 +142,7 @@ public class PoolRule implements Serializable {
             if ((double) value <= max && (double) value >= min) {
                 return true;
             } else {
-                Logger.logDebugMessage("validate mint pool rule failed, min " + min + "max " + max + ", value" + value);
+                Logger.logDebugMessage("validate mint pool rule failed, min " + min + " max " + max + ", value" + value);
                 return false;
             }
         }
