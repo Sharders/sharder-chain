@@ -224,7 +224,7 @@ public final class Constants {
     public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
     public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
-    public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 14777 : 0;
+    public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -413,6 +413,7 @@ public final class Constants {
     /** log count check key **/
     public static final String Generator_getNextGenerators = Generator.class.getName() + "#getNextGenerators";
     public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
+    public static final String Generator_checkOrStartAutoMining = Generator.class.getName() + "#checkOrStartAutoMining";
     public static final String Generator_isBlockStuckOnBootNode = Generator.class.getName() + "#isBlockStuckOnBootNode";
     public static final String Generator_isPocTxsProcessed = Generator.class.getName() + "#isPocTxsProcessed";
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";

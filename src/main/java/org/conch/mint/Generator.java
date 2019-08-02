@@ -954,7 +954,11 @@ public class Generator implements Comparable<Generator> {
      */
     public static void checkOrStartAutoMining(){
         if(autoMintRunning) {
-            Logger.logDebugMessage("account " + linkedGenerator.rsAddress + " is mining...");
+            if(Logger.printNow(Constants.Generator_checkOrStartAutoMining, 600)) {
+                Logger.logInfoMessage("account " + linkedGenerator.rsAddress + " is mining...");
+            }else{
+                Logger.logDebugMessage("account " + linkedGenerator.rsAddress + " is mining...");  
+            }
             return;
         }
         
