@@ -26,6 +26,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.tools.ClientUpgradeTool;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -97,12 +98,16 @@ public final class Recovery extends APIServlet.APIRequestHandler {
     }
     
     /**
-     * - rollback the blockchain to the height 0 or the last check point
+     * - rollback the blockchain to the last db archive
      */
     private void reset(boolean reboot) {
-        HashMap<String, String> paramMap = Maps.newHashMap();
-//        paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
-        Conch.resetAndReboot(paramMap, reboot);
+//        HashMap<String, String> paramMap = Maps.newHashMap();
+////        paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
+//        Conch.resetAndReboot(paramMap, reboot);
+        new Thread(() -> {
+            ClientUpgradeTool.restoreDbToKnownHeight();
+            Conch.restartApplication(null);
+        }).start();
     }
 
     /**
