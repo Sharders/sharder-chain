@@ -276,8 +276,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 isDownloading = true;
                 return;
             }
-            
-            if(Constants.isTestnet() 
+
+            boolean isBootNode = Constants.bootNodeHost.equalsIgnoreCase(Conch.getMyAddress());
+            if(!isBootNode
+                && Constants.isTestnet() 
                 && !isDownloading 
                 && (lastBlockchainFeederHeight - lastBootNodeHeight) > 12){
                 Logger.logWarningMessage("Don't synchronize the blocks from feeder %s[%s], because the BootNode's height is %d but the feeder's height is %d",
@@ -818,7 +820,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         
         JSONObject response = getPeersDifficulty(bootNode);
-        if (response.get("blockchainHeight") == null){
+        if (response == null || response.get("blockchainHeight") == null){
             return;
         }else {
             lastBootNodeHeight = ((Long) response.get("blockchainHeight")).intValue();  
