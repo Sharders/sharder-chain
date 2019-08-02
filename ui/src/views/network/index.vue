@@ -11,7 +11,7 @@
                         <p>{{$t('network.block_height')}}</p>
                         <p><span>{{newestHeight}}</span></p>
 <!--                        <p>{{$t('network.block_newest_time')}}{{newestTime}}</p>-->
-                        <p>{{lastBlockRS}} | {{newestTime}}</p>
+                        <p class="last_block"><span class="generator" >{{lastBlockRS}}</span><span>{{newestTime}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_avg_transaction_volume')}}</p>
@@ -572,6 +572,16 @@
         font-size: 13px;
         font-weight: normal;
         text-align: center;
+    }
+    
+
+    .last_block {
+        text-align: left!important;
+        font-size: 12px!important;
+        
+        .generator {
+            margin-right: 10px;
+        }
     }
 
 </style>
