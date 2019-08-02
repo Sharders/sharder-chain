@@ -27,7 +27,13 @@ import java.util.Map;
  * @since 2018/11/24
  */
 public abstract class PoolTxApi {
-
+    
+    private static void preCheck() throws ConchException.NotValidException {
+        if(!Conch.getBlockchainProcessor().isUpToDate()){
+            throw new ConchException.NotValidException("Please wait until the blockchain has finished downloading");
+        }
+    }
+    
     public static final class CreatePoolTx extends CreateTransaction {
         static final CreatePoolTx instance = new CreatePoolTx();
 
@@ -43,6 +49,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
+            preCheck();
             Account account = ParameterParser.getSenderAccount(req);
             int currentHeight = Conch.getHeight();
 
@@ -101,6 +108,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            preCheck();
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
 
@@ -124,6 +132,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            preCheck();
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             long joinTxId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE,true);
@@ -149,6 +158,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            preCheck();
             JSONStreamAware aware = null;
             try{
                 Account account = ParameterParser.getSenderAccount(request);
