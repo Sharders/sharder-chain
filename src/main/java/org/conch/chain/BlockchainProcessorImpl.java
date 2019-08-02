@@ -21,6 +21,7 @@
 
 package org.conch.chain;
 
+import com.google.common.collect.Lists;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
@@ -792,11 +793,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     
     private void bootNodeHeightCompare(){
+        Peer bootNode = Peers.getPeer(Constants.bootNodeHost, true);
+        
+        // boot node processing
         if(Constants.bootNodeHost.equalsIgnoreCase(Conch.getMyAddress())) {
-            return;
+            List<String> remainBootNodes = Lists.newArrayList(Constants.bootNodesHost);
+            remainBootNodes.remove(Conch.getMyAddress());
+            if(remainBootNodes.size() > 0) {
+                bootNode = Peers.getPeer(remainBootNodes.get(0), true);
+            }else {
+                return;  
+            }
         }
         
-        Peer bootNode = Peers.getPeer(Constants.bootNodeHost, true);
         JSONObject response = getPeersDifficulty(bootNode);
 
         // can't get the mining difficulty of remote peer
@@ -813,7 +822,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         
         int lastBootNodeHeight = ((Long) response.get("blockchainHeight")).intValue();
         if(lastBootNodeHeight == blockchain.getHeight()) {
-            Logger.logInfoMessage("Reach the BootNode %s[%s]'s last height %d, check and update the blockchain state", bootNode.getAnnouncedAddress(), bootNode.getHost(), Conch.getHeight());
+            Logger.logInfoMessage("Reach the BootNode %s[%s]'s last height %d, update the blockchain state to UpToDate", bootNode.getAnnouncedAddress(), bootNode.getHost(), Conch.getHeight());
             Peers.checkAndUpdateBlockchainState(true); 
         }
     }

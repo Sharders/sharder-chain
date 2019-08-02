@@ -391,6 +391,11 @@ public final class Constants {
     public static synchronized boolean isValidBootNode(Peer peer){
         return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
     }
+    
+    public static synchronized boolean isValidBootNode(String peerHost){
+        if(StringUtils.isEmpty(peerHost)) return false;
+        return bootNodesHost.contains(peerHost);
+    }
 
     public static String getBootNodeRandom(){
         return bootNodesHost.get(new Random().nextInt(bootNodesHost.size()));
