@@ -112,7 +112,7 @@ const cn = {
         'encrypted_message_hash':"加密信息Hash",
         'recipient_public_key':"接受者公钥",
         'message_data':"信息内容",
-        'encrypted_message':"该信息为加密信息，您无权查看!!!",
+        'encrypted_message':"您无权查看此信息内容!!!",
         'is_compressed':"是否压缩信息",
         'is_text':"是否文本信息",
         'transaction_account': "交易账户",

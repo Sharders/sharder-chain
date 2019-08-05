@@ -111,7 +111,7 @@ const en = {
         'encrypted_message_hash':"Encrypted Message Hash",
         'recipient_public_key':"recipient Public Key",
         'message_data':"Message Data",
-        'encrypted_message':"This information is encrypted and you are not authorized to view it!!!",
+        'encrypted_message':"you are not authorized to view it!!!",
         'is_compressed':"Is Compressed",
         'is_text':"Is Text",
         'transaction_account': "Transaction Account",

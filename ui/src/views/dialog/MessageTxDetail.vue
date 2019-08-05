@@ -16,11 +16,18 @@
                                 <strong>{{$t('transaction.is_text')}}:</strong>{{ rowData.messageInfo.messageIsText}}
                             </span>
                         </p>
-                        <p v-if="rowData.messageInfo.encryptedMessage" class="node-type">
-                            <strong>{{$t('transaction.message_data')}} : </strong>{{$t('transaction.encrypted_message')}}<br>
-                            <strong>{{$t('transaction.is_compressed')}} : </strong>{{ rowData.messageInfo.encryptedMessage.isCompressed }}<br>
-                            <strong>{{$t('transaction.is_text')}} : </strong>{{ rowData.messageInfo.encryptedMessage.isText }}
+                        <p v-if="rowData.recipientRS !== rowData.accountRS && rowData.accountRS !== rowData.senderRS" class="node-type">
+                            <span v-if="rowData.messageInfo.encryptedMessage" >
+                                <strong>{{$t('transaction.message_data')}} : </strong>{{$t('transaction.encrypted_message')}}<br>
+                                <strong>{{$t('transaction.is_compressed')}} : </strong>{{ rowData.messageInfo.encryptedMessage.isCompressed }}<br>
+                                <strong>{{$t('transaction.is_text')}} : </strong>{{ rowData.messageInfo.encryptedMessage.isText }}
+                            </span>
+                            <span v-if="rowData.messageInfo.message">
+                                <strong>{{$t('transaction.message_data')}}:</strong>{{$t('transaction.encrypted_message')}}<br>
+                                <strong>{{$t('transaction.is_text')}}:</strong>{{ rowData.messageInfo.messageIsText}}
+                            </span>
                         </p>
+
 
                     </el-card>
                 </el-col>
