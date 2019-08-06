@@ -1662,7 +1662,7 @@ public final class Peers {
         return currentBlockchainState;
     }
     
-    public static Peer.BlockchainState checkAndUpdateBlockchainState(boolean reachBootNodeHeight) {
+    public static Peer.BlockchainState checkAndUpdateBlockchainState(Boolean reachBootNodeHeight) {
         checkBlockchainStateAndGenerateMyPeerInfoRequest(reachBootNodeHeight);
         return currentBlockchainState;
     }

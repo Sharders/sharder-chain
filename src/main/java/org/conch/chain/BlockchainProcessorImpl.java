@@ -172,6 +172,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                             + blockchain.getHeight()
                             );
                             isDownloading = false;
+                            Peers.checkAndUpdateBlockchainState(null);
                             bootNodeForkSwitchCheck(lastBlockchainFeeder);
                         }
                         break;
