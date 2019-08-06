@@ -837,7 +837,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (betterCumulativeDifficulty.compareTo(curCumulativeDifficulty) < 0) return;
         
         if(lastBootNodeHeight == blockchain.getHeight()) {
-            Logger.logInfoMessage("Reach the BootNode %s[%s]'s last height %d, update the blockchain state to UpToDate", bootNode.getAnnouncedAddress(), bootNode.getHost(), lastBootNodeHeight);
+            Logger.logWarningMessage("Reach the BootNode %s[%s]'s last height %d, update the blockchain state to UpToDate", bootNode.getAnnouncedAddress(), bootNode.getHost(), lastBootNodeHeight);
             Peers.checkAndUpdateBlockchainState(true); 
         }
     }
