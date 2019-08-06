@@ -3436,7 +3436,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        public final boolean canHaveRecipient() {
+        public boolean canHaveRecipient() {
             return false;
         }
 
@@ -3514,6 +3514,7 @@ public abstract class TransactionType {
             public String getName() {
                 return "createPool";
             }
+
 
         };
 
@@ -3800,6 +3801,11 @@ public abstract class TransactionType {
             @Override
             public String getName() {
                 return "quitPool";
+            }
+
+            @Override
+            public boolean canHaveRecipient() {
+                return true;
             }
         };
     }

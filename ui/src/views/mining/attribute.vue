@@ -311,7 +311,6 @@
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
                 if (_this.$store.state.destroyPool[_this.miningInfo.poolId]) return;
-
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
