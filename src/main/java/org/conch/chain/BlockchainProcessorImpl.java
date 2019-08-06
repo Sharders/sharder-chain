@@ -156,11 +156,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         return;
                     }
                     
-                    if(lastBootNodeHeight == -1) bootNodeHeightCompare();
+//                    if(lastBootNodeHeight == -1) bootNodeHeightCompare();
 
                     int chainHeight = blockchain.getHeight();
                     downloadPeer();
-                    bootNodeHeightCompare();
+//                    bootNodeHeightCompare();
                     if (blockchain.getHeight() == chainHeight) {
                         if (isDownloading && !simulateEndlessDownload) {
                             Logger.logInfoMessage(
