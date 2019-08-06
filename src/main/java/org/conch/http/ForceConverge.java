@@ -336,13 +336,13 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
             ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES);
         }
-        
-        // manual reset
-        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
-        boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
-        if(manualReset && !Generator.isBootNode) {
-            manualReset();
-        }
+//        
+//        // manual reset
+//        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
+//        boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
+//        if(manualReset && !Generator.isBootNode) {
+//            manualReset();
+//        }
         
 //        // switch fork
 //        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
