@@ -238,6 +238,11 @@ public class ClientUpgradeTool {
         return lastDbArchive;
     }
 
+    public static int getLastDbArchiveHeight() {
+        if(lastDbArchiveHeight == null) fetchLastDbArchive();
+        return lastDbArchiveHeight;
+    }
+
     public static void restoreDbToLastArchive() {
         if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
         restoreDb(lastDbArchive);

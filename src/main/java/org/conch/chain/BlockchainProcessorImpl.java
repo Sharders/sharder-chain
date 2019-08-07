@@ -1338,8 +1338,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     @Override
     public boolean isUpToDate() {
-        if (isDownloading()) return false;
         return Peers.getMyBlockchainState() == Peer.BlockchainState.UP_TO_DATE;
+    }
+    
+    @Override
+    public boolean isObsolete() {
+        return Peers.getMyBlockchainState() == Peer.BlockchainState.OBSOLETE;
     }
 
     @Override

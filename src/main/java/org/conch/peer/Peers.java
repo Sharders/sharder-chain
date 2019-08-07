@@ -1626,21 +1626,27 @@ public final class Peers {
      * peer info request used to tell my peer info to other peers when connected
      *
      */
-    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest(Boolean reachBootNodeHeight) {
+    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest(Boolean setToUpToDate) {
         Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
         if(!Constants.isLightClient) {
+            
             boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
+//            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600 - Constants.getBlockGapSeconds()*1000;
             boolean isBiggerTarget = Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10;
             
-//            state = (Conch.getBlockchainProcessor().isDownloading() || isObsoleteTime) ? Peer.BlockchainState.DOWNLOADING :
-//                    (isBiggerTarget && !Constants.isTestnet()) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
-            
-            state = (Conch.getBlockchainProcessor().isDownloading() || isObsoleteTime) ? Peer.BlockchainState.DOWNLOADING :
-                    (isBiggerTarget) ? Peer.BlockchainState.FORK : Peer.BlockchainState.UP_TO_DATE;
+            if(Conch.getBlockchainProcessor().isDownloading()){
+                state = Peer.BlockchainState.DOWNLOADING;
+            }else if(isObsoleteTime){
+                state = Peer.BlockchainState.OBSOLETE;
+            }else if(isBiggerTarget){
+                state = Peer.BlockchainState.FORK;
+            }else{
+                state = Peer.BlockchainState.UP_TO_DATE;
+            }
             
             // if current height reach the boot node height and state is fork, change its state to UP_TO_DATE
-            if(reachBootNodeHeight != null 
-            && reachBootNodeHeight == true){
+            if(setToUpToDate != null 
+            && setToUpToDate == true){
                 state = Peer.BlockchainState.UP_TO_DATE;
             }
         }
