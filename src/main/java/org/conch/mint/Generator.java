@@ -963,9 +963,9 @@ public class Generator implements Comparable<Generator> {
     public static void checkOrStartAutoMining(){
         if(autoMintRunning) {
             if(Logger.printNow(Constants.Generator_checkOrStartAutoMining, 600)) {
-                Logger.logInfoMessage("Account %s is mining..., next mining time is %s", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
+                Logger.logInfoMessage("Account %s is mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
             }else{
-                Logger.logDebugMessage("Account %s is mining..., next mining time is %s", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));  
+                Logger.logDebugMessage("Account %s is mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));  
             }
             return;
         }
@@ -973,7 +973,7 @@ public class Generator implements Comparable<Generator> {
         String miningPR = getAutoMiningPR();
         if(StringUtils.isNotEmpty(miningPR)) {
             linkedGenerator = startMining(miningPR.trim());
-            Logger.logInfoMessage("Account %s start to mining..., next mining time is %s", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
+            Logger.logInfoMessage("Account %s start to mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
         }
        
         if(MAX_MINERS > 0) {

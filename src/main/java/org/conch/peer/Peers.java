@@ -1631,14 +1631,13 @@ public final class Peers {
         if(!Constants.isLightClient) {
             
             boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
-//            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600 - Constants.getBlockGapSeconds()*1000;
-            boolean isBiggerTarget = Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET > 10;
+            boolean isBiggerTarget = (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET) > 10;
             
             if(Conch.getBlockchainProcessor().isDownloading()){
                 state = Peer.BlockchainState.DOWNLOADING;
             }else if(isObsoleteTime){
                 state = Peer.BlockchainState.OBSOLETE;
-            }else if(isBiggerTarget){
+            }else if(isBiggerTarget && Constants.isMainnet()){
                 state = Peer.BlockchainState.FORK;
             }else{
                 state = Peer.BlockchainState.UP_TO_DATE;
