@@ -293,7 +293,8 @@
                     feeNQT: 100000000
                 }, "quitPool").then(val => {
                     if (val.errorDescription) {
-                        _this.$message.error(val.errorDescription);
+                        _this.btnLoading = false;
+                        return _this.$message.error(val.errorDescription);
                     }
                     _this.isExitPool = false;
                     _this.$global.optHeight.quit = _this.newestBlock.height;
@@ -302,7 +303,7 @@
                     _this.miningInfo.joinAmount -= _tx.amount;
                     _this.$store.state.mask = false;
                     _this.btnLoading = false;
-                    _this.$message.success(_this.$t("mining.attribute.exit_success"));
+                    return _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
             },
             miningDestroy() {
