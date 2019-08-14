@@ -1,5 +1,5 @@
 <template>
-    <div class="exchange">
+    <div class="exchange" >
         <div class="exchange-header">
             <h1>{{$t('mining.diamond_exchange.diamond_exchange_title')}}</h1>
             <p v-show="isSSA">
@@ -11,7 +11,7 @@
             </p>
             <p>{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
         </div>
-        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList">
+        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS">
             <p>
                 <img :src="exchange.img" class="exchange-img">
                 <span class="title">{{exchange.title}}</span>
@@ -19,7 +19,7 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
-        <div class="exchange-list info">
+        <div class="exchange-list info" v-loading="loadingExchangeSS">
             {{$t('mining.diamond_exchange.not_open_tip')}}
         </div>
     </div>
@@ -30,51 +30,28 @@
         name: "exchange-reward",
         data() {
             return {
-                exchangeList: [
-                    {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "10 SS(ERC-20)",
-                        num: 2000000000,
-                        info: "20 TSS 兑换 10 SS(ERC-20)",
-                    },
-                    {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "20 SS(ERC-20)",
-                        num: 4000000000,
-                        info: "40 TSS 兑换 20 SS(ERC-20)",
-                    },
-                    {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "30 SS(ERC-20)",
-                        num: 6000000000,
-                        info: "60 TSS 兑换 30 SS(ERC-20)",
-                    },
-                    {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "40 SS(ERC-20)",
-                        num: 8000000000,
-                        info: "80 TSS 兑换 40 SS(ERC-20)",
-                    }
-                ],
+                exchangeList: [],
                 isSSA: false,
                 linkedSSAddr: this.$store.state.userConfig['sharder.HubBindAddress'],
                 sharderAccount: '',
                 recipient: "",
-                exchangeSS: 0
+                exchangeSS: 0,
+                loadingExchangeSS:false,
+
             }
         },
         created() {
             let _this = this;
+            _this.checkExchangeNum();
             let data = new FormData();
             let ownerLogin = SSO.secretPhrase && _this.linkedSSAddr === SSO.accountRS;
             if(!ownerLogin) return;
-            
             data.append("ssa", SSO.accountRS);
             _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
                 _this.isSSA = true;
                 if (res.data.success) {
                     _this.sharderAccount = res.data.data;
-                    _this.getSSAmount(_this.sharderAccount);
+                    //_this.getSSAmount(_this.sharderAccount);
                 }
             }).catch(() => {
                 _this.isSSA = true
@@ -86,17 +63,58 @@
             });
         },
         methods: {
+            checkExchangeNum(){
+                const _this = this;
+                _this.loadingExchangeSS = true;
+                let forgedBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.forgedBalanceNQT);
+                let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);
+
+                let exchangeSS = _this.exchangeSS;
+                let data = new FormData();
+                effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));
+                forgedBalanceNQT = Number(forgedBalanceNQT.substring(0,forgedBalanceNQT.length-2));
+                data.append("accountRS", SSO.accountRS);
+                _this.$http.post(window.api.ssContactAmount, data).then(res => {
+                    return res.data.totalExchangeAmount ?  res.data.totalExchangeAmount : 0;
+                }).then(res=>{
+                    exchangeSS = Number(res);
+
+                    let ConvertibleSS = 0;
+                    if(effectiveBalanceNQT <= forgedBalanceNQT - exchangeSS){
+                        ConvertibleSS = Math.floor((effectiveBalanceNQT  - exchangeSS)/1000)*1000;
+                    }else{
+                        ConvertibleSS = Math.floor((forgedBalanceNQT  - exchangeSS)/1000)*1000;
+                    }
+                    let data1 = {
+                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        title: ConvertibleSS / 2 + " SS(ERC-20)",
+                        num: ConvertibleSS * 10000000,
+                        info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
+                    };
+                    let data2 = {
+                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        title: "500 SS(ERC-20)",
+                        num: 100000000000,
+                        info: "1000 TSS 兑换 500 SS(ERC-20)",
+                    };
+                    _this.exchangeList.push(data1);
+                    if(ConvertibleSS >= 1000){
+                        _this.exchangeList.push(data2);
+                    }
+                    _this.loadingExchangeSS = false;
+                });
+
+
+
+            },
             getSSAmount(account) {
                 console.info(account);
-
+                let data = new FormData();
+                data.append("accountRS", account);
                 let _this = this;
-                _this.$http.get(window.api.ssContactAmount, {
-                    params: {
-                        account: account
-                    }
-                }).then(res => {
-                    // console.info(res.data.data);
-                    _this.exchangeSS = res.data.data ?  res.data.data * 100000000 : 0;
+                _this.$http.post(window.api.ssContactAmount, data).then(res => {
+                     console.info(res.data.totalExchangeAmount);
+                    _this.exchangeSS = res.data.totalExchangeAmount ?  res.data.totalExchangeAmount * 100000000 : 0;
                 });
             },
             exchangeFun(e) {

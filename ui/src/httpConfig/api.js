@@ -19,7 +19,7 @@ const api = {
     apiUrl: getUrl(),
     sharderUrl: getUrl() + "/sharder",
     sharderExchange: SHARDER_URL + "/official/exchange.ss",
-    ssContactAmount: SHARDER_URL + "/api/front/bill/ss/contact/amount.ss",
+    ssContactAmount: SHARDER_URL + "/official/getExchangeAmount.ss",
     sharderExchangeRS: SHARDER_URL + "/official/exchange/rs.ss",
     sharderExchangeSSA: SHARDER_URL + "/official/address/ssa.ss",
 };
