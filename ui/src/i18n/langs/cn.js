@@ -949,7 +949,7 @@ const cn = {
         'plz_input_phone_or_email':"请输入手机号或者邮箱",
     },
     reward: {
-        "exchange_success": "兑换成功",
+        "exchange_success": "兑换成功，到账可能会有延迟，请稍候查看。",
         "exchange_error": "兑换失败",
         "transfer_failed": "转账失败",
         "sharder_binding_acconut": "请去官网绑定该地址",

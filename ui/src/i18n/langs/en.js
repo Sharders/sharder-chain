@@ -949,7 +949,7 @@ const en = {
         'plz_input_phone_or_email':"Please enter your mobile number or email address",
     },
     reward: {
-        "exchange_success": "For successful",
+        "exchange_success": "For successful.There may be a delay in the arrival, please check back later.",
         "exchange_error": "For failure",
         "transfer_failed": "Transfer failed",
         "sharder_binding_acconut": "Please go to the official website sharder.org to link the address",
