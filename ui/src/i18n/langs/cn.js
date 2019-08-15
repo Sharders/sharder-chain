@@ -958,7 +958,10 @@ const cn = {
         "no_binding_account": "没绑定账户",
         "immediately_binding": "立刻绑定",
         "exchange": "兑换",
-        "exchange_sharder_account": "兑换到Sharder账户:  {account}"
+        "exchange_sharder_account": "兑换到Sharder账户:  {account}",
+        "redeemed":"已兑换",
+        "convertible":"可兑换",
+        "exchangeTip":"每次兑换不能低于1000 SS，兑换数量只能是1000的倍数。",
     },
     poc: {
         'block_reward_tips_phase1': "开放测试网络第一阶段90%的挖矿奖励分配给Hub矿工，剩余10%的挖矿奖励分配给其余矿工。",

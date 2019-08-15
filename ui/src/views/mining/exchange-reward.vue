@@ -3,10 +3,15 @@
         <div class="exchange-header">
             <h1>{{$t('mining.diamond_exchange.diamond_exchange_title')}}</h1>
             <p v-show="isSSA">
-                <span v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</span>
-                <span v-else>
-                    {{$t("reward.no_binding_account")}} ?
-                    <a href="https://sharder.org">{{$t("reward.immediately_binding")}}</a>
+                <span >
+                    <li v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</li>
+                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} TSS</li>
+                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} TSS</li>
+                    <li v-if="sharderAccount" style="color: #e64242">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchangeTip")}} </li>
+                    <li v-else>
+                        {{$t("reward.no_binding_account")}} ?
+                        <a href="https://sharder.org">{{$t("reward.immediately_binding")}}</a>
+                    </li>
                 </span>
             </p>
             <p>{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
@@ -30,27 +35,45 @@
         name: "exchange-reward",
         data() {
             return {
-                exchangeList: [],
+                exchangeList: [
+                    {
+                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        title: "500 SS(ERC-20)",
+                        num: 100000000000,
+                        info: "1000 TSS 兑换 500 SS(ERC-20)",
+                    },
+                    {
+                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        title: "5000 SS(ERC-20)",
+                        num: 1000000000000,
+                        info: "10000 TSS 兑换 5000 SS(ERC-20)",
+                    }
+                ],
                 isSSA: false,
                 linkedSSAddr: this.$store.state.userConfig['sharder.HubBindAddress'],
                 sharderAccount: '',
                 recipient: "",
                 exchangeSS: 0,
+                convertible:0,
+                redeemed:0,
                 loadingExchangeSS:false,
 
             }
         },
         created() {
             let _this = this;
-            _this.checkExchangeNum();
             let data = new FormData();
             let ownerLogin = SSO.secretPhrase && _this.linkedSSAddr === SSO.accountRS;
-            if(!ownerLogin) return;
+            if(!ownerLogin){
+                _this.isSSA = true;
+                return;
+            }
             data.append("ssa", SSO.accountRS);
             _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
                 _this.isSSA = true;
                 if (res.data.success) {
                     _this.sharderAccount = res.data.data;
+                    _this.checkExchangeNum();
                     //_this.getSSAmount(_this.sharderAccount);
                 }
             }).catch(() => {
@@ -61,6 +84,7 @@
                     _this.recipient = res.data.data;
                 }
             });
+
         },
         methods: {
             checkExchangeNum(){
@@ -78,11 +102,13 @@
                     return res.data.totalExchangeAmount ?  res.data.totalExchangeAmount : 0;
                 }).then(res=>{
                     exchangeSS = Number(res);
-
+                    _this.redeemed = exchangeSS * 2;
                     let ConvertibleSS = 0;
                     if(effectiveBalanceNQT <= forgedBalanceNQT - exchangeSS){
+                        _this.convertible = Math.floor(effectiveBalanceNQT  - exchangeSS);
                         ConvertibleSS = Math.floor((effectiveBalanceNQT  - exchangeSS)/1000)*1000;
                     }else{
+                        _this.convertible = Math.floor(forgedBalanceNQT  - exchangeSS);
                         ConvertibleSS = Math.floor((forgedBalanceNQT  - exchangeSS)/1000)*1000;
                     }
                     let data1 = {
@@ -91,31 +117,19 @@
                         num: ConvertibleSS * 10000000,
                         info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
                     };
-                    let data2 = {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "500 SS(ERC-20)",
-                        num: 100000000000,
-                        info: "1000 TSS 兑换 500 SS(ERC-20)",
-                    };
-                    _this.exchangeList.push(data1);
+
                     if(ConvertibleSS >= 1000){
-                        _this.exchangeList.push(data2);
+                        if(_this.exchangeList.length === 2){
+                            _this.exchangeList.push(data1);
+                        }else{
+                            _this.exchangeList.splice(2,1);
+                            _this.exchangeList.push(data1);
+                        }
+
                     }
                     _this.loadingExchangeSS = false;
                 });
 
-
-
-            },
-            getSSAmount(account) {
-                console.info(account);
-                let data = new FormData();
-                data.append("accountRS", account);
-                let _this = this;
-                _this.$http.post(window.api.ssContactAmount, data).then(res => {
-                     console.info(res.data.totalExchangeAmount);
-                    _this.exchangeSS = res.data.totalExchangeAmount ?  res.data.totalExchangeAmount * 100000000 : 0;
-                });
             },
             exchangeFun(e) {
                 let _this = this;
@@ -125,6 +139,9 @@
                 }
                 if (!_this.sharderAccount) {
                     return _this.$message.warning(_this.$t("reward.sharder_binding_acconut"));
+                }
+                if(_this.convertible < 1000){
+                    return _this.$message.warning(_this.$t("reward.exchangeTip"));
                 }
                 _this.$confirm(e.info, _this.$t("reward.exchange_sharder_account", {account: _this.sharderAccount})).then(() => {
                     _this.sendMoney(e.num)
@@ -158,6 +175,7 @@
                     } else {
                         _this.$message.error(_this.$t("reward.exchange_error"));
                     }
+                    _this.checkExchangeNum();
                 });
             },
         }

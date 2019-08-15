@@ -958,7 +958,10 @@ const en = {
         "no_binding_account": "No account linked",
         "immediately_binding": "Link now",
         "exchange": "exchange",
-        "exchange_sharder_account": "Exchange to Sharder account:  {account}"
+        "exchange_sharder_account": "Exchange to Sharder account:  {account}",
+        "redeemed":"Redeemed",
+        "convertible":"Convertible",
+        "exchangeTip":"Each exchange cannot be less than 1000 SS, and the exchange amount can only be a multiple of 1000.",
     },
     poc: {
         'block_reward_tips_phase1': "Testnet phase 1 testing rewards distribution: 90% - hub miners, 10% - other miners.",
