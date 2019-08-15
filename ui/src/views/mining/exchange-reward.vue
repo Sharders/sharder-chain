@@ -14,7 +14,6 @@
                     </li>
                 </span>
             </p>
-            <p>{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
         </div>
         <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS">
             <p>
@@ -23,9 +22,6 @@
             </p>
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
-        </div>
-        <div class="exchange-list info" v-loading="loadingExchangeSS">
-            {{$t('mining.diamond_exchange.not_open_tip')}}
         </div>
     </div>
 </template>
@@ -74,7 +70,6 @@
                 if (res.data.success) {
                     _this.sharderAccount = res.data.data;
                     _this.checkExchangeNum();
-                    //_this.getSSAmount(_this.sharderAccount);
                 }
             }).catch(() => {
                 _this.isSSA = true
