@@ -109,7 +109,7 @@
                     let data1 = {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
                         title: ConvertibleSS / 2 + " SS(ERC-20)",
-                        num: ConvertibleSS * 10000000,
+                        num: ConvertibleSS * 100000000,
                         info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
                     };
 
