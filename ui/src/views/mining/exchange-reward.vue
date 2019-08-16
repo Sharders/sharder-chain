@@ -87,7 +87,6 @@
                 _this.loadingExchangeSS = true;
                 let forgedBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.forgedBalanceNQT);
                 let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);
-
                 let exchangeSS = _this.exchangeSS;
                 let data = new FormData();
                 effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));
@@ -122,8 +121,9 @@
                         }
 
                     }
-                    _this.loadingExchangeSS = false;
+
                 });
+                _this.loadingExchangeSS = false;
 
             },
             exchangeFun(e) {
@@ -144,6 +144,7 @@
             },
             sendMoney(num) {
                 let _this = this;
+                _this.loadingExchangeSS = true;
                 _this.$global.fetch("POST", {
                     recipient: _this.recipient,
                     deadline: "1440",
@@ -171,6 +172,7 @@
                         _this.$message.error(_this.$t("reward.exchange_error"));
                     }
                     _this.checkExchangeNum();
+                    _this.loadingExchangeSS = false;
                 });
             },
         }
