@@ -407,6 +407,7 @@ const cn = {
             'not_open': "暂未开放",
             'not_open_tip': "更多兑换即将开启!",
         },
+
         free_collar_drill: {
             'free_collar_title': "免费领SS",
             'free_collar_subtitle': "免费领取TSS,走向致富之路",
@@ -961,6 +962,19 @@ const cn = {
         "redeemed":"已兑换",
         "convertible":"可兑换",
         "exchangeTip":"每次兑换不能低于1000SS，兑换数量只能是1000的倍数。",
+    },
+    exchange_list:{
+        "exchange_title":"兑换SS列表",
+        "appliction_time":"申请兑换时间",
+        "exchange_amount":"兑换数量",
+        "exchange_type":"兑换类型",
+        "exchange_status":"兑换状态",
+        "exchange_remark":"备注",
+        "application_exchange":"申请兑换",
+        "system_replacement":"系统补发",
+        "status_pending":"待发放",
+        "status_issued":"已发放",
+        "status_refuse":"拒绝发放",
     },
     poc: {
         'block_reward_tips_phase1': "开放测试网络第一阶段90%的挖矿奖励分配给Hub矿工，剩余10%的挖矿奖励分配给其余矿工。",

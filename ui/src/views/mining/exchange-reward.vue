@@ -5,8 +5,8 @@
             <p v-show="isSSA">
                 <span >
                     <li v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</li>
-                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} TSS</li>
-                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} TSS</li>
+                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} SS</li>
+                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} SS</li>
                     <li v-if="sharderAccount" style="color: #e64242">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchangeTip")}} </li>
                     <li v-else>
                         {{$t("reward.no_binding_account")}} ?
@@ -23,7 +23,59 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
+        <!--申请兑换SS列表-->
+        <div class="block_list" v-if="sharderAccount">
+            <p class="block_title">
+                <img src="../../assets/img/block.svg" width="20px" height="20px"/>
+                <span>{{$t('exchange_list.exchange_title')}}</span>
+            </p>
+            <div class="list_table w br4">
+                <div class="list_content data_container table_responsive data_loading">
+                    <table class="table table_striped" id="blocks_table">
+                        <thead>
+                        <tr>
+                            <th>{{$t('exchange_list.appliction_time')}}</th>
+                            <th>{{$t('exchange_list.exchange_type')}}</th>
+                            <th>{{$t('exchange_list.exchange_amount')}}</th>
+                            <th>{{$t('exchange_list.exchange_status')}}</th>
+                        </tr>
+                        </thead>
+                         <tbody>
+                         <tr v-for="exchange in exchangeSSList">
+                             <td>
+                                 <span>{{$global.myFormatTime(exchange.createDate,'YMDHMS',true)}}</span>
+                             </td>
+                             <td>
+                                 <span v-if="exchange.source === 'EXCHANGESS'">{{$t('exchange_list.application_exchange')}}</span>
+                                 <span v-if="exchange.source === 'SYSTEM'">{{$t('exchange_list.system_replacement')}}</span>
+                             </td>
+                             <td>
+                                 <span>{{(exchange.awardAmount)}}</span>
+                             </td>
+                             <td>
+                                 <span v-if="exchange.status === 2"><el-tag type="info">{{$t('exchange_list.status_pending')}}</el-tag></span>
+                                 <span v-if="exchange.status === 3"><el-tag type="success">{{$t('exchange_list.status_issued')}}</el-tag></span>
+                                 <span v-if="exchange.status === 4"><el-tag type="danger">{{$t('exchange_list.status_refuse')}}</el-tag></span>
+                             </td>
+
+                         </tr>
+                         </tbody>
+                    </table>
+                </div>
+                <!-- <div class="list_pagination">
+                     <el-pagination
+                         @size-change="handleSizeChange"
+                         @current-change="handleCurrentChange"
+                         :current-page.sync="currentPage"
+                         :page-size="pageSize"
+                         layout="total, prev, pager, next, jumper"
+                         :total="totalSize">
+                     </el-pagination>
+                 </div>-->
+            </div>
+        </div>
     </div>
+
 </template>
 
 <script>
@@ -53,6 +105,7 @@
                 convertible:0,
                 redeemed:0,
                 loadingExchangeSS:false,
+                exchangeSSList:[],
 
             }
         },
@@ -86,25 +139,20 @@
                 const _this = this;
                 _this.loadingExchangeSS = true;
                 let forgedBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.forgedBalanceNQT);
-                let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);
+                /*let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);*/
                 let exchangeSS = _this.exchangeSS;
                 let data = new FormData();
-                effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));
+               /* effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));*/
                 forgedBalanceNQT = Number(forgedBalanceNQT.substring(0,forgedBalanceNQT.length-2));
                 data.append("accountRS", SSO.accountRS);
                 _this.$http.post(window.api.ssContactAmount, data).then(res => {
+                    _this.exchangeSSList = res.data.exchangeSSList;
                     return res.data.totalExchangeAmount ?  res.data.totalExchangeAmount : 0;
                 }).then(res=>{
                     exchangeSS = Number(res);
                     _this.redeemed = exchangeSS * 2;
-                    let ConvertibleSS = 0;
-                    if(effectiveBalanceNQT <= forgedBalanceNQT - exchangeSS){
-                        _this.convertible = Math.floor(effectiveBalanceNQT  - exchangeSS);
-                        ConvertibleSS = Math.floor((effectiveBalanceNQT  - exchangeSS)/1000)*1000;
-                    }else{
-                        _this.convertible = Math.floor(forgedBalanceNQT  - exchangeSS);
-                        ConvertibleSS = Math.floor((forgedBalanceNQT  - exchangeSS)/1000)*1000;
-                    }
+                    _this.convertible = Math.floor(forgedBalanceNQT - exchangeSS * 2);
+                    let ConvertibleSS = Math.floor(exchangeSS/1000)*1000;
                     let data1 = {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
                         title: ConvertibleSS / 2 + " SS(ERC-20)",
@@ -257,4 +305,40 @@
             max-width: 100%;
         }
     }
+</style>
+<style lang="scss" type="text/scss">
+    /*@import '~scss_vars';*/
+    @import './style.scss';
+
+    .el-table {
+        th > .cell {
+            background-color: white;
+        }
+
+        .cell {
+            font-size: 13px;
+        }
+    }
+
+    #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
+        color: #99a9bf !important;
+    }
+
+    .testnet-tips {
+        padding: 10px 0 20px 0;
+        font-size: 13px;
+        font-weight: normal;
+        text-align: center;
+    }
+
+
+    .last_block {
+        text-align: left!important;
+        font-size: 12px!important;
+
+        .generator {
+            margin-right: 10px;
+        }
+    }
+
 </style>

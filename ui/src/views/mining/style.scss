@@ -1,0 +1,117 @@
+.xs_section_fa {
+    height: 260px;
+    background: transparent;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    .xs_section {
+        width: 190px;
+        height: 125px;
+        background: #fff;
+        margin-right: 5px;
+        margin-bottom: 10px;
+        padding-left: 20px;
+        position: relative;
+
+        div {
+            position: relative;
+            display: flex;
+            top: 30%;
+
+            img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .section_info {
+                display: grid;
+                margin-left: 10px;
+                text-align: left;
+
+                span {
+                    font-size: 14px;
+                    color: #666;
+
+                    &:first-child {
+                        font-weight: bold;
+                        font-size: 20px;
+                        color: #333;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.modal {
+    //top: calc(50% - 300px);
+    //min-width: 1000px!important;
+    .modal-dialog .modal-content .modal-body {
+        max-height: 480px;
+        overflow-y: auto;
+    }
+}
+
+.modal-w800 {
+    min-width: 800px !important;
+}
+
+.modal-w900 {
+    min-width: 900px !important;
+}
+
+.modal-w1000 {
+    min-width: 1000px !important;
+}
+
+
+.block_peers {
+    display: grid;
+    margin-bottom: 20px;
+
+    p {
+        min-height: 30px;
+    }
+
+    .w600 {
+        background: #fff;
+        height: 260px;
+    }
+
+    .trading_situation {
+        width: 600px;
+
+        .trading_situation_info {
+            height: 125px;
+            width: 190px;
+            padding: 40px 0 0 15px;
+            margin-bottom: 7px;
+            background: #fff;
+            border-radius: 8px;
+            display: inline-block;
+
+            img {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                float: left;
+            }
+
+            .section_info {
+                float: left;
+                padding: 10px;
+
+                span:first-child {
+                    font-size: 18px;
+                    font-weight: bold;
+                    display: block;
+                }
+
+                span:last-child {
+                    font-size: 13px;
+                    font-weight: 400;
+                }
+            }
+        }
+    }
+}
