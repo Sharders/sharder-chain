@@ -20,6 +20,7 @@ import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -112,6 +113,29 @@ public abstract class PoolTxApi {
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
 
+            SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+
+            for(Consignor consignor : miningPool.getConsignors().values()){
+                long joinTxId = 0;
+                Account ac = Account.getAccount(consignor.getId());
+                List<Consignor.JoinTransaction> lcj= consignor.getTransactions();
+                if (lcj.size() <= 0) continue;
+                for(int i = 0 ; i < lcj.size(); i++ ) {
+                    joinTxId = lcj.get(i).getTransactionId();
+                    long txId = SharderPoolProcessor.hasProcessingQuitTx(joinTxId);
+                    if(txId != -1){
+                        throw new ConchException.NotValidException("Has a QuitPool tx[%d] be processing already, wait for tx confirmed", txId);
+                    }
+                    SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
+
+                    Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
+
+                    createTransaction(request, ac, ac.getId(), 0, attachment);
+
+                }
+
+            }
+
             long txId = SharderPoolProcessor.hasProcessingDestroyTx(poolId);
             if(txId != -1){
                 throw new ConchException.NotValidException("Account %s has a DestroyPool tx[%d] of pool[%d] be processing already, wait for tx confirmed", account.getRsAddress(), txId, poolId);
@@ -119,7 +143,9 @@ public abstract class PoolTxApi {
             SharderPoolProcessor.addProcessingDestroyTx(poolId, -1);
             
             Attachment attachment = new Attachment.SharderPoolDestroy(poolId);
+
             return createTransaction(request, account, 0, 0, attachment);
+
         }
     }
     
@@ -144,7 +170,7 @@ public abstract class PoolTxApi {
             SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
             
             Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
-            JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
+            JSONStreamAware aware = createTransaction(request, account, account.getId(), 0, attachment);
             return aware;
         }
     }

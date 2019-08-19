@@ -77,11 +77,13 @@ import NodeConfigContent from "./views/dialog/nodeConfigContent";
 import PocDetailContent from "./views/dialog/pocDetailContent";
 import AdminPwd from "./views/dialog/adminPwd";
 import SecretPhrase from "./views/dialog/secretPhrase";
+import PoolTxDetail from "./views/dialog/poolTxDetail";
 //注册组件
 Vue.component("PocContent",PocContent);
 Vue.component("NodeTypeContent",NodeTypeContent);
 Vue.component("NodeConfigContent",NodeConfigContent);
 Vue.component("PocDetailContent",PocDetailContent);
+Vue.component("PoolTxDetail",PoolTxDetail);
 Vue.component("dialogCommon",dialogCommon);
 Vue.component("masked-input",maskedInput);
 Vue.component("ReceiveAlert",ReceiveAlert);

@@ -202,7 +202,7 @@
                 isDownLoadingBlockchain: SSO.downloadingBlockchain,
                 isDownloadingState: SSO.isDownloadingState,
                 percentageTotal: SSO.percentageTotal,
-                blocksLeft: SSO.blocksLeft,
+                blocksLeft: '',
                 lastBlockHeight: '',
                 cosUpgradeDialog: false,
                 adminPasswordTitle: '',
@@ -271,6 +271,7 @@
             getData: function () {
                 const _this = this;
                 // if(_this.i%30 === 0){
+                _this.blocksLeft = SSO.blocksLeft;
                 _this.$global.setBlockchainState(_this).then(res => {
                     _this.blockchainStatus = res.data;
                     /*if(_this.$global.isOpenConsole){

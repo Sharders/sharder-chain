@@ -14,12 +14,76 @@ export default {
     blockchainState: [],
     peers: [],
     userConfig: [],
+    registerSharderSiteUser: [],
     coordinatesMap: null,
     $vue: {},
     placeholder: "--",
     unit: " SS",
     poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
     optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
+    sendVerifyCode(url,username, fun) {
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: {
+                email: username,
+                mobile: username,
+                bizType: 'biz_register'
+            },
+            xhrFields: {
+                withCredentials: true
+            },
+            dataType: 'json',
+            success: function (res) {
+                fun(res);
+            },
+            error: function (e) {
+                console.info(e);
+
+            }
+        });
+    },
+
+    registerSharderSite(url,data,fun){
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            xhrFields: {
+                withCredentials: true
+            },
+            crossDomain: true,
+            success: function (res) {
+                fun(res);
+            },
+            error: function (e) {
+                console.info(e);
+
+            }
+        });
+    },
+
+    ajaxGetPicVCode(url,fun){
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+                console.info(res);
+                if (res.success) {
+                    fun(res);
+                }
+
+            },
+            error: function (e) {
+                console.info(e);
+
+            }
+        });
+    },
+
     fetch(type, requestData, requestType) {
         return new Promise(function (resolve, reject) {
             $.ajax({
