@@ -156,6 +156,18 @@ public class ClientUpgradeTool {
     }
 
 
+
+    private static final long FETCH_INTERVAL_MS = 25*60*1000L;
+    private static volatile JSONObject lastCosVerObj = null;
+    private static long lastFetchTime = -1;
+    
+    private static boolean fetchNow(){
+        if(lastCosVerObj == null) return true;
+        if(lastFetchTime == -1) return true;
+        if(System.currentTimeMillis() - lastFetchTime > FETCH_INTERVAL_MS) return true;
+        
+        return false;
+    }
     /**
      * {
      * "version":"0.1.3"
@@ -171,7 +183,12 @@ public class ClientUpgradeTool {
         String url = UrlManager.getHubLatestVersionUrl();
         Logger.logDebugMessage("fetch the last cos version from " + url);
         RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
-        return JSON.parseObject(response.getContent());
+        if(fetchNow()) {
+            lastCosVerObj = JSON.parseObject(response.getContent());
+            lastFetchTime = System.currentTimeMillis();
+        }
+        
+        return lastCosVerObj;
     }
 
     private static final String KEY_DB_LAST_ARCHIVE = "LastArchive";
