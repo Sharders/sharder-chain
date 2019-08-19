@@ -180,10 +180,10 @@ public class ClientUpgradeTool {
      * @throws IOException
      */
     public static JSONObject fetchLastCosVersion() throws IOException {
-        String url = UrlManager.getHubLatestVersionUrl();
-        Logger.logDebugMessage("fetch the last cos version from " + url);
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
         if(fetchNow()) {
+            String url = UrlManager.getHubLatestVersionUrl();
+            Logger.logDebugMessage("fetch the last cos version from " + url);
+            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
             lastCosVerObj = JSON.parseObject(response.getContent());
             lastFetchTime = System.currentTimeMillis();
         }
