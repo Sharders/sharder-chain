@@ -20,6 +20,7 @@ import org.json.simple.parser.JSONParser;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,7 +28,13 @@ import java.util.Map;
  * @since 2018/11/24
  */
 public abstract class PoolTxApi {
-
+    
+    private static void preCheck() throws ConchException.NotValidException {
+        if(!Conch.getBlockchainProcessor().isUpToDate()){
+            throw new ConchException.NotValidException("Please wait until the blockchain has finished downloading");
+        }
+    }
+    
     public static final class CreatePoolTx extends CreateTransaction {
         static final CreatePoolTx instance = new CreatePoolTx();
 
@@ -43,6 +50,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
+            preCheck();
             Account account = ParameterParser.getSenderAccount(req);
             int currentHeight = Conch.getHeight();
 
@@ -101,8 +109,32 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            preCheck();
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
+
+            SharderPoolProcessor miningPool = SharderPoolProcessor.getPool(poolId);
+
+            for(Consignor consignor : miningPool.getConsignors().values()){
+                long joinTxId = 0;
+                Account ac = Account.getAccount(consignor.getId());
+                List<Consignor.JoinTransaction> lcj= consignor.getTransactions();
+                if (lcj.size() <= 0) continue;
+                for(int i = 0 ; i < lcj.size(); i++ ) {
+                    joinTxId = lcj.get(i).getTransactionId();
+                    long txId = SharderPoolProcessor.hasProcessingQuitTx(joinTxId);
+                    if(txId != -1){
+                        throw new ConchException.NotValidException("Has a QuitPool tx[%d] be processing already, wait for tx confirmed", txId);
+                    }
+                    SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
+
+                    Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
+
+                    createTransaction(request, ac, ac.getId(), 0, attachment);
+
+                }
+
+            }
 
             long txId = SharderPoolProcessor.hasProcessingDestroyTx(poolId);
             if(txId != -1){
@@ -111,7 +143,9 @@ public abstract class PoolTxApi {
             SharderPoolProcessor.addProcessingDestroyTx(poolId, -1);
             
             Attachment attachment = new Attachment.SharderPoolDestroy(poolId);
+
             return createTransaction(request, account, 0, 0, attachment);
+
         }
     }
     
@@ -124,6 +158,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            preCheck();
             Account account = ParameterParser.getSenderAccount(request);
             long poolId = ParameterParser.getLong(request, "poolId", Long.MIN_VALUE, Long.MAX_VALUE, true);
             long joinTxId = ParameterParser.getLong(request, "txId", Long.MIN_VALUE, Long.MAX_VALUE,true);
@@ -135,7 +170,7 @@ public abstract class PoolTxApi {
             SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
             
             Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
-            JSONStreamAware aware = createTransaction(request, account, 0, 0, attachment);
+            JSONStreamAware aware = createTransaction(request, account, account.getId(), 0, attachment);
             return aware;
         }
     }
@@ -149,6 +184,7 @@ public abstract class PoolTxApi {
 
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            preCheck();
             JSONStreamAware aware = null;
             try{
                 Account account = ParameterParser.getSenderAccount(request);

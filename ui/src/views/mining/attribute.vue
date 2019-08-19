@@ -35,7 +35,7 @@
                                 <button class="info">
                                     <p>{{$t('mining.attribute.join_time')}}</p>
                                     <p class="strong">{{miningInfo.timestamp === 0 ?
-                                        $t("mining.attribute.not_join"):$global.myFormatTime(miningInfo.timestamp,'YMDHMS',true)}}</p>
+                                        $t("mining.attribute.not_join"):miningInfo.timestamp}}</p>
                                 </button>
                             </el-col>
                             <el-col :span="6">
@@ -226,7 +226,7 @@
                     investmentTotal: 0,
                     income: 0,
                     chance: 0,
-                    timestamp: 0,
+                    timestamp: '',
                     startBlockNo: 0,
                     endBlockNo: 0,
                     consignor: {},
@@ -293,7 +293,8 @@
                     feeNQT: 100000000
                 }, "quitPool").then(val => {
                     if (val.errorDescription) {
-                        _this.$message.error(val.errorDescription);
+                        _this.btnLoading = false;
+                        return _this.$message.error(val.errorDescription);
                     }
                     _this.isExitPool = false;
                     _this.$global.optHeight.quit = _this.newestBlock.height;
@@ -302,7 +303,7 @@
                     _this.miningInfo.joinAmount -= _tx.amount;
                     _this.$store.state.mask = false;
                     _this.btnLoading = false;
-                    _this.$message.success(_this.$t("mining.attribute.exit_success"));
+                    return _this.$message.success(_this.$t("mining.attribute.exit_success"));
                 });
             },
             miningDestroy() {
@@ -376,6 +377,7 @@
                     account: SSO.account,
                     poolId: _this.mining.poolId,
                 }, "getPoolInfo").then(res => {
+                    _this.loading = false;
                     if (res.errorDescription) {
                         _this.$message.warning(_this.$t("mining.attribute.pool_destruction"));
                         return _this.$router.back()
@@ -397,6 +399,8 @@
                     if (!_this.$store.state.quitPool[res.poolId]) {
                         _this.$store.state.quitPool[res.poolId] = res.joinAmount;
                     }
+
+                }).catch(err => {
                     _this.loading = false;
                 });
             },
@@ -428,17 +432,45 @@
                     account: _this.myAccount,
                     type: 8,
                     subtype: 2,
-                    lastIndex: 0
+                    /*lastIndex: 0*/
                 }, "getBlockchainTransactions").then(res => {
                     // console.info(res);
                     for (let t of res.transactions) {
                         if (t.attachment.poolId === _this.miningInfo.poolId) {
-                            _this.miningInfo.timestamp = t.timestamp;
+                            _this.formatJionTime(t.timestamp);
                             break;
                         }
                     }
                 });
+            },
+
+            formatJionTime(time,fmt,tz){
+                const _this = this;
+                fmt = fmt || "yyyy-MM-dd hh:mm:ss";
+                tz = tz || 0;
+                _this.$global.fetch("GET",{},"getConstants").then(function (res) {
+                    return parseInt(res.epochBeginning);
+                }).then(res => {
+                    let date = new Date(time * 1000 + res + tz * 3600000);
+                    let o = {
+                        "M+": date.getUTCMonth() + 1,                          //月份
+                        "d+": date.getUTCDate(),                               //日
+                        "h+": date.getUTCHours(),                              //小时
+                        "m+": date.getUTCMinutes(),                            //分
+                        "s+": date.getUTCSeconds(),                            //秒
+                        "q+": Math.floor((date.getUTCMonth() + 3) / 3),     //季度
+                        "S": date.getUTCMilliseconds()                         //毫秒
+                    };
+                    if (/(y+)/.test(fmt))
+                        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+                    for (let k in o)
+                        if (new RegExp("(" + k + ")").test(fmt))
+                            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+                    _this.miningInfo.timestamp = fmt;
+                });
+
             }
+
         },
         created: function () {
             let _this = this;
@@ -767,7 +799,7 @@
 
         .attribute-info .attribute-text .pool-serial-number {
             position: absolute;
-            right: 15px;
+            left: 4%;
             bottom: 10px;
             font-weight: initial;
             font-size: 14px;
@@ -847,7 +879,7 @@
 
         .pool-attribute .mining-attribute .img-close,
         .pool-attribute .exit-pool .img-close {
-            display: none;
+            /*display: none;*/
         }
 
         .pool-attribute .mining-attribute .btn {

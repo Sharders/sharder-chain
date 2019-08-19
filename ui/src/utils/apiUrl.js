@@ -14,6 +14,11 @@ export const FoundationApiUrls = {
         local: 'http://localhost:8080/sc/natServices/fetch',
         path: '/sc/natServices/fetch',
     },
+    natReservedBinding:{
+        eoLinkerUrl: '',
+        local: 'http://localhost:8080/sc/natServices/reservedBinding',
+        path: '/sc/natServices/reservedBinding',
+    },
 };
 
 /**

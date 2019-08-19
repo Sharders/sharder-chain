@@ -168,6 +168,7 @@
                     </el-radio-button>
                     <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
                     <el-radio-button v-if="poolInfoList.length > 0" label="poolInfo" class="btn">Pool</el-radio-button>
+                    <el-radio-button v-if="messageInfoList.length > 0" label="messageInfo" class="btn">{{$t('sendMessage.infomation')}}</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
@@ -369,6 +370,45 @@
                         </el-table-column>
                     </el-table>
                 </div>
+                <div v-if="tabTitle === 'messageInfo'" class="blockInfo">
+                    <el-table :data="messageInfoList" class="poc" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline>
+                                    <el-row>
+                                        <MessageTxDetail :rowData="props.row"></MessageTxDetail>
+                                    </el-row>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="senderRS"
+                            align="center"
+                            :label="$t('poc.creator')">
+                        </el-table-column>
+                        <el-table-column
+                            align="center"
+                            :label="$t('poc.type')"
+                            :formatter="parseSubTypeMessage">
+                        </el-table-column>
+                        <el-table-column
+                            prop="height"
+                            align="center"
+                            :label="$t('poc.started_height')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="block"
+                            align="center"
+                            :label="$t('poc.started_block')">
+                        </el-table-column>
+
+                        <el-table-column
+                            prop="transaction"
+                            align="center"
+                            :label="$t('poc.tx')">
+                        </el-table-column>
+                    </el-table>
+                </div>
             </div>
         </div>
         <!--view account transaction dialog-->
@@ -448,10 +488,10 @@
 </template>
 
 <script>
-    import PoolTxDetail from "./poolTxDetail";
+    import MessageTxDetail from "./messageTxDetail";
     export default {
         name: "dialog_all",
-        components: {PoolTxDetail},
+        components:{MessageTxDetail},
         props: {
             accountInfoOpen: Boolean,
             blockInfoOpen: Boolean,
@@ -478,6 +518,7 @@
                 blockInfo: [],
                 pocInfoList:[],
                 poolInfoList:[],
+                messageInfoList:[],
                 accountIdMap:[],
                 tradingInfoDialog: this.tradingInfoOpen,
                 rs:'',
@@ -519,6 +560,7 @@
                 const _this = this;
                 _this.pocInfoList = [];
                 _this.poolInfoList = [];
+                _this.messageInfoList = [];
                 return new Promise((resolve, reject) => {
                     _this.$http.get('/sharder?requestType=getBlock', {
                         params: {
@@ -557,6 +599,17 @@
                                         feeNQT:t.feeNQT,
                                     });
 
+                                }else if(t.type === 1){
+                                    _this.messageInfoList.push({
+                                        messageInfo:t.attachment,
+                                        senderRS:t.senderRS,
+                                        block:t.block,
+                                        height:t.height,
+                                        transaction:t.transaction,
+                                        subType:t.subtype,
+                                        recipientRS:t.recipientRS,
+                                        accountRS:SSO.accountRS,
+                                    });
                                 }
 
                             }
@@ -783,6 +836,12 @@
 
                 }
 
+            },
+            parseSubTypeMessage(row,column) {
+                const _this = this;
+                let subtype = row.subType;
+                if (subtype === 0) return _this.$root.$t("transaction.transaction_type_information");
+                if (subtype === 5) return _this.$root.$t("transaction.transaction_type_account");
             },
 
         },

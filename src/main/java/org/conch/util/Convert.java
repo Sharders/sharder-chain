@@ -113,7 +113,17 @@ public final class Convert {
 
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static String dateFromEpochTime(int epochTime) {
-        return DateFormatUtils.format(new Date(fromEpochTime(epochTime)),DATE_TIME_FORMAT);
+        String res = "";
+        try{
+            res = DateFormatUtils.format(new Date(fromEpochTime(epochTime)),DATE_TIME_FORMAT);
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+    public static String dateFromEpochTime(long epochTime) {
+        int epochTimeInt = Long.valueOf(epochTime).intValue();
+        return dateFromEpochTime(epochTimeInt);
     }
     
     public static long fromEpochTime(int epochTime) {

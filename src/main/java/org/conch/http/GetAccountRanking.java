@@ -42,7 +42,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
         }
         long endMS = System.currentTimeMillis();
         long between = endMS - startMS;
-        Logger.logInfoMessage("GetAccountRanking Api: %d S, %d MS", between/1000L, between);
+        Logger.logDebugMessage("GetAccountRanking Api: %d S, %d MS", between/1000L, between);
         return json;
     }
 
@@ -85,6 +85,7 @@ public class GetAccountRanking extends APIServlet.APIRequestHandler {
                     "(SELECT * from ACCOUNT as a where a.DB_ID in " +
                     "(select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID) order by a.BALANCE desc) as ma " +
                     "where ma.BALANCE >= (SELECT a.BALANCE from ACCOUNT as a where a.ID = ? order by a.DB_ID desc limit 1)");
+           // PreparedStatement ps = con.prepareStatement("SELECT ID,BALANCE from ACCOUNT as a where a.DB_ID in (select max(DB_ID) from ACCOUNT as ma where a.ID = ma.ID)order by a.BALANCE desc");
             ps.setLong(1, account);
             obj = result(ps.executeQuery());
         } catch (SQLException e) {

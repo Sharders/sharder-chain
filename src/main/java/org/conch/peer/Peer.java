@@ -172,22 +172,16 @@ public interface Peer extends Comparable<Peer> {
     }
 
     enum BlockchainState {
-        /**
-         * 最新的
-         */
+        //最新的
         UP_TO_DATE,
-        /**
-         * 下载中
-         */
+        //下载中
         DOWNLOADING,
-        /**
-         * 轻客户端
-         */
+        //轻客户端
         LIGHT_CLIENT,
-        /**
-         * 分叉
-         */
-        FORK
+        //分叉
+        FORK,
+        //过期
+        OBSOLETE
     }
 
     enum RunningMode {

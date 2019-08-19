@@ -1932,6 +1932,24 @@ public final class Account {
         listeners.notify(this, Event.POC);
     }
 
+
+    private long balanceAmountValidation(long amountNQT){
+        if(!Constants.isTestnet()) return amountNQT;
+        if(Conch.getHeight() < Constants.POC_BALANCE_CORRECTION_HEIGHT) return amountNQT;
+        
+        // this.balanceNQT is null or 0
+        if(amountNQT >= 0) return amountNQT;
+        
+        long absAmount = Math.abs(amountNQT);
+        if(this.balanceNQT <= absAmount){
+            Logger.logWarningMessage("[Ledger] Want to subtract the Account %s [id=%d]'s confirmed balance amount %d, but current confirmed balance isn't enough, just subtract the current balanceNQT %d at height %d"
+                    , Account.rsAccount(this.id), this.id, absAmount, this.balanceNQT, Conch.getHeight());
+            return -this.balanceNQT;
+        }
+
+        return amountNQT;
+    }
+    
     /**
      * internal method to add balance or unconfirmed balance.
      * different logic between balance and unconfirmed balance only is: whether add the guaranteed balance
@@ -1945,6 +1963,8 @@ public final class Account {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
+
+        amountNQT = balanceAmountValidation(amountNQT);
         
         long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
         if(Event.BALANCE == balanceEvent){
@@ -1999,6 +2019,9 @@ public final class Account {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
+
+        amountNQT = balanceAmountValidation(amountNQT);
+        
         long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
         this.balanceNQT = Math.addExact(this.balanceNQT, totalAmountNQT);
         this.unconfirmedBalanceNQT = Math.addExact(this.unconfirmedBalanceNQT, totalAmountNQT);

@@ -51,6 +51,8 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
     
     boolean isUpToDate();
     
+    boolean isObsolete();
+    
     boolean isProcessingBlock();
     
     boolean isGetMoreBlocks();

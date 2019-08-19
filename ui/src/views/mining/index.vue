@@ -22,7 +22,8 @@
                         </li>
                         <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
-                            <span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>
+                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                            <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
                         </li>
                     </ul>
                 </div>
@@ -58,7 +59,7 @@
                 </span>
             </div>
             <div class="mining-list">
-                <h5>
+                <div class ="sort_type">
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
@@ -72,7 +73,7 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                </h5>
+                </div>
                 <div class="mining-list-info" v-loading="loading">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
@@ -80,6 +81,9 @@
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
+                                        <span v-if="mining.isJoin">
+                                            <img class="pool-badge" src="../../assets/img/chatu.png" height="25px">
+                                        </span>
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
@@ -89,6 +93,7 @@
                                         :show-text="false"></el-progress>
                                 </div>
                                 <div class="tag">
+
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
                                         <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
@@ -205,7 +210,7 @@
         </div>
         <!--挖矿排行-->
         <div v-if="isRanking">
-            <div class="ranking">
+            <div class="ranking"  v-loading="loadingRanking">
                 <span class="img-close" @click="isVisible('isRanking')"></span>
                 <div class="ranking-content">
                     <h3 class="ranking-title">{{$t('mining.index.mining_ranking')}}</h3>
@@ -228,9 +233,9 @@
                             </td>
                         </tr>
                     </table>
-                    <div class="my-assets">
+                    <div class="my-assets" v-loading="loadingRankingNo">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
-<!--                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}-->
+                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
                     </div>
                 </div>
             </div>
@@ -358,18 +363,25 @@
                 accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
-                
+                accountTransactionList: [],
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 18,
-
+                loadingRanking: true,
+                loadingRankingNo: true,
                 loading: true,
                 btnLoading: false
             }
         },
         mounted() {
             let _this = this;
-
+            if (!_this.$store.state.isLogin) {
+                window.token = window.location.search.substring(1 + "token".length);
+                console.info("token", token);
+                _this.account();
+            } else {
+                _this.loginAfter();
+            }
             // window.$miningInitial = setInterval(() => {
             let miningDataLoader = setInterval(() => {
                 if (_this.$route.path === '/mining') {
@@ -503,6 +515,17 @@
                 this.$store.state.mask = !this[val];
                 this[val] = !this[val];
             },
+            isVisibleRanking(val) {
+                const _this = this;
+                if (val === "isCreatePool" && this.rule === null) {
+                    this.$message.error(this.$t("mining.index.pool_no_permissions"));
+                    return;
+                }
+                _this.getAssetsRanking();
+                _this.getAccountRanking();
+                this.$store.state.mask = !this[val];
+                this[val] = !this[val];
+            },
             handleSizeChange(val) {
                 // console.log(`每页 ${val} 条`);
             },
@@ -532,15 +555,12 @@
             loginAfter() {
                 let _this = this;
                 _this.getAllIncome();
-
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
                         _this.rule = res;
                         _this.maxPoolInvestment = res.consignor.amount.max - 100000000;
                     }
                 });
-                
-                _this.getPools({sort: _this.sortFun});
 
                 _this.$global.fetch("POST", {limit: 99999}, "getNextBlockGenerators").then(res => {
                     if (res.errorDescription) {
@@ -575,10 +595,10 @@
                     _this.accountInfo = res;
                 });
 
-                // _this.getAssetsRanking();
-                // _this.getAccountRanking();
+                _this.getPools({sort: _this.sortFun});
 
             },
+
             getCoinBase(height) {
                 let _this = this;
                 _this.$global.fetch("GET", {
@@ -595,9 +615,11 @@
             },
             getAssetsRanking() {
                 let _this = this;
+                _this.loadingRanking = true;
                 _this.$global.fetch("POST", {
                     ranking: 10
                 }, "getAccountRanking").then(res => {
+                    _this.loadingRanking = false;
                     if (res.success) {
                         _this.rankingList = res.data;
                     }
@@ -605,35 +627,108 @@
             },
             getAccountRanking() {
                 let _this = this;
+                _this.loadingRankingNo = true;
                 _this.$global.fetch("POST", {
                     account: SSO.account
                 }, "getAccountRanking").then(res => {
+                    _this.loadingRankingNo = false;
                     if (res.success) {
                         _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
+                let end = new Date();
+
             },
             getPools(parameter) {
                 let _this = this;
                 _this.loading = true;
                 let poolArr1 = [];
                 let poolArr2 = [];
-                _this.$global.fetch("POST", parameter, "getPools").then(res => {
-                    if (res.errorDescription) {
-                        return _this.$message.error(res.errorDescription);
-                    }
-                    for(let t of res.pools){
-                        if(t.creatorRS === _this.accountInfo.accountRS){
-                            poolArr1.push(t);
-                        }else{
-                            poolArr2.push(t);
+                let poolArr3 = [];
+                let poolArr4 = [];
+
+                let params = new URLSearchParams();
+                params.append("account", SSO.accountRS);
+                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
+
+                let i = 0;
+                if (typeof _this.unconfirmedTransactionsList !== 'undefined') {
+                    i = _this.unconfirmedTransactionsList.length;
+                }
+                params.append("type", "8");
+                params.append("subtype", "2");
+
+
+                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
+                    _this.accountTransactionList = res1.data.transactions;
+                    _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                        if (res.errorDescription) {
+                            return _this.$message.error(res.errorDescription);
                         }
-                    }
-                    _this.miningList=poolArr1.concat(poolArr2);
-                    _this.totalSize = _this.miningList.length;
+
+                        if(_this.accountTransactionList.length === 0){
+                            for(let t of res.pools){
+                                if(t.creatorRS === _this.accountInfo.accountRS){
+                                    poolArr1.push(t);
+                                }else{
+                                    poolArr2.push(t);
+                                }
+                            }
+                            _this.miningList=poolArr1.concat(poolArr2);
+                        } else{
+                            for(let t of res.pools){
+                                if(t.creatorRS === _this.accountInfo.accountRS ){
+
+                                    let i=0;
+                                    for(let p of _this.accountTransactionList) {
+
+                                        if (p.attachment.poolId === t.poolId) {
+                                            t.isJoin=true;
+                                            poolArr1.push(t);
+                                            i++;
+                                            break;
+                                        }
+                                        i++;
+                                        if(i === _this.accountTransactionList.length){
+                                            poolArr2.push(t);
+                                            continue;
+                                        }
+
+                                    }
+
+                                }else{
+                                    let j = 0;
+                                    for(let p of _this.accountTransactionList) {
+                                        if (p.attachment.poolId === t.poolId) {
+                                            t.isJoin=true;
+                                            poolArr3.push(t);
+                                            j++;
+                                            break;
+                                        }
+                                        j++;
+                                        if(j === _this.accountTransactionList.length){
+                                            poolArr4.push(t);
+                                            continue;
+                                        }
+
+                                    }
+
+                                }
+                            }
+
+                            _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                        }
+                        _this.totalSize = _this.miningList.length;
+                        _this.loading = false;
+                    });
+                }).catch(function (err) {
                     _this.loading = false;
+                    _this.$message.error(err.message);
                 });
+
+
             },
+
             getMinerBlock(mining) {
                 let _t = this;
                 if (!_t.newestBlock) {
@@ -644,16 +739,6 @@
                 } else {
                     return mining.endBlockNo - _t.newestBlock.height
                 }
-            }
-        },
-        created: function () {
-            let _this = this;
-            if (!_this.$store.state.isLogin) {
-                window.token = window.location.search.substring(1 + "token".length);
-                console.info("token", token);
-                _this.account();
-            } else {
-                _this.loginAfter();
             }
         },
         watch: {
@@ -825,6 +910,12 @@
         color: #14c6fc;
     }
 
+    .pool-badge {
+        padding-bottom: 3px;
+        padding-right: 5px;
+        float: right;
+    }
+
 </style>
 <!--豆匣矿场-->
 <style scoped>
@@ -952,12 +1043,12 @@
 
     .mining-list .list-title {
         display: inline-block;
-        padding: 20px 0 16px;
-        font-size: 15px;
+        padding: 14px 0 16px;
+        font-size: 14px;
     }
 
     .mining-list .list-title + div {
-        top: 3px;
+        /*top: 4px;*/
     }
 
     .mining-list .mining-list-img {
@@ -1020,12 +1111,12 @@
         height: 120px;
         color: #000;
         padding: 0;
-        font-size: 14px;
+        font-size: 15px;
         position: relative;
     }
 
     .grid-content .tag p {
-        padding-bottom: 15px;
+        padding-bottom: 12px;
         position: relative;
     }
 
@@ -1409,7 +1500,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 35%;
+            width: 50%;
         }
 
         .mining .mining-list-info .grid-content .tag {
@@ -1624,7 +1715,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 0 10px 70px 10px;
+            padding: 7px 8px 70px 10px;
         }
 
         .ranking-table th {

@@ -205,7 +205,14 @@
                                         {{$t('transaction.self')}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 3">
-                                        {{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txSId}}
+                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">
+                                        {{transaction.recipientRS}}
+                                        </span>
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9 && transaction.senderRS !== accountInfo.accountRS">
+                                        {{$t('transaction.self')}}
+                                        </span>
+                                        <span class="linker" v-else="">{{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txSId}}</span>
+
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 2">
                                         {{$t('transaction.transaction_type_forge_pool')}}:{{transaction.attachment.poolId}}
@@ -371,7 +378,7 @@
                 </h4>
             </div>
             <div class="modal-body">
-                <el-form label-position="left" v-loading="hubsetting.loadingData" :model="hubsetting" status-icon :rules="formRules"
+                <el-form label-position="left" style=" max-height: 700px;overflow: auto;" v-loading="hubsetting.loadingData" :model="hubsetting" status-icon :rules="formRules"
                          :label-width="this.$i18n.locale === 'en'? '200px':'160px'" ref="initForm">
                     <el-form-item :label="$t('hubsetting.enable_nat_traversal')">
                         <el-checkbox v-model="hubsetting.openPunchthrough"></el-checkbox>
@@ -382,10 +389,42 @@
                     <el-form-item :label="$t('hubsetting.serial_no')" v-show="userConfig.xxx&&hubsetting.initialSerialClickCount>=5">
                         <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
-                        <el-input v-model="userConfig.siteAccount"></el-input>
+
+                    <el-form-item :label="$t('hubsetting.register_sharder_account')">
+                        <el-checkbox v-model="hubsetting.registerSiteAccount"></el-checkbox>
                     </el-form-item>
-                    <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd">
+                    <el-form-item :label="$t('hubsetting.sharder_account_phone_or_email')"  v-if="hubsetting.registerSiteAccount">
+                        <el-input v-model="registerSharderSiteUser.sharderAccountPhoneOrEmail" ></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.verification_code')" v-if="hubsetting.registerSiteAccount">
+                        <el-input v-model="registerSharderSiteUser.verificationCode" ></el-input><el-button type="primary" style="position: absolute;right:0px;top:0px " @click="sendVCode()" :disabled="sendSuccess">
+                        {{sendSuccess?time+"s 可"+$t('hubsetting.resend_verification_code'):$t('hubsetting.send_verification_code')}}
+                    </el-button>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.set_sharder_account_password')"  v-if="hubsetting.registerSiteAccount">
+                        <el-input type="password" v-model="registerSharderSiteUser.setSharderPwd"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.confirm_sharder_account_password')"  v-if="hubsetting.registerSiteAccount">
+                        <el-input type="password" v-model="registerSharderSiteUser.confirmSharderPwd"></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.picture_verification_code')"  v-if="hubsetting.registerSiteAccount">
+                        <el-input v-model="registerSharderSiteUser.pictureVerificationCode" @blur="checkPicVerificationCode"></el-input>
+                        <el-image :src="src" style="width:112px;height:38px;position: absolute;right:1px;top:1px " @click="getPicVCode()">
+                            <div slot="placeholder" class="image-slot">
+                                加载中<span class="dot">...</span>
+                            </div>
+                        </el-image>
+                    </el-form-item>
+                    <el-form-item >
+                        <el-button type="primary" v-if="hubsetting.registerSiteAccount" style="float: right" @click="registerSharderSite()">
+                            {{$t('hubsetting.register_sharder_account')}}
+                        </el-button>
+                    </el-form-item>
+
+                    <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount" v-if="!hubsetting.registerSiteAccount">
+                        <el-input v-model="userConfig.siteAccount" ></el-input>
+                    </el-form-item>
+                    <el-form-item :label="$t('hubsetting.sharder_account_password')" prop="sharderPwd" v-if="!hubsetting.registerSiteAccount">
                         <el-input type="password" v-model="hubsetting.sharderPwd" @blur="checkSharder"></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough"
@@ -423,7 +462,7 @@
                 </el-form>
                 <div class="footer-btn">
                     <button class="common_btn writeBtn" v-loading="hubsetting.executing" @click="verifyHubSetting('init')">
-                        {{$t('hubsetting.confirm_restart') }}
+                        {{$t('hubsetting.confirm_restart')}}
                     </button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
@@ -452,6 +491,7 @@
                     <el-form-item :label="$t('hubsetting.serial_no')" v-show="userConfig.xxx&&hubsetting.settingSerialClickCount>=5">
                         <el-input v-model="userConfig.xxx" :disabled="true"></el-input>
                     </el-form-item>
+
                     <el-form-item :label="$t('hubsetting.sharder_account')" prop="sharderAccount">
                         <el-input v-model="userConfig.siteAccount"></el-input>
                     </el-form-item>
@@ -567,10 +607,10 @@
                                :disabled="this.hubsetting.register_status !== 1 && hubsetting.openPunchthrough">{{
                         $t('hubsetting.confirm_restart') }}
                     </el-button>
-                    <button class="common_btn imgBtn" @click="registerNatService"
+                    <el-button class="common_btn imgBtn" @click="registerNatService()"
                             v-if="hubsetting.openPunchthrough && this.needRegister">{{
                         $t('hubsetting.register_nat_server') }}
-                    </button>
+                    </el-button>
                     <button class="common_btn writeBtn" @click="closeDialog">{{$t('hubsetting.cancel')}}</button>
                 </div>
             </div>
@@ -628,9 +668,14 @@
                         <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
                     </tr>
                     <tr>
+                        <th>{{$t('network.poc_score')}}</th>
+                        <td>{{accountInfo.pocScore}}</td>
+                    </tr>
+                    <tr>
                         <th>{{$t('account_info.public_key')}}</th>
                         <td>{{accountInfo.publicKey}}</td>
                     </tr>
+
                     </tbody>
                 </table>
             </div>
@@ -656,6 +701,10 @@
             );
             return {
                 //dialog
+                src: "",
+                requestUrl:"http://localhost:8080",
+                sendSuccess: false, //true验证码发送 false验证码未发送
+                time: 60 , //时间
                 sendMessageDialog: false,
                 tranferAccountsDialog: false,
                 hubSettingDialog: false,
@@ -679,6 +728,15 @@
                     natAddress: this.$store.state.userConfig['sharder.NATServiceAddress'],
                     ssAddress: this.$store.state.userConfig['sharder.HubBindAddress'],
                     siteAccount: this.$store.state.userConfig['sharder.siteAccount'],
+                },
+
+                registerSharderSiteUser:{
+
+                    sharderAccountPhoneOrEmail:'',
+                    verificationCode:"",
+                    setSharderPwd:'',
+                    confirmSharderPwd:'',
+                    pictureVerificationCode:"",
                 },
 
                 needRegister: false,
@@ -717,6 +775,7 @@
                     errorCode: false
                 },
                 hubsetting: {
+                    registerSiteAccount:false,
                     openPunchthrough: false,
                     loadingData: false,
                     sharderPwd: '',
@@ -750,6 +809,7 @@
                     publicKey: SSO.publicKey,
                     requestProcessingTime: '',
                     unconfirmedBalanceNQT: '',
+                    pocScore:'',
                 },
                 selectType: '',
                 transactionType: [{
@@ -796,12 +856,48 @@
 
                 operationType: 'init',
                 formRules: {},
+                registerSharderSiteUserRules:{
+                    sharderAccountPhoneOrEmail:[{ required: true, message: this.$t('rules.mustRequired') }],
+                    verificationCode:[{ required: true, message: this.$t('binding_validation.verification_title') }],
+                    setSharderPwd:[
+                        {
+                            required: true,
+                            validator: (rule, value, callback) => {
+                                if (value) {
+                                    if (this.registerSharderSiteUser.setSharderPwd) {
+                                        this.$refs['initForm'].validateField('confirmSharderPwd');
+                                    }
+                                    callback();
+                                } else {
+                                    callback(new Error(this.$t('rules.plz_input_sharder_pwd')));
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                    confirmSharderPwd:[
+                        {
+                            required: true,
+                            validator: (rule, value, callback) => {
+                                if (!value && this.registerSharderSiteUser.setSharderPwd) {
+                                    callback(new Error(this.$t('rules.plz_input_sharder_pwd_again')));
+                                } else if (value !== this.registerSharderSiteUser.setSharderPwd) {
+                                    callback(new Error(this.$t('rules.inconsistent_sharder_password')));
+                                } else {
+                                    callback();
+                                }
+                            },
+                            trigger: 'blur'
+                        }
+                    ],
+                    pictureVerificationCode:[{ required: true, message: this.$t('rules.mustRequired') }],
+                },
                 hubInitSettingRules: {
                     publicAddress: [{ required: true, message: this.$t('rules.mustRequired') }],
                     sharderAccount: [{ required: true, message: this.$t('rules.mustRequired') }],
                     sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
-                    modifyMnemonicWord: [{ 
-                        required: true, 
+                    modifyMnemonicWord: [{
+                        required: true,
                         // message: this.$t('rules.mustRequired') 
                         validator: (rule, value, callback) => {
                             if (value) {
@@ -933,11 +1029,160 @@
                 //_this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
             });
             _this.getLatestHubVersion();
+            _this.getPicVCode();
+            _this.getPocScore();
         },
         methods: {
+
+
+            //定时器
+            finish() {
+                //禁用以下表单
+                const _this = this;
+                _this.sendSuccess = true;
+                //进行倒计时提示
+                let Time = setInterval(() => {
+                    if (_this.time <= 1) {
+                        //当时间小于等于一的时候清除定时器
+                        //初始化一下数据参数
+                        clearInterval(Time);
+                        _this.sendSuccess = false;
+                        _this.time = 60;
+                    } else {
+                        _this.time--;
+                    }
+                }, 1000);
+            },
+            //发送验证码请求
+            sendVCode() {
+                const _this = this;
+                let requestUrl ="";
+                let sharderAccount = _this.registerSharderSiteUser.sharderAccountPhoneOrEmail;
+                if( sharderAccount === ""){
+                    _this.$message.warning(_this.$t('notification.sendVCode'));
+                    return false;
+                }
+                if(sharderAccount.match(/^([a-z0-9A-Z_]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\.)+[a-zA-Z]{2,}$/)){
+                    requestUrl = _this.requestUrl+"/send/email/captcha.ss";
+                }else{
+                    requestUrl = _this.requestUrl+"/send/sms/captcha.ss";
+                }
+                //调用定时器
+                _this.finish();
+                //发送请求
+
+                _this.$global.sendVerifyCode(requestUrl,sharderAccount,function(res){
+                    if(res.success){
+                        _this.$message.warning(_this.$t('mining.binding_validation.verification_tip1')+sharderAccount+","+_this.$t('mining.binding_validation.verification_tip1'));
+                    }
+
+                });
+            },
+
+            registerSharderSite(){
+                const _this = this;
+                let sharderAccount = _this.registerSharderSiteUser.sharderAccountPhoneOrEmail;
+                let verificationCode = _this.registerSharderSiteUser.verificationCode;
+                let setSharderPwd = _this.registerSharderSiteUser.setSharderPwd;
+                let confirmSharderPwd = _this.registerSharderSiteUser.confirmSharderPwd;
+                let pictureVerificationCode = _this.registerSharderSiteUser.pictureVerificationCode;
+                if( sharderAccount === ""){
+                    _this.$message.warning(_this.$t('rules.plz_input_phone_or_email'));
+                    return false;
+                }
+                else if( verificationCode === ""){
+                    _this.$message.warning(_this.$t('mining.binding_validation.verification_title'));
+                    return false;
+                }
+                else if( setSharderPwd === ""){
+                    _this.$message.warning(_this.$t('password_modal.input_sharder_site_pwd'));
+                    return false;
+                }
+                else if( confirmSharderPwd === ""){
+                    _this.$message.warning(_this.$t('rules.plz_input_sharder_pwd_again'));
+                    return false;
+                }
+                else if( confirmSharderPwd != setSharderPwd){
+                    _this.$message.warning(_this.$t('rules.inconsistent_sharder_password'));
+                    return false;
+                }
+                else if( pictureVerificationCode === ""){
+                    _this.$message.warning(_this.$t('rules.plz_input_pic_code'));
+                    return false;
+                }
+
+                let data = {
+                    username: sharderAccount,
+                    email: sharderAccount,
+                    captcha: verificationCode,
+                    loginPassword: setSharderPwd,
+                    imgCaptcha: pictureVerificationCode
+                    };
+                let requestUrl = _this.requestUrl+"/official/register_.ss";
+                _this.$global.registerSharderSite(requestUrl,data,function (res) {
+                    if(res.success){
+                        _this.hubsetting.registerSiteAccount = false;
+                        _this.userConfig.siteAccount  = sharderAccount;
+                        _this.hubsetting.sharderPwd = setSharderPwd;
+                        _this.bindNatService();
+                        _this.registerSharderSiteUser.sharderAccountPhoneOrEmail = "";
+                        _this.registerSharderSiteUser.verificationCode = "";
+                        _this.registerSharderSiteUser.setSharderPwd = "";
+                        _this.registerSharderSiteUser.confirmSharderPwd = "";
+                        _this.registerSharderSiteUser.pictureVerificationCode = "";
+
+                    }else{
+                        console.info("jie:"+res.result.data);
+                        if(res.result.data[0] === "短信验证码错误"){
+                            _this.$message.error(_this.$t('hubsetting.register_error_tip2'));
+                        }else if(res.result.data[0] === "图片验证码错误"){
+                            _this.$message.error(_this.$t('hubsetting.register_error_tip3'));
+                        }else if(res.result.data[0] === "验证码无效"){
+                            _this.$message.error(_this.$t('hubsetting.register_error_tip1'));
+                        }else{
+                            _this.$message.error(_this.$t('hubsetting.register_error'));
+                        }
+
+                    }
+                });
+
+            },
+
+            getPicVCode(){
+              const _this = this;
+              _this.src = _this.requestUrl+"/captcha.svl?_"+Math.random();
+            },
             activeSelectType(type) {
                 return this.selectType === type ? 'active' : ''
             },
+
+            getPocScore(){
+                const _this = this;
+
+                _this.$global.fetch("GET", {
+                    limit: 99999
+                }, "getNextBlockGenerators").then(res => {
+                    _this.activeCount = res.activeCount;
+                    for(let t of res.generators){
+                        if(t.accountRS === SSO.accountRS){
+                            if(t.pocScore){
+                                _this.accountInfo.pocScore = t.pocScore;
+
+                            }else {
+                                _this.accountInfo.pocScore = '--';
+                            }
+                            break;
+                        }else{
+                            _this.accountInfo.pocScore = '--';
+                        }
+                    }
+
+                }).catch(err => {
+                    console.info("error", err);
+                });
+
+            },
+
             getLatestHubVersion() {
                 const _this = this;
                 _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
@@ -1047,11 +1292,11 @@
                 if('initial' == clickType) {
                     _this.hubsetting.initialSerialClickCount++;
                 }else if('setting' == clickType){
-                    _this.hubsetting.settingSerialClickCount++; 
+                    _this.hubsetting.settingSerialClickCount++;
                 }else if('nat' == clickType){
                     _this.hubsetting.natSerialClickCount++;
                 }
-                console.log("clickType=" + clickType 
+                console.log("clickType=" + clickType
                     + ",initialSerialClickCount=" + _this.hubsetting.initialSerialClickCount
                     + ",settingSerialClickCount=" + _this.hubsetting.settingSerialClickCount
                     + ",natSerialClickCount=" + _this.hubsetting.natSerialClickCount
@@ -1143,7 +1388,7 @@
                 formData.append('password', _this.hubsetting.sharderPwd);
                 formData.append('registerStatus', _this.hubsetting.register_status);
                 formData.append('nodeType', _this.userConfig.nodeType);
-                
+
                 // nat settings
                 if (_this.hubsetting.openPunchthrough) {
                     formData.append("sharder.useNATService", "true");
@@ -1168,7 +1413,7 @@
                     formData.append("sharder.myAddress", _this.hubsetting.publicAddress);
                     formData.append("sharder.useNATService", "false");
                 }
-                
+
                 if (_this.hubsetting.SS_Address !== '') {
                     const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if (!_this.hubsetting.SS_Address.toUpperCase().match(pattern)) {
@@ -1181,7 +1426,7 @@
                 } else {
                     formData.append("reBind", false);
                 }
-                
+
                 if (_this.hubsetting.isOpenMining) {
                     formData.append("sharder.HubBind", true);
                     if (_this.hubsetting.modifyMnemonicWord === '') {
@@ -1192,7 +1437,7 @@
                         _this.$message.warning(_this.$t('notification.hubsetting_login_again'));
                         return false;
                     }
-                    
+
                     if(_this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase){
                         _this.$message.warning(_this.$t('notification.hubsetting_not_matched_mnemonic_word'));
                         return false;
@@ -1201,7 +1446,7 @@
                 } else {
                     formData.append("sharder.HubBind", false);
                 }
-                
+
                 if (_this.hubsetting.newPwd !== '' || _this.hubsetting.confirmPwd !== '') {
                     if (_this.hubsetting.newPwd !== _this.hubsetting.confirmPwd) {
                         _this.$message.warning(_this.$t('notification.hubsetting_inconsistent_password'));
@@ -1219,7 +1464,7 @@
                 if (reConfigFormData !== false) {
                     reConfigFormData.append("isInit", "true");
                 }
-                
+
                 if (type === 'init') {
                     this.operationType = 'init';
                     _this.$refs['initForm'].validate((valid) => {
@@ -1250,13 +1495,13 @@
                 console.info("registering nat service for normal node...");
                 const _this = this;
                 _this.registerNatLoading = true;
-                
+
                 // linked ss address > logged ss address
                 let ssAddr = this.userConfig.ssAddress;
                 if(ssAddr == undefined || ssAddr == '') {
                     ssAddr = _this.getAccountRsBySecret();
                 }
-                
+
                 let data = new FormData();
                 data.append("sharderAccount", this.userConfig.siteAccount);
                 data.append("tssAddress", ssAddr);
@@ -1280,6 +1525,36 @@
                         _this.registerNatLoading = false;
                         _this.$message.error(err.message);
                     });
+            },
+            bindNatService(){
+                const _this = this;
+                let ssAddr = this.userConfig.ssAddress;
+                if(ssAddr === undefined || ssAddr === '') {
+                    ssAddr = _this.getAccountRsBySecret();
+                }
+                let data = new FormData();
+                data.append("sharderAccount", this.userConfig.siteAccount);
+                data.append("tssAddress", ssAddr);
+                data.append("nodeType", this.userConfig.nodeType);
+                data.append("registerStatus", "0");
+                this.$http.post(getCommonFoundationApiUrl(FoundationApiUrls.natReservedBinding), data)
+                    .then(response => {
+                        if (response.data.success) {
+                            console.info('success to bind NAT service');
+                            _this.$message.success(_this.$t('notification.success_to_bind_nat'));
+                            _this.closeDialog();
+                        } else {
+                            _this.$message.error(_this.$t('binding_reservation_penetration_service'));
+                            _this.closeDialog();
+                            this.$refs["reconfigureForm"].clearValidate();
+                            this.$refs["reconfigureForm"].resetFields();
+                        }
+                    })
+                    .catch(err => {
+                        _this.registerNatLoading = false;
+                        _this.$message.error(err.message);
+                    });
+
             },
             autoRefresh() {
                 setTimeout(() => {
@@ -1314,15 +1589,16 @@
                     _this.$message.error(err.message);
                 });
             },
+            checkPicVerificationCode(){},
             checkSharder() {
                 const _this = this;
                 let formData = new FormData();
                 if (_this.userConfig.siteAccount !== ''
                     && _this.hubsetting.sharderPwd !== ''
                     && _this.hubsetting.openPunchthrough) {
-                    
+
                     _this.hubsetting.loadingData = true;
-                    
+
                     formData.append("sharderAccount", _this.userConfig.siteAccount);
                     formData.append("password", _this.hubsetting.sharderPwd);
                     formData.append("serialNum", _this.userConfig.xxx);
@@ -1884,7 +2160,7 @@
 
                 this.$refs["reconfigureForm"].clearValidate();
                 this.$refs["initForm"].clearValidate();
-                
+
                 let validationPassed;
                 let formName = '';
                 if (title === 'reConfig') {
@@ -1908,15 +2184,15 @@
                     this.operationType = 'init';
                     validationPassed = true;
                 }
-                
+
                 // validate the parameters of the form
                 if(formName.length > 1) {
                     _this.$refs[formName].validate((valid) => {
                         validationPassed = valid;
                     });
                 }
-                
-                // set the dialog state and visible 
+
+                // set the dialog state and visible
                 if(validationPassed){
                     _this.hubSettingDialog = false;
                     _this.useNATServiceDialog = false;
@@ -1936,7 +2212,7 @@
                 const _this = this;
                 _this.adminPassword = adminPwd;
                 _this.adminPasswordDialog = false;
-                if (_this.adminPasswordTitle === 'reset' 
+                if (_this.adminPasswordTitle === 'reset'
                     || _this.adminPasswordTitle === 'resetNormal') {
                     _this.resetHub(adminPwd,'reset');
                 } else if (_this.adminPasswordTitle === 'factoryReset') {
@@ -1959,21 +2235,32 @@
                 this.$refs["reconfigureForm"].clearValidate();
                 this.$refs["useNATForm"].clearValidate();
                 this.$refs["initForm"].clearValidate();
-                
+
                 // clear dialog form fields
                 if (this.hubSettingDialog && this.$refs['reconfigureForm']) {
                     // do not reset fields, otherwise the setting button will hide
                     // because "this.hubsetting.SS_Address" is used to display judgment
                     this.$refs["reconfigureForm"].resetFields();
                 }
+                /*console.info("this.$refs['initForm']:"+this.$refs['initForm']);
                 if (this.hubInitDialog && this.$refs['initForm']) {
                     this.$refs["initForm"].resetFields();
-                }
+                    console.log("form名称:"+this.$refs["initForm"].resetFields());
+                }*/
                 if (this.useNATServiceDialog && this.$refs['useNATForm']) {
                     this.$refs["useNATForm"].resetFields();
                 }
 
+                this.sendSuccess = false;
+                this.hubsetting.registerSiteAccount = false;
+                this.registerSharderSiteUser.sharderAccountPhoneOrEmail = "";
+                this.registerSharderSiteUser.verificationCode = "";
+                this.registerSharderSiteUser.setSharderPwd = "";
+                this.registerSharderSiteUser.confirmSharderPwd = "";
+                this.registerSharderSiteUser.pictureVerificationCode = "";
+
                 this.operationType = 'init';
+
 
                 this.$store.state.mask = false;
                 this.sendMessageDialog = false;
@@ -2237,6 +2524,7 @@
                 return this.secretPhrase
                     && this.initHUb
                     && this.userConfig.nodeType === 'Hub';
+                /*return true;*/
             },
             whetherShowUseNATServiceBtn() {
                 /*
@@ -2404,6 +2692,7 @@
             let periodicTransactions = setInterval(() => {
                 if (_this.$route.path === '/account') {
                     _this.getAccountTransactionList();
+                    _this.getPocScore();
                 } else {
                     clearInterval(periodicTransactions);
                 }

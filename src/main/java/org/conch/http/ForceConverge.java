@@ -25,7 +25,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
@@ -59,8 +58,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -174,7 +171,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                 Logger.logDebugMessage("received upgradeDb command and upgrade db height is %s ", upgradeDbHeight);
                 if(StringUtils.isNotEmpty(upgradeDbHeight)){
                     Logger.logDebugMessage("start to fetch archived db file from oss and upgrade local db...");
-                    ClientUpgradeTool.upgradeDbFile(upgradeDbHeight);
+                    ClientUpgradeTool.restoreDbAtHeight(upgradeDbHeight);
                 }
             }
 
@@ -271,7 +268,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
 
     public static final String PROPERTY_FORK_NAME = "sharder.forkName";
     public static final String PROPERTY_MANUAL_RESET = "sharder.manualReset";
-    public static final String PROPERTY_SWITCH_TO_BOOT_FORK = "sharder.switchToBootFork";
+    public static final String PROPERTY_SWITCH_TO_BOOT_FORK = "sharder.closeSwitchToBootFork";
+    public static final boolean forceSwitchToBootForkClosed = Conch.getBooleanProperty(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK);
     public static String currentFork = Conch.getStringProperty(PROPERTY_FORK_NAME);
     public static void forceSwitchForkAccordingToCmdTool(){
         if(Conch.versionCompare("0.1.6") > 0 || Generator.isBootNode) return;
@@ -310,44 +308,15 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Logger.logInfoMessage("Switch to fork Giant successfully, start to syncing blocks...");
         }
     }
-    
-    /**
-     * - check the last cos version on the OSS
-     * - auto upgrade at the new version be found
-     */
+
     static final String PROPERTY_CLOSE_AUTO_UPGRADE = "sharder.closeAutoUpgrade";
-    static final String UPDATE_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    static final String UPDATE_DATE_FORMAT_SHORT = "yyyy-MM-dd HH:mm";
-
-    private static Date _convertUpdateDate(String dateStr) throws ParseException {
-        if(StringUtils.isEmpty(dateStr)) return null;
-        
-        // short date format 'yyyyy-MM-dd HH:mm'
-        if(dateStr.length() == 16) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT_SHORT);
-
-        // long date format 'yyyyy-MM-dd HH:mm:ss'
-        if(dateStr.length() == 19) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT);
-            
-        return null;
-    }
-    
     public static void autoUpgrade(){
         try {
             com.alibaba.fastjson.JSONObject cosVerObj = ClientUpgradeTool.fetchLastCosVersion();
             String version = cosVerObj.getString("version");
             String updateTime = cosVerObj.getString("updateTime");
             
-            boolean foundNewVersion = false;
-            if(Conch.versionCompare(version) == -1){
-                foundNewVersion = true;
-            }else if(Conch.versionCompare(version) == 0){
-                Date currentCosUpdateDate = _convertUpdateDate(ClientUpgradeTool.cosLastUpdateDate);
-                Date ossCosUpdateDate = _convertUpdateDate(updateTime);
-                if(ossCosUpdateDate != null && currentCosUpdateDate != null && currentCosUpdateDate.before(ossCosUpdateDate)){
-                    foundNewVersion = true; 
-                }
-            }
-
+            boolean foundNewVersion = Conch.versionCompare(version, updateTime) == -1;
             if(!foundNewVersion) return;
             
             Logger.logInfoMessage("[AutoUpgrade] Found a new version %s release date %s, auto upgrade current COS version %s to it"
@@ -360,26 +329,26 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     }
     
     public static void init() {
-        // manual reset
-        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
-        boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
-        if(manualReset && !Generator.isBootNode) {
-            manualReset();
+        // auto upgrade
+        boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
+        if(!closeAutoUpgrade) {
+            int interval = Constants.isDevnet() ? 1 : 60;
+            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
+            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES);
         }
+//        
+//        // manual reset
+//        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
+//        boolean manualReset = StringUtils.isEmpty(resetStr) ? true : Boolean.valueOf(resetStr);
+//        if(manualReset && !Generator.isBootNode) {
+//            manualReset();
+//        }
         
 //        // switch fork
 //        if(StringUtils.isEmpty(currentFork) || !"Giant".equals(currentFork)){
 //            forceSwitchForkAccordingToCmdTool(); // execute immediately once
 //            ThreadPool.scheduleThread("switchForkThread", switchForkThread, 5, TimeUnit.MINUTES);  
 //        }
-        
-        // auto upgrade
-        boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
-        if(!closeAutoUpgrade) {
-            int interval = Constants.isDevnet() ? 1 : 60;
-            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
-            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES); 
-        }
         
         // correct the blockchain of Testnet
         Conch.getBlockchainProcessor().addListener(block -> resetPoolAndAccounts(block), BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);

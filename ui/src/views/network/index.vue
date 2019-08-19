@@ -10,7 +10,8 @@
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_height')}}</p>
                         <p><span>{{newestHeight}}</span></p>
-                        <p>{{$t('network.block_newest_time')}}{{newestTime}}</p>
+<!--                        <p>{{$t('network.block_newest_time')}}{{newestTime}}</p>-->
+                        <p class="last_block"><span class="generator" >{{lastBlockRS}}</span><span>{{newestTime}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_avg_transaction_volume')}}</p>
@@ -173,7 +174,7 @@
                     <div class="modal-body modal-miner">
                         <el-table
                             :data="minerlist"
-                            style="width: 100%">
+                            style="width: 100%" >
                             <el-table-column type="expand">
                                 <template slot-scope="props">
                                     <el-form label-position="left" inline>
@@ -290,10 +291,11 @@
                                     </el-form>
                                 </template>
                             </el-table-column>
-                            <el-table-column
-                                prop="accountRS"
-                                :label="$t('dialog.account_info_account')"
-                                width="220">
+                            <el-table-column :label="$t('dialog.account_info_account')" width="220">
+                                <template slot-scope="scope">
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === this.SSO.accountRS" style="color:#14c6fc;"></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS != this.SSO.accountRS" style=""></div>
+                                </template>
                             </el-table-column>
                             <el-table-column
                                 prop="bindPeerType"
@@ -340,8 +342,9 @@
                 accountInfo: [],
                 minerlistDialog: false,
                 minerlist: [],
+                isMyMinerDialog:false,
                 minerlistHeight: 590,
-
+                lastBlockRS:'',
                 peersLocationList: {},
                 peersTimeList: [],
 
@@ -379,6 +382,7 @@
             let networkDataLoader = setInterval(() => {
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
+                    _this.httpGetNextBlockGenerators();
                     _this.drawPeerMap(); 
                 }else{
                     clearInterval(networkDataLoader); 
@@ -395,11 +399,20 @@
             },
             httpGetNextBlockGenerators(){
                 const _this = this;
+                let poolArr1 = [];
+                let poolArr2 = [];
                 _this.$global.fetch("GET", {
                     limit: 99999
                 }, "getNextBlockGenerators").then(res => {
                     _this.activeCount = res.activeCount;
-                    _this.minerlist = res.generators;
+                    for(let t of res.generators){
+                        if(t.accountRS === SSO.accountRS){
+                            poolArr1.push(t);
+                        }else{
+                            poolArr2.push(t);
+                        }
+                    }
+                    _this.minerlist = poolArr1.concat(poolArr2);
                 }).catch(err => {
                     console.info("error", err);
                 });
@@ -449,6 +462,7 @@
 
                 _this.getBlocks(1).then(res => {
                     _this.newestHeight = res.blocks[0].height;
+                    _this.lastBlockRS = res.blocks[0].generatorRS;
                     _this.totalSize = _this.newestHeight + 1;
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
@@ -570,6 +584,16 @@
         font-size: 13px;
         font-weight: normal;
         text-align: center;
+    }
+    
+
+    .last_block {
+        text-align: left!important;
+        font-size: 12px!important;
+        
+        .generator {
+            margin-right: 10px;
+        }
     }
 
 </style>

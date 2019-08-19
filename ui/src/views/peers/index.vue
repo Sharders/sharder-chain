@@ -333,7 +333,7 @@
                 _this.activeHubCount = 0;
                 _this.activePeersCount = 0;
                 data.forEach(function (item) {
-                    if (item.platform === "Sharder Hub ") {
+                    if (item.platform === "Sharder Hub") {
                         _this.activeHubCount++;
                     }
                     if (item.state === 1) {

@@ -91,6 +91,7 @@ public final class Constants {
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
     public static final List<String> bootNodesHost = parseBootNodesHost();
+    public static final String bootNodeHost = parseBootNodeHost();
 
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
@@ -213,6 +214,7 @@ public final class Constants {
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
     public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 268 : 500);
+    
     public static final int TESTNET_PHASE_ONE = 500000;
     public static final int TESTNET_PHASE_TWO = 990000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
@@ -222,6 +224,7 @@ public final class Constants {
     public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
     public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
+    public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -255,8 +258,6 @@ public final class Constants {
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
     
-    // conch chain begin time
-
     /**
      * chain begin time
      * @param index 0: conch chain, 1: testnet of sharder, otherwise is mainnet of sharder
@@ -367,6 +368,15 @@ public final class Constants {
 
         return networkInProperties;
     }
+
+    private static final String parseBootNodeHost() {
+        if(isMainnet()){
+            return "boot.sharder.io";
+        }else if(isTestnet()){
+            return "testboot.sharder.io";
+        }
+        return "devboot.sharder.io";
+    }
     
     private static final List<String> parseBootNodesHost() {
        if(isMainnet()){
@@ -380,6 +390,11 @@ public final class Constants {
     
     public static synchronized boolean isValidBootNode(Peer peer){
         return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
+    }
+    
+    public static synchronized boolean isValidBootNode(String peerHost){
+        if(StringUtils.isEmpty(peerHost)) return false;
+        return bootNodesHost.contains(peerHost);
     }
 
     public static String getBootNodeRandom(){
@@ -403,6 +418,7 @@ public final class Constants {
     /** log count check key **/
     public static final String Generator_getNextGenerators = Generator.class.getName() + "#getNextGenerators";
     public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
+    public static final String Generator_checkOrStartAutoMining = Generator.class.getName() + "#checkOrStartAutoMining";
     public static final String Generator_isBlockStuckOnBootNode = Generator.class.getName() + "#isBlockStuckOnBootNode";
     public static final String Generator_isPocTxsProcessed = Generator.class.getName() + "#isPocTxsProcessed";
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";

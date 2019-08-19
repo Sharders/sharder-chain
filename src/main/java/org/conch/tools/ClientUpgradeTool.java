@@ -2,10 +2,12 @@ package org.conch.tools;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.db.Db;
 import org.conch.util.FileUtil;
@@ -16,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -77,10 +81,12 @@ public class ClientUpgradeTool {
         if(StringUtils.isNotEmpty(bakMode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakMode)) {
             delete = false;
         }
-        if (!archive.exists()) {
-            Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
-            FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
+        
+        if(archive.exists()) {
+            archive.delete();
         }
+        Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
+        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
         Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
         FileUtil.unzipAndReplace(archive, mode, delete);
         try {
@@ -97,27 +103,45 @@ public class ClientUpgradeTool {
     }
 
     /**
-     * Local db can be updated by fetching archived db files
+     * Update the local db to the archived db file of the specified height
      * @param upgradeDbHeight the height of the archived db file
      */
-    public static void upgradeDbFile(String upgradeDbHeight) {
+    public static void restoreDbAtHeight(String upgradeDbHeight) {
         String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
+        restoreDb(dbFileName);
+    }
+    
+    /**
+     * Update the local db to specified archived db file
+     * @param dbFileName target restore db file name
+     */
+    private static void restoreDb(String dbFileName){
         try{
+            if(StringUtils.isEmpty(dbFileName)) {
+                Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
+                return;
+            }
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
             Conch.pause();
 
             // fetch the specified archived db file
             File tempPath = new File("temp/");
             File archivedDbFile = new File(tempPath, dbFileName);
-            String downloadingUrl = UrlManager.getArchivedDbFileDownloadUrl(dbFileName);
+            String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
             Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+            
+            if(archivedDbFile.exists()){
+                archivedDbFile.delete();
+            }
             FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
-
-            // backup old db folder
+   
+            // backup the old db folder
             String dbFolder = Paths.get(".",Db.getName()).toString();
             Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
             FileUtil.backupFolder(dbFolder, true);
 
+            //FileUtil.deleteDbFolder();
+            
             // unzip the archived db file into application root
             String appRoot = Paths.get(".").toString();
             Logger.logInfoMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
@@ -131,6 +155,19 @@ public class ClientUpgradeTool {
         }
     }
 
+
+
+    private static final long FETCH_INTERVAL_MS = 25*60*1000L;
+    private static volatile JSONObject lastCosVerObj = null;
+    private static long lastFetchTime = -1;
+    
+    private static boolean fetchNow(){
+        if(lastCosVerObj == null) return true;
+        if(lastFetchTime == -1) return true;
+        if(System.currentTimeMillis() - lastFetchTime > FETCH_INTERVAL_MS) return true;
+        
+        return false;
+    }
     /**
      * {
      * "version":"0.1.3"
@@ -143,9 +180,110 @@ public class ClientUpgradeTool {
      * @throws IOException
      */
     public static JSONObject fetchLastCosVersion() throws IOException {
-        String url = UrlManager.getHubLatestVersionUrl();
-        Logger.logDebugMessage("fetch the last cos version from " + url);
-        RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
-        return JSON.parseObject(response.getContent());
+        if(fetchNow()) {
+            String url = UrlManager.getHubLatestVersionUrl();
+            Logger.logDebugMessage("fetch the last cos version from " + url);
+            RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
+            lastCosVerObj = JSON.parseObject(response.getContent());
+            lastFetchTime = System.currentTimeMillis();
+        }
+        
+        return lastCosVerObj;
     }
+
+    private static final String KEY_DB_LAST_ARCHIVE = "LastArchive";
+    private static final String KEY_DB_ARCHIVE_KNOWN_HEIGHT = "KnownArchive";
+    
+    public static String lastDbArchive = null;
+    public static Integer lastDbArchiveHeight = null;
+    public static int restoredDbArchiveHeight = 0;
+    public static List<Integer> knownDbArchives = Lists.newArrayList();
+    /**
+     * testLastArchive=sharder_test_db_12118
+     * testKnownArchive=sharder_test_db_268
+     * @return latest db archive
+     * @throws IOException
+     */
+    public static String fetchLastDbArchive()  {
+        String url = UrlManager.getDbArchiveDescriptionFileUrl();
+        Logger.logDebugMessage("fetch the db archive description file from " + url);
+        RestfulHttpClient.HttpResponse response = null;
+        try {
+            response = RestfulHttpClient.getClient(url).get().request();
+        } catch (IOException e) {
+            Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
+            return "";
+        }
+        String content = response.getContent();
+        
+        // parse the description file
+        JSONObject dbArchiveObj = new JSONObject();
+        while(StringUtils.isNotEmpty(content) 
+                && content.contains("\n")){
+            String[] array = content.split("\n");
+            if(array != null 
+            && array[0].contains("=")){
+                String[] heightConfigAry =array[0].split("=");
+                dbArchiveObj.put(heightConfigAry[0], heightConfigAry[1]);
+            }
+            content = array[1];
+        }
+        
+        String envPrefix = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
+        // last db archive
+        if(dbArchiveObj.containsKey(envPrefix + KEY_DB_LAST_ARCHIVE)){
+            String lastDbArchiveName = dbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE);
+            try {
+                lastDbArchive = lastDbArchiveName + ".zip";
+                lastDbArchiveHeight = Integer.valueOf(lastDbArchiveName.replace(Db.getName() + "_", ""));
+            } catch (Exception e) {
+                Logger.logErrorMessage("Can't parse the lastDbArchive attribute caused by ", e.getMessage());
+            }
+        }
+        
+        // known archive height
+        if(dbArchiveObj.containsKey(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
+            String knownHeightStr = dbArchiveObj.getString(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
+            if(StringUtils.isNotEmpty(knownHeightStr)) {
+                String[] array = content.split(",");
+                for(int i = 0 ; i < array.length ; i++){
+                    knownDbArchives.add(Integer.valueOf(array[i]));
+                }
+            }
+        }
+        Collections.sort(knownDbArchives);
+        return lastDbArchive;
+    }
+
+    public static int getLastDbArchiveHeight() {
+        if(lastDbArchiveHeight == null) fetchLastDbArchive();
+        return lastDbArchiveHeight;
+    }
+
+    public static void restoreDbToLastArchive() {
+        if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
+        restoreDb(lastDbArchive);
+    }
+
+    public static void restoreDbToKnownHeight() {
+        if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
+        
+        // calculate the restore height
+        if(restoredDbArchiveHeight == 0) {
+            restoredDbArchiveHeight = lastDbArchiveHeight;
+        } else{
+            int index = knownDbArchives.size() - 1;
+            while(index > 0
+                    && restoredDbArchiveHeight > knownDbArchives.get(index)){
+                index--;
+            }
+            restoredDbArchiveHeight = knownDbArchives.get(index);
+        }
+        
+        if(restoredDbArchiveHeight > 0) {
+            String dbFileName =  Db.getName() + "_" + restoredDbArchiveHeight + ".zip";
+            restoreDb(dbFileName);  
+        }
+    }
+    
 }

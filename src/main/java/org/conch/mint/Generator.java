@@ -137,15 +137,15 @@ public class Generator implements Comparable<Generator> {
         // boot node check before the last known height
         if(isBootNode && Conch.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
-                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly at height[%d].", lastBlock.getHeight());
+                Logger.logInfoMessage("[BootNode] Start to mining directly at height[%d].", lastBlock.getHeight());
             }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
-                Logger.logInfoMessage("[BootNode] current node is boot node, start to mining directly at height[%d].", lastBlock.getHeight());
+                Logger.logInfoMessage("[BootNode] Start to mining directly at height[%d].", lastBlock.getHeight());
             }
             return true;
         }
 
         if(Constants.isOffline && isBootNode){
-            Logger.logInfoMessage("[BootNode] Current node is boot node should keep mining in the offline mode at height[%d].", lastBlock.getHeight());
+            Logger.logInfoMessage("[BootNode] Keep mining in the offline mode at height[%d].", lastBlock.getHeight());
             return true;
         }
 
@@ -175,7 +175,7 @@ public class Generator implements Comparable<Generator> {
             long secondsSinceLastBlock = Conch.getEpochTime() - 600 - Conch.getBlockchain().getLastBlockTimestamp();
             long minutesSinceLastBlock = secondsSinceLastBlock/60;
             boolean isObsoleteTime =  secondsSinceLastBlock > (60 * OBSOLETE_DELAY); // default block mining delay > 1h
-            boolean foundBlockStuckOnBootNode = isObsoleteTime && isBootNode;
+            boolean foundBlockStuckOnBootNode = Conch.getBlockchainProcessor().isObsolete() && isObsoleteTime && isBootNode;
             
             if(linkedGenerator == null) {
                 String miningPR = getAutoMiningPR();
@@ -189,7 +189,7 @@ public class Generator implements Comparable<Generator> {
                 if (verifyHit(linkedGenerator.hit, linkedGenerator.pocScore, lastBlock, timestamp)) {
                     Logger.logInfoMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node should keep mining when the miner[%s]' hit is matched at height[%d].", minutesSinceLastBlock,linkedGenerator.rsAddress, lastBlock.getHeight());
                 }else{
-                    Logger.logWarningMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node miner[%s]'s hit[%d] didn't matched now at height[%d], wait for next round check.", minutesSinceLastBlock,linkedGenerator.rsAddress,linkedGenerator.hit, lastBlock.getHeight());
+                    Logger.logDebugMessage("[BootNode] Current blockchain was stuck[sinceLastBlock=%d minutes], but boot node miner[%s]'s hit[%d] didn't matched now at height[%d], wait for next round check.", minutesSinceLastBlock,linkedGenerator.rsAddress,linkedGenerator.hit, lastBlock.getHeight());
                     return false;
                 }
             }else{
@@ -730,6 +730,14 @@ public class Generator implements Comparable<Generator> {
         }
         
         int start = Conch.getEpochTime();
+        if(isBootNode 
+        && isAutoMiningAccount(accountId)
+        && Conch.getBlockchainProcessor().isObsolete()){
+            Logger.logInfoMessage("[BootNode] Current blockchain was stuck, so use the current system time %d to replace the original block generation time %d."
+            , start, timestamp);
+            timestamp = start;
+        }
+        
         while (true) {
             try {
                 BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, timestamp);
@@ -954,13 +962,18 @@ public class Generator implements Comparable<Generator> {
      */
     public static void checkOrStartAutoMining(){
         if(autoMintRunning) {
+            if(Logger.printNow(Constants.Generator_checkOrStartAutoMining, 600)) {
+                Logger.logInfoMessage("Account %s is mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
+            }else{
+                Logger.logDebugMessage("Account %s is mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));  
+            }
             return;
         }
         
         String miningPR = getAutoMiningPR();
         if(StringUtils.isNotEmpty(miningPR)) {
             linkedGenerator = startMining(miningPR.trim());
-            Logger.logInfoMessage("account " + linkedGenerator.rsAddress + " start to mining...");
+            Logger.logInfoMessage("Account %s start to mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
         }
        
         if(MAX_MINERS > 0) {

@@ -17,5 +17,6 @@ module.exports = {
     "offline-plugin/runtime",
     "element-ui",
     "material-design-icons"
-  ]
+  ],
+
 };

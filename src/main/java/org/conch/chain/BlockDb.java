@@ -381,8 +381,12 @@ public final class BlockDb {
                 stmt.executeUpdate("TRUNCATE TABLE transaction");
                 stmt.executeUpdate("TRUNCATE TABLE block");
                 if(deletePocRefs) {
-                    stmt.executeUpdate("TRUNCATE TABLE account_pool");
-                    stmt.executeUpdate("TRUNCATE TABLE account_poc_socre");
+                    try {
+                        stmt.executeUpdate("TRUNCATE TABLE account_pool");
+                        stmt.executeUpdate("TRUNCATE TABLE account_poc_socre");
+                    } catch (SQLException e) {
+                        Logger.logWarningMessage("Ignore the unknown exception when deleting account_pool and account_poc_socre tables. Exception is %s", e.getMessage());
+                    }
                 }
                 BlockchainProcessorImpl.getInstance().getDerivedTables().forEach(table -> {
                     if (table.isPersistent()) {
