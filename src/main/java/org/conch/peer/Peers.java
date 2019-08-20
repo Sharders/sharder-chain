@@ -1664,7 +1664,7 @@ public final class Peers {
     }
 
     public static Peer.BlockchainState getMyBlockchainState() {
-        return currentBlockchainState;
+        return Constants.isOffline ? Peer.BlockchainState.UP_TO_DATE : currentBlockchainState;
     }
     
     public static Peer.BlockchainState checkAndUpdateBlockchainState(Boolean reachBootNodeHeight) {
