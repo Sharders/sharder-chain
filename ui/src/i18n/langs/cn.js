@@ -385,7 +385,7 @@ const cn = {
             'diamond_exchange_subtitle': "SS限时开发兑换中,数量有限先到先得",
             'remaining': "剩余:",
             'description': "说明:",
-            'not_open': "暂未开放",
+            'not_open': "即将开放...",
             'not_open_tip': "更多兑换即将开启!",
         },
         free_collar_drill: {

@@ -9,9 +9,9 @@
                     <a href="https://sharder.org">{{$t("reward.immediately_binding")}}</a>
                 </span>
             </p>
-            <p>{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
+            <p v-if="exchangeOpen">{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
         </div>
-        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList">
+        <div v-if="exchangeOpen" class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList">
             <p>
                 <img :src="exchange.img" class="exchange-img">
                 <span class="title">{{exchange.title}}</span>
@@ -20,7 +20,13 @@
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
         <div class="exchange-list info">
-            {{$t('mining.diamond_exchange.not_open_tip')}}
+            <span v-if="exchangeOpen">
+                {{$t('mining.diamond_exchange.not_open_tip')}}
+            </span>
+            <span v-else>
+                {{$t('mining.diamond_exchange.not_open')}}
+            </span>
+            
         </div>
     </div>
 </template>
@@ -60,6 +66,7 @@
                 linkedSSAddr: this.$store.state.userConfig['sharder.HubBindAddress'],
                 sharderAccount: '',
                 recipient: "",
+                exchangeOpen: false,
                 exchangeSS: 0
             }
         },
