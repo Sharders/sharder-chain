@@ -406,7 +406,7 @@ const en = {
             'diamond_exchange_subtitle': " TSS can be exchanged for a limited time. Quantities are limited, so first come first serve!",
             'remaining': "Remaining:",
             'description': "Description:",
-            'not_open': "Coming Soon",
+            'not_open': "Coming Soon...",
             'not_open_tip': "More available soon!",
         },
         free_collar_drill: {

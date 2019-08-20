@@ -992,6 +992,10 @@ public final class Conch {
     public static void restartApplication(Runnable runBeforeRestart) {
         try {
             pause();
+            
+            Logger.logInfoMessage("Delete the logs folder");
+            FileUtil.deleteDirectory(Paths.get(".","logs"));
+            
             // java binary
             String java = System.getProperty("java.home") + "/bin/java";
             // vm arguments
@@ -1039,7 +1043,7 @@ public final class Conch {
                 runBeforeRestart.run();
             }
             // exit
-            Logger.logDebugMessage("Sharder Server Shutting down...");
+            Logger.logInfoMessage("Sharder Server Shutting down...");
             System.exit(0);
         } catch (Exception e) {
             // something went wrong
