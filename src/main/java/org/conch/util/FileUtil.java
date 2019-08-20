@@ -94,7 +94,7 @@ public class FileUtil {
       
     }
 
-    static void deleteDirectory(Path path){
+    public static void deleteDirectory(Path path){
         if(path == null) return;
         File delFile = new File(path.toString());
         deleteDirectory(delFile);

@@ -136,6 +136,9 @@ public class ClientUpgradeTool {
             FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
    
             // backup the old db folder
+            Logger.logInfoMessage("[ UPGRADE DB ] Delete the bak folder");
+            FileUtil.deleteDirectory(Paths.get(".","bak"));
+            
             String dbFolder = Paths.get(".",Db.getName()).toString();
             Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
             FileUtil.backupFolder(dbFolder, true);
