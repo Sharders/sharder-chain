@@ -474,6 +474,9 @@
                     _this.isVisible('isCreatePool');
                     return _this.$message.info(_this.$t('notification.insufficient_permissions'));
                 }
+                if(_this.incomeDistribution === 0){
+                    return _this.$message.warning(_this.$t('notification.errorCreatePool'));
+                }
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.rule.rule.totalBlocks.max,
@@ -482,7 +485,7 @@
                     feeNQT: 100000000,
                     rule: JSON.stringify({
                         'forgepool': {
-                            'reward': _this.incomeDistribution / 100,
+                            'reward': _this.incomeDistribution/ 100,
                             'number': _this.rule.forgepool.number.max - 1,
                         },
                         "rule": {
