@@ -70,6 +70,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
 
+    private final int TYPE_SHARDER_POOL = 8;
+
     private final ExecutorService networkService = Executors.newCachedThreadPool();
     private final List<DerivedDbTable> derivedTables = new CopyOnWriteArrayList<>();
     private final boolean trimDerivedTables = Conch.getBooleanProperty("sharder.trimDerivedTables");
@@ -2305,8 +2307,32 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Logger.logErrorMessage("Can't create generation missing transaction[current miner=" + Account.rsAccount(accountId) + ", id=" + accountId + "]", e);
         }
 
-        for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
+        List<TransactionImpl> tempBlockTransactions = new ArrayList<>();
+        for(UnconfirmedTransaction unconfirmedTransaction : sortedTransactions){
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
+            if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){
+                if(transaction.getAttachment().getJSONObject().get("version.destroyPool") != null){
+                    tempBlockTransactions.add(transaction);
+                }
+            }
+        }
+
+        for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
+            boolean isJionDestroyPool = false;
+            TransactionImpl transaction = unconfirmedTransaction.getTransaction();
+            //System.out.println("transaction.getAttachment().getJSONObject():"+transaction.getAttachment().getJSONObject());
+            if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){
+                for (TransactionImpl tr:tempBlockTransactions){
+                    if(transaction.getAttachment().getJSONObject().get("poolId").equals(tr.getAttachment().getJSONObject().get("poolId")) && transaction.getAttachment().getJSONObject().get("version.joinPool") != null){
+                        TransactionProcessorImpl.getInstance().removeUnconfirmedTransaction(transaction);
+                        isJionDestroyPool = true;
+                        break;
+                    }
+                }
+            }
+            if(isJionDestroyPool){
+                continue;
+            }
             blockTransactions.add(transaction);
             digest.update(transaction.bytes());
             totalAmountNQT += transaction.getAmountNQT();
