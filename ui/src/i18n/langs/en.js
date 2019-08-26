@@ -962,7 +962,8 @@ const en = {
         "exchange_sharder_account": "Exchange to Sharder account:  {account}",
         "redeemed":"Redeemed",
         "convertible":"Convertible",
-        "exchangeTip":"Each exchange cannot be less than 1000 SS, and the exchange amount can only be a multiple of 1000.",
+        "exchange_tip":"Each redemption cannot be lower than 1000SS. The number of redemptions can only be a multiple of 1000 and can only be redeemed once in 7 days. Please choose the number of redemption carefully.",
+        "exchange_time_tip":'Can only be redeemed once in 7 days',
     },
     exchange_list:{
         "exchange_title":"Exchange SS list",

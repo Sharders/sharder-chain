@@ -7,7 +7,7 @@
                     <li v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</li>
                     <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} SS</li>
                     <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} SS</li>
-                    <li v-if="sharderAccount" style="color: #e64242">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchangeTip")}} </li>
+                    <li v-if="sharderAccount" style="color: #e64242;font-size: small">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchange_tip")}} </li>
                     <li v-else>
                         {{$t("reward.no_binding_account")}} ?
                         <a href="https://sharder.org">{{$t("reward.immediately_binding")}}</a>
@@ -25,7 +25,7 @@
         </div>
         <!--申请兑换SS列表-->
         <div class="block_list" v-if="sharderAccount">
-            <p class="block_title">
+            <p class="block_title" style="padding-bottom: 10px;">
                 <img src="../../assets/img/block.svg" width="20px" height="20px"/>
                 <span>{{$t('exchange_list.exchange_title')}}</span>
             </p>
@@ -43,7 +43,7 @@
                          <tbody>
                          <tr v-for="exchange in exchangeSSList">
                              <td>
-                                 <span>{{$global.myFormatTime(exchange.createDate,'YMDHMS',true)}}</span>
+                                 <span>{{exchange.createDate}}</span>
                              </td>
                              <td>
                                  <span v-if="exchange.source === 'EXCHANGESS'">{{$t('exchange_list.application_exchange')}}</span>
@@ -106,6 +106,7 @@
                 redeemed:0,
                 loadingExchangeSS:false,
                 exchangeSSList:[],
+                lastExchangeTime:"",
 
             }
         },
@@ -147,6 +148,7 @@
                 data.append("accountRS", SSO.accountRS);
                 _this.$http.post(window.api.ssContactAmount, data).then(res => {
                     _this.exchangeSSList = res.data.exchangeSSList;
+                    _this.lastExchangeTime = res.data.exchangeSSList[0].createDate;
                     return res.data.totalExchangeAmount ?  res.data.totalExchangeAmount : 0;
                 }).then(res=>{
                     exchangeSS = Number(res);
@@ -184,7 +186,10 @@
                     return _this.$message.warning(_this.$t("reward.sharder_binding_acconut"));
                 }
                 if(_this.convertible < 1000){
-                    return _this.$message.warning(_this.$t("reward.exchangeTip"));
+                    return _this.$message.warning(_this.$t("reward.exchange_tip"));
+                }
+                if(new Date() - new Date(_this.lastExchangeTime) < 7*24*3600*1000){
+                    return _this.$message.warning(_this.$t("reward.exchange_time_tip"));
                 }
                 _this.$confirm(e.info, _this.$t("reward.exchange_sharder_account", {account: _this.sharderAccount})).then(() => {
                     _this.sendMoney(e.num)
