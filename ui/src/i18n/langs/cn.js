@@ -963,6 +963,7 @@ const cn = {
         "convertible":"可兑换",
         "exchange_tip":"每次兑换不能低于1000SS，兑换数量只能是1000的倍数并且7天内只能兑换一次，请谨慎选择兑换数量。",
         "exchange_time_tip":'7天内只能兑换1次',
+        "insufficient_redemption":"可兑换数量不足!",
     },
     exchange_list:{
         "exchange_title":"兑换SS列表",

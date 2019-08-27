@@ -964,6 +964,7 @@ const en = {
         "convertible":"Convertible",
         "exchange_tip":"Each redemption cannot be lower than 1000SS. The number of redemptions can only be a multiple of 1000 and can only be redeemed once in 7 days. Please choose the number of redemption carefully.",
         "exchange_time_tip":'Can only be redeemed once in 7 days',
+        "insufficient_redemption":"Insufficient Redemption!"
     },
     exchange_list:{
         "exchange_title":"Exchange SS list",

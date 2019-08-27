@@ -15,7 +15,7 @@
                 </span>
             </p>
         </div>
-        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS">
+        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS" v-if="!displayDefault">
             <p>
                 <img :src="exchange.img" class="exchange-img">
                 <span class="title">{{exchange.title}}</span>
@@ -23,8 +23,11 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
+        <div class="exchange-list info" v-if="displayDefault">
+            {{$t('reward.insufficient_redemption')}}
+        </div>
         <!--申请兑换SS列表-->
-        <div class="block_list" v-if="sharderAccount">
+        <div class="block_list" v-if="sharderAccount" style="clear:both">
             <p class="block_title" style="padding-bottom: 10px;">
                 <img src="../../assets/img/block.svg" width="20px" height="20px"/>
                 <span>{{$t('exchange_list.exchange_title')}}</span>
@@ -98,8 +101,8 @@
                     }
                 ],
                 isSSA: false,
-                linkedSSAddr: this.$store.state.userConfig['sharder.HubBindAddress'],
-                sharderAccount: '',
+                linkedSSAddr: "",
+                sharderAccount: "",
                 recipient: "",
                 exchangeSS: 0,
                 convertible:0,
@@ -107,31 +110,41 @@
                 loadingExchangeSS:false,
                 exchangeSSList:[],
                 lastExchangeTime:"",
+                displayDefault:false,
 
             }
         },
         created() {
             let _this = this;
-            let data = new FormData();
-            let ownerLogin = SSO.secretPhrase && _this.linkedSSAddr === SSO.accountRS;
-            if(!ownerLogin){
-                _this.isSSA = true;
-                return;
-            }
-            data.append("ssa", SSO.accountRS);
-            _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
-                _this.isSSA = true;
-                if (res.data.success) {
-                    _this.sharderAccount = res.data.data;
-                    _this.checkExchangeNum();
+            _this.$http.get('/sharder?requestType=getUserConfig', {
+                params: {
+                    random: new Date().getTime().toString()
                 }
-            }).catch(() => {
-                _this.isSSA = true
-            });
-            _this.$http.post(window.api.sharderExchangeRS).then(res => {
-                if (res.data.success) {
-                    _this.recipient = res.data.data;
+            }).then(res => {
+                _this.linkedSSAddr = res.data['sharder.HubBindAddress'];
+                let ownerLogin = typeof(SSO.secretPhrase) !== 'undefined' && res.data['sharder.HubBindAddress'] === SSO.accountRS;
+                if(!ownerLogin){
+                    _this.isSSA = true;
+                    return;
                 }
+                let data = new FormData();
+                data.append("ssa", SSO.accountRS);
+                _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
+                    _this.isSSA = true;
+                    if (res.data.success) {
+                        _this.sharderAccount = res.data.data;
+                        _this.checkExchangeNum();
+                    }
+                }).catch(() => {
+                    _this.isSSA = true
+                });
+                _this.$http.post(window.api.sharderExchangeRS).then(res => {
+                    if (res.data.success) {
+                        _this.recipient = res.data.data;
+                    }
+                });
+            }).catch(err => {
+                console.log(err);
             });
 
         },
@@ -154,7 +167,7 @@
                     exchangeSS = Number(res);
                     _this.redeemed = exchangeSS * 2;
                     _this.convertible = Math.floor(forgedBalanceNQT - exchangeSS * 2);
-                    let ConvertibleSS = Math.floor(exchangeSS/1000)*1000;
+                    let ConvertibleSS = Math.floor((forgedBalanceNQT - exchangeSS * 2)/1000)*1000;
                     let data1 = {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
                         title: ConvertibleSS / 2 + " SS(ERC-20)",
@@ -162,7 +175,9 @@
                         info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
                     };
 
+
                     if(ConvertibleSS >= 1000){
+                        _this.displayDefault = false;
                         if(_this.exchangeList.length === 2){
                             _this.exchangeList.push(data1);
                         }else{
@@ -170,6 +185,8 @@
                             _this.exchangeList.push(data1);
                         }
 
+                    }else{
+                        _this.displayDefault = true;
                     }
 
                 });
