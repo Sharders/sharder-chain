@@ -46,7 +46,7 @@
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
                 </div>
-                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined'">
+                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
@@ -370,11 +370,13 @@
                 loadingRanking: true,
                 loadingRankingNo: true,
                 loading: true,
-                btnLoading: false
+                btnLoading: false,
+                createPoolBtn:true,
             }
         },
         mounted() {
             let _this = this;
+
             if (!_this.$store.state.isLogin) {
                 window.token = window.location.search.substring(1 + "token".length);
                 console.info("token", token);
@@ -548,10 +550,10 @@
                         return;
                     }
                     SSO.secretPhrase = value.data.secretPhrase;
+                    _this.secretPhrase = value.data.secretPhrase;
                     Login.login(1, value.data.secretPhrase, _this, function () {
                         _this.$store.state.isLogin = true;
                         _this.loginAfter();
-
                     });
                 });
             },
@@ -599,7 +601,6 @@
                 });
 
                 _this.getPools({sort: _this.sortFun});
-
             },
 
             getCoinBase(height) {
@@ -639,7 +640,6 @@
                         _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
-                let end = new Date();
 
             },
             getPools(parameter) {
@@ -668,10 +668,11 @@
                         if (res.errorDescription) {
                             return _this.$message.error(res.errorDescription);
                         }
-
+                        _this.createPoolBtn = true;
                         if(_this.accountTransactionList.length === 0){
                             for(let t of res.pools){
                                 if(t.creatorRS === _this.accountInfo.accountRS){
+                                    _this.createPoolBtn = false;
                                     poolArr1.push(t);
                                 }else{
                                     poolArr2.push(t);
@@ -681,7 +682,7 @@
                         } else{
                             for(let t of res.pools){
                                 if(t.creatorRS === _this.accountInfo.accountRS ){
-
+                                    _this.createPoolBtn = false;
                                     let i=0;
                                     for(let p of _this.accountTransactionList) {
 
