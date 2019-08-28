@@ -779,6 +779,9 @@ export default {
             } else if (t.subtype === 2) {
                 return this.$vue.$t("transaction.transaction_type_pool_join");
             } else if (t.subtype === 3) {
+                if(t.senderRS === SSO.accountRS && t.recipientRS !== SSO.accountRS){
+                    return this.$vue.$t("transaction.transaction_type_pool_quit_not_myself");
+                }
                 return this.$vue.$t("transaction.transaction_type_pool_quit");
             } else {
                 return this.$vue.$t("transaction.transaction_type_forge_pool");
