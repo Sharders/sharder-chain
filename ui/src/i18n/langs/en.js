@@ -128,6 +128,7 @@ const en = {
         'transaction_type_pool_destroy': "Delete Pool",
         'transaction_type_pool_join': "Join Pool",
         'transaction_type_pool_quit': "Quit Pool",
+        'transaction_type_pool_quit_not_myself':"Quit Pool(NO)",
         'transaction_type_system_reward': "Rewards",
         'transaction_type_block_reward': "Mining Rewards",
         'transaction_type_genesis_reward': "Genesis",

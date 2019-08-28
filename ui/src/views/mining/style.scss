@@ -115,3 +115,42 @@
         }
     }
 }
+.transaction_type {
+    //float: left;
+    height: 30px;
+    .el-select {
+        height: 24px;
+        width: 80px;
+
+        .el-input__inner {
+            font-size: 13px;
+            width: 80px;
+            height: 24px;
+            //margin-left: 20px;
+            background: transparent;
+            border: 1px solid #493eda;
+            padding: 0 15px 0 0;
+            text-align: center;
+        }
+    }
+
+    .el-input__suffix {
+        top: -12px;
+        right: 0px;
+        //right: -20px;
+    }
+
+    .btn {
+        cursor: pointer;
+        font-size: 13px;
+        padding: 5px 10px;
+        border: 0.5px solid #493eda;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+
+    .active {
+        background: #493eda;
+        color: #fff;
+    }
+}
