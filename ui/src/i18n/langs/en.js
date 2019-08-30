@@ -17,6 +17,7 @@ const en = {
         'init_hub': "Initialize",
         'use_nat_server': "NAT Service",
         'config_nat_server': "NAT Setting",
+        'login_binding_hub_account_tip':"This hub is linked to ",
     },
     hubsetting: {
         'register_nat_server': "Register for NAT Service",
@@ -963,7 +964,7 @@ const en = {
         "exchange_sharder_account": "Exchange to Sharder account:  {account}",
         "redeemed":"Redeemed",
         "convertible":"Convertible",
-        "exchange_tip":"Each redemption cannot be lower than 1000SS. The number of redemptions can only be a multiple of 1000 and can only be redeemed once in 7 days. Please choose the number of redemption carefully.",
+        "exchange_tip":"Only multiples of 1000 SS can be exchanged and a minimum of 1000 SS must be made for each exchange. You can only exchange once every 7 days, please consider carefully before exchanging..",
         "exchange_time_tip":'Can only be redeemed once in 7 days',
         "insufficient_redemption":"Insufficient Redemption!"
     },
