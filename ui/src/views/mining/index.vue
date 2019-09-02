@@ -363,7 +363,6 @@
                 accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
-                accountTransactionList: [],
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 18,
@@ -650,86 +649,55 @@
                 let poolArr3 = [];
                 let poolArr4 = [];
 
-                let params = new URLSearchParams();
-                params.append("account", SSO.accountRS);
-                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
-
-                let i = 0;
-                if (typeof _this.unconfirmedTransactionsList !== 'undefined') {
-                    i = _this.unconfirmedTransactionsList.length;
-                }
-                params.append("type", "8");
-                params.append("subtype", "2");
-
-
-                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
-                    _this.accountTransactionList = res1.data.transactions;
-                    _this.$global.fetch("POST", parameter, "getPools").then(res => {
-                        if (res.errorDescription) {
-                            return _this.$message.error(res.errorDescription);
-                        }
-                        _this.createPoolBtn = true;
-                        if(_this.accountTransactionList.length === 0){
-                            for(let t of res.pools){
-                                if(t.creatorRS === _this.accountInfo.accountRS){
-                                    _this.createPoolBtn = false;
-                                    poolArr1.push(t);
-                                }else{
-                                    poolArr2.push(t);
-                                }
-                            }
-                            _this.miningList=poolArr1.concat(poolArr2);
-                        } else{
-                            for(let t of res.pools){
-                                if(t.creatorRS === _this.accountInfo.accountRS ){
-                                    _this.createPoolBtn = false;
-                                    let i=0;
-                                    for(let p of _this.accountTransactionList) {
-
-                                        if (p.attachment.poolId === t.poolId) {
-                                            t.isJoin=true;
-                                            poolArr1.push(t);
-                                            i++;
-                                            break;
-                                        }
-                                        i++;
-                                        if(i === _this.accountTransactionList.length){
-                                            poolArr2.push(t);
-                                            continue;
-                                        }
-
-                                    }
-
-                                }else{
-                                    let j = 0;
-                                    for(let p of _this.accountTransactionList) {
-                                        if (p.attachment.poolId === t.poolId) {
-                                            t.isJoin=true;
-                                            poolArr3.push(t);
-                                            j++;
-                                            break;
-                                        }
-                                        j++;
-                                        if(j === _this.accountTransactionList.length){
-                                            poolArr4.push(t);
-                                            continue;
-                                        }
-
-                                    }
-
-                                }
+                _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
+                    }
+                    _this.createPoolBtn = true;
+                    for(let t of res.pools){
+                        if(Object.keys(t.consignors).length === 0){
+                            if (t.creatorRS === _this.accountInfo.accountRS){
+                                _this.createPoolBtn = false;
+                                poolArr1.push(t);
+                            }else {
+                                poolArr4.push(t);
                             }
 
-                            _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                        }else{
+                            if(t.creatorRS === _this.accountInfo.accountRS){
+                                let i = 0;
+                                for(let c in t.consignors){
+                                    if (c === _this.accountInfo.accountId){
+                                        t.isJoin = true;
+                                        poolArr2.push(t);
+                                        break;
+                                    }
+                                    i++;
+                                    if(i === Object.keys(t.consignors).length){
+                                        poolArr1.push(t);
+                                    }
+                                }
+                            }else {
+                                let i = 0;
+                                for (let c in t.consignors){
+                                    if (c === _this.accountInfo.accountId){
+                                        t.isJoin = true;
+                                        poolArr3.push(t);
+                                        break;
+                                    }
+                                    i++;
+                                    if(i === Object.keys(t.consignors).length){
+                                        poolArr4.push(t);
+                                    }
+                                }
+                            }
                         }
-                        _this.totalSize = _this.miningList.length;
-                        _this.loading = false;
-                    });
-                }).catch(function (err) {
+
+                    }
+                    _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                    _this.totalSize = _this.miningList.length;
                     _this.loading = false;
-                    _this.$message.error(err.message);
                 });
-
 
             },
 
