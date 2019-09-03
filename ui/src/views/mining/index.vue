@@ -667,20 +667,21 @@
                             if(t.creatorRS === _this.accountInfo.accountRS){
                                 let i = 0;
                                 for(let c in t.consignors){
-                                    if (c === _this.accountInfo.accountId){
+                                    if (c === SSO.accountInfo.accountId){
                                         t.isJoin = true;
                                         poolArr2.push(t);
                                         break;
                                     }
                                     i++;
                                     if(i === Object.keys(t.consignors).length){
+                                        _this.createPoolBtn = false;
                                         poolArr1.push(t);
                                     }
                                 }
                             }else {
                                 let i = 0;
                                 for (let c in t.consignors){
-                                    if (c === _this.accountInfo.accountId){
+                                    if (c === SSO.accountInfo.accountId){
                                         t.isJoin = true;
                                         poolArr3.push(t);
                                         break;
