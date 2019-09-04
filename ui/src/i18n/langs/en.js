@@ -928,6 +928,7 @@ const en = {
         'success_to_register_nat': "Success to register NAT service, please wait for the review",
         'sendVCode':"Send a verification code must fill in the registered mobile phone number or email address",
         'errorCreatePool':'Please drag the mine pool income distribution ratio',
+        'ss_not_enough':'Your SS amount not enough',
     },
     enter: {
         'enter_tip': "Your mnemonic phrase is very important, in order to be sure that you have saved it! Please enter your mnemonic phrase below",
