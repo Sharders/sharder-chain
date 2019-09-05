@@ -388,13 +388,29 @@ public class FileUtil {
     public static void clearAllLogs() throws FileNotFoundException {
         String logPath = Conch.getUserHomeDir() + File.separator + "logs";
         File logFiles = new File(logPath);
-        File[] files = logFiles.listFiles();
+        clearOrDelFiles(logFiles, true);
+    }
+
+    /**
+     * 
+     * @param folderPath folder path
+     * @param justClear true: clear the content of the file, false: delete the file
+     * @throws FileNotFoundException
+     */
+    public static void clearOrDelFiles(String folderPath, boolean justClear) throws FileNotFoundException {
+        File folder = new File(folderPath);
+        File[] files = folder.listFiles();
         if (files != null && files.length > 0) {
+            String mode = justClear ? "clear" : "delete";
             for (File file : files) {
-                Logger.logInfoMessage("Clear log files..." + file.getAbsolutePath());
-                PrintWriter writer = new PrintWriter(file);
-                writer.print("");
-                writer.close();
+                Logger.logInfoMessage("%s file %s", mode, file.getAbsolutePath());
+                if(justClear){
+                    PrintWriter writer = new PrintWriter(file);
+                    writer.print("");
+                    writer.close();  
+                }else{
+                    FileUtils.forceDelete(file);
+                }
             }
         }
     }

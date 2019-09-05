@@ -993,8 +993,8 @@ public final class Conch {
         try {
             pause();
             
-            Logger.logInfoMessage("Delete the logs folder");
-            FileUtil.deleteDirectory(Paths.get(".","logs"));
+            Logger.logInfoMessage("Clear the all logs");
+            FileUtil.clearAllLogs();
             
             // java binary
             String java = System.getProperty("java.home") + "/bin/java";
