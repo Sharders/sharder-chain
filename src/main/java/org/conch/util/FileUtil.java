@@ -387,8 +387,7 @@ public class FileUtil {
     
     public static void clearAllLogs() throws FileNotFoundException {
         String logPath = Conch.getUserHomeDir() + File.separator + "logs";
-        File logFiles = new File(logPath);
-        clearOrDelFiles(logFiles, true);
+        clearOrDelFiles(logPath, true);
     }
 
     /**
@@ -409,7 +408,11 @@ public class FileUtil {
                     writer.print("");
                     writer.close();  
                 }else{
-                    FileUtils.forceDelete(file);
+                    try {
+                        FileUtils.forceDelete(file);
+                    } catch (IOException e) {
+                        Logger.logErrorMessage("failed to delete the file " + file.getAbsolutePath(), e);
+                    }
                 }
             }
         }

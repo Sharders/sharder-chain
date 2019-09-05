@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,102 +70,12 @@ public class ClientUpgradeTool {
         return upgradePackageThread;
     }
     
-    public static void fetchAndInstallUpgradePackage(com.alibaba.fastjson.JSONObject cosVerObj) throws IOException {
-        String version = cosVerObj.getString("version");
-        String mode = cosVerObj.getString("mode");
-        String bakMode = cosVerObj.getString("bakMode");
-        String updateTime = cosVerObj.getString("updateTime");
-        
-        File tempPath = new File("temp/");
-        File archive = new File(tempPath, "cos-" + version + ".zip");
-        boolean delete = true;
-        if(StringUtils.isNotEmpty(bakMode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakMode)) {
-            delete = false;
-        }
-        
-        if(archive.exists()) {
-            archive.delete();
-        }
-        Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
-        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
-        Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
-        FileUtil.unzipAndReplace(archive, mode, delete);
-        try {
-            if (!SystemUtils.IS_OS_WINDOWS) {
-                Runtime.getRuntime().exec("chmod -R +x " + Conch.getUserHomeDir());
-            }
-        } catch (Exception e) {
-            Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);
-        }
-        
-        if(StringUtils.isNotEmpty(updateTime)){
-            Conch.storePropertieToFile(PROPERTY_COS_UPDATE, updateTime);
-        }
-    }
 
-    /**
-     * Update the local db to the archived db file of the specified height
-     * @param upgradeDbHeight the height of the archived db file
-     */
-    public static void restoreDbAtHeight(String upgradeDbHeight) {
-        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
-        restoreDb(dbFileName);
-    }
-    
-    /**
-     * Update the local db to specified archived db file
-     * @param dbFileName target restore db file name
-     */
-    private static void restoreDb(String dbFileName){
-        try{
-            if(StringUtils.isEmpty(dbFileName)) {
-                Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
-                return;
-            }
-            Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
-            Conch.pause();
-
-            // fetch the specified archived db file
-            File tempPath = new File("temp/");
-            File archivedDbFile = new File(tempPath, dbFileName);
-            String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
-            Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
-            
-            if(archivedDbFile.exists()){
-                archivedDbFile.delete();
-            }
-            FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
-   
-            // backup the old db folder
-            Logger.logInfoMessage("[ UPGRADE DB ] Delete the bak folder");
-            FileUtil.deleteDirectory(Paths.get(".","bak"));
-            
-            String dbFolder = Paths.get(".",Db.getName()).toString();
-            Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
-            FileUtil.backupFolder(dbFolder, true);
-
-            //FileUtil.deleteDbFolder();
-            
-            // unzip the archived db file into application root
-            String appRoot = Paths.get(".").toString();
-            Logger.logInfoMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
-            FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
-            Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
-        }catch(Exception e) {
-            Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
-        }finally{
-            Logger.logInfoMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
-            Conch.unpause();
-        }
-    }
-
-
-
-    private static final long FETCH_INTERVAL_MS = 25*60*1000L;
+    private static final long FETCH_INTERVAL_MS = 30*60*1000L;
     private static volatile JSONObject lastCosVerObj = null;
     private static long lastFetchTime = -1;
     
-    private static boolean fetchNow(){
+    private static boolean fetchLastPackageNow(){
         if(lastCosVerObj == null) return true;
         if(lastFetchTime == -1) return true;
         if(System.currentTimeMillis() - lastFetchTime > FETCH_INTERVAL_MS) return true;
@@ -183,7 +94,7 @@ public class ClientUpgradeTool {
      * @throws IOException
      */
     public static JSONObject fetchLastCosVersion() throws IOException {
-        if(fetchNow()) {
+        if(fetchLastPackageNow()) {
             String url = UrlManager.getHubLatestVersionUrl();
             Logger.logDebugMessage("fetch the last cos version from " + url);
             RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(url).get().request();
@@ -201,6 +112,30 @@ public class ClientUpgradeTool {
     public static Integer lastDbArchiveHeight = null;
     public static int restoredDbArchiveHeight = 0;
     public static List<Integer> knownDbArchives = Lists.newArrayList();
+
+
+    private static final long FETCH_DB_ARCHIVE_INTERVAL_MS = 30*60*1000L;
+    private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 24*60*60*1000L;
+    private static volatile JSONObject lastDbArchiveObj = null;
+    private static long lastDbArchiveFetchTime = -1;
+    private static long lastDownloadDbArchiveTime = -1;
+
+    private static boolean fetchLastDbArchiveNow(){
+        if(lastDbArchive == null) return true;
+        if(lastDbArchiveObj == null) return true;
+        if(lastDbArchiveFetchTime == -1) return true;
+       
+        if(System.currentTimeMillis() - lastDbArchiveFetchTime > FETCH_DB_ARCHIVE_INTERVAL_MS) return true;
+
+        return false;
+    }
+
+    private static boolean downloadLastDbArchiveNow(long archiveFileModifiedTimeMS){
+        if(lastDownloadDbArchiveTime == -1) return true;
+        if((archiveFileModifiedTimeMS - lastDownloadDbArchiveTime) > DOWNLOAD_DB_ARCHIVE_INTERVAL_MS) return true;
+        return false;
+    }
+    
     /**
      * testLastArchive=sharder_test_db_12118
      * testKnownArchive=sharder_test_db_268
@@ -208,6 +143,8 @@ public class ClientUpgradeTool {
      * @throws IOException
      */
     public static String fetchLastDbArchive()  {
+        if(!fetchLastDbArchiveNow()) return lastDbArchive;
+        
         String url = UrlManager.getDbArchiveDescriptionFileUrl();
         Logger.logDebugMessage("fetch the db archive description file from " + url);
         RestfulHttpClient.HttpResponse response = null;
@@ -220,22 +157,23 @@ public class ClientUpgradeTool {
         String content = response.getContent();
         
         // parse the description file
-        JSONObject dbArchiveObj = new JSONObject();
+        lastDbArchiveObj = new JSONObject();
+        lastDbArchiveFetchTime = System.currentTimeMillis();
         while(StringUtils.isNotEmpty(content) 
                 && content.contains("\n")){
             String[] array = content.split("\n");
             if(array != null 
             && array[0].contains("=")){
                 String[] heightConfigAry =array[0].split("=");
-                dbArchiveObj.put(heightConfigAry[0], heightConfigAry[1]);
+                lastDbArchiveObj.put(heightConfigAry[0], heightConfigAry[1]);
             }
             content = array[1];
         }
         
         String envPrefix = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
         // last db archive
-        if(dbArchiveObj.containsKey(envPrefix + KEY_DB_LAST_ARCHIVE)){
-            String lastDbArchiveName = dbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE);
+        if(lastDbArchiveObj.containsKey(envPrefix + KEY_DB_LAST_ARCHIVE)){
+            String lastDbArchiveName = lastDbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE);
             try {
                 lastDbArchive = lastDbArchiveName + ".zip";
                 lastDbArchiveHeight = Integer.valueOf(lastDbArchiveName.replace(Db.getName() + "_", ""));
@@ -245,8 +183,8 @@ public class ClientUpgradeTool {
         }
         
         // known archive height
-        if(dbArchiveObj.containsKey(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
-            String knownHeightStr = dbArchiveObj.getString(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
+        if(lastDbArchiveObj.containsKey(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
+            String knownHeightStr = lastDbArchiveObj.getString(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
             if(StringUtils.isNotEmpty(knownHeightStr)) {
                 String[] array = content.split(",");
                 for(int i = 0 ; i < array.length ; i++){
@@ -261,6 +199,107 @@ public class ClientUpgradeTool {
     public static int getLastDbArchiveHeight() {
         if(lastDbArchiveHeight == null) fetchLastDbArchive();
         return lastDbArchiveHeight;
+    }
+
+    public static void fetchAndInstallUpgradePackage(com.alibaba.fastjson.JSONObject cosVerObj) throws IOException {
+        String version = cosVerObj.getString("version");
+        String mode = cosVerObj.getString("mode");
+        String bakMode = cosVerObj.getString("bakMode");
+        String updateTime = cosVerObj.getString("updateTime");
+
+        File tempPath = new File("temp/");
+        File archive = new File(tempPath, "cos-" + version + ".zip");
+        boolean delete = true;
+        if(StringUtils.isNotEmpty(bakMode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakMode)) {
+            delete = false;
+        }
+
+        if(archive.exists()) {
+            archive.delete();
+        }
+        Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
+        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
+        Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
+        FileUtil.unzipAndReplace(archive, mode, delete);
+        try {
+            if (!SystemUtils.IS_OS_WINDOWS) {
+                Runtime.getRuntime().exec("chmod -R +x " + Conch.getUserHomeDir());
+            }
+        } catch (Exception e) {
+            Logger.logErrorMessage("Failed to run after start script: chmod -R +x " + Conch.dirProvider.getUserHomeDir(), e);
+        }
+
+        if(StringUtils.isNotEmpty(updateTime)){
+            Conch.storePropertieToFile(PROPERTY_COS_UPDATE, updateTime);
+        }
+    }
+
+    /**
+     * Update the local db to the archived db file of the specified height
+     * @param upgradeDbHeight the height of the archived db file
+     */
+    public static void restoreDbAtHeight(String upgradeDbHeight) {
+        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
+        restoreDb(dbFileName);
+    }
+
+    /**
+     * Update the local db to specified archived db file
+     * @param dbFileName target restore db file name
+     */
+    private static void restoreDb(String dbFileName){
+        try{
+            if(StringUtils.isEmpty(dbFileName)) {
+                Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
+                return;
+            }
+            Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
+
+            // check the last db file's download time and delete old file before download the new one.
+            File tempPath = new File("temp/");
+            File archivedDbFile = new File(tempPath, dbFileName);
+            if(archivedDbFile.exists()){
+                if(downloadLastDbArchiveNow(archivedDbFile.lastModified())){
+                    archivedDbFile.delete();
+                }else{
+                    long intervalHours = DOWNLOAD_DB_ARCHIVE_INTERVAL_MS / 60*60*1000L;
+                    String lastDownloadTime = new Date(archivedDbFile.lastModified()).toString();
+                    String currentTime = new Date(System.currentTimeMillis()).toString();
+                    Logger.logInfoMessage("[ UPGRADE DB ] Break db restore caused by: not reached the db archive time, " +
+                                    "download interval should be %d [last local db archive file time is %s and current time is %s]",
+                            intervalHours, lastDownloadTime, currentTime);
+                    return;
+                }
+            }
+            
+            Conch.pause();
+            // fetch the specified archived db file
+            String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
+            Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+          
+            FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+
+            // backup the old db folder
+            Logger.logInfoMessage("[ UPGRADE DB ] Delete the bak folder");
+            FileUtil.deleteDirectory(Paths.get(".","bak"));
+
+            String dbFolder = Paths.get(".",Db.getName()).toString();
+            Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
+            FileUtil.backupFolder(dbFolder, true);
+
+            //FileUtil.deleteDbFolder();
+
+            // unzip the archived db file into application root
+            String appRoot = Paths.get(".").toString();
+            Logger.logInfoMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
+            FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
+            Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
+        }catch(Exception e) {
+            Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
+        }finally{
+            Logger.logInfoMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
+            Conch.unpause();
+        }
     }
 
     public static void restoreDbToLastArchive() {
