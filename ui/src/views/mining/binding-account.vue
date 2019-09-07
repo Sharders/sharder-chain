@@ -119,16 +119,21 @@
                     account: _this.radio.account,
                 }, "authorizationLogin").then(value => {
                     // console.info(value.data);
-                    if (!value.success) return;
+                    if (!value.success) {
+                        window.parent.postMessage("false","*");
+                        return;
 
-                    window.parent.postMessage("success","*");
-
-                    setTimeout(function () {
-                        _this.binding = "success";
+                    }else{
+                        window.parent.postMessage("success","*");
                         setTimeout(function () {
-                            _this.isBindingAccount('isBinding');
+                            _this.binding = "success";
+                            setTimeout(function () {
+                                _this.isBindingAccount('isBinding');
+                            }, 1000);
                         }, 1000);
-                    }, 1000);
+                    }
+
+
                 });
 
             },
