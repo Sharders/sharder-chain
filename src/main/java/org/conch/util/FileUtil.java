@@ -89,9 +89,10 @@ public class FileUtil {
             if(deleteSource) {
                 FileUtils.forceDelete(new File(zipFilePath));
             } 
+        }catch (Exception e) {
+            Logger.logErrorMessage(String.format("unzip the file %s -> %s failed caused by %s", zipFilePath, outputLocation, e.getMessage()));
+            throw e;
         }
-        
-      
     }
 
     public static void deleteDirectory(Path path){
@@ -408,11 +409,7 @@ public class FileUtil {
                     writer.print("");
                     writer.close();  
                 }else{
-                    try {
-                        FileUtils.forceDelete(file);
-                    } catch (IOException e) {
-                        Logger.logErrorMessage("failed to delete the file " + file.getAbsolutePath(), e);
-                    }
+                    file.delete();
                 }
             }
         }

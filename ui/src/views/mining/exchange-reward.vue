@@ -14,8 +14,9 @@
                     </li>
                 </span>
             </p>
+            <p v-if="exchangeOpen">{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
         </div>
-        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS" v-if="!displayDefault">
+        <div v-if="exchangeOpen && !displayDefault" class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS">
             <p>
                 <img :src="exchange.img" class="exchange-img">
                 <span class="title">{{exchange.title}}</span>
@@ -23,11 +24,21 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
+        
         <div class="exchange-list info" v-if="displayDefault">
             {{$t('reward.insufficient_redemption')}}
         </div>
+        <div class="exchange-list info" v-else>
+            <span v-if="exchangeOpen">
+                {{$t('mining.diamond_exchange.not_open_tip')}}
+            </span>
+            <span v-else>
+                {{$t('mining.diamond_exchange.not_open')}}
+            </span>
+        </div>
+        
         <!--申请兑换SS列表-->
-        <div class="block_list" v-if="sharderAccount" style="clear:both">
+        <div v-if="exchangeOpen && sharderAccount" class="block_list"  style="clear:both">
             <p class="block_title" style="padding-bottom: 10px;">
                 <img src="../../assets/img/block.svg" width="20px" height="20px"/>
                 <span>{{$t('exchange_list.exchange_title')}}</span>
@@ -104,13 +115,14 @@
                 linkedSSAddr: "",
                 sharderAccount: "",
                 recipient: "",
+                exchangeOpen: false,
                 exchangeSS: 0,
                 convertible:0,
                 redeemed:0,
                 loadingExchangeSS:false,
                 exchangeSSList:[],
                 lastExchangeTime:"",
-                displayDefault:false,
+                displayDefault:false
 
             }
         },

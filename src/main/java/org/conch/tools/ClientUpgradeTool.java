@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipException;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -113,7 +114,8 @@ public class ClientUpgradeTool {
     public static int restoredDbArchiveHeight = 0;
     public static List<Integer> knownDbArchives = Lists.newArrayList();
 
-
+    public static volatile boolean forceDownloadFromOSS = false;
+    private static volatile boolean restoring = false;
     private static final long FETCH_DB_ARCHIVE_INTERVAL_MS = 30*60*1000L;
     private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 24*60*60*1000L;
     private static volatile JSONObject lastDbArchiveObj = null;
@@ -131,8 +133,19 @@ public class ClientUpgradeTool {
     }
 
     private static boolean downloadLastDbArchiveNow(long archiveFileModifiedTimeMS){
-        if(lastDownloadDbArchiveTime == -1) return true;
-        if((archiveFileModifiedTimeMS - lastDownloadDbArchiveTime) > DOWNLOAD_DB_ARCHIVE_INTERVAL_MS) return true;
+        // first time to check: after sc reboot 
+        if(lastDownloadDbArchiveTime == -1) {
+            lastDownloadDbArchiveTime = archiveFileModifiedTimeMS;
+            if((System.currentTimeMillis() - lastDownloadDbArchiveTime) > DOWNLOAD_DB_ARCHIVE_INTERVAL_MS){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        if((archiveFileModifiedTimeMS - lastDownloadDbArchiveTime) > DOWNLOAD_DB_ARCHIVE_INTERVAL_MS){
+            return true;
+        }
         return false;
     }
     
@@ -249,6 +262,9 @@ public class ClientUpgradeTool {
      */
     private static void restoreDb(String dbFileName){
         try{
+//            if(restoring) return;
+//            restoring = true;
+            
             if(StringUtils.isEmpty(dbFileName)) {
                 Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
                 return;
@@ -258,26 +274,31 @@ public class ClientUpgradeTool {
             // check the last db file's download time and delete old file before download the new one.
             File tempPath = new File("temp/");
             File archivedDbFile = new File(tempPath, dbFileName);
+            boolean downloadFromOSS = true;
             if(archivedDbFile.exists()){
-                if(downloadLastDbArchiveNow(archivedDbFile.lastModified())){
+                if(forceDownloadFromOSS || downloadLastDbArchiveNow(archivedDbFile.lastModified())){
                     archivedDbFile.delete();
                 }else{
-                    long intervalHours = DOWNLOAD_DB_ARCHIVE_INTERVAL_MS / 60*60*1000L;
-                    String lastDownloadTime = new Date(archivedDbFile.lastModified()).toString();
+                    long intervalHours = DOWNLOAD_DB_ARCHIVE_INTERVAL_MS / (60*60*1000L);
+//                    String lastDownloadTime = new Date(archivedDbFile.lastModified()).toString();
+                    String nextDownloadTime = new Date(lastDownloadDbArchiveTime + DOWNLOAD_DB_ARCHIVE_INTERVAL_MS).toString();
                     String currentTime = new Date(System.currentTimeMillis()).toString();
-                    Logger.logInfoMessage("[ UPGRADE DB ] Break db restore caused by: not reached the db archive time, " +
-                                    "download interval should be %d [last local db archive file time is %s and current time is %s]",
-                            intervalHours, lastDownloadTime, currentTime);
-                    return;
+                    Logger.logInfoMessage("[ UPGRADE DB ] Don't fetch the new db archive from OSS caused by: not reached the db archive download time[%s], " +
+                                    "download interval should be %d hours [current time is %s]",
+                            nextDownloadTime, intervalHours, currentTime);
+                    downloadFromOSS = false;
                 }
             }
             
             Conch.pause();
+        
             // fetch the specified archived db file
-            String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
-            Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
-          
-            FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+            if(downloadFromOSS) {
+                String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
+                Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
+                FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+                lastDownloadDbArchiveTime = System.currentTimeMillis();
+            }
 
             // backup the old db folder
             Logger.logInfoMessage("[ UPGRADE DB ] Delete the bak folder");
@@ -287,12 +308,20 @@ public class ClientUpgradeTool {
             Logger.logInfoMessage("[ UPGRADE DB ] Backup the current db folder %s ", dbFolder);
             FileUtil.backupFolder(dbFolder, true);
 
-            //FileUtil.deleteDbFolder();
-
             // unzip the archived db file into application root
             String appRoot = Paths.get(".").toString();
             Logger.logInfoMessage("[ UPGRADE DB ] Unzip the archived db file %s into COS application folder %s", dbFileName, appRoot);
-            FileUtil.unzip(archivedDbFile.getPath(), appRoot, true);
+            try{
+                FileUtil.unzip(archivedDbFile.getPath(), appRoot, false);
+            }catch(Exception e){
+                if(e instanceof ZipException) {
+                    Logger.logInfoMessage(String.format("delete the zip file %s when the unzip operation failed[ %s ]", archivedDbFile.getPath() ,e.getMessage()));
+                    if(archivedDbFile != null) {
+                        archivedDbFile.delete();
+                    }
+                }
+            }
+           
             Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
         }catch(Exception e) {
             Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
@@ -314,12 +343,16 @@ public class ClientUpgradeTool {
         if(restoredDbArchiveHeight == 0) {
             restoredDbArchiveHeight = lastDbArchiveHeight;
         } else{
-            int index = knownDbArchives.size() - 1;
-            while(index > 0
-                    && restoredDbArchiveHeight > knownDbArchives.get(index)){
-                index--;
+            if(knownDbArchives.size() <= 0) {
+                restoredDbArchiveHeight = lastDbArchiveHeight;
+            } else {
+                int index = knownDbArchives.size() - 1;
+                while(index > 0
+                        && restoredDbArchiveHeight > knownDbArchives.get(index)){
+                    index--;
+                }
+                restoredDbArchiveHeight = knownDbArchives.get(index);  
             }
-            restoredDbArchiveHeight = knownDbArchives.get(index);
         }
         
         if(restoredDbArchiveHeight > 0) {

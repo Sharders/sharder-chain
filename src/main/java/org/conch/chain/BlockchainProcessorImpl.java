@@ -134,6 +134,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 // Download blocks until we are up-to-date
                 //
                 while (true) {
+                    
                     if (!getMoreBlocks) {
                         if (Logger.printNow(Constants.BlockchainProcessor_P_getMoreBlocks)) {
                             Logger.logDebugMessage("Don't synchronize blocks when the getMoreBlocks is set to false");
