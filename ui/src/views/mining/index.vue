@@ -597,9 +597,10 @@
                         return _this.$message.error(res.errorDescription);
                     }
                     _this.accountInfo = res;
+                }).then(resl =>{
+                    _this.getPools({sort: _this.sortFun});
                 });
 
-                _this.getPools({sort: _this.sortFun});
             },
 
             getCoinBase(height) {
@@ -656,7 +657,7 @@
                     _this.createPoolBtn = true;
                     for(let t of res.pools){
                         if(Object.keys(t.consignors).length === 0){
-                            if (t.creatorRS === _this.accountInfo.accountRS){
+                            if (t.creatorRS === SSO.accountInfo.accountRS){
                                 _this.createPoolBtn = false;
                                 poolArr1.push(t);
                             }else {
@@ -664,7 +665,7 @@
                             }
 
                         }else{
-                            if(t.creatorRS === _this.accountInfo.accountRS){
+                            if(t.creatorRS === SSO.accountInfo.accountRS){
                                 let i = 0;
                                 for(let c in t.consignors){
                                     if (c === SSO.accountInfo.accountId){
@@ -695,7 +696,7 @@
                         }
 
                     }
-                    _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                    _this.miningList = poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });

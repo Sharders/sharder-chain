@@ -104,7 +104,7 @@
                 this[val] = !this[val];
             },
             bindingAddr() {
-                let _this = this;
+                const _this = this;
                 if (_this.radio === '') {
                     return;
                 }
@@ -120,6 +120,9 @@
                 }, "authorizationLogin").then(value => {
                     // console.info(value.data);
                     if (!value.success) return;
+
+                    window.parent.postMessage("success","*");
+
                     setTimeout(function () {
                         _this.binding = "success";
                         setTimeout(function () {
@@ -166,7 +169,7 @@
         },
         created() {
             window.token = window.location.search.substring(1 + "token".length);
-            console.info(token);
+            console.info("token:"+token);
 
         }
     }
