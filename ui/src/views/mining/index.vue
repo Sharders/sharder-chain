@@ -322,6 +322,7 @@
                 isRanking: false,
                 isTSS: false,
                 isSetName: false,
+                loading:true,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolInvestment: 0,
@@ -375,14 +376,6 @@
         },
         mounted() {
             let _this = this;
-
-            if (!_this.$store.state.isLogin) {
-                window.token = window.location.search.substring(1 + "token".length);
-                console.info("token", token);
-                _this.account();
-            } else {
-                _this.loginAfter();
-            }
             // window.$miningInitial = setInterval(() => {
             let miningDataLoader = setInterval(() => {
                 if (_this.$route.path === '/mining') {
@@ -395,6 +388,17 @@
             
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
+        },
+        created(){
+            let _this = this;
+
+            if (!_this.$store.state.isLogin) {
+                window.token = window.location.search.substring(1 + "token".length);
+                console.info("token", token);
+                _this.account();
+            } else {
+                _this.loginAfter();
+            }
         },
         computed: {
             getLang: function () {
@@ -597,9 +601,8 @@
                         return _this.$message.error(res.errorDescription);
                     }
                     _this.accountInfo = res;
-                }).then(resl =>{
-                    _this.getPools({sort: _this.sortFun});
                 });
+                _this.getPools({sort: _this.sortFun});
 
             },
 
