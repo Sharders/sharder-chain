@@ -6,6 +6,7 @@ import org.conch.common.ConchException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -55,12 +56,16 @@ public class FileUtilTest {
     }
 
     public static void main(String[] args) {
-        try {
-            //fetchUpgradePackageViaVersion();
-            getNewestHubVersion();
-            //fetchUpgradePackage();
-        } catch (IOException | ConchException.NotValidException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            //fetchUpgradePackageViaVersion();
+//            getNewestHubVersion();
+//            //fetchUpgradePackage();
+//        } catch (IOException | ConchException.NotValidException e) {
+//            e.printStackTrace();
+//        }
+        
+        File file = new File("/Users/ben/Downloads/fileTime/cos-db-archive");
+        System.out.println(file.lastModified());
+        System.out.println(new Date(file.lastModified()).toString());
     }
 }

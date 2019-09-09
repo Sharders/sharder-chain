@@ -732,7 +732,14 @@ public final class Conch {
                 Thread secureRandomInitThread = initSecureRandom();
                 ForceConverge.init();
                 setServerStatus(ServerStatus.BEFORE_DATABASE, null);
-                Db.init();
+                try {
+                    Db.init();
+                }catch(Exception e){
+                    Logger.logInfoMessage("[DB EXCEPTION HANDLE] Fetch and restore to last db archive because the db instance init failed[ %s ]", e.getMessage());
+                    ClientUpgradeTool.forceDownloadFromOSS = true;
+                    ClientUpgradeTool.restoreDbToLastArchive();
+                    ClientUpgradeTool.forceDownloadFromOSS = false;
+                }
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
 
@@ -993,8 +1000,8 @@ public final class Conch {
         try {
             pause();
             
-            Logger.logInfoMessage("Delete the logs folder");
-            FileUtil.deleteDirectory(Paths.get(".","logs"));
+            Logger.logInfoMessage("Clear the all logs");
+            FileUtil.clearAllLogs();
             
             // java binary
             String java = System.getProperty("java.home") + "/bin/java";

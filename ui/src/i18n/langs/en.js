@@ -128,6 +128,7 @@ const en = {
         'transaction_type_pool_destroy': "Delete Pool",
         'transaction_type_pool_join': "Join Pool",
         'transaction_type_pool_quit': "Quit Pool",
+        'transaction_type_pool_quit_not_myself':"Quit Pool(NO)",
         'transaction_type_system_reward': "Rewards",
         'transaction_type_block_reward': "Mining Rewards",
         'transaction_type_genesis_reward': "Genesis",
@@ -925,6 +926,7 @@ const en = {
         'insufficient_permissions': "Insufficient permissions",
         'success_to_register_nat': "Success to register NAT service, please wait for the review",
         'sendVCode':"Send a verification code must fill in the registered mobile phone number or email address",
+        'errorCreatePool':'Please drag the mine pool income distribution ratio',
     },
     enter: {
         'enter_tip': "Your mnemonic phrase is very important, in order to be sure that you have saved it! Please enter your mnemonic phrase below",
@@ -961,7 +963,9 @@ const en = {
         "exchange_sharder_account": "Exchange to Sharder account:  {account}",
         "redeemed":"Redeemed",
         "convertible":"Convertible",
-        "exchangeTip":"Each exchange cannot be less than 1000 SS, and the exchange amount can only be a multiple of 1000.",
+        "exchange_tip":"Each redemption cannot be lower than 1000SS. The number of redemptions can only be a multiple of 1000 and can only be redeemed once in 7 days. Please choose the number of redemption carefully.",
+        "exchange_time_tip":'Can only be redeemed once in 7 days',
+        "insufficient_redemption":"Insufficient Redemption!"
     },
     exchange_list:{
         "exchange_title":"Exchange SS list",

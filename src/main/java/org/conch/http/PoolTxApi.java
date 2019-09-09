@@ -120,12 +120,24 @@ public abstract class PoolTxApi {
                 Account ac = Account.getAccount(consignor.getId());
                 List<Consignor.JoinTransaction> lcj= consignor.getTransactions();
                 if (lcj.size() <= 0) continue;
-                for(int i = 0 ; i < lcj.size(); i++ ) {
+                for (int i = 0 ; i < lcj.size(); i++){
                     joinTxId = lcj.get(i).getTransactionId();
                     long txId = SharderPoolProcessor.hasProcessingQuitTx(joinTxId);
                     if(txId != -1){
                         throw new ConchException.NotValidException("Has a QuitPool tx[%d] be processing already, wait for tx confirmed", txId);
                     }
+                }
+
+            }
+
+            for(Consignor consignor : miningPool.getConsignors().values()){
+                long joinTxId = 0;
+                Account ac = Account.getAccount(consignor.getId());
+                List<Consignor.JoinTransaction> lcj= consignor.getTransactions();
+                if (lcj.size() <= 0) continue;
+
+                for(int i = 0 ; i < lcj.size(); i++ ) {
+                    joinTxId = lcj.get(i).getTransactionId();
                     SharderPoolProcessor.addProcessingQuitTx(joinTxId, -1);
 
                     Attachment attachment = new Attachment.SharderPoolQuit(joinTxId, poolId);
