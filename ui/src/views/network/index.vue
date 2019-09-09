@@ -293,8 +293,8 @@
                             </el-table-column>
                             <el-table-column :label="$t('dialog.account_info_account')" width="220">
                                 <template slot-scope="scope">
-                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === this.SSO.accountRS" style="color:#14c6fc;"></div>
-                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS != this.SSO.accountRS" style=""></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === accountRS" style="color:#14c6fc;"></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS !== accountRS" style=""></div>
                                 </template>
                             </el-table-column>
                             <el-table-column
@@ -347,7 +347,7 @@
                 lastBlockRS:'',
                 peersLocationList: {},
                 peersTimeList: [],
-
+                accountRS:"",
                 //list列表
                 blocklist: [],
                 //网络总览
@@ -405,6 +405,7 @@
                     limit: 99999
                 }, "getNextBlockGenerators").then(res => {
                     _this.activeCount = res.activeCount;
+                    _this.accountRS = SSO.accountRS;
                     for(let t of res.generators){
                         if(t.accountRS === SSO.accountRS){
                             poolArr1.push(t);
