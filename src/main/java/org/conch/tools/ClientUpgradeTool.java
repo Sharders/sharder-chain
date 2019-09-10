@@ -117,7 +117,8 @@ public class ClientUpgradeTool {
     public static volatile boolean forceDownloadFromOSS = false;
     private static volatile boolean restoring = false;
     private static final long FETCH_DB_ARCHIVE_INTERVAL_MS = 30*60*1000L;
-    private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 24*60*60*1000L;
+    // default value is 5 days
+    private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 5*24*60*60*1000L;
     private static volatile JSONObject lastDbArchiveObj = null;
     private static long lastDbArchiveFetchTime = -1;
     private static long lastDownloadDbArchiveTime = -1;
@@ -132,8 +133,9 @@ public class ClientUpgradeTool {
         return false;
     }
 
-    private static boolean downloadLastDbArchiveNow(long archiveFileModifiedTimeMS){
-        // first time to check: after sc reboot 
+    private static boolean downloadNewDbArchiveNow(File archivedDbFile){
+        // first time to check
+        long archiveFileModifiedTimeMS = archivedDbFile.lastModified();
         if(lastDownloadDbArchiveTime == -1) {
             lastDownloadDbArchiveTime = archiveFileModifiedTimeMS;
             if((System.currentTimeMillis() - lastDownloadDbArchiveTime) > DOWNLOAD_DB_ARCHIVE_INTERVAL_MS){
@@ -276,7 +278,7 @@ public class ClientUpgradeTool {
             File archivedDbFile = new File(tempPath, dbFileName);
             boolean downloadFromOSS = true;
             if(archivedDbFile.exists()){
-                if(forceDownloadFromOSS || downloadLastDbArchiveNow(archivedDbFile.lastModified())){
+                if(forceDownloadFromOSS || downloadNewDbArchiveNow(archivedDbFile)){
                     archivedDbFile.delete();
                 }else{
                     long intervalHours = DOWNLOAD_DB_ARCHIVE_INTERVAL_MS / (60*60*1000L);
@@ -294,6 +296,7 @@ public class ClientUpgradeTool {
         
             // fetch the specified archived db file
             if(downloadFromOSS) {
+                FileUtil.clearOrDelFiles("temp/", false);
                 String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
                 Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
                 FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);

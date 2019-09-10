@@ -399,6 +399,8 @@ public class FileUtil {
      */
     public static void clearOrDelFiles(String folderPath, boolean justClear) throws FileNotFoundException {
         File folder = new File(folderPath);
+        if(folder == null) return;
+        
         File[] files = folder.listFiles();
         if (files != null && files.length > 0) {
             String mode = justClear ? "clear" : "delete";
