@@ -116,18 +116,25 @@
                             {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
+                    <div class="mining-paging" v-if="totalSize > pageSize">
+                        <el-pagination
+                            small
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            :pager-count="5"
+                            layout="total, prev, pager, next ,jumper"
+                            :total=totalSize>
+                        </el-pagination>
+                    </div>
+
                 </div>
+
+
             </div>
-            <div class="mining-paging" v-if="totalSize > pageSize">
-                <el-pagination
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                    :current-page.sync="currentPage"
-                    :page-size="pageSize"
-                    layout="total, prev, pager, next ,jumper"
-                    :total=totalSize>
-                </el-pagination>
-            </div>
+
+
         </div>
         <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
@@ -813,7 +820,7 @@
     }
 
     .mining .mining-paging .el-input {
-        width: 100px;
+        width: 36px;
         margin: 0;
     }
 
@@ -1105,11 +1112,11 @@
     }
 
     .mining-paging {
-        position: relative;
+
         z-index: 99;
         float: right;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        margin-top:  5px;
+        margin-bottom: 5px;
     }
 
     .mining-paging > div {
@@ -1480,7 +1487,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 50%;
+            width: 45%;
         }
 
         .mining .mining-list-info .grid-content .tag {
@@ -1532,7 +1539,7 @@
         }
 
         .mining .mining-paging {
-            display: none;
+            /*display: none;*/
         }
 
         .mining .mining-content .assets ul {
@@ -1695,7 +1702,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 7px 8px 70px 10px;
+            padding: 7px 8px 110px 10px;
         }
 
         .ranking-table th {

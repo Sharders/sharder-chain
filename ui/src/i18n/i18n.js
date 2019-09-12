@@ -6,7 +6,17 @@ import store from '../store/index';
 // import Util from '../utils/common';
 
 
-Vue.use(VueI18n);
+/*Vue.use(VueI18n);*/
+Vue.use(VueI18n, {
+    i18n: function(path, options) {
+        let value = i18n.t(path, options)
+        if (value !== null && value !== undefined) {
+            return value
+        }
+        return ''
+    }
+});
+
 //从localStorage中拿到用户的语言选择，如果没有，那默认中文。
 const i18n = new VueI18n({
     // locale: Util.getLocalStorage("lang") || 'cn',

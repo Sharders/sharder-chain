@@ -440,7 +440,6 @@
                     let fetchCoordinates = (cachedPeerNum === null || cachedPeerNum === "" || undefined === cachedPeerNum) 
                                           || cachedPeerNum != _this.peerNum
                                           || this.$global.coordinatesMap === null || undefined === this.$global.coordinatesMap;
-                    console.info("fetchCoordinates:" + fetchCoordinates);
                     if (fetchCoordinates) {
                         localStorage.setItem('peerNum', _this.peerNum);
                         _this.fetchCoordinates = true;
