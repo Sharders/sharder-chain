@@ -229,7 +229,7 @@
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.BALANCE > 0 ? ranking.BALANCE / 100000000 : 0}}
+                                {{ranking.BALANCE > 0 ? $global.getSSNumberFormat(ranking.BALANCE) : 0}}
                             </td>
                         </tr>
                     </table>
@@ -369,7 +369,6 @@
                 pageSize: 18,
                 loadingRanking: true,
                 loadingRankingNo: true,
-                loading: true,
                 btnLoading: false,
                 createPoolBtn:true,
             }
@@ -391,6 +390,7 @@
         },
         created(){
             let _this = this;
+            _this.miningList = [];
 
             if (!_this.$store.state.isLogin) {
                 window.token = window.location.search.substring(1 + "token".length);
@@ -562,6 +562,7 @@
             },
             loginAfter() {
                 let _this = this;
+                _this.loading = true;
                 _this.getAllIncome();
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
@@ -647,11 +648,12 @@
             },
             getPools(parameter) {
                 let _this = this;
-                _this.loading = true;
                 let poolArr1 = [];
                 let poolArr2 = [];
                 let poolArr3 = [];
                 let poolArr4 = [];
+
+                _this.loading = true;
 
                 _this.$global.fetch("POST", parameter, "getPools").then(res => {
                     if (res.errorDescription) {
@@ -703,6 +705,7 @@
                     _this.totalSize = _this.miningList.length;
                     _this.loading = false;
                 });
+
 
             },
 

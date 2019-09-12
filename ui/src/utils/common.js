@@ -946,7 +946,7 @@ export default {
         } else if (f) {
             return num + this.unit
         } else {
-            return new BigNumber(num).dividedBy("100000000").toFixed() + this.unit
+            return new BigNumber(num).dividedBy("100000000").toFixed(2) + this.unit
         }
     },
     /**
