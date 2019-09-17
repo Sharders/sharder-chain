@@ -193,10 +193,6 @@
         margin: auto;
     }
 
-    .el-select-dropdown__item.selected, .el-pager li.active {
-        color: #fff !important;
-    }
-
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -216,9 +212,6 @@
         background-color: #513ac8;
     }
 
-    .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
-        color: #fff;
-    }
 
     .mining .title .el-radio-button__inner:hover {
         color: #513ac8;
@@ -256,14 +249,6 @@
         color: #513acB;
     }
 
-    .mining .mining-paging .el-pager li.active:hover {
-        color: #fff;
-    }
-
-    .mining .create-pool .el-slider__button,
-    .mining .create-pool .el-slider__bar {
-        background-color: #513acB;
-    }
 
     .img-close {
         position: absolute;
@@ -281,17 +266,6 @@
         opacity: 0.8;
     }
 
-    .mining-back {
-        position: absolute;
-        left: 9px;
-        top: 9px;
-        color: #513ac8;
-        cursor: pointer;
-    }
-
-    .mining-back:hover {
-        color: #513ac8aa;
-    }
 
     .mining-list .el-select .el-input .el-select__caret {
         top: 0 !important;
@@ -305,16 +279,6 @@
     .en_mining .title .el-radio-button__inner {
         width: 140px;
         padding: 12px 25px;
-    }
-
-    .my-pool-title {
-        color: #14c6fc;
-    }
-
-    .pool-badge {
-        padding-bottom: 3px;
-        padding-right: 5px;
-        float: right;
     }
     .account .addr .radio .el-radio__label {
         display: none;
