@@ -63,7 +63,7 @@
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
-                        <span>{{$t('mining.index.pool_list_block')}}</span>
+<!--                        <span>{{$t('mining.index.pool_list_block')}}</span>-->
                     </div>
                     <el-select v-model="sortFun" v-if="miningList.length > 0">
                         <el-option
