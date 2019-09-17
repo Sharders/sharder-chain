@@ -180,146 +180,274 @@
     }
 </script>
 <style>
-    body {
-        background: #00000010;
-    }
-
-    #app .page-layout main {
-        height: initial !important;
-        transform: initial !important;
-        overflow-x: initial !important;
-        position: initial !important;
-        width: 1200px !important;
-        margin: auto;
-    }
-
-    .el-select-dropdown__item.selected, .el-pager li.active {
-        color: #fff !important;
-    }
-
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-    }
-
-    input[type="number"] {
-        -moz-appearance: textfield;
-    }
-
-    .mining .title .el-radio-button__inner {
-        max-width: 140px;
-        padding: 12px 41px;
-    }
-
-    .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner,
-    .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-        background-color: #513ac8;
-    }
-
-    .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
-        color: #fff;
-    }
-
-    .mining .title .el-radio-button__inner:hover {
-        color: #513ac8;
-    }
-
-    .mining .el-input {
-        top: 0px;
-        border: none;
-    }
-
-    .mining .mining-paging .el-input__inner {
-        height: inherit;
-    }
-
-    .mining .mining-paging .el-input {
-        width: 36px;
-        margin: 0;
-    }
-
-    .mining P {
-        margin: 0;
-        padding: 0;
-    }
-
-    .mining .el-select {
-        width: 110px !important;
-    }
-
-    .mining .mining-paging .el-pager li.active {
-        background-color: #513acB;
-        border: none;
-    }
-
-    .mining .mining-paging .el-pager li:hover {
-        color: #513acB;
-    }
-
-    .mining .mining-paging .el-pager li.active:hover {
-        color: #fff;
-    }
-
-    .mining .create-pool .el-slider__button,
-    .mining .create-pool .el-slider__bar {
-        background-color: #513acB;
-    }
-
-    .img-close {
-        position: absolute;
-        float: right;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-        background: url("../../assets/img/error.svg") no-repeat center;
-    }
-
-    .img-close:hover {
-        opacity: 0.8;
-    }
-
-    .mining-back {
-        position: absolute;
-        left: 9px;
-        top: 9px;
-        color: #513ac8;
-        cursor: pointer;
-    }
-
-    .mining-back:hover {
-        color: #513ac8aa;
-    }
-
-    .mining-list .el-select .el-input .el-select__caret {
-        top: 0 !important;
-    }
-
-    .mining-list .el-select .el-input__inner {
-        height: 30px;
-    }
-
-
-    .en_mining .title .el-radio-button__inner {
-        width: 140px;
-        padding: 12px 25px;
-    }
-
-    .my-pool-title {
-        color: #14c6fc;
-    }
-
-    .pool-badge {
-        padding-bottom: 3px;
-        padding-right: 5px;
-        float: right;
-    }
     .account .addr .radio .el-radio__label {
         display: none;
     }
+</style>
+<!--钱包内置兼容-->
+<style>
+    @media (max-width: 640px) {
+        #app .header {
+            display: none;
+        }
 
+        #app .page-layout main {
+            padding-top: 0;
+            width: 100% !important;
+        }
+
+        #app .page-layout main .main-content {
+            width: 100% !important;
+        }
+
+        .mining .el-radio-group {
+            display: none;
+        }
+
+        .mining .mining-content {
+            margin-top: 0;
+            padding: 15px;
+            border-radius: initial;
+            height: 400px;
+            background-position: center 210px;
+        }
+
+        .mining .mining-list-info .el-row {
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info .el-col.el-col-8 {
+            width: 100%;
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info .grid-content .info {
+            width: 45%;
+        }
+
+        .mining .mining-list-info .grid-content .tag {
+            width: initial !important;
+        }
+
+        .mining .mining-list-info .grid-content .tag img {
+            padding: 0 10px;
+        }
+
+        .mining .mining-content .instructions {
+            display: none;
+        }
+
+        .mining .mining-content .invite-friends,
+        .mining .mining-content .rule-description {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            padding: 10px 20px;
+            background: #0000ff;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            position: absolute;
+            right: 0;
+            top: 20px;
+            font-size: 14px;
+        }
+
+        .mining .mining-content .rule-description {
+            top: 66px;
+        }
+
+        .mining .mining-content .create {
+            position: absolute;
+            top: 320px;
+            right: 75px;
+            font-size: 13px;
+        }
+
+        .mining .mining-content .create.my-mining {
+            display: initial;
+            right: 15px;
+        }
+
+        .mining .mining-content .create img {
+            width: 45px;
+            height: 45px;
+        }
+
+        .mining .mining-paging {
+            /*display: none;*/
+        }
+
+        .mining .mining-content .assets ul {
+            font-size: 12px;
+        }
+
+        .mining .mining-content .assets .strong {
+            font-size: 13px;
+        }
+
+        .mining .mining-content .assets .strong img {
+            width: 12px;
+            height: 12px;
+            top: 1px;
+        }
+
+        .mining .mining-content .state {
+            top: 110px;
+            width: calc(100% - 30px);
+        }
+
+        .mining .mining-content .state .state-info {
+            font-size: 12px;
+            max-width: 100%;
+        }
+
+        .mining .mining-list .mining-list-img {
+            margin-left: 15px;
+        }
+
+        .ranking-content .ranking-table {
+            font-size: 12px;
+        }
+
+        #chatu {
+            top: 170px !important;
+            animation-name: chatu-mobel !important;
+        }
+
+        @keyframes chatu-mobel {
+            0% {
+                top: 150px;
+            }
+            100% {
+                top: 170px;
+            }
+        }
+
+        .mining .ranking, .mining .create-pool {
+            position: absolute;
+            width: calc(100% - 30px);
+            left: 15px;
+            top: 60px;
+        }
+
+        .mining .create-pool {
+            position: fixed;
+            top: calc(50% - 250px);
+        }
+
+        .mining .create-pool-content .pool-title {
+            padding: 0;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .mining .pool-set .pool-title {
+            color: #333;
+            margin: 0 0 20px 0;
+        }
+
+        .pool-attribute p span {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .pool-attribute p .strong {
+            font-size: 12px;
+            font-weight: initial;
+        }
+
+        .create-pool .pool-header {
+            display: none;
+        }
+
+        .mining .create-pool .pool-attribute, .mining .create-pool .pool-set {
+            padding: 15px;
+            font-size: 12px;
+        }
+
+        .mining .create-pool .pool-set .user-input {
+            width: calc(100% - 90px);
+            font-size: 12px;
+        }
+
+        .mining .create-pool .pool-set .pool-bth {
+            margin: 0;
+        }
+
+        .mining .create-pool .pool-set .pool-bth .immediately-create {
+            width: 100% !important;
+            float: initial;
+        }
+
+        .mining .create-pool .pool-set .pool-bth .cancel {
+            display: none;
+        }
+
+        .mining .menu {
+            display: initial !important;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: calc(100% - 70px);
+            background: #fff;
+        }
+
+        .mining .menu .el-radio-group {
+            display: block;
+        }
+
+        .mining .menu .el-radio-button {
+            width: 50%;
+        }
+
+        .mining .menu .title .el-radio-button__inner {
+            max-width: initial;
+            width: 100%;
+            height: 70px;
+            border: none;
+            outline: none;
+            background-color: initial !important;
+            box-shadow: none;
+            font-size: 15px;
+        }
+
+        .menu .title .btn {
+            background-size: 40px 40px !important;
+        }
+
+        .menu .title .btn.miner {
+            background: url("../../assets/img/index.png") no-repeat center 26px;
+        }
+
+        .menu .title .btn.personal {
+            background: url("../../assets/img/personal.png") no-repeat center 26px;
+        }
+
+        .menu .title .is-active.btn.miner {
+            background: url("../../assets/img/index-1.png") no-repeat center 26px;
+        }
+
+        .menu .title .is-active.btn.personal {
+            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
+        }
+
+        .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
+            color: #513ac8 !important;
+        }
+
+        .mining .mining-list .mining-list-info {
+            padding: 7px 8px 110px 10px;
+        }
+
+        .ranking-table th {
+            height: 30px !important;
+        }
+
+        .ranking-table tr {
+            height: 40px !important;
+        }
+    }
 </style>
 <style scoped>
     .img-close {
@@ -339,7 +467,7 @@
     }
 
     .binding-account .introduce {
-        position: fixed;
+      /*  position: fixed;*/
         top: 0;
         left: 0;
         right: 0;
