@@ -709,7 +709,7 @@
             return {
                 //dialog
                 src: "",
-                requestUrl:"http://localhost:8080",
+                requestUrl:"https://sharder.org",
                 sendSuccess: false, //true验证码发送 false验证码未发送
                 time: 60 , //时间
                 sendMessageDialog: false,

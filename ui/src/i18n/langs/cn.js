@@ -17,6 +17,7 @@ const cn = {
         'init_hub': "初始化",
         'use_nat_server': "穿透服务",
         'config_nat_server': "穿透服务",
+        'login_binding_hub_account_tip':"此hub绑定的TSS地址为:",
     },
     hubsetting: {
         'register_nat_server': "申请穿透服务",
@@ -926,6 +927,7 @@ const cn = {
         'success_to_register_nat': "NAT服务申请成功，请等待审核",
         'sendVCode':"发送验证码必须填写注册手机号或者邮箱",
         'errorCreatePool':"请拖动矿池收益分配比例",
+        'ss_not_enough':'您的账户总资产不足20000SS,不能开始挖矿',
     },
     enter: {
         'enter_tip': "您的密钥非常重要，请确保您已妥善备份！请填写上一步生成的密钥",

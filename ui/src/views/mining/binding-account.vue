@@ -104,7 +104,7 @@
                 this[val] = !this[val];
             },
             bindingAddr() {
-                let _this = this;
+                const _this = this;
                 if (_this.radio === '') {
                     return;
                 }
@@ -119,13 +119,21 @@
                     account: _this.radio.account,
                 }, "authorizationLogin").then(value => {
                     // console.info(value.data);
-                    if (!value.success) return;
-                    setTimeout(function () {
-                        _this.binding = "success";
+                    if (!value.success) {
+                        window.parent.postMessage("false","*");
+                        return;
+
+                    }else{
+                        window.parent.postMessage("success","*");
                         setTimeout(function () {
-                            _this.isBindingAccount('isBinding');
+                            _this.binding = "success";
+                            setTimeout(function () {
+                                _this.isBindingAccount('isBinding');
+                            }, 1000);
                         }, 1000);
-                    }, 1000);
+                    }
+
+
                 });
 
             },
@@ -166,7 +174,7 @@
         },
         created() {
             window.token = window.location.search.substring(1 + "token".length);
-            console.info(token);
+            console.info("token:"+token);
 
         }
     }

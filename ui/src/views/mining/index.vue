@@ -116,18 +116,25 @@
                             {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
+                    <div class="mining-paging" v-if="totalSize > pageSize">
+                        <el-pagination
+                            small
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            :pager-count="5"
+                            layout="total, prev, pager, next ,jumper"
+                            :total=totalSize>
+                        </el-pagination>
+                    </div>
+
                 </div>
+
+
             </div>
-            <div class="mining-paging" v-if="totalSize > pageSize">
-                <el-pagination
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                    :current-page.sync="currentPage"
-                    :page-size="pageSize"
-                    layout="total, prev, pager, next ,jumper"
-                    :total=totalSize>
-                </el-pagination>
-            </div>
+
+
         </div>
         <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
@@ -229,7 +236,7 @@
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.BALANCE > 0 ? ranking.BALANCE / 100000000 : 0}}
+                                {{ranking.BALANCE > 0 ? $global.getSSNumberFormat(ranking.BALANCE) : 0}}
                             </td>
                         </tr>
                     </table>
@@ -322,6 +329,7 @@
                 isRanking: false,
                 isTSS: false,
                 isSetName: false,
+                loading:true,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolInvestment: 0,
@@ -363,27 +371,17 @@
                 accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
-                accountTransactionList: [],
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 18,
                 loadingRanking: true,
                 loadingRankingNo: true,
-                loading: true,
                 btnLoading: false,
                 createPoolBtn:true,
             }
         },
         mounted() {
             let _this = this;
-
-            if (!_this.$store.state.isLogin) {
-                window.token = window.location.search.substring(1 + "token".length);
-                console.info("token", token);
-                _this.account();
-            } else {
-                _this.loginAfter();
-            }
             // window.$miningInitial = setInterval(() => {
             let miningDataLoader = setInterval(() => {
                 if (_this.$route.path === '/mining') {
@@ -396,6 +394,18 @@
             
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
+        },
+        created(){
+            let _this = this;
+            _this.miningList = [];
+
+            if (!_this.$store.state.isLogin) {
+                window.token = window.location.search.substring(1 + "token".length);
+                console.info("token", token);
+                _this.account();
+            } else {
+                _this.loginAfter();
+            }
         },
         computed: {
             getLang: function () {
@@ -559,6 +569,7 @@
             },
             loginAfter() {
                 let _this = this;
+                _this.loading = true;
                 _this.getAllIncome();
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
@@ -599,8 +610,8 @@
                     }
                     _this.accountInfo = res;
                 });
-
                 _this.getPools({sort: _this.sortFun});
+
             },
 
             getCoinBase(height) {
@@ -644,90 +655,62 @@
             },
             getPools(parameter) {
                 let _this = this;
-                _this.loading = true;
                 let poolArr1 = [];
                 let poolArr2 = [];
                 let poolArr3 = [];
                 let poolArr4 = [];
 
-                let params = new URLSearchParams();
-                params.append("account", SSO.accountRS);
-                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
+                _this.loading = true;
 
-                let i = 0;
-                if (typeof _this.unconfirmedTransactionsList !== 'undefined') {
-                    i = _this.unconfirmedTransactionsList.length;
-                }
-                params.append("type", "8");
-                params.append("subtype", "2");
-
-
-                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
-                    _this.accountTransactionList = res1.data.transactions;
-                    _this.$global.fetch("POST", parameter, "getPools").then(res => {
-                        if (res.errorDescription) {
-                            return _this.$message.error(res.errorDescription);
-                        }
-                        _this.createPoolBtn = true;
-                        if(_this.accountTransactionList.length === 0){
-                            for(let t of res.pools){
-                                if(t.creatorRS === _this.accountInfo.accountRS){
-                                    _this.createPoolBtn = false;
-                                    poolArr1.push(t);
-                                }else{
-                                    poolArr2.push(t);
-                                }
-                            }
-                            _this.miningList=poolArr1.concat(poolArr2);
-                        } else{
-                            for(let t of res.pools){
-                                if(t.creatorRS === _this.accountInfo.accountRS ){
-                                    _this.createPoolBtn = false;
-                                    let i=0;
-                                    for(let p of _this.accountTransactionList) {
-
-                                        if (p.attachment.poolId === t.poolId) {
-                                            t.isJoin=true;
-                                            poolArr1.push(t);
-                                            i++;
-                                            break;
-                                        }
-                                        i++;
-                                        if(i === _this.accountTransactionList.length){
-                                            poolArr2.push(t);
-                                            continue;
-                                        }
-
-                                    }
-
-                                }else{
-                                    let j = 0;
-                                    for(let p of _this.accountTransactionList) {
-                                        if (p.attachment.poolId === t.poolId) {
-                                            t.isJoin=true;
-                                            poolArr3.push(t);
-                                            j++;
-                                            break;
-                                        }
-                                        j++;
-                                        if(j === _this.accountTransactionList.length){
-                                            poolArr4.push(t);
-                                            continue;
-                                        }
-
-                                    }
-
-                                }
+                _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
+                    }
+                    _this.createPoolBtn = true;
+                    for(let t of res.pools){
+                        if(Object.keys(t.consignors).length === 0){
+                            if (t.creatorRS === SSO.accountInfo.accountRS){
+                                _this.createPoolBtn = false;
+                                poolArr1.push(t);
+                            }else {
+                                poolArr4.push(t);
                             }
 
-                            _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                        }else{
+                            if(t.creatorRS === SSO.accountInfo.accountRS){
+                                let i = 0;
+                                for(let c in t.consignors){
+                                    if (c === SSO.accountInfo.accountId){
+                                        t.isJoin = true;
+                                        poolArr2.push(t);
+                                        break;
+                                    }
+                                    i++;
+                                    if(i === Object.keys(t.consignors).length){
+                                        _this.createPoolBtn = false;
+                                        poolArr1.push(t);
+                                    }
+                                }
+                            }else {
+                                let i = 0;
+                                for (let c in t.consignors){
+                                    if (c === SSO.accountInfo.accountId){
+                                        t.isJoin = true;
+                                        poolArr3.push(t);
+                                        break;
+                                    }
+                                    i++;
+                                    if(i === Object.keys(t.consignors).length){
+                                        poolArr4.push(t);
+                                    }
+                                }
+                            }
                         }
-                        _this.totalSize = _this.miningList.length;
-                        _this.loading = false;
-                    });
-                }).catch(function (err) {
+
+                    }
+                    _this.miningList = poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                    _this.totalSize = _this.miningList.length;
                     _this.loading = false;
-                    _this.$message.error(err.message);
                 });
 
 
@@ -837,7 +820,7 @@
     }
 
     .mining .mining-paging .el-input {
-        width: 100px;
+        width: 36px;
         margin: 0;
     }
 
@@ -1129,11 +1112,11 @@
     }
 
     .mining-paging {
-        position: relative;
+
         z-index: 99;
         float: right;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        margin-top:  5px;
+        margin-bottom: 5px;
     }
 
     .mining-paging > div {
@@ -1504,7 +1487,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 50%;
+            width: 45%;
         }
 
         .mining .mining-list-info .grid-content .tag {
@@ -1556,7 +1539,7 @@
         }
 
         .mining .mining-paging {
-            display: none;
+            /*display: none;*/
         }
 
         .mining .mining-content .assets ul {
@@ -1719,7 +1702,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 7px 8px 70px 10px;
+            padding: 7px 8px 110px 10px;
         }
 
         .ranking-table th {
