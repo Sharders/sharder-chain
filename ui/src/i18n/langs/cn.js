@@ -460,7 +460,7 @@ const cn = {
             'diamond_exchange': "SS兑换",
             'about_us': "关于我们",
             'follow_us': "关注我们",
-            'webside': "www.0xdigit.org",
+            'webside': "www.0xdigit.com",
             'set_name': "名称设置",
             'set_name_tip': "请输入名称",
             'tss_address_tile': "TSS地址说明",

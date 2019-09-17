@@ -461,7 +461,7 @@ const en = {
             'diamond_exchange': "Diamond Exchange",
             'about_us': "About Us",
             'follow_us': "Follow Us",
-            'webside': "www.0xdigit.org",
+            'webside': "www.0xdigit.com",
             'set_name': "Set Name",
             'set_name_tip': "Please enter a name",
             'tss_address_tile': "TSS Address",
