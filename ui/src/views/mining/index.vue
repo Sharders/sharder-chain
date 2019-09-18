@@ -1482,7 +1482,7 @@
         }
 
         .mining-list .el-select .el-input__inner {
-            height: 20px;!important;
+            height: 20px;
         }
 
         .mining .mining-list-info .el-row {
