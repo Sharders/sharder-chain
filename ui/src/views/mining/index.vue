@@ -7,7 +7,7 @@
             <el-radio-button label="exchange" class="btn">{{$t('mining.index.ss_exchange')}}</el-radio-button>
         </el-radio-group>
         <!--豆匣矿场-->
-        <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
+        <div v-if="tabTitle === 'mining' && tabMenu === 'mining'" class="mining-page">
             <div class="mining-content">
                 <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
@@ -1466,6 +1466,11 @@
 
         .mining .el-radio-group {
             display: none;
+        }
+
+        .mining .mining-page{
+            height:697px;
+            overflow: auto;
         }
 
         .mining .mining-content {
