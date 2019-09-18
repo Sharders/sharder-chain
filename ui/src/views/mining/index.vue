@@ -46,7 +46,7 @@
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
                 </div>-->
-                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
+                <div class="my-mining create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
@@ -829,6 +829,7 @@
     }
 
     .mining .el-select {
+        padding-top: 5px;
         width: 110px !important;
     }
 
@@ -1471,6 +1472,9 @@
         .mining .mining-page{
             height:697px;
             overflow: auto;
+        }
+        .mining-list .list-title {
+            padding-top: 5px;
         }
 
         .mining .mining-content {

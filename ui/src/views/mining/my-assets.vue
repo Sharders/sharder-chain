@@ -292,9 +292,9 @@
     }
 
     .assets .assets-header {
-        font-size: 12px;
+        font-size: 20px;
         color: #666;
-        padding: 15px 0;
+        padding: 8px 0;
     }
 
     .assets .assets-list {
