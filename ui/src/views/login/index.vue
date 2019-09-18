@@ -14,7 +14,7 @@
                 <input v-if="tabTitle === 'key'" class="account_input" type="password" v-model="secretPhrase"
                        :placeholder="$t('login.login_placeholder')"/>
                 <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
-                              mask="SSA-****-****-****-*****" :placeholder="$t('login.sharder_account')"/>
+                              mask="AAA-****-****-****-*****" :placeholder="$t('login.sharder_account')"/>
                 <el-button class="common_btn writeBtn" @click="loginSharder()">{{$t('login.login')}}</el-button>
             </el-col>
 
