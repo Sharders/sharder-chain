@@ -373,7 +373,7 @@
                 allIncome: 0,
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 18,
+                pageSize: 1,
                 loadingRanking: true,
                 loadingRankingNo: true,
                 btnLoading: false,
