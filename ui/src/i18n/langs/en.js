@@ -442,7 +442,7 @@ const en = {
             'reward': "Reward:",
             'pool_list': "Pool List",
             'pool_list_block': "(2 blocks must be generated before pool transaction becomes effective)",
-            'sort': "Sort",
+            'sort': "Rank",
             'pool': "Pool",
             'pool_income': "Rewards ",
             'Income_distribution': "Distribution ",

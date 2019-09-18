@@ -42,10 +42,10 @@
                 <div class="rule-description" @click="$router.push({name: 'rule-description'})">
                     {{$t('mining.index.rule_description')}}
                 </div>
-                <div class="my-mining create" @click="$router.push({name: 'my-mining'})">
+                <!--<div class="my-mining create" @click="$router.push({name: 'my-mining'})">
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
-                </div>
+                </div>-->
                 <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
@@ -242,7 +242,7 @@
                     </table>
                     <div class="my-assets" v-loading="loadingRankingNo">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
-                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
+                        | {{$t('mining.index.sort') + ' '+myRanking}}
                     </div>
                 </div>
             </div>
@@ -1097,7 +1097,7 @@
         height: 120px;
         color: #000;
         padding: 0;
-        font-size: 15px;
+        font-size: 14px;
         position: relative;
     }
 
@@ -1481,6 +1481,10 @@
             background-position: center 210px;
         }
 
+        .mining-list .el-select .el-input__inner {
+            height: 20px;!important;
+        }
+
         .mining .mining-list-info .el-row {
             padding: 0 !important;
         }
@@ -1706,7 +1710,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 7px 8px 36px 10px;
+            padding: 7px 8px 70px 10px;
         }
 
         .ranking-table th {

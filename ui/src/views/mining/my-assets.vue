@@ -6,7 +6,7 @@
                 <div class="totle-assets">
                     <span>
                         <span style="font-size: x-large">{{$t('mining.my_assets.total_asset')}}</span>
-                        <span style="font-size: small">({{$t('account_info.account_mining_balance')}}：{{accountInfo.forgedBalanceNQT/100000000}})</span>
+                        <span style="font-size: small">({{$t('account_info.account_mining_balance')}}：{{(accountInfo.forgedBalanceNQT/100000000).toFixed(2)}})</span>
                     </span>
                     <span class="strong">{{accountInfo.effectiveBalanceNQT/100000000 + accountInfo.frozenBalanceNQT/100000000}}</span>
                 </div>
@@ -15,11 +15,11 @@
                 <div class="assets-detail">
                     <div>
                         <p>{{$t('mining.my_assets.available_asset')}}</p>
-                        <p class="strong">{{accountInfo.effectiveBalanceNQT/100000000}}</p>
+                        <p class="strong">{{(accountInfo.effectiveBalanceNQT/100000000).toFixed(2)}}</p>
                     </div>
                     <div>
                         <p style="float: right;">{{$t('mining.my_assets.frozen_assets')}}</p>
-                        <p class="strong" style="float: right;">{{accountInfo.frozenBalanceNQT/100000000}}</p>
+                        <p class="strong" style="float: right;">{{(accountInfo.frozenBalanceNQT/100000000).toFixed(2)}}</p>
                     </div>
                 </div>
             </div>
@@ -235,7 +235,12 @@
     @import './style.scss';
 </style>
 <style scoped>
-
+    @media (max-width: 640px) {
+        .my-assets {
+            height:697px;
+            overflow: auto;
+        }
+    }
     .my-assets .assets {
         padding: 30px 15px 0;
         background: #fff;
