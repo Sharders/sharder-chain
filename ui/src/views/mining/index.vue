@@ -1486,7 +1486,8 @@
         }
 
         .mining-list .el-select .el-input__inner {
-            height: 20px;
+            height: 25px;
+            line-height: 0px;
         }
 
         .mining .mining-list-info .el-row {
