@@ -18,8 +18,8 @@
                         <p class="strong">{{(accountInfo.effectiveBalanceNQT/100000000).toFixed(2)}}</p>
                     </div>
                     <div>
-                        <p style="float: right;">{{$t('mining.my_assets.frozen_assets')}}</p>
-                        <p class="strong" style="float: right;">{{(accountInfo.frozenBalanceNQT/100000000).toFixed(2)}}</p>
+                        <p>{{$t('mining.my_assets.frozen_assets')}}</p>
+                        <p class="strong">{{(accountInfo.frozenBalanceNQT/100000000).toFixed(2)}}</p>
                     </div>
                 </div>
             </div>
@@ -239,7 +239,7 @@
 <style scoped>
     @media (max-width: 640px) {
         .transactionsList {
-            height:520px;
+            height:400px;
             overflow: auto;
         }
     }
