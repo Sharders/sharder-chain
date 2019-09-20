@@ -86,7 +86,7 @@
                         </el-pagination>
                     </div>
                 </div>
-                <div class="mining-list-info" v-loading="loading" >
+                <div class="mining-list-info" v-loading="loading" id = "miningListInfoId">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
@@ -392,6 +392,7 @@
         },
         mounted() {
             let _this = this;
+
             // window.$miningInitial = setInterval(() => {
             let miningDataLoader = setInterval(() => {
                 if (_this.$route.path === '/mining') {
@@ -555,7 +556,8 @@
                 // console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                // console.log(`当前页: ${val}`);
+                //console.log(`当前页: ${val}`);
+                document.getElementById("miningListInfoId").scrollTop = 0;
             },
             account() {
                 let _this = this;
@@ -1513,17 +1515,12 @@
             padding-top: 5px;
             width: 80px !important;
         }
-        .mining-list .list-title {
-            font-size: 11px;
-        }
 
       /*  .mining .mining-page{
             height:697px;
             overflow: auto;
         }*/
-        .mining-list .list-title {
-            padding-top: 5px;
-        }
+
 
         .mining .el-input {
             font-size: 11px;
@@ -1535,6 +1532,10 @@
             border-radius: initial;
             height: 370px;
             background-position: center 210px;
+        }
+
+        .mining-list .sort_type .list-title {
+            font-size: 11px;
         }
 
         .mining-list .el-select .el-input__inner {
