@@ -847,7 +847,7 @@
 
     .mining .el-select {
         padding-top: 5px;
-        width: 90px !important;
+        width: 110px !important;
     }
 
     .mining .mining-paging1 .el-pager li.active {
@@ -1509,6 +1509,10 @@
         .mining .el-radio-group {
             display: none;
         }
+        .mining .el-select {
+            padding-top: 5px;
+            width: 90px !important;
+        }
 
       /*  .mining .mining-page{
             height:697px;
@@ -1516,6 +1520,10 @@
         }*/
         .mining-list .list-title {
             padding-top: 5px;
+        }
+
+        .mining .el-input {
+            font-size: 11px;
         }
 
         .mining .mining-content {
