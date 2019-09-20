@@ -384,7 +384,7 @@
                 allIncome: 0,
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 2,
+                pageSize: 18,
                 loadingRankingNo: true,
                 btnLoading: false,
                 createPoolBtn:true,
@@ -847,7 +847,7 @@
 
     .mining .el-select {
         padding-top: 5px;
-        width: 110px !important;
+        width: 90px !important;
     }
 
     .mining .mining-paging1 .el-pager li.active {
@@ -1068,7 +1068,7 @@
     .mining-list .mining-list-img {
         position: relative;
         top: 2px;
-        margin-right: 6px;
+        margin-right: 1px;
         width: 14px;
         height: 14px;
     }
@@ -1149,8 +1149,8 @@
         display: none;
         z-index: 99;
         float: right;
-        margin-top: 11px;
-        margin-right: 5px;
+        margin-top: 13px;
+       /* margin-right: 5px;*/
         /*  margin-top:  5px;
          margin-bottom: 5px;*/
     }
@@ -1624,7 +1624,7 @@
         }
 
         .mining .mining-list .mining-list-img {
-            margin-left: 11px;
+            margin-left: 4px;
         }
 
         .ranking-content .ranking-table {
@@ -1759,7 +1759,7 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 4px 8px 26px 10px;
+            padding: 4px 8px 68px 10px;
             overflow: auto;
             height: 235px;
         }
