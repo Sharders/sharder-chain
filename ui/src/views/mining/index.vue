@@ -806,7 +806,7 @@
 
     .mining .title .el-radio-button__inner {
         max-width: 140px;
-        padding: 12px 41px;
+        padding: 50px;
     }
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner,
