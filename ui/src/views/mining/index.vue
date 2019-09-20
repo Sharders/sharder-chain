@@ -1630,7 +1630,7 @@
         }
 
         .mining .mining-content .state {
-            top: 75px;
+            top: 102px;
             width: calc(100% - 30px);
         }
 
