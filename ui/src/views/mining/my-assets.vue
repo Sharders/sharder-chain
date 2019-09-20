@@ -43,16 +43,18 @@
                     </el-option>
                 </el-select>
             </div>
-            <div class="assets-list" v-for="al in assetsList">
-                <div class="title">
-                    <p class="strong">{{al.title}}</p>
-                    <p>{{al.time}}</p>
+            <div class="transactionsList">
+                <div class="assets-list" v-for="al in assetsList">
+                    <div class="title">
+                        <p class="strong">{{al.title}}</p>
+                        <p>{{al.time}}</p>
+                    </div>
+                    <div class="number">{{al.num}}</div>
                 </div>
-                <div class="number">{{al.num}}</div>
-            </div>
-            <div class="load-assets">
-                <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
-                <p v-else>{{$t("mining.my_assets.whether")}}</p>
+                <div class="load-assets">
+                    <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
+                    <p v-else>{{$t("mining.my_assets.whether")}}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -236,8 +238,8 @@
 </style>
 <style scoped>
     @media (max-width: 640px) {
-        .assets-list {
-            height:450px;
+        .transactionsList {
+            height:520px;
             overflow: auto;
         }
     }

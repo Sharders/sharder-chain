@@ -919,7 +919,7 @@
 
     .en_mining .title .el-radio-button__inner {
         width: 140px;
-        padding: 12px 25px;
+        padding: 50px;
     }
     
     .my-pool-title {
@@ -1754,19 +1754,19 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/img/index.png") no-repeat center 26px;
+            background: url("../../assets/img/index.png") no-repeat center 5px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/img/personal.png") no-repeat center 26px;
+            background: url("../../assets/img/personal.png") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/img/index-1.png") no-repeat center 26px;
+            background: url("../../assets/img/index-1.png") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
+            background: url("../../assets/img/personal-1.png") no-repeat center 5px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
