@@ -73,6 +73,18 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
+                    <div class="mining-paging2" v-if="totalSize > pageSize">
+                        <el-pagination
+                            small
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            :pager-count="5"
+                            layout=" prev, pager, next"
+                            :total=totalSize>
+                        </el-pagination>
+                    </div>
                 </div>
                 <div class="mining-list-info" v-loading="loading" >
                     <el-row :gutter="10">
@@ -116,7 +128,7 @@
                             {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
-                    <div class="mining-paging" v-if="totalSize > pageSize">
+                    <div class="mining-paging1" v-if="totalSize > pageSize">
                         <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
@@ -127,6 +139,7 @@
                             :total=totalSize>
                         </el-pagination>
                     </div>
+
 
                 </div>
 
@@ -371,7 +384,7 @@
                 allIncome: 0,
                 currentPage: 1,
                 totalSize: 0,
-                pageSize: 18,
+                pageSize: 2,
                 loadingRankingNo: true,
                 btnLoading: false,
                 createPoolBtn:true,
@@ -812,15 +825,21 @@
         border: none;
     }
 
-    .mining .mining-paging .el-input__inner {
+    .mining .mining-paging1 .el-input__inner {
+        height: inherit;
+    }
+    .mining .mining-paging2 .el-input__inner {
         height: inherit;
     }
 
-    .mining .mining-paging .el-input {
+    .mining .mining-paging1 .el-input {
         width: 36px;
         margin: 0;
     }
-
+    .mining .mining-paging2 .el-input {
+        width: 36px;
+        margin: 0;
+    }
     .mining P {
         margin: 0;
         padding: 0;
@@ -831,16 +850,26 @@
         width: 110px !important;
     }
 
-    .mining .mining-paging .el-pager li.active {
+    .mining .mining-paging1 .el-pager li.active {
+        background-color: #513acB;
+        border: none;
+    }
+    .mining .mining-paging2 .el-pager li.active {
         background-color: #513acB;
         border: none;
     }
 
-    .mining .mining-paging .el-pager li:hover {
+    .mining .mining-paging1 .el-pager li:hover {
+        color: #513acB;
+    }
+    .mining .mining-paging2 .el-pager li:hover {
         color: #513acB;
     }
 
-    .mining .mining-paging .el-pager li.active:hover {
+    .mining .mining-paging1 .el-pager li.active:hover {
+        color: #fff;
+    }
+    .mining .mining-paging2 .el-pager li.active:hover {
         color: #fff;
     }
 
@@ -1109,18 +1138,32 @@
         padding: 0 10px 0px 10px;;
     }
 
-    .mining-paging {
+    .mining-paging1 {
 
         z-index: 99;
         float: right;
         margin-top:  5px;
         margin-bottom: 5px;
     }
+    .mining-paging2 {
+        display: none;
+        z-index: 99;
+        float: right;
+        margin-top: 11px;
+        margin-right: 5px;
+        /*  margin-top:  5px;
+         margin-bottom: 5px;*/
+    }
 
-    .mining-paging > div {
+    .mining-paging1 > div {
         padding: 0;
         margin: 0;
     }
+    .mining-paging2 > div {
+        padding: 0;
+        margin: 0;
+    }
+
 
     @keyframes chatu {
         0% {
@@ -1479,7 +1522,7 @@
             margin-top: 0;
             padding: 15px;
             border-radius: initial;
-            height: 365px;
+            height: 370px;
             background-position: center 210px;
         }
 
@@ -1549,8 +1592,11 @@
             height: 45px;
         }
 
-        .mining .mining-paging {
+        .mining .mining-paging1 {
             display: none;
+        }
+        .mining .mining-paging2 {
+            display:block;
         }
 
         .mining .mining-content .assets ul {
@@ -1713,9 +1759,9 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 4px 8px 70px 10px;
+            padding: 4px 8px 26px 10px;
             overflow: auto;
-            height: 322px;
+            height: 235px;
         }
 
         .ranking-table th {

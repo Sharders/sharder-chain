@@ -9,7 +9,7 @@ import store from '../store/index';
 /*Vue.use(VueI18n);*/
 Vue.use(VueI18n, {
     i18n: function(path, options) {
-        let value = i18n.t(path, options)
+        let value = i18n.t(path, options);
         if (value !== null && value !== undefined) {
             return value
         }
