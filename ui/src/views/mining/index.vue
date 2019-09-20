@@ -1530,8 +1530,8 @@
             margin-top: 0;
             padding: 15px;
             border-radius: initial;
-            height: 370px;
-            background-position: center 210px;
+            height: 290px;
+            background-position: center 135px;
         }
 
         .mining-list .sort_type .list-title {
@@ -1593,7 +1593,7 @@
 
         .mining .mining-content .create {
             position: absolute;
-            top: 290px;
+            top: 215px;
             right: 75px;
             font-size: 13px;
         }
@@ -1630,7 +1630,7 @@
         }
 
         .mining .mining-content .state {
-            top: 110px;
+            top: 75px;
             width: calc(100% - 30px);
         }
 
@@ -1648,8 +1648,7 @@
         }
 
         #chatu {
-            top: 170px !important;
-            animation-name: chatu-mobel !important;
+            top: 95px !important;
         }
 
         @keyframes chatu-mobel {
@@ -1777,7 +1776,7 @@
         .mining .mining-list .mining-list-info {
             padding: 4px 8px 68px 10px;
             overflow: auto;
-            height: 235px;
+            height: 315px;
         }
 
         .ranking-table th {

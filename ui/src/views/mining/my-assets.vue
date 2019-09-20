@@ -236,8 +236,8 @@
 </style>
 <style scoped>
     @media (max-width: 640px) {
-        .my-assets {
-            height:697px;
+        .assets-list {
+            height:450px;
             overflow: auto;
         }
     }
