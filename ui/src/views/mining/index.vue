@@ -1511,7 +1511,10 @@
         }
         .mining .el-select {
             padding-top: 5px;
-            width: 90px !important;
+            width: 80px !important;
+        }
+        .mining-list .list-title {
+            font-size: 11px;
         }
 
       /*  .mining .mining-page{
@@ -1537,6 +1540,10 @@
         .mining-list .el-select .el-input__inner {
             height: 25px;
             line-height: 0px;
+            padding: 0 8px;
+        }
+        .mining-list .el-select .el-input .el-select__caret {
+            font-size: 11px;
         }
 
         .mining .mining-list-info .el-row {
