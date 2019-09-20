@@ -74,7 +74,7 @@
                         </el-option>
                     </el-select>
                 </div>
-                <div class="mining-list-info" v-loading="loading">
+                <div class="mining-list-info" v-loading="loading" >
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
@@ -118,19 +118,17 @@
                     </el-row>
                     <div class="mining-paging" v-if="totalSize > pageSize">
                         <el-pagination
-                            small
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
                             :current-page.sync="currentPage"
                             :page-size="pageSize"
-                            :pager-count="5"
+                            :pager-count="7"
                             layout="total, prev, pager, next ,jumper"
                             :total=totalSize>
                         </el-pagination>
                     </div>
 
                 </div>
-
 
             </div>
 
@@ -1469,10 +1467,10 @@
             display: none;
         }
 
-        .mining .mining-page{
+      /*  .mining .mining-page{
             height:697px;
             overflow: auto;
-        }
+        }*/
         .mining-list .list-title {
             padding-top: 5px;
         }
@@ -1481,7 +1479,7 @@
             margin-top: 0;
             padding: 15px;
             border-radius: initial;
-            height: 400px;
+            height: 365px;
             background-position: center 210px;
         }
 
@@ -1536,7 +1534,7 @@
 
         .mining .mining-content .create {
             position: absolute;
-            top: 320px;
+            top: 290px;
             right: 75px;
             font-size: 13px;
         }
@@ -1552,7 +1550,7 @@
         }
 
         .mining .mining-paging {
-            /*display: none;*/
+            display: none;
         }
 
         .mining .mining-content .assets ul {
@@ -1580,7 +1578,7 @@
         }
 
         .mining .mining-list .mining-list-img {
-            margin-left: 15px;
+            margin-left: 11px;
         }
 
         .ranking-content .ranking-table {
@@ -1715,7 +1713,9 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 7px 8px 70px 10px;
+            padding: 4px 8px 70px 10px;
+            overflow: auto;
+            height: 322px;
         }
 
         .ranking-table th {
