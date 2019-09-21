@@ -161,7 +161,7 @@
         <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
-                <img src="../../assets/img/logo.svg" class="receive-qr-img">
+                <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
                 <p class="receive-text">
                     {{$t('mining.index.welfare_title1')}}<br>
                     {{$t('mining.index.welfare_title2')}}
