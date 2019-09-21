@@ -427,6 +427,7 @@ const cn = {
             'ss_exchange': "SS兑换",
             'net_mining': "全网挖矿",
             'net_mining_number': "第{number}块",
+            'my_address':'我的地址',
             'my_assets': "我的资产",
             'my_income': "我的收益",
             'view_ranking': "查看排行",

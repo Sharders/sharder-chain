@@ -428,6 +428,7 @@ const en = {
             'ss_exchange': "SS Exchange",
             'net_mining': "Mining ",
             'net_mining_number': "Block {number}",
+            'my_address':'My address',
             'my_assets': "My Assets ",
             'my_income': "My Earnings ",
             'view_ranking': "View Ranking",

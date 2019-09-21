@@ -15,16 +15,18 @@
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
                             {number:newestBlock.height})}}
                         </li>
+                        <li>{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
+                        </li>
                         <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                         </li>
                         <li>
                             {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
                         </li>
-                        <li class="strong">
+                       <!-- <li class="strong">
                             <img src="../../assets/img/kuangchii_chakan.png">
-                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                            &lt;!&ndash;<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>&ndash;&gt;
                             <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
-                        </li>
+                        </li>-->
                     </ul>
                 </div>
                 <div class="state">
@@ -33,14 +35,23 @@
                         <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
                     </div>
                 </div>
-                <div class="instructions" @click="$router.push({name: 'rule-description'})">
+                <!--<div class="instructions" @click="$router.push({name: 'rule-description'})">
                     {{$t('mining.index.mining_description')}}
-                </div>
-                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
+                </div>-->
+                <!--<div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
                     {{$t('mining.index.join_friends')}}
-                </div>
-                <div class="rule-description" @click="$router.push({name: 'rule-description'})">
+                </div>-->
+                <div class="invite-friends" @click="$router.push({name: 'rule-description'})">
                     {{$t('mining.index.rule_description')}}
+                </div>
+                <div class="rule-description">
+                    <ul>
+                        <li class="strong">
+                            <img src="../../assets/img/kuangchii_chakan.png">
+                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                            <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
+                        </li>
+                    </ul>
                 </div>
                 <!--<div class="my-mining create" @click="$router.push({name: 'my-mining'})">
                     <img src="../../assets/img/wodekuangchi.png">
@@ -806,7 +817,7 @@
 
     .mining .title .el-radio-button__inner {
         max-width: 140px;
-        padding: 50px;
+        padding: 12px 25px;
     }
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner,
@@ -919,7 +930,7 @@
 
     .en_mining .title .el-radio-button__inner {
         width: 140px;
-        padding: 50px;
+        padding: 12px 25px;
     }
     
     .my-pool-title {
@@ -1526,6 +1537,9 @@
             font-size: 11px;
         }
 
+        .mining .title .el-radio-button__inner {
+            padding: 50px;
+        }
         .mining .mining-content {
             margin-top: 0;
             padding: 15px;
