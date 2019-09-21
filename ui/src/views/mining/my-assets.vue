@@ -239,7 +239,7 @@
 <style scoped>
     @media (max-width: 640px) {
         .transactionsList {
-            height:380px;
+            height:385px;
             overflow: auto;
         }
     }
