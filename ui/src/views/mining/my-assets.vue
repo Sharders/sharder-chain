@@ -219,8 +219,10 @@
                 _this.accountInfo.forgedBalanceNQT = res.forgedBalanceNQT;
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
             });
-            _this.getEpochBeginningTime();
-            _this.getAssetsList();
+            _this.getEpochBeginningTime().then(res=>{
+                _this.getAssetsList();
+            });
+
         },
         watch:{
             selectType: function () {

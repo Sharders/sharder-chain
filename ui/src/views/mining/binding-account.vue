@@ -9,37 +9,70 @@
                     {{$t('mining.binding_account.subtitle2')}}
                 </p>
             </div>
-            <div class="info">
-                <p class="title">{{$t('mining.binding_account.description')}}</p>
-                <p>
-                    {{$t('mining.binding_account.description_tip1')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.description_tip2')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.description_tip3')}}
-                </p>
-                <p>{{$t('mining.binding_account.description_tip4')}}</p>
+            <div class="mining-info-div">
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.poc')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.poc_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.poc_tip2')}}
+                    </p>
+
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.sharder_pool')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.sharder_pool_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.sharder_pool_tip2')}}
+                    </p>
+
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.description')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.description_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.description_tip2')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.description_tip3')}}
+                    </p>
+                    <p>{{$t('mining.binding_account.description_tip4')}}</p>
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.tss_description')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.tss_description_tip')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.ss_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.ss_tip2')}}
+                    </p>
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.tss_acquisition')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.tss_acquisition_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.tss_acquisition_tip2')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.tss_acquisition_tip3')}}
+                    </p>
+                </div>
             </div>
-            <div class="info">
-                <p class="title">{{$t('mining.binding_account.tss_description')}}</p>
-                <p>
-                    {{$t('mining.binding_account.tss_description_tip')}}
-                </p>
-            </div>
-            <div class="info">
-                <p class="title">{{$t('mining.binding_account.tss_acquisition')}}</p>
-                <p>
-                    {{$t('mining.binding_account.tss_acquisition_tip1')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.tss_acquisition_tip2')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.tss_acquisition_tip3')}}
-                </p>
-            </div>
+
             <div class="btn">
                 <button @click="isBindingAccount('isAccount')">{{$t('mining.binding_account.bind_btn')}}</button>
                 <p>{{$t('mining.binding_account.bind_btn_tip1')}}</p>
@@ -210,6 +243,11 @@
             border-radius: initial;
             height: 400px;
             background-position: center 210px;
+        }
+
+        .introduce .mining-info-div{
+            overflow: auto;
+            height: 445px;
         }
 
         .mining .mining-list-info .el-row {

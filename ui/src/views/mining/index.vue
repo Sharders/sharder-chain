@@ -15,18 +15,18 @@
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
                             {number:newestBlock.height})}}
                         </li>
-                        <li>{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
+                        <li class="myAddressLi">{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
                         </li>
                         <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                         </li>
                         <li>
                             {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
                         </li>
-                       <!-- <li class="strong">
+                        <li class="strong" id="viewRankingId">
                             <img src="../../assets/img/kuangchii_chakan.png">
-                            &lt;!&ndash;<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>&ndash;&gt;
+                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
                             <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
-                        </li>-->
+                        </li>
                     </ul>
                 </div>
                 <div class="state">
@@ -35,9 +35,9 @@
                         <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
                     </div>
                 </div>
-                <!--<div class="instructions" @click="$router.push({name: 'rule-description'})">
+                <div class="instructions" @click="$router.push({name: 'rule-description'})">
                     {{$t('mining.index.mining_description')}}
-                </div>-->
+                </div>
                 <!--<div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
                     {{$t('mining.index.join_friends')}}
                 </div>-->
@@ -197,10 +197,10 @@
                     <img src="../../assets/img/zhuanshi.png">
                     <span>{{$t('mining.index.free_collar_drill')}}</span>
                 </div>
-                <div class="list" @click="$router.push({name: 'invite-friends'})">
+              <!--  <div class="list" @click="$router.push({name: 'invite-friends'})">
                     <img src="../../assets/img/haoyou.png">
                     <span>{{$t('mining.index.join_friend')}}</span>
-                </div>
+                </div>-->
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
                     <img src="../../assets/img/zhuanshiduihuan.png">
                     <span>{{$t('mining.index.diamond_exchange')}}</span>
@@ -977,6 +977,7 @@
         cursor: pointer;
     }
 
+
     .assets li img {
         width: 16px;
         height: 16px;
@@ -1273,6 +1274,10 @@
         padding-right: 20px;
     }
 
+    .assets .myAddressLi{
+        display: none;
+    }
+
     .content-left span {
         position: relative;
         top: -16px;
@@ -1527,12 +1532,9 @@
             width: 80px !important;
         }
 
-      /*  .mining .mining-page{
-            height:697px;
-            overflow: auto;
-        }*/
-
-
+        #viewRankingId{
+            display: none;
+        }
         .mining .el-input {
             font-size: 11px;
         }
@@ -1548,6 +1550,9 @@
             background-position: center 135px;
         }
 
+        .mining-content .assets .myAddressLi{
+            display: block;
+        }
         .mining-list .sort_type .list-title {
             font-size: 11px;
         }
@@ -1788,9 +1793,9 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 4px 8px 68px 10px;
+            padding: 4px 8px 65px 10px;
             overflow: auto;
-            height: 295px;
+            height: 300px;
         }
 
         .ranking-table th {

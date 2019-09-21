@@ -340,25 +340,38 @@ const en = {
             'join_pool_tip': "Please enter staking amount",
         },
         binding_account: {
-            'title': "Consensus Mining Pool",
-            'subtitle1': "The consensus mining pool is a DAPP developed based on Sharder Chain. \"Pool creation\"rewards\"diamonds\"determines the system logic.",
-            'subtitle2': "Users can create\"mining pools\"and stake diamonds for mining by joining a mining pool and will also receive diamonds as dividends.",
-            'description': "Diamonds:",
-            'description_tip1': "The diamonds and TSS (Sharder Testnet Token) in the wallet have a 1:1 exchange rate. Before you access the application, you must first create a TSS address within the wallet.",
-            'description_tip2': " If you are a hub user, please import your hub's TSS address into the wallet for management of your mining assets and to obtain diamonds.",
-            'description_tip3': " Normal users should first create a TSS address to obtain airdropped diamonds.",
-            'description_tip4': " Diamonds within the application can be exchanged for SS (ERC-20)",
-            'tss_description': "TSS:",
-            'tss_description_tip': " The mainnet of Sharder Chain is undergoing internal testing, to provide optimal mainnet operations testing conditions and to boost community activity as well as encourage the community to market the Sharder project,\n" +
-                "We will distribute TSS (Sharder Testnet Token: Test SS) within the testnet. TSS accounts can be created in this wallet or sending and receving TSS.\n" +
-                "TSS are not circulated, it's solely for testing and for diamond exchanging in the consensus mining pool.",
-            'tss_acquisition': "Obtain TSS",
-            'tss_acquisition_tip1': " We will log every address within CAMP that possess SS (ERC-20) tokens on January 1st 2019 12:00 UTC+8. The relevant TSS will be distributed into your TSS address in accordance to the following exchange rate:\n" +
-                "XXX:1.",
-            'tss_acquisition_tip2': " Addresses without SS (ERC-20) will also receive XXXX TSS.",
-            'tss_acquisition_tip3': " Completing bounties or participating in the mining pools within the application will also grant diamonds and TSS.",
+            'title': "Consensus Pool Info",
+            'subtitle1': "The consensus pool is a DAPP developed based on the Sharder Chain. It provides a TSS based PoC mining pool where users can gain TSS through the pool.",
+            'subtitle2': "Users can create pools or stake TSS to a pool and receive TSS rewards.",
+
+            'description': "SS Info:",
+            'description_tip1': "You must first create a TSS address within the wallet before accessing the application.",
+            'description_tip2': " If you are a hub user, please import your hub's TSS address into the wallet for managing your mining assets and earned TSS.",
+            'description_tip3': " Normal users should first create a TSS address to obtain airdropped TSS.",
+            'description_tip4': " TSS within the application can be exchanged for SS (ERC-20)",
+
+            'sharder_pool': "Sharder Pool Info:",
+            'sharder_pool_tip1': "The Sharder Pool is a PoC mining pool application developed by Sharder where mining rights are determined by the PoC consensus. Miners with a Sharder Hub can create pools and normal users can participate in mining by staking TSS into the pools.",
+            'sharder_pool_tip2': "Pool creators can earn a maximum of 30% of the pool earnings. 20,000 TSS must be staked to create a pool and 10,000 TSS must be staked to join a pool.",
+
+            'tss_description': "TSS Info:",
+            'tss_description_tip': "In order to provide optimal testing conditions for the Sharder Network and to boost community activity as well as encourage the community to market the Sharder project,\n" +
+                "TSS (Testnet SS). This wallet will support creating and managing TSS addresses. \n" +
+                "TSS are not circulated, it's solely used for testing and SS exchange in the consensus mining pool.",
+            'ss_tip1': "TSS is the native token of the Sharder Test Network,",
+            'ss_tip2': "TSS that were airdropped cannot be exchanged for SS (ERC-20), TSS earned through mining can be exchanged for SS (ERC-20) at a 2:1 ratio.",
+
+            'tss_acquisition': "Obtaining TSS",
+            'tss_acquisition_tip1': "According to official information from Sharder, a 1:1 ratio of TSS will be distributed according to the amount of SS (ERC-20) locked up.",
+            'tss_acquisition_tip2': "Users without SS (ERC-20) could earn TSS from official Sharder events.",
+            'tss_acquisition_tip3': "TSS can be earned by joining a pool through the application.",
+
+            'poc': "PoC Consensus",
+            'poc_tip1': "Users can compete for mining rights by running a node through the Sharder Client and mining rights are determined by the PoC consensus. The PoC weighted table is a type of on-chain transaction and it can be adjusted according to votes by the Sharder Community.",
+            'poc_tip2': "The PoC weighted table ran by the test network can be viewed on the genesis block, each miner's PoC score is calculated according to the weighted table.",
+
             'bind_btn': " Link Sharder account to access application",
-            'bind_btn_tip1': " Pool creation rights can also be obtained through the official Sharder website, please stay tuned for more information on the website!",
+            'bind_btn_tip1': " Pool creation rights can also be obtained through events, please stay tuned for official info!",
             'bind_btn_tip2': "sharder.org",
             'bind_address': "Link Address",
             'bind_address_tip': " Please confirm whether your wallet has a TSS address then select an address for linking ",
@@ -428,7 +441,7 @@ const en = {
             'ss_exchange': "SS Exchange",
             'net_mining': "Mining ",
             'net_mining_number': "Block {number}",
-            'my_address':'My address',
+            'my_address':'My Address ',
             'my_assets': "My Assets ",
             'my_income': "My Earnings ",
             'view_ranking': "View Ranking",

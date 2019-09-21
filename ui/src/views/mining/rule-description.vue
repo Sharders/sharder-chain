@@ -47,7 +47,7 @@
 
     @media (max-width: 640px) {
         .description-info {
-            height:580px;
+            height:597px;
             overflow: auto;
         }
     }
