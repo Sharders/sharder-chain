@@ -47,7 +47,7 @@
                 <div class="rule-description">
                     <ul>
                         <li class="strong">
-                            <img src="../../assets/img/kuangchii_chakan.png">
+                            <img src="../../assets/img/kuangchii_chakan.png" style="height: 13px">
                             <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
                             <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
                         </li>
