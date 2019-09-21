@@ -43,8 +43,8 @@
                     </el-option>
                 </el-select>
             </div>
-            <div class="transactionsList">
-                <div class="assets-list" v-for="al in assetsList" v-loading="assetsListStatus">
+            <div class="transactionsList" v-loading="assetsListStatus">
+                <div class="assets-list" v-for="al in assetsList" >
                     <div class="title">
                         <p class="strong">{{al.title}}</p>
                         <p>{{al.time}}</p>
@@ -76,7 +76,7 @@
                 assetsList: [],
                 selectType: '',
                 epochBeginning: 0,
-                assetsListStatus:false,
+                assetsListStatus:true,
                 transactionType: [{
                     value: '',
                     label: this.$t('transaction.transaction_type_all')
@@ -169,8 +169,9 @@
 
                         }
                     }
+                    _this.assetsListStatus = false;
                 });
-                _this.assetsListStatus = false;
+
             },
 
             activeSelectType(type) {
@@ -183,13 +184,6 @@
                 _this.pageNO++;
                 let status = "loadAssets";
                 _this.getAssetsList(status);
-            },
-
-            getEpochBeginningTime(){
-                const _this = this;
-                _this.$global.fetch("GET",{},"getConstants").then(function (res) {
-                    _this.epochBeginning = parseInt(res.epochBeginning);
-                })
             },
 
             formatTime(time,fmt,tz){
@@ -214,11 +208,8 @@
 
             }
         },
-        mounted(){
 
-        },
-
-        created() {
+        mounted() {
             const  _this = this;
             _this.getAccount(SSO.accountRS).then(res => {
                 _this.accountInfo.balanceNQT = res.balanceNQT;
@@ -226,8 +217,10 @@
                 _this.accountInfo.forgedBalanceNQT = res.forgedBalanceNQT;
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
             });
-            _this.getEpochBeginningTime().then(res=>{
-                _this.getAssetsList();
+            _this.$global.fetch("GET",{},"getConstants").then(function (res) {
+                _this.epochBeginning = parseInt(res.epochBeginning);
+            }).then(res=>{
+                _this.getAssetsList(status);
             });
 
         },
