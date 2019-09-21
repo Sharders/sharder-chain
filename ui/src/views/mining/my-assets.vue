@@ -44,7 +44,7 @@
                 </el-select>
             </div>
             <div class="transactionsList">
-                <div class="assets-list" v-for="al in assetsList">
+                <div class="assets-list" v-for="al in assetsList" v-loading="assetsListStatus">
                     <div class="title">
                         <p class="strong">{{al.title}}</p>
                         <p>{{al.time}}</p>
@@ -76,6 +76,7 @@
                 assetsList: [],
                 selectType: '',
                 epochBeginning: 0,
+                assetsListStatus:false,
                 transactionType: [{
                     value: '',
                     label: this.$t('transaction.transaction_type_all')
@@ -112,6 +113,7 @@
             },
             getAssetsList(status) {
                 let _this = this;
+                _this.assetsListStatus = true;
                 if(status === "selectType"){
                     _this.assetsList = [];
                     _this.isPage = true;
@@ -168,6 +170,7 @@
                         }
                     }
                 });
+                _this.assetsListStatus = false;
             },
 
             activeSelectType(type) {
@@ -211,6 +214,10 @@
 
             }
         },
+        mounted(){
+
+        },
+
         created() {
             const  _this = this;
             _this.getAccount(SSO.accountRS).then(res => {

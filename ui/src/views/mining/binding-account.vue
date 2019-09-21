@@ -247,7 +247,7 @@
 
         .introduce .mining-info-div{
             overflow: auto;
-            height: 445px;
+            height: 386px;
         }
 
         .mining .mining-list-info .el-row {
