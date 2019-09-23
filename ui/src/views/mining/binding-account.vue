@@ -153,7 +153,6 @@
                 }, "authorizationLogin").then(value => {
                     // console.info(value.data);
                     if (!value.success) {
-                        window.parent.postMessage("false","*");
                         return;
 
                     }else{
