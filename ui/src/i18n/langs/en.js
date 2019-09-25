@@ -483,7 +483,7 @@ const en = {
             'tss_address_subtitle2': " TSS does not have any value, it's solely used for testing and for exchanging diamonds with a 1:1 exchange rate.",
             'mining_ranking': "Pool Ranking",
             'account': "Account",
-            'ss_volume': "SS Amount",
+            'ss_volume': "Mined Amount",
             'unit_ming': "Name",
             'pool_properties': "Pool Properties",
             'pool_volume': "Pool Limit",

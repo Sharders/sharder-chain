@@ -483,7 +483,7 @@ const cn = {
             'tss_address_subtitle2': "TSS不具备价格流通.目前只能作为测试及与矿场砖石产生兑换关系所用,与钻石为一一对应关系。",
             'mining_ranking': "挖矿排行",
             'account': "账户",
-            'ss_volume': "SS数量",
+            'ss_volume': "已挖矿数量",
             'unit_ming': "名",
             'pool_properties': "矿池属性",
             'pool_volume': "矿池数上限",

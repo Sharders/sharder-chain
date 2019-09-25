@@ -258,7 +258,7 @@
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.BALANCE > 0 ? $global.getSSNumberFormat(ranking.BALANCE) : 0}}
+                                {{ranking.FORGED_BALANCE > 0 ? $global.getSSNumberFormat(ranking.FORGED_BALANCE) : 0}}
                             </td>
                         </tr>
                     </table>
