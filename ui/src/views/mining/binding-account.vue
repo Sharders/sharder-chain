@@ -85,15 +85,18 @@
                 <span class="img-close" @click="isBindingAccount('isAccount')"></span>
                 <h1>{{$t('mining.binding_account.bind_address')}}</h1>
                 <p>{{$t('mining.binding_account.bind_address_tip')}}</p>
-                <div class="addr" v-for="account in accountList" @click="radio = account">
-                    <h3>{{$t('mining.binding_account.address')}}{{account.account}}</h3>
-                    <p>
-                        {{$t('mining.binding_account.tss_volume')}}{{account.assets}}
-                    </p>
-                    <span class="radio">
+                <div class="addressListDiv">
+                    <div class="addr" v-for="account in accountList" @click="radio = account">
+                        <h3>{{$t('mining.binding_account.address')}}{{account.account}}</h3>
+                        <p>
+                            {{$t('mining.binding_account.tss_volume')}}{{account.assets}}
+                        </p>
+                        <span class="radio">
                         <el-radio v-model="radio" :label="account">&nbsp;</el-radio>
                     </span>
+                    </div>
                 </div>
+
                 <div class="btn">
                     <button @click="bindingAddr()">{{$t('mining.binding_account.binding_immediately')}}</button>
                 </div>
@@ -212,7 +215,7 @@
     }
 </script>
 <style>
-    .account .addr .radio .el-radio__label {
+    .account .addressListDiv .addr .radio .el-radio__label {
         display: none;
     }
 </style>
@@ -569,7 +572,7 @@
         left: 15px;
         top: 25%;
         background: #fff;
-        overflow: auto;
+        /*overflow: auto;*/
         z-index: 9999;
         border-radius: 4px;
     }
@@ -592,7 +595,12 @@
         padding: 0 0 10px;
     }
 
-    .account .addr {
+    .account .addressListDiv{
+        overflow: auto;
+        max-width: 40%;
+    }
+
+    .account .addressListDiv .addr {
         margin: 0 15px;
         padding: 10px 5px 0;
         border-top: 1px solid #dbe2e8;
@@ -600,11 +608,11 @@
         position: relative;
     }
 
-    .account p + .addr {
+    .account p + .addressListDiv .addr {
         border-bottom: none;
     }
 
-    .account .addr h3 {
+    .account .addressListDiv .addr h3 {
         font-size: 12px;
         font-weight: bold;
         color: #333;
@@ -622,7 +630,7 @@
         border: none;
     }
 
-    .account .addr .radio {
+    .account .addressListDiv .addr .radio {
         position: absolute;
         top: 20px;
         right: 10px;
