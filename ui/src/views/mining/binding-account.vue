@@ -597,7 +597,7 @@
 
     .account .addressListDiv{
         overflow: auto;
-        max-width: 40%;
+        max-height: 40%;
     }
 
     .account .addressListDiv .addr {
