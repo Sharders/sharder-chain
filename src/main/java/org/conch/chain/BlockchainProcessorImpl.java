@@ -2319,7 +2319,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
-            boolean isJionDestroyPool = false;
+            boolean isJoinDestroyPool = false;
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
             if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){
                 for (TransactionImpl tr:tempBlockTransactions){
@@ -2327,14 +2327,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                         SharderPoolProcessor pool = SharderPoolProcessor.getPool((long)transaction.getAttachment().getJSONObject().get("poolId"));
                        if (transaction.getAttachment().getJSONObject().get("version.joinPool") != null || (transaction.getAttachment().getJSONObject().get("version.quitPool") != null && transaction.getSenderId() != pool.getCreatorId())){
                            TransactionProcessorImpl.getInstance().removeUnconfirmedTransaction(transaction);
-                           isJionDestroyPool = true;
+                           isJoinDestroyPool = true;
                            break;
                        }
 
                     }
                 }
             }
-            if(isJionDestroyPool){
+            if(isJoinDestroyPool){
                 continue;
             }
             blockTransactions.add(transaction);

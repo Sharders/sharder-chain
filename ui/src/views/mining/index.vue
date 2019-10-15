@@ -1035,7 +1035,6 @@
 
     .my-mining.create {
         margin: 0 0 0 10px;
-        display: none;
     }
 
     .create img {
