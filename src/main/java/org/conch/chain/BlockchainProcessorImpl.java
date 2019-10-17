@@ -2311,9 +2311,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         List<TransactionImpl> tempBlockTransactions = new ArrayList<>();
         for(UnconfirmedTransaction unconfirmedTransaction : sortedTransactions){
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
-            if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){
-                if(transaction.getAttachment().getJSONObject().get("version.destroyPool") != null){
-                    tempBlockTransactions.add(transaction);
+            if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){//确认矿池交易
+                if(transaction.getAttachment().getJSONObject().get("version.destroyPool") != null){//判断是否有销毁交易
+                    tempBlockTransactions.add(transaction);//将销毁交易加入临时列表
                 }
             }
         }
@@ -2321,31 +2321,38 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         for (UnconfirmedTransaction unconfirmedTransaction : sortedTransactions) {
             boolean isJoinDestroyPool = false;
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
-            if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){
-                for (TransactionImpl tr:tempBlockTransactions){
-                    if(transaction.getAttachment().getJSONObject().get("poolId").equals(tr.getAttachment().getJSONObject().get("poolId"))){
-                        SharderPoolProcessor pool = SharderPoolProcessor.getPool((long)transaction.getAttachment().getJSONObject().get("poolId"));
-                       if (transaction.getAttachment().getJSONObject().get("version.joinPool") != null || (transaction.getAttachment().getJSONObject().get("version.quitPool") != null && transaction.getSenderId() != pool.getCreatorId())){
-                           TransactionProcessorImpl.getInstance().removeUnconfirmedTransaction(transaction);
-                           isJoinDestroyPool = true;
-                           break;
-                       }
+            try {
+                if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){//确认矿池交易
+                    for (TransactionImpl tr:tempBlockTransactions){//循环销毁交易临时列表
+                        if(transaction.getAttachment().getJSONObject().get("poolId").equals(tr.getAttachment().getJSONObject().get("poolId"))){//匹配销毁交易
+                            SharderPoolProcessor pool = SharderPoolProcessor.getPool((long)transaction.getAttachment().getJSONObject().get("poolId"));//确认销毁交易的pool
+                            //判断是否是加入交易
+                            if (transaction.getAttachment().getJSONObject().get("version.joinPool") != null || (transaction.getAttachment().getJSONObject().get("version.quitPool") != null && transaction.getSenderId() != pool.getCreatorId()) ){
+                                TransactionProcessorImpl.getInstance().removeUnconfirmedTransaction(transaction);
+                                isJoinDestroyPool = true;
+                                break;
+                            }
 
+                        }
                     }
                 }
+            }catch (Exception e){
+                Logger.logErrorMessage("Don't have destroyPool Tx", e);
+            }finally{
+                if(isJoinDestroyPool){
+                    continue;
+                }
+                blockTransactions.add(transaction);
+                digest.update(transaction.bytes());
+                totalAmountNQT += transaction.getAmountNQT();
+                if (!StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
+                    totalFeeNQT += transaction.getFeeNQT();
+                } else {
+                    totalFeeNQT += transaction.getMinimumFeeNQT(blockchain.getHeight());
+                }
+                payloadLength += transaction.getFullSize();
             }
-            if(isJoinDestroyPool){
-                continue;
-            }
-            blockTransactions.add(transaction);
-            digest.update(transaction.bytes());
-            totalAmountNQT += transaction.getAmountNQT();
-            if (!StorageTxProcessorImpl.getInstance().isStorageUploadTransaction(transaction)) {
-                totalFeeNQT += transaction.getFeeNQT();
-            } else {
-                totalFeeNQT += transaction.getMinimumFeeNQT(blockchain.getHeight());
-            }
-            payloadLength += transaction.getFullSize();
+
         }
 
         byte[] payloadHash = digest.digest();

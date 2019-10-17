@@ -289,7 +289,7 @@
                     txId: _tx.transactionId,
                     poolId: _this.miningInfo.poolId,
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000
                 }, "quitPool").then(val => {
                     if (val.errorDescription) {
@@ -317,7 +317,7 @@
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000,
                     poolId: _this.miningInfo.poolId,
                 }, "destroyPool").then(res => {
@@ -341,7 +341,7 @@
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000,// 手续费默认是 1 SS
                     poolId: _this.mining.poolId,
                     amount: joinAmount

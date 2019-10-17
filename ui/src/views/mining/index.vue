@@ -515,7 +515,7 @@
                 _this.$global.fetch("POST", {
                     period: _this.rule.rule.totalBlocks.max,
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000,
                     rule: JSON.stringify({
                         'forgepool': {
