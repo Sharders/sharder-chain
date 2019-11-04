@@ -72,11 +72,11 @@ var NRS = (function (NRS) {
                 "' decimal separator: '" + currentLocale.decimal +
                 "' section separator: '" + currentLocale.section +
                 "' display name: '" + currentLocale.displayName + "'");
-            console.warn("Locale language: '" + currentLocale.lang +
+           /* console.warn("Locale language: '" + currentLocale.lang +
                 "' date format: '" + currentLocale.dateFormat +
                 "' decimal separator: '" + currentLocale.decimal +
                 "' section separator: '" + currentLocale.section +
-                "' display name: '" + currentLocale.displayName + "'");
+                "' display name: '" + currentLocale.displayName + "'");*/
         }
         return currentLocale;
     };

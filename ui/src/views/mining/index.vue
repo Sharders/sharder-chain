@@ -7,7 +7,7 @@
             <el-radio-button label="exchange" class="btn">{{$t('mining.index.ss_exchange')}}</el-radio-button>
         </el-radio-group>
         <!--豆匣矿场-->
-        <div v-if="tabTitle === 'mining' && tabMenu === 'mining'">
+        <div v-if="tabTitle === 'mining' && tabMenu === 'mining'" class="mining-page">
             <div class="mining-content">
                 <img src="../../assets/img/chatu.png" id="chatu">
                 <div class="assets">
@@ -15,12 +15,14 @@
                         <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
                             {number:newestBlock.height})}}
                         </li>
+                        <li class="myAddressLi">{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
+                        </li>
                         <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
                         </li>
                         <li>
                             {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
                         </li>
-                        <li class="strong">
+                        <li class="strong" id="viewRankingId">
                             <img src="../../assets/img/kuangchii_chakan.png">
                             <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
                             <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
@@ -36,17 +38,26 @@
                 <div class="instructions" @click="$router.push({name: 'rule-description'})">
                     {{$t('mining.index.mining_description')}}
                 </div>
-                <div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
+                <!--<div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
                     {{$t('mining.index.join_friends')}}
-                </div>
-                <div class="rule-description" @click="$router.push({name: 'rule-description'})">
+                </div>-->
+                <div class="invite-friends" @click="$router.push({name: 'rule-description'})">
                     {{$t('mining.index.rule_description')}}
                 </div>
-                <div class="my-mining create" @click="$router.push({name: 'my-mining'})">
+                <div class="rule-description">
+                    <ul>
+                        <li class="strong">
+                            <img src="../../assets/img/kuangchii_chakan.png" style="height: 13px">
+                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                            <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
+                        </li>
+                    </ul>
+                </div>
+                <!--<div class="my-mining create" @click="$router.push({name: 'my-mining'})">
                     <img src="../../assets/img/wodekuangchi.png">
                     <p>{{$t('mining.index.my_pool')}}</p>
-                </div>
-                <div class="create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined'">
+                </div>-->
+                <div class="my-mining create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
                     <img src="../../assets/img/chuanjiankuangchi.png">
                     <p>{{$t('mining.index.create_pool')}}</p>
                 </div>
@@ -63,7 +74,7 @@
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
-                        <span>{{$t('mining.index.pool_list_block')}}</span>
+<!--                        <span>{{$t('mining.index.pool_list_block')}}</span>-->
                     </div>
                     <el-select v-model="sortFun" v-if="miningList.length > 0">
                         <el-option
@@ -73,8 +84,20 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
+                    <div class="mining-paging2" v-if="totalSize > pageSize">
+                        <el-pagination
+                            small
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            :pager-count="5"
+                            layout=" prev, pager, next"
+                            :total=totalSize>
+                        </el-pagination>
+                    </div>
                 </div>
-                <div class="mining-list-info" v-loading="loading">
+                <div class="mining-list-info" v-loading="loading" id = "miningListInfoId">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
@@ -116,23 +139,29 @@
                             {{$t("mining.index.mining_no_pit_moment")}}
                         </div>
                     </el-row>
+                    <div class="mining-paging1" v-if="totalSize > pageSize">
+                        <el-pagination
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange"
+                            :current-page.sync="currentPage"
+                            :page-size="pageSize"
+                            :pager-count="7"
+                            layout="total, prev, pager, next ,jumper"
+                            :total=totalSize>
+                        </el-pagination>
+                    </div>
+
+
                 </div>
+
             </div>
-            <div class="mining-paging" v-if="totalSize > pageSize">
-                <el-pagination
-                    @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange"
-                    :current-page.sync="currentPage"
-                    :page-size="pageSize"
-                    layout="total, prev, pager, next ,jumper"
-                    :total=totalSize>
-                </el-pagination>
-            </div>
+
+
         </div>
         <!--免费领SS-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
-                <img src="../../assets/img/logo.svg" class="receive-qr-img">
+                <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
                 <p class="receive-text">
                     {{$t('mining.index.welfare_title1')}}<br>
                     {{$t('mining.index.welfare_title2')}}
@@ -168,10 +197,10 @@
                     <img src="../../assets/img/zhuanshi.png">
                     <span>{{$t('mining.index.free_collar_drill')}}</span>
                 </div>
-                <div class="list" @click="$router.push({name: 'invite-friends'})">
+              <!--  <div class="list" @click="$router.push({name: 'invite-friends'})">
                     <img src="../../assets/img/haoyou.png">
                     <span>{{$t('mining.index.join_friend')}}</span>
-                </div>
+                </div>-->
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
                     <img src="../../assets/img/zhuanshiduihuan.png">
                     <span>{{$t('mining.index.diamond_exchange')}}</span>
@@ -229,13 +258,13 @@
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.BALANCE > 0 ? ranking.BALANCE / 100000000 : 0}}
+                                {{ranking.FORGED_BALANCE > 0 ? $global.getSSNumberFormat(ranking.FORGED_BALANCE) : 0}}
                             </td>
                         </tr>
                     </table>
                     <div class="my-assets" v-loading="loadingRankingNo">
                         {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
-                        | {{$t('mining.index.sort') + myRanking + $t('mining.index.unit_ming')}}
+                        | {{$t('mining.index.sort') + ' '+myRanking}}
                     </div>
                 </div>
             </div>
@@ -322,6 +351,7 @@
                 isRanking: false,
                 isTSS: false,
                 isSetName: false,
+                loading:true,
                 tabTitle: 'mining',
                 tabMenu: 'mining',
                 maxPoolInvestment: 0,
@@ -363,25 +393,17 @@
                 accountInfo: SSO.accountInfo,
                 secretPhrase: SSO.secretPhrase,
                 allIncome: 0,
-                accountTransactionList: [],
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 18,
-                loadingRanking: true,
                 loadingRankingNo: true,
-                loading: true,
-                btnLoading: false
+                btnLoading: false,
+                createPoolBtn:true,
             }
         },
         mounted() {
             let _this = this;
-            if (!_this.$store.state.isLogin) {
-                window.token = window.location.search.substring(1 + "token".length);
-                console.info("token", token);
-                _this.account();
-            } else {
-                _this.loginAfter();
-            }
+
             // window.$miningInitial = setInterval(() => {
             let miningDataLoader = setInterval(() => {
                 if (_this.$route.path === '/mining') {
@@ -394,6 +416,18 @@
             
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
+        },
+        created(){
+            let _this = this;
+            _this.miningList = [];
+
+            if (!_this.$store.state.isLogin) {
+                window.token = window.location.search.substring(1 + "token".length);
+                console.info("token", token);
+                _this.account();
+            } else {
+                _this.loginAfter();
+            }
         },
         computed: {
             getLang: function () {
@@ -474,15 +508,18 @@
                     _this.isVisible('isCreatePool');
                     return _this.$message.info(_this.$t('notification.insufficient_permissions'));
                 }
+                if(_this.incomeDistribution === 0){
+                    return _this.$message.warning(_this.$t('notification.errorCreatePool'));
+                }
                 _this.btnLoading = true;
                 _this.$global.fetch("POST", {
                     period: _this.rule.rule.totalBlocks.max,
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000,
                     rule: JSON.stringify({
                         'forgepool': {
-                            'reward': _this.incomeDistribution / 100,
+                            'reward': _this.incomeDistribution/ 100,
                             'number': _this.rule.forgepool.number.max - 1,
                         },
                         "rule": {
@@ -530,7 +567,8 @@
                 // console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
-                // console.log(`当前页: ${val}`);
+                //console.log(`当前页: ${val}`);
+                document.getElementById("miningListInfoId").scrollTop = 0;
             },
             account() {
                 let _this = this;
@@ -545,15 +583,16 @@
                         return;
                     }
                     SSO.secretPhrase = value.data.secretPhrase;
+                    _this.secretPhrase = value.data.secretPhrase;
                     Login.login(1, value.data.secretPhrase, _this, function () {
                         _this.$store.state.isLogin = true;
                         _this.loginAfter();
-
                     });
                 });
             },
             loginAfter() {
                 let _this = this;
+                _this.loading = true;
                 _this.getAllIncome();
                 _this.$global.fetch("POST", {creatorId: SSO.account}, "getPoolRule").then(res => {
                     if (!res.errorDescription) {
@@ -594,7 +633,6 @@
                     }
                     _this.accountInfo = res;
                 });
-
                 _this.getPools({sort: _this.sortFun});
 
             },
@@ -636,94 +674,66 @@
                         _this.myRanking = res.data[0]['RANDKING'];
                     }
                 });
-                let end = new Date();
 
             },
             getPools(parameter) {
                 let _this = this;
-                _this.loading = true;
                 let poolArr1 = [];
                 let poolArr2 = [];
                 let poolArr3 = [];
                 let poolArr4 = [];
 
-                let params = new URLSearchParams();
-                params.append("account", SSO.accountRS);
-                _this.unconfirmedTransactionsList = _this.$store.state.unconfirmedTransactionsList.unconfirmedTransactions;
+                _this.loading = true;
 
-                let i = 0;
-                if (typeof _this.unconfirmedTransactionsList !== 'undefined') {
-                    i = _this.unconfirmedTransactionsList.length;
-                }
-                params.append("type", "8");
-                params.append("subtype", "2");
-
-
-                this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res1) {
-                    _this.accountTransactionList = res1.data.transactions;
-                    _this.$global.fetch("POST", parameter, "getPools").then(res => {
-                        if (res.errorDescription) {
-                            return _this.$message.error(res.errorDescription);
-                        }
-
-                        if(_this.accountTransactionList.length === 0){
-                            for(let t of res.pools){
-                                if(t.creatorRS === _this.accountInfo.accountRS){
-                                    poolArr1.push(t);
-                                }else{
-                                    poolArr2.push(t);
-                                }
-                            }
-                            _this.miningList=poolArr1.concat(poolArr2);
-                        } else{
-                            for(let t of res.pools){
-                                if(t.creatorRS === _this.accountInfo.accountRS ){
-
-                                    let i=0;
-                                    for(let p of _this.accountTransactionList) {
-
-                                        if (p.attachment.poolId === t.poolId) {
-                                            t.isJoin=true;
-                                            poolArr1.push(t);
-                                            i++;
-                                            break;
-                                        }
-                                        i++;
-                                        if(i === _this.accountTransactionList.length){
-                                            poolArr2.push(t);
-                                            continue;
-                                        }
-
-                                    }
-
-                                }else{
-                                    let j = 0;
-                                    for(let p of _this.accountTransactionList) {
-                                        if (p.attachment.poolId === t.poolId) {
-                                            t.isJoin=true;
-                                            poolArr3.push(t);
-                                            j++;
-                                            break;
-                                        }
-                                        j++;
-                                        if(j === _this.accountTransactionList.length){
-                                            poolArr4.push(t);
-                                            continue;
-                                        }
-
-                                    }
-
-                                }
+                _this.$global.fetch("POST", parameter, "getPools").then(res => {
+                    if (res.errorDescription) {
+                        return _this.$message.error(res.errorDescription);
+                    }
+                    _this.createPoolBtn = true;
+                    for(let t of res.pools){
+                        if(Object.keys(t.consignors).length === 0){
+                            if (t.creatorRS === SSO.accountInfo.accountRS){
+                                _this.createPoolBtn = false;
+                                poolArr1.push(t);
+                            }else {
+                                poolArr4.push(t);
                             }
 
-                            _this.miningList=poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                        }else{
+                            if(t.creatorRS === SSO.accountInfo.accountRS){
+                                let i = 0;
+                                for(let c in t.consignors){
+                                    if (c === SSO.accountInfo.accountId){
+                                        t.isJoin = true;
+                                        poolArr2.push(t);
+                                        break;
+                                    }
+                                    i++;
+                                    if(i === Object.keys(t.consignors).length){
+                                        _this.createPoolBtn = false;
+                                        poolArr1.push(t);
+                                    }
+                                }
+                            }else {
+                                let i = 0;
+                                for (let c in t.consignors){
+                                    if (c === SSO.accountInfo.accountId){
+                                        t.isJoin = true;
+                                        poolArr3.push(t);
+                                        break;
+                                    }
+                                    i++;
+                                    if(i === Object.keys(t.consignors).length){
+                                        poolArr4.push(t);
+                                    }
+                                }
+                            }
                         }
-                        _this.totalSize = _this.miningList.length;
-                        _this.loading = false;
-                    });
-                }).catch(function (err) {
+
+                    }
+                    _this.miningList = poolArr1.concat(poolArr2).concat(poolArr3).concat(poolArr4);
+                    _this.totalSize = _this.miningList.length;
                     _this.loading = false;
-                    _this.$message.error(err.message);
                 });
 
 
@@ -807,7 +817,7 @@
 
     .mining .title .el-radio-button__inner {
         max-width: 140px;
-        padding: 12px 41px;
+        padding: 12px 25px;
     }
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner,
@@ -828,34 +838,51 @@
         border: none;
     }
 
-    .mining .mining-paging .el-input__inner {
+    .mining .mining-paging1 .el-input__inner {
+        height: inherit;
+    }
+    .mining .mining-paging2 .el-input__inner {
         height: inherit;
     }
 
-    .mining .mining-paging .el-input {
-        width: 100px;
+    .mining .mining-paging1 .el-input {
+        width: 36px;
         margin: 0;
     }
-
+    .mining .mining-paging2 .el-input {
+        width: 36px;
+        margin: 0;
+    }
     .mining P {
         margin: 0;
         padding: 0;
     }
 
     .mining .el-select {
+        padding-top: 5px;
         width: 110px !important;
     }
 
-    .mining .mining-paging .el-pager li.active {
+    .mining .mining-paging1 .el-pager li.active {
+        background-color: #513acB;
+        border: none;
+    }
+    .mining .mining-paging2 .el-pager li.active {
         background-color: #513acB;
         border: none;
     }
 
-    .mining .mining-paging .el-pager li:hover {
+    .mining .mining-paging1 .el-pager li:hover {
+        color: #513acB;
+    }
+    .mining .mining-paging2 .el-pager li:hover {
         color: #513acB;
     }
 
-    .mining .mining-paging .el-pager li.active:hover {
+    .mining .mining-paging1 .el-pager li.active:hover {
+        color: #fff;
+    }
+    .mining .mining-paging2 .el-pager li.active:hover {
         color: #fff;
     }
 
@@ -950,6 +977,7 @@
         cursor: pointer;
     }
 
+
     .assets li img {
         width: 16px;
         height: 16px;
@@ -1007,7 +1035,6 @@
 
     .my-mining.create {
         margin: 0 0 0 10px;
-        display: none;
     }
 
     .create img {
@@ -1054,7 +1081,7 @@
     .mining-list .mining-list-img {
         position: relative;
         top: 2px;
-        margin-right: 6px;
+        margin-right: 1px;
         width: 14px;
         height: 14px;
     }
@@ -1111,7 +1138,7 @@
         height: 120px;
         color: #000;
         padding: 0;
-        font-size: 15px;
+        font-size: 14px;
         position: relative;
     }
 
@@ -1124,18 +1151,32 @@
         padding: 0 10px 0px 10px;;
     }
 
-    .mining-paging {
-        position: relative;
+    .mining-paging1 {
+
         z-index: 99;
         float: right;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        margin-top:  5px;
+        margin-bottom: 5px;
+    }
+    .mining-paging2 {
+        display: none;
+        z-index: 99;
+        float: right;
+        margin-top: 13px;
+       /* margin-right: 5px;*/
+        /*  margin-top:  5px;
+         margin-bottom: 5px;*/
     }
 
-    .mining-paging > div {
+    .mining-paging1 > div {
         padding: 0;
         margin: 0;
     }
+    .mining-paging2 > div {
+        padding: 0;
+        margin: 0;
+    }
+
 
     @keyframes chatu {
         0% {
@@ -1230,6 +1271,10 @@
         font-weight: bold;
         color: #666;
         padding-right: 20px;
+    }
+
+    .assets .myAddressLi{
+        display: none;
     }
 
     .content-left span {
@@ -1481,13 +1526,43 @@
         .mining .el-radio-group {
             display: none;
         }
+        .mining .el-select {
+            padding-top: 5px;
+            width: 80px !important;
+        }
 
+        #viewRankingId{
+            display: none;
+        }
+        .mining .el-input {
+            font-size: 11px;
+        }
+
+        .mining .title .el-radio-button__inner {
+            padding: 50px;
+        }
         .mining .mining-content {
             margin-top: 0;
             padding: 15px;
             border-radius: initial;
-            height: 400px;
-            background-position: center 210px;
+            height: 290px;
+            background-position: center 135px;
+        }
+
+        .mining-content .assets .myAddressLi{
+            display: block;
+        }
+        .mining-list .sort_type .list-title {
+            font-size: 11px;
+        }
+
+        .mining-list .el-select .el-input__inner {
+            height: 25px;
+            line-height: 0px;
+            padding: 0 8px;
+        }
+        .mining-list .el-select .el-input .el-select__caret {
+            font-size: 11px;
         }
 
         .mining .mining-list-info .el-row {
@@ -1500,7 +1575,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 50%;
+            width: 45%;
         }
 
         .mining .mining-list-info .grid-content .tag {
@@ -1536,7 +1611,7 @@
 
         .mining .mining-content .create {
             position: absolute;
-            top: 320px;
+            top: 215px;
             right: 75px;
             font-size: 13px;
         }
@@ -1551,8 +1626,11 @@
             height: 45px;
         }
 
-        .mining .mining-paging {
+        .mining .mining-paging1 {
             display: none;
+        }
+        .mining .mining-paging2 {
+            display:block;
         }
 
         .mining .mining-content .assets ul {
@@ -1570,7 +1648,7 @@
         }
 
         .mining .mining-content .state {
-            top: 110px;
+            top: 102px;
             width: calc(100% - 30px);
         }
 
@@ -1580,7 +1658,7 @@
         }
 
         .mining .mining-list .mining-list-img {
-            margin-left: 15px;
+            margin-left: 4px;
         }
 
         .ranking-content .ranking-table {
@@ -1588,8 +1666,7 @@
         }
 
         #chatu {
-            top: 170px !important;
-            animation-name: chatu-mobel !important;
+            top: 95px !important;
         }
 
         @keyframes chatu-mobel {
@@ -1695,19 +1772,19 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/img/index.png") no-repeat center 26px;
+            background: url("../../assets/img/index.png") no-repeat center 5px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/img/personal.png") no-repeat center 26px;
+            background: url("../../assets/img/personal.png") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/img/index-1.png") no-repeat center 26px;
+            background: url("../../assets/img/index-1.png") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
+            background: url("../../assets/img/personal-1.png") no-repeat center 5px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
@@ -1715,7 +1792,9 @@
         }
 
         .mining .mining-list .mining-list-info {
-            padding: 7px 8px 70px 10px;
+            padding: 4px 8px 65px 10px;
+            overflow: auto;
+            height: 300px;
         }
 
         .ranking-table th {

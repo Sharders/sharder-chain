@@ -4,33 +4,57 @@
         <div class="assets">
             <div class="assets-info">
                 <div class="totle-assets">
-                    <span>{{$t('mining.my_assets.total_asset')}}</span>
-                    <span class="strong">{{accountInfo.balanceNQT/100000000}}</span>
+                    <span>
+                        <span style="font-size: x-large">{{$t('mining.my_assets.total_asset')}}</span>
+                        <span style="font-size: small">({{$t('account_info.account_mining_balance')}}：{{(accountInfo.forgedBalanceNQT/100000000).toFixed(2)}})</span>
+                    </span>
+                    <span class="strong">{{accountInfo.effectiveBalanceNQT/100000000 + accountInfo.frozenBalanceNQT/100000000}}</span>
                 </div>
-                <p class="exchang" @click="$router.push({name: 'free-collar-drill'})">
-                    {{$t('mining.index.diamond_exchange')}}</p>
+              <!--  <p class="exchang" @click="$router.push({name: 'free-collar-drill'})">
+                    {{$t('mining.index.diamond_exchange')}}</p>-->
                 <div class="assets-detail">
                     <div>
                         <p>{{$t('mining.my_assets.available_asset')}}</p>
-                        <p class="strong">{{accountInfo.guaranteedBalanceNQT/100000000}}</p>
+                        <p class="strong">{{(accountInfo.effectiveBalanceNQT/100000000).toFixed(2)}}</p>
                     </div>
                     <div>
                         <p>{{$t('mining.my_assets.frozen_assets')}}</p>
-                        <p class="strong">{{accountInfo.forgedBalanceNQT/100000000}}</p>
+                        <p class="strong">{{(accountInfo.frozenBalanceNQT/100000000).toFixed(2)}}</p>
                     </div>
                 </div>
             </div>
             <div class="assets-header">{{$t('mining.my_assets.asset_record')}}</div>
-            <div class="assets-list" v-for="al in assetsList">
-                <div class="title">
-                    <p class="strong">{{al.title}}</p>
-                    <p>{{al.time}}</p>
-                </div>
-                <div class="number">{{$global.getSSNumberFormat(al.num,true)}}</div>
+            <div class="transaction_type">
+                    <span class="btn" :class="activeSelectType(0)" @click="selectType = 0">
+                        {{$t('transaction.transaction_type_payment')}}
+                    </span>
+                <span class="btn" :class="activeSelectType(8)" @click="selectType = 8">
+                        {{$t('transaction.transaction_type_forge_pool')}}
+                    </span>
+                <span class="btn" :class="activeSelectType(9)" @click="selectType = 9">
+                        {{$t('transaction.transaction_type_system_reward')}}
+                    </span>
+                <el-select v-model="selectType" :placeholder="$t('transaction.transaction_type_all')">
+                    <el-option
+                        v-for="item in transactionType"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
             </div>
-            <div class="load-assets">
-                <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
-                <p v-else>{{$t("mining.my_assets.whether")}}</p>
+            <div class="transactionsList" v-loading="assetsListStatus">
+                <div class="assets-list" v-for="al in assetsList" >
+                    <div class="title">
+                        <p class="strong">{{al.title}}</p>
+                        <p>{{al.time}}</p>
+                    </div>
+                    <div class="number">{{al.num}}</div>
+                </div>
+                <div class="load-assets">
+                    <p v-if="isPage" @click="loadAssets()">{{$t("mining.my_assets.click_load")}}</p>
+                    <p v-else>{{$t("mining.my_assets.whether")}}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -41,45 +65,186 @@
         name: "my-assets",
         data() {
             return {
-                accountInfo: SSO.accountInfo,
+                accountInfo: {
+                    balanceNQT: 0,              //账户余额
+                    effectiveBalanceNQT: 0,      //可用余额
+                    forgedBalanceNQT: 0,        //挖矿余额
+                    frozenBalanceNQT: 0,        //冻结余额
+                },
                 pageNO: 1,
                 isPage: true,
-                assetsList: []
+                assetsList: [],
+                selectType: '',
+                epochBeginning: 0,
+                assetsListStatus:true,
+                transactionType: [{
+                    value: '',
+                    label: this.$t('transaction.transaction_type_all')
+                }, {
+                    value: 0,
+                    label: this.$t('transaction.transaction_type_payment')
+                }, {
+                    value: 8,
+                    label: this.$t('transaction.transaction_type_forge_pool')
+                }, {
+                    value: 9,
+                    label: this.$t('transaction.transaction_type_system_reward')
+                }],
             }
         },
         methods: {
-            getAssetsList() {
-                let _this = this;
-                _this.$global.fetch("GET", {
-                    account: SSO.accountRS,
-                    firstIndex: (_this.pageNO - 1) * 10,
-                    lastIndex: (_this.pageNO - 1) * 10 + 9
-                }, "getBlockchainTransactions").then(res => {
-                    if (res.transactions.length === 0) {
-                        return _this.isPage = false;
-                    }
-                    for (let t of res.transactions) {
-                        console.info(t);
-                        _this.assetsList.push({
-                            title: _this.$global.getTransactionTypeStr(t),
-                            time: _this.$global.myFormatTime(t.timestamp, 'YMDHMS', true),
-                            num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
-                        })
-                    }
+
+            getAccount(account) {
+                return new Promise((resolve) => {
+                    this.$http.get('/sharder?requestType=getAccount', {
+                        params: {
+                            account: account,
+                            includeLessors: true,
+                            includeAssets: true,
+                            includeEffectiveBalance: true,
+                            includeCurrencies: true,
+                        }
+                    }).then(function (res) {
+                        resolve(res.data);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 });
             },
+            getAssetsList(status) {
+                let _this = this;
+                _this.assetsListStatus = true;
+                if(status === "selectType"){
+                    _this.assetsList = [];
+                    _this.isPage = true;
+                }
+                let params = new URLSearchParams();
+                params.append("account", SSO.accountRS);
+                params.append("firstIndex", (_this.pageNO - 1) * 10);
+                params.append("lastIndex", (_this.pageNO - 1) * 10 + 9);
+
+                if (_this.selectType === 1.5) {
+                    params.append("type", "1");
+                    params.append("subtype", "5");
+                } else if (_this.selectType === 1) {
+                    params.append("type", "1");
+                    params.append("subtype", "0");
+                } else {
+                    params.append("type", _this.selectType);
+                }
+                _this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res) {
+                    if (res.data.transactions.length === 0) {
+                        return _this.isPage = false;
+                    }
+                    for (let t of res.data.transactions) {
+                        console.info(t);
+                        if(_this.selectType === ""){
+                            _this.assetsList.push({
+                                title: _this.$global.getTransactionTypeStr(t),
+                                time: _this.formatTime(t.timestamp),
+                                num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
+                            })
+                        }else{
+                            if (_this.selectType === 1 && t.subtype === 0) {
+                                _this.assetsList.push({
+                                    title: _this.$global.getTransactionTypeStr(t),
+                                    time: _this.formatTime(t.timestamp),
+                                    num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
+                                });
+                            } else if (_this.selectType !== 1 && _this.selectType === t.type) {
+                                _this.assetsList.push({
+                                    title: _this.$global.getTransactionTypeStr(t),
+                                    time: _this.formatTime(t.timestamp),
+                                    num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
+                                });
+                            } else if (_this.selectType === 1.5 &&
+                                t.type === 1 &&
+                                t.subtype === 5) {
+                                _this.assetsList.push({
+                                    title: _this.$global.getTransactionTypeStr(t),
+                                    time: _this.formatTime(t.timestamp),
+                                    num: _this.$global.getTransactionAmountNQT(t, _this.accountInfo.accountRS)
+                                });
+                            }
+
+                        }
+                    }
+                    _this.assetsListStatus = false;
+                });
+
+            },
+
+            activeSelectType(type) {
+                const _this = this;
+                return _this.selectType === type ? 'active' : ''
+            },
+
             loadAssets() {
-                this.pageNO++;
-                this.getAssetsList();
+                const _this = this;
+                _this.pageNO++;
+                let status = "loadAssets";
+                _this.getAssetsList(status);
+            },
+
+            formatTime(time,fmt,tz){
+                const _this = this;
+                fmt = fmt || "yyyy-MM-dd hh:mm:ss";
+                tz = tz || 0;
+                let date = new Date(time * 1000 + _this.epochBeginning + tz * 3600000);
+                    let o = {
+                        "M+": date.getMonth() + 1,                          //月份
+                        "d+": date.getDate(),                               //日
+                        "h+": date.getHours(),                              //小时
+                        "m+": date.getMinutes(),                            //分
+                        "s+": date.getSeconds(),                            //秒
+                        "S": date.getMilliseconds()                        //毫秒
+                    };
+                    if (/(y+)/.test(fmt))
+                        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+                    for (let k in o)
+                        if (new RegExp("(" + k + ")").test(fmt))
+                            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+                    return fmt;
+
             }
         },
-        created() {
-            this.getAssetsList();
+
+        mounted() {
+            const  _this = this;
+            _this.getAccount(SSO.accountRS).then(res => {
+                _this.accountInfo.balanceNQT = res.balanceNQT;
+                _this.accountInfo.effectiveBalanceNQT = res.effectiveBalanceNQT;
+                _this.accountInfo.forgedBalanceNQT = res.forgedBalanceNQT;
+                _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
+            });
+            _this.$global.fetch("GET",{},"getConstants").then(function (res) {
+                _this.epochBeginning = parseInt(res.epochBeginning);
+            }).then(res=>{
+                _this.getAssetsList(status);
+            });
+
+        },
+        watch:{
+            selectType: function () {
+                const _this = this;
+                _this.pageNO = 1;
+                let status = "selectType";
+                _this.getAssetsList(status);
+            },
         }
     }
-</script>
 
+</script>
+<style lang="scss" type="text/scss">
+    @import './style.scss';
+</style>
 <style scoped>
+    @media (max-width: 640px) {
+        .transactionsList {
+            height:385px;
+            overflow: auto;
+        }
+    }
     .my-assets .assets {
         padding: 30px 15px 0;
         background: #fff;
@@ -131,9 +296,9 @@
     }
 
     .assets .assets-header {
-        font-size: 12px;
+        font-size: 20px;
         color: #666;
-        padding: 15px 0;
+        padding: 8px 0;
     }
 
     .assets .assets-list {

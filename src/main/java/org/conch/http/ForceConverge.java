@@ -54,6 +54,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -328,6 +329,23 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
     }
     
+    // remove the checkOrForceDeleteBakFolder function in the v0.1.9 and later COS versions
+    private static void checkOrForceDeleteBakFolder(){
+        try {
+            String version = "0.1.8";
+            String updateTime = "2019-08-20 19:19:19";
+
+            boolean forceDelBakFolder = Conch.versionCompare(version, updateTime) <= 0;
+            if(!forceDelBakFolder) return;
+
+            Logger.logInfoMessage("Force delete the bak folder when the COS version is %s %s", Conch.getFullVersion(), Conch.getCosUpgradeDate());
+            FileUtil.deleteDirectory(Paths.get(".","bak"));
+
+        } catch (Exception e) {
+            Logger.logErrorMessage("forceDeleteBakFolder occur unknown exception", e);
+        }
+    }
+    
     public static void init() {
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
@@ -336,6 +354,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
             ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES);
         }
+
+        checkOrForceDeleteBakFolder();
 //        
 //        // manual reset
 //        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);

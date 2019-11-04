@@ -89,12 +89,13 @@ public class FileUtil {
             if(deleteSource) {
                 FileUtils.forceDelete(new File(zipFilePath));
             } 
+        }catch (Exception e) {
+            Logger.logErrorMessage(String.format("unzip the file %s -> %s failed caused by %s", zipFilePath, outputLocation, e.getMessage()));
+            throw e;
         }
-        
-      
     }
 
-    static void deleteDirectory(Path path){
+    public static void deleteDirectory(Path path){
         if(path == null) return;
         File delFile = new File(path.toString());
         deleteDirectory(delFile);
@@ -387,14 +388,31 @@ public class FileUtil {
     
     public static void clearAllLogs() throws FileNotFoundException {
         String logPath = Conch.getUserHomeDir() + File.separator + "logs";
-        File logFiles = new File(logPath);
-        File[] files = logFiles.listFiles();
+        clearOrDelFiles(logPath, true);
+    }
+
+    /**
+     * 
+     * @param folderPath folder path
+     * @param justClear true: clear the content of the file, false: delete the file
+     * @throws FileNotFoundException
+     */
+    public static void clearOrDelFiles(String folderPath, boolean justClear) throws FileNotFoundException {
+        File folder = new File(folderPath);
+        if(folder == null) return;
+        
+        File[] files = folder.listFiles();
         if (files != null && files.length > 0) {
+            String mode = justClear ? "clear" : "delete";
             for (File file : files) {
-                Logger.logInfoMessage("Clear log files..." + file.getAbsolutePath());
-                PrintWriter writer = new PrintWriter(file);
-                writer.print("");
-                writer.close();
+                Logger.logInfoMessage("%s file %s", mode, file.getAbsolutePath());
+                if(justClear){
+                    PrintWriter writer = new PrintWriter(file);
+                    writer.print("");
+                    writer.close();  
+                }else{
+                    file.delete();
+                }
             }
         }
     }

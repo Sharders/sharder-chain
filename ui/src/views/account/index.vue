@@ -197,21 +197,28 @@
                                 <td class=" image_text w300">
                                     <span class="linker" v-if="transaction.type === 9">Coinbase</span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                          v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">{{$t('transaction.self')}}</span>
-                                    <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
-                                          v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">{{transaction.senderRS}}</span>
+                                          v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">
+                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-if="transaction.type === 8 && transaction.subtype === 3 &&transaction.recipientRS !== accountInfo.accountRS">
+                                            {{transaction.recipientRS}}
+                                        </span>
+                                        <span v-else>{{$t('transaction.self')}}</span>
+                                    </span>
+                                    <span class="linker" v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">
+                                         <span v-if="transaction.type === 8 && transaction.subtype === 3">
+                                            {{$t('transaction.self')}}
+                                        </span>
+                                        <span v-else>{{transaction.senderRS}}</span>
+                                    </span>
+
                                     <img src="../../assets/img/right_arrow.svg"/>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">
                                         {{$t('transaction.self')}}
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 3">
-                                         <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9">
-                                        {{transaction.recipientRS}}
+                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-if="transaction.recipientRS !== accountInfo.accountRS && transaction.type !== 9 && transaction.senderRS === accountInfo.accountRS">
+                                        {{$t('transaction.transaction_type_forge_pool')}}:{{transaction.attachment.poolId}}
                                         </span>
-                                        <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-else-if="transaction.recipientRS === accountInfo.accountRS && transaction.type !== 9 && transaction.senderRS !== accountInfo.accountRS">
-                                        {{$t('transaction.self')}}
-                                        </span>
-                                        <span class="linker" v-else="">{{$t('transaction.transaction_type_pool_join_tx')}}:{{transaction.attachment.txSId}}</span>
+                                        <span class="linker" v-else>{{$t('transaction.transaction_type_forge_pool')}}:{{transaction.attachment.poolId}}</span>
 
                                     </span>
                                     <span class="linker" v-else-if="transaction.type === 8 && transaction.subtype === 2">
@@ -702,7 +709,7 @@
             return {
                 //dialog
                 src: "",
-                requestUrl:"http://localhost:8080",
+                requestUrl:"https://sharder.org",
                 sendSuccess: false, //true验证码发送 false验证码未发送
                 time: 60 , //时间
                 sendMessageDialog: false,

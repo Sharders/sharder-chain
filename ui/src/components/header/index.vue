@@ -229,19 +229,8 @@
                 _this.selectLanValue = _this.language[value === 'cn'].value;
             }
 
-
             this.getData();
-            this.$http.get("/sharder?requestType=getAccount", {
-                params: {
-                    includeEffectiveBalance: true,
-                    account: SSO.account
-                }
-            }).then(res => {
-                _this.accountInfo = res.data;
-            }).catch(err => {
-                _this.$message.error(err);
-                console.error(err);
-            });
+            this.getAccountInfo();
             _this.$global.getUserConfig(_this).then(res => {
                 _this.userConfig = res;
             });
@@ -253,6 +242,18 @@
                     'Content-Type': 'multipart/form-data'
                 }
             };
+
+            if(SSO.accountInfo.balanceNQT/ 100000000 + SSO.accountInfo.frozenBalanceNQT / 100000000 < 20000){
+
+                _this.$http.post('/sharder?requestType=stopMining', formData, config).then(res => {
+                    _this.forging = res.data;
+                    // console.log("forging",_this.forging);
+                }).catch(err => {
+                    _this.$message.error(err);
+                    console.error(err);
+                });
+            }
+
             _this.$http.post('/sharder?requestType=getForging', formData, config).then(res => {
                 _this.forging = res.data;
                 // console.log("forging",_this.forging);
@@ -268,6 +269,20 @@
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
         },
         methods: {
+            getAccountInfo:function(){
+                const _this = this;
+                _this.$http.get("/sharder?requestType=getAccount", {
+                    params: {
+                        includeEffectiveBalance: true,
+                        account: SSO.account
+                    }
+                }).then(res => {
+                    _this.accountInfo = res.data;
+                }).catch(err => {
+                    _this.$message.error(err);
+                    console.error(err);
+                });
+            },
             getData: function () {
                 const _this = this;
                 // if(_this.i%30 === 0){
@@ -316,6 +331,11 @@
                     }
                 };
                 if (b) {
+
+                    if(SSO.accountInfo.balanceNQT/ 100000000 + SSO.accountInfo.frozenBalanceNQT / 100000000 < 20000){
+                        return _this.$message.error(_this.$t('notification.ss_not_enough'));
+                    }
+
                     formData.append("secretPhrase", SSO.secretPhrase);
                     _this.$http.post("/sharder?requestType=startForging", formData, config).then(res => {
                         if (!res.data.errorDescription) {

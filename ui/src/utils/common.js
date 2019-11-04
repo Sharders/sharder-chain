@@ -779,6 +779,9 @@ export default {
             } else if (t.subtype === 2) {
                 return this.$vue.$t("transaction.transaction_type_pool_join");
             } else if (t.subtype === 3) {
+                if(t.senderRS === SSO.accountRS && t.recipientRS !== SSO.accountRS){
+                    return this.$vue.$t("transaction.transaction_type_pool_quit_not_myself");
+                }
                 return this.$vue.$t("transaction.transaction_type_pool_quit");
             } else {
                 return this.$vue.$t("transaction.transaction_type_forge_pool");
@@ -943,7 +946,7 @@ export default {
         } else if (f) {
             return num + this.unit
         } else {
-            return new BigNumber(num).dividedBy("100000000").toFixed() + this.unit
+            return new BigNumber(num).dividedBy("100000000").toFixed(2) + this.unit
         }
     },
     /**

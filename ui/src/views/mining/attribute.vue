@@ -289,7 +289,7 @@
                     txId: _tx.transactionId,
                     poolId: _this.miningInfo.poolId,
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000
                 }, "quitPool").then(val => {
                     if (val.errorDescription) {
@@ -317,7 +317,7 @@
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000,
                     poolId: _this.miningInfo.poolId,
                 }, "destroyPool").then(res => {
@@ -341,7 +341,7 @@
                 _this.$global.fetch("POST", {
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
-                    deadline: 1440,
+                    deadline: 360,
                     feeNQT: 100000000,// 手续费默认是 1 SS
                     poolId: _this.mining.poolId,
                     amount: joinAmount
@@ -451,15 +451,15 @@
                 _this.$global.fetch("GET",{},"getConstants").then(function (res) {
                     return parseInt(res.epochBeginning);
                 }).then(res => {
+
                     let date = new Date(time * 1000 + res + tz * 3600000);
                     let o = {
-                        "M+": date.getUTCMonth() + 1,                          //月份
-                        "d+": date.getUTCDate(),                               //日
-                        "h+": date.getUTCHours(),                              //小时
-                        "m+": date.getUTCMinutes(),                            //分
-                        "s+": date.getUTCSeconds(),                            //秒
-                        "q+": Math.floor((date.getUTCMonth() + 3) / 3),     //季度
-                        "S": date.getUTCMilliseconds()                         //毫秒
+                        "M+": date.getMonth() + 1,                          //月份
+                        "d+": date.getDate(),                               //日
+                        "h+": date.getHours(),                              //小时
+                        "m+": date.getMinutes(),                            //分
+                        "s+": date.getSeconds(),                            //秒
+                        "S": date.getMilliseconds()                        //毫秒
                     };
                     if (/(y+)/.test(fmt))
                         fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));

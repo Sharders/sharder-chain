@@ -5,17 +5,18 @@
             <p v-show="isSSA">
                 <span >
                     <li v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</li>
-                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} TSS</li>
-                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} TSS</li>
-                    <li v-if="sharderAccount" style="color: #e64242">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchangeTip")}} </li>
+                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} SS</li>
+                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} SS</li>
+                    <li v-if="sharderAccount" style="color: #e64242;font-size: small">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchange_tip")}} </li>
                     <li v-else>
                         {{$t("reward.no_binding_account")}} ?
                         <a href="https://sharder.org">{{$t("reward.immediately_binding")}}</a>
                     </li>
                 </span>
             </p>
+            <p v-if="exchangeOpen">{{$t('mining.diamond_exchange.diamond_exchange_subtitle')}}</p>
         </div>
-        <div class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS">
+        <div v-if="exchangeOpen && !displayDefault" class="exchange-list" :class="(index+1)%3 === 0 ? ' right' :''" v-for="(exchange,index) in exchangeList" v-loading="loadingExchangeSS">
             <p>
                 <img :src="exchange.img" class="exchange-img">
                 <span class="title">{{exchange.title}}</span>
@@ -23,7 +24,72 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
+        
+        <div class="exchange-list info" v-if="displayDefault">
+            {{$t('reward.insufficient_redemption')}}
+        </div>
+        <div class="exchange-list info" v-else>
+            <span v-if="exchangeOpen">
+                {{$t('mining.diamond_exchange.not_open_tip')}}
+            </span>
+            <span v-else>
+                {{$t('mining.diamond_exchange.not_open')}}
+            </span>
+        </div>
+        
+        <!--申请兑换SS列表-->
+        <div v-if="exchangeOpen && sharderAccount" class="block_list"  style="clear:both">
+            <p class="block_title" style="padding-bottom: 10px;">
+                <img src="../../assets/img/block.svg" width="20px" height="20px"/>
+                <span>{{$t('exchange_list.exchange_title')}}</span>
+            </p>
+            <div class="list_table w br4">
+                <div class="list_content data_container table_responsive data_loading">
+                    <table class="table table_striped" id="blocks_table">
+                        <thead>
+                        <tr>
+                            <th>{{$t('exchange_list.appliction_time')}}</th>
+                            <th>{{$t('exchange_list.exchange_type')}}</th>
+                            <th>{{$t('exchange_list.exchange_amount')}}</th>
+                            <th>{{$t('exchange_list.exchange_status')}}</th>
+                        </tr>
+                        </thead>
+                         <tbody>
+                         <tr v-for="exchange in exchangeSSList">
+                             <td>
+                                 <span>{{exchange.createDate}}</span>
+                             </td>
+                             <td>
+                                 <span v-if="exchange.source === 'EXCHANGESS'">{{$t('exchange_list.application_exchange')}}</span>
+                                 <span v-if="exchange.source === 'SYSTEM'">{{$t('exchange_list.system_replacement')}}</span>
+                             </td>
+                             <td>
+                                 <span>{{(exchange.awardAmount)}}</span>
+                             </td>
+                             <td>
+                                 <span v-if="exchange.status === 2"><el-tag type="info">{{$t('exchange_list.status_pending')}}</el-tag></span>
+                                 <span v-if="exchange.status === 3"><el-tag type="success">{{$t('exchange_list.status_issued')}}</el-tag></span>
+                                 <span v-if="exchange.status === 4"><el-tag type="danger">{{$t('exchange_list.status_refuse')}}</el-tag></span>
+                             </td>
+
+                         </tr>
+                         </tbody>
+                    </table>
+                </div>
+                <!-- <div class="list_pagination">
+                     <el-pagination
+                         @size-change="handleSizeChange"
+                         @current-change="handleCurrentChange"
+                         :current-page.sync="currentPage"
+                         :page-size="pageSize"
+                         layout="total, prev, pager, next, jumper"
+                         :total="totalSize">
+                     </el-pagination>
+                 </div>-->
+            </div>
+        </div>
     </div>
+
 </template>
 
 <script>
@@ -46,38 +112,51 @@
                     }
                 ],
                 isSSA: false,
-                linkedSSAddr: this.$store.state.userConfig['sharder.HubBindAddress'],
-                sharderAccount: '',
+                linkedSSAddr: "",
+                sharderAccount: "",
                 recipient: "",
+                exchangeOpen: false,
                 exchangeSS: 0,
                 convertible:0,
                 redeemed:0,
                 loadingExchangeSS:false,
+                exchangeSSList:[],
+                lastExchangeTime:"",
+                displayDefault:false
 
             }
         },
         created() {
             let _this = this;
-            let data = new FormData();
-            let ownerLogin = SSO.secretPhrase && _this.linkedSSAddr === SSO.accountRS;
-            if(!ownerLogin){
-                _this.isSSA = true;
-                return;
-            }
-            data.append("ssa", SSO.accountRS);
-            _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
-                _this.isSSA = true;
-                if (res.data.success) {
-                    _this.sharderAccount = res.data.data;
-                    _this.checkExchangeNum();
+            _this.$http.get('/sharder?requestType=getUserConfig', {
+                params: {
+                    random: new Date().getTime().toString()
                 }
-            }).catch(() => {
-                _this.isSSA = true
-            });
-            _this.$http.post(window.api.sharderExchangeRS).then(res => {
-                if (res.data.success) {
-                    _this.recipient = res.data.data;
+            }).then(res => {
+                _this.linkedSSAddr = res.data['sharder.HubBindAddress'];
+                let ownerLogin = typeof(SSO.secretPhrase) !== 'undefined' && res.data['sharder.HubBindAddress'] === SSO.accountRS;
+                if(!ownerLogin){
+                    _this.isSSA = true;
+                    return;
                 }
+                let data = new FormData();
+                data.append("ssa", SSO.accountRS);
+                _this.$http.post(window.api.sharderExchangeSSA, data).then(res => {
+                    _this.isSSA = true;
+                    if (res.data.success) {
+                        _this.sharderAccount = res.data.data;
+                        _this.checkExchangeNum();
+                    }
+                }).catch(() => {
+                    _this.isSSA = true
+                });
+                _this.$http.post(window.api.sharderExchangeRS).then(res => {
+                    if (res.data.success) {
+                        _this.recipient = res.data.data;
+                    }
+                });
+            }).catch(err => {
+                console.log(err);
             });
 
         },
@@ -86,25 +165,21 @@
                 const _this = this;
                 _this.loadingExchangeSS = true;
                 let forgedBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.forgedBalanceNQT);
-                let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);
+                /*let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);*/
                 let exchangeSS = _this.exchangeSS;
                 let data = new FormData();
-                effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));
+               /* effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));*/
                 forgedBalanceNQT = Number(forgedBalanceNQT.substring(0,forgedBalanceNQT.length-2));
                 data.append("accountRS", SSO.accountRS);
                 _this.$http.post(window.api.ssContactAmount, data).then(res => {
+                    _this.exchangeSSList = res.data.exchangeSSList;
+                    _this.lastExchangeTime = res.data.exchangeSSList[0].createDate;
                     return res.data.totalExchangeAmount ?  res.data.totalExchangeAmount : 0;
                 }).then(res=>{
                     exchangeSS = Number(res);
                     _this.redeemed = exchangeSS * 2;
-                    let ConvertibleSS = 0;
-                    if(effectiveBalanceNQT <= forgedBalanceNQT - exchangeSS){
-                        _this.convertible = Math.floor(effectiveBalanceNQT  - exchangeSS);
-                        ConvertibleSS = Math.floor((effectiveBalanceNQT  - exchangeSS)/1000)*1000;
-                    }else{
-                        _this.convertible = Math.floor(forgedBalanceNQT  - exchangeSS);
-                        ConvertibleSS = Math.floor((forgedBalanceNQT  - exchangeSS)/1000)*1000;
-                    }
+                    _this.convertible = Math.floor(forgedBalanceNQT - exchangeSS * 2);
+                    let ConvertibleSS = Math.floor((forgedBalanceNQT - exchangeSS * 2)/1000)*1000;
                     let data1 = {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
                         title: ConvertibleSS / 2 + " SS(ERC-20)",
@@ -112,7 +187,9 @@
                         info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
                     };
 
+
                     if(ConvertibleSS >= 1000){
+                        _this.displayDefault = false;
                         if(_this.exchangeList.length === 2){
                             _this.exchangeList.push(data1);
                         }else{
@@ -120,6 +197,8 @@
                             _this.exchangeList.push(data1);
                         }
 
+                    }else{
+                        _this.displayDefault = true;
                     }
 
                 });
@@ -136,7 +215,10 @@
                     return _this.$message.warning(_this.$t("reward.sharder_binding_acconut"));
                 }
                 if(_this.convertible < 1000){
-                    return _this.$message.warning(_this.$t("reward.exchangeTip"));
+                    return _this.$message.warning(_this.$t("reward.exchange_tip"));
+                }
+                if(new Date() - new Date(_this.lastExchangeTime) < 7*24*3600*1000){
+                    return _this.$message.warning(_this.$t("reward.exchange_time_tip"));
                 }
                 _this.$confirm(e.info, _this.$t("reward.exchange_sharder_account", {account: _this.sharderAccount})).then(() => {
                     _this.sendMoney(e.num)
@@ -257,4 +339,40 @@
             max-width: 100%;
         }
     }
+</style>
+<style lang="scss" type="text/scss">
+    /*@import '~scss_vars';*/
+    @import './style.scss';
+
+    .el-table {
+        th > .cell {
+            background-color: white;
+        }
+
+        .cell {
+            font-size: 13px;
+        }
+    }
+
+    #miner_list .modal-body .el-form .el-form-item .el-form-item__label {
+        color: #99a9bf !important;
+    }
+
+    .testnet-tips {
+        padding: 10px 0 20px 0;
+        font-size: 13px;
+        font-weight: normal;
+        text-align: center;
+    }
+
+
+    .last_block {
+        text-align: left!important;
+        font-size: 12px!important;
+
+        .generator {
+            margin-right: 10px;
+        }
+    }
+
 </style>

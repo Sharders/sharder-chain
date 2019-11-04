@@ -9,37 +9,70 @@
                     {{$t('mining.binding_account.subtitle2')}}
                 </p>
             </div>
-            <div class="info">
-                <p class="title">{{$t('mining.binding_account.description')}}</p>
-                <p>
-                    {{$t('mining.binding_account.description_tip1')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.description_tip2')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.description_tip3')}}
-                </p>
-                <p>{{$t('mining.binding_account.description_tip4')}}</p>
+            <div class="mining-info-div">
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.poc')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.poc_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.poc_tip2')}}
+                    </p>
+
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.sharder_pool')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.sharder_pool_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.sharder_pool_tip2')}}
+                    </p>
+
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.description')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.description_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.description_tip2')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.description_tip3')}}
+                    </p>
+                    <p>{{$t('mining.binding_account.description_tip4')}}</p>
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.tss_description')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.tss_description_tip')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.ss_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.ss_tip2')}}
+                    </p>
+                </div>
+
+                <div class="info">
+                    <p class="title">{{$t('mining.binding_account.tss_acquisition')}}</p>
+                    <p>
+                        {{$t('mining.binding_account.tss_acquisition_tip1')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.tss_acquisition_tip2')}}
+                    </p>
+                    <p>
+                        {{$t('mining.binding_account.tss_acquisition_tip3')}}
+                    </p>
+                </div>
             </div>
-            <div class="info">
-                <p class="title">{{$t('mining.binding_account.tss_description')}}</p>
-                <p>
-                    {{$t('mining.binding_account.tss_description_tip')}}
-                </p>
-            </div>
-            <div class="info">
-                <p class="title">{{$t('mining.binding_account.tss_acquisition')}}</p>
-                <p>
-                    {{$t('mining.binding_account.tss_acquisition_tip1')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.tss_acquisition_tip2')}}
-                </p>
-                <p>
-                    {{$t('mining.binding_account.tss_acquisition_tip3')}}
-                </p>
-            </div>
+
             <div class="btn">
                 <button @click="isBindingAccount('isAccount')">{{$t('mining.binding_account.bind_btn')}}</button>
                 <p>{{$t('mining.binding_account.bind_btn_tip1')}}</p>
@@ -52,15 +85,18 @@
                 <span class="img-close" @click="isBindingAccount('isAccount')"></span>
                 <h1>{{$t('mining.binding_account.bind_address')}}</h1>
                 <p>{{$t('mining.binding_account.bind_address_tip')}}</p>
-                <div class="addr" v-for="account in accountList" @click="radio = account">
-                    <h3>{{$t('mining.binding_account.address')}}{{account.account}}</h3>
-                    <p>
-                        {{$t('mining.binding_account.tss_volume')}}{{account.assets}}
-                    </p>
-                    <span class="radio">
+                <div class="addressListDiv">
+                    <div class="addr" v-for="account in accountList" @click="radio = account">
+                        <h3>{{$t('mining.binding_account.address')}}{{account.account}}</h3>
+                        <p>
+                            {{$t('mining.binding_account.tss_volume')}}{{account.assets}}
+                        </p>
+                        <span class="radio">
                         <el-radio v-model="radio" :label="account">&nbsp;</el-radio>
                     </span>
+                    </div>
                 </div>
+
                 <div class="btn">
                     <button @click="bindingAddr()">{{$t('mining.binding_account.binding_immediately')}}</button>
                 </div>
@@ -104,7 +140,7 @@
                 this[val] = !this[val];
             },
             bindingAddr() {
-                let _this = this;
+                const _this = this;
                 if (_this.radio === '') {
                     return;
                 }
@@ -119,13 +155,20 @@
                     account: _this.radio.account,
                 }, "authorizationLogin").then(value => {
                     // console.info(value.data);
-                    if (!value.success) return;
-                    setTimeout(function () {
-                        _this.binding = "success";
+                    if (!value.success) {
+                        return;
+
+                    }else{
+                        window.parent.postMessage("success","*");
                         setTimeout(function () {
-                            _this.isBindingAccount('isBinding');
+                            _this.binding = "success";
+                            setTimeout(function () {
+                                _this.isBindingAccount('isBinding');
+                            }, 1000);
                         }, 1000);
-                    }, 1000);
+                    }
+
+
                 });
 
             },
@@ -166,14 +209,284 @@
         },
         created() {
             window.token = window.location.search.substring(1 + "token".length);
-            console.info(token);
+            console.info("token:"+token);
 
         }
     }
 </script>
 <style>
-    .account .addr .radio .el-radio__label {
+    .account .addressListDiv .addr .radio .el-radio__label {
         display: none;
+    }
+</style>
+<!--钱包内置兼容-->
+<style>
+    @media (max-width: 640px) {
+        #app .header {
+            display: none;
+        }
+
+        #app .page-layout main {
+            padding-top: 0;
+            width: 100% !important;
+        }
+
+        #app .page-layout main .main-content {
+            width: 100% !important;
+        }
+
+        .mining .el-radio-group {
+            display: none;
+        }
+
+        .mining .mining-content {
+            margin-top: 0;
+            padding: 15px;
+            border-radius: initial;
+            height: 400px;
+            background-position: center 210px;
+        }
+
+        .introduce .mining-info-div{
+            overflow: auto;
+            height: 386px;
+        }
+
+        .mining .mining-list-info .el-row {
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info .el-col.el-col-8 {
+            width: 100%;
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info .grid-content .info {
+            width: 45%;
+        }
+
+        .mining .mining-list-info .grid-content .tag {
+            width: initial !important;
+        }
+
+        .mining .mining-list-info .grid-content .tag img {
+            padding: 0 10px;
+        }
+
+        .mining .mining-content .instructions {
+            display: none;
+        }
+
+        .mining .mining-content .invite-friends,
+        .mining .mining-content .rule-description {
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            padding: 10px 20px;
+            background: #0000ff;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            position: absolute;
+            right: 0;
+            top: 20px;
+            font-size: 14px;
+        }
+
+        .mining .mining-content .rule-description {
+            top: 66px;
+        }
+
+        .mining .mining-content .create {
+            position: absolute;
+            top: 320px;
+            right: 75px;
+            font-size: 13px;
+        }
+
+        .mining .mining-content .create.my-mining {
+            display: initial;
+            right: 15px;
+        }
+
+        .mining .mining-content .create img {
+            width: 45px;
+            height: 45px;
+        }
+
+        .mining .mining-paging {
+            /*display: none;*/
+        }
+
+        .mining .mining-content .assets ul {
+            font-size: 12px;
+        }
+
+        .mining .mining-content .assets .strong {
+            font-size: 13px;
+        }
+
+        .mining .mining-content .assets .strong img {
+            width: 12px;
+            height: 12px;
+            top: 1px;
+        }
+
+        .mining .mining-content .state {
+            top: 110px;
+            width: calc(100% - 30px);
+        }
+
+        .mining .mining-content .state .state-info {
+            font-size: 12px;
+            max-width: 100%;
+        }
+
+        .mining .mining-list .mining-list-img {
+            margin-left: 15px;
+        }
+
+        .ranking-content .ranking-table {
+            font-size: 12px;
+        }
+
+        #chatu {
+            top: 170px !important;
+            animation-name: chatu-mobel !important;
+        }
+
+        @keyframes chatu-mobel {
+            0% {
+                top: 150px;
+            }
+            100% {
+                top: 170px;
+            }
+        }
+
+        .mining .ranking, .mining .create-pool {
+            position: absolute;
+            width: calc(100% - 30px);
+            left: 15px;
+            top: 60px;
+        }
+
+        .mining .create-pool {
+            position: fixed;
+            top: calc(50% - 250px);
+        }
+
+        .mining .create-pool-content .pool-title {
+            padding: 0;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .mining .pool-set .pool-title {
+            color: #333;
+            margin: 0 0 20px 0;
+        }
+
+        .pool-attribute p span {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .pool-attribute p .strong {
+            font-size: 12px;
+            font-weight: initial;
+        }
+
+        .create-pool .pool-header {
+            display: none;
+        }
+
+        .mining .create-pool .pool-attribute, .mining .create-pool .pool-set {
+            padding: 15px;
+            font-size: 12px;
+        }
+
+        .mining .create-pool .pool-set .user-input {
+            width: calc(100% - 90px);
+            font-size: 12px;
+        }
+
+        .mining .create-pool .pool-set .pool-bth {
+            margin: 0;
+        }
+
+        .mining .create-pool .pool-set .pool-bth .immediately-create {
+            width: 100% !important;
+            float: initial;
+        }
+
+        .mining .create-pool .pool-set .pool-bth .cancel {
+            display: none;
+        }
+
+        .mining .menu {
+            display: initial !important;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: calc(100% - 70px);
+            background: #fff;
+        }
+
+        .mining .menu .el-radio-group {
+            display: block;
+        }
+
+        .mining .menu .el-radio-button {
+            width: 50%;
+        }
+
+        .mining .menu .title .el-radio-button__inner {
+            max-width: initial;
+            width: 100%;
+            height: 70px;
+            border: none;
+            outline: none;
+            background-color: initial !important;
+            box-shadow: none;
+            font-size: 15px;
+        }
+
+        .menu .title .btn {
+            background-size: 40px 40px !important;
+        }
+
+        .menu .title .btn.miner {
+            background: url("../../assets/img/index.png") no-repeat center 26px;
+        }
+
+        .menu .title .btn.personal {
+            background: url("../../assets/img/personal.png") no-repeat center 26px;
+        }
+
+        .menu .title .is-active.btn.miner {
+            background: url("../../assets/img/index-1.png") no-repeat center 26px;
+        }
+
+        .menu .title .is-active.btn.personal {
+            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
+        }
+
+        .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
+            color: #513ac8 !important;
+        }
+
+        .mining .mining-list .mining-list-info {
+            padding: 7px 8px 110px 10px;
+        }
+
+        .ranking-table th {
+            height: 30px !important;
+        }
+
+        .ranking-table tr {
+            height: 40px !important;
+        }
     }
 </style>
 <style scoped>
@@ -194,7 +507,7 @@
     }
 
     .binding-account .introduce {
-        position: fixed;
+      /*  position: fixed;*/
         top: 0;
         left: 0;
         right: 0;
@@ -259,7 +572,7 @@
         left: 15px;
         top: 25%;
         background: #fff;
-        overflow: auto;
+        /*overflow: auto;*/
         z-index: 9999;
         border-radius: 4px;
     }
@@ -282,7 +595,12 @@
         padding: 0 0 10px;
     }
 
-    .account .addr {
+    .account .addressListDiv{
+        overflow: auto;
+        max-height: 40%;
+    }
+
+    .account .addressListDiv .addr {
         margin: 0 15px;
         padding: 10px 5px 0;
         border-top: 1px solid #dbe2e8;
@@ -290,11 +608,11 @@
         position: relative;
     }
 
-    .account p + .addr {
+    .account p + .addressListDiv .addr {
         border-bottom: none;
     }
 
-    .account .addr h3 {
+    .account .addressListDiv .addr h3 {
         font-size: 12px;
         font-weight: bold;
         color: #333;
@@ -312,7 +630,7 @@
         border: none;
     }
 
-    .account .addr .radio {
+    .account .addressListDiv .addr .radio {
         position: absolute;
         top: 20px;
         right: 10px;

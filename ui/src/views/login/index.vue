@@ -2,11 +2,15 @@
     <div :class="this.$i18n.locale === 'en'? 'en_login' : ''">
         <div class="content_login">
             <el-radio-group v-model="tabTitle" class="title">
-                <el-radio-button label="key" class="btn">{{$t('login.secret_login')}}</el-radio-button>
+                <el-radio-button label="key" class="btn">
+                    {{$t('login.secret_login')}}
+                </el-radio-button>
                 <el-radio-button label="account" class="btn">{{$t('login.account_login')}}</el-radio-button>
             </el-radio-group>
-
             <el-col :span="24" class="login_operation">
+                <div style="font-size: x-small;color: #5daf34;text-align: left;height: 12px;">
+                    <span v-if="tabTitle === 'key'&& hubBind">{{$t('login.login_binding_hub_account_tip')}}{{hubBindAddress}}</span>
+                </div>
                 <input v-if="tabTitle === 'key'" class="account_input" type="password" v-model="secretPhrase"
                        :placeholder="$t('login.login_placeholder')"/>
                 <masked-input v-if="tabTitle === 'account'" class="secret_key_input" v-model="account"
@@ -32,6 +36,8 @@
                 account: "SSA-____-____-____-_____",
                 type: 1,
                 userConfig: [],
+                hubBindAddress:"",
+                hubBind:false,
                 hubSettingDialog: false,
                 hubsetting: {
                     openPunchthrough: true,
@@ -58,6 +64,8 @@
                 console.log(res, "getUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfig");
                 _this.$store.state.isHubInit = res["sharder.HubBindAddress"] ? false : true;
                 _this.$store.state.userConfig = res;
+                _this.hubBind = res["sharder.HubBind"];
+                _this.hubBindAddress = res["sharder.HubBindAddress"];
                 _this.autoLogin(res);
             });
 
