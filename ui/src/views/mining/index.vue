@@ -1083,7 +1083,9 @@
         font-size: 11px;
         top: 0px;
     }
-
+    .el-select-dropdown__item{
+        font-size: 11px;
+    }
     .mining-notice .notice-img {
         width: 18px;
         height: 18px;
