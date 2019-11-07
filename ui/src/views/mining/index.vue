@@ -8,73 +8,73 @@
         </el-radio-group>
         <!--豆匣矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'" class="mining-page">
-            <div class="mining-content">
-                <img src="../../assets/img/chatu.png" id="chatu">
-                <div class="assets">
-                    <ul>
-                        <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
-                            {number:newestBlock.height})}}
-                        </li>
-                        <li class="myAddressLi">{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
-                        </li>
-                        <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
-                        </li>
-                        <li>
-                            {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
-                        </li>
-                        <li class="strong" id="viewRankingId">
-                            <img src="../../assets/img/kuangchii_chakan.png">
-                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
-                            <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="state">
-                    <div class="state-info">
-                        <span>{{$t('mining.attribute.mining')}}</span><br/>
-                        <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
+            <div class="pool-top">
+                <div class="mining-content">
+                    <img src="../../assets/img/chatu.png" id="chatu">
+                    <div class="assets">
+                        <ul>
+                            <li>{{$t('mining.index.net_mining')}}{{$t('mining.index.net_mining_number',
+                                {number:newestBlock.height})}}
+                            </li>
+                            <li class="myAddressLi">{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
+                            </li>
+                            <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
+                            </li>
+                            <li>
+                                {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
+                            </li>
+                            <li class="strong" id="viewRankingId">
+                                <img src="../../assets/img/kuangchii_chakan.png">
+                                <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                                <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="state">
+                        <div class="state-info">
+                            <span>{{$t('mining.attribute.mining')}}</span><br/>
+                            <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
+                        </div>
+                    </div>
+                    <div class="instructions" @click="$router.push({name: 'rule-description'})">
+                        {{$t('mining.index.mining_description')}}
+                    </div>
+                    <!--<div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
+                        {{$t('mining.index.join_friends')}}
+                    </div>-->
+                    <div class="invite-friends" @click="$router.push({name: 'rule-description'})">
+                        {{$t('mining.index.rule_description')}}
+                    </div>
+                    <div class="rule-description">
+                        <ul>
+                            <li class="strong">
+                                <img src="../../assets/img/kuangchii_chakan.png" style="height: 13px">
+                                <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
+                                <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!--<div class="my-mining create" @click="$router.push({name: 'my-mining'})">
+                        <img src="../../assets/img/wodekuangchi.png">
+                        <p>{{$t('mining.index.my_pool')}}</p>
+                    </div>-->
+                    <div class="my-mining create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
+                        <img src="../../assets/img/chuanjiankuangchi.png">
+                        <p>{{$t('mining.index.create_pool')}}</p>
                     </div>
                 </div>
-                <div class="instructions" @click="$router.push({name: 'rule-description'})">
-                    {{$t('mining.index.mining_description')}}
-                </div>
-                <!--<div class="invite-friends" @click="$router.push({name: 'invite-friends'})">
-                    {{$t('mining.index.join_friends')}}
-                </div>-->
-                <div class="invite-friends" @click="$router.push({name: 'rule-description'})">
-                    {{$t('mining.index.rule_description')}}
-                </div>
-                <div class="rule-description">
-                    <ul>
-                        <li class="strong">
-                            <img src="../../assets/img/kuangchii_chakan.png" style="height: 13px">
-                            <!--<span @click="isVisible('isRanking')">{{$t('mining.index.view_ranking')}}</span>-->
-                            <span @click="isVisibleRanking('isRanking')">{{$t('mining.index.view_ranking')}}</span>
-                        </li>
-                    </ul>
-                </div>
-                <!--<div class="my-mining create" @click="$router.push({name: 'my-mining'})">
-                    <img src="../../assets/img/wodekuangchi.png">
-                    <p>{{$t('mining.index.my_pool')}}</p>
-                </div>-->
-                <div class="my-mining create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
-                    <img src="../../assets/img/chuanjiankuangchi.png">
-                    <p>{{$t('mining.index.create_pool')}}</p>
-                </div>
-            </div>
-            <div class="mining-notice">
-                <img src="../../assets/img/guangbo.png" class="notice-img">
-                <span class="notice-info">
+                <div class="mining-notice">
+                    <img src="../../assets/img/guangbo.png" class="notice-img">
+                    <span class="notice-info">
                     {{$t('mining.index.mineral') + $t('mining.index.net_mining_number',{number:newestBlock.height})}} |
                     {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getSSNumberFormat(newBlockReward)}}
                 </span>
-            </div>
-            <div class="mining-list">
+                </div>
                 <div class ="sort_type">
                     <div class="list-title">
                         <img src="../../assets/img/miner.svg" class="mining-list-img">
                         <span>{{$t('mining.index.pool_list')}}</span>
-<!--                        <span>{{$t('mining.index.pool_list_block')}}</span>-->
+                        <!--                        <span>{{$t('mining.index.pool_list_block')}}</span>-->
                     </div>
                     <el-select v-model="sortFun" v-if="miningList.length > 0">
                         <el-option
@@ -97,6 +97,8 @@
                         </el-pagination>
                     </div>
                 </div>
+            </div>
+            <div class="mining-list">
                 <div class="mining-list-info" v-loading="loading" id = "miningListInfoId">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
@@ -945,7 +947,7 @@
 
 </style>
 <!--豆匣矿场-->
-<style scoped>
+<style>
 
     .mining-content {
         position: relative;
@@ -1055,6 +1057,32 @@
         border-bottom-left-radius: 6px;
         border-bottom-right-radius: 6px;
     }
+    .mining-page .pool-top .sort_type{
+        display: flex;
+        padding: 8px 0px;
+    }
+    .mining-page .pool-top .sort_type .list-title img{
+        width: 20px;
+        height: 20px;
+        vertical-align: sub;
+    }
+    .mining-page .pool-top .sort_type .list-title {
+        padding: 8px 0px;
+        font-size: 16px;
+    }
+    .mining-page .pool-top .sort_type .el-select{
+        padding-left: 8px;
+    }
+    .mining-page .pool-top .sort_type .el-select .el-input__inner {
+        height: 28px;
+        line-height: 0px;
+        padding: 0 8px;
+    }
+
+    .mining-page .pool-top .sort_type .el-select .el-input .el-select__caret {
+        font-size: 11px;
+        top: 0px;
+    }
 
     .mining-notice .notice-img {
         width: 18px;
@@ -1160,12 +1188,11 @@
     }
     .mining-paging2 {
         display: none;
-        z-index: 99;
-        float: right;
-        margin-top: 13px;
-       /* margin-right: 5px;*/
-        /*  margin-top:  5px;
-         margin-bottom: 5px;*/
+        z-index: 1;
+        position: fixed;
+        right: 3px;
+        margin-right: 3px;
+        margin-top: 5px;
     }
 
     .mining-paging1 > div {
@@ -1541,28 +1568,58 @@
         .mining .title .el-radio-button__inner {
             padding: 50px;
         }
+        .mining .pool-top{
+            position: fixed;
+            top: -2px;
+            width: 100%;
+            z-index: 1;
+        }
         .mining .mining-content {
-            margin-top: 0;
+            margin-top: -2px;
             padding: 15px;
             border-radius: initial;
             height: 290px;
             background-position: center 135px;
         }
 
+
         .mining-content .assets .myAddressLi{
             display: block;
         }
-        .mining-list .sort_type .list-title {
-            font-size: 11px;
+        .mining .mining-page{
+            width: 100%;
+            height: 100%;
         }
-
-        .mining-list .el-select .el-input__inner {
-            height: 25px;
+        .mining .mining-list{
+            margin-top: 365px;
+        }
+        .mining-page .pool-top .sort_type{
+            display: flex;
+            background-color: #edeff5;
+            border-bottom-width: 1px;
+            border: #999999;
+            padding: 8px 5px;
+        }
+        .mining-page .pool-top .sort_type .list-title img{
+            width: 13px;
+            height: 13px;
+            vertical-align: sub;
+        }
+        .mining-page .pool-top .sort_type .list-title {
+            padding: 8px 0px;
+            font-size: 12px;
+        }
+        .mining-page .pool-top .sort_type .el-select{
+            padding-left: 0px;
+        }
+        .mining-page .pool-top .sort_type .el-select .el-input__inner {
+            height: 20px;
             line-height: 0px;
             padding: 0 8px;
         }
-        .mining-list .el-select .el-input .el-select__caret {
+        .mining-page .pool-top .sort_type .el-select .el-input .el-select__caret {
             font-size: 11px;
+            top: 0px;
         }
 
         .mining .mining-list-info .el-row {
@@ -1793,8 +1850,7 @@
 
         .mining .mining-list .mining-list-info {
             padding: 4px 8px 65px 10px;
-            overflow: auto;
-            height: 300px;
+
         }
 
         .ranking-table th {
