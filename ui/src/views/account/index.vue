@@ -404,7 +404,7 @@
                         <el-input v-model="registerSharderSiteUser.sharderAccountPhoneOrEmail" ></el-input>
                     </el-form-item>
                     <el-form-item :label="$t('hubsetting.verification_code')" v-if="hubsetting.registerSiteAccount">
-                        <el-input v-model="registerSharderSiteUser.verificationCode" ></el-input><el-button type="primary" style="position: absolute;right:0px;top:0px " @click="sendVCode()" :disabled="sendSuccess">
+                        <el-input v-model="registerSharderSiteUser.verificationCode" ></el-input><el-button type="primary" style="position: absolute;right:0px;top:0px " @click="sendVCode()" 0>
                         {{sendSuccess?time+"s 可"+$t('hubsetting.resend_verification_code'):$t('hubsetting.send_verification_code')}}
                     </el-button>
                     </el-form-item>
@@ -417,8 +417,9 @@
                     <el-form-item :label="$t('hubsetting.picture_verification_code')"  v-if="hubsetting.registerSiteAccount">
                         <el-input v-model="registerSharderSiteUser.pictureVerificationCode" @blur="checkPicVerificationCode"></el-input>
                         <el-image :src="src" style="width:112px;height:38px;position: absolute;right:1px;top:1px " @click="getPicVCode()">
-                            <div slot="placeholder" class="image-slot">
-                                加载中<span class="dot">...</span>
+                            <div slot="error"  >
+                                <el-image   :lazy="true"  fit="cover"  src="../../assets/img/error.svg">
+                                </el-image>
                             </div>
                         </el-image>
                     </el-form-item>
@@ -1080,7 +1081,7 @@
 
                 _this.$global.sendVerifyCode(requestUrl,sharderAccount,function(res){
                     if(res.success){
-                        _this.$message.warning(_this.$t('mining.binding_validation.verification_tip1')+sharderAccount+","+_this.$t('mining.binding_validation.verification_tip1'));
+                        _this.$message.warning(_this.$t('mining.binding_validation.verification_tip1')+sharderAccount);
                     }
 
                 });
@@ -2528,10 +2529,10 @@
                 2. using secretPhrase to login；
                 3. NodeType is Hub。
                 */
-                return this.secretPhrase
+                /*return this.secretPhrase
                     && this.initHUb
-                    && this.userConfig.nodeType === 'Hub';
-                /*return true;*/
+                    && this.userConfig.nodeType === 'Hub';*/
+                return true;
             },
             whetherShowUseNATServiceBtn() {
                 /*

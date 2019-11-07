@@ -84,5 +84,33 @@ public class AccountTest extends BaseTest {
 //        accountInfoPrint(secretPhrase);
 //        accountSignInfo(secretPhrase);
 //        getAccountInfoViaBindRS("SSA-EF9Z-8J9G-LLHC-9VU5U");
+         Object[] arr = {};
+         int[] ia1 = {1,2,3};
+         int[] ia2 = {1,2};
+
+         int r= 0;
+         for (int i:ia1){
+             boolean f = false;
+             try {
+                 for (int j:ia2){
+                     if (j==i){
+                         f=true;
+                         break;
+                     }
+                 }
+             }catch (Exception e){
+                 System.out.println("catch:"+e);
+             }finally {
+                 if (f){
+                     continue;
+                 }
+                 r++;
+                 System.out.println("r:"+r);
+             }
+
+             System.out.println("rl:"+r);
+         }
+
+
     }
 }
