@@ -115,7 +115,7 @@
                 linkedSSAddr: "",
                 sharderAccount: "",
                 recipient: "",
-                exchangeOpen: false,
+                exchangeOpen: true,
                 exchangeSS: 0,
                 convertible:0,
                 redeemed:0,

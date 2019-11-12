@@ -681,7 +681,7 @@ export default {
         let option = {
             geo: {
                 map: "world",
-                silent: true,
+                silent: false,
                 label: {
                     emphasis: {
                         show: true,
