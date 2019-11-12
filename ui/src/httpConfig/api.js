@@ -11,7 +11,7 @@ function getUrl() {
     if (window.location.port === '4000') {
         return SERVER_API_DEV;
     } else {
-        return SERVER_API_TEST;
+        return "";
     }
 }
 
