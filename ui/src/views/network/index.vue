@@ -433,24 +433,10 @@
             },
             drawPeerMap(){
                 const _this = this;
-                _this.$global.fetch("GET", {}, "getPeers").then(res => { 
+                _this.$global.fetch("GET", {startThis:"startThis"}, "getPeers").then(res => {
+                    console.log(res.coordinates);
                     _this.peerNum = res.peers.length;
-                    let cachedPeerNum = localStorage.getItem('peerNum');
-
-                    // first time or peer numbers changed
-                    let fetchCoordinates = (cachedPeerNum === null || cachedPeerNum === "" || undefined === cachedPeerNum) 
-                                          || cachedPeerNum != _this.peerNum
-                                          || this.$global.coordinatesMap === null || undefined === this.$global.coordinatesMap;
-                    if (fetchCoordinates) {
-                        localStorage.setItem('peerNum', _this.peerNum);
-                        _this.fetchCoordinates = true;
-                        return _this.$global.byIPtoCoordinates(res.peers);
-                    } 
-                }).then(res => {
-                    if(_this.fetchCoordinates) {
-                        this.$global.coordinatesMap = JSON.parse(res);
-                        // console.info(this.$global.coordinatesMap);
-                    }
+                    this.$global.coordinatesMap = JSON.parse(res.coordinates);
                     return _this.$global.drawPeers();
                 }).catch(err => {
                     console.info("error", err);
@@ -495,7 +481,8 @@
                     name: "peers",
                     params: {
                         peersLocationList: this.peersLocationList,
-                        peersTimeList: this.peersTimeList
+                        peersTimeList: this.peersTimeList,
+                        minerList:this.minerlist
                     }
                 });
             },

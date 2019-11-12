@@ -267,6 +267,7 @@
                 loading: false,
                 peersLocationList: this.$route.params.peersLocationList,
                 peersTimeList: this.$route.params.peersTimeList,
+                minerList: this.$route.params.minerList,
             };
         },
         created: function () {
@@ -275,9 +276,17 @@
         },
         methods: {
             init: function (peersList) {
-                this.peersList = peersList;
-                this.totalSize = peersList.length;
-                this.getPeersInfo(peersList);
+                const _this = this;
+                _this.peersList = peersList;
+                _this.totalSize = peersList.length;
+                _this.getPeersInfo(peersList);
+                _this.activeHubCount = 0;
+                _this.activePeersCount = _this.minerList.length;
+                _this.minerList.forEach(function (item) {
+                    if (item.bindPeerType === "Sharder Hub") {
+                        _this.activeHubCount++;
+                    }
+                });
             },
             openBlackDialog: function (address) {
                 let _this = this;
@@ -330,16 +339,6 @@
             getPeersInfo: function (data) {
                 let _this = this;
                 _this.peersCount = data.length;
-                _this.activeHubCount = 0;
-                _this.activePeersCount = 0;
-                data.forEach(function (item) {
-                    if (item.platform === "Sharder Hub") {
-                        _this.activeHubCount++;
-                    }
-                    if (item.state === 1) {
-                        _this.activePeersCount++;
-                    }
-                });
             },
             addPeer: function (address, adminPassword) {
                 let _this = this;
