@@ -4,10 +4,8 @@ const SERVER_API = "http://localhost:7215";
 // const SERVER_API_DEV = "http://localhost:8215";
 // const SERVER_API_TEST = "http://localhost:8215";
 const SERVER_API_DEV = "http://localhost:9215";
-//const SERVER_API_DEV = "http://testna.sharder.io:7215";
-const SERVER_API_TEST = "http://localhost:9215";
+const SERVER_API_TEST = "http://localhost:7215";
 const SHARDER_URL = process.env.NODE_ENV === 'development' ? "http://localhost:8080" : "https://sharder.org";
-//const SHARDER_URL = "https://sharder.org";
 
 function getUrl() {
     if (window.location.port === '4000') {
