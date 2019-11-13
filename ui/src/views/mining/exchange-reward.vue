@@ -213,7 +213,7 @@
             exchangeFun(e) {
                 let _this = this;
                 console.info(SSO.accountInfo);
-                if (_this.exchangeSS + e.num > SSO.accountInfo.forgedBalanceNQT) {
+                if (_this.exchangeSS + e.num > _this.forgedBalanceNQT) {
                     return _this.$message.warning(_this.$t("reward.miner_acconut"));
                 }
                 if (!_this.sharderAccount) {
