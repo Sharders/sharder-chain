@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <div class="block_network mb20">
+            <div class="block_network mb20" v-loading="loading">
                 <p class="block_title">
                     <img src="../../assets/img/network.svg"/>
                     <span>{{$t('network.network_title')}}</span>
@@ -23,7 +23,7 @@
                     </div>
                 </div>
             </div>
-            <div class="block_peers mb20 fl">
+            <div class="block_peers mb20 fl" v-loading="loading">
                 <p>
                     <span class="block_title fl">
                         <img src="../../assets/img/miner.svg"/>
@@ -92,7 +92,7 @@
                     </div>
                 </div>
             </div>
-            <div class="block_peers mb20 fr">
+            <div class="block_peers mb20 fr" v-loading="loading">
                 <p>
                     <span class="block_title fl">
                         <img src="../../assets/img/peerlist.svg"/>
