@@ -1,5 +1,5 @@
 <template>
-    <div class="exchange" >
+    <div class="exchange">
         <div class="exchange-header">
             <h1>{{$t('mining.diamond_exchange.diamond_exchange_title')}}</h1>
             <p v-show="isSSA">
@@ -119,6 +119,7 @@
                 exchangeSS: 0,
                 convertible:0,
                 redeemed:0,
+                forgedBalanceNQT:0,
                 loadingExchangeSS:false,
                 exchangeSSList:[],
                 lastExchangeTime:"",
@@ -128,6 +129,10 @@
         },
         created() {
             let _this = this;
+            _this.getAccount(SSO.accountRS).then(res => {
+                _this.forgedBalanceNQT = res.forgedBalanceNQT;
+
+            });
             _this.$http.get('/sharder?requestType=getUserConfig', {
                 params: {
                     random: new Date().getTime().toString()
@@ -164,7 +169,7 @@
             checkExchangeNum(){
                 const _this = this;
                 _this.loadingExchangeSS = true;
-                let forgedBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.forgedBalanceNQT);
+                let forgedBalanceNQT = _this.$global.getSSNumberFormat(_this.forgedBalanceNQT);
                 /*let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);*/
                 let exchangeSS = _this.exchangeSS;
                 let data = new FormData();
@@ -255,6 +260,24 @@
                     }
                     _this.checkExchangeNum();
                     _this.loadingExchangeSS = false;
+                });
+            },
+            getAccount(account) {
+                const _this = this;
+                return new Promise((resolve, reject) => {
+                    _this.$http.get('/sharder?requestType=getAccount', {
+                        params: {
+                            account: account,
+                            includeLessors: true,
+                            includeAssets: true,
+                            includeEffectiveBalance: true,
+                            includeCurrencies: true,
+                        }
+                    }).then(function (res) {
+                        resolve(res.data);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 });
             },
         }
