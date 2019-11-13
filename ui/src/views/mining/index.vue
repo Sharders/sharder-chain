@@ -1852,6 +1852,8 @@
 
         .mining .mining-list .mining-list-info {
             padding: 4px 8px 65px 10px;
+            height: calc(100% - 470px);
+            overflow-y: scroll;
 
         }
 

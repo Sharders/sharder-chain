@@ -281,11 +281,12 @@
                 _this.totalSize = peersList.length;
                 _this.getPeersInfo(peersList);
                 _this.activeHubCount = 0;
-                _this.activePeersCount = _this.minerList.length;
+                _this.activePeersCount = 0;
                 _this.minerList.forEach(function (item) {
                     if (item.bindPeerType === "Sharder Hub") {
                         _this.activeHubCount++;
                     }
+                    _this.activePeersCount++;
                 });
             },
             openBlackDialog: function (address) {
