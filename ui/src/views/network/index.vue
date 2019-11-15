@@ -15,7 +15,7 @@
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_avg_transaction_volume')}}</p>
-                        <p><span>{{averageAmount}}</span></p>
+                        <p><span>{{averageAmount === 0 ? 1:averageAmount}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_peers_volume')}}</p>
