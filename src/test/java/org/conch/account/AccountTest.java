@@ -83,7 +83,7 @@ public class AccountTest extends BaseTest {
 //        String secretPhrase = getSpFromConsole();
 //        accountInfoPrint(secretPhrase);
 //        accountSignInfo(secretPhrase);
-//        getAccountInfoViaBindRS("SSA-EF9Z-8J9G-LLHC-9VU5U");
+//        getAccountInfoViaBindRS("CDW-EF9Z-8J9G-LLHC-9VU5U");
          Object[] arr = {};
          int[] ia1 = {1,2,3};
          int[] ia2 = {1,2};

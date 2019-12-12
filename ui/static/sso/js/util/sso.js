@@ -481,7 +481,7 @@ var Sso = (function (NRS, $, undefined) {
                 // has to be enabled by activating this code on the specific widget
                 /*$("[data-toggle='tooltip']").tooltip();
 
-                $("#dgs_search_account_center").mask("SSA-****-****-****-*****");
+                $("#dgs_search_account_center").mask("CDW-****-****-****-*****");
                 NRS.logConsole("done initialization");
                 if (NRS.getUrlParameter("account")) {
                     NRS.login(false, NRS.getUrlParameter("account"));
@@ -1905,7 +1905,7 @@ var Sso = (function (NRS, $, undefined) {
         var id = $.trim($("#id_search").find("input[name=q]").val());
 
         // if (/NXT\-/i.test(id)) {
-        if (/SSA\-/i.test(id)) {
+        if (/CDW\-/i.test(id)) {
             NRS.sendRequest("getAccount", {
                 "account": id
             }, function (response, input) {

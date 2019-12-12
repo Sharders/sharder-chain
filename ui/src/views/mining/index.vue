@@ -492,7 +492,7 @@
                 });
             },
             poolOwnerRs(rs) {
-                if (rs != null && rs.indexOf("SSA-") != -1) {
+                if (rs != null && rs.indexOf("CDW-") != -1) {
                     return rs.substring(4);
                 }
                 return "";

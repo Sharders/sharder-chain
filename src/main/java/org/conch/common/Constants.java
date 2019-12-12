@@ -243,7 +243,7 @@ public final class Constants {
     public static final long SHUFFLING_DEPOSIT_NQT = (isTestnetOrDevnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
-    public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix，SSA: Sharder Storage Account
+    public static final String ACCOUNT_PREFIX = "CDW-"; //account prefix，SSA: Sharder Storage Account
 
     //chain begin time
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
