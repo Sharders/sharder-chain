@@ -39,7 +39,7 @@ import java.util.Set;
 public enum CurrencyType {
 
     /**
-     * Can be exchanged from/to CDWH<br>
+     * Can be exchanged from/to MWFS<br>
      */
     EXCHANGEABLE(0x01) {
 
@@ -272,7 +272,7 @@ public enum CurrencyType {
 
     private static void validate(Currency currency, int type, Transaction transaction) throws ConchException.ValidationException {
         if (transaction.getAmountNQT() != 0) {
-            throw new ConchException.NotValidException("Currency transaction CDWH amount must be 0");
+            throw new ConchException.NotValidException("Currency transaction MWFS amount must be 0");
         }
 
         final EnumSet<CurrencyType> validators = EnumSet.noneOf(CurrencyType.class);

@@ -1261,7 +1261,7 @@ public final class Account {
         return getEffectiveBalanceSS(Conch.getHeight());
     }
     /**
-     * return the effective balance in the unit CDWH
+     * return the effective balance in the unit MWFS
      * @param height
      * @return
      */

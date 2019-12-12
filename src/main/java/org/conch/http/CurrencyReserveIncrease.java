@@ -32,7 +32,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Increase the value of currency units by paying CDWH
+ * Increase the value of currency units by paying MWFS
  * <p>
  * Parameters
  * <ul>

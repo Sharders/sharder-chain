@@ -69,8 +69,8 @@ function integer(message) {
 }
 
 /**
- * 校验CDWH地址 validate CDWH address
- * @param m1 CDWH Address Format Error
+ * 校验MWFS地址 validate MWFS address
+ * @param m1 MWFS Address Format Error
  * @param m2 Required
  * @returns {{validator: validator, required: boolean}}
  */
@@ -83,7 +83,7 @@ function ssAddress(m1, m2) {
                 if (reg.test(value)) {
                     callback();
                 } else {
-                    callback(new Error(m1 ? m1 : 'CDWH Address Format Error'));
+                    callback(new Error(m1 ? m1 : 'MWFS Address Format Error'));
                 }
             } else {
                 callback(new Error(m2 ? m2 :'Required'));

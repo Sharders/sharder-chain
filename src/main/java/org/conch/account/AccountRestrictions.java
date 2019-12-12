@@ -133,7 +133,7 @@ public final class AccountRestrictions {
 
         private void checkTransaction(Transaction transaction, boolean validatingAtFinish) throws ConchException.AccountControlException {
             if (!validatingAtFinish && maxFees > 0 && Math.addExact(transaction.getFeeNQT(), PhasingPoll.getSenderPhasedTransactionFees(transaction.getSenderId())) > maxFees) {
-                throw new ConchException.AccountControlException(String.format("Maximum total fees limit of %f CDWH exceeded", ((double)maxFees)/Constants.ONE_SS));
+                throw new ConchException.AccountControlException(String.format("Maximum total fees limit of %f MWFS exceeded", ((double)maxFees)/Constants.ONE_SS));
             }
             if (transaction.getType() == TransactionType.Messaging.PHASING_VOTE_CASTING) {
                 return;

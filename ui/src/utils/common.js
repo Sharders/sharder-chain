@@ -18,7 +18,7 @@ export default {
     coordinatesMap: null,
     $vue: {},
     placeholder: "--",
-    unit: " CDWH",
+    unit: " MWFS",
     poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
     optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
     sendVerifyCode(url,username, fun) {
@@ -938,7 +938,7 @@ export default {
         return this.placeholder
     },
     /**
-     * 格式化CDWH数量 + "CDWH"
+     * 格式化MWFS数量 + "MWFS"
      * @param num
      * @param f
      * @returns {string}

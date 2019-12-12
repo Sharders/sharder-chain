@@ -1100,7 +1100,7 @@ final public class TransactionImpl implements Transaction {
             int blockchainHeight = Conch.getBlockchain().getHeight();
             long minimumFeeNQT = getMinimumFeeNQT(blockchainHeight);
             if (feeNQT < minimumFeeNQT) {
-                throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f CDWH less than minimum fee %f CDWH at height %d",
+                throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f MWFS less than minimum fee %f MWFS at height %d",
                         ((double) feeNQT) / Constants.ONE_SS, ((double) minimumFeeNQT) / Constants.ONE_SS, blockchainHeight));
             }
             if (blockchainHeight > Constants.FXT_BLOCK && ecBlockId != 0) {

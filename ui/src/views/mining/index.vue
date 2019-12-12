@@ -112,7 +112,7 @@
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
-                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} CDWH</p>
+                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} MWFS</p>
                                     <el-progress
                                         :percentage="(getPoolInvestmentAmount(mining))/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
@@ -160,7 +160,7 @@
 
 
         </div>
-        <!--免费领CDWH-->
+        <!--免费领MWFS-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
                 <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
@@ -170,7 +170,7 @@
                 </p>
             </div>
         </div>
-        <!--CDWH兑换-->
+        <!--MWFS兑换-->
         <div v-if="tabTitle === 'exchange'">
             <ExchangeReward></ExchangeReward>
         </div>
@@ -228,7 +228,7 @@
                 <div class="determine" @click="setAccountInfo()">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
-        <!--TCDWH说明-->
+        <!--TMWFS说明-->
         <div v-if="isTSS">
             <div class="tss">
                 <h1>{{$t('mining.index.tss_address_tile')}}</h1>
@@ -1249,7 +1249,7 @@
         margin-top: 5px;
     }
 </style>
-<!--免费领CDWH-->
+<!--免费领MWFS-->
 <style scoped>
     .receive .receive-qr-img {
         width: 160px;
@@ -1264,7 +1264,7 @@
         font-size: 14px;
     }
 </style>
-<!--CDWH兑换-->
+<!--MWFS兑换-->
 <style scoped>
     .reward .reward-title {
         margin-top: 10px;
@@ -1962,7 +1962,7 @@
         }
     }
 </style>
-<!--TCDWH兑换-->
+<!--TMWFS兑换-->
 <style>
     @media (max-width: 640px) {
         .mining .tss {

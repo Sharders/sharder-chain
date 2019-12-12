@@ -2514,7 +2514,7 @@
                 1. sharder.HubBindAddress has value；
                 2. using secretPhrase to login；
                 3. NodeType is Hub；
-                4. Hub bind CDWH address must equals to user account address。
+                4. Hub bind MWFS address must equals to user account address。
                 */
                 return this.secretPhrase
                     && !this.initHUb

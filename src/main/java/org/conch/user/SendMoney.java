@@ -106,7 +106,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
 
             JSONObject response = new JSONObject();
             response.put("response", "notifyOfIncorrectTransaction");
-            response.put("message", "\"Fee\" must be at least 1 CDWH!");
+            response.put("message", "\"Fee\" must be at least 1 MWFS!");
             response.put("recipient", recipientValue);
             response.put("amountSS", amountValue);
             response.put("feeSS", feeValue);
