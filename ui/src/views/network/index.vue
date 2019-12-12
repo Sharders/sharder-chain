@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <div class="block_network mb20">
+            <div class="block_network mb20" v-loading="loading">
                 <p class="block_title">
                     <img src="../../assets/img/network.svg"/>
                     <span>{{$t('network.network_title')}}</span>
@@ -15,7 +15,7 @@
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_avg_transaction_volume')}}</p>
-                        <p><span>{{averageAmount}}</span></p>
+                        <p><span>{{averageAmount === 0 ? 1:averageAmount}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_peers_volume')}}</p>
@@ -23,7 +23,7 @@
                     </div>
                 </div>
             </div>
-            <div class="block_peers mb20 fl">
+            <div class="block_peers mb20 fl" v-loading="loading">
                 <p>
                     <span class="block_title fl">
                         <img src="../../assets/img/miner.svg"/>
@@ -92,7 +92,7 @@
                     </div>
                 </div>
             </div>
-            <div class="block_peers mb20 fr">
+            <div class="block_peers mb20 fr" v-loading="loading">
                 <p>
                     <span class="block_title fl">
                         <img src="../../assets/img/peerlist.svg"/>

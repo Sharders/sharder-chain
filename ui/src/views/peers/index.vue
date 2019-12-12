@@ -14,7 +14,7 @@
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('peers.active_hub')}}</p>
-                        <p><span>{{activeHubCount}}</span></p>
+                        <p><span v-loading="minerList?  false:true">{{activeHubCount}}</span></p>
                     </div>
                     <div class="block_blue radius_blue">
                         <p>{{$t('peers.active_peers')}}</p>
@@ -281,12 +281,12 @@
                 _this.totalSize = peersList.length;
                 _this.getPeersInfo(peersList);
                 _this.activeHubCount = 0;
-                _this.activePeersCount = _this.minerList.length;
                 _this.minerList.forEach(function (item) {
                     if (item.bindPeerType === "Sharder Hub") {
                         _this.activeHubCount++;
                     }
                 });
+
             },
             openBlackDialog: function (address) {
                 let _this = this;
@@ -339,6 +339,13 @@
             getPeersInfo: function (data) {
                 let _this = this;
                 _this.peersCount = data.length;
+                _this.activePeersCount = 0;
+                data.forEach(function (item) {
+                    if (item.application === 'COS') {
+                        _this.activePeersCount++;
+                    }
+                });
+
             },
             addPeer: function (address, adminPassword) {
                 let _this = this;

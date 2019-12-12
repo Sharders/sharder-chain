@@ -99,7 +99,7 @@
                 </div>
             </div>
             <div class="mining-list">
-                <div class="mining-list-info" v-loading="loading" id = "miningListInfoId">
+                <div :class="selectCss" v-loading="loading" id = "miningListInfoId">
                     <el-row :gutter="10">
                         <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
@@ -359,6 +359,7 @@
                 maxPoolInvestment: 0,
                 maxPoolsNum: 1000,
                 maxForgeTime: 1 * 60 * 60,
+                selectCss:'mining-list-info',
                 options: [
                     {
                         value: 'default',
@@ -421,8 +422,13 @@
         },
         created(){
             let _this = this;
+            let platform = navigator.userAgent;
+            if (platform.indexOf("iPhone") != -1) {
+                _this.selectCss = 'mining-list-info1';
+            }else {
+                _this.selectCss = 'mining-list-info';
+            }
             _this.miningList = [];
-
             if (!_this.$store.state.isLogin) {
                 window.token = window.location.search.substring(1 + "token".length);
                 console.info("token", token);
@@ -1645,6 +1651,27 @@
             padding: 0 10px;
         }
 
+        .mining .mining-list-info1 .el-row {
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info1 .el-col.el-col-8 {
+            width: 100%;
+            padding: 0 !important;
+        }
+
+        .mining .mining-list-info1 .grid-content .info {
+            width: 45%;
+        }
+
+        .mining .mining-list-info1 .grid-content .tag {
+            width: initial !important;
+        }
+
+        .mining .mining-list-info1 .grid-content .tag img {
+            padding: 0 10px;
+        }
+
         .mining .mining-content .instructions {
             display: none;
         }
@@ -1852,6 +1879,11 @@
 
         .mining .mining-list .mining-list-info {
             padding: 4px 8px 65px 10px;
+        }
+        .mining .mining-list .mining-list-info1 {
+            padding: 4px 8px 0px 10px;
+            height: 300px;
+            overflow-y: scroll;
 
         }
 

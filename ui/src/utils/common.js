@@ -692,6 +692,9 @@ export default {
                     normal: {
                         borderWidth: 1,
                         borderColor: "#fff"
+                    },
+                    emphasis: {
+                        areaColor: '#FF6C40'
                     }
                 },
                 left: 0,
