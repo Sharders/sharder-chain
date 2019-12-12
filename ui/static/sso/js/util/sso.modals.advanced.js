@@ -190,11 +190,11 @@ var NRS = (function(NRS, $, undefined) {
 		$elems.find('input').prop("disabled", true);
 
 		context = {
-			labelText: "Amount SS",
+			labelText: "Amount CDWH",
 			labelI18n: "amount_nxt",
 			helpI18n: "approve_transaction_amount_help",
 			inputName: "phasingQuorumNXT",
-			addonText: "SS",
+			addonText: "CDWH",
 			addonI18n: "nxt_unit"
 		};
 		$elems = NRS.initModalUIElement($modal, '.approve_transaction_amount_nxt', 'simple_input_with_addon_modal_ui_element', context);
@@ -262,7 +262,7 @@ var NRS = (function(NRS, $, undefined) {
 			addonI18n: ""
 		};
 		context['inputName'] = 'phasingMinBalanceNXT';
-		context['addonText'] = 'SS';
+		context['addonText'] = 'CDWH';
 		context['addonI18n'] = 'nxt_unit';
 		$elems = NRS.initModalUIElement($modal, '.approve_min_balance_nxt', 'simple_input_with_addon_modal_ui_element', context);
 		$elems.find('input').prop("disabled", true);

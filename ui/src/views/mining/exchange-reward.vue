@@ -5,8 +5,8 @@
             <p v-show="isSSA">
                 <span >
                     <li v-if="sharderAccount">{{$t("reward.binding_account")}} : {{sharderAccount}}</li>
-                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} SS</li>
-                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} SS</li>
+                    <li v-if="sharderAccount">{{$t("reward.convertible")}} : {{convertible}} CDWH</li>
+                    <li v-if="sharderAccount">{{$t("reward.redeemed")}} : {{redeemed}} CDWH</li>
                     <li v-if="sharderAccount" style="color: #e64242;font-size: small">{{$t('mining.diamond_exchange.description')}}{{$t("reward.exchange_tip")}} </li>
                     <li v-else>
                         {{$t("reward.no_binding_account")}} ?
@@ -24,7 +24,7 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
-        
+
         <div class="exchange-list info" v-if="displayDefault">
             {{$t('reward.insufficient_redemption')}}
         </div>
@@ -36,8 +36,8 @@
                 {{$t('mining.diamond_exchange.not_open')}}
             </span>
         </div>
-        
-        <!--申请兑换SS列表-->
+
+        <!--申请兑换CDWH列表-->
         <div v-if="exchangeOpen && sharderAccount" class="block_list"  style="clear:both">
             <p class="block_title" style="padding-bottom: 10px;">
                 <img src="../../assets/img/block.svg" width="20px" height="20px"/>
@@ -100,15 +100,15 @@
                 exchangeList: [
                     {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "500 SS(ERC-20)",
+                        title: "500 CDWH(ERC-20)",
                         num: 100000000000,
-                        info: "1000 TSS 兑换 500 SS(ERC-20)",
+                        info: "1000 TCDWH 兑换 500 CDWH(ERC-20)",
                     },
                     {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: "5000 SS(ERC-20)",
+                        title: "5000 CDWH(ERC-20)",
                         num: 1000000000000,
-                        info: "10000 TSS 兑换 5000 SS(ERC-20)",
+                        info: "10000 TCDWH 兑换 5000 CDWH(ERC-20)",
                     }
                 ],
                 isSSA: false,
@@ -187,9 +187,9 @@
                     let ConvertibleSS = Math.floor((forgedBalanceNQT - exchangeSS * 2)/1000)*1000;
                     let data1 = {
                         img: "/76894d35b252344138a2de2a1927d9ca.svg",
-                        title: ConvertibleSS / 2 + " SS(ERC-20)",
+                        title: ConvertibleSS / 2 + " CDWH(ERC-20)",
                         num: ConvertibleSS * 100000000,
-                        info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
+                        info: ConvertibleSS  + " TCDWH 兑换 "+ConvertibleSS / 2+" CDWH(ERC-20)",
                     };
 
 

@@ -38,7 +38,7 @@ import static org.conch.http.JSONResponses.*;
 /**
  * Start a funding monitor
  * <p>
- * A funding monitor will transfer SS, ASSET or CURRENCY from the funding account
+ * A funding monitor will transfer CDWH, ASSET or CURRENCY from the funding account
  * to a recipient account when the amount held by the recipient account drops below
  * the threshold.  The transfer will not be done until the current block
  * height is greater than equal to the block height of the last transfer plus the
@@ -58,7 +58,7 @@ import static org.conch.http.JSONResponses.*;
  * For example, {"amount":25,"threshold":10,"interval":1440}.  The specified values will
  * override the default values specified when the account monitor is started.
  * <p>
- * SS amounts are specified with 8 decimal places.  Asset and Currency decimal places
+ * CDWH amounts are specified with 8 decimal places.  Asset and Currency decimal places
  * are determined by the asset or currency definition.
  */
 public final class StartFundingMonitor extends APIServlet.APIRequestHandler {

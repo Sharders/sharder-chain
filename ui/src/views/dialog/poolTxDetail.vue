@@ -60,9 +60,9 @@
                amountNQT =new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
                if (subtype===2 || subtype===0) {
-                   return "-"+amountNQT + " SS";
+                   return "-"+amountNQT + " CDWH";
                } else if (subtype===1 || subtype===3){
-                   return "+" + amountNQT + " SS";
+                   return "+" + amountNQT + " CDWH";
                }
            },
 

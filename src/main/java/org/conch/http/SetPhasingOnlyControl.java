@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletRequest;
  * <li>controlMinBalanceModel - The expected minimum balance model. Possible values:
  * <ul>
  *  <li>NONE(0) No minimum balance restriction</li>
- *  <li>NQT(1) SS balance threshold</li>
+ *  <li>NQT(1) CDWH balance threshold</li>
  *  <li>ASSET(2) Asset balance threshold</li>
  *  <li>CURRENCY(3) Currency balance threshold</li>
  * </ul>

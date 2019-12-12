@@ -112,7 +112,7 @@
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
-                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} SS</p>
+                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} CDWH</p>
                                     <el-progress
                                         :percentage="(getPoolInvestmentAmount(mining))/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
@@ -160,7 +160,7 @@
 
 
         </div>
-        <!--免费领SS-->
+        <!--免费领CDWH-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
                 <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
@@ -170,7 +170,7 @@
                 </p>
             </div>
         </div>
-        <!--SS兑换-->
+        <!--CDWH兑换-->
         <div v-if="tabTitle === 'exchange'">
             <ExchangeReward></ExchangeReward>
         </div>
@@ -228,7 +228,7 @@
                 <div class="determine" @click="setAccountInfo()">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
-        <!--TSS说明-->
+        <!--TCDWH说明-->
         <div v-if="isTSS">
             <div class="tss">
                 <h1>{{$t('mining.index.tss_address_tile')}}</h1>
@@ -416,7 +416,7 @@
                     clearInterval(miningDataLoader);
                 }
                 // if (_this.$router.currentRoute.name !== "mining") return;
-            
+
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
         },
@@ -507,7 +507,7 @@
             },
             createPool() {
                 let _this = this;
-                
+
                 if (SSO.downloadingBlockchain) {
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
@@ -940,7 +940,7 @@
         width: 140px;
         padding: 12px 25px;
     }
-    
+
     .my-pool-title {
         color: #14c6fc;
     }
@@ -1249,7 +1249,7 @@
         margin-top: 5px;
     }
 </style>
-<!--免费领SS-->
+<!--免费领CDWH-->
 <style scoped>
     .receive .receive-qr-img {
         width: 160px;
@@ -1264,7 +1264,7 @@
         font-size: 14px;
     }
 </style>
-<!--SS兑换-->
+<!--CDWH兑换-->
 <style scoped>
     .reward .reward-title {
         margin-top: 10px;
@@ -1962,7 +1962,7 @@
         }
     }
 </style>
-<!--TSS兑换-->
+<!--TCDWH兑换-->
 <style>
     @media (max-width: 640px) {
         .mining .tss {
