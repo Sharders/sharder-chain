@@ -64,7 +64,7 @@ public final class Constants {
             }
 
             throw new IllegalArgumentException(
-                    String.format("There is no value with name '%s' in Enum %s", name, enumeration.getName()));
+                    String.format("There is no value with name '%s' in Enum %s, please add the conf folder into runtime firstly!", name, enumeration.getName()));
         }
 
         public String getName() {
