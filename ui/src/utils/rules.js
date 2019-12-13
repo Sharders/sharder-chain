@@ -78,7 +78,7 @@ function ssAddress(m1, m2) {
     return {
         required: true,
         validator: (rule, value, callback) => {
-            const reg = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+            const reg = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
             if (value) {
                 if (reg.test(value)) {
                     callback();

@@ -314,7 +314,7 @@ public enum CurrencyType {
                 throw new ConchException.NotValidException("Invalid currency code: " + code + " code must be all upper case");
             }
         }
-        if (code.contains("SSA")  || "ssa".equals(normalizedName) ) {
+        if (code.contains("CDW")  || "cdw".equals(normalizedName) ) {
             throw new ConchException.NotValidException("Currency name already used");
         }
         Currency currency;
