@@ -153,7 +153,7 @@ import javax.servlet.http.HttpServletRequest;
  *     </tr>
  *     <tr>
  *       <td>CONCH_BALANCE</td>
- *       <td>Change in the SS balance for the account.  There is no 'holding'.</td>
+ *       <td>Change in the MWFS balance for the account.  There is no 'holding'.</td>
  *     </tr>
  *     <tr>
  *       <td>UNCONFIRMED_ASSET_BALANCE</td>
@@ -165,7 +165,7 @@ import javax.servlet.http.HttpServletRequest;
  *     </tr>
  *     <tr>
  *       <td>UNCONFIRMED_CONCH_BALANCE</td>
- *       <td>Change in the unconfirmed SS balance for the account.  There is no 'holding'.</td>
+ *       <td>Change in the unconfirmed MWFS balance for the account.  There is no 'holding'.</td>
  *     </tr>
  *   </tbody>
  * </table>

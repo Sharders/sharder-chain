@@ -1100,7 +1100,7 @@ var NRS = (function (NRS, $, undefined) {
         }
 
         $("#asset_order_description").html(description);
-        $("#asset_order_total").html(totalNXT + " SS");
+        $("#asset_order_total").html(totalNXT + " MWFS");
 
         var assetOrderTotalTooltip = $("#asset_order_total_tooltip");
         if (quantity != "1") {

@@ -174,7 +174,7 @@ public final class FxtDistribution implements Listener<Block> {
                             long balance = rs.getLong("balance");
                             if (logAccountId != 0) {
                                 if (accountId == logAccountId) {
-                                    Logger.logMessage("SS balance for " + logAccount + " at height " + height + ":\t" + balance);
+                                    Logger.logMessage("MWFS balance for " + logAccount + " at height " + height + ":\t" + balance);
                                 }
                             }
                             BigInteger accountBalanceTotal = accountBalanceTotals.get(accountId);
@@ -210,7 +210,7 @@ public final class FxtDistribution implements Listener<Block> {
                 }
                 if (logAccountId != 0) {
                     if (accountId == logAccountId) {
-                        Logger.logMessage("Average SS balance for " + logAccount + " as of height " + currentHeight + ":\t"
+                        Logger.logMessage("Average MWFS balance for " + logAccount + " as of height " + currentHeight + ":\t"
                                 + balanceTotal.divide(BigInteger.valueOf((currentHeight - DISTRIBUTION_START) / DISTRIBUTION_STEP)).longValueExact());
                     }
                 }
@@ -239,7 +239,7 @@ public final class FxtDistribution implements Listener<Block> {
                          ResultSet rs = pstmt.executeQuery()) {
                         while (rs.next()) {
                             long accountId = rs.getLong("id");
-                            // 1 SS held for the full period should give 1 asset unit, i.e. 10000 QNT assuming 4 decimals
+                            // 1 MWFS held for the full period should give 1 asset unit, i.e. 10000 QNT assuming 4 decimals
                             long quantity = new BigInteger(rs.getBytes("balance")).divide(BALANCE_DIVIDER).longValueExact();
                             if (logAccountId != 0) {
                                 if (accountId == logAccountId) {

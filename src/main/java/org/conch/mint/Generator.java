@@ -665,7 +665,7 @@ public class Generator implements Comparable<Generator> {
         int lastHeight = lastBlock.getHeight();
         Account account = Account.getAccount(accountId, lastHeight);
         if(account == null) {
-            Logger.logWarningMessage("current account %s [id=%d] is a new account, please create some txs or receive some SS from other accounts", rsAddress, accountId);
+            Logger.logWarningMessage("current account %s [id=%d] is a new account, please create some txs or receive some MWFS from other accounts", rsAddress, accountId);
             return;
         }
         /**

@@ -108,7 +108,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} SS
+                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} MWFS
                                 </button>
                             </el-col>
                             <el-col :span="12">
@@ -130,7 +130,7 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} |
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
 <!--                <p class="input">-->
@@ -241,27 +241,27 @@
             displayBtn(btnName){
                 const _t = this;
                 if('join' === btnName) {
-                    return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
-                    && typeof(_t.secretPhrase) !== 'undefined' 
-                    &&  _t.$global.optHeight.join < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height 
+                    return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal
+                    && typeof(_t.secretPhrase) !== 'undefined'
+                    &&  _t.$global.optHeight.join < _t.newestBlock.height
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height
                     && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('quit' === btnName) {
-                    return typeof(_t.miningInfo.consignor) !== 'undefined' 
-                    && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
-                    && _t.miningInfo.consignor.txs.length > 0 
-                    && typeof(_t.secretPhrase) !== 'undefined' 
-                    && _t.$global.optHeight.quit < _t.newestBlock.height 
+                    return typeof(_t.miningInfo.consignor) !== 'undefined'
+                    && typeof(_t.miningInfo.consignor.txs) !== 'undefined'
+                    && _t.miningInfo.consignor.txs.length > 0
+                    && typeof(_t.secretPhrase) !== 'undefined'
+                    && _t.$global.optHeight.quit < _t.newestBlock.height
                     && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height
                     && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('destroy' === btnName) {
-                    return _t.myAccount === _t.miningInfo.account 
-                        && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
-                        && typeof(_t.secretPhrase) !== 'undefined' 
+                    return _t.myAccount === _t.miningInfo.account
+                        && !_t.$store.state.destroyPool[_t.miningInfo.poolId]
+                        && typeof(_t.secretPhrase) !== 'undefined'
                         && _t.$global.optHeight.destroy < _t.newestBlock.height;
                 }
                 return false;
-                
+
             },
             formatAmount(row, column) {
                 return this.$global.getSSNumberFormat(row.amount);
@@ -342,7 +342,7 @@
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 360,
-                    feeNQT: 100000000,// 手续费默认是 1 SS
+                    feeNQT: 100000000,// 手续费默认是 1 MWFS
                     poolId: _this.mining.poolId,
                     amount: joinAmount
                 }, "joinPool").then(res => {
@@ -372,7 +372,7 @@
             myMiningInfo() {
                 let _this = this;
                 _this.loading = true;
-                
+
                 _this.$global.fetch("POST", {
                     account: SSO.account,
                     poolId: _this.mining.poolId,
@@ -412,7 +412,7 @@
                 if(this.joinPool > this.accountInfo.effectiveBalanceNQT / 100000000) {
                     return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
                 }
-                
+
                 let min = this.miningInfo.level.consignor.amount.min / 100000000;
                 let max = this.miningInfo.level.consignor.amount.max / 100000000;
                 if (this.joinPool < min || this.joinPool > max) {
@@ -421,7 +421,7 @@
                         max: max
                     }));
                 }
-                
+
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));
                 }

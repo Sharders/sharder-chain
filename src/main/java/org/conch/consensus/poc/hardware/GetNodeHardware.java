@@ -201,7 +201,7 @@ public class GetNodeHardware {
         String host = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
-                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's linked SS address is null"));
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's linked MWFS address is null"));
         
         if (StringUtils.isEmpty(Conch.getNodeType())) {
             //don't report

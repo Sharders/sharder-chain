@@ -554,12 +554,12 @@ var NRS = (function (NRS, $, undefined) {
             html = "";
             html += "<div style='font-size:13px;padding:5px;'>";
             html += "<p data-i18n='plugin_security_notice_full_access'>";
-            html += "Plugins are not sandboxed or restricted in any way and have full accesss to your client system including your SS passphrase.";
+            html += "Plugins are not sandboxed or restricted in any way and have full accesss to your client system including your MWFS passphrase.";
             html += "</p>";
             html += "<p data-i18n='plugin_security_notice_trusted_sources'>";
             html += "Make sure to only run plugins downloaded from trusted sources, otherwise ";
-            html += "you can loose your SS! In doubt don't run plugins with accounts ";
-            html += "used to store larger amounts of SS now or in the future.";
+            html += "you can loose your MWFS! In doubt don't run plugins with accounts ";
+            html += "used to store larger amounts of MWFS now or in the future.";
             html += "</p>";
             html += "</div>";
 
