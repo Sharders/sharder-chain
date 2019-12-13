@@ -75,6 +75,7 @@
                 </div>
             </div>
         </div>
+
         <!--矿池属性-->
         <div v-if="isAttribute">
             <div class="mining-attribute">
