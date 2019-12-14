@@ -1229,7 +1229,7 @@
                     series: [{
                         data: barchat.series,
                         type: 'bar',
-                        color: '#493eda',
+                        color: '#3fb09a',
                     }]
                 };
                 if (option && typeof option === "object") {
@@ -1278,7 +1278,7 @@
                     series: [{
                         data: yields.series,
                         type: 'line',
-                        color: '#493eda',
+                        color: '#3fb09a',
                         smooth: true
                     }]
                 };
@@ -2721,12 +2721,12 @@
 <style scoped lang="scss" type="text/scss">
     .el-select-dropdown {
         .el-select-dropdown__item.selected {
-            background-color: #493eda !important;
+            background-color: #3fb09a !important;
             color: #fff !important;
         }
 
         .el-select-dropdown__item.selected.hover {
-            background-color: #493eda !important;
+            background-color: #3fb09a !important;
             color: #fff !important;
         }
     }
@@ -2745,7 +2745,7 @@
     }
 
     .calculate_fee {
-        background-color: #493eda;
+        background-color: #3fb09a;
         color: #fff;
         border-radius: 4px;
         border: none;

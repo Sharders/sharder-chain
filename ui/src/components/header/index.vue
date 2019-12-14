@@ -6,7 +6,7 @@
                     <img src="../../assets/img/logo.svg"/>
                     <div @click="openCosUpgradeDialog()">
                         <span v-if="isUpdate" title="Update" class="update"></span>
-                        <span>Sharder</span>
+                        <span>MWFS</span>
                         <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
                     </div>
                 </a>
@@ -550,12 +550,12 @@
 <style scoped lang="scss" type="text/scss">
     .el-select-dropdown {
         .el-select-dropdown__item.selected {
-            background-color: #493eda !important;
+            background-color: #3fb09a !important;
             color: #fff !important;
         }
 
         .el-select-dropdown__item.selected.hover {
-            background-color: #493eda !important;
+            background-color: #3fb09a !important;
             color: #fff !important;
         }
     }
@@ -597,13 +597,13 @@
         left: 0;
         right: 0;
         z-index: 9999;
-        box-shadow: 1px 1px 10px #493eda;
+        box-shadow: 1px 1px 10px #3fb09a;
         
         .modal-header {
             .modal-title {
                 text-align: center;
                 font-size: 16px;
-                color: #333;
+                color: #555;
                 font-weight: bold;
                 line-height: 60px;
             }
@@ -620,7 +620,7 @@
                 }
 
                 .found-new-version {
-                    color: #493eda;
+                    color: #3fb09a;
                     font-weight: bold;
                 }
                 

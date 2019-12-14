@@ -94,7 +94,7 @@
     }
 
     .poolTxDetail .template .content {
-        box-shadow: 1px 1px 10px #493eda;
+        box-shadow: 1px 1px 10px #3fb09a;
         border-radius: 4px;
     }
 </style>

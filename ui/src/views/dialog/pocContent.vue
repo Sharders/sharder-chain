@@ -106,7 +106,7 @@
 
 <style scoped>
     .pocContent .template p {
-        border-bottom: 1px solid #493eda;
+        border-bottom: 1px solid #3fb09a;
         margin-bottom: 4px;
         padding-bottom: 4px;
     }
@@ -131,7 +131,7 @@
     }
 
     .pocContent .online-rate > div {
-        box-shadow: 1px 1px 10px #493eda;
+        box-shadow: 1px 1px 10px #3fb09a;
         padding: 10px;
         border-radius: 4px;
     }

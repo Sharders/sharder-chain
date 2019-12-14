@@ -694,7 +694,7 @@ export default {
                         borderColor: "#fff"
                     },
                     emphasis: {
-                        areaColor: '#FF6C40'
+                        areaColor: '#3fb09a'
                     }
                 },
                 left: 0,

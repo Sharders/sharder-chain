@@ -168,12 +168,12 @@
 
 <style>
     .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-        background-color: #513ac8;
-        border-color: #513ac8;
+        background-color: #3fb09a;
+        border-color: #3fb09a;
     }
 
     .content_login .title .el-radio-button__inner:hover {
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -189,7 +189,7 @@
         text-align: center;
         font-size: 24px;
         font-weight: bold;
-        color: #493eda;
+        color: #3fb09a;
         margin-top: 40px;
     }
 
@@ -201,7 +201,7 @@
     .content_welcome .welcome_main .init_hub_btn {
         width: 400px;
         height: 40px;
-        background: #493eda;
+        background: #3fb09a;
         border: none;
         color: #fff;
         font-size: 18px;
@@ -211,8 +211,8 @@
 
     .content_welcome .welcome_main .init_hub_btn:hover {
         background: #fff;
-        color: #493eda;
-        border: 1px solid #493eda;
+        color: #3fb09a;
+        border: 1px solid #3fb09a;
         transition: .4s;
     }
 

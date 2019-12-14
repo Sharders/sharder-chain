@@ -3,7 +3,7 @@
         <!--切换按钮-->
         <el-radio-group v-model="tabTitle" class="title">
             <el-radio-button label="mining" class="btn">{{$t('mining.index.sharder_mining')}}</el-radio-button>
-            <el-radio-button label="welfare" class="btn">{{$t('mining.index.free_collar')}}</el-radio-button>
+           <!-- <el-radio-button label="welfare" class="btn">{{$t('mining.index.free_collar')}}</el-radio-button>-->
             <el-radio-button label="exchange" class="btn">{{$t('mining.index.ss_exchange')}}</el-radio-button>
         </el-radio-group>
         <!--豆匣矿场-->
@@ -830,7 +830,7 @@
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner,
     .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-        background-color: #513ac8;
+        background-color: #3fb09a;
     }
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -838,7 +838,7 @@
     }
 
     .mining .title .el-radio-button__inner:hover {
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .mining .el-input {
@@ -872,19 +872,19 @@
     }
 
     .mining .mining-paging1 .el-pager li.active {
-        background-color: #513acB;
+        background-color: #3fb09a;
         border: none;
     }
     .mining .mining-paging2 .el-pager li.active {
-        background-color: #513acB;
+        background-color: #3fb09a;
         border: none;
     }
 
     .mining .mining-paging1 .el-pager li:hover {
-        color: #513acB;
+        color: #3fb09a;
     }
     .mining .mining-paging2 .el-pager li:hover {
-        color: #513acB;
+        color: #3fb09a;
     }
 
     .mining .mining-paging1 .el-pager li.active:hover {
@@ -896,7 +896,7 @@
 
     .mining .create-pool .el-slider__button,
     .mining .create-pool .el-slider__bar {
-        background-color: #513acB;
+        background-color: #3fb09a;
     }
 
     .img-close {
@@ -919,12 +919,12 @@
         position: absolute;
         left: 9px;
         top: 9px;
-        color: #513ac8;
+        color: #3fb09a;
         cursor: pointer;
     }
 
     .mining-back:hover {
-        color: #513ac8aa;
+        color: #3fb09aaa;
     }
 
     .mining-list .el-select .el-input .el-select__caret {
@@ -963,7 +963,7 @@
         height: 300px;
         padding: 30px;
         background: url("../../assets/img/kuangchi_bg.png") no-repeat center 140px;
-        background-color: #513acB;
+        background-color: #3fb09a;
     }
 
     .mining-content .assets ul {
@@ -1017,7 +1017,7 @@
         float: right;
         right: -30px;
         /*top: -20px;*/
-        background-color: #0000ff;
+        background-color: #00D6A3;
         display: inline-block;
         font-size: 14px;
         color: #fff;
@@ -1101,7 +1101,7 @@
 
     .mining-notice .notice-info {
         font-size: 16px;
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .mining-list .list-title {
@@ -1141,10 +1141,10 @@
     }
 
     .grid-content .info {
-        width: 170px;
+        width: 185px;
         height: 120px;
         text-align: center;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         border-radius: 6px;
         cursor: pointer;
     }
@@ -1225,8 +1225,10 @@
     #chatu {
         position: absolute;
         top: 110px;
-        left: calc(50% - 34px);
+        left: calc(50% - 22px);
         animation: chatu 1s infinite;
+        animation-direction: alternate;
+        height: 100px;
         /*播放动画myfirst 时间为 1秒 循环播放10次(infinite:循环播放)*/
         animation-direction: alternate;
         /*播放方式开始到结束,结束回到开始;*/
@@ -1260,7 +1262,7 @@
     }
 
     .receive .receive-text {
-        color: #513ac8;
+        color: #3fb09a;
         font-size: 14px;
     }
 </style>
@@ -1269,7 +1271,7 @@
     .reward .reward-title {
         margin-top: 10px;
         font-size: 14px;
-        color: #333;
+        color: #555;
         padding: 22px 0;
         max-height: 60px;
         background-color: #fff;
@@ -1335,16 +1337,16 @@
         height: 50px;
         font-size: 16px;
         border-radius: 4px;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         border: none;
     }
 
     .content-right button:hover {
-        background-color: #513ac8dd;
+        background-color: #3fb09add;
     }
 
     .content-right button:active {
-        background-color: #513ac8aa;
+        background-color: #3fb09aaa;
     }
 
     .en_mining .content-left span.strong {
@@ -1378,7 +1380,7 @@
         padding: 20px 0;
         font-size: 16px;
         font-weight: bold;
-        background-color: #462cae;
+        background-color: #3fb09a;
         color: #fff;
         border-top-left-radius: 6px;
         border-top-right-radius: 6px;
@@ -1460,7 +1462,7 @@
 
     .create-pool-content .pool-attribute {
         padding: 30px 40px;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         color: #fff;
     }
 
@@ -1519,23 +1521,23 @@
 
     .pool-bth .immediately-create {
         float: right;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         color: #fff;
         border: none;
     }
 
     .pool-bth .immediately-create:hover {
-        background-color: #513ac8aa;
+        background-color: #3fb09aaa;
     }
 
     .pool-bth .cancel {
         background-color: #fff;
-        color: #513ac8;
-        border: 1px solid #513ac8;
+        color: #3fb09a;
+        border: 1px solid #3fb09a;
     }
 
     .pool-bth .cancel:hover {
-        background-color: #513ac810;
+        background-color: #3fb09a10;
     }
 
     .en_mining .pool-data .strong {
@@ -1682,7 +1684,7 @@
             cursor: pointer;
             color: #fff;
             padding: 10px 20px;
-            background: #0000ff;
+            background: #00D6A3;
             border-top-left-radius: 20px;
             border-bottom-left-radius: 20px;
             position: absolute;
@@ -1783,7 +1785,7 @@
         }
 
         .mining .pool-set .pool-title {
-            color: #333;
+            color: #555;
             margin: 0 0 20px 0;
         }
 
@@ -1874,7 +1876,7 @@
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-            color: #513ac8 !important;
+            color: #3fb09a !important;
         }
 
         .mining .mining-list .mining-list-info {
@@ -1906,7 +1908,7 @@
         .mining .personal-content .user {
             height: 170px;
             width: 100%;
-            background: #513ac8;
+            background: #3fb09a;
             border-radius: 4px;
             text-align: center;
             color: #fff;
@@ -1920,7 +1922,7 @@
             border-radius: 50%;
             background: #fff;
             margin: 15px 0;
-            border: 10px solid #0000ff55;
+            border: 10px solid #00D6A355;
             top: 0;
         }
 
@@ -1942,7 +1944,7 @@
             border-bottom: 1px solid #dbe2e8;
             padding: 10px 15px;
             font-size: 13px;
-            color: #333;
+            color: #555;
             cursor: pointer;
         }
 
@@ -1978,7 +1980,7 @@
         .mining .tss h1 {
             font-size: 14px;
             font-weight: bold;
-            color: #333;
+            color: #555;
             padding: 15px 0;
             text-align: center;
         }
@@ -1986,11 +1988,11 @@
         .mining .tss .text {
             padding: 0 20px 20px;
             font-size: 13px;
-            color: #333;
+            color: #555;
         }
 
         .mining .tss .close {
-            background: #513ac8;
+            background: #3fb09a;
             cursor: pointer;
             color: #fff;
             width: 100%;
@@ -2034,7 +2036,7 @@
 
         .mining .set-name .determine {
             width: 100%;
-            background: #513ac8;
+            background: #3fb09a;
             padding: 15px 0;
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;

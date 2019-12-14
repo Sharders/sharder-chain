@@ -251,7 +251,7 @@
     }
 
     .assets .assets-info {
-        background: #513ac8;
+        background: #3fb09a;
         border-radius: 4px;
         color: #ddd;
         padding: 25px;
@@ -314,13 +314,13 @@
         right: 0;
         top: calc(50% - 6px);
         font-weight: bold;
-        color: #333;
+        color: #555;
     }
 
     .assets .assets-list .title .strong {
         font-weight: bold;
         padding: 10px 0 4px;
-        color: #333;
+        color: #555;
     }
 
 </style>

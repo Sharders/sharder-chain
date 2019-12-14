@@ -283,7 +283,7 @@
             cursor: pointer;
             color: #fff;
             padding: 10px 20px;
-            background: #0000ff;
+            background: #00D6A3;
             border-top-left-radius: 20px;
             border-bottom-left-radius: 20px;
             position: absolute;
@@ -382,7 +382,7 @@
         }
 
         .mining .pool-set .pool-title {
-            color: #333;
+            color: #555;
             margin: 0 0 20px 0;
         }
 
@@ -473,7 +473,7 @@
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-            color: #513ac8 !important;
+            color: #3fb09a !important;
         }
 
         .mining .mining-list .mining-list-info {
@@ -518,7 +518,7 @@
     }
 
     .introduce .mining-info {
-        background: #513ac8;
+        background: #3fb09a;
         border-radius: 4px;
         color: #fff;
         padding: 15px 20px;
@@ -537,7 +537,7 @@
 
     .introduce > div p {
         font-size: 12px;
-        color: #333;
+        color: #555;
     }
 
     .introduce .info {
@@ -557,11 +557,11 @@
         border: none;
         font-size: 15px;
         color: #fff;
-        background: #513ac8;
+        background: #3fb09a;
     }
 
     .introduce .btn p {
-        color: #513ac8;
+        color: #3fb09a;
         text-align: center;
     }
 
@@ -581,7 +581,7 @@
         padding: 15px 0;
         font-size: 14px;
         font-weight: bold;
-        color: #333;
+        color: #555;
         text-align: center;
     }
 
@@ -591,7 +591,7 @@
 
     .account p {
         font-size: 12px;
-        color: #333;
+        color: #555;
         padding: 0 0 10px;
     }
 
@@ -615,7 +615,7 @@
     .account .addressListDiv .addr h3 {
         font-size: 12px;
         font-weight: bold;
-        color: #333;
+        color: #555;
         padding: 0 0 8px;
     }
 
@@ -624,7 +624,7 @@
         height: 40px;
         border-bottom-right-radius: 4px;
         border-bottom-left-radius: 4px;
-        background: #513ac8;
+        background: #3fb09a;
         color: #fff;
         outline: none;
         border: none;
@@ -668,7 +668,7 @@
     }
 
     .binding .el-icon-loading {
-        color: #493eda;
+        color: #3fb09a;
     }
 
     .binding .el-icon-success {

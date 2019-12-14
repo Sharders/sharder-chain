@@ -22,7 +22,7 @@
                 text-decoration: none;
 
                 &:hover {
-                    color: #493eda;
+                    color: #3fb09a;
                     text-decoration: none !important;
                 }
 
@@ -34,7 +34,7 @@
                 img {
                     margin-bottom: auto;
                     margin-top: auto;
-                    width: 40px;
+                    width: 60px;
                     height: 46px;
                 }
 
@@ -43,7 +43,7 @@
                     margin-left: 6px;
                     margin-top: auto;
                     margin-bottom: auto;
-                    color: #493eda;
+                    color: #3fb09a;
                     width: 150px;
 
                     span:first-child {
@@ -90,7 +90,7 @@
                     text-align: center;
                     line-height: 80px !important;
                     font-size: 14px;
-                    color: #333;
+                    color: #555;
                     padding: 0;
                     font-weight: bold;
 
@@ -102,9 +102,9 @@
                     &:hover {
                         background: #fff;
                         //font-weight: bold;
-                        border-bottom: 4px solid #493eda;
+                        border-bottom: 4px solid #3fb09a;
                         cursor: pointer;
-                        color: #493eda;
+                        color: #3fb09a;
                     }
                 }
 
@@ -113,8 +113,8 @@
                 }
 
                 .activeLi {
-                    border-bottom: 4px solid #493eda !important;
-                    color: #493eda !important;
+                    border-bottom: 4px solid #3fb09a !important;
+                    color: #3fb09a !important;
                     font-weight: bold;
                 }
             }
@@ -234,7 +234,7 @@
                     position: relative;
                     line-height: 80px;
                     font-size: 13px;
-                    color: #493eda;
+                    color: #3fb09a;
                 }
 
                 .navbar_lang {
@@ -242,11 +242,11 @@
                         width: 90px;
                         height: 30px;
                         background: #fff;
-                        //border: 1px solid #493eda;
+                        //border: 1px solid #3fb09a;
                         padding: 4px 15px 4px 0;
                         font-size: 13px;
                         border-radius: 20px;
-                        color: #493eda;
+                        color: #3fb09a;
                         position: relative;
                         top: 25px;
                         outline: none;
@@ -257,7 +257,7 @@
                             background: transparent;
                             font-size: 13px;
                             border: none;
-                            color: #493eda;
+                            color: #3fb09a;
                             position: relative;
                             outline: none;
                             line-height: 30px;

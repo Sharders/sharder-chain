@@ -302,7 +302,7 @@
         height: 70px;
         border-radius: 4px;
         background: #fff;
-        color: #333;
+        color: #555;
         padding: 13px 10px;
         position: relative;
         margin: 0 60px 20px 0;
@@ -322,7 +322,7 @@
 
     .exchange .exchange-list p {
         font-size: 11px;
-        color: #333;
+        color: #555;
     }
 
     .exchange .exchange-list button {
@@ -332,7 +332,7 @@
         outline: none;
         border: none;
         border-radius: 4px;
-        background: #493eda;
+        background: #3fb09a;
         height: 40px;
         width: 80px;
         color: #fff;
