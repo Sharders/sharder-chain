@@ -161,7 +161,7 @@
 
         </div>
         <!--免费领MW-->
-        <div v-if="tabTitle === 'welfare'">
+        <!--<div v-if="tabTitle === 'welfare'">
             <div class="receive">
                 <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
                 <p class="receive-text">
@@ -169,7 +169,7 @@
                     {{$t('mining.index.welfare_title2')}}
                 </p>
             </div>
-        </div>
+        </div>-->
         <!--MW兑换-->
         <div v-if="tabTitle === 'exchange'">
             <ExchangeReward></ExchangeReward>
@@ -195,14 +195,6 @@
                     <img src="../../assets/img/money.svg">
                     <span>{{$t('mining.index.my_assets')}}</span>
                 </div>
-               <!-- <div class="list" @click="$router.push({name: 'free-collar-drill'})">
-                    <img src="../../assets/img/zhuanshi.png">
-                    <span>{{$t('mining.index.free_collar_drill')}}</span>
-                </div>-->
-                 <!--  <div class="list" @click="$router.push({name: 'invite-friends'})">
-                    <img src="../../assets/img/haoyou.png">
-                    <span>{{$t('mining.index.join_friend')}}</span>
-                </div>-->
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
                     <img src="../../assets/img/exchange.svg">
                     <span>{{$t('mining.index.diamond_exchange')}}</span>
