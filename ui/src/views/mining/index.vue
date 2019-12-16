@@ -59,7 +59,7 @@
                         <p>{{$t('mining.index.my_pool')}}</p>
                     </div>-->
                     <div class="my-mining create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
-                        <img src="../../assets/img/chuanjiankuangchi.png">
+                        <img src="../../assets/img/create-pool.svg">
                         <p>{{$t('mining.index.create_pool')}}</p>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                         <span v-if="mining.isJoin">
-                                            <img class="pool-badge" src="../../assets/img/chatu.png" height="25px">
+                                            <img class="pool-badge" src="../../assets/img/my-join.svg" height="22px">
                                         </span>
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
@@ -178,7 +178,7 @@
         <div v-if="tabMenu === 'personal'">
             <div class="personal-content">
                 <div class="user">
-                    <img src="../../assets/img/wodezichan.png" class="header-img">
+                    <img src="../../assets/img/money.svg" class="header-img">
                     <p>
                         <span>{{$t('mining.index.miner_name')}}</span>:
                         <span v-if="accountInfo.name !== undefined">{{accountInfo.name}}</span>
@@ -192,23 +192,23 @@
                     </p>
                 </div>
                 <div class="list" @click="$router.push({name: 'my-assets'})">
-                    <img src="../../assets/img/wodezichan.png">
+                    <img src="../../assets/img/money.svg">
                     <span>{{$t('mining.index.my_assets')}}</span>
                 </div>
-                <div class="list" @click="$router.push({name: 'free-collar-drill'})">
+               <!-- <div class="list" @click="$router.push({name: 'free-collar-drill'})">
                     <img src="../../assets/img/zhuanshi.png">
                     <span>{{$t('mining.index.free_collar_drill')}}</span>
-                </div>
-              <!--  <div class="list" @click="$router.push({name: 'invite-friends'})">
+                </div>-->
+                 <!--  <div class="list" @click="$router.push({name: 'invite-friends'})">
                     <img src="../../assets/img/haoyou.png">
                     <span>{{$t('mining.index.join_friend')}}</span>
                 </div>-->
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
-                    <img src="../../assets/img/zhuanshiduihuan.png">
+                    <img src="../../assets/img/exchange.svg">
                     <span>{{$t('mining.index.diamond_exchange')}}</span>
                 </div>
                 <div class="list">
-                    <img src="../../assets/img/guanyuwomen.png">
+                    <img src="../../assets/img/about.svg">
                     <span>{{$t('mining.index.about_us')}}</span>
                 </div>
                 <div class="about">
@@ -1026,7 +1026,7 @@
         border-top-left-radius: 20px;
     }
 
-    .invite-friends, .rule-description {
+    .invite-friends {
         cursor: pointer;
         display: none;
     }
@@ -1128,8 +1128,9 @@
     }
 
     .grid-content {
-        height: 125px;
-        margin-bottom: 10px;
+        height: 120px;
+        margin-bottom: 5px;
+        margin-top: 5px;
         background: #fff;
         border-radius: 6px;
         color: #fff;
@@ -1145,7 +1146,7 @@
         height: 120px;
         text-align: center;
         background-color: #3fb09a;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
     }
 
@@ -1166,16 +1167,17 @@
     }
 
     .grid-content .info .pool-owner {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .grid-content .tag {
-        width: 200px;
+        width: 49%;
         height: 120px;
-        color: #000;
+        color: #555;
         padding: 0;
         font-size: 14px;
         position: relative;
+
     }
 
     .grid-content .tag p {
@@ -1184,7 +1186,8 @@
     }
 
     .grid-content .tag img {
-        padding: 0 10px 0px 10px;;
+        padding: 0 5px 0px 5px;
+        height: 15px;
     }
 
     .mining-paging1 {
@@ -1211,7 +1214,9 @@
         padding: 0;
         margin: 0;
     }
-
+    .mining .mining-content .rule-description{
+        display: none;
+    }
 
     @keyframes chatu {
         0% {
@@ -1591,8 +1596,6 @@
             height: 290px;
             background-position: center 135px;
         }
-
-
         .mining-content .assets .myAddressLi{
             display: block;
         }
@@ -1642,7 +1645,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 45%;
+            width: 50%;
         }
 
         .mining .mining-list-info .grid-content .tag {
@@ -1650,7 +1653,7 @@
         }
 
         .mining .mining-list-info .grid-content .tag img {
-            padding: 0 10px;
+            padding: 0 2px;
         }
 
         .mining .mining-list-info1 .el-row {
@@ -1663,7 +1666,7 @@
         }
 
         .mining .mining-list-info1 .grid-content .info {
-            width: 45%;
+            width: 48%;
         }
 
         .mining .mining-list-info1 .grid-content .tag {
@@ -1671,7 +1674,7 @@
         }
 
         .mining .mining-list-info1 .grid-content .tag img {
-            padding: 0 10px;
+            padding: 0 2px;
         }
 
         .mining .mining-content .instructions {
@@ -1860,19 +1863,19 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/img/index.png") no-repeat center 5px;
+            background: url("../../assets/img/pool-default.svg") no-repeat center 5px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/img/personal.png") no-repeat center 5px;
+            background: url("../../assets/img/account-circle-line.svg") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/img/index-1.png") no-repeat center 5px;
+            background: url("../../assets/img/pool-click.svg") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/img/personal-1.png") no-repeat center 5px;
+            background: url("../../assets/img/account-circle-fill.svg") no-repeat center 5px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {

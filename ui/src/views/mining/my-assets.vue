@@ -137,7 +137,6 @@
                         return _this.isPage = false;
                     }
                     for (let t of res.data.transactions) {
-                        console.info(t);
                         if(_this.selectType === ""){
                             _this.assetsList.push({
                                 title: _this.$global.getTransactionTypeStr(t),

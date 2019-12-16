@@ -19,7 +19,7 @@
             </el-col>
 
             <el-col :span="24">
-                <img src="../../assets/img/create_account.png"/>
+                <img src="../../assets/img/add.svg"/>
                 <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>

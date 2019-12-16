@@ -457,19 +457,19 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/img/index.png") no-repeat center 26px;
+            background: url("../../assets/img/account-circle-fill.svg") no-repeat center 26px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/img/personal.png") no-repeat center 26px;
+            background: url("../../assets/img/pool-default.svg") no-repeat center 26px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/img/index-1.png") no-repeat center 26px;
+            background: url("../../assets/img/account-circle-line.svg") no-repeat center 26px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
+            background: url("../../assets/img/pool-click.svg") no-repeat center 26px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
