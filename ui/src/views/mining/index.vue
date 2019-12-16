@@ -112,7 +112,7 @@
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
                                     <p class="pool-owner">{{poolOwnerRs(mining.creatorRS)}}</p>
-                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} MWFS</p>
+                                    <p>{{getPoolInvestmentAmount(mining)}}/{{getAmountMax(mining.rule)}} MW</p>
                                     <el-progress
                                         :percentage="(getPoolInvestmentAmount(mining))/(getAmountMax(mining.rule))*100"
                                         :show-text="false"></el-progress>
@@ -160,7 +160,7 @@
 
 
         </div>
-        <!--免费领MWFS-->
+        <!--免费领MW-->
         <div v-if="tabTitle === 'welfare'">
             <div class="receive">
                 <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
@@ -170,7 +170,7 @@
                 </p>
             </div>
         </div>
-        <!--MWFS兑换-->
+        <!--MW兑换-->
         <div v-if="tabTitle === 'exchange'">
             <ExchangeReward></ExchangeReward>
         </div>
@@ -228,7 +228,7 @@
                 <div class="determine" @click="setAccountInfo()">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
-        <!--TMWFS说明-->
+        <!--TMW说明-->
         <div v-if="isTSS">
             <div class="tss">
                 <h1>{{$t('mining.index.tss_address_tile')}}</h1>
@@ -942,7 +942,7 @@
     }
 
     .my-pool-title {
-        color: #14c6fc;
+        color: rgb(29, 144, 230);
     }
 
     .pool-badge {
@@ -1128,7 +1128,7 @@
     }
 
     .grid-content {
-        height: 120px;
+        height: 125px;
         margin-bottom: 10px;
         background: #fff;
         border-radius: 6px;
@@ -1215,10 +1215,10 @@
 
     @keyframes chatu {
         0% {
-            top: 110px;
+            top: 125px;
         }
         100% {
-            top: 90px;
+            top: 100px;
         }
     }
 
@@ -1251,7 +1251,7 @@
         margin-top: 5px;
     }
 </style>
-<!--免费领MWFS-->
+<!--免费领MW-->
 <style scoped>
     .receive .receive-qr-img {
         width: 160px;
@@ -1266,7 +1266,7 @@
         font-size: 14px;
     }
 </style>
-<!--MWFS兑换-->
+<!--MW兑换-->
 <style scoped>
     .reward .reward-title {
         margin-top: 10px;
@@ -1964,7 +1964,7 @@
         }
     }
 </style>
-<!--TMWFS兑换-->
+<!--TMW兑换-->
 <style>
     @media (max-width: 640px) {
         .mining .tss {

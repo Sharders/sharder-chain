@@ -23,7 +23,7 @@
         </forgepool>
 
         <consignor>
-            <!--投入MWFS区间-->
+            <!--投入MW区间-->
             <amount>
                 <min>1000000000000</min>
                 <max>48000100000000</max>

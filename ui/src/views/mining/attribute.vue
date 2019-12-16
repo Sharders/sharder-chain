@@ -109,7 +109,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} MWFS
+                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} MW
                                 </button>
                             </el-col>
                             <el-col :span="12">
@@ -343,7 +343,7 @@
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 360,
-                    feeNQT: 100000000,// 手续费默认是 1 MWFS
+                    feeNQT: 100000000,// 手续费默认是 1 MW
                     poolId: _this.mining.poolId,
                     amount: joinAmount
                 }, "joinPool").then(res => {

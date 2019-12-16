@@ -548,7 +548,7 @@ public final class ParameterParser {
     public static long getHoldingId(HttpServletRequest req, HoldingType holdingType) throws ParameterException {
         long holdingId = ParameterParser.getUnsignedLong(req, "holding", holdingType != HoldingType.SS);
         if (holdingType == HoldingType.SS && holdingId != 0) {
-            throw new ParameterException(JSONResponses.incorrect("holding", "holding id should not be specified if holdingType is MWFS"));
+            throw new ParameterException(JSONResponses.incorrect("holding", "holding id should not be specified if holdingType is MW"));
         }
         return holdingId;
     }

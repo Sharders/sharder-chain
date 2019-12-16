@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017-2018 MWFS Foundation.
+ *  Copyright © 2017-2018 MW Foundation.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
