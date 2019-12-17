@@ -1601,7 +1601,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid account property: " + attachment.getJSONObject());
                 }
                 if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
+                    throw new ConchException.NotValidException("Account property transaction cannot be used to send MW");
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Setting Genesis account properties not allowed");
@@ -1669,7 +1669,7 @@ public abstract class TransactionType {
                             + " does not belong to " + Long.toUnsignedString(transaction.getRecipientId()));
                 }
                 if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
+                    throw new ConchException.NotValidException("Account property transaction cannot be used to send MW");
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Deleting Genesis account properties not allowed");
@@ -3180,7 +3180,7 @@ public abstract class TransactionType {
                 long maxFees = attachment.getMaxFees();
                 long maxFeesLimit = (attachment.getPhasingParams().getVoteWeighting().isBalanceIndependent() ? 3 : 22) * Constants.ONE_SS;
                 if (maxFees < 0 || (maxFees > 0 && maxFees < maxFeesLimit) || maxFees > Constants.MAX_BALANCE_NQT) {
-                    throw new ConchException.NotValidException(String.format("Invalid max fees %f SS", ((double) maxFees) / Constants.ONE_SS));
+                    throw new ConchException.NotValidException(String.format("Invalid max fees %f MW", ((double) maxFees) / Constants.ONE_SS));
                 }
                 short minDuration = attachment.getMinDuration();
                 if (minDuration < 0 || (minDuration > 0 && minDuration < 3) || minDuration >= Constants.MAX_PHASING_DURATION) {

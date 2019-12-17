@@ -280,7 +280,7 @@ var NRS = (function(NRS, $) {
 		$form.find(":input").each(function() {
 			if ($(this).is(":invalid")) {
 				var error = "";
-				var name = String($(this).attr("name")).replace("SS", "").replace("NQT", "").capitalize();
+				var name = String($(this).attr("name")).replace("MW", "").replace("NQT", "").capitalize();
 				var value = $(this).val();
 
 				if ($(this).hasAttr("max")) {
@@ -401,9 +401,9 @@ var NRS = (function(NRS, $) {
 				}
 				NRS.unlockForm($modal, $btn);
 				return;
-			} else if (!/^SSA\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(data.recipient)) {
+			} else if (!/^CDW\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(data.recipient)) {
 				var convertedAccountId = $modal.find("input[name=converted_account_id]").val();
-				if (!convertedAccountId || (!/^\d+$/.test(convertedAccountId) && !/^SSA\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(convertedAccountId))) {
+				if (!convertedAccountId || (!/^\d+$/.test(convertedAccountId) && !/^CDW\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+\-[A-Z0-9]+/i.test(convertedAccountId))) {
 					$form.find(".error_message").html($.t("sso.error_account_id")).show();
 					if (formErrorFunction) {
 						formErrorFunction(false, data);

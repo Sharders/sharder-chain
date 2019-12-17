@@ -93,7 +93,7 @@
     }
 
     .free-collar .free-header {
-        color: #333;
+        color: #555;
     }
 
     .free-collar .free-header h1 {
@@ -108,7 +108,7 @@
     }
 
     .free-collar .free-list {
-        background: #513acB;
+        background: #3fb09a;
         border-radius: 4px;
         margin: 10px 0 0 0;
         color: #fff;
@@ -130,7 +130,7 @@
         height: 40px;
         width: 100px;
         font-size: 13px;
-        color: #333;
+        color: #555;
         cursor: pointer;
     }
 

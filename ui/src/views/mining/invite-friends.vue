@@ -85,11 +85,11 @@
         font-size: 27px;
         font-weight: bold;
         padding: 20px 0 15px;
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .invite .info {
-        color: #513ac8;
+        color: #3fb09a;
         font-size: 12px;
         margin: 0 0 5px 0;
         text-align: left;
@@ -99,7 +99,7 @@
     .invite .code, .invite .qr {
         width: calc(100% - 50px);
         margin: auto;
-        background: #513ac8;
+        background: #3fb09a;
         color: #fff;
         border-radius: 4px;
     }
@@ -125,7 +125,7 @@
         width: 140px;
         border-radius: 20px;
         background: #fff;
-        color: #513ac8;
+        color: #3fb09a;
         font-size: 15px;
         font-weight: bold;
         margin: 25px 0;
@@ -180,7 +180,7 @@
 
     .invite .about {
         font-size: 11px;
-        color: #513ac8;
+        color: #3fb09a;
         padding: 0 0 30px 0;
     }
 

@@ -39,7 +39,7 @@ import java.util.Set;
 public enum CurrencyType {
 
     /**
-     * Can be exchanged from/to SS<br>
+     * Can be exchanged from/to MW<br>
      */
     EXCHANGEABLE(0x01) {
 
@@ -272,7 +272,7 @@ public enum CurrencyType {
 
     private static void validate(Currency currency, int type, Transaction transaction) throws ConchException.ValidationException {
         if (transaction.getAmountNQT() != 0) {
-            throw new ConchException.NotValidException("Currency transaction SS amount must be 0");
+            throw new ConchException.NotValidException("Currency transaction MW amount must be 0");
         }
 
         final EnumSet<CurrencyType> validators = EnumSet.noneOf(CurrencyType.class);
@@ -314,7 +314,7 @@ public enum CurrencyType {
                 throw new ConchException.NotValidException("Invalid currency code: " + code + " code must be all upper case");
             }
         }
-        if (code.contains("SSA")  || "ssa".equals(normalizedName) ) {
+        if (code.contains("CDW")  || "cdw".equals(normalizedName) ) {
             throw new ConchException.NotValidException("Currency name already used");
         }
         Currency currency;

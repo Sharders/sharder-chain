@@ -87,7 +87,7 @@ var NRS = (function(NRS, $) {
 			};
 		}
 
-		if (/^\d+$/.test(data.name) || /^SSA\-/i.test(data.name)) {
+		if (/^\d+$/.test(data.name) || /^CDW\-/i.test(data.name)) {
 			return {
 				"error": $.t("sso.error_contact_name_alpha")
 			};
@@ -110,7 +110,7 @@ var NRS = (function(NRS, $) {
 			}
 		}
 		var address;
-		if (/^SSA\-/i.test(data.account_id)) {
+		if (/^CDW\-/i.test(data.account_id)) {
 			data.account_rs = data.account_id;
 			address = new NxtAddress();
 			if (address.set(data.account_rs)) {
@@ -200,7 +200,7 @@ var NRS = (function(NRS, $) {
 		var contactId = parseInt($invoker.data("contact"), 10);
 		if (!contactId && NRS.selectedContext) {
 			var accountId = NRS.selectedContext.data("account");
-			var dbKey = (/^SSA\-/i.test(accountId) ? "accountRS" : "account");
+			var dbKey = (/^CDW\-/i.test(accountId) ? "accountRS" : "account");
 			var dbQuery = {};
 			dbQuery[dbKey] = accountId;
 			NRS.storageSelect("contacts", [dbQuery], function(error, contact) {
@@ -255,7 +255,7 @@ var NRS = (function(NRS, $) {
 			};
 		}
 		var address;
-		if (/^SSA\-/i.test(data.account_id)) {
+		if (/^CDW\-/i.test(data.account_id)) {
 			data.account_rs = data.account_id;
 			address = new NxtAddress();
 			if (address.set(data.account_rs)) {

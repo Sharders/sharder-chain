@@ -148,7 +148,7 @@ public class SnapshotTest {
         }
     }
     
-    private static Set<String> ignoreReciepects = Sets.newHashSet("SSA-L9V5-6FNQ-NJKX-8UNH9");
+    private static Set<String> ignoreReciepects = Sets.newHashSet("CDW-L9V5-6FNQ-NJKX-8UNH9");
     static void ssPaymentTxsSnapshot(){
         Db.init();
         Connection con = null;

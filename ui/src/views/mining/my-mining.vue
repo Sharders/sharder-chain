@@ -155,14 +155,14 @@
     }
 
     .my-mining .tabs .is-active .el-radio-button__inner {
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .my-mining .tabs .btn.is-active:after {
         content: "";
         display: inline-block;
         position: absolute;
-        background: #513ac8;
+        background: #3fb09a;
         top: 30px;
         width: 60px;
         height: 4px;
@@ -207,7 +207,7 @@
         width: 33%;
         display: inline-block;
         text-align: center;
-        background: #513ac8;
+        background: #3fb09a;
         color: #fff;
         border-bottom-left-radius: 6px;
         border-top-left-radius: 6px;
@@ -241,7 +241,7 @@
     }
 
     .mining-list.create + .history {
-        color: #513ac8;
+        color: #3fb09a;
         cursor: pointer;
     }
 

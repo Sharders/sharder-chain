@@ -974,7 +974,7 @@
             .title {
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner,
                 .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-                    background-color: #493eda;
+                    background-color: #3fb09a;
                 }
 
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -982,7 +982,7 @@
                 }
 
                 .el-radio-button__inner:hover {
-                    color: #493eda;
+                    color: #3fb09a;
                 }
             }
 
@@ -1014,7 +1014,7 @@
                     }
 
                     .linker {
-                        color: #493eda;
+                        color: #3fb09a;
                         cursor: pointer;
 
                         a {
@@ -1064,7 +1064,7 @@
                 span {
                     line-height: 60px;
                     font-size: 16px;
-                    color: #333;
+                    color: #555;
                 }
             }
 
@@ -1073,7 +1073,7 @@
 
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner,
                 .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-                    background-color: #493eda;
+                    background-color: #3fb09a;
                 }
 
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -1081,7 +1081,7 @@
                 }
 
                 .el-radio-button__inner:hover {
-                    color: #493eda;
+                    color: #3fb09a;
                 }
 
                 .account_list {
@@ -1136,7 +1136,7 @@
                         }
 
                         .linker {
-                            color: #493eda;
+                            color: #3fb09a;
                             cursor: pointer;
 
                             a {
@@ -1184,7 +1184,7 @@
                 span {
                     line-height: 60px;
                     font-size: 16px;
-                    color: #333;
+                    color: #555;
                 }
             }
 

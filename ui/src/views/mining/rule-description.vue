@@ -60,18 +60,18 @@
         font-size: 27px;
         font-weight: bold;
         padding: 30px 0 0 0;
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .description .description-info {
-        color: #513ac8;
+        color: #3fb09a;
         padding: 10px 0 30px
     }
 
     .rule-description .description .info {
         padding: 15px;
         color: #fff;
-        background: #513ac8;
+        background: #3fb09a;
         border-radius: 4px;
         margin: 0 0 15px 0;
     }

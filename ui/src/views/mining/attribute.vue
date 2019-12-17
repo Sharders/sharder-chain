@@ -75,6 +75,7 @@
                 </div>
             </div>
         </div>
+
         <!--矿池属性-->
         <div v-if="isAttribute">
             <div class="mining-attribute">
@@ -108,7 +109,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} SS
+                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} MW
                                 </button>
                             </el-col>
                             <el-col :span="12">
@@ -130,7 +131,7 @@
                 <span class="img-close" @click="miningMask('isJoinPool')"></span>
                 <h1 class="title">{{$t('mining.attribute.investing_diamonds')}}</h1>
                 <p class="attribute">
-                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} | 
+                    {{$t('mining.attribute.currently_available') + $global.getSSNumberFormat(miningInfo.investmentTotal - miningInfo.currentInvestment)}} |
                     {{$t('mining.attribute.pool_capacity') + $global.getSSNumberFormat(miningInfo.investmentTotal)}}
                 </p>
 <!--                <p class="input">-->
@@ -241,27 +242,27 @@
             displayBtn(btnName){
                 const _t = this;
                 if('join' === btnName) {
-                    return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal 
-                    && typeof(_t.secretPhrase) !== 'undefined' 
-                    &&  _t.$global.optHeight.join < _t.newestBlock.height 
-                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height 
+                    return _t.miningInfo.currentInvestment < _t.miningInfo.investmentTotal
+                    && typeof(_t.secretPhrase) !== 'undefined'
+                    &&  _t.$global.optHeight.join < _t.newestBlock.height
+                    && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height
                     && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('quit' === btnName) {
-                    return typeof(_t.miningInfo.consignor) !== 'undefined' 
-                    && typeof(_t.miningInfo.consignor.txs) !== 'undefined' 
-                    && _t.miningInfo.consignor.txs.length > 0 
-                    && typeof(_t.secretPhrase) !== 'undefined' 
-                    && _t.$global.optHeight.quit < _t.newestBlock.height 
+                    return typeof(_t.miningInfo.consignor) !== 'undefined'
+                    && typeof(_t.miningInfo.consignor.txs) !== 'undefined'
+                    && _t.miningInfo.consignor.txs.length > 0
+                    && typeof(_t.secretPhrase) !== 'undefined'
+                    && _t.$global.optHeight.quit < _t.newestBlock.height
                     && _t.miningInfo.endBlockNo - 1 >= _t.newestBlock.height
                     && !_t.deletingPools.includes(_t.miningInfo.poolId);
                 }else if('destroy' === btnName) {
-                    return _t.myAccount === _t.miningInfo.account 
-                        && !_t.$store.state.destroyPool[_t.miningInfo.poolId] 
-                        && typeof(_t.secretPhrase) !== 'undefined' 
+                    return _t.myAccount === _t.miningInfo.account
+                        && !_t.$store.state.destroyPool[_t.miningInfo.poolId]
+                        && typeof(_t.secretPhrase) !== 'undefined'
                         && _t.$global.optHeight.destroy < _t.newestBlock.height;
                 }
                 return false;
-                
+
             },
             formatAmount(row, column) {
                 return this.$global.getSSNumberFormat(row.amount);
@@ -342,7 +343,7 @@
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 360,
-                    feeNQT: 100000000,// 手续费默认是 1 SS
+                    feeNQT: 100000000,// 手续费默认是 1 MW
                     poolId: _this.mining.poolId,
                     amount: joinAmount
                 }, "joinPool").then(res => {
@@ -372,7 +373,7 @@
             myMiningInfo() {
                 let _this = this;
                 _this.loading = true;
-                
+
                 _this.$global.fetch("POST", {
                     account: SSO.account,
                     poolId: _this.mining.poolId,
@@ -412,7 +413,7 @@
                 if(this.joinPool > this.accountInfo.effectiveBalanceNQT / 100000000) {
                     return this.$message.error(this.$t("mining.attribute.not_enough_balance"));
                 }
-                
+
                 let min = this.miningInfo.level.consignor.amount.min / 100000000;
                 let max = this.miningInfo.level.consignor.amount.max / 100000000;
                 if (this.joinPool < min || this.joinPool > max) {
@@ -421,7 +422,7 @@
                         max: max
                     }));
                 }
-                
+
                 if (this.miningInfo.currentInvestment + this.joinPool * 100000000 > this.miningInfo.investmentTotal) {
                     return this.$message.error(this.$t("mining.attribute.exceeding_total"));
                 }
@@ -483,14 +484,14 @@
 <style scoped>
     .pool-attribute .pool-back {
         font-size: 16px;
-        color: #493eda;
+        color: #3fb09a;
         cursor: pointer;
     }
 
     .pool-content .attribute-info {
         padding: 30px;
         background: url("../../assets/img/kuangchi_bg.png") no-repeat center 140px;
-        background-color: #513acB;
+        background-color: #3fb09a;
         height: 300px;
         border-top-right-radius: 6px;
         border-top-left-radius: 6px;
@@ -551,7 +552,7 @@
     .pool-content .my-info h1 {
         font-size: 18px;
         font-weight: bold;
-        color: #333;
+        color: #555;
         padding: 18px 0;
     }
 
@@ -565,7 +566,7 @@
     }
 
     .my-attribute .info {
-        box-shadow: 0 0 2px #513acBaa;
+        box-shadow: 0 0 2px #3fb09aaa;
         height: 100px;
         width: 100%;
         border: none;
@@ -573,7 +574,7 @@
         border-radius: 4px;
         padding: 0;
         font-size: 16px;
-        color: #333;
+        color: #555;
         background: transparent;
     }
 
@@ -600,22 +601,22 @@
     }
 
     .attribute-btn button.join {
-        background: #513acB;
+        background: #3fb09a;
         color: #fff;
     }
 
     .attribute-btn button.exit {
-        border: 1px solid #513acB;
+        border: 1px solid #3fb09a;
         margin-left: 20px;
-        color: #513acB;
+        color: #3fb09a;
     }
 
     .attribute-btn button.join:hover {
-        background: #513acBaa;
+        background: #3fb09aaa;
     }
 
     .attribute-btn button.exit:hover {
-        background: #513acB33;
+        background: #3fb09a33;
     }
 </style>
 <!--矿池属性-->
@@ -633,7 +634,7 @@
     .mining-attribute .attribute h1 {
         text-align: center;
         font-size: 20px;
-        color: #333;
+        color: #555;
         font-weight: bold;
         padding: 28px 0;
     }
@@ -656,7 +657,7 @@
         height: 60px;
         background: transparent;
         margin-top: 10px;
-        color: #513acB;
+        color: #3fb09a;
         font-size: 14px;
     }
 
@@ -684,7 +685,7 @@
     .join-pool .attribute {
         font-size: 14px;
         padding: 20px 0;
-        color: #333;
+        color: #555;
     }
 
     .join-pool .input {
@@ -707,32 +708,32 @@
     }
 
     .btn button.cancel{
-        border: 1px solid #513acB;
-        color: #513acB;
+        border: 1px solid #3fb09a;
+        color: #3fb09a;
         float: left;
         background: #fff;
     }
 
     .btn button.confirm{
         float: right;
-        background: #513acB;
+        background: #3fb09a;
         color: #fff;
         border: none;
     }
 
     button.confirm {
-        background: #513acB;
+        background: #3fb09a;
         color: #fff;
         padding: 5px;
     }
 
     .btn button.cancel:hover {
-        background: #513acB11;
+        background: #3fb09a11;
     }
 
     .btn button.confirm:hover,
     button.confirm:hover {
-        background: #513acBdd;
+        background: #3fb09add;
     }
 
 </style>
@@ -759,7 +760,7 @@
         text-align: center;
         padding-bottom: 20px;
         font-size: 14px;
-        color: #333;
+        color: #555;
     }
 
     .exit-pool .btn {
@@ -888,7 +889,7 @@
             height: 40px;
             outline: none;
             border: none;
-            background: #513acB;
+            background: #3fb09a;
             color: #fff;
             font-size: 15px;
             font-weight: bold;
