@@ -160,7 +160,7 @@
     .history-details .details h1 {
         padding: 0 0 20px;
         font-size: 14px;
-        color: #555;
+        color: #333;
         font-weight: bold;
         text-align: center;
     }
@@ -178,7 +178,7 @@
         width: 100%;
         text-align: center;
         padding: 10px 0;
-        background: #3fb09a;
+        background: #513ac8;
         color: #fff;
         font-size: 15px;
         border-bottom-left-radius: 6px;

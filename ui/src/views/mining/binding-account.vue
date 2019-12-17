@@ -283,7 +283,7 @@
             cursor: pointer;
             color: #fff;
             padding: 10px 20px;
-            background: #00D6A3;
+            background: #0000ff;
             border-top-left-radius: 20px;
             border-bottom-left-radius: 20px;
             position: absolute;
@@ -382,7 +382,7 @@
         }
 
         .mining .pool-set .pool-title {
-            color: #555;
+            color: #333;
             margin: 0 0 20px 0;
         }
 
@@ -457,23 +457,23 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/img/account-circle-fill.svg") no-repeat center 26px;
+            background: url("../../assets/img/index.png") no-repeat center 26px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/img/pool-default.svg") no-repeat center 26px;
+            background: url("../../assets/img/personal.png") no-repeat center 26px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/img/account-circle-line.svg") no-repeat center 26px;
+            background: url("../../assets/img/index-1.png") no-repeat center 26px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/img/pool-click.svg") no-repeat center 26px;
+            background: url("../../assets/img/personal-1.png") no-repeat center 26px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-            color: #3fb09a !important;
+            color: #513ac8 !important;
         }
 
         .mining .mining-list .mining-list-info {
@@ -518,7 +518,7 @@
     }
 
     .introduce .mining-info {
-        background: #3fb09a;
+        background: #513ac8;
         border-radius: 4px;
         color: #fff;
         padding: 15px 20px;
@@ -537,7 +537,7 @@
 
     .introduce > div p {
         font-size: 12px;
-        color: #555;
+        color: #333;
     }
 
     .introduce .info {
@@ -557,11 +557,11 @@
         border: none;
         font-size: 15px;
         color: #fff;
-        background: #3fb09a;
+        background: #513ac8;
     }
 
     .introduce .btn p {
-        color: #3fb09a;
+        color: #513ac8;
         text-align: center;
     }
 
@@ -581,7 +581,7 @@
         padding: 15px 0;
         font-size: 14px;
         font-weight: bold;
-        color: #555;
+        color: #333;
         text-align: center;
     }
 
@@ -591,7 +591,7 @@
 
     .account p {
         font-size: 12px;
-        color: #555;
+        color: #333;
         padding: 0 0 10px;
     }
 
@@ -615,7 +615,7 @@
     .account .addressListDiv .addr h3 {
         font-size: 12px;
         font-weight: bold;
-        color: #555;
+        color: #333;
         padding: 0 0 8px;
     }
 
@@ -624,7 +624,7 @@
         height: 40px;
         border-bottom-right-radius: 4px;
         border-bottom-left-radius: 4px;
-        background: #3fb09a;
+        background: #513ac8;
         color: #fff;
         outline: none;
         border: none;
@@ -668,7 +668,7 @@
     }
 
     .binding .el-icon-loading {
-        color: #3fb09a;
+        color: #493eda;
     }
 
     .binding .el-icon-success {

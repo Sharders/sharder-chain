@@ -97,7 +97,7 @@ public class PocScore implements Serializable {
     /**
      * two conditions:
      * - valid node (has the node type statement tx)
-     * - own the MW
+     * - own the SS
      */
     public boolean qualifiedMiner(){
         if(this.ssScore.signum() >= 0 

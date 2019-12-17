@@ -25,7 +25,7 @@ public class SystemInfo implements Serializable {
     private String address;
 
     /**
-     * 绑定的豆匣账号CDW-XXX
+     * 绑定的豆匣账号SSA-XXX
      */
     private String bindRs;
 

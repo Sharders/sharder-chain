@@ -228,7 +228,7 @@ public class Consignor implements Serializable {
 //        System.out.println("Parse from Method =>" + jsonObject.toJSONString());
         String detail = "{" +
                 "  \"mintRewards\": 25600000000,\n" +
-                "  \"creatorRS\": \"CDW-SRT2-36L7-A85Z-7PTME\",\n" +
+                "  \"creatorRS\": \"SSA-SRT2-36L7-A85Z-7PTME\",\n" +
                 "  \"historicalFees\": 0,\n" +
                 "  \"chance\": 1.0,\n" +
                 "  \"historicalIncome\": 25700000000,\n" +

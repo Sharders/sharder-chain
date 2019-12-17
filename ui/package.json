@@ -1,7 +1,7 @@
 {
-  "name": "MWFSClient",
+  "name": "SharderClient",
   "version": "1.0.0",
-  "description": "MWFS Client",
+  "description": "Sharder Client",
   "main": "src/index.js",
   "scripts": {
     "test": "testcafe all tests/index.js --app \"npm run dev\" --app-init-delay 10000",

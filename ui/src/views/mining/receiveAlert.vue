@@ -58,7 +58,7 @@
 
     .receive-alert .active h1 {
         padding: 15px 0 0;
-        color: #555;
+        color: #333;
         font-weight: bold;
     }
 
@@ -71,7 +71,7 @@
         outline: none;
         width: 100%;
         height: 40px;
-        background: #3fb09a;
+        background: #513acB;
         color: #fff;
         font-size: 15px;
         border-bottom-left-radius: 4px;
