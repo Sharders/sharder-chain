@@ -60,9 +60,9 @@
                amountNQT =new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
                if (subtype===2 || subtype===0) {
-                   return "-"+amountNQT + " MW";
+                   return "-"+amountNQT + " SS";
                } else if (subtype===1 || subtype===3){
-                   return "+" + amountNQT + " MW";
+                   return "+" + amountNQT + " SS";
                }
            },
 
@@ -94,7 +94,7 @@
     }
 
     .poolTxDetail .template .content {
-        box-shadow: 1px 1px 10px #3fb09a;
+        box-shadow: 1px 1px 10px #493eda;
         border-radius: 4px;
     }
 </style>

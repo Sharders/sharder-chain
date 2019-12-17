@@ -7,7 +7,7 @@
 
         .account_address {
             //margin-left: 112px;
-            color: #3fb09a;
+            color: #493eda;
             font: {
                 size: 18px;
                 family: "Microsoft YaHei UI";
@@ -35,12 +35,12 @@
             cursor:pointer;
             padding-top: 20px;
             font-weight: bold;
-            color: #3fb09a;
+            color: #493eda;
             font-size: 14px;
         }
         .account_asset {
             margin-top: 20px;
-            color: #555;
+            color: #333;
             font: {
                 size: 24px;
                 family: "Microsoft YaHei UI";
@@ -87,7 +87,7 @@
                 height: 24px;
                 //margin-left: 20px;
                 background: transparent;
-                border: 1px solid #3fb09a;
+                border: 1px solid #493eda;
                 padding: 0 15px 0 0;
                 text-align: center;
             }
@@ -103,13 +103,13 @@
             cursor: pointer;
             font-size: 13px;
             padding: 5px 10px;
-            border: 0.5px solid #3fb09a;
+            border: 0.5px solid #493eda;
             border-radius: 4px;
             margin-right: 10px;
         }
 
         .active {
-            background: #3fb09a;
+            background: #493eda;
             color: #fff;
         }
     }
@@ -184,7 +184,7 @@
                         }
 
                         .el-input__inner:focus {
-                            border-color: #3fb09a;
+                            border-color: #493eda;
                         }
                     }
 

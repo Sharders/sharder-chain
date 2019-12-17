@@ -82,7 +82,7 @@
     }
 
     .nodeTypeContent .template .content {
-        box-shadow: 1px 1px 10px #3fb09a;
+        box-shadow: 1px 1px 10px #493eda;
         border-radius: 4px;
     }
 </style>

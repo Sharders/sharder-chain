@@ -250,7 +250,7 @@ function Scaddress () {
 	} // __________________________
 
 	this.toString = function () {
-		var out = "CDW-";
+		var out = "SSA-";
 
 		for (var i = 0; i < 17; i++) {
 			out += alphabet[codeword[cwmap[i]]];
@@ -305,7 +305,7 @@ function Scaddress () {
 
 		adr = adr.replace(/(^\s+)|(\s+$)/g, "").toUpperCase();
 
-		if (adr.indexOf("CDW-") == 0) adr = adr.substr(4);
+		if (adr.indexOf("SSA-") == 0) adr = adr.substr(4);
 
 		if (adr.match(/^\d{1,20}$/g)) // account id
 		{

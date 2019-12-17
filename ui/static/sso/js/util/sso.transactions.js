@@ -422,12 +422,12 @@ var NRS = (function(NRS, $, undefined) {
 						if (vm == 1) {
 							$popoverTypeTR.find("td:first").html($.t('sso.accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
-							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " MW";
+							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " SS";
 							$popoverVotesTR.find("td:last").html(votesFormatted);
 						}
 						if (mbModel == 1) {
 							if (minBalance > 0) {
-								minBalanceFormatted = NRS.convertToNXT(minBalance) + " MW";
+								minBalanceFormatted = NRS.convertToNXT(minBalance) + " SS";
 								$approveBtn.data('minBalanceFormatted', minBalanceFormatted.escapeHTML());
 							}
 						}
@@ -605,7 +605,7 @@ var NRS = (function(NRS, $, undefined) {
         var change = entry.change;
         var balance = entry.balance;
         var balanceType = "nxt";
-        var balanceEntity = "MW";
+        var balanceEntity = "SS";
         var holdingIcon = "";
         if (change < 0) {
             change = String(change).substring(1);

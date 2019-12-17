@@ -35,7 +35,7 @@
                     &:first-child {
                         font-weight: bold;
                         font-size: 20px;
-                        color: #555;
+                        color: #333;
                     }
                 }
             }
@@ -128,7 +128,7 @@
             height: 23px;
             //margin-left: 20px;
             background: transparent;
-            border: 0.5px solid #3fb09a;
+            border: 0.5px solid #493eda;
             padding: 0 15px 0 0;
             text-align: center;
             line-height: 0px;
@@ -145,13 +145,13 @@
         cursor: pointer;
         font-size: 10px;
         padding: 5px 10px;
-        border: 0.5px solid #3fb09a;
+        border: 0.5px solid #493eda;
         border-radius: 4px;
         margin-right: 10px;
     }
 
     .active {
-        background: #3fb09a;
+        background: #493eda;
         color: #fff;
     }
 }

@@ -757,7 +757,7 @@
                 publicKey: SSO.publicKey,
                 messageForm: {
                     errorCode: false,
-                    receiver: "CDW-____-____-____-_____",
+                    receiver: "SSA-____-____-____-_____",
                     message: "",
                     isEncrypted: false,
                     hasPublicKey: false,
@@ -770,7 +770,7 @@
                 },
                 file: null,
                 transfer: {
-                    receiver: "CDW-____-____-____-_____",
+                    receiver: "SSA-____-____-____-_____",
                     number: 0,
                     fee: 1,
                     hasMessage: false,
@@ -905,7 +905,7 @@
                     sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
                     modifyMnemonicWord: [{
                         required: true,
-                        // message: this.$t('rules.mustRequired')
+                        // message: this.$t('rules.mustRequired') 
                         validator: (rule, value, callback) => {
                             if (value) {
                                 if (this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase) {
@@ -957,7 +957,7 @@
                     sharderPwd: [{ required: true, message: this.$t('rules.mustRequired') }],
                     modifyMnemonicWord: [{
                         required: true,
-                        // message: this.$t('rules.mustRequired')
+                        // message: this.$t('rules.mustRequired') 
                         validator: (rule, value, callback) => {
                             if (value) {
                                 if (this.hubsetting.modifyMnemonicWord !== SSO.secretPhrase) {
@@ -1229,7 +1229,7 @@
                     series: [{
                         data: barchat.series,
                         type: 'bar',
-                        color: '#3fb09a',
+                        color: '#493eda',
                     }]
                 };
                 if (option && typeof option === "object") {
@@ -1278,7 +1278,7 @@
                     series: [{
                         data: yields.series,
                         type: 'line',
-                        color: '#3fb09a',
+                        color: '#493eda',
                         smooth: true
                     }]
                 };
@@ -1422,7 +1422,7 @@
                 }
 
                 if (_this.hubsetting.SS_Address !== '') {
-                    const pattern = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                    const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                     if (!_this.hubsetting.SS_Address.toUpperCase().match(pattern)) {
                         _this.$message.warning(_this.$t('notification.hubsetting_account_address_error_format'));
                         return false;
@@ -1668,7 +1668,7 @@
                         return;
                     }
                 });
-                if (_this.messageForm.receiver === "CDW-____-____-____-_____" ||
+                if (_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                     _this.messageForm.receiver === "___-____-____-____-_____") {
                     formData.append("recipient", "");
                 } else {
@@ -1685,7 +1685,7 @@
                 formData.append("publicKey", SSO.publicKey);
                 formData.append("deadline", '1440');
                 if (_this.messageForm.isEncrypted) {
-                    if (_this.messageForm.receiver === "CDW-____-____-____-_____" ||
+                    if (_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                         _this.messageForm.receiver === "___-____-____-____-_____") {
                         _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                         return;
@@ -1744,12 +1744,12 @@
                 let formData = new FormData();
 
 
-                if (_this.transfer.receiver === "CDW-____-____-____-_____" ||
+                if (_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
-                const pattern = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if (!_this.transfer.receiver.toUpperCase().match(pattern)) {
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
@@ -1827,14 +1827,14 @@
                 let encrypted = {};
                 let formData = new FormData();
                 console.log(_this.messageForm);
-                if (_this.messageForm.receiver === "CDW-____-____-____-_____" ||
+                if (_this.messageForm.receiver === "SSA-____-____-____-_____" ||
                     _this.messageForm.receiver === "___-____-____-____-_____" ||
-                    _this.messageForm.receiver === "CDW" ||
+                    _this.messageForm.receiver === "SSA" ||
                     _this.messageForm.receiver === "") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
-                const pattern = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if (!_this.messageForm.receiver.toUpperCase().match(pattern)) {
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
@@ -1939,14 +1939,14 @@
                 let encrypted = {};
                 let formData = new FormData();
 
-                if (_this.transfer.receiver === "CDW-____-____-____-_____" ||
+                if (_this.transfer.receiver === "SSA-____-____-____-_____" ||
                     _this.transfer.receiver === "___-____-____-____-_____" ||
-                    _this.transfer.receiver === "CDW" ||
+                    _this.transfer.receiver === "SSA" ||
                     _this.transfer.receiver === "") {
                     _this.$message.warning(_this.$t('notification.sendmessage_null_account'));
                     return;
                 }
-                const pattern = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if (!_this.transfer.receiver.toUpperCase().match(pattern)) {
                     _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                     return;
@@ -2281,7 +2281,7 @@
 
                 const _this = this;
                 _this.messageForm.errorCode = false;
-                _this.messageForm.receiver = "CDW-____-____-____-_____";
+                _this.messageForm.receiver = "SSA-____-____-____-_____";
                 _this.messageForm.message = "";
                 _this.messageForm.isEncrypted = false;
                 _this.messageForm.hasPublicKey = false;
@@ -2293,7 +2293,7 @@
                 _this.messageForm.fee = 1;
                 _this.file = null;
 
-                _this.transfer.receiver = "CDW-____-____-____-_____";
+                _this.transfer.receiver = "SSA-____-____-____-_____";
                 _this.transfer.number = 0;
                 _this.transfer.fee = 1;
                 _this.transfer.hasMessage = false;
@@ -2514,7 +2514,7 @@
                 1. sharder.HubBindAddress has value；
                 2. using secretPhrase to login；
                 3. NodeType is Hub；
-                4. Hub bind MW address must equals to user account address。
+                4. Hub bind SS address must equals to user account address。
                 */
                 return this.secretPhrase
                     && !this.initHUb
@@ -2573,10 +2573,10 @@
             validationReceiver(val) {
                 let _this = this;
                 let receiver = _this[val].receiver;
-                if (receiver === "___-____-____-____-_____" || receiver === "CDW-____-____-____-_____") {
+                if (receiver === "___-____-____-____-_____" || receiver === "SSA-____-____-____-_____") {
                     return
                 }
-                const pattern = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
+                const pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
                 if (!receiver.toUpperCase().match(pattern)) {
                     return _this.$message.warning(_this.$t('notification.sendmessage_account_error_format'));
                 }
@@ -2721,12 +2721,12 @@
 <style scoped lang="scss" type="text/scss">
     .el-select-dropdown {
         .el-select-dropdown__item.selected {
-            background-color: #3fb09a !important;
+            background-color: #493eda !important;
             color: #fff !important;
         }
 
         .el-select-dropdown__item.selected.hover {
-            background-color: #3fb09a !important;
+            background-color: #493eda !important;
             color: #fff !important;
         }
     }
@@ -2745,7 +2745,7 @@
     }
 
     .calculate_fee {
-        background-color: #3fb09a;
+        background-color: #493eda;
         color: #fff;
         border-radius: 4px;
         border: none;

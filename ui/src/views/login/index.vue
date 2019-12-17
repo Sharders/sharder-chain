@@ -19,7 +19,7 @@
             </el-col>
 
             <el-col :span="24">
-                <img src="../../assets/img/add.svg"/>
+                <img src="../../assets/img/create_account.png"/>
                 <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>
@@ -33,7 +33,7 @@
             return {
                 tabTitle: "key",
                 secretPhrase: "",
-                account: "CDW-____-____-____-_____",
+                account: "SSA-____-____-____-_____",
                 type: 1,
                 userConfig: [],
                 hubBindAddress:"",
@@ -155,7 +155,7 @@
                         _this.$message.warning(_this.$t("password_modal.input_account"));
                         return false;
                     }
-                    if (!_this.account.toUpperCase().match(/^(CDW)-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{5})/)) {
+                    if (!_this.account.toUpperCase().match(/^(SSA)-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{5})/)) {
                         _this.$message.warning(_this.$t("password_modal.account_error"));
                         return false;
                     }
@@ -168,12 +168,12 @@
 
 <style>
     .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-        background-color: #3fb09a;
-        border-color: #3fb09a;
+        background-color: #513ac8;
+        border-color: #513ac8;
     }
 
     .content_login .title .el-radio-button__inner:hover {
-        color: #3fb09a;
+        color: #513ac8;
     }
 
     .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -189,7 +189,7 @@
         text-align: center;
         font-size: 24px;
         font-weight: bold;
-        color: #3fb09a;
+        color: #493eda;
         margin-top: 40px;
     }
 
@@ -201,7 +201,7 @@
     .content_welcome .welcome_main .init_hub_btn {
         width: 400px;
         height: 40px;
-        background: #3fb09a;
+        background: #493eda;
         border: none;
         color: #fff;
         font-size: 18px;
@@ -211,8 +211,8 @@
 
     .content_welcome .welcome_main .init_hub_btn:hover {
         background: #fff;
-        color: #3fb09a;
-        border: 1px solid #3fb09a;
+        color: #493eda;
+        border: 1px solid #493eda;
         transition: .4s;
     }
 

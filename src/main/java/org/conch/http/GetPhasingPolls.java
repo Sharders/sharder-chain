@@ -1,5 +1,5 @@
 /*
- *  Copyright © 2017-2018 MW Foundation.
+ *  Copyright © 2017-2018 Sharder Foundation.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
