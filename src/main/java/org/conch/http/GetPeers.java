@@ -120,9 +120,14 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
                 new Thread("换ip地址"){
                     public void run(){
                         final String result = byIPtoCoordinates("https://sharder.org/api/front/coordinates/ip",JSONArray.toJSONString(peersJSON));
-                        CoordinatesMap.put("CoordinatesList",result);
-                        CoordinatesMap.put("peersLength",peersJSON.size());
-                        tempCoordinatesMap.putAll(CoordinatesMap);
+
+                        if (result.substring(0,8).equals("ErrorInfo")){
+                            return;
+                        }else{
+                            CoordinatesMap.put("CoordinatesList",result);
+                            CoordinatesMap.put("peersLength",peersJSON.size());
+                            tempCoordinatesMap.putAll(CoordinatesMap);
+                        }
                     }
                 }.start();
             }
