@@ -29,6 +29,7 @@
             width: 14px;
             height: 14px;
             cursor: pointer;
+            vertical-align: middle;
         }
         text-align: center;
     }
@@ -48,6 +49,30 @@
         //color: #fff;
         margin: 40px auto 30px;
         font-size: 16px;
+    }
+}
+
+@media only screen and (max-width: 780px) {
+    .container_login .content {
+        width: 375px;
+    }
+    .container_login .content .content_message {
+        padding: 0 15px;
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+    .container_login .content .content_operation {
+        margin: 0 15px 30px;
+        padding: 0 15px;
+        .content_container {
+            width: auto;
+        }
+    }
+    .content_login .login_operation > input {
+        width: 80%;
+    }
+    .content_login .login_operation .common_btn {
+        width: 60%;
     }
 }
 

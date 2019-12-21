@@ -32,7 +32,7 @@
                                 <th class="gutter"></th>
                             </tr>
                         </table>
-                        <div class="table_body">
+                        <div id="account_info_table_body" class="table_body">
                             <table class="table">
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo">
@@ -156,7 +156,7 @@
                 <img class="close" src="../../assets/img/error.svg" @click="closeDialog()"/>
                 <h4 class="modal-title">
                     <span>
-                        {{$t('dialog.block_info_title1')}} - {{blockInfo.block}} | {{$t('dialog.account_transaction_block_height')}} - {{blockInfo.height}}
+                        {{$t('dialog.block_info_title1')}} - {{blockInfo.block}} |<br class="mobile"> {{$t('dialog.account_transaction_block_height')}} - {{blockInfo.height}}
                     </span>
                 </h4>
             </div>
