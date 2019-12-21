@@ -4,12 +4,24 @@
             <el-row :gutter="20">
                 <el-col :xl="6" :lg="6" :md="6" :sm="24" :xs="24">
                     <el-card shadow="hover" class="content">
-                        <p> 
+                        <p>
                             <strong>IP: </strong>{{ pocInfo.ip }}
                         </p>
-                        <p class="node-type"> 
+                        <p class="node-type">
                             <strong>{{ $t('poc.nodeType') }}: </strong>{{ parseNodeType(pocInfo.type) }}
                         </p>
+                        
+                        <div class="mobile">
+                            <p class="node-type">
+                                <strong>{{ $t('poc.type') }}: </strong>{{ parseSubType(pocInfo.subType) }}
+                            </p>
+                            <p class="node-type">
+                                <strong>{{ $t('poc.nodeType') }}: </strong>{{ parseNodeType(pocInfo.nodeType) }}
+                            </p>
+                            <p class="node-type">
+                                <strong>{{ $t('poc.heightandblock_id') }}: </strong>{{ pocInfo.heightandblock }}
+                            </p>
+                        </div>
                        <!-- <p class="linked-account">
                             <strong>{{ $t('poc.linkedAccount') }}: </strong><br/>
                             {{ rsAccount(pocInfo.accountId) }}
@@ -44,8 +56,27 @@
                         return this.$root.$t("poc.normal_node");
                 }
             },
+            parseSubType(subType) {
+                /*console.log("poc")*/
+                switch (subType) {
+                    case 0:
+                        return this.$root.$t("transaction.transaction_type_poc_node_type");
+                    case 1:
+                        return this.$root.$t("transaction.transaction_type_poc_node_config");
+                    case 2:
+                        return this.$root.$t("transaction.transaction_type_poc_weight_table");
+                    case 3:
+                        return this.$root.$t("transaction.transaction_type_poc_online");
+                    case 4:
+                        return this.$root.$t("transaction.transaction_type_poc_block_missing");
+                    case 5:
+                        return this.$root.$t("transaction.transaction_type_poc_bc_speed");
+                    default:
+                        return this.$root.$t("transaction.transaction_type_poc");
+                }
+            },
             rsAccount(accountId) {
-                //TODO  calculate the right address when the account id < 0 
+                //TODO  calculate the right address when the account id < 0
                 let nxtAddress = new NxtAddress();
                 let accountRS = "";
 

@@ -22,38 +22,40 @@
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
                             <tr>
-                                <th>{{$t('dialog.account_transaction_time')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
                                 <th>{{$t('dialog.account_transaction_id')}}</th>
-                                <th>{{$t('dialog.account_transaction_type')}}</th>
-                                <th>{{$t('dialog.account_transaction_amount')}}</th>
-                                <th>{{$t('dialog.account_info_fee')}}</th>
-                                <th>{{$t('dialog.account_info_account')}}</th>
-                                <th>{{$t('dialog.account_info_operating')}}</th>
-                                <th class="gutter"></th>
+                                <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_info_account')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_info_operating')}}</th>
+                                <th class="gutter pc-table"></th>
+                                <th class="mobile" style="width: 20px"></th>
                             </tr>
                         </table>
                         <div id="account_info_table_body" class="table_body">
                             <table class="table">
                                 <tbody>
-                                <tr v-for="transactions in accountTransactionInfo">
-                                    <td>
+                                <tr v-for="transactions in accountTransactionInfo" @click="openTransactionDialogMobile(transactions.transaction)">
+                                    <td class="pc-table">
                                         <span>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
                                         <span class="utc-time">{{$global.formatTime(transactions.timestamp)}} +UTC</span>
                                     </td>
                                     <td>{{transactions.transaction}}</td>
-                                    <td class="transaction-img">
+                                    <td class="transaction-img pc-table">
                                         <span class="bg"
                                               :class="'type' + transactions.type + transactions.subtype"></span>
                                         <span>{{$global.getTransactionTypeStr(transactions)}}</span>
                                     </td>
-                                    <td>{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
-                                    <td>{{$global.getTransactionFeeNQT(transactions)}}</td>
-                                    <td class="linker" style="font-size:11px;" @click="checkAccountInfo(transactions.senderRS)">
+                                    <td class="pc-table">{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
+                                    <td class="pc-table">{{$global.getTransactionFeeNQT(transactions)}}</td>
+                                    <td class="linker pc-table" style="font-size:11px;" @click="checkAccountInfo(transactions.senderRS)">
                                         <span>{{transactions.senderRS}}</span>
                                     </td>
-                                    <td class="linker" style="font-size:11px;" @click="openTransactionDialog(transactions.transaction)">
+                                    <td class="linker pc-table" style="font-size:11px;" @click="openTransactionDialog(transactions.transaction)">
                                         {{$t('dialog.account_info_view_detail')}}
                                     </td>
+                                    <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -175,37 +177,39 @@
                     <table class="table">
                         <tbody>
                         <tr>
-                            <th>{{$t('dialog.account_transaction_time')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
                             <th>{{$t('dialog.account_transaction_id')}}</th>
-                            <th>{{$t('dialog.account_transaction_type')}}</th>
-                            <th>{{$t('dialog.account_transaction_amount')}}</th>
-                            <th>{{$t('dialog.account_info_fee')}}</th>
-                            <th>{{$t('dialog.account_transaction_sender')}}</th>
-                            <th>{{$t('dialog.account_transaction_recipient')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_recipient')}}</th>
+                            <th class="mobile" style="width: 20px"></th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
-                            <td>
+                            <td class="pc-table">
                                 <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
                                 <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
                             <td class="linker" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
-                            <td class="transaction-img">
+                            <td class="transaction-img pc-table">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
                             </td>
-                            <td>{{$global.getTransactionAmountNQT(transaction,"")}}</td>
-                            <td>{{$global.getTransactionFeeNQT(transaction)}}</td>
-                            <td v-if="transaction.type === 9">CoinBase</td>
-                            <td class="linker" style="font-size:11px;" v-else @click="openAccountInfo(transaction.senderRS)">
+                            <td class="pc-table">{{$global.getTransactionAmountNQT(transaction,"")}}</td>
+                            <td class="pc-table">{{$global.getTransactionFeeNQT(transaction)}}</td>
+                            <td class="pc-table" v-if="transaction.type === 9">CoinBase</td>
+                            <td class="linker pc-table" style="font-size:11px;" v-else @click="openAccountInfo(transaction.senderRS)">
                                 {{transaction.senderRS}}
                             </td>
-                            <td class="linker" style="font-size:11px;" v-if="transaction.type === 9"
+                            <td class="linker pc-table" style="font-size:11px;" v-if="transaction.type === 9"
                                 @click="openAccountInfo(transaction.senderRS)">
                                 {{transaction.senderRS}}
                             </td>
-                            <td class="linker" style="font-size:11px;" v-else @click="openAccountInfo(transaction.recipientRS)">
+                            <td class="linker pc-table" style="font-size:11px;" v-else @click="openAccountInfo(transaction.recipientRS)">
                                 {{transaction.recipientRS}}
                             </td>
+                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                         </tr>
                         </tbody>
                     </table>
@@ -284,7 +288,7 @@
                     </table>
                 </div>
                 <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
-                    <el-table :data="pocInfoList" class="poc" style="width: 100%">
+                    <el-table :data="pocInfoList" class="poc pc" style="width: 100%">
                         <el-table-column type="expand">
                             <template slot-scope="props">
                                 <el-form label-position="left" inline>
@@ -322,6 +326,24 @@
                             prop="heightandblock"
                             align="center"
                             :label="$t('poc.heightandblock_id')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="transaction"
+                            align="center"
+                            :label="$t('poc.tx')">
+                        </el-table-column>
+                    </el-table>
+                    
+                    <!-- mobile -->
+                    <el-table :data="pocInfoList" class="poc mobile" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline>
+                                    <el-row>
+                                        <PocDetailContent :rowData="props.row"></PocDetailContent>
+                                    </el-row>
+                                </el-form>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="transaction"
@@ -690,6 +712,11 @@
                         _this.accountTransactionDialog = true;
                     }
                 });
+            },
+            openTransactionDialogMobile(transaction) {
+                if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
+                    this.openTransactionDialog(transaction)
+                }
             },
             openAccountInfo: function (accountRS) {
                 const _this = this;
@@ -1237,4 +1264,15 @@
             }
         }
     }
+
+
+    @media only screen and (max-width: 780px) {
+        #account_info .modal-body .account_allInfo .account_list .table td {
+            width: 300px;
+        }
+        #account_info .modal-body .account_allInfo .account_list .table_body {
+            max-height: 300px;
+        }
+    }
+    
 </style>
